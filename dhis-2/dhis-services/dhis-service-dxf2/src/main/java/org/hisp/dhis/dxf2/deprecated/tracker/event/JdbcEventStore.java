@@ -150,23 +150,23 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class JdbcEventStore implements EventStore {
   private static final String RELATIONSHIP_IDS_QUERY =
-      " left join (select ri.eventid as ri_psi_id, json_agg(ri.relationshipid) as psi_rl FROM relationshipitem ri"
-          + " GROUP by ri_psi_id)  as fgh on fgh.ri_psi_id=event.psi_id ";
+      " left join (select ri.eventid as ri_psi_id, json_agg(ri.relationshipid) as psi_rl from relationshipitem ri"
+          + " group by ri_psi_id) as fgh on fgh.ri_psi_id=event.psi_id ";
 
   private static final String PSI_EVENT_COMMENT_QUERY =
-      "select psic.eventid    as psic_id,"
+      "select psic.eventid as psic_id,"
           + " psinote.noteid as psinote_id,"
-          + " psinote.notetext            as psinote_value,"
-          + " psinote.created                as psinote_storeddate,"
-          + " psinote.creator                as psinote_storedby,"
-          + " psinote.uid                    as psinote_uid,"
-          + " psinote.lastupdated            as psinote_lastupdated,"
-          + " userinfo.userinfoid            as usernote_id,"
-          + " userinfo.code                  as usernote_code,"
-          + " userinfo.uid                   as usernote_uid,"
-          + " userinfo.username              as usernote_username,"
-          + " userinfo.firstname             as userinfo_firstname,"
-          + " userinfo.surname               as userinfo_surname"
+          + " psinote.notetext as psinote_value,"
+          + " psinote.created as psinote_storeddate,"
+          + " psinote.creator as psinote_storedby,"
+          + " psinote.uid as psinote_uid,"
+          + " psinote.lastupdated as psinote_lastupdated,"
+          + " userinfo.userinfoid as usernote_id,"
+          + " userinfo.code as usernote_code,"
+          + " userinfo.uid as usernote_uid,"
+          + " userinfo.username as usernote_username,"
+          + " userinfo.firstname as userinfo_firstname,"
+          + " userinfo.surname as userinfo_surname"
           + " from event_notes psic"
           + " inner join note psinote"
           + " on psic.noteid = psinote.noteid"
@@ -307,16 +307,14 @@ public class JdbcEventStore implements EventStore {
 
   private static final String UPDATE_EVENT_SQL;
 
-  private static final String PERCENTAGE_SIGN = ", '%' ";
-
   /**
    * Updates Tracked Entity Instance after an event update. In order to prevent deadlocks, SELECT
    * ... FOR UPDATE SKIP LOCKED is used before the actual UPDATE statement. This prevents deadlocks
    * when Postgres tries to update the same TEI.
    */
   private static final String UPDATE_TEI_SQL =
-      "SELECT * FROM trackedentity WHERE uid IN (:teiUids) FOR UPDATE SKIP LOCKED;"
-          + "UPDATE trackedentity SET lastupdated = :lastUpdated, lastupdatedby = :lastUpdatedBy WHERE uid IN (:teiUids)";
+      "select * from trackedentity where uid in (:teiUids) for update skip locked;"
+          + "update trackedentity set lastupdated = :lastUpdated, lastupdatedby = :lastUpdatedBy where uid in (:teiUids)";
 
   static {
     INSERT_EVENT_SQL =
@@ -384,7 +382,7 @@ public class JdbcEventStore implements EventStore {
         sql,
         mapSqlParameterSource,
         resultSet -> {
-          log.debug("Event query SQL: " + sql);
+          log.debug("Event query SQL: '{}'", sql);
 
           Set<String> notes = new HashSet<>();
 
@@ -568,10 +566,7 @@ public class JdbcEventStore implements EventStore {
         try {
           parameters[i] = getSqlParametersForUpdate(events.get(i));
         } catch (SQLException | JsonProcessingException e) {
-          log.warn(
-              "PSI failed to update and will be ignored. PSI UID: " + events.get(i).getUid(),
-              events.get(i).getUid(),
-              e);
+          log.warn("PSI failed to update and will be ignored: '{}'", events.get(i).getUid(), e);
         }
       }
 
@@ -598,7 +593,7 @@ public class JdbcEventStore implements EventStore {
         sql,
         mapSqlParameterSource,
         rowSet -> {
-          log.debug("Event query SQL: " + sql);
+          log.debug("Event query SQL: '{}'", sql);
 
           List<Map<String, String>> list = new ArrayList<>();
 
@@ -636,7 +631,7 @@ public class JdbcEventStore implements EventStore {
         sql,
         mapSqlParameterSource,
         resultSet -> {
-          log.debug("Event query SQL: " + sql);
+          log.debug("Event query SQL: '{}'", sql);
 
           EventRow eventRow = new EventRow();
 
@@ -850,7 +845,7 @@ public class JdbcEventStore implements EventStore {
 
     sql = sql.replaceFirst("limit \\d+ offset \\d+", "");
 
-    log.debug("Event query count SQL: " + sql);
+    log.debug("Event query count SQL: '{}'", sql);
 
     return jdbcTemplate.queryForObject(sql, mapSqlParameterSource, Integer.class);
   }
@@ -944,14 +939,14 @@ public class JdbcEventStore implements EventStore {
       String teaCol = statementBuilder.columnQuote(queryItem.getItemId() + "ATT");
 
       attributes
-          .append(" INNER JOIN trackedentityattributevalue ")
+          .append(" inner join trackedentityattributevalue ")
           .append(teaValueCol)
-          .append(" ON ")
+          .append(" on ")
           .append(teaValueCol + ".trackedentityid")
           .append(" = TEI.trackedentityid ")
-          .append(" INNER JOIN trackedentityattribute ")
+          .append(" inner join trackedentityattribute ")
           .append(teaCol)
-          .append(" ON ")
+          .append(" on ")
           .append(teaValueCol + ".trackedentityattributeid")
           .append(EQUALS)
           .append(teaCol + ".trackedentityattributeid")
@@ -976,7 +971,7 @@ public class JdbcEventStore implements EventStore {
       // to cast is really a number.
       if (queryItem.isNumeric()) {
         query
-            .append(" CASE WHEN ")
+            .append(" case when ")
             .append(lower(teaCol + ".valueType"))
             .append(" in (")
             .append(
@@ -986,7 +981,7 @@ public class JdbcEventStore implements EventStore {
                     .map(SqlUtils::singleQuote)
                     .collect(Collectors.joining(",")))
             .append(")")
-            .append(" THEN ");
+            .append(" then ");
       }
 
       List<String> filterStrings = new ArrayList<>();
@@ -1011,7 +1006,7 @@ public class JdbcEventStore implements EventStore {
       query.append(String.join(AND, filterStrings));
 
       if (queryItem.isNumeric()) {
-        query.append(" END ");
+        query.append(" end ");
       }
     }
 
@@ -1734,11 +1729,12 @@ public class JdbcEventStore implements EventStore {
   private String getCategoryOptionComboQuery(User user) {
     String joinCondition =
         "inner join categoryoptioncombo coc on coc.categoryoptioncomboid = psi.attributeoptioncomboid "
-            + " inner join (select coc.categoryoptioncomboid as id,"
+            + " inner join lateral (select coc.categoryoptioncomboid as id,"
             + " string_agg(co.uid, ';') as co_uids, count(co.categoryoptionid) as co_count"
             + " from categoryoptioncombo coc "
             + " inner join categoryoptioncombos_categoryoptions cocco on coc.categoryoptioncomboid = cocco.categoryoptioncomboid"
             + " inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid"
+            + " where psi.attributeoptioncomboid = coc.categoryoptioncomboid"
             + " group by coc.categoryoptioncomboid ";
 
     if (!isSuper(user)) {
@@ -1872,10 +1868,7 @@ public class JdbcEventStore implements EventStore {
             try {
               bindEventParamsForInsert(ps, event);
             } catch (JsonProcessingException | SQLException e) {
-              log.warn(
-                  "PSI failed to persist and will be ignored. PSI UID: " + event.getUid(),
-                  event.getUid(),
-                  e);
+              log.warn("PSI failed to persist and will be ignored: '{}'", event.getUid(), e);
             }
           }
 
@@ -2018,7 +2011,7 @@ public class JdbcEventStore implements EventStore {
       Map<String, EventDataValue> data = eventDataValueJsonReader.readValue(jsonString);
       return JsonEventDataValueSetBinaryType.convertEventDataValuesMapIntoSet(data);
     } catch (IOException e) {
-      log.error("Parsing EventDataValues json string failed. String value: " + jsonString);
+      log.error("Parsing EventDataValues json string failed, string value: '{}'", jsonString);
       throw new IllegalArgumentException(e);
     }
   }
@@ -2199,7 +2192,7 @@ public class JdbcEventStore implements EventStore {
             + USER_SCOPE_ORG_UNIT_PATH_LIKE_MATCH_QUERY;
 
     if (isProgramRestricted(params.getProgram())) {
-      String customSelectedClause = " AND ou.path = :" + COLUMN_ORG_UNIT_PATH + " ";
+      String customSelectedClause = " and ou.path = :" + COLUMN_ORG_UNIT_PATH + " ";
       return createCaptureScopeQuery(user, mapSqlParameterSource, customSelectedClause);
     }
 
@@ -2219,32 +2212,32 @@ public class JdbcEventStore implements EventStore {
       User user, MapSqlParameterSource mapSqlParameterSource, String customClause) {
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
 
-    return " EXISTS(SELECT cs.organisationunitid "
-        + " FROM usermembership cs "
-        + " JOIN organisationunit orgunit ON orgunit.organisationunitid = cs.organisationunitid "
-        + " JOIN userinfo u ON u.userinfoid = cs.userinfoid "
-        + " WHERE u.uid = :"
+    return " exists(select cs.organisationunitid "
+        + " from usermembership cs "
+        + " join organisationunit orgunit on orgunit.organisationunitid = cs.organisationunitid "
+        + " join userinfo u on u.userinfoid = cs.userinfoid "
+        + " where u.uid = :"
         + COLUMN_USER_UID
-        + " AND ou.path like CONCAT(orgunit.path, '%') "
+        + " and ou.path like concat(orgunit.path, '%') "
         + customClause
         + ") ";
   }
 
   private static String getSearchAndCaptureScopeOrgUnitPathMatchQuery(String orgUnitMatcher) {
-    return " (EXISTS(SELECT ss.organisationunitid "
-        + " FROM userteisearchorgunits ss "
-        + " JOIN userinfo u ON u.userinfoid = ss.userinfoid "
-        + " JOIN organisationunit orgunit ON orgunit.organisationunitid = ss.organisationunitid "
-        + " WHERE u.uid = :"
+    return " (exists(select ss.organisationunitid "
+        + " from userteisearchorgunits ss "
+        + " join userinfo u on u.userinfoid = ss.userinfoid "
+        + " join organisationunit orgunit on orgunit.organisationunitid = ss.organisationunitid "
+        + " where u.uid = :"
         + COLUMN_USER_UID
         + AND
         + orgUnitMatcher
-        + " AND p.accesslevel in ('OPEN', 'AUDITED')) "
-        + " OR EXISTS(SELECT cs.organisationunitid "
-        + " FROM usermembership cs "
-        + " JOIN userinfo u ON u.userinfoid = cs.userinfoid "
-        + " JOIN organisationunit orgunit ON orgunit.organisationunitid = cs.organisationunitid "
-        + " WHERE u.uid = :"
+        + " and p.accesslevel in ('OPEN', 'AUDITED')) "
+        + " or exists(select cs.organisationunitid "
+        + " from usermembership cs "
+        + " join userinfo u on u.userinfoid = cs.userinfoid "
+        + " join organisationunit orgunit on orgunit.organisationunitid = cs.organisationunitid "
+        + " where u.uid = :"
         + COLUMN_USER_UID
         + AND
         + orgUnitMatcher

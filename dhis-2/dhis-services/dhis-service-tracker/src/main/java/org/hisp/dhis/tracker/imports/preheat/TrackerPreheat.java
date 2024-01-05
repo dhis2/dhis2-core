@@ -312,6 +312,7 @@ public class TrackerPreheat {
    * @param defaultClass The type of object to retrieve
    * @return The default object of the class provided
    */
+  @SuppressWarnings("unchecked")
   public <T extends IdentifiableObject> T getDefault(Class<T> defaultClass) {
     return (T) this.defaults.get(defaultClass);
   }

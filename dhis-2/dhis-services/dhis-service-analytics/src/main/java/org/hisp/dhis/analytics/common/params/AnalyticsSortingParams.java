@@ -31,7 +31,7 @@ import lombok.Builder;
 import lombok.Data;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
-import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
+import org.hisp.dhis.common.SortDirection;
 
 /** This class represents the sorting parameters for analytics. */
 @Data

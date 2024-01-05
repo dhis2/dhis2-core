@@ -39,7 +39,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
-import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
+import org.hisp.dhis.common.SortDirection;
 import org.junit.jupiter.api.Test;
 
 class PagingAndSortingCriteriaAdapterTest {

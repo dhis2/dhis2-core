@@ -39,6 +39,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;

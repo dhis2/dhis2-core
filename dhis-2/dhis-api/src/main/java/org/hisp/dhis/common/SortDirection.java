@@ -25,25 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.preheat.supplier;
+package org.hisp.dhis.common;
 
-import java.util.List;
-import java.util.stream.Collectors;
-import org.hisp.dhis.tracker.imports.preheat.mappers.PreheatMapper;
-import org.mapstruct.factory.Mappers;
+import java.util.Arrays;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-/**
- * @author Luciano Fiandesio
- */
-public class DetachUtils {
+@Getter
+@AllArgsConstructor
+public enum SortDirection {
+  ASC("asc"),
+  DESC("desc");
 
-  public static <T> List<T> detach(PreheatMapper<T> mapper, List<T> objects) {
-    return objects.stream().map(mapper::map).collect(Collectors.toList());
+  private final String value;
+
+  public static SortDirection of(String value) {
+    return Arrays.stream(values())
+        .filter(sortDirection -> sortDirection.getValue().equalsIgnoreCase(value))
+        .findFirst()
+        .orElseThrow(
+            () ->
+                new IllegalArgumentException(
+                    "'"
+                        + value
+                        + "' is not a valid sort direction. Valid values are: "
+                        + Arrays.toString(SortDirection.values())
+                        + "."));
   }
 
-  @SuppressWarnings("unchecked")
-  public static <T> List<T> detach(Class<? extends PreheatMapper> mapperKlass, List<T> objects) {
-    final PreheatMapper<T> mapper = Mappers.getMapper(mapperKlass);
-    return objects.stream().map(mapper::map).collect(Collectors.toList());
+  public boolean isAscending() {
+    return this == ASC;
   }
 }

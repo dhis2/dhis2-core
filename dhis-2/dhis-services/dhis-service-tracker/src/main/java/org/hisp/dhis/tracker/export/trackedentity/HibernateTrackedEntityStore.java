@@ -48,7 +48,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -76,7 +75,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 
-@Slf4j
 @Repository("org.hisp.dhis.tracker.export.trackedentity.TrackedEntityStore")
 class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<TrackedEntity>
     implements TrackedEntityStore {
