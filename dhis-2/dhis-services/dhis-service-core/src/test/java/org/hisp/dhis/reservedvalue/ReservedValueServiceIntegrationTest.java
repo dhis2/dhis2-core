@@ -261,4 +261,15 @@ class ReservedValueServiceIntegrationTest extends TransactionalIntegrationTest {
     }
     return null;
   }
+
+  /**
+   * Save reserved value and clear session to persist. In the reserved value store, the save method
+   * is not transactional
+   *
+   * @param reservedValue
+   */
+  private void saveReservedValue(ReservedValue reservedValue) {
+    reservedValueStore.save(reservedValue);
+    dbmsManager.clearSession();
+  }
 }
