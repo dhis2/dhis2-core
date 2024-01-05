@@ -219,18 +219,11 @@ public class TrackerBundle {
   public boolean exists(TrackerType type, String uid) {
     Objects.requireNonNull(type);
 
-    switch (type) {
-      case TRACKED_ENTITY:
-        return findTrackedEntityByUid(uid).isPresent();
-      case ENROLLMENT:
-        return findEnrollmentByUid(uid).isPresent();
-      case EVENT:
-        return findEventByUid(uid).isPresent();
-      case RELATIONSHIP:
-        return findRelationshipByUid(uid).isPresent();
-      default:
-        // only reached if a new TrackerDto implementation is added
-        throw new IllegalStateException("TrackerType " + type.getName() + " not yet supported.");
-    }
+    return switch (type) {
+      case TRACKED_ENTITY -> findTrackedEntityByUid(uid).isPresent();
+      case ENROLLMENT -> findEnrollmentByUid(uid).isPresent();
+      case EVENT -> findEventByUid(uid).isPresent();
+      case RELATIONSHIP -> findRelationshipByUid(uid).isPresent();
+    };
   }
 }

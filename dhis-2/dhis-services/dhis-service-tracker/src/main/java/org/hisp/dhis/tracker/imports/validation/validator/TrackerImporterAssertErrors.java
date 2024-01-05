@@ -44,16 +44,11 @@ public class TrackerImporterAssertErrors {
 
   public static final String TRACKED_ENTITY_INSTANCE_CANT_BE_NULL = "TrackedEntity can't be null";
 
-  public static final String ATTRIBUTE_VALUE_MAP_CANT_BE_NULL = "AttributeValueMap can't be null";
-
   public static final String ATTRIBUTE_CANT_BE_NULL = "Attribute can't be null";
 
   public static final String ENROLLMENT_CANT_BE_NULL = "Enrollment can't be null";
 
   public static final String ORGANISATION_UNIT_CANT_BE_NULL = "OrganisationUnit can't be null";
-
-  public static final String OWNER_ORGANISATION_UNIT_CANT_BE_NULL =
-      "Owner OrganisationUnit can't be null";
 
   public static final String TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL =
       "TrackedEntityAttributeValue can't be null";
@@ -65,8 +60,6 @@ public class TrackerImporterAssertErrors {
 
   public static final String CATEGORY_OPTION_COMBO_CANT_BE_NULL =
       "CategoryOptionCombo can't be null";
-
-  public static final String DATE_STRING_CANT_BE_NULL = "Date string can not be null";
 
   public static final String GEOMETRY_CANT_BE_NULL = "Geometry can not be null";
 }

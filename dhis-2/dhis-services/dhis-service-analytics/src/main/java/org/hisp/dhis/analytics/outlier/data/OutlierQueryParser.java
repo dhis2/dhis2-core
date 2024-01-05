@@ -33,10 +33,15 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
+import org.hisp.dhis.analytics.data.DimensionalObjectProducer;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Component;
 
 /** Parse and transform the incoming query params into the OutlierDetectionRequest. */
@@ -44,6 +49,8 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class OutlierQueryParser {
   private final IdentifiableObjectManager idObjectManager;
+  private final DimensionalObjectProducer dimensionalObjectProducer;
+  private final CurrentUserService currentUserService;
 
   /**
    * Creates a {@link OutlierRequest} from the given query.
@@ -67,15 +74,13 @@ public class OutlierQueryParser {
     de.addAll(queryParams.getDx());
 
     List<DataElement> dataElements = idObjectManager.getByUid(DataElement.class, de);
-    List<OrganisationUnit> orgUnits =
-        idObjectManager.getByUid(OrganisationUnit.class, queryParams.getOu());
 
     OutlierRequest.OutlierRequestBuilder builder =
         OutlierRequest.builder()
             .dataElements(dataElements)
             .startDate(queryParams.getStartDate())
             .endDate(queryParams.getEndDate())
-            .orgUnits(orgUnits)
+            .orgUnits(getOrganisationUnits(queryParams))
             .analyzeOnly(analyzeOnly)
             .dataStartDate(queryParams.getDataStartDate())
             .dataEndDate(queryParams.getDataEndDate())
@@ -107,5 +112,23 @@ public class OutlierQueryParser {
     }
 
     return builder.build();
+  }
+
+  /**
+   * The function retrieves all required organisation units, accepting all forms of ou requirements
+   * like uids, levels, groups, user organisations ...
+   *
+   * @param queryParams the {@link OutlierQueryParams}.
+   * @return a list of the {@link OrganisationUnit}.
+   */
+  private List<OrganisationUnit> getOrganisationUnits(OutlierQueryParams queryParams) {
+    BaseDimensionalObject baseDimensionalObject =
+        dimensionalObjectProducer.getOrgUnitDimension(
+            queryParams.getOu().stream().toList(),
+            DisplayProperty.NAME,
+            currentUserService.getCurrentUserOrganisationUnits().stream().toList(),
+            IdScheme.UID);
+
+    return baseDimensionalObject.getItems().stream().map(ou -> (OrganisationUnit) ou).toList();
   }
 }
