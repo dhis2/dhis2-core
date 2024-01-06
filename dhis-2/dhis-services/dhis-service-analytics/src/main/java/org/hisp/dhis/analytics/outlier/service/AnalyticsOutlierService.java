@@ -59,10 +59,12 @@ import java.io.OutputStream;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.cache.OutliersCache;
 import org.hisp.dhis.analytics.common.TableInfoReader;
+import org.hisp.dhis.analytics.data.DimensionalObjectProducer;
 import org.hisp.dhis.analytics.outlier.data.Outlier;
 import org.hisp.dhis.analytics.outlier.data.OutlierRequest;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -101,6 +103,8 @@ public class AnalyticsOutlierService {
   private final TableInfoReader tableInfoReader;
 
   private final IdentifiableObjectManager idObjectManager;
+
+  private final DimensionalObjectProducer dimensionalObjectProducer;
 
   /**
    * Transform the incoming request into api response (json).
@@ -358,16 +362,16 @@ public class AnalyticsOutlierService {
    * @return the period name based on iso date
    */
   private String getPeriodName(OutlierRequest outlierRequest, Outlier outlier) {
-    if (!outlierRequest.hasPeriods()) {
-      return outlier.getPe();
-    }
+    Stream<Period> periodStream =
+        outlierRequest.hasPeriods()
+            ? outlierRequest.getPeriods().stream()
+                .filter(p -> outlier.getPe().equalsIgnoreCase(p.getIsoDate()))
+            : dimensionalObjectProducer
+                .getPeriodDimension(List.of(outlier.getPe()), null)
+                .getItems()
+                .stream()
+                .map(p -> (Period) p);
 
-    Period period =
-        outlierRequest.getPeriods().stream()
-            .filter(p -> outlier.getPe().equalsIgnoreCase(p.getIsoDate()))
-            .findFirst()
-            .orElse(null);
-
-    return period == null ? outlier.getPe() : period.getName();
+    return periodStream.map(IdentifiableObject::getName).findFirst().orElse(outlier.getPe());
   }
 }
