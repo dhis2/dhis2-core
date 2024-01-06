@@ -124,6 +124,13 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
     return sqlParameterSource;
   }
 
+  /**
+   * The method retrieves the sql query
+   *
+   * @param request the {@link OutlierRequest}.
+   * @param withParams indicates the parametrized sql query
+   * @return string with sql query
+   */
   private String getSqlStatement(OutlierRequest request, boolean withParams) {
     if (request == null) {
       return EMPTY;
@@ -208,6 +215,13 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
     return sql;
   }
 
+  /**
+   * The method retrieves the sql snippet of the period dedicated sql predicate
+   *
+   * @param request the {@link OutlierRequest}.
+   * @param withParams indicates the parametrized sql query
+   * @return period part of the where clause
+   */
   private String getPeriodSqlSnippet(OutlierRequest request, boolean withParams) {
     if (request.hasStartEndDate()) {
       return " and ax.pestartdate >= "
@@ -217,7 +231,7 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
     }
 
     if (!request.hasPeriods()) {
-      return "";
+      return EMPTY;
     }
 
     String sql = "";
