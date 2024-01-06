@@ -136,6 +136,12 @@ public class OutlierQueryParser {
     return baseDimensionalObject.getItems().stream().map(ou -> (OrganisationUnit) ou).toList();
   }
 
+  /**
+   * The method retrieves the list of the periods
+   *
+   * @param relativePeriod the {@link RelativePeriodEnum}.
+   * @return list of the {@link Period}.
+   */
   private List<Period> getPeriods(RelativePeriodEnum relativePeriod) {
     if (relativePeriod == null) {
       return new ArrayList<>();
