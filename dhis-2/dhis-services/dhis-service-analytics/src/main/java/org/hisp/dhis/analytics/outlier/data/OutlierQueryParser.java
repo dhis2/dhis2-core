@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.outlier.data;
 
 import static java.util.stream.Collectors.toList;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -137,7 +138,7 @@ public class OutlierQueryParser {
 
   private List<Period> getPeriods(RelativePeriodEnum relativePeriod) {
     if (relativePeriod == null) {
-      return null;
+      return new ArrayList<>();
     }
     return dimensionalObjectProducer
         .getPeriodDimension(List.of(relativePeriod.name()), null)
