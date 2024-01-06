@@ -41,6 +41,8 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Component;
 
@@ -80,6 +82,7 @@ public class OutlierQueryParser {
             .dataElements(dataElements)
             .startDate(queryParams.getStartDate())
             .endDate(queryParams.getEndDate())
+            .periods(getPeriods(queryParams.getPe()))
             .orgUnits(getOrganisationUnits(queryParams))
             .analyzeOnly(analyzeOnly)
             .dataStartDate(queryParams.getDataStartDate())
@@ -130,5 +133,17 @@ public class OutlierQueryParser {
             IdScheme.UID);
 
     return baseDimensionalObject.getItems().stream().map(ou -> (OrganisationUnit) ou).toList();
+  }
+
+  private List<Period> getPeriods(RelativePeriodEnum relativePeriod) {
+    if (relativePeriod == null) {
+      return null;
+    }
+    return dimensionalObjectProducer
+        .getPeriodDimension(List.of(relativePeriod.name()), null)
+        .getItems()
+        .stream()
+        .map(pe -> (Period) pe)
+        .toList();
   }
 }

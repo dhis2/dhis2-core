@@ -58,6 +58,7 @@ public enum ColumnHeader {
   DIMENSION("dx", "Data"),
   DIMENSION_NAME("dxname", "Data name"),
   PERIOD("pe", "Period"),
+  PERIOD_NAME("pename", "Period name"),
   CATEGORY_OPTION_COMBO("coc", "Category option combo"),
   CATEGORY_OPTION_COMBO_NAME("cocname", "Category option combo name"),
   ATTRIBUTE_OPTION_COMBO("aoc", "Attribute option combo"),
