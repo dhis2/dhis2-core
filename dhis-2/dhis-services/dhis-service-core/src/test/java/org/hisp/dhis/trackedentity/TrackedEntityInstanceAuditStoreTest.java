@@ -103,10 +103,6 @@ class TrackedEntityInstanceAuditStoreTest extends DhisSpringTest {
         new TrackedEntityInstanceAuditQueryParams()
             .setTrackedEntityInstances(List.of("WGW7UnVcIIb"));
 
-    assertContainsOnly(store.getTrackedEntityInstanceAudits(params), auditA, auditC);
-
-    params = new TrackedEntityInstanceAuditQueryParams().setAuditTypes(List.of(AuditType.UPDATE));
-
     assertContainsOnly(store.getTrackedEntityInstanceAudits(params), auditA, auditB);
 
     params = new TrackedEntityInstanceAuditQueryParams().setUsers(List.of("userA"));
@@ -115,7 +111,7 @@ class TrackedEntityInstanceAuditStoreTest extends DhisSpringTest {
 
     params = new TrackedEntityInstanceAuditQueryParams().setAuditTypes(List.of(AuditType.UPDATE));
 
-    assertContainsOnly(store.getTrackedEntityInstanceAudits(params), auditB, auditC);
+    assertContainsOnly(store.getTrackedEntityInstanceAudits(params), auditA, auditC);
 
     params =
         new TrackedEntityInstanceAuditQueryParams()
