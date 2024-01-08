@@ -44,6 +44,7 @@ import static org.hisp.dhis.analytics.common.ColumnHeader.ORG_UNIT;
 import static org.hisp.dhis.analytics.common.ColumnHeader.ORG_UNIT_NAME;
 import static org.hisp.dhis.analytics.common.ColumnHeader.ORG_UNIT_NAME_HIERARCHY;
 import static org.hisp.dhis.analytics.common.ColumnHeader.PERIOD;
+import static org.hisp.dhis.analytics.common.ColumnHeader.PERIOD_NAME;
 import static org.hisp.dhis.analytics.common.ColumnHeader.STANDARD_DEVIATION;
 import static org.hisp.dhis.analytics.common.ColumnHeader.UPPER_BOUNDARY;
 import static org.hisp.dhis.analytics.common.ColumnHeader.VALUE;
@@ -58,10 +59,12 @@ import java.io.OutputStream;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.cache.OutliersCache;
 import org.hisp.dhis.analytics.common.TableInfoReader;
+import org.hisp.dhis.analytics.data.DimensionalObjectProducer;
 import org.hisp.dhis.analytics.outlier.data.Outlier;
 import org.hisp.dhis.analytics.outlier.data.OutlierRequest;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -77,6 +80,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.CurrentUserService;
@@ -99,6 +103,8 @@ public class AnalyticsOutlierService {
   private final TableInfoReader tableInfoReader;
 
   private final IdentifiableObjectManager idObjectManager;
+
+  private final DimensionalObjectProducer dimensionalObjectProducer;
 
   /**
    * Transform the incoming request into api response (json).
@@ -208,6 +214,8 @@ public class AnalyticsOutlierService {
     grid.addHeader(
         new GridHeader(DIMENSION_NAME.getItem(), DIMENSION_NAME.getName(), TEXT, false, false));
     grid.addHeader(new GridHeader(PERIOD.getItem(), PERIOD.getName(), TEXT, false, false));
+    grid.addHeader(
+        new GridHeader(PERIOD_NAME.getItem(), PERIOD_NAME.getName(), TEXT, false, false));
     grid.addHeader(new GridHeader(ORG_UNIT.getItem(), ORG_UNIT.getName(), TEXT, false, false));
     grid.addHeader(
         new GridHeader(ORG_UNIT_NAME.getItem(), ORG_UNIT_NAME.getName(), TEXT, false, false));
@@ -276,45 +284,48 @@ public class AnalyticsOutlierService {
    *
    * @param grid the {@link Grid}
    * @param outliers the list of {@link Outlier}
-   * @param request the {@link OutlierRequest}
+   * @param outlierRequest the {@link OutlierRequest}
    */
-  private void setRows(Grid grid, List<Outlier> outliers, OutlierRequest request) {
+  private void setRows(Grid grid, List<Outlier> outliers, OutlierRequest outlierRequest) {
     outliers.forEach(
-        v -> {
-          boolean isModifiedZScore = request.getAlgorithm() == MOD_Z_SCORE;
-          OrganisationUnit ou = organisationUnitService.getOrganisationUnit(v.getOu());
+        outlier -> {
+          boolean isModifiedZScore = outlierRequest.getAlgorithm() == MOD_Z_SCORE;
+          OrganisationUnit ou = organisationUnitService.getOrganisationUnit(outlier.getOu());
           User user = currentUserService.getCurrentUser();
           Collection<OrganisationUnit> roots = user != null ? user.getOrganisationUnits() : null;
 
           grid.addRow();
 
-          IdentifiableObject object = idObjectManager.get(DataElement.class, v.getDx());
-          grid.addValue(getIdProperty(object, v.getDx(), request.getOutputIdScheme()));
-          grid.addValue(getIdProperty(object, v.getDx(), IdScheme.NAME));
+          IdentifiableObject object = idObjectManager.get(DataElement.class, outlier.getDx());
+          grid.addValue(getIdProperty(object, outlier.getDx(), outlierRequest.getOutputIdScheme()));
+          grid.addValue(getIdProperty(object, outlier.getDx(), IdScheme.NAME));
 
-          grid.addValue(v.getPe());
+          grid.addValue(outlier.getPe());
+          grid.addValue(getPeriodName(outlierRequest, outlier));
 
-          object = idObjectManager.get(OrganisationUnit.class, v.getOu());
-          grid.addValue(getIdProperty(object, v.getOu(), request.getOutputIdScheme()));
-          grid.addValue(getIdProperty(object, v.getOu(), IdScheme.NAME));
+          object = idObjectManager.get(OrganisationUnit.class, outlier.getOu());
+          grid.addValue(getIdProperty(object, outlier.getOu(), outlierRequest.getOutputIdScheme()));
+          grid.addValue(getIdProperty(object, outlier.getOu(), IdScheme.NAME));
 
           grid.addValue(ou.getParentNameGraph(roots, true));
 
-          object = idObjectManager.get(CategoryOptionCombo.class, v.getCoc());
-          grid.addValue(getIdProperty(object, v.getCoc(), request.getOutputIdScheme()));
-          grid.addValue(getIdProperty(object, v.getCoc(), IdScheme.NAME));
+          object = idObjectManager.get(CategoryOptionCombo.class, outlier.getCoc());
+          grid.addValue(
+              getIdProperty(object, outlier.getCoc(), outlierRequest.getOutputIdScheme()));
+          grid.addValue(getIdProperty(object, outlier.getCoc(), IdScheme.NAME));
 
-          object = idObjectManager.get(CategoryOptionCombo.class, v.getAoc());
-          grid.addValue(getIdProperty(object, v.getAoc(), request.getOutputIdScheme()));
-          grid.addValue(getIdProperty(object, v.getAoc(), IdScheme.NAME));
+          object = idObjectManager.get(CategoryOptionCombo.class, outlier.getAoc());
+          grid.addValue(
+              getIdProperty(object, outlier.getAoc(), outlierRequest.getOutputIdScheme()));
+          grid.addValue(getIdProperty(object, outlier.getAoc(), IdScheme.NAME));
 
-          grid.addValue(v.getValue());
-          grid.addValue(isModifiedZScore ? v.getMedian() : v.getMean());
-          grid.addValue(v.getStdDev());
-          grid.addValue(v.getAbsDev());
-          grid.addValue(v.getZScore());
-          grid.addValue(v.getLowerBound());
-          grid.addValue(v.getUpperBound());
+          grid.addValue(outlier.getValue());
+          grid.addValue(isModifiedZScore ? outlier.getMedian() : outlier.getMean());
+          grid.addValue(outlier.getStdDev());
+          grid.addValue(outlier.getAbsDev());
+          grid.addValue(outlier.getZScore());
+          grid.addValue(outlier.getLowerBound());
+          grid.addValue(outlier.getUpperBound());
         });
   }
 
@@ -340,5 +351,27 @@ public class AnalyticsOutlierService {
     }
 
     return object.getName();
+  }
+
+  /**
+   * The method retrieves period name if available. The default name is iso period date (for example
+   * 202401).
+   *
+   * @param outlierRequest the {@link OutlierRequest}
+   * @param outlier the {@link Outlier}
+   * @return the period name based on iso date
+   */
+  private String getPeriodName(OutlierRequest outlierRequest, Outlier outlier) {
+    Stream<Period> periodStream =
+        outlierRequest.hasPeriods()
+            ? outlierRequest.getPeriods().stream()
+                .filter(p -> outlier.getPe().equalsIgnoreCase(p.getIsoDate()))
+            : dimensionalObjectProducer
+                .getPeriodDimension(List.of(outlier.getPe()), null)
+                .getItems()
+                .stream()
+                .map(p -> (Period) p);
+
+    return periodStream.map(IdentifiableObject::getName).findFirst().orElse(outlier.getPe());
   }
 }
