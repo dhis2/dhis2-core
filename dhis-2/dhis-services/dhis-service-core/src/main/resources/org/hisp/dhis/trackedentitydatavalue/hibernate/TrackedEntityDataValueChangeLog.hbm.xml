@@ -4,7 +4,7 @@
   "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit" table="trackedentitydatavalueaudit">
+  <class name="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog" table="trackedEntityDataValueAudit">
 
     <id name="id" column="trackedentitydatavalueauditid">
       <generator class="sequence">

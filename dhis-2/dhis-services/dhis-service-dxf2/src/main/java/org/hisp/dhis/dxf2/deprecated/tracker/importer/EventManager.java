@@ -68,8 +68,8 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -94,7 +94,7 @@ public class EventManager {
 
   @Nonnull private final EventPersistenceService eventPersistenceService;
 
-  @Nonnull private final TrackedEntityDataValueAuditService entityDataValueAuditService;
+  @Nonnull private final TrackedEntityDataValueChangeLogService entityDataValueAuditService;
 
   @Nonnull private final CurrentUserService currentUserService;
 
@@ -368,7 +368,7 @@ public class EventManager {
         persistedDataValue = eventDataValue.getValue();
       }
 
-      TrackedEntityDataValueAudit audit = new TrackedEntityDataValueAudit();
+      TrackedEntityDataValueChangeLog audit = new TrackedEntityDataValueChangeLog();
       audit.setCreated(today);
       audit.setAuditType(auditType);
       audit.setProvidedElsewhere(dv.getProvidedElsewhere());
@@ -377,7 +377,7 @@ public class EventManager {
       audit.setDataElement(workContext.getDataElementMap().get(dv.getDataElement()));
       audit.setModifiedBy(currentUserService.getCurrentUsername());
 
-      entityDataValueAuditService.addTrackedEntityDataValueAudit(audit);
+      entityDataValueAuditService.addTrackedEntityDataValueChangeLog(audit);
     }
   }
 

@@ -48,8 +48,8 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.ValidationUtils;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
@@ -63,7 +63,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultEventService implements EventService {
   private final EventStore eventStore;
 
-  private final TrackedEntityDataValueAuditService dataValueAuditService;
+  private final TrackedEntityDataValueChangeLogService dataValueAuditService;
 
   private final FileResourceService fileResourceService;
 
@@ -264,8 +264,8 @@ public class DefaultEventService implements EventService {
       return;
     }
 
-    TrackedEntityDataValueAudit dataValueAudit =
-        new TrackedEntityDataValueAudit(
+    TrackedEntityDataValueChangeLog dataValueAudit =
+        new TrackedEntityDataValueChangeLog(
             dataElement,
             event,
             dataValue.getValue(),
@@ -273,7 +273,7 @@ public class DefaultEventService implements EventService {
             dataValue.getProvidedElsewhere(),
             auditType);
 
-    dataValueAuditService.addTrackedEntityDataValueAudit(dataValueAudit);
+    dataValueAuditService.addTrackedEntityDataValueChangeLog(dataValueAudit);
   }
 
   // -------------------------------------------------------------------------

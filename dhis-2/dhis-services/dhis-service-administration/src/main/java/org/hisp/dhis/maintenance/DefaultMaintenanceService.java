@@ -41,7 +41,7 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.datavalue.DataValueAuditService;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserInvitationStatus;
@@ -80,7 +80,7 @@ public class DefaultMaintenanceService implements MaintenanceService {
 
   private final ApplicationEventPublisher eventPublisher;
 
-  private final TrackedEntityDataValueAuditService trackedEntityDataValueAuditService;
+  private final TrackedEntityDataValueChangeLogService trackedEntityDataValueAuditService;
 
   // -------------------------------------------------------------------------
   // MaintenanceService implementation
@@ -175,7 +175,7 @@ public class DefaultMaintenanceService implements MaintenanceService {
       return false;
     }
 
-    trackedEntityDataValueAuditService.deleteTrackedEntityDataValueAudit(dataElement);
+    trackedEntityDataValueAuditService.deleteTrackedEntityDataValueChangeLog(dataElement);
     dataValueAuditService.deleteDataValueAudits(dataElement);
     dataValueService.deleteDataValues(dataElement);
 

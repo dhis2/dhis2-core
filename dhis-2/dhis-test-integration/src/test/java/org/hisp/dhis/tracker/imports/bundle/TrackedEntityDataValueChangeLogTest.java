@@ -39,9 +39,9 @@ import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentity.TrackedEntityDataValueAuditQueryParams;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
+import org.hisp.dhis.trackedentity.TrackedEntityDataValueChangeLogQueryParams;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -51,7 +51,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Zubair Asghar
  */
-public class TrackedEntityDataValueAuditTest extends TrackerTest {
+public class TrackedEntityDataValueChangeLogTest extends TrackerTest {
   private static final String ORIGINAL_VALUE = "value1";
 
   private static final String UPDATED_VALUE = "value1-updated";
@@ -64,7 +64,7 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest {
 
   @Autowired private IdentifiableObjectManager manager;
 
-  @Autowired private TrackedEntityDataValueAuditService dataValueAuditService;
+  @Autowired private TrackedEntityDataValueChangeLogService dataValueAuditService;
 
   private DataElement dataElement;
 
@@ -94,21 +94,21 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest {
     assertNotNull(dataElement);
     assertNotNull(event);
 
-    List<TrackedEntityDataValueAudit> createdAudit =
-        dataValueAuditService.getTrackedEntityDataValueAudits(
-            new TrackedEntityDataValueAuditQueryParams()
+    List<TrackedEntityDataValueChangeLog> createdAudit =
+        dataValueAuditService.getTrackedEntityDataValueChangeLogs(
+            new TrackedEntityDataValueChangeLogQueryParams()
                 .setDataElements(List.of(dataElement))
                 .setEvents(List.of(event))
                 .setAuditTypes(List.of(AuditType.CREATE)));
-    List<TrackedEntityDataValueAudit> updatedAudit =
-        dataValueAuditService.getTrackedEntityDataValueAudits(
-            new TrackedEntityDataValueAuditQueryParams()
+    List<TrackedEntityDataValueChangeLog> updatedAudit =
+        dataValueAuditService.getTrackedEntityDataValueChangeLogs(
+            new TrackedEntityDataValueChangeLogQueryParams()
                 .setDataElements(List.of(dataElement))
                 .setEvents(List.of(event))
                 .setAuditTypes(List.of(AuditType.UPDATE)));
-    List<TrackedEntityDataValueAudit> deletedAudit =
-        dataValueAuditService.getTrackedEntityDataValueAudits(
-            new TrackedEntityDataValueAuditQueryParams()
+    List<TrackedEntityDataValueChangeLog> deletedAudit =
+        dataValueAuditService.getTrackedEntityDataValueChangeLogs(
+            new TrackedEntityDataValueChangeLogQueryParams()
                 .setDataElements(List.of(dataElement))
                 .setEvents(List.of(event))
                 .setAuditTypes(List.of(AuditType.DELETE)));
@@ -123,7 +123,7 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest {
   }
 
   private void assertAuditCollection(
-      List<TrackedEntityDataValueAudit> audits, AuditType auditType, String expectedValue) {
+      List<TrackedEntityDataValueChangeLog> audits, AuditType auditType, String expectedValue) {
     assertAll(
         () -> assertFalse(audits.isEmpty()),
         () ->

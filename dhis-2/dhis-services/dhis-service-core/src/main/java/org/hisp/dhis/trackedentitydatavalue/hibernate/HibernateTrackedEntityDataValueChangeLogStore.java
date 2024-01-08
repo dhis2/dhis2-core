@@ -43,16 +43,17 @@ import org.hibernate.Session;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentity.TrackedEntityDataValueAuditQueryParams;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditStore;
+import org.hisp.dhis.trackedentity.TrackedEntityDataValueChangeLogQueryParams;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogStore;
 import org.springframework.stereotype.Repository;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Repository("org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditStore")
-public class HibernateTrackedEntityDataValueAuditStore implements TrackedEntityDataValueAuditStore {
+@Repository("org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogStore")
+public class HibernateTrackedEntityDataValueChangeLogStore
+    implements TrackedEntityDataValueChangeLogStore {
   private static final String PROP_PSI = "event";
 
   private static final String PROP_ORGANISATION_UNIT = "organisationUnit";
@@ -65,7 +66,7 @@ public class HibernateTrackedEntityDataValueAuditStore implements TrackedEntityD
 
   private EntityManager entityManager;
 
-  public HibernateTrackedEntityDataValueAuditStore(EntityManager entityManager) {
+  public HibernateTrackedEntityDataValueChangeLogStore(EntityManager entityManager) {
     this.entityManager = entityManager;
   }
 
@@ -74,27 +75,28 @@ public class HibernateTrackedEntityDataValueAuditStore implements TrackedEntityD
   // -------------------------------------------------------------------------
 
   @Override
-  public void addTrackedEntityDataValueAudit(
-      TrackedEntityDataValueAudit trackedEntityDataValueAudit) {
-    entityManager.unwrap(Session.class).save(trackedEntityDataValueAudit);
+  public void addTrackedEntityDataValueChangeLog(
+      TrackedEntityDataValueChangeLog trackedEntityDataValueChangeLog) {
+    entityManager.unwrap(Session.class).save(trackedEntityDataValueChangeLog);
   }
 
   @Override
   @SuppressWarnings("unchecked")
-  public List<TrackedEntityDataValueAudit> getTrackedEntityDataValueAudits(
-      TrackedEntityDataValueAuditQueryParams params) {
+  public List<TrackedEntityDataValueChangeLog> getTrackedEntityDataValueChangeLogs(
+      TrackedEntityDataValueChangeLogQueryParams params) {
     CriteriaBuilder builder = entityManager.getCriteriaBuilder();
-    CriteriaQuery<TrackedEntityDataValueAudit> criteria =
-        builder.createQuery(TrackedEntityDataValueAudit.class);
-    Root<TrackedEntityDataValueAudit> tedva = criteria.from(TrackedEntityDataValueAudit.class);
-    Join<TrackedEntityDataValueAudit, Event> event = tedva.join(PROP_PSI);
+    CriteriaQuery<TrackedEntityDataValueChangeLog> criteria =
+        builder.createQuery(TrackedEntityDataValueChangeLog.class);
+    Root<TrackedEntityDataValueChangeLog> tedvcl =
+        criteria.from(TrackedEntityDataValueChangeLog.class);
+    Join<TrackedEntityDataValueChangeLog, Event> event = tedvcl.join(PROP_PSI);
     Join<Event, OrganisationUnit> ou = event.join(PROP_ORGANISATION_UNIT);
-    criteria.select(tedva);
+    criteria.select(tedvcl);
 
     List<Predicate> predicates =
-        getTrackedEntityDataValueAuditCriteria(params, builder, tedva, event, ou);
+        getTrackedEntityDataValueAuditCriteria(params, builder, tedvcl, event, ou);
     criteria.where(predicates.toArray(Predicate[]::new));
-    criteria.orderBy(builder.desc(tedva.get(PROP_CREATED)));
+    criteria.orderBy(builder.desc(tedvcl.get(PROP_CREATED)));
 
     Query query = entityManager.createQuery(criteria);
 
@@ -108,45 +110,47 @@ public class HibernateTrackedEntityDataValueAuditStore implements TrackedEntityD
   }
 
   @Override
-  public int countTrackedEntityDataValueAudits(TrackedEntityDataValueAuditQueryParams params) {
+  public int countTrackedEntityDataValueChangeLogs(
+      TrackedEntityDataValueChangeLogQueryParams params) {
     CriteriaBuilder builder = entityManager.getCriteriaBuilder();
     CriteriaQuery<Long> criteria = builder.createQuery(Long.class);
-    Root<TrackedEntityDataValueAudit> tedva = criteria.from(TrackedEntityDataValueAudit.class);
-    Join<TrackedEntityDataValueAudit, Event> event = tedva.join(PROP_PSI);
+    Root<TrackedEntityDataValueChangeLog> tedvcl =
+        criteria.from(TrackedEntityDataValueChangeLog.class);
+    Join<TrackedEntityDataValueChangeLog, Event> event = tedvcl.join(PROP_PSI);
     Join<Event, OrganisationUnit> ou = event.join(PROP_ORGANISATION_UNIT);
-    criteria.select(builder.countDistinct(tedva.get("id")));
+    criteria.select(builder.countDistinct(tedvcl.get("id")));
 
     List<Predicate> predicates =
-        getTrackedEntityDataValueAuditCriteria(params, builder, tedva, event, ou);
+        getTrackedEntityDataValueAuditCriteria(params, builder, tedvcl, event, ou);
     criteria.where(predicates.toArray(Predicate[]::new));
 
     return entityManager.createQuery(criteria).getSingleResult().intValue();
   }
 
   @Override
-  public void deleteTrackedEntityDataValueAudit(DataElement dataElement) {
-    String hql = "delete from TrackedEntityDataValueAudit d where d.dataElement = :de";
+  public void deleteTrackedEntityDataValueChangeLog(DataElement dataElement) {
+    String hql = "delete from TrackedEntityDataValueChangeLog d where d.dataElement = :de";
 
     entityManager.createQuery(hql).setParameter("de", dataElement).executeUpdate();
   }
 
   @Override
-  public void deleteTrackedEntityDataValueAudit(Event event) {
-    String hql = "delete from TrackedEntityDataValueAudit d where d.event = :event";
+  public void deleteTrackedEntityDataValueChangeLog(Event event) {
+    String hql = "delete from TrackedEntityDataValueChangeLog d where d.event = :event";
 
     entityManager.createQuery(hql).setParameter("event", event).executeUpdate();
   }
 
   private List<Predicate> getTrackedEntityDataValueAuditCriteria(
-      TrackedEntityDataValueAuditQueryParams params,
+      TrackedEntityDataValueChangeLogQueryParams params,
       CriteriaBuilder builder,
-      Root<TrackedEntityDataValueAudit> tedva,
-      Join<TrackedEntityDataValueAudit, Event> event,
+      Root<TrackedEntityDataValueChangeLog> tedvcl,
+      Join<TrackedEntityDataValueChangeLog, Event> event,
       Join<Event, OrganisationUnit> ou) {
     List<Predicate> predicates = new ArrayList<>();
 
     if (!params.getDataElements().isEmpty()) {
-      predicates.add(tedva.get("dataElement").in(params.getDataElements()));
+      predicates.add(tedvcl.get("dataElement").in(params.getDataElements()));
     }
 
     if (!params.getOrgUnits().isEmpty()) {
@@ -164,7 +168,7 @@ public class HibernateTrackedEntityDataValueAuditStore implements TrackedEntityD
     }
 
     if (!params.getEvents().isEmpty()) {
-      predicates.add(tedva.get(PROP_PSI).in(params.getEvents()));
+      predicates.add(tedvcl.get(PROP_PSI).in(params.getEvents()));
     }
 
     if (!params.getProgramStages().isEmpty()) {
@@ -172,15 +176,15 @@ public class HibernateTrackedEntityDataValueAuditStore implements TrackedEntityD
     }
 
     if (params.getStartDate() != null) {
-      predicates.add(builder.greaterThanOrEqualTo(tedva.get(PROP_CREATED), params.getStartDate()));
+      predicates.add(builder.greaterThanOrEqualTo(tedvcl.get(PROP_CREATED), params.getStartDate()));
     }
 
     if (params.getEndDate() != null) {
-      predicates.add(builder.lessThanOrEqualTo(tedva.get(PROP_CREATED), params.getEndDate()));
+      predicates.add(builder.lessThanOrEqualTo(tedvcl.get(PROP_CREATED), params.getEndDate()));
     }
 
     if (!params.getAuditTypes().isEmpty()) {
-      predicates.add(tedva.get("auditType").in(params.getAuditTypes()));
+      predicates.add(tedvcl.get("auditType").in(params.getAuditTypes()));
     }
 
     return predicates;

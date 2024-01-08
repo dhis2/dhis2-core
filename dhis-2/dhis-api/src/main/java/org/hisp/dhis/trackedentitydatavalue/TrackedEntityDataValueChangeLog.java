@@ -42,7 +42,7 @@ import org.hisp.dhis.program.Event;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @JacksonXmlRootElement(localName = "trackedEntityDataValueAudit", namespace = DxfNamespaces.DXF_2_0)
-public class TrackedEntityDataValueAudit implements Serializable {
+public class TrackedEntityDataValueChangeLog implements Serializable {
   private long id;
 
   private DataElement dataElement;
@@ -63,9 +63,9 @@ public class TrackedEntityDataValueAudit implements Serializable {
   // Constructors
   // -------------------------------------------------------------------------
 
-  public TrackedEntityDataValueAudit() {}
+  public TrackedEntityDataValueChangeLog() {}
 
-  public TrackedEntityDataValueAudit(
+  public TrackedEntityDataValueChangeLog(
       DataElement dataElement,
       Event event,
       String value,
@@ -97,7 +97,7 @@ public class TrackedEntityDataValueAudit implements Serializable {
       return false;
     }
 
-    final TrackedEntityDataValueAudit other = (TrackedEntityDataValueAudit) obj;
+    final TrackedEntityDataValueChangeLog other = (TrackedEntityDataValueChangeLog) obj;
 
     return Objects.equals(this.dataElement, other.dataElement)
         && Objects.equals(this.event, other.event)

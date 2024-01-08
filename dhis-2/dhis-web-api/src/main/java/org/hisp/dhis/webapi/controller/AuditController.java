@@ -87,12 +87,12 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityAuditService;
-import org.hisp.dhis.trackedentity.TrackedEntityDataValueAuditQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityDataValueChangeLogQueryParams;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditQueryParams;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -117,7 +117,7 @@ public class AuditController {
 
   private final DataValueAuditService dataValueAuditService;
 
-  private final TrackedEntityDataValueAuditService trackedEntityDataValueAuditService;
+  private final TrackedEntityDataValueChangeLogService trackedEntityDataValueChangeLogService;
 
   private final TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService;
 
@@ -288,11 +288,11 @@ public class AuditController {
         validateDeprecatedUidsParameter("psi", String.join(";", psi), "events", events);
     List<AuditType> auditTypes = emptyIfNull(auditType);
 
-    List<TrackedEntityDataValueAudit> dataValueAudits;
+    List<TrackedEntityDataValueChangeLog> dataValueChangeLogs;
     Pager pager = null;
 
-    TrackedEntityDataValueAuditQueryParams params =
-        new TrackedEntityDataValueAuditQueryParams()
+    TrackedEntityDataValueChangeLogQueryParams params =
+        new TrackedEntityDataValueChangeLogQueryParams()
             .setDataElements(dataElements)
             .setOrgUnits(orgUnits)
             .setEvents(manager.loadByUid(Event.class, UID.toValueSet(eventUids)))
@@ -303,14 +303,16 @@ public class AuditController {
             .setAuditTypes(auditTypes);
 
     if (PagerUtils.isSkipPaging(skipPaging, paging)) {
-      dataValueAudits = trackedEntityDataValueAuditService.getTrackedEntityDataValueAudits(params);
+      dataValueChangeLogs =
+          trackedEntityDataValueChangeLogService.getTrackedEntityDataValueChangeLogs(params);
     } else {
-      int total = trackedEntityDataValueAuditService.countTrackedEntityDataValueAudits(params);
+      int total =
+          trackedEntityDataValueChangeLogService.countTrackedEntityDataValueChangeLogs(params);
 
       pager = new Pager(page, total, pageSize);
 
-      dataValueAudits =
-          trackedEntityDataValueAuditService.getTrackedEntityDataValueAudits(
+      dataValueChangeLogs =
+          trackedEntityDataValueChangeLogService.getTrackedEntityDataValueChangeLogs(
               params.setPager(pager));
     }
 
@@ -320,12 +322,13 @@ public class AuditController {
       rootNode.addChild(NodeUtils.createPager(pager));
     }
 
-    CollectionNode trackedEntityAttributeValueAudits =
+    CollectionNode trackedEntityAttributeValueChangeLogs =
         rootNode.addChild(new CollectionNode("trackedEntityDataValueAudits", true));
-    trackedEntityAttributeValueAudits.addChildren(
+    trackedEntityAttributeValueChangeLogs.addChildren(
         fieldFilterService
             .toCollectionNode(
-                TrackedEntityDataValueAudit.class, new FieldFilterParams(dataValueAudits, fields))
+                TrackedEntityDataValueChangeLog.class,
+                new FieldFilterParams(dataValueChangeLogs, fields))
             .getChildren());
 
     return rootNode;

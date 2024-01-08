@@ -25,33 +25,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.trackedentity;
 
-import lombok.RequiredArgsConstructor;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import lombok.Data;
+import lombok.experimental.Accessors;
+import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.ProgramStage;
 
 /**
- * @author Zubair Asghar
+ * Encapsulation of a web API request for tracked entity data value audit records.
+ *
+ * @author Lars Helge Overland
  */
-@Component
-@RequiredArgsConstructor
-public class TrackedEntityDataValueAuditDeletionHandler extends DeletionHandler {
-  private final TrackedEntityDataValueAuditService trackedEntityDataValueAuditService;
+@Data
+@Accessors(chain = true)
+public class TrackedEntityDataValueChangeLogQueryParams {
+  private List<DataElement> dataElements = new ArrayList<>();
 
-  @Override
-  protected void register() {
-    whenDeleting(DataElement.class, this::deleteDataElement);
-    whenDeleting(Event.class, this::deleteEvent);
+  private List<OrganisationUnit> orgUnits = new ArrayList<>();
+
+  private List<Event> events = new ArrayList<>();
+
+  private List<ProgramStage> programStages = new ArrayList<>();
+
+  private Date startDate;
+
+  private Date endDate;
+
+  private OrganisationUnitSelectionMode ouMode;
+
+  private List<AuditType> auditTypes = new ArrayList<>();
+
+  private Pager pager;
+
+  public boolean hasOuMode() {
+    return ouMode != null;
   }
 
-  private void deleteDataElement(DataElement dataElement) {
-    trackedEntityDataValueAuditService.deleteTrackedEntityDataValueAudit(dataElement);
-  }
-
-  private void deleteEvent(Event event) {
-    trackedEntityDataValueAuditService.deleteTrackedEntityDataValueAudit(event);
+  public boolean hasPaging() {
+    return pager != null;
   }
 }

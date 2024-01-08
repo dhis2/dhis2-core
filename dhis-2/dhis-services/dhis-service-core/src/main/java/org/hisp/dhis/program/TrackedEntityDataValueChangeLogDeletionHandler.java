@@ -25,25 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentitydatavalue;
+package org.hisp.dhis.program;
 
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentity.TrackedEntityDataValueAuditQueryParams;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Zubair Asghar
  */
-public interface TrackedEntityDataValueAuditStore {
-  void addTrackedEntityDataValueAudit(TrackedEntityDataValueAudit trackedEntityDataValueAudit);
+@Component
+@RequiredArgsConstructor
+public class TrackedEntityDataValueChangeLogDeletionHandler extends DeletionHandler {
+  private final TrackedEntityDataValueChangeLogService trackedEntityDataValueAuditService;
 
-  List<TrackedEntityDataValueAudit> getTrackedEntityDataValueAudits(
-      TrackedEntityDataValueAuditQueryParams params);
+  @Override
+  protected void register() {
+    whenDeleting(DataElement.class, this::deleteDataElement);
+    whenDeleting(Event.class, this::deleteEvent);
+  }
 
-  int countTrackedEntityDataValueAudits(TrackedEntityDataValueAuditQueryParams params);
+  private void deleteDataElement(DataElement dataElement) {
+    trackedEntityDataValueAuditService.deleteTrackedEntityDataValueChangeLog(dataElement);
+  }
 
-  void deleteTrackedEntityDataValueAudit(DataElement dataElement);
-
-  void deleteTrackedEntityDataValueAudit(Event event);
+  private void deleteEvent(Event event) {
+    trackedEntityDataValueAuditService.deleteTrackedEntityDataValueChangeLog(event);
+  }
 }

@@ -25,52 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentity;
+package org.hisp.dhis.trackedentitydatavalue;
 
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import lombok.Data;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.common.AuditType;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.trackedentity.TrackedEntityDataValueChangeLogQueryParams;
 
 /**
- * Encapsulation of a web API request for tracked entity data value audit records.
- *
- * @author Lars Helge Overland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Data
-@Accessors(chain = true)
-public class TrackedEntityDataValueAuditQueryParams {
-  private List<DataElement> dataElements = new ArrayList<>();
+public interface TrackedEntityDataValueChangeLogService {
+  void addTrackedEntityDataValueChangeLog(
+      TrackedEntityDataValueChangeLog trackedEntityDataValueChangeLog);
 
-  private List<OrganisationUnit> orgUnits = new ArrayList<>();
+  List<TrackedEntityDataValueChangeLog> getTrackedEntityDataValueChangeLogs(
+      TrackedEntityDataValueChangeLogQueryParams params);
 
-  private List<Event> events = new ArrayList<>();
+  int countTrackedEntityDataValueChangeLogs(TrackedEntityDataValueChangeLogQueryParams params);
 
-  private List<ProgramStage> programStages = new ArrayList<>();
+  void deleteTrackedEntityDataValueChangeLog(DataElement dataElement);
 
-  private Date startDate;
-
-  private Date endDate;
-
-  private OrganisationUnitSelectionMode ouMode;
-
-  private List<AuditType> auditTypes = new ArrayList<>();
-
-  private Pager pager;
-
-  public boolean hasOuMode() {
-    return ouMode != null;
-  }
-
-  public boolean hasPaging() {
-    return pager != null;
-  }
+  void deleteTrackedEntityDataValueChangeLog(Event event);
 }

@@ -50,8 +50,8 @@ import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
@@ -73,14 +73,14 @@ public class EventPersister
 
   private final TrackerSideEffectConverterService sideEffectConverterService;
 
-  private final TrackedEntityDataValueAuditService trackedEntityDataValueAuditService;
+  private final TrackedEntityDataValueChangeLogService trackedEntityDataValueAuditService;
 
   public EventPersister(
       ReservedValueService reservedValueService,
       TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event> eventConverter,
       TrackerSideEffectConverterService sideEffectConverterService,
       TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService,
-      TrackedEntityDataValueAuditService trackedEntityDataValueAuditService) {
+      TrackedEntityDataValueChangeLogService trackedEntityDataValueAuditService) {
     super(reservedValueService, trackedEntityAttributeValueAuditService);
     this.eventConverter = eventConverter;
     this.sideEffectConverterService = sideEffectConverterService;
@@ -214,7 +214,7 @@ public class EventPersister
     AuditType auditType = valuesHolder.getAuditType();
 
     if (auditType != null) {
-      TrackedEntityDataValueAudit valueAudit = new TrackedEntityDataValueAudit();
+      TrackedEntityDataValueChangeLog valueAudit = new TrackedEntityDataValueChangeLog();
       valueAudit.setEvent(event);
       valueAudit.setValue(valuesHolder.getValue());
       valueAudit.setAuditType(auditType);
@@ -223,7 +223,7 @@ public class EventPersister
       valueAudit.setProvidedElsewhere(valuesHolder.isProvidedElseWhere());
       valueAudit.setCreated(created);
 
-      trackedEntityDataValueAuditService.addTrackedEntityDataValueAudit(valueAudit);
+      trackedEntityDataValueAuditService.addTrackedEntityDataValueChangeLog(valueAudit);
     }
   }
 

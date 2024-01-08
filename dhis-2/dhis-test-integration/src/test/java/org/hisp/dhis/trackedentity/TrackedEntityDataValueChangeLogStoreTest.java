@@ -52,20 +52,20 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditStore;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogStore;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-class TrackedEntityDataValueAuditStoreTest extends SingleSetupIntegrationTestBase {
+class TrackedEntityDataValueChangeLogStoreTest extends SingleSetupIntegrationTestBase {
   private static final String USER_A = "userA";
 
   private static final UserInfoSnapshot USER_SNAP_A = UserInfoTestHelper.testUserInfo(USER_A);
 
-  @Autowired private TrackedEntityDataValueAuditStore auditStore;
+  @Autowired private TrackedEntityDataValueChangeLogStore auditStore;
 
   @Autowired private TrackedEntityService entityInstanceService;
 
@@ -177,192 +177,193 @@ class TrackedEntityDataValueAuditStoreTest extends SingleSetupIntegrationTestBas
 
   @Test
   void testGetTrackedEntityDataValueAuditsByDataElement() {
-    TrackedEntityDataValueAudit dvaA =
-        new TrackedEntityDataValueAudit(
+    TrackedEntityDataValueChangeLog dvaA =
+        new TrackedEntityDataValueChangeLog(
             deA, eventA, dvA.getAuditValue(), USER_A, dvA.getProvidedElsewhere(), AuditType.UPDATE);
-    TrackedEntityDataValueAudit dvaB =
-        new TrackedEntityDataValueAudit(
+    TrackedEntityDataValueChangeLog dvaB =
+        new TrackedEntityDataValueChangeLog(
             deB, eventA, dvB.getAuditValue(), USER_A, dvB.getProvidedElsewhere(), AuditType.UPDATE);
-    TrackedEntityDataValueAudit dvaC =
-        new TrackedEntityDataValueAudit(
+    TrackedEntityDataValueChangeLog dvaC =
+        new TrackedEntityDataValueChangeLog(
             deA, eventB, dvC.getAuditValue(), USER_A, dvC.getProvidedElsewhere(), AuditType.UPDATE);
-    auditStore.addTrackedEntityDataValueAudit(dvaA);
-    auditStore.addTrackedEntityDataValueAudit(dvaB);
-    auditStore.addTrackedEntityDataValueAudit(dvaC);
+    auditStore.addTrackedEntityDataValueChangeLog(dvaA);
+    auditStore.addTrackedEntityDataValueChangeLog(dvaB);
+    auditStore.addTrackedEntityDataValueChangeLog(dvaC);
 
-    TrackedEntityDataValueAuditQueryParams params =
-        new TrackedEntityDataValueAuditQueryParams()
+    TrackedEntityDataValueChangeLogQueryParams params =
+        new TrackedEntityDataValueChangeLogQueryParams()
             .setDataElements(List.of(deA, deB))
             .setEvents(List.of(eventA))
             .setAuditTypes(List.of(AuditType.UPDATE));
-    assertContainsOnly(List.of(dvaA, dvaB), auditStore.getTrackedEntityDataValueAudits(params));
-    assertEquals(2, auditStore.countTrackedEntityDataValueAudits(params));
+    assertContainsOnly(List.of(dvaA, dvaB), auditStore.getTrackedEntityDataValueChangeLogs(params));
+    assertEquals(2, auditStore.countTrackedEntityDataValueChangeLogs(params));
 
     params =
-        new TrackedEntityDataValueAuditQueryParams()
+        new TrackedEntityDataValueChangeLogQueryParams()
             .setDataElements(List.of(deA))
             .setEvents(List.of(eventA))
             .setAuditTypes(List.of(AuditType.UPDATE));
-    assertContainsOnly(List.of(dvaA), auditStore.getTrackedEntityDataValueAudits(params));
-    assertEquals(1, auditStore.countTrackedEntityDataValueAudits(params));
+    assertContainsOnly(List.of(dvaA), auditStore.getTrackedEntityDataValueChangeLogs(params));
+    assertEquals(1, auditStore.countTrackedEntityDataValueChangeLogs(params));
   }
 
   @Test
   void testGetTrackedEntityDataValueAuditsByOrgUnitSelected() {
-    TrackedEntityDataValueAudit dvaA =
-        new TrackedEntityDataValueAudit(
+    TrackedEntityDataValueChangeLog dvaA =
+        new TrackedEntityDataValueChangeLog(
             deA, eventA, dvA.getAuditValue(), USER_A, dvA.getProvidedElsewhere(), AuditType.UPDATE);
-    TrackedEntityDataValueAudit dvaB =
-        new TrackedEntityDataValueAudit(
+    TrackedEntityDataValueChangeLog dvaB =
+        new TrackedEntityDataValueChangeLog(
             deB, eventA, dvB.getAuditValue(), USER_A, dvB.getProvidedElsewhere(), AuditType.UPDATE);
-    TrackedEntityDataValueAudit dvaC =
-        new TrackedEntityDataValueAudit(
+    TrackedEntityDataValueChangeLog dvaC =
+        new TrackedEntityDataValueChangeLog(
             deA, eventB, dvC.getAuditValue(), USER_A, dvC.getProvidedElsewhere(), AuditType.UPDATE);
-    auditStore.addTrackedEntityDataValueAudit(dvaA);
-    auditStore.addTrackedEntityDataValueAudit(dvaB);
-    auditStore.addTrackedEntityDataValueAudit(dvaC);
+    auditStore.addTrackedEntityDataValueChangeLog(dvaA);
+    auditStore.addTrackedEntityDataValueChangeLog(dvaB);
+    auditStore.addTrackedEntityDataValueChangeLog(dvaC);
 
-    TrackedEntityDataValueAuditQueryParams params =
-        new TrackedEntityDataValueAuditQueryParams()
+    TrackedEntityDataValueChangeLogQueryParams params =
+        new TrackedEntityDataValueChangeLogQueryParams()
             .setOrgUnits(List.of(ouA))
             .setAuditTypes(List.of(AuditType.UPDATE));
-    assertContainsOnly(List.of(dvaA, dvaB), auditStore.getTrackedEntityDataValueAudits(params));
-    assertEquals(2, auditStore.countTrackedEntityDataValueAudits(params));
+    assertContainsOnly(List.of(dvaA, dvaB), auditStore.getTrackedEntityDataValueChangeLogs(params));
+    assertEquals(2, auditStore.countTrackedEntityDataValueChangeLogs(params));
 
     params =
-        new TrackedEntityDataValueAuditQueryParams()
+        new TrackedEntityDataValueChangeLogQueryParams()
             .setOrgUnits(List.of(ouB))
             .setAuditTypes(List.of(AuditType.UPDATE));
-    assertContainsOnly(List.of(dvaC), auditStore.getTrackedEntityDataValueAudits(params));
-    assertEquals(1, auditStore.countTrackedEntityDataValueAudits(params));
+    assertContainsOnly(List.of(dvaC), auditStore.getTrackedEntityDataValueChangeLogs(params));
+    assertEquals(1, auditStore.countTrackedEntityDataValueChangeLogs(params));
   }
 
   @Test
   void testGetTrackedEntityDataValueAuditsByOrgUnitDescendants() {
-    TrackedEntityDataValueAudit dvaA =
-        new TrackedEntityDataValueAudit(
+    TrackedEntityDataValueChangeLog dvaA =
+        new TrackedEntityDataValueChangeLog(
             deA, eventA, dvA.getAuditValue(), USER_A, dvA.getProvidedElsewhere(), AuditType.UPDATE);
-    TrackedEntityDataValueAudit dvaB =
-        new TrackedEntityDataValueAudit(
+    TrackedEntityDataValueChangeLog dvaB =
+        new TrackedEntityDataValueChangeLog(
             deB, eventB, dvB.getAuditValue(), USER_A, dvB.getProvidedElsewhere(), AuditType.UPDATE);
-    TrackedEntityDataValueAudit dvaC =
-        new TrackedEntityDataValueAudit(
+    TrackedEntityDataValueChangeLog dvaC =
+        new TrackedEntityDataValueChangeLog(
             deA, eventC, dvC.getAuditValue(), USER_A, dvC.getProvidedElsewhere(), AuditType.UPDATE);
-    TrackedEntityDataValueAudit dvaD =
-        new TrackedEntityDataValueAudit(
+    TrackedEntityDataValueChangeLog dvaD =
+        new TrackedEntityDataValueChangeLog(
             deB, eventD, dvD.getAuditValue(), USER_A, dvD.getProvidedElsewhere(), AuditType.UPDATE);
-    TrackedEntityDataValueAudit dvaE =
-        new TrackedEntityDataValueAudit(
+    TrackedEntityDataValueChangeLog dvaE =
+        new TrackedEntityDataValueChangeLog(
             deA, eventE, dvE.getAuditValue(), USER_A, dvE.getProvidedElsewhere(), AuditType.UPDATE);
-    auditStore.addTrackedEntityDataValueAudit(dvaA);
-    auditStore.addTrackedEntityDataValueAudit(dvaB);
-    auditStore.addTrackedEntityDataValueAudit(dvaC);
-    auditStore.addTrackedEntityDataValueAudit(dvaD);
-    auditStore.addTrackedEntityDataValueAudit(dvaE);
+    auditStore.addTrackedEntityDataValueChangeLog(dvaA);
+    auditStore.addTrackedEntityDataValueChangeLog(dvaB);
+    auditStore.addTrackedEntityDataValueChangeLog(dvaC);
+    auditStore.addTrackedEntityDataValueChangeLog(dvaD);
+    auditStore.addTrackedEntityDataValueChangeLog(dvaE);
 
-    TrackedEntityDataValueAuditQueryParams params =
-        new TrackedEntityDataValueAuditQueryParams()
+    TrackedEntityDataValueChangeLogQueryParams params =
+        new TrackedEntityDataValueChangeLogQueryParams()
             .setOrgUnits(List.of(ouB))
             .setOuMode(OrganisationUnitSelectionMode.DESCENDANTS)
             .setAuditTypes(List.of(AuditType.UPDATE));
     assertContainsOnly(
-        List.of(dvaB, dvaD, dvaE), auditStore.getTrackedEntityDataValueAudits(params));
-    assertEquals(3, auditStore.countTrackedEntityDataValueAudits(params));
+        List.of(dvaB, dvaD, dvaE), auditStore.getTrackedEntityDataValueChangeLogs(params));
+    assertEquals(3, auditStore.countTrackedEntityDataValueChangeLogs(params));
 
     params =
-        new TrackedEntityDataValueAuditQueryParams()
+        new TrackedEntityDataValueChangeLogQueryParams()
             .setOrgUnits(List.of(ouA))
             .setOuMode(OrganisationUnitSelectionMode.DESCENDANTS)
             .setAuditTypes(List.of(AuditType.UPDATE));
     assertContainsOnly(
-        List.of(dvaA, dvaB, dvaC, dvaD, dvaE), auditStore.getTrackedEntityDataValueAudits(params));
-    assertEquals(5, auditStore.countTrackedEntityDataValueAudits(params));
+        List.of(dvaA, dvaB, dvaC, dvaD, dvaE),
+        auditStore.getTrackedEntityDataValueChangeLogs(params));
+    assertEquals(5, auditStore.countTrackedEntityDataValueChangeLogs(params));
   }
 
   @Test
   void testGetTrackedEntityDataValueAuditsByProgramStage() {
-    TrackedEntityDataValueAudit dvaA =
-        new TrackedEntityDataValueAudit(
+    TrackedEntityDataValueChangeLog dvaA =
+        new TrackedEntityDataValueChangeLog(
             deA, eventA, dvA.getAuditValue(), USER_A, dvA.getProvidedElsewhere(), AuditType.UPDATE);
-    TrackedEntityDataValueAudit dvaB =
-        new TrackedEntityDataValueAudit(
+    TrackedEntityDataValueChangeLog dvaB =
+        new TrackedEntityDataValueChangeLog(
             deB, eventA, dvB.getAuditValue(), USER_A, dvB.getProvidedElsewhere(), AuditType.UPDATE);
-    TrackedEntityDataValueAudit dvaC =
-        new TrackedEntityDataValueAudit(
+    TrackedEntityDataValueChangeLog dvaC =
+        new TrackedEntityDataValueChangeLog(
             deA, eventB, dvC.getAuditValue(), USER_A, dvC.getProvidedElsewhere(), AuditType.UPDATE);
-    auditStore.addTrackedEntityDataValueAudit(dvaA);
-    auditStore.addTrackedEntityDataValueAudit(dvaB);
-    auditStore.addTrackedEntityDataValueAudit(dvaC);
+    auditStore.addTrackedEntityDataValueChangeLog(dvaA);
+    auditStore.addTrackedEntityDataValueChangeLog(dvaB);
+    auditStore.addTrackedEntityDataValueChangeLog(dvaC);
 
-    TrackedEntityDataValueAuditQueryParams params =
-        new TrackedEntityDataValueAuditQueryParams()
+    TrackedEntityDataValueChangeLogQueryParams params =
+        new TrackedEntityDataValueChangeLogQueryParams()
             .setProgramStages(List.of(psA))
             .setAuditTypes(List.of(AuditType.UPDATE));
-    assertContainsOnly(List.of(dvaA, dvaB), auditStore.getTrackedEntityDataValueAudits(params));
-    assertEquals(2, auditStore.countTrackedEntityDataValueAudits(params));
+    assertContainsOnly(List.of(dvaA, dvaB), auditStore.getTrackedEntityDataValueChangeLogs(params));
+    assertEquals(2, auditStore.countTrackedEntityDataValueChangeLogs(params));
 
     params =
-        new TrackedEntityDataValueAuditQueryParams()
+        new TrackedEntityDataValueChangeLogQueryParams()
             .setProgramStages(List.of(psB))
             .setAuditTypes(List.of(AuditType.UPDATE));
-    assertContainsOnly(List.of(dvaC), auditStore.getTrackedEntityDataValueAudits(params));
-    assertEquals(1, auditStore.countTrackedEntityDataValueAudits(params));
+    assertContainsOnly(List.of(dvaC), auditStore.getTrackedEntityDataValueChangeLogs(params));
+    assertEquals(1, auditStore.countTrackedEntityDataValueChangeLogs(params));
   }
 
   @Test
   void testGetTrackedEntityDataValueAuditsByStartEndDate() {
-    TrackedEntityDataValueAudit dvaA =
-        new TrackedEntityDataValueAudit(
+    TrackedEntityDataValueChangeLog dvaA =
+        new TrackedEntityDataValueChangeLog(
             deA, eventA, dvA.getAuditValue(), USER_A, dvA.getProvidedElsewhere(), AuditType.UPDATE);
     dvaA.setCreated(getDate(2021, 6, 1));
-    TrackedEntityDataValueAudit dvaB =
-        new TrackedEntityDataValueAudit(
+    TrackedEntityDataValueChangeLog dvaB =
+        new TrackedEntityDataValueChangeLog(
             deB, eventA, dvB.getAuditValue(), USER_A, dvB.getProvidedElsewhere(), AuditType.UPDATE);
     dvaB.setCreated(getDate(2021, 7, 1));
-    TrackedEntityDataValueAudit dvaC =
-        new TrackedEntityDataValueAudit(
+    TrackedEntityDataValueChangeLog dvaC =
+        new TrackedEntityDataValueChangeLog(
             deA, eventB, dvC.getAuditValue(), USER_A, dvC.getProvidedElsewhere(), AuditType.UPDATE);
     dvaC.setCreated(getDate(2021, 8, 1));
-    auditStore.addTrackedEntityDataValueAudit(dvaA);
-    auditStore.addTrackedEntityDataValueAudit(dvaB);
-    auditStore.addTrackedEntityDataValueAudit(dvaC);
+    auditStore.addTrackedEntityDataValueChangeLog(dvaA);
+    auditStore.addTrackedEntityDataValueChangeLog(dvaB);
+    auditStore.addTrackedEntityDataValueChangeLog(dvaC);
 
-    TrackedEntityDataValueAuditQueryParams params =
-        new TrackedEntityDataValueAuditQueryParams()
+    TrackedEntityDataValueChangeLogQueryParams params =
+        new TrackedEntityDataValueChangeLogQueryParams()
             .setDataElements(List.of(deA, deB))
             .setStartDate(getDate(2021, 6, 15))
             .setEndDate(getDate(2021, 8, 15));
-    assertContainsOnly(List.of(dvaB, dvaC), auditStore.getTrackedEntityDataValueAudits(params));
-    assertEquals(2, auditStore.countTrackedEntityDataValueAudits(params));
+    assertContainsOnly(List.of(dvaB, dvaC), auditStore.getTrackedEntityDataValueChangeLogs(params));
+    assertEquals(2, auditStore.countTrackedEntityDataValueChangeLogs(params));
 
     params =
-        new TrackedEntityDataValueAuditQueryParams()
+        new TrackedEntityDataValueChangeLogQueryParams()
             .setDataElements(List.of(deA, deB))
             .setStartDate(getDate(2021, 6, 15))
             .setEndDate(getDate(2021, 7, 15));
-    assertContainsOnly(List.of(dvaB), auditStore.getTrackedEntityDataValueAudits(params));
-    assertEquals(1, auditStore.countTrackedEntityDataValueAudits(params));
+    assertContainsOnly(List.of(dvaB), auditStore.getTrackedEntityDataValueChangeLogs(params));
+    assertEquals(1, auditStore.countTrackedEntityDataValueChangeLogs(params));
   }
 
   @Test
   void testGetTrackedEntityDataValueAuditsByAuditType() {
-    TrackedEntityDataValueAudit dvaA =
-        new TrackedEntityDataValueAudit(
+    TrackedEntityDataValueChangeLog dvaA =
+        new TrackedEntityDataValueChangeLog(
             deA, eventA, dvA.getAuditValue(), USER_A, dvA.getProvidedElsewhere(), AuditType.CREATE);
-    TrackedEntityDataValueAudit dvaB =
-        new TrackedEntityDataValueAudit(
+    TrackedEntityDataValueChangeLog dvaB =
+        new TrackedEntityDataValueChangeLog(
             deB, eventA, dvB.getAuditValue(), USER_A, dvB.getProvidedElsewhere(), AuditType.UPDATE);
-    TrackedEntityDataValueAudit dvaC =
-        new TrackedEntityDataValueAudit(
+    TrackedEntityDataValueChangeLog dvaC =
+        new TrackedEntityDataValueChangeLog(
             deA, eventB, dvC.getAuditValue(), USER_A, dvC.getProvidedElsewhere(), AuditType.DELETE);
-    auditStore.addTrackedEntityDataValueAudit(dvaA);
-    auditStore.addTrackedEntityDataValueAudit(dvaB);
-    auditStore.addTrackedEntityDataValueAudit(dvaC);
+    auditStore.addTrackedEntityDataValueChangeLog(dvaA);
+    auditStore.addTrackedEntityDataValueChangeLog(dvaB);
+    auditStore.addTrackedEntityDataValueChangeLog(dvaC);
 
-    TrackedEntityDataValueAuditQueryParams params =
-        new TrackedEntityDataValueAuditQueryParams()
+    TrackedEntityDataValueChangeLogQueryParams params =
+        new TrackedEntityDataValueChangeLogQueryParams()
             .setAuditTypes(List.of(AuditType.UPDATE, AuditType.DELETE));
-    assertContainsOnly(List.of(dvaB, dvaC), auditStore.getTrackedEntityDataValueAudits(params));
-    assertEquals(2, auditStore.countTrackedEntityDataValueAudits(params));
+    assertContainsOnly(List.of(dvaB, dvaC), auditStore.getTrackedEntityDataValueChangeLogs(params));
+    assertEquals(2, auditStore.countTrackedEntityDataValueChangeLogs(params));
   }
 }
