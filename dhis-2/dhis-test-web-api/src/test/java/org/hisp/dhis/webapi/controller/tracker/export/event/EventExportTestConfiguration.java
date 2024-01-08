@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,22 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.webapi.controller.tracker.export.event;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.List;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-public interface CsvService<T> {
-  void write(OutputStream outputStream, List<T> events, boolean withHeader) throws IOException;
+import java.util.HashSet;
+import org.hisp.dhis.tracker.export.event.EventService;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
-  void writeZip(OutputStream outputStream, List<T> toCompress, boolean withHeader, String file)
-      throws IOException;
+@Configuration
+public class EventExportTestConfiguration {
 
-  void writeGzip(OutputStream outputStream, List<T> toCompress, boolean withHeader)
-      throws IOException;
-
-  List<T> read(InputStream inputStream, boolean skipFirst)
-      throws IOException, org.locationtech.jts.io.ParseException;
+  @Primary
+  @Bean
+  public EventService eventService() {
+    EventService eventService = mock(EventService.class);
+    // Orderable fields are checked within the controller constructor
+    when(eventService.getOrderableFields())
+        .thenReturn(new HashSet<>(EventMapper.ORDERABLE_FIELDS.values()));
+    return eventService;
+  }
 }
