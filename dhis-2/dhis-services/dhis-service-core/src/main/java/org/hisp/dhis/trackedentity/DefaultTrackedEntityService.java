@@ -73,7 +73,7 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -111,7 +111,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
 
   private final TrackedEntityAuditService trackedEntityAuditService;
 
-  private final TrackedEntityAttributeValueAuditService attributeValueAuditService;
+  private final TrackedEntityAttributeValueChangeLogService attributeValueAuditService;
 
   // TODO: FIXME luciano using @Lazy here because we have circular
   // dependencies:
@@ -127,7 +127,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
       AclService aclService,
       @Lazy TrackerOwnershipManager trackerOwnershipAccessManager,
       @Lazy TrackedEntityAuditService trackedEntityAuditService,
-      @Lazy TrackedEntityAttributeValueAuditService attributeValueAuditService) {
+      @Lazy TrackedEntityAttributeValueChangeLogService attributeValueAuditService) {
     checkNotNull(trackedEntityStore);
     checkNotNull(attributeValueService);
     checkNotNull(attributeService);
@@ -783,7 +783,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
   @Override
   @Transactional
   public void deleteTrackedEntity(TrackedEntity trackedEntity) {
-    attributeValueAuditService.deleteTrackedEntityAttributeValueAudits(trackedEntity);
+    attributeValueAuditService.deleteTrackedEntityAttributeValueChangeLogs(trackedEntity);
     trackedEntityStore.delete(trackedEntity);
   }
 

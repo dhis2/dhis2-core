@@ -35,7 +35,7 @@ import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
@@ -63,8 +63,8 @@ public class EnrollmentPersister
           enrollmentConverter,
       TrackerSideEffectConverterService sideEffectConverterService,
       TrackedEntityProgramOwnerService trackedEntityProgramOwnerService,
-      TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService) {
-    super(reservedValueService, trackedEntityAttributeValueAuditService);
+      TrackedEntityAttributeValueChangeLogService trackedEntityAttributeValueChangeLogService) {
+    super(reservedValueService, trackedEntityAttributeValueChangeLogService);
 
     this.enrollmentConverter = enrollmentConverter;
     this.sideEffectConverterService = sideEffectConverterService;

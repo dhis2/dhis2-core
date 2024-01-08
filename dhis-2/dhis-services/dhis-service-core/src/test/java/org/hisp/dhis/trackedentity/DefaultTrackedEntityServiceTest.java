@@ -39,7 +39,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -70,7 +70,7 @@ class DefaultTrackedEntityServiceTest {
 
   @Mock private TrackedEntityAuditService trackedEntityAuditService;
 
-  @Mock private TrackedEntityAttributeValueAuditService attributeValueAuditService;
+  @Mock private TrackedEntityAttributeValueChangeLogService attributeValueAuditService;
 
   private TrackedEntityQueryParams params;
 

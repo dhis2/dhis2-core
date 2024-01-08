@@ -37,21 +37,21 @@ import javax.persistence.criteria.Root;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditQueryParams;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditStore;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLog;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogQueryParams;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogStore;
 import org.springframework.stereotype.Repository;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Repository("org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditStore")
-public class HibernateTrackedEntityAttributeValueAuditStore
-    implements TrackedEntityAttributeValueAuditStore {
+@Repository("org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogStore")
+public class HibernateTrackedEntityAttributeValueChangeLogStore
+    implements TrackedEntityAttributeValueChangeLogStore {
   private EntityManager entityManager;
   private Session session;
 
-  public HibernateTrackedEntityAttributeValueAuditStore(EntityManager entityManager) {
+  public HibernateTrackedEntityAttributeValueChangeLogStore(EntityManager entityManager) {
     this.entityManager = entityManager;
     this.session = entityManager.unwrap(Session.class);
   }
@@ -61,27 +61,27 @@ public class HibernateTrackedEntityAttributeValueAuditStore
   // -------------------------------------------------------------------------
 
   @Override
-  public void addTrackedEntityAttributeValueAudit(
-      TrackedEntityAttributeValueAudit trackedEntityAttributeValueAudit) {
-    session.save(trackedEntityAttributeValueAudit);
+  public void addTrackedEntityAttributeValueChangeLog(
+      TrackedEntityAttributeValueChangeLog attributeValueChangeLog) {
+    session.save(attributeValueChangeLog);
   }
 
   @Override
-  public List<TrackedEntityAttributeValueAudit> getTrackedEntityAttributeValueAudits(
-      TrackedEntityAttributeValueAuditQueryParams params) {
+  public List<TrackedEntityAttributeValueChangeLog> getTrackedEntityAttributeValueChangeLogs(
+      TrackedEntityAttributeValueChangeLogQueryParams params) {
     CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 
-    CriteriaQuery<TrackedEntityAttributeValueAudit> criteria =
-        builder.createQuery(TrackedEntityAttributeValueAudit.class);
+    CriteriaQuery<TrackedEntityAttributeValueChangeLog> criteria =
+        builder.createQuery(TrackedEntityAttributeValueChangeLog.class);
 
-    Root<TrackedEntityAttributeValueAudit> root =
-        criteria.from(TrackedEntityAttributeValueAudit.class);
+    Root<TrackedEntityAttributeValueChangeLog> root =
+        criteria.from(TrackedEntityAttributeValueChangeLog.class);
 
-    List<Predicate> predicates = getTrackedEntityAttributeValueAuditCriteria(root, params);
+    List<Predicate> predicates = getTrackedEntityAttributeValueCriteria(root, params);
 
     criteria.where(predicates.toArray(new Predicate[0])).orderBy(builder.desc(root.get("created")));
 
-    Query<TrackedEntityAttributeValueAudit> query = session.createQuery(criteria);
+    Query<TrackedEntityAttributeValueChangeLog> query = session.createQuery(criteria);
 
     if (params.hasPager()) {
       query
@@ -93,16 +93,16 @@ public class HibernateTrackedEntityAttributeValueAuditStore
   }
 
   @Override
-  public int countTrackedEntityAttributeValueAudits(
-      TrackedEntityAttributeValueAuditQueryParams params) {
+  public int countTrackedEntityAttributeValueChangeLogs(
+      TrackedEntityAttributeValueChangeLogQueryParams params) {
     CriteriaBuilder builder = session.getCriteriaBuilder();
 
     CriteriaQuery<Long> query = builder.createQuery(Long.class);
 
-    Root<TrackedEntityAttributeValueAudit> root =
-        query.from(TrackedEntityAttributeValueAudit.class);
+    Root<TrackedEntityAttributeValueChangeLog> root =
+        query.from(TrackedEntityAttributeValueChangeLog.class);
 
-    List<Predicate> predicates = getTrackedEntityAttributeValueAuditCriteria(root, params);
+    List<Predicate> predicates = getTrackedEntityAttributeValueCriteria(root, params);
 
     query.select(builder.countDistinct(root.get("id"))).where(predicates.toArray(new Predicate[0]));
 
@@ -110,7 +110,7 @@ public class HibernateTrackedEntityAttributeValueAuditStore
   }
 
   @Override
-  public void deleteTrackedEntityAttributeValueAudits(TrackedEntity trackedEntity) {
+  public void deleteTrackedEntityAttributeValueChangeLogs(TrackedEntity trackedEntity) {
     Query<?> query =
         session.createQuery(
             "delete TrackedEntityAttributeValueAudit where trackedEntity = :trackedEntity");
@@ -118,9 +118,9 @@ public class HibernateTrackedEntityAttributeValueAuditStore
     query.executeUpdate();
   }
 
-  private List<Predicate> getTrackedEntityAttributeValueAuditCriteria(
-      Root<TrackedEntityAttributeValueAudit> root,
-      TrackedEntityAttributeValueAuditQueryParams params) {
+  private List<Predicate> getTrackedEntityAttributeValueCriteria(
+      Root<TrackedEntityAttributeValueChangeLog> root,
+      TrackedEntityAttributeValueChangeLogQueryParams params) {
     List<Predicate> predicates = new ArrayList<>();
 
     if (!params.getTrackedEntityAttributes().isEmpty()) {

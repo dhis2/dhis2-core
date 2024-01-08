@@ -58,7 +58,7 @@ class TrackedEntityAttributeValueStoreTest extends SingleSetupIntegrationTestBas
 
   @Autowired private TrackedEntityAttributeService attributeService;
 
-  @Autowired private TrackedEntityAttributeValueAuditStore attributeValueAuditStore;
+  @Autowired private TrackedEntityAttributeValueChangeLogStore attributeValueAuditStore;
 
   @Autowired private RenderService renderService;
 
@@ -167,53 +167,54 @@ class TrackedEntityAttributeValueStoreTest extends SingleSetupIntegrationTestBas
     attributeValueStore.saveVoid(avB);
     attributeValueStore.saveVoid(avC);
     attributeValueStore.saveVoid(avD);
-    TrackedEntityAttributeValueAudit auditA =
-        new TrackedEntityAttributeValueAudit(
+    TrackedEntityAttributeValueChangeLog auditA =
+        new TrackedEntityAttributeValueChangeLog(
             avA, renderService.toJsonAsString(avA), "userA", AuditType.UPDATE);
-    TrackedEntityAttributeValueAudit auditB =
-        new TrackedEntityAttributeValueAudit(
+    TrackedEntityAttributeValueChangeLog auditB =
+        new TrackedEntityAttributeValueChangeLog(
             avB, renderService.toJsonAsString(avB), "userA", AuditType.UPDATE);
-    TrackedEntityAttributeValueAudit auditC =
-        new TrackedEntityAttributeValueAudit(
+    TrackedEntityAttributeValueChangeLog auditC =
+        new TrackedEntityAttributeValueChangeLog(
             avC, renderService.toJsonAsString(avC), "userA", AuditType.CREATE);
-    TrackedEntityAttributeValueAudit auditD =
-        new TrackedEntityAttributeValueAudit(
+    TrackedEntityAttributeValueChangeLog auditD =
+        new TrackedEntityAttributeValueChangeLog(
             avD, renderService.toJsonAsString(avD), "userA", AuditType.DELETE);
-    attributeValueAuditStore.addTrackedEntityAttributeValueAudit(auditA);
-    attributeValueAuditStore.addTrackedEntityAttributeValueAudit(auditB);
-    attributeValueAuditStore.addTrackedEntityAttributeValueAudit(auditC);
-    attributeValueAuditStore.addTrackedEntityAttributeValueAudit(auditD);
+    attributeValueAuditStore.addTrackedEntityAttributeValueChangeLog(auditA);
+    attributeValueAuditStore.addTrackedEntityAttributeValueChangeLog(auditB);
+    attributeValueAuditStore.addTrackedEntityAttributeValueChangeLog(auditC);
+    attributeValueAuditStore.addTrackedEntityAttributeValueChangeLog(auditD);
 
-    TrackedEntityAttributeValueAuditQueryParams params =
-        new TrackedEntityAttributeValueAuditQueryParams()
+    TrackedEntityAttributeValueChangeLogQueryParams params =
+        new TrackedEntityAttributeValueChangeLogQueryParams()
             .setTrackedEntityAttributes(List.of(atA))
             .setTrackedEntities(List.of(teiA))
             .setAuditTypes(List.of(AuditType.UPDATE));
 
     assertContainsOnly(
-        List.of(auditA), attributeValueAuditStore.getTrackedEntityAttributeValueAudits(params));
+        List.of(auditA), attributeValueAuditStore.getTrackedEntityAttributeValueChangeLogs(params));
 
     params =
-        new TrackedEntityAttributeValueAuditQueryParams()
+        new TrackedEntityAttributeValueChangeLogQueryParams()
             .setTrackedEntities(List.of(teiA))
             .setAuditTypes(List.of(AuditType.UPDATE));
 
     assertContainsOnly(
         List.of(auditA, auditB),
-        attributeValueAuditStore.getTrackedEntityAttributeValueAudits(params));
+        attributeValueAuditStore.getTrackedEntityAttributeValueChangeLogs(params));
 
     params =
-        new TrackedEntityAttributeValueAuditQueryParams().setAuditTypes(List.of(AuditType.CREATE));
+        new TrackedEntityAttributeValueChangeLogQueryParams()
+            .setAuditTypes(List.of(AuditType.CREATE));
 
     assertContainsOnly(
-        List.of(auditC), attributeValueAuditStore.getTrackedEntityAttributeValueAudits(params));
+        List.of(auditC), attributeValueAuditStore.getTrackedEntityAttributeValueChangeLogs(params));
 
     params =
-        new TrackedEntityAttributeValueAuditQueryParams()
+        new TrackedEntityAttributeValueChangeLogQueryParams()
             .setAuditTypes(List.of(AuditType.CREATE, AuditType.DELETE));
 
     assertContainsOnly(
         List.of(auditC, auditD),
-        attributeValueAuditStore.getTrackedEntityAttributeValueAudits(params));
+        attributeValueAuditStore.getTrackedEntityAttributeValueChangeLogs(params));
   }
 }

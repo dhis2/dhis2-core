@@ -44,7 +44,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 @JacksonXmlRootElement(
     localName = "trackedEntityAttributeValueAudit",
     namespace = DxfNamespaces.DXF_2_0)
-public class TrackedEntityAttributeValueAudit implements Serializable {
+public class TrackedEntityAttributeValueChangeLog implements Serializable {
   private long id;
 
   private TrackedEntityAttribute attribute;
@@ -67,9 +67,9 @@ public class TrackedEntityAttributeValueAudit implements Serializable {
    */
   private String value;
 
-  public TrackedEntityAttributeValueAudit() {}
+  public TrackedEntityAttributeValueChangeLog() {}
 
-  public TrackedEntityAttributeValueAudit(
+  public TrackedEntityAttributeValueChangeLog(
       TrackedEntityAttributeValue trackedEntityAttributeValue,
       String value,
       String modifiedBy,
@@ -98,7 +98,7 @@ public class TrackedEntityAttributeValueAudit implements Serializable {
       return false;
     }
 
-    final TrackedEntityAttributeValueAudit other = (TrackedEntityAttributeValueAudit) obj;
+    final TrackedEntityAttributeValueChangeLog other = (TrackedEntityAttributeValueChangeLog) obj;
 
     return Objects.equals(this.attribute, other.attribute)
         && Objects.equals(this.trackedEntity, other.trackedEntity)

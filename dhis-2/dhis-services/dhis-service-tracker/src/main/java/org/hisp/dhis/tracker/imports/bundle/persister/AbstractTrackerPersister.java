@@ -50,8 +50,8 @@ import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLog;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.AtomicMode;
 import org.hisp.dhis.tracker.imports.FlushMode;
@@ -75,7 +75,8 @@ public abstract class AbstractTrackerPersister<
     implements TrackerPersister<T, V> {
   protected final ReservedValueService reservedValueService;
 
-  protected final TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService;
+  protected final TrackedEntityAttributeValueChangeLogService
+      trackedEntityAttributeValueChangeLogService;
 
   /**
    * Template method that can be used by classes extending this class to execute the persistence
@@ -440,11 +441,12 @@ public abstract class AbstractTrackerPersister<
 
     // create log entry only for updated, created and deleted attributes
     if (allowAuditLog && auditType != null) {
-      TrackedEntityAttributeValueAudit valueAudit =
-          new TrackedEntityAttributeValueAudit(
+      TrackedEntityAttributeValueChangeLog valueAudit =
+          new TrackedEntityAttributeValueChangeLog(
               attributeValue, attributeValue.getValue(), userName, auditType);
       valueAudit.setTrackedEntity(trackedEntity);
-      trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit(valueAudit);
+      trackedEntityAttributeValueChangeLogService.addTrackedEntityAttributeValueChangLog(
+          valueAudit);
     }
   }
 }

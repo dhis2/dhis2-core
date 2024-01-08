@@ -33,14 +33,15 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface TrackedEntityAttributeValueAuditService {
-  void addTrackedEntityAttributeValueAudit(
-      TrackedEntityAttributeValueAudit trackedEntityAttributeValueAudit);
+public interface TrackedEntityAttributeValueChangeLogStore {
+  void addTrackedEntityAttributeValueChangeLog(
+      TrackedEntityAttributeValueChangeLog attributeValueChangeLog);
 
-  List<TrackedEntityAttributeValueAudit> getTrackedEntityAttributeValueAudits(
-      TrackedEntityAttributeValueAuditQueryParams params);
+  List<TrackedEntityAttributeValueChangeLog> getTrackedEntityAttributeValueChangeLogs(
+      TrackedEntityAttributeValueChangeLogQueryParams params);
 
-  int countTrackedEntityAttributeValueAudits(TrackedEntityAttributeValueAuditQueryParams params);
+  int countTrackedEntityAttributeValueChangeLogs(
+      TrackedEntityAttributeValueChangeLogQueryParams params);
 
-  void deleteTrackedEntityAttributeValueAudits(TrackedEntity trackedEntity);
+  void deleteTrackedEntityAttributeValueChangeLogs(TrackedEntity trackedEntity);
 }

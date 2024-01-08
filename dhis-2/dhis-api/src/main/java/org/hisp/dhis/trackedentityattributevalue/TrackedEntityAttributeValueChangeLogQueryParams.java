@@ -27,20 +27,32 @@
  */
 package org.hisp.dhis.trackedentityattributevalue;
 
+import java.util.ArrayList;
 import java.util.List;
+import lombok.Data;
+import lombok.experimental.Accessors;
+import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Encapsulation of a web API request for tracked entity data value audit records.
+ *
+ * @author Lars Helge Overland
  */
-public interface TrackedEntityAttributeValueAuditStore {
-  void addTrackedEntityAttributeValueAudit(
-      TrackedEntityAttributeValueAudit trackedEntityAttributeValueAudit);
+@Data
+@Accessors(chain = true)
+public class TrackedEntityAttributeValueChangeLogQueryParams {
+  private List<TrackedEntityAttribute> trackedEntityAttributes = new ArrayList<>();
 
-  List<TrackedEntityAttributeValueAudit> getTrackedEntityAttributeValueAudits(
-      TrackedEntityAttributeValueAuditQueryParams params);
+  private List<TrackedEntity> trackedEntities = new ArrayList<>();
 
-  int countTrackedEntityAttributeValueAudits(TrackedEntityAttributeValueAuditQueryParams params);
+  private List<AuditType> auditTypes = new ArrayList<>();
 
-  void deleteTrackedEntityAttributeValueAudits(TrackedEntity trackedEntity);
+  private Pager pager;
+
+  public boolean hasPager() {
+    return pager != null;
+  }
 }

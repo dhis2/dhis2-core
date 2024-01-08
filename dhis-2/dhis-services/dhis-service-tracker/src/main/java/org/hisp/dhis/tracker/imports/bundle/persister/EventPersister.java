@@ -49,7 +49,7 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.tracker.TrackerType;
@@ -79,9 +79,9 @@ public class EventPersister
       ReservedValueService reservedValueService,
       TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event> eventConverter,
       TrackerSideEffectConverterService sideEffectConverterService,
-      TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService,
+      TrackedEntityAttributeValueChangeLogService trackedEntityAttributeValueChangeLogService,
       TrackedEntityDataValueChangeLogService trackedEntityDataValueAuditService) {
-    super(reservedValueService, trackedEntityAttributeValueAuditService);
+    super(reservedValueService, trackedEntityAttributeValueChangeLogService);
     this.eventConverter = eventConverter;
     this.sideEffectConverterService = sideEffectConverterService;
     this.trackedEntityDataValueAuditService = trackedEntityDataValueAuditService;
