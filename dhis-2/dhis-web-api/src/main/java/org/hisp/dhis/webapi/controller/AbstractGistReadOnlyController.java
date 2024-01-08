@@ -97,7 +97,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
   @GetMapping(value = "/{uid}/gist", produces = APPLICATION_JSON_VALUE)
   public @ResponseBody ResponseEntity<JsonNode> getObjectGist(
       @OpenApi.Param(UID.class) @PathVariable("uid") String uid, GistParams params)
-      throws NotFoundException {
+      throws NotFoundException, BadRequestException {
     return gistToJsonObjectResponse(
         uid,
         createGistQuery(params, getEntityClass(), GistAutoType.L)
@@ -112,7 +112,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
       @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
       GistParams params,
       HttpServletResponse response)
-      throws IOException {
+      throws IOException, BadRequestException {
     gistToCsvResponse(
         response,
         createGistQuery(params, getEntityClass(), GistAutoType.L)
@@ -134,7 +134,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
   @OpenApi.Response({GistListResponse.class, ObjectNode[].class})
   @GetMapping(value = "/gist", produces = APPLICATION_JSON_VALUE)
   public @ResponseBody ResponseEntity<JsonNode> getObjectListGist(
-      GistParams params, HttpServletRequest request) {
+      GistParams params, HttpServletRequest request) throws BadRequestException {
     return gistToJsonArrayResponse(
         request, params, createGistQuery(params, getEntityClass(), GistAutoType.S), getSchema());
   }
@@ -144,7 +144,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
       value = {"/gist", "/gist.csv"},
       produces = "text/csv")
   public void getObjectListGistAsCsv(GistParams params, HttpServletResponse response)
-      throws IOException {
+      throws IOException, BadRequestException {
     gistToCsvResponse(
         response,
         createGistQuery(params, getEntityClass(), GistAutoType.S).toBuilder()
@@ -207,7 +207,8 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
       @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
       @PathVariable("property") String property,
       GistParams params,
-      Property objProperty) {
+      Property objProperty)
+      throws BadRequestException {
     return createGistQuery(
             params, (Class<IdentifiableObject>) objProperty.getItemKlass(), GistAutoType.M)
         .withOwner(
@@ -215,7 +216,8 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
   }
 
   private GistQuery createGistQuery(
-      GistParams params, Class<? extends PrimaryKeyObject> elementType, GistAutoType autoDefault) {
+      GistParams params, Class<? extends PrimaryKeyObject> elementType, GistAutoType autoDefault)
+      throws BadRequestException {
     Locale translationLocale =
         !params.getLocale().isEmpty()
             ? Locale.forLanguageTag(params.getLocale())

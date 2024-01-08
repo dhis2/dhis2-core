@@ -523,7 +523,6 @@
           "identifier": "xYerKDKCefk"
         }
       ],
-
       "dataValues": [
         {
           "dataElement": {
@@ -603,7 +602,6 @@
           "identifier": "xYerKDKCefk"
         }
       ],
-
       "dataValues": [
         {
           "dataElement": {
@@ -686,7 +684,6 @@
           "identifier": "xYerKDKCefk"
         }
       ],
-
       "notes": []
     },
     {
@@ -721,7 +718,6 @@
           "identifier": "xYerKDKCefk"
         }
       ],
-
       "notes": []
     },
     {
@@ -1103,6 +1099,7 @@
         "idScheme": "UID",
         "identifier": "TV9oB9LT3sh"
       },
+      "createdAtClient": "2018-10-01T12:17:30.163",
       "bidirectional": false,
       "deleted": false,
       "from": {
@@ -1118,6 +1115,7 @@
         "idScheme": "UID",
         "identifier": "TV9oB9LT3sh"
       },
+      "createdAtClient": "2018-11-01T13:24:37.118",
       "bidirectional": false,
       "deleted": false,
       "from": {

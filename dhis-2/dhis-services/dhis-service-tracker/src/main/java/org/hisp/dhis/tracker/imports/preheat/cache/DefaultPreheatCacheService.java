@@ -105,13 +105,7 @@ public class DefaultPreheatCacheService implements PreheatCacheService {
   public List<IdentifiableObject> getAll(String cacheKey) {
     List<IdentifiableObject> res = new ArrayList<>();
     if (hasKey(cacheKey)) {
-      cache
-          .get(cacheKey)
-          .keys()
-          .forEach(
-              k -> {
-                res.add(cache.get(cacheKey).get(k));
-              });
+      cache.get(cacheKey).keys().forEach(k -> res.add(cache.get(cacheKey).get(k)));
     }
     return res;
   }

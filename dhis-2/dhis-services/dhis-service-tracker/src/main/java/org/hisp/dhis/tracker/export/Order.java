@@ -28,9 +28,9 @@
 package org.hisp.dhis.tracker.export;
 
 import lombok.Value;
+import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 
 /**
  * Tracker exporter APIs allow ordering by different types. For example events can be ordered by

@@ -360,22 +360,6 @@ class DataIntegrityServiceTest {
   }
 
   @Test
-  void testGetProgramRulesWithNoExpression() {
-    programRuleB.setCondition(null);
-    when(programRuleService.getProgramRulesWithNoCondition()).thenReturn(List.of(programRuleB));
-
-    List<DataIntegrityIssue> issues = subject.getProgramRulesWithNoCondition();
-
-    verify(programRuleService).getProgramRulesWithNoCondition();
-    verify(programRuleService, times(1)).getProgramRulesWithNoCondition();
-
-    assertEquals(1, issues.size());
-    DataIntegrityIssue issue = issues.get(0);
-    assertEquals(issueName(programB), issue.getName());
-    assertContainsOnly(List.of(issueName(programRuleB)), issue.getRefs());
-  }
-
-  @Test
   void testGetProgramRulesVariableWithNoDataElement() {
     programRuleVariableA.setProgram(programA);
 

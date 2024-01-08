@@ -139,14 +139,11 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse {
     this.organisationUnitsWithoutGroups =
         listOfDisplayNameWithUid(detailsByName.get("organisation_units_without_groups"));
     this.organisationUnitGroupsWithoutGroupSets =
-        listOfDisplayNameOrUid(
-            detailsByName.get(DataIntegrityCheckType.ORG_UNIT_GROUPS_WITHOUT_GROUP_SETS.getName()));
+        listOfDisplayNameOrUid(detailsByName.get("org_units_not_in_compulsory_group_sets"));
     this.validationRulesWithoutGroups =
         listOfDisplayNameOrUid(detailsByName.get("validation_rules_without_groups"));
     this.programIndicatorsWithNoExpression =
-        listOfDisplayNameOrUid(
-            detailsByName.get(
-                DataIntegrityCheckType.PROGRAM_INDICATORS_WITHOUT_EXPRESSION.getName()));
+        listOfDisplayNameOrUid(detailsByName.get("program_indicators_without_expression"));
 
     // grouped name/UID
     this.indicatorsWithIdenticalFormulas =
@@ -190,21 +187,16 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse {
             detailsByName.get(
                 DataIntegrityCheckType.DATA_ELEMENTS_IN_DATA_SET_NOT_IN_FORM.getName()));
     this.indicatorsViolatingExclusiveGroupSets =
-        mapOfRefsByDisplayNameOrUid(
-            detailsByName.get(
-                DataIntegrityCheckType.INDICATORS_VIOLATING_EXCLUSIVE_GROUP_SETS.getName()));
+        mapOfRefsByDisplayNameOrUid(detailsByName.get("indicators_violating_exclusive_group_sets"));
     this.organisationUnitsViolatingExclusiveGroupSets =
         mapOfRefsByDisplayNameOrUid(
-            detailsByName.get(
-                DataIntegrityCheckType.ORG_UNITS_VIOLATING_EXCLUSIVE_GROUP_SETS.getName()));
+            detailsByName.get("organisation_units_violating_exclusive_group_sets"));
     this.programRulesWithNoCondition =
         mapOfRefsByDisplayNameOrUid(detailsByName.get("program_rules_without_condition"));
     this.programRulesWithNoPriority =
-        mapOfRefsByDisplayNameOrUid(
-            detailsByName.get(DataIntegrityCheckType.PROGRAM_RULES_WITHOUT_PRIORITY.getName()));
+        mapOfRefsByDisplayNameOrUid(detailsByName.get("program_rules_no_priority"));
     this.programRulesWithNoAction =
-        mapOfRefsByDisplayNameOrUid(
-            detailsByName.get(DataIntegrityCheckType.PROGRAM_RULES_WITHOUT_ACTION.getName()));
+        mapOfRefsByDisplayNameOrUid(detailsByName.get("program_rules_no_action"));
     this.programRuleVariablesWithNoDataElement =
         mapOfRefsByDisplayNameOrUid(
             detailsByName.get(

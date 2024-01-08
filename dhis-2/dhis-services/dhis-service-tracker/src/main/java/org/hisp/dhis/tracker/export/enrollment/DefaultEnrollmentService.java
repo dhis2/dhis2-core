@@ -36,7 +36,6 @@ import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -57,7 +56,6 @@ import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Slf4j
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.tracker.export.enrollment.EnrollmentService")
@@ -96,8 +94,7 @@ class DefaultEnrollmentService
 
   @Override
   public Enrollment getEnrollment(
-      @Nonnull Enrollment enrollment, EnrollmentParams params, boolean includeDeleted, User user)
-      throws ForbiddenException {
+      @Nonnull Enrollment enrollment, EnrollmentParams params, boolean includeDeleted, User user) {
 
     Enrollment result = new Enrollment();
     result.setId(enrollment.getId());
@@ -217,8 +214,7 @@ class DefaultEnrollmentService
       Iterable<Enrollment> enrollments,
       EnrollmentParams params,
       boolean includeDeleted,
-      OrganisationUnitSelectionMode orgUnitMode)
-      throws ForbiddenException {
+      OrganisationUnitSelectionMode orgUnitMode) {
     List<Enrollment> enrollmentList = new ArrayList<>();
     User user = currentUserService.getCurrentUser();
 

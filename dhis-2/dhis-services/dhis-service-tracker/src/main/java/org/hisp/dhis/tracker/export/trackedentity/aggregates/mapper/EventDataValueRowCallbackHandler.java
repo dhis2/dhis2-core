@@ -58,6 +58,7 @@ public class EventDataValueRowCallbackHandler implements RowCallbackHandler {
     dataValues.put(rs.getString("key"), getDataValue(rs));
   }
 
+  @SuppressWarnings("unchecked")
   private List<EventDataValue> getDataValue(ResultSet rs) throws SQLException {
     // TODO not sure this is the most efficient way to handle JSONB -> java
     List<EventDataValue> result = new ArrayList<>();

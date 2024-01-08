@@ -45,7 +45,7 @@ public class EnrollmentEventsParams {
   public static final EnrollmentEventsParams FALSE =
       new EnrollmentEventsParams(false, EventParams.FALSE);
 
-  private boolean includeEvents;
+  boolean includeEvents;
 
-  private EventParams eventParams;
+  EventParams eventParams;
 }

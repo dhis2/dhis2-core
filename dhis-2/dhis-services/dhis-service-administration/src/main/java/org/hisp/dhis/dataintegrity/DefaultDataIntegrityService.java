@@ -73,10 +73,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue;
@@ -93,10 +91,7 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -142,17 +137,11 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
 
   private final OrganisationUnitService organisationUnitService;
 
-  private final OrganisationUnitGroupService organisationUnitGroupService;
-
   private final ValidationRuleService validationRuleService;
 
   private final ExpressionService expressionService;
 
   private final DataEntryFormService dataEntryFormService;
-
-  private final CategoryService categoryService;
-
-  private final PeriodService periodService;
 
   private final ProgramIndicatorService programIndicatorService;
 
@@ -184,14 +173,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
       Stream<? extends IdentifiableObject> items) {
     return items
         .map(DataIntegrityIssue::toIssue)
-        .sorted(DefaultDataIntegrityService::alphabeticalOrder)
-        .toList();
-  }
-
-  private static <T extends IdentifiableObject> List<DataIntegrityIssue> toIssueList(
-      Stream<T> items, Function<T, ? extends Collection<? extends IdentifiableObject>> toRefs) {
-    return items
-        .map(e -> DataIntegrityIssue.toIssue(e, toRefs.apply(e)))
         .sorted(DefaultDataIntegrityService::alphabeticalOrder)
         .toList();
   }
@@ -235,26 +216,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
   }
 
   /**
-   * Gets all data elements units which are members of more than one group which enter into an
-   * exclusive group set.
-   */
-  List<DataIntegrityIssue> getDataElementsViolatingExclusiveGroupSets() {
-    Collection<DataElementGroupSet> groupSets = dataElementService.getAllDataElementGroupSets();
-
-    List<DataIntegrityIssue> issues = new ArrayList<>();
-
-    for (DataElementGroupSet groupSet : groupSets) {
-      Set<DataElement> duplicates = getDuplicates(groupSet.getDataElements());
-
-      for (DataElement duplicate : duplicates) {
-        issues.add(DataIntegrityIssue.toIssue(duplicate, duplicate.getGroups()));
-      }
-    }
-
-    return issues;
-  }
-
-  /**
    * Returns all data elements which are member of a data set but not part of either the custom form
    * or sections of the data set.
    */
@@ -284,12 +245,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
     }
 
     return issues;
-  }
-
-  /** Returns all invalid category combinations. */
-  List<DataIntegrityIssue> getInvalidCategoryCombos() {
-    return toSimpleIssueList(
-        categoryService.getAllCategoryCombos().stream().filter(c -> !c.isValid()));
   }
 
   // -------------------------------------------------------------------------
@@ -382,17 +337,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
   List<DataIntegrityIssue> getOrganisationUnitsWithCyclicReferences() {
     return toSimpleIssueList(
         organisationUnitService.getOrganisationUnitsWithCyclicReferences().stream());
-  }
-
-  List<DataIntegrityIssue> getOrganisationUnitsViolatingExclusiveGroupSets() {
-    return toIssueList(
-        organisationUnitService.getOrganisationUnitsViolatingExclusiveGroupSets().stream(),
-        OrganisationUnit::getGroups);
-  }
-
-  List<DataIntegrityIssue> getOrganisationUnitGroupsWithoutGroupSets() {
-    return toSimpleIssueList(
-        organisationUnitGroupService.getOrganisationUnitGroupsWithoutGroupSets().stream());
   }
 
   // -------------------------------------------------------------------------
@@ -500,22 +444,9 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         Indicator.class,
         this::getInvalidIndicatorDenominators);
     registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.INDICATORS_VIOLATING_EXCLUSIVE_GROUP_SETS,
-        Indicator.class,
-        this::getIndicatorsViolatingExclusiveGroupSets);
-
-    registerNonDatabaseIntegrityCheck(
         DataIntegrityCheckType.ORG_UNITS_WITH_CYCLIC_REFERENCES,
         OrganisationUnit.class,
         this::getOrganisationUnitsWithCyclicReferences);
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.ORG_UNITS_VIOLATING_EXCLUSIVE_GROUP_SETS,
-        OrganisationUnit.class,
-        this::getOrganisationUnitsViolatingExclusiveGroupSets);
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.ORG_UNIT_GROUPS_WITHOUT_GROUP_SETS,
-        OrganisationUnitGroup.class,
-        this::getOrganisationUnitGroupsWithoutGroupSets);
     registerNonDatabaseIntegrityCheck(
         DataIntegrityCheckType.VALIDATION_RULES_WITH_INVALID_LEFT_SIDE_EXPRESSION,
         ValidationRule.class,
@@ -528,24 +459,10 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         DataIntegrityCheckType.PROGRAM_INDICATORS_WITH_INVALID_EXPRESSIONS,
         ProgramIndicator.class,
         this::getInvalidProgramIndicatorExpressions);
-
     registerNonDatabaseIntegrityCheck(
         DataIntegrityCheckType.PROGRAM_INDICATORS_WITH_INVALID_FILTERS,
         ProgramIndicator.class,
         this::getInvalidProgramIndicatorFilters);
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.PROGRAM_INDICATORS_WITHOUT_EXPRESSION,
-        ProgramIndicator.class,
-        this::getProgramIndicatorsWithNoExpression);
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.PROGRAM_RULES_WITHOUT_PRIORITY,
-        Program.class,
-        this::getProgramRulesWithNoPriority);
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.PROGRAM_RULES_WITHOUT_ACTION,
-        Program.class,
-        this::getProgramRulesWithNoAction);
-
     registerNonDatabaseIntegrityCheck(
         DataIntegrityCheckType.PROGRAM_RULE_VARIABLES_WITHOUT_DATA_ELEMENT,
         Program.class,
@@ -554,7 +471,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         DataIntegrityCheckType.PROGRAM_RULE_VARIABLES_WITHOUT_ATTRIBUTE,
         Program.class,
         this::getProgramRuleVariablesWithNoAttribute);
-
     registerNonDatabaseIntegrityCheck(
         DataIntegrityCheckType.PROGRAM_RULE_ACTIONS_WITHOUT_DATA_OBJECT,
         ProgramRule.class,
@@ -587,6 +503,12 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
     checks.add("orgunits_orphaned");
     checks.add("validation_rules_without_groups");
     checks.add("program_rules_without_condition");
+    checks.add("program_rules_no_action");
+    checks.add("program_rules_no_priority");
+    checks.add("program_indicators_without_expression");
+    checks.add("organisation_units_violating_exclusive_group_sets");
+    checks.add("orgunits_compulsory_group_count");
+    checks.add("indicators_violating_exclusive_group_sets");
     return checks;
   }
 
@@ -605,12 +527,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
     }
     runDetailsChecks(checks, progress);
     return new FlattenedDataIntegrityReport(getDetails(checks, -1L));
-  }
-
-  /** Get all ProgramIndicators with no expression. */
-  List<DataIntegrityIssue> getProgramIndicatorsWithNoExpression() {
-    return toSimpleIssueList(
-        programIndicatorService.getProgramIndicatorsWithNoExpression().stream());
   }
 
   /** Get all ProgramIndicators with invalid expressions. */
@@ -639,21 +555,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
       }
     }
     return issues;
-  }
-
-  /** Get all ProgramRules with no priority and grouped them by {@link Program} */
-  List<DataIntegrityIssue> getProgramRulesWithNoPriority() {
-    return groupRulesByProgram(programRuleService.getProgramRulesWithNoPriority());
-  }
-
-  /** Get all ProgramRules with no action and grouped them by {@link Program} */
-  List<DataIntegrityIssue> getProgramRulesWithNoAction() {
-    return groupRulesByProgram(programRuleService.getProgramRulesWithNoAction());
-  }
-
-  /** Get all ProgramRules with no condition expression and grouped them by {@link Program} */
-  List<DataIntegrityIssue> getProgramRulesWithNoCondition() {
-    return groupRulesByProgram(programRuleService.getProgramRulesWithNoCondition());
   }
 
   /**
@@ -715,10 +616,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
     }
 
     return null;
-  }
-
-  private static List<DataIntegrityIssue> groupRulesByProgram(List<ProgramRule> rules) {
-    return groupBy(ProgramRule::getProgram, rules);
   }
 
   private static List<DataIntegrityIssue> groupVariablesByProgram(

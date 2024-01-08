@@ -27,7 +27,7 @@
 ---
 name: data_elements_violating_exclusive_group_sets
 description: Data elements which belong to multiple groups in a group set.
-section: data_elements
+section: Data elements (aggregate)
 section_order: 10
 summary_sql: >-
   WITH des_multiple_groups as (
@@ -80,7 +80,7 @@ details_sql: >-
   INNER JOIN dataelementgroupset degs on e.dataelementgroupsetid = degs.dataelementgroupsetid
   INNER JOIN dataelementgroup deg on e.dataelementgroupid = deg.dataelementgroupid ) x
   GROUP BY x.uid,x.name,x.degs_name;
-details_id_type: data_elements_aggregate
+details_id_type: dataElements
 severity: SEVERE
 introduction: >
   Data elements should belong to exactly one group within each data element 

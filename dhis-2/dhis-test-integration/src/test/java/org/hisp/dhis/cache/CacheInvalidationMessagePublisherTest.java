@@ -30,7 +30,6 @@ package org.hisp.dhis.cache;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.cacheinvalidation.redis.PostCacheEventPublisher;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -45,7 +44,6 @@ import org.springframework.test.context.ActiveProfiles;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Slf4j
 @ActiveProfiles({"test-postgres", "cache-invalidation-test"})
 class CacheInvalidationMessagePublisherTest extends IntegrationTestBase {
   @Autowired private PostCacheEventPublisher postCacheEventPublisher;

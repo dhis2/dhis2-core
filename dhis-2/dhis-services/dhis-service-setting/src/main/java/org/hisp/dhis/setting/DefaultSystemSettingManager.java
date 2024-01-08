@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.system.util.SerializableOptional;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
@@ -163,6 +164,7 @@ public class DefaultSystemSettingManager implements SystemSettingManager {
    * behind the cache to avoid the transaction overhead for cache hits.
    */
   @Override
+  @IndirectTransactional
   @SuppressWarnings("unchecked")
   public <T extends Serializable> T getSystemSetting(SettingKey key, T defaultValue) {
     SerializableOptional value =

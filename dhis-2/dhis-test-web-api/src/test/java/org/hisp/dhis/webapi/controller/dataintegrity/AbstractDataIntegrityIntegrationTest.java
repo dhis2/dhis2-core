@@ -81,6 +81,31 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
     assertTrue(trigger.content().isA(JsonWebMessage.class));
   }
 
+  public String createSimpleIndicator(String name, String indicatorType) {
+    String indicatorId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicators",
+                // language=JSON
+                """
+                    {
+                      "name": "%s",
+                      "shortName": "%s",
+                      "indicatorType": {
+                        "id": "%s"
+                      },
+                      "numerator": "abc123",
+                      "numeratorDescription": "One",
+                      "denominator": "abc123",
+                      "denominatorDescription": "Zero"
+                    }
+                    """
+                    .formatted(name, name, indicatorType)));
+    assertNamedMetadataObjectExists("indicators", name);
+    return indicatorId;
+  }
+
   void checkDataIntegritySummary(
       String check, Integer expectedCount, Integer expectedPercentage, Boolean hasPercentage) {
 
