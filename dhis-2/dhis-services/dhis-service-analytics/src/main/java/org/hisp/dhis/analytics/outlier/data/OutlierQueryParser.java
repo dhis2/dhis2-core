@@ -129,12 +129,8 @@ public class OutlierQueryParser {
     String currentUsername = CurrentUserUtil.getCurrentUsername();
     User currentUser = userService.getUserByUsername(currentUsername);
 
-    Set<OrganisationUnit> organisationUnits = null;
-    if (currentUser == null) {
-      organisationUnits = Set.of();
-    } else {
-      organisationUnits = currentUser.getOrganisationUnits();
-    }
+    Set<OrganisationUnit> organisationUnits =
+        currentUser == null ? Set.of() : currentUser.getOrganisationUnits();
 
     BaseDimensionalObject baseDimensionalObject =
         dimensionalObjectProducer.getOrgUnitDimension(

@@ -254,6 +254,11 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
       return List.of();
     }
 
+    // TODO: MAS: we need to keep this for the special case when the acting user's UserGroups are
+    // changed in the request.
+    // See tests in AbstractCrudControllerTest#testMergeCollectionItemsJson()
+    // If it was not the acting user, we could easily invalidate the changed user if they are
+    // logged in.
     CurrentUserGroupInfo currentUserGroupInfo = getCurrentUserGroupInfo(userDetails.getUid());
     if (userDetails.getUserGroupIds().size() != currentUserGroupInfo.getUserGroupUIDs().size()) {
       String msg =
@@ -263,15 +268,7 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
               userDetails.getUserGroupIds().size(),
               currentUserGroupInfo.getUserGroupUIDs().size());
 
-      // TODO: MAS: we need to keep this for the special case when acting user's user groups are
-      // changed in the request.
-      // See tests in AbstractCrudControllerTest, testMergeCollectionItemsJson
-      // If it was not the acting user, we could easily invalidate the changed user if they are
-      // logged in.
-      // Only way to fix this is to update the in session userDetails with the new user groups.
-
-      RuntimeException runtimeException = new RuntimeException(msg);
-      log.error(msg, runtimeException);
+      log.error(msg, new RuntimeException(msg));
     }
 
     return getSharingPredicates(
