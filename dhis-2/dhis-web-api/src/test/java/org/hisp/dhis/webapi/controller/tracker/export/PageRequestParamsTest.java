@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import lombok.Data;
 import org.junit.jupiter.api.Test;
 
-class PageImportRequestParamsTest {
+class PageRequestParamsTest {
 
   @Data
   private static class PaginationParameters implements PageRequestParams {
