@@ -43,7 +43,7 @@ import javax.persistence.EntityManager;
 import lombok.Builder;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.changelog.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.note.Note;

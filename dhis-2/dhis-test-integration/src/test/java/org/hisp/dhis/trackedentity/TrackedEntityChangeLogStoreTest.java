@@ -33,8 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.audit.payloads.TrackedEntityChangeLog;
-import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.changelog.AuditType;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

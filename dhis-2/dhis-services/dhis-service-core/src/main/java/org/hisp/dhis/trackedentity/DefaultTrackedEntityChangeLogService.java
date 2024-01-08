@@ -30,7 +30,6 @@ package org.hisp.dhis.trackedentity;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.audit.payloads.TrackedEntityChangeLog;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;

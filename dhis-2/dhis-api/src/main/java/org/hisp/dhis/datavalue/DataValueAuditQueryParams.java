@@ -32,7 +32,7 @@ import java.util.List;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.changelog.AuditType;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;

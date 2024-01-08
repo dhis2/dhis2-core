@@ -321,7 +321,7 @@ class MaintenanceServiceTest extends IntegrationTestBase {
             "value",
             "modifiedBy",
             false,
-            org.hisp.dhis.common.AuditType.UPDATE);
+            org.hisp.dhis.changelog.AuditType.UPDATE);
     trackedEntityDataValueAuditService.addTrackedEntityDataValueChangeLog(
         trackedEntityDataValueChangeLog);
     long idA = enrollmentService.addEnrollment(enrollment);

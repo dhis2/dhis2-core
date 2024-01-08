@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.deduplication.hibernate;
 
-import static org.hisp.dhis.common.AuditType.CREATE;
-import static org.hisp.dhis.common.AuditType.DELETE;
-import static org.hisp.dhis.common.AuditType.UPDATE;
+import static org.hisp.dhis.changelog.AuditType.CREATE;
+import static org.hisp.dhis.changelog.AuditType.DELETE;
+import static org.hisp.dhis.changelog.AuditType.UPDATE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
 import java.math.BigInteger;
@@ -225,7 +225,7 @@ public class HibernatePotentialDuplicateStore
         .forEach(
             av -> {
               TrackedEntityAttributeValue updatedTeav;
-              org.hisp.dhis.common.AuditType auditType;
+              org.hisp.dhis.changelog.AuditType auditType;
               if (originalAttributeValueMap.containsKey(av.getAttribute().getUid())) {
                 // Teav exists in original, overwrite the value
                 updatedTeav = originalAttributeValueMap.get(av.getAttribute().getUid());
@@ -256,7 +256,7 @@ public class HibernatePotentialDuplicateStore
   private void auditTeav(
       TrackedEntityAttributeValue av,
       TrackedEntityAttributeValue createOrUpdateTeav,
-      org.hisp.dhis.common.AuditType auditType) {
+      org.hisp.dhis.changelog.AuditType auditType) {
     String currentUsername = currentUserService.getCurrentUsername();
 
     TrackedEntityAttributeValueChangeLog deleteTeavAudit =

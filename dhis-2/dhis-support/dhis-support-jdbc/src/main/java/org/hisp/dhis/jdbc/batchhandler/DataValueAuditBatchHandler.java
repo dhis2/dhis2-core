@@ -32,7 +32,7 @@ import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
-import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.changelog.AuditType;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.quick.JdbcConfiguration;
 import org.hisp.quick.batchhandler.AbstractBatchHandler;

@@ -28,7 +28,6 @@
 package org.hisp.dhis.trackedentity;
 
 import java.util.List;
-import org.hisp.dhis.audit.payloads.TrackedEntityChangeLog;
 
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com

@@ -33,7 +33,7 @@ import com.google.common.base.MoreObjects;
 import java.util.Date;
 import java.util.Objects;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.changelog.AuditType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
