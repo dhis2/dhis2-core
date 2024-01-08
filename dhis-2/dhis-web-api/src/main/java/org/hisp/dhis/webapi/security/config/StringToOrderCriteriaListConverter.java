@@ -36,7 +36,7 @@ import org.springframework.core.convert.converter.Converter;
  *
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-class StringToOrderCriteriaListConverter implements Converter<String, List<OrderCriteria>> {
+public class StringToOrderCriteriaListConverter implements Converter<String, List<OrderCriteria>> {
   @Override
   public List<OrderCriteria> convert(String source) {
     return OrderCriteria.fromOrderString(source);

@@ -52,6 +52,7 @@ import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlDeprecationNoticeHttpMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
+import org.hisp.dhis.webapi.security.config.StringToOrderCriteriaListConverter;
 import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -201,6 +202,7 @@ public class MvcTestConfig implements WebMvcConfigurer {
 
   @Override
   public void addFormatters(FormatterRegistry registry) {
+    registry.addConverter(new StringToOrderCriteriaListConverter());
     registry.addConverter(new FieldPathConverter());
   }
 
