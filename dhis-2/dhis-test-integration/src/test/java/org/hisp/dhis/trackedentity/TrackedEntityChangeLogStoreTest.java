@@ -31,7 +31,7 @@ import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 
 import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.audit.payloads.TrackedEntityAudit;
+import org.hisp.dhis.audit.payloads.TrackedEntityChangeLog;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Test;
@@ -40,51 +40,51 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Lars Helge Overland
  */
-class TrackedEntityAuditStoreTest extends SingleSetupIntegrationTestBase {
+class TrackedEntityChangeLogStoreTest extends SingleSetupIntegrationTestBase {
   private final Date CREATED = getDate(2022, 3, 1);
 
-  @Autowired private TrackedEntityAuditStore store;
+  @Autowired private TrackedEntityChangeLogStore store;
 
   @Test
   void testGetAuditsByParams() {
-    TrackedEntityAudit teiaA =
-        new TrackedEntityAudit("WGW7UnVcIIb", "Access", CREATED, "userA", AuditType.CREATE);
-    TrackedEntityAudit teiaB =
-        new TrackedEntityAudit("WGW7UnVcIIb", "Access", CREATED, "userB", AuditType.UPDATE);
-    TrackedEntityAudit teiaC =
-        new TrackedEntityAudit("zIAwTY3Drrn", "Access", CREATED, "userA", AuditType.UPDATE);
-    TrackedEntityAudit teiaD =
-        new TrackedEntityAudit("zIAwTY3Drrn", "Access", CREATED, "userB", AuditType.DELETE);
+    TrackedEntityChangeLog teiaA =
+        new TrackedEntityChangeLog("WGW7UnVcIIb", "Access", CREATED, "userA", AuditType.CREATE);
+    TrackedEntityChangeLog teiaB =
+        new TrackedEntityChangeLog("WGW7UnVcIIb", "Access", CREATED, "userB", AuditType.UPDATE);
+    TrackedEntityChangeLog teiaC =
+        new TrackedEntityChangeLog("zIAwTY3Drrn", "Access", CREATED, "userA", AuditType.UPDATE);
+    TrackedEntityChangeLog teiaD =
+        new TrackedEntityChangeLog("zIAwTY3Drrn", "Access", CREATED, "userB", AuditType.DELETE);
 
-    store.addTrackedEntityAudit(teiaA);
-    store.addTrackedEntityAudit(teiaB);
-    store.addTrackedEntityAudit(teiaC);
-    store.addTrackedEntityAudit(teiaD);
+    store.addTrackedEntityChangeLog(teiaA);
+    store.addTrackedEntityChangeLog(teiaB);
+    store.addTrackedEntityChangeLog(teiaC);
+    store.addTrackedEntityChangeLog(teiaD);
 
-    TrackedEntityAuditQueryParams params =
-        new TrackedEntityAuditQueryParams().setTrackedEntities(List.of("WGW7UnVcIIb"));
+    TrackedEntityChangeLogQueryParams params =
+        new TrackedEntityChangeLogQueryParams().setTrackedEntities(List.of("WGW7UnVcIIb"));
 
-    assertContainsOnly(List.of(teiaA, teiaB), store.getTrackedEntityAudits(params));
+    assertContainsOnly(List.of(teiaA, teiaB), store.getTrackedEntityChangeLogs(params));
 
-    params = new TrackedEntityAuditQueryParams().setUsers(List.of("userA"));
+    params = new TrackedEntityChangeLogQueryParams().setUsers(List.of("userA"));
 
-    assertContainsOnly(List.of(teiaA, teiaC), store.getTrackedEntityAudits(params));
+    assertContainsOnly(List.of(teiaA, teiaC), store.getTrackedEntityChangeLogs(params));
 
-    params = new TrackedEntityAuditQueryParams().setAuditTypes(List.of(AuditType.UPDATE));
+    params = new TrackedEntityChangeLogQueryParams().setAuditTypes(List.of(AuditType.UPDATE));
 
-    assertContainsOnly(List.of(teiaB, teiaC), store.getTrackedEntityAudits(params));
+    assertContainsOnly(List.of(teiaB, teiaC), store.getTrackedEntityChangeLogs(params));
 
     params =
-        new TrackedEntityAuditQueryParams()
+        new TrackedEntityChangeLogQueryParams()
             .setAuditTypes(List.of(AuditType.CREATE, AuditType.DELETE));
 
-    assertContainsOnly(List.of(teiaA, teiaD), store.getTrackedEntityAudits(params));
+    assertContainsOnly(List.of(teiaA, teiaD), store.getTrackedEntityChangeLogs(params));
 
     params =
-        new TrackedEntityAuditQueryParams()
+        new TrackedEntityChangeLogQueryParams()
             .setTrackedEntities(List.of("WGW7UnVcIIb"))
             .setUsers(List.of("userA"));
 
-    assertContainsOnly(List.of(teiaA), store.getTrackedEntityAudits(params));
+    assertContainsOnly(List.of(teiaA), store.getTrackedEntityChangeLogs(params));
   }
 }

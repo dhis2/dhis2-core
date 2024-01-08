@@ -27,57 +27,39 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import lombok.Data;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.common.AuditType;
-import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.audit.payloads.TrackedEntityChangeLog;
 
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
  */
-@Data
-@Accessors(chain = true)
-public class TrackedEntityAuditQueryParams {
-  private List<String> trackedEntities = new ArrayList<>();
+public interface TrackedEntityChangeLogService {
 
-  private List<String> users = new ArrayList<>();
+  String ID = TrackedEntityChangeLogService.class.getName();
 
-  private List<AuditType> auditTypes = new ArrayList<>();
+  /**
+   * Adds tracked entity audit
+   *
+   * @param trackedEntityChangeLog the audit to add
+   */
+  void addTrackedEntityChangeLog(TrackedEntityChangeLog trackedEntityChangeLog);
 
-  private Date startDate = null;
+  /** Adds multiple tracked entity audit */
+  void addTrackedEntityChangeLog(List<TrackedEntityChangeLog> trackedEntityChangeLogs);
 
-  private Date endDate = null;
+  /**
+   * Returns tracked entity audits matching query params
+   *
+   * @param params tracked entity audit query params
+   * @return matching TrackedEntityAudits
+   */
+  List<TrackedEntityChangeLog> getTrackedEntityChangeLogs(TrackedEntityChangeLogQueryParams params);
 
-  private Pager pager;
-
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
-  public boolean hasTrackedEntities() {
-    return trackedEntities != null && !trackedEntities.isEmpty();
-  }
-
-  public boolean hasUsers() {
-    return users != null && !users.isEmpty();
-  }
-
-  public boolean hasAuditTypes() {
-    return auditTypes != null && !auditTypes.isEmpty();
-  }
-
-  public boolean hasStartDate() {
-    return startDate != null;
-  }
-
-  public boolean hasEndDate() {
-    return endDate != null;
-  }
-
-  public boolean hasPaging() {
-    return pager != null;
-  }
+  /**
+   * Returns count of tracked entity audits matching query params
+   *
+   * @param params tracked entity audit query params
+   * @return count of TrackedEntityAudits
+   */
+  int getTrackedEntityChangeLogsCount(TrackedEntityChangeLogQueryParams params);
 }

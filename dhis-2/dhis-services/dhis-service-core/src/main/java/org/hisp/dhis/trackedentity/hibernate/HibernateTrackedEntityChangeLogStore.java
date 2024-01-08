@@ -38,13 +38,12 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.audit.payloads.TrackedEntityAudit;
+import org.hisp.dhis.audit.payloads.TrackedEntityChangeLog;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.jdbc.StatementBuilder;
-import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
-import org.hisp.dhis.trackedentity.TrackedEntityAuditStore;
+import org.hisp.dhis.trackedentity.TrackedEntityChangeLogQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityChangeLogStore;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -52,18 +51,18 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
  */
-@Repository("org.hisp.dhis.trackedentity.TrackedEntityAuditStore")
-public class HibernateTrackedEntityAuditStore extends HibernateGenericStore<TrackedEntityAudit>
-    implements TrackedEntityAuditStore {
+@Repository("org.hisp.dhis.trackedentity.TrackedEntityChangeLogStore")
+public class HibernateTrackedEntityChangeLogStore
+    extends HibernateGenericStore<TrackedEntityChangeLog> implements TrackedEntityChangeLogStore {
 
   private final StatementBuilder statementBuilder;
 
-  public HibernateTrackedEntityAuditStore(
+  public HibernateTrackedEntityChangeLogStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       StatementBuilder statementBuilder) {
-    super(entityManager, jdbcTemplate, publisher, TrackedEntityAudit.class, false);
+    super(entityManager, jdbcTemplate, publisher, TrackedEntityChangeLog.class, false);
     this.statementBuilder = statementBuilder;
   }
 
@@ -72,12 +71,12 @@ public class HibernateTrackedEntityAuditStore extends HibernateGenericStore<Trac
   // -------------------------------------------------------------------------
 
   @Override
-  public void addTrackedEntityAudit(TrackedEntityAudit trackedEntityAudit) {
-    getSession().save(trackedEntityAudit);
+  public void addTrackedEntityChangeLog(TrackedEntityChangeLog trackedEntityChangeLog) {
+    getSession().save(trackedEntityChangeLog);
   }
 
   @Override
-  public void addTrackedEntityAudit(List<TrackedEntityAudit> trackedEntityAudit) {
+  public void addTrackedEntityChangeLog(List<TrackedEntityChangeLog> trackedEntityChangeLog) {
     final String sql =
         "INSERT INTO trackedentityaudit ("
             + "trackedentityauditid, "
@@ -87,7 +86,7 @@ public class HibernateTrackedEntityAuditStore extends HibernateGenericStore<Trac
             + "audittype, "
             + "comment ) VALUES ";
 
-    Function<TrackedEntityAudit, String> mapToString =
+    Function<TrackedEntityChangeLog, String> mapToString =
         audit -> {
           StringBuilder sb = new StringBuilder();
           sb.append("(");
@@ -105,24 +104,19 @@ public class HibernateTrackedEntityAuditStore extends HibernateGenericStore<Trac
         };
 
     final String values =
-        trackedEntityAudit.stream().map(mapToString).collect(Collectors.joining(","));
+        trackedEntityChangeLog.stream().map(mapToString).collect(Collectors.joining(","));
 
     getSession().createNativeQuery(sql + values).executeUpdate();
   }
 
   @Override
-  public void deleteTrackedEntityAudit(TrackedEntity trackedEntity) {
-    String hql = "delete TrackedEntityAudit where trackedEntity = :trackedEntity";
-    getSession().createQuery(hql).setParameter("trackedEntity", trackedEntity).executeUpdate();
-  }
-
-  @Override
-  public List<TrackedEntityAudit> getTrackedEntityAudits(TrackedEntityAuditQueryParams params) {
+  public List<TrackedEntityChangeLog> getTrackedEntityChangeLogs(
+      TrackedEntityChangeLogQueryParams params) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
-    JpaQueryParameters<TrackedEntityAudit> jpaParameters =
+    JpaQueryParameters<TrackedEntityChangeLog> jpaParameters =
         newJpaParameters()
-            .addPredicates(getTrackedEntityAuditPredicates(params, builder))
+            .addPredicates(getTrackedEntityPredicates(params, builder))
             .addOrder(root -> builder.desc(root.get("created")));
 
     if (params.hasPaging()) {
@@ -135,20 +129,20 @@ public class HibernateTrackedEntityAuditStore extends HibernateGenericStore<Trac
   }
 
   @Override
-  public int getTrackedEntityAuditsCount(TrackedEntityAuditQueryParams params) {
+  public int getTrackedEntityChangeLogsCount(TrackedEntityChangeLogQueryParams params) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
     return getCount(
             builder,
             newJpaParameters()
-                .addPredicates(getTrackedEntityAuditPredicates(params, builder))
+                .addPredicates(getTrackedEntityPredicates(params, builder))
                 .count(root -> builder.countDistinct(root.get("id"))))
         .intValue();
   }
 
-  private List<Function<Root<TrackedEntityAudit>, Predicate>> getTrackedEntityAuditPredicates(
-      TrackedEntityAuditQueryParams params, CriteriaBuilder builder) {
-    List<Function<Root<TrackedEntityAudit>, Predicate>> predicates = new ArrayList<>();
+  private List<Function<Root<TrackedEntityChangeLog>, Predicate>> getTrackedEntityPredicates(
+      TrackedEntityChangeLogQueryParams params, CriteriaBuilder builder) {
+    List<Function<Root<TrackedEntityChangeLog>, Predicate>> predicates = new ArrayList<>();
 
     if (params.hasTrackedEntities()) {
       predicates.add(root -> root.get("trackedEntity").in(params.getTrackedEntities()));

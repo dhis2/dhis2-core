@@ -38,7 +38,7 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.audit.payloads.TrackedEntityAudit;
+import org.hisp.dhis.audit.payloads.TrackedEntityChangeLog;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -54,7 +54,7 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityAuditService;
+import org.hisp.dhis.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
@@ -85,7 +85,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
   private final TrackedEntityTypeService trackedEntityTypeService;
 
-  private final TrackedEntityAuditService trackedEntityAuditService;
+  private final TrackedEntityChangeLogService trackedEntityChangeLogService;
 
   private final CurrentUserService currentUserService;
 
@@ -432,16 +432,16 @@ class DefaultTrackedEntityService implements TrackedEntityService {
         trackedEntityTypeService.getAllTrackedEntityType().stream()
             .collect(Collectors.toMap(TrackedEntityType::getUid, t -> t));
 
-    List<TrackedEntityAudit> auditable =
+    List<TrackedEntityChangeLog> auditable =
         trackedEntities.stream()
             .filter(Objects::nonNull)
             .filter(te -> te.getTrackedEntityType() != null)
             .filter(te -> tetMap.get(te.getTrackedEntityType().getUid()).isAllowAuditLog())
-            .map(te -> new TrackedEntityAudit(te.getUid(), accessedBy, AuditType.SEARCH))
+            .map(te -> new TrackedEntityChangeLog(te.getUid(), accessedBy, AuditType.SEARCH))
             .toList();
 
     if (!auditable.isEmpty()) {
-      trackedEntityAuditService.addTrackedEntityAudit(auditable);
+      trackedEntityChangeLogService.addTrackedEntityChangeLog(auditable);
     }
   }
 
@@ -450,9 +450,9 @@ class DefaultTrackedEntityService implements TrackedEntityService {
         && trackedEntity != null
         && trackedEntity.getTrackedEntityType() != null
         && trackedEntity.getTrackedEntityType().isAllowAuditLog()) {
-      TrackedEntityAudit trackedEntityAudit =
-          new TrackedEntityAudit(trackedEntity.getUid(), user, AuditType.READ);
-      trackedEntityAuditService.addTrackedEntityAudit(trackedEntityAudit);
+      TrackedEntityChangeLog trackedEntityChangeLog =
+          new TrackedEntityChangeLog(trackedEntity.getUid(), user, AuditType.READ);
+      trackedEntityChangeLogService.addTrackedEntityChangeLog(trackedEntityChangeLog);
     }
   }
 

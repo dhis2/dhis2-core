@@ -68,7 +68,7 @@ class DefaultTrackedEntityServiceTest {
 
   @Mock private TrackerOwnershipManager trackerOwnershipAccessManager;
 
-  @Mock private TrackedEntityAuditService trackedEntityAuditService;
+  @Mock private TrackedEntityChangeLogService trackedEntityChangeLogService;
 
   @Mock private TrackedEntityAttributeValueChangeLogService attributeValueAuditService;
 
@@ -88,7 +88,7 @@ class DefaultTrackedEntityServiceTest {
             currentUserService,
             aclService,
             trackerOwnershipAccessManager,
-            trackedEntityAuditService,
+            trackedEntityChangeLogService,
             attributeValueAuditService);
 
     User user = new User();

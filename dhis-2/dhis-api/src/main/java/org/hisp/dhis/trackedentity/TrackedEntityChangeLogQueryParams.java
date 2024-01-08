@@ -27,49 +27,57 @@
  */
 package org.hisp.dhis.trackedentity;
 
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.audit.payloads.TrackedEntityAudit;
+import lombok.Data;
+import lombok.experimental.Accessors;
+import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.common.Pager;
 
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
  */
-public interface TrackedEntityAuditStore {
-  String ID = TrackedEntityAuditStore.class.getName();
+@Data
+@Accessors(chain = true)
+public class TrackedEntityChangeLogQueryParams {
+  private List<String> trackedEntities = new ArrayList<>();
 
-  /**
-   * Adds the given tracked entity audit.
-   *
-   * @param trackedEntityAudit the {@link TrackedEntityAudit} to add.
-   */
-  void addTrackedEntityAudit(TrackedEntityAudit trackedEntityAudit);
+  private List<String> users = new ArrayList<>();
 
-  /**
-   * Adds the given {@link TrackedEntityAudit}s.
-   *
-   * @param trackedEntityAudit the list of {@link TrackedEntityAudit}.
-   */
-  void addTrackedEntityAudit(List<TrackedEntityAudit> trackedEntityAudit);
+  private List<AuditType> auditTypes = new ArrayList<>();
 
-  /**
-   * Deletes tracked entity audit for the given tracked entity.
-   *
-   * @param trackedEntity the {@link TrackedEntity}.
-   */
-  void deleteTrackedEntityAudit(TrackedEntity trackedEntity);
+  private Date startDate = null;
 
-  /**
-   * Returns tracked entity audits matching query params
-   *
-   * @param params tracked entity audit query params
-   * @return a list of {@link TrackedEntityAudit}.
-   */
-  List<TrackedEntityAudit> getTrackedEntityAudits(TrackedEntityAuditQueryParams params);
+  private Date endDate = null;
 
-  /**
-   * Returns count of tracked entity audits matching query params
-   *
-   * @param params tracked entity audit query params
-   * @return count of audits.
-   */
-  int getTrackedEntityAuditsCount(TrackedEntityAuditQueryParams params);
+  private Pager pager;
+
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
+
+  public boolean hasTrackedEntities() {
+    return trackedEntities != null && !trackedEntities.isEmpty();
+  }
+
+  public boolean hasUsers() {
+    return users != null && !users.isEmpty();
+  }
+
+  public boolean hasAuditTypes() {
+    return auditTypes != null && !auditTypes.isEmpty();
+  }
+
+  public boolean hasStartDate() {
+    return startDate != null;
+  }
+
+  public boolean hasEndDate() {
+    return endDate != null;
+  }
+
+  public boolean hasPaging() {
+    return pager != null;
+  }
 }

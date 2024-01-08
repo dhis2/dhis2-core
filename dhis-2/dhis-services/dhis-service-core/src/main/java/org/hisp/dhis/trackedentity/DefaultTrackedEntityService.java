@@ -58,7 +58,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.audit.payloads.TrackedEntityAudit;
+import org.hisp.dhis.audit.payloads.TrackedEntityChangeLog;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.Grid;
@@ -109,7 +109,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
 
   private final TrackerOwnershipManager trackerOwnershipAccessManager;
 
-  private final TrackedEntityAuditService trackedEntityAuditService;
+  private final TrackedEntityChangeLogService trackedEntityChangeLogService;
 
   private final TrackedEntityAttributeValueChangeLogService attributeValueAuditService;
 
@@ -126,7 +126,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
       CurrentUserService currentUserService,
       AclService aclService,
       @Lazy TrackerOwnershipManager trackerOwnershipAccessManager,
-      @Lazy TrackedEntityAuditService trackedEntityAuditService,
+      @Lazy TrackedEntityChangeLogService trackedEntityChangeLogService,
       @Lazy TrackedEntityAttributeValueChangeLogService attributeValueAuditService) {
     checkNotNull(trackedEntityStore);
     checkNotNull(attributeValueService);
@@ -136,7 +136,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     checkNotNull(currentUserService);
     checkNotNull(aclService);
     checkNotNull(trackerOwnershipAccessManager);
-    checkNotNull(trackedEntityAuditService);
+    checkNotNull(trackedEntityChangeLogService);
     checkNotNull(attributeValueAuditService);
 
     this.trackedEntityStore = trackedEntityStore;
@@ -147,7 +147,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     this.currentUserService = currentUserService;
     this.aclService = aclService;
     this.trackerOwnershipAccessManager = trackerOwnershipAccessManager;
-    this.trackedEntityAuditService = trackedEntityAuditService;
+    this.trackedEntityChangeLogService = trackedEntityChangeLogService;
     this.attributeValueAuditService = attributeValueAuditService;
   }
 
@@ -374,9 +374,9 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
       }
 
       if (te != null && te.isAllowAuditLog() && accessedBy != null) {
-        TrackedEntityAudit trackedEntityAudit =
-            new TrackedEntityAudit(entity.get(TRACKED_ENTITY_ID), accessedBy, AuditType.SEARCH);
-        trackedEntityAuditService.addTrackedEntityAudit(trackedEntityAudit);
+        TrackedEntityChangeLog trackedEntityChangeLog =
+            new TrackedEntityChangeLog(entity.get(TRACKED_ENTITY_ID), accessedBy, AuditType.SEARCH);
+        trackedEntityChangeLogService.addTrackedEntityChangeLog(trackedEntityChangeLog);
       }
 
       for (QueryItem item : params.getAttributes()) {
@@ -864,9 +864,9 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
         && trackedEntity != null
         && trackedEntity.getTrackedEntityType() != null
         && trackedEntity.getTrackedEntityType().isAllowAuditLog()) {
-      TrackedEntityAudit trackedEntityAudit =
-          new TrackedEntityAudit(trackedEntity.getUid(), user, auditType);
-      trackedEntityAuditService.addTrackedEntityAudit(trackedEntityAudit);
+      TrackedEntityChangeLog trackedEntityChangeLog =
+          new TrackedEntityChangeLog(trackedEntity.getUid(), user, auditType);
+      trackedEntityChangeLogService.addTrackedEntityChangeLog(trackedEntityChangeLog);
     }
   }
 }
