@@ -113,7 +113,7 @@ public class HibernateTrackedEntityAttributeValueChangeLogStore
   public void deleteTrackedEntityAttributeValueChangeLogs(TrackedEntity trackedEntity) {
     Query<?> query =
         session.createQuery(
-            "delete TrackedEntityAttributeValueAudit where trackedEntity = :trackedEntity");
+            "delete TrackedEntityAttributeValueChangeLog where trackedEntity = :trackedEntity");
     query.setParameter("trackedEntity", trackedEntity);
     query.executeUpdate();
   }

@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.changelog.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
@@ -183,7 +183,7 @@ public class AuditController {
           String co,
       @OpenApi.Param({UID.class, CategoryOptionCombo.class}) @RequestParam(required = false)
           String cc,
-      @RequestParam(required = false) List<AuditType> auditType,
+      @RequestParam(required = false) List<ChangeLogType> auditType,
       @RequestParam(required = false) Boolean skipPaging,
       @RequestParam(required = false) Boolean paging,
       @RequestParam(required = false, defaultValue = "50") int pageSize,
@@ -203,7 +203,7 @@ public class AuditController {
     List<OrganisationUnit> organisationUnits = manager.loadByUid(OrganisationUnit.class, ou);
     CategoryOptionCombo categoryOptionCombo = manager.get(CategoryOptionCombo.class, co);
     CategoryOptionCombo attributeOptionCombo = manager.get(CategoryOptionCombo.class, cc);
-    List<AuditType> auditTypes = emptyIfNull(auditType);
+    List<ChangeLogType> changeLogTypes = emptyIfNull(auditType);
 
     DataValueAuditQueryParams params =
         new DataValueAuditQueryParams()
@@ -212,7 +212,7 @@ public class AuditController {
             .setOrgUnits(organisationUnits)
             .setCategoryOptionCombo(categoryOptionCombo)
             .setAttributeOptionCombo(attributeOptionCombo)
-            .setAuditTypes(auditTypes);
+            .setAuditTypes(changeLogTypes);
 
     List<DataValueAudit> dataValueAudits;
     Pager pager = null;
@@ -232,7 +232,7 @@ public class AuditController {
                   .setOrgUnits(organisationUnits)
                   .setCategoryOptionCombo(categoryOptionCombo)
                   .setAttributeOptionCombo(attributeOptionCombo)
-                  .setAuditTypes(auditTypes)
+                  .setAuditTypes(changeLogTypes)
                   .setPager(pager));
     }
 
@@ -269,7 +269,7 @@ public class AuditController {
       @RequestParam(required = false) Date startDate,
       @RequestParam(required = false) Date endDate,
       @RequestParam(required = false) OrganisationUnitSelectionMode ouMode,
-      @RequestParam(required = false) List<AuditType> auditType,
+      @RequestParam(required = false) List<ChangeLogType> auditType,
       @RequestParam(required = false) Boolean skipPaging,
       @RequestParam(required = false) Boolean paging,
       @RequestParam(required = false, defaultValue = "50") int pageSize,
@@ -286,7 +286,7 @@ public class AuditController {
     List<ProgramStage> programStages = manager.loadByUid(ProgramStage.class, ps);
     Set<UID> eventUids =
         validateDeprecatedUidsParameter("psi", String.join(";", psi), "events", events);
-    List<AuditType> auditTypes = emptyIfNull(auditType);
+    List<ChangeLogType> changeLogTypes = emptyIfNull(auditType);
 
     List<TrackedEntityDataValueChangeLog> dataValueChangeLogs;
     Pager pager = null;
@@ -300,7 +300,7 @@ public class AuditController {
             .setStartDate(startDate)
             .setEndDate(endDate)
             .setOuMode(ouMode)
-            .setAuditTypes(auditTypes);
+            .setAuditTypes(changeLogTypes);
 
     if (PagerUtils.isSkipPaging(skipPaging, paging)) {
       dataValueChangeLogs =
@@ -345,7 +345,7 @@ public class AuditController {
       @OpenApi.Param({UID[].class, TrackedEntity.class})
           @RequestParam(required = false, defaultValue = "")
           Set<UID> trackedEntities,
-      @RequestParam(required = false) List<AuditType> auditType,
+      @RequestParam(required = false) List<ChangeLogType> auditType,
       @RequestParam(required = false) Boolean skipPaging,
       @RequestParam(required = false) Boolean paging,
       @RequestParam(required = false, defaultValue = "50") int pageSize,
@@ -358,7 +358,7 @@ public class AuditController {
     Set<UID> teUids =
         validateDeprecatedUidsParameter(
             "tei", String.join(";", tei), "trackedEntities", trackedEntities);
-    List<AuditType> auditTypes = emptyIfNull(auditType);
+    List<ChangeLogType> changeLogTypes = emptyIfNull(auditType);
 
     List<TrackedEntityAttributeValueChangeLog> attributeValueChangeLogs;
     Pager pager = null;
@@ -367,7 +367,7 @@ public class AuditController {
         new TrackedEntityAttributeValueChangeLogQueryParams()
             .setTrackedEntityAttributes(trackedEntityAttributes)
             .setTrackedEntities(manager.loadByUid(TrackedEntity.class, UID.toValueList(teUids)))
-            .setAuditTypes(auditTypes);
+            .setAuditTypes(changeLogTypes);
 
     if (PagerUtils.isSkipPaging(skipPaging, paging)) {
       attributeValueChangeLogs =
@@ -471,7 +471,7 @@ public class AuditController {
           @RequestParam(required = false, defaultValue = "")
           Set<UID> trackedEntities,
       @OpenApi.Param({UID[].class, User.class}) @RequestParam(required = false) List<String> user,
-      @RequestParam(required = false) List<AuditType> auditType,
+      @RequestParam(required = false) List<ChangeLogType> auditType,
       @RequestParam(required = false) Date startDate,
       @RequestParam(required = false) Date endDate,
       @RequestParam(required = false) Boolean skipPaging,
@@ -485,7 +485,7 @@ public class AuditController {
       fields.addAll(Preset.ALL.getFields());
     }
 
-    List<AuditType> auditTypes = emptyIfNull(auditType);
+    List<ChangeLogType> changeLogTypes = emptyIfNull(auditType);
 
     Set<UID> teUids =
         validateDeprecatedUidsParameter(
@@ -495,7 +495,7 @@ public class AuditController {
         new TrackedEntityChangeLogQueryParams()
             .setTrackedEntities(UID.toValueList(teUids))
             .setUsers(user)
-            .setAuditTypes(auditTypes)
+            .setAuditTypes(changeLogTypes)
             .setStartDate(startDate)
             .setEndDate(endDate);
 
@@ -536,7 +536,7 @@ public class AuditController {
           @RequestParam(required = false, defaultValue = "")
           Set<UID> trackedEntities,
       @OpenApi.Param({UID[].class, User.class}) @RequestParam(required = false) List<String> user,
-      @RequestParam(required = false) List<AuditType> auditType,
+      @RequestParam(required = false) List<ChangeLogType> auditType,
       @RequestParam(required = false) Date startDate,
       @RequestParam(required = false) Date endDate,
       @RequestParam(required = false) Boolean skipPaging,
@@ -549,13 +549,13 @@ public class AuditController {
       fields.addAll(Preset.ALL.getFields());
     }
 
-    List<AuditType> auditTypes = emptyIfNull(auditType);
+    List<ChangeLogType> changeLogTypes = emptyIfNull(auditType);
 
     TrackedEntityChangeLogQueryParams params =
         new TrackedEntityChangeLogQueryParams()
             .setTrackedEntities(UID.toValueList(trackedEntities))
             .setUsers(user)
-            .setAuditTypes(auditTypes)
+            .setAuditTypes(changeLogTypes)
             .setStartDate(startDate)
             .setEndDate(endDate);
 

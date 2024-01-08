@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.List;
-import org.hisp.dhis.changelog.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.render.RenderService;
@@ -169,16 +169,16 @@ class TrackedEntityAttributeValueStoreTest extends SingleSetupIntegrationTestBas
     attributeValueStore.saveVoid(avD);
     TrackedEntityAttributeValueChangeLog auditA =
         new TrackedEntityAttributeValueChangeLog(
-            avA, renderService.toJsonAsString(avA), "userA", AuditType.UPDATE);
+            avA, renderService.toJsonAsString(avA), "userA", ChangeLogType.UPDATE);
     TrackedEntityAttributeValueChangeLog auditB =
         new TrackedEntityAttributeValueChangeLog(
-            avB, renderService.toJsonAsString(avB), "userA", AuditType.UPDATE);
+            avB, renderService.toJsonAsString(avB), "userA", ChangeLogType.UPDATE);
     TrackedEntityAttributeValueChangeLog auditC =
         new TrackedEntityAttributeValueChangeLog(
-            avC, renderService.toJsonAsString(avC), "userA", AuditType.CREATE);
+            avC, renderService.toJsonAsString(avC), "userA", ChangeLogType.CREATE);
     TrackedEntityAttributeValueChangeLog auditD =
         new TrackedEntityAttributeValueChangeLog(
-            avD, renderService.toJsonAsString(avD), "userA", AuditType.DELETE);
+            avD, renderService.toJsonAsString(avD), "userA", ChangeLogType.DELETE);
     attributeValueAuditStore.addTrackedEntityAttributeValueChangeLog(auditA);
     attributeValueAuditStore.addTrackedEntityAttributeValueChangeLog(auditB);
     attributeValueAuditStore.addTrackedEntityAttributeValueChangeLog(auditC);
@@ -188,7 +188,7 @@ class TrackedEntityAttributeValueStoreTest extends SingleSetupIntegrationTestBas
         new TrackedEntityAttributeValueChangeLogQueryParams()
             .setTrackedEntityAttributes(List.of(atA))
             .setTrackedEntities(List.of(teiA))
-            .setAuditTypes(List.of(AuditType.UPDATE));
+            .setAuditTypes(List.of(ChangeLogType.UPDATE));
 
     assertContainsOnly(
         List.of(auditA), attributeValueAuditStore.getTrackedEntityAttributeValueChangeLogs(params));
@@ -196,7 +196,7 @@ class TrackedEntityAttributeValueStoreTest extends SingleSetupIntegrationTestBas
     params =
         new TrackedEntityAttributeValueChangeLogQueryParams()
             .setTrackedEntities(List.of(teiA))
-            .setAuditTypes(List.of(AuditType.UPDATE));
+            .setAuditTypes(List.of(ChangeLogType.UPDATE));
 
     assertContainsOnly(
         List.of(auditA, auditB),
@@ -204,14 +204,14 @@ class TrackedEntityAttributeValueStoreTest extends SingleSetupIntegrationTestBas
 
     params =
         new TrackedEntityAttributeValueChangeLogQueryParams()
-            .setAuditTypes(List.of(AuditType.CREATE));
+            .setAuditTypes(List.of(ChangeLogType.CREATE));
 
     assertContainsOnly(
         List.of(auditC), attributeValueAuditStore.getTrackedEntityAttributeValueChangeLogs(params));
 
     params =
         new TrackedEntityAttributeValueChangeLogQueryParams()
-            .setAuditTypes(List.of(AuditType.CREATE, AuditType.DELETE));
+            .setAuditTypes(List.of(ChangeLogType.CREATE, ChangeLogType.DELETE));
 
     assertContainsOnly(
         List.of(auditC, auditD),

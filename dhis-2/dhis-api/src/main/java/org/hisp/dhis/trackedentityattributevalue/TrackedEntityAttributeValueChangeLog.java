@@ -33,7 +33,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
-import org.hisp.dhis.changelog.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -59,7 +59,7 @@ public class TrackedEntityAttributeValueChangeLog implements Serializable {
 
   private String modifiedBy;
 
-  private AuditType auditType;
+  private ChangeLogType auditType;
 
   /**
    * This value is only used to store values from setValue when we don't know if attribute is set or
@@ -73,7 +73,7 @@ public class TrackedEntityAttributeValueChangeLog implements Serializable {
       TrackedEntityAttributeValue trackedEntityAttributeValue,
       String value,
       String modifiedBy,
-      AuditType auditType) {
+      ChangeLogType auditType) {
     this.attribute = trackedEntityAttributeValue.getAttribute();
     this.trackedEntity = trackedEntityAttributeValue.getTrackedEntity();
 
@@ -192,11 +192,11 @@ public class TrackedEntityAttributeValueChangeLog implements Serializable {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public AuditType getAuditType() {
+  public ChangeLogType getAuditType() {
     return auditType;
   }
 
-  public void setAuditType(AuditType auditType) {
+  public void setAuditType(ChangeLogType auditType) {
     this.auditType = auditType;
   }
 }

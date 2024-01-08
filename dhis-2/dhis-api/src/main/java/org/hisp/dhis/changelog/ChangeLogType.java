@@ -32,7 +32,7 @@ package org.hisp.dhis.changelog;
  *
  * @author Halvdan Hoem Grelland
  */
-public enum AuditType {
+public enum ChangeLogType {
   CREATE,
   UPDATE,
   DELETE,

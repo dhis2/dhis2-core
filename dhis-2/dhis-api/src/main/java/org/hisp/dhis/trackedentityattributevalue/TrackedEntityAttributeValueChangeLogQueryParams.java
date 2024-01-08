@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.hisp.dhis.changelog.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -48,7 +48,7 @@ public class TrackedEntityAttributeValueChangeLogQueryParams {
 
   private List<TrackedEntity> trackedEntities = new ArrayList<>();
 
-  private List<AuditType> auditTypes = new ArrayList<>();
+  private List<ChangeLogType> auditTypes = new ArrayList<>();
 
   private Pager pager;
 

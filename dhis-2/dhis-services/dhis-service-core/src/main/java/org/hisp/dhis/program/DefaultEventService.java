@@ -37,7 +37,7 @@ import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.changelog.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
@@ -206,7 +206,7 @@ public class DefaultEventService implements EventService {
 
     for (Map.Entry<DataElement, EventDataValue> entry : dataElementEventDataValueMap.entrySet()) {
       entry.getValue().setAutoFields();
-      createAndAddAudit(entry.getValue(), entry.getKey(), event, AuditType.CREATE);
+      createAndAddAudit(entry.getValue(), entry.getKey(), event, ChangeLogType.CREATE);
       handleFileDataValueSave(entry.getValue(), entry.getKey());
     }
   }
@@ -259,7 +259,7 @@ public class DefaultEventService implements EventService {
   // -------------------------------------------------------------------------
 
   private void createAndAddAudit(
-      EventDataValue dataValue, DataElement dataElement, Event event, AuditType auditType) {
+      EventDataValue dataValue, DataElement dataElement, Event event, ChangeLogType changeLogType) {
     if (!config.isEnabled(CHANGELOG_TRACKER) || dataElement == null) {
       return;
     }
@@ -271,7 +271,7 @@ public class DefaultEventService implements EventService {
             dataValue.getValue(),
             dataValue.getStoredBy(),
             dataValue.getProvidedElsewhere(),
-            auditType);
+            changeLogType);
 
     dataValueAuditService.addTrackedEntityDataValueChangeLog(dataValueAudit);
   }

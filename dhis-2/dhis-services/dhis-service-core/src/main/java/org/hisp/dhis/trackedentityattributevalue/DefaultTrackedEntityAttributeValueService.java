@@ -35,7 +35,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.changelog.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
@@ -80,7 +80,7 @@ public class DefaultTrackedEntityAttributeValueService
             attributeValue,
             attributeValue.getAuditValue(),
             currentUserService.getCurrentUsername(),
-            AuditType.DELETE);
+            ChangeLogType.DELETE);
 
     if (config.isEnabled(CHANGELOG_TRACKER)) {
       trackedEntityAttributeValueChangeLogService.addTrackedEntityAttributeValueChangLog(
@@ -194,7 +194,7 @@ public class DefaultTrackedEntityAttributeValueService
               attributeValue,
               attributeValue.getAuditValue(),
               User.username(user),
-              AuditType.UPDATE);
+              ChangeLogType.UPDATE);
 
       if (config.isEnabled(CHANGELOG_TRACKER)) {
         trackedEntityAttributeValueChangeLogService.addTrackedEntityAttributeValueChangLog(

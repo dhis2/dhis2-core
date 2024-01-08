@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.changelog.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -441,7 +441,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
             .filter(Objects::nonNull)
             .filter(te -> te.getTrackedEntityType() != null)
             .filter(te -> tetMap.get(te.getTrackedEntityType().getUid()).isAllowAuditLog())
-            .map(te -> new TrackedEntityChangeLog(te.getUid(), accessedBy, AuditType.SEARCH))
+            .map(te -> new TrackedEntityChangeLog(te.getUid(), accessedBy, ChangeLogType.SEARCH))
             .toList();
 
     if (!auditable.isEmpty()) {
@@ -455,7 +455,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
         && trackedEntity.getTrackedEntityType() != null
         && trackedEntity.getTrackedEntityType().isAllowAuditLog()) {
       TrackedEntityChangeLog trackedEntityChangeLog =
-          new TrackedEntityChangeLog(trackedEntity.getUid(), user, AuditType.READ);
+          new TrackedEntityChangeLog(trackedEntity.getUid(), user, ChangeLogType.READ);
       trackedEntityChangeLogService.addTrackedEntityChangeLog(trackedEntityChangeLog);
     }
   }

@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.changelog.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,13 +47,13 @@ class TrackedEntityAuditStoreTest extends SingleSetupIntegrationTestBase {
   @Autowired private TrackedEntityChangeLogStore store;
 
   private final TrackedEntityChangeLog auditA =
-      new TrackedEntityChangeLog("WGW7UnVcIIb", "Access", CREATED, "userA", AuditType.CREATE);
+      new TrackedEntityChangeLog("WGW7UnVcIIb", "Access", CREATED, "userA", ChangeLogType.CREATE);
   private final TrackedEntityChangeLog auditB =
-      new TrackedEntityChangeLog("WGW7UnVcIIb", "Access", CREATED, "userB", AuditType.UPDATE);
+      new TrackedEntityChangeLog("WGW7UnVcIIb", "Access", CREATED, "userB", ChangeLogType.UPDATE);
   private final TrackedEntityChangeLog auditC =
-      new TrackedEntityChangeLog("zIAwTY3Drrn", "Access", CREATED, "userA", AuditType.UPDATE);
+      new TrackedEntityChangeLog("zIAwTY3Drrn", "Access", CREATED, "userA", ChangeLogType.UPDATE);
   private final TrackedEntityChangeLog auditD =
-      new TrackedEntityChangeLog("zIAwTY3Drrn", "Access", CREATED, "userB", AuditType.DELETE);
+      new TrackedEntityChangeLog("zIAwTY3Drrn", "Access", CREATED, "userB", ChangeLogType.DELETE);
 
   @Test
   void shouldAuditTrackedEntity_whenAddAuditList() {
@@ -67,13 +67,14 @@ class TrackedEntityAuditStoreTest extends SingleSetupIntegrationTestBase {
     List<TrackedEntityChangeLog> trackedEntityAudits = store.getTrackedEntityChangeLogs(params);
 
     assertEquals(trackedEntityAuditInput.size(), trackedEntityAudits.size());
-    TrackedEntityChangeLog entityAudit = filterByAuditType(trackedEntityAudits, AuditType.CREATE);
+    TrackedEntityChangeLog entityAudit =
+        filterByAuditType(trackedEntityAudits, ChangeLogType.CREATE);
 
     assertNotNull(entityAudit);
     assertEquals("userA", entityAudit.getAccessedBy());
     assertEquals("WGW7UnVcIIb", entityAudit.getTrackedEntity());
 
-    entityAudit = filterByAuditType(trackedEntityAudits, AuditType.UPDATE);
+    entityAudit = filterByAuditType(trackedEntityAudits, ChangeLogType.UPDATE);
 
     assertNotNull(entityAudit);
     assertEquals("userB", entityAudit.getAccessedBy());
@@ -81,9 +82,9 @@ class TrackedEntityAuditStoreTest extends SingleSetupIntegrationTestBase {
   }
 
   private static TrackedEntityChangeLog filterByAuditType(
-      List<TrackedEntityChangeLog> trackedEntityAuditsStore, AuditType auditType) {
+      List<TrackedEntityChangeLog> trackedEntityAuditsStore, ChangeLogType changeLogType) {
     return trackedEntityAuditsStore.stream()
-        .filter(a -> a.getAuditType() == auditType)
+        .filter(a -> a.getAuditType() == changeLogType)
         .findFirst()
         .orElse(null);
   }
@@ -105,13 +106,13 @@ class TrackedEntityAuditStoreTest extends SingleSetupIntegrationTestBase {
 
     assertContainsOnly(List.of(auditA, auditC), store.getTrackedEntityChangeLogs(params));
 
-    params = new TrackedEntityChangeLogQueryParams().setAuditTypes(List.of(AuditType.UPDATE));
+    params = new TrackedEntityChangeLogQueryParams().setAuditTypes(List.of(ChangeLogType.UPDATE));
 
     assertContainsOnly(List.of(auditB, auditC), store.getTrackedEntityChangeLogs(params));
 
     params =
         new TrackedEntityChangeLogQueryParams()
-            .setAuditTypes(List.of(AuditType.CREATE, AuditType.DELETE));
+            .setAuditTypes(List.of(ChangeLogType.CREATE, ChangeLogType.DELETE));
 
     assertContainsOnly(List.of(auditA, auditD), store.getTrackedEntityChangeLogs(params));
 

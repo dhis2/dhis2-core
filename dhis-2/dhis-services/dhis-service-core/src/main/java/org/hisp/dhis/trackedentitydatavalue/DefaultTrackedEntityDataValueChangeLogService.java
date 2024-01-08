@@ -61,7 +61,7 @@ public class DefaultTrackedEntityDataValueChangeLogService
     this.trackedEntityDataValueChangeLogStore = trackedEntityDataValueChangeLogStore;
 
     aclFilter =
-        (audit) ->
+        audit ->
             trackerAccessManager
                 .canRead(
                     currentUserService.getCurrentUser(),

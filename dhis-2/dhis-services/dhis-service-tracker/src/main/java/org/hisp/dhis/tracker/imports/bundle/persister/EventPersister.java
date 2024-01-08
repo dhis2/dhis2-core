@@ -43,7 +43,7 @@ import javax.persistence.EntityManager;
 import lombok.Builder;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.changelog.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.note.Note;
@@ -205,13 +205,13 @@ public class EventPersister
 
   private void logTrackedEntityDataValueHistory(
       String userName, DataElement de, Event event, Date created, ValuesHolder valuesHolder) {
-    AuditType auditType = valuesHolder.getAuditType();
+    ChangeLogType changeLogType = valuesHolder.getChangeLogType();
 
-    if (auditType != null) {
+    if (changeLogType != null) {
       TrackedEntityDataValueChangeLog valueAudit = new TrackedEntityDataValueChangeLog();
       valueAudit.setEvent(event);
       valueAudit.setValue(valuesHolder.getValue());
-      valueAudit.setAuditType(auditType);
+      valueAudit.setAuditType(changeLogType);
       valueAudit.setDataElement(de);
       valueAudit.setModifiedBy(userName);
       valueAudit.setProvidedElsewhere(valuesHolder.isProvidedElseWhere());
@@ -250,24 +250,24 @@ public class EventPersister
   private ValuesHolder getAuditAndDateParameters(EventDataValue eventDataValue, DataValue dv) {
     String persistedValue;
 
-    AuditType auditType = null;
+    ChangeLogType changeLogType = null;
 
     if (isNewDataValue(eventDataValue, dv)) {
       eventDataValue = new EventDataValue();
       eventDataValue.setCreated(getFromOrNewDate(dv, DataValue::getCreatedAt));
       eventDataValue.setLastUpdated(getFromOrNewDate(dv, DataValue::getUpdatedAt));
       persistedValue = dv.getValue();
-      auditType = AuditType.CREATE;
+      changeLogType = ChangeLogType.CREATE;
     } else {
       persistedValue = eventDataValue.getValue();
 
       if (isUpdate(eventDataValue, dv)) {
-        auditType = AuditType.UPDATE;
+        changeLogType = ChangeLogType.UPDATE;
         eventDataValue.setLastUpdated(getFromOrNewDate(dv, DataValue::getUpdatedAt));
       }
 
       if (isDeletion(eventDataValue, dv)) {
-        auditType = AuditType.DELETE;
+        changeLogType = ChangeLogType.DELETE;
         eventDataValue.setLastUpdated(getFromOrNewDate(dv, DataValue::getUpdatedAt));
       }
     }
@@ -275,7 +275,7 @@ public class EventPersister
     return ValuesHolder.builder()
         .value(persistedValue)
         .providedElseWhere(dv.isProvidedElsewhere())
-        .auditType(auditType)
+        .changeLogType(changeLogType)
         .eventDataValue(eventDataValue)
         .build();
   }
@@ -287,7 +287,7 @@ public class EventPersister
 
     private final boolean providedElseWhere;
 
-    private final AuditType auditType;
+    private final ChangeLogType changeLogType;
 
     private final EventDataValue eventDataValue;
   }

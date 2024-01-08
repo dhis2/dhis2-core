@@ -35,7 +35,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.audit.UserInfoTestHelper;
-import org.hisp.dhis.changelog.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -179,13 +179,28 @@ class TrackedEntityDataValueChangeLogStoreTest extends SingleSetupIntegrationTes
   void testGetTrackedEntityDataValueAuditsByDataElement() {
     TrackedEntityDataValueChangeLog dvaA =
         new TrackedEntityDataValueChangeLog(
-            deA, eventA, dvA.getAuditValue(), USER_A, dvA.getProvidedElsewhere(), AuditType.UPDATE);
+            deA,
+            eventA,
+            dvA.getAuditValue(),
+            USER_A,
+            dvA.getProvidedElsewhere(),
+            ChangeLogType.UPDATE);
     TrackedEntityDataValueChangeLog dvaB =
         new TrackedEntityDataValueChangeLog(
-            deB, eventA, dvB.getAuditValue(), USER_A, dvB.getProvidedElsewhere(), AuditType.UPDATE);
+            deB,
+            eventA,
+            dvB.getAuditValue(),
+            USER_A,
+            dvB.getProvidedElsewhere(),
+            ChangeLogType.UPDATE);
     TrackedEntityDataValueChangeLog dvaC =
         new TrackedEntityDataValueChangeLog(
-            deA, eventB, dvC.getAuditValue(), USER_A, dvC.getProvidedElsewhere(), AuditType.UPDATE);
+            deA,
+            eventB,
+            dvC.getAuditValue(),
+            USER_A,
+            dvC.getProvidedElsewhere(),
+            ChangeLogType.UPDATE);
     auditStore.addTrackedEntityDataValueChangeLog(dvaA);
     auditStore.addTrackedEntityDataValueChangeLog(dvaB);
     auditStore.addTrackedEntityDataValueChangeLog(dvaC);
@@ -194,7 +209,7 @@ class TrackedEntityDataValueChangeLogStoreTest extends SingleSetupIntegrationTes
         new TrackedEntityDataValueChangeLogQueryParams()
             .setDataElements(List.of(deA, deB))
             .setEvents(List.of(eventA))
-            .setAuditTypes(List.of(AuditType.UPDATE));
+            .setAuditTypes(List.of(ChangeLogType.UPDATE));
     assertContainsOnly(List.of(dvaA, dvaB), auditStore.getTrackedEntityDataValueChangeLogs(params));
     assertEquals(2, auditStore.countTrackedEntityDataValueChangeLogs(params));
 
@@ -202,7 +217,7 @@ class TrackedEntityDataValueChangeLogStoreTest extends SingleSetupIntegrationTes
         new TrackedEntityDataValueChangeLogQueryParams()
             .setDataElements(List.of(deA))
             .setEvents(List.of(eventA))
-            .setAuditTypes(List.of(AuditType.UPDATE));
+            .setAuditTypes(List.of(ChangeLogType.UPDATE));
     assertContainsOnly(List.of(dvaA), auditStore.getTrackedEntityDataValueChangeLogs(params));
     assertEquals(1, auditStore.countTrackedEntityDataValueChangeLogs(params));
   }
@@ -211,13 +226,28 @@ class TrackedEntityDataValueChangeLogStoreTest extends SingleSetupIntegrationTes
   void testGetTrackedEntityDataValueAuditsByOrgUnitSelected() {
     TrackedEntityDataValueChangeLog dvaA =
         new TrackedEntityDataValueChangeLog(
-            deA, eventA, dvA.getAuditValue(), USER_A, dvA.getProvidedElsewhere(), AuditType.UPDATE);
+            deA,
+            eventA,
+            dvA.getAuditValue(),
+            USER_A,
+            dvA.getProvidedElsewhere(),
+            ChangeLogType.UPDATE);
     TrackedEntityDataValueChangeLog dvaB =
         new TrackedEntityDataValueChangeLog(
-            deB, eventA, dvB.getAuditValue(), USER_A, dvB.getProvidedElsewhere(), AuditType.UPDATE);
+            deB,
+            eventA,
+            dvB.getAuditValue(),
+            USER_A,
+            dvB.getProvidedElsewhere(),
+            ChangeLogType.UPDATE);
     TrackedEntityDataValueChangeLog dvaC =
         new TrackedEntityDataValueChangeLog(
-            deA, eventB, dvC.getAuditValue(), USER_A, dvC.getProvidedElsewhere(), AuditType.UPDATE);
+            deA,
+            eventB,
+            dvC.getAuditValue(),
+            USER_A,
+            dvC.getProvidedElsewhere(),
+            ChangeLogType.UPDATE);
     auditStore.addTrackedEntityDataValueChangeLog(dvaA);
     auditStore.addTrackedEntityDataValueChangeLog(dvaB);
     auditStore.addTrackedEntityDataValueChangeLog(dvaC);
@@ -225,14 +255,14 @@ class TrackedEntityDataValueChangeLogStoreTest extends SingleSetupIntegrationTes
     TrackedEntityDataValueChangeLogQueryParams params =
         new TrackedEntityDataValueChangeLogQueryParams()
             .setOrgUnits(List.of(ouA))
-            .setAuditTypes(List.of(AuditType.UPDATE));
+            .setAuditTypes(List.of(ChangeLogType.UPDATE));
     assertContainsOnly(List.of(dvaA, dvaB), auditStore.getTrackedEntityDataValueChangeLogs(params));
     assertEquals(2, auditStore.countTrackedEntityDataValueChangeLogs(params));
 
     params =
         new TrackedEntityDataValueChangeLogQueryParams()
             .setOrgUnits(List.of(ouB))
-            .setAuditTypes(List.of(AuditType.UPDATE));
+            .setAuditTypes(List.of(ChangeLogType.UPDATE));
     assertContainsOnly(List.of(dvaC), auditStore.getTrackedEntityDataValueChangeLogs(params));
     assertEquals(1, auditStore.countTrackedEntityDataValueChangeLogs(params));
   }
@@ -241,19 +271,44 @@ class TrackedEntityDataValueChangeLogStoreTest extends SingleSetupIntegrationTes
   void testGetTrackedEntityDataValueAuditsByOrgUnitDescendants() {
     TrackedEntityDataValueChangeLog dvaA =
         new TrackedEntityDataValueChangeLog(
-            deA, eventA, dvA.getAuditValue(), USER_A, dvA.getProvidedElsewhere(), AuditType.UPDATE);
+            deA,
+            eventA,
+            dvA.getAuditValue(),
+            USER_A,
+            dvA.getProvidedElsewhere(),
+            ChangeLogType.UPDATE);
     TrackedEntityDataValueChangeLog dvaB =
         new TrackedEntityDataValueChangeLog(
-            deB, eventB, dvB.getAuditValue(), USER_A, dvB.getProvidedElsewhere(), AuditType.UPDATE);
+            deB,
+            eventB,
+            dvB.getAuditValue(),
+            USER_A,
+            dvB.getProvidedElsewhere(),
+            ChangeLogType.UPDATE);
     TrackedEntityDataValueChangeLog dvaC =
         new TrackedEntityDataValueChangeLog(
-            deA, eventC, dvC.getAuditValue(), USER_A, dvC.getProvidedElsewhere(), AuditType.UPDATE);
+            deA,
+            eventC,
+            dvC.getAuditValue(),
+            USER_A,
+            dvC.getProvidedElsewhere(),
+            ChangeLogType.UPDATE);
     TrackedEntityDataValueChangeLog dvaD =
         new TrackedEntityDataValueChangeLog(
-            deB, eventD, dvD.getAuditValue(), USER_A, dvD.getProvidedElsewhere(), AuditType.UPDATE);
+            deB,
+            eventD,
+            dvD.getAuditValue(),
+            USER_A,
+            dvD.getProvidedElsewhere(),
+            ChangeLogType.UPDATE);
     TrackedEntityDataValueChangeLog dvaE =
         new TrackedEntityDataValueChangeLog(
-            deA, eventE, dvE.getAuditValue(), USER_A, dvE.getProvidedElsewhere(), AuditType.UPDATE);
+            deA,
+            eventE,
+            dvE.getAuditValue(),
+            USER_A,
+            dvE.getProvidedElsewhere(),
+            ChangeLogType.UPDATE);
     auditStore.addTrackedEntityDataValueChangeLog(dvaA);
     auditStore.addTrackedEntityDataValueChangeLog(dvaB);
     auditStore.addTrackedEntityDataValueChangeLog(dvaC);
@@ -264,7 +319,7 @@ class TrackedEntityDataValueChangeLogStoreTest extends SingleSetupIntegrationTes
         new TrackedEntityDataValueChangeLogQueryParams()
             .setOrgUnits(List.of(ouB))
             .setOuMode(OrganisationUnitSelectionMode.DESCENDANTS)
-            .setAuditTypes(List.of(AuditType.UPDATE));
+            .setAuditTypes(List.of(ChangeLogType.UPDATE));
     assertContainsOnly(
         List.of(dvaB, dvaD, dvaE), auditStore.getTrackedEntityDataValueChangeLogs(params));
     assertEquals(3, auditStore.countTrackedEntityDataValueChangeLogs(params));
@@ -273,7 +328,7 @@ class TrackedEntityDataValueChangeLogStoreTest extends SingleSetupIntegrationTes
         new TrackedEntityDataValueChangeLogQueryParams()
             .setOrgUnits(List.of(ouA))
             .setOuMode(OrganisationUnitSelectionMode.DESCENDANTS)
-            .setAuditTypes(List.of(AuditType.UPDATE));
+            .setAuditTypes(List.of(ChangeLogType.UPDATE));
     assertContainsOnly(
         List.of(dvaA, dvaB, dvaC, dvaD, dvaE),
         auditStore.getTrackedEntityDataValueChangeLogs(params));
@@ -284,13 +339,28 @@ class TrackedEntityDataValueChangeLogStoreTest extends SingleSetupIntegrationTes
   void testGetTrackedEntityDataValueAuditsByProgramStage() {
     TrackedEntityDataValueChangeLog dvaA =
         new TrackedEntityDataValueChangeLog(
-            deA, eventA, dvA.getAuditValue(), USER_A, dvA.getProvidedElsewhere(), AuditType.UPDATE);
+            deA,
+            eventA,
+            dvA.getAuditValue(),
+            USER_A,
+            dvA.getProvidedElsewhere(),
+            ChangeLogType.UPDATE);
     TrackedEntityDataValueChangeLog dvaB =
         new TrackedEntityDataValueChangeLog(
-            deB, eventA, dvB.getAuditValue(), USER_A, dvB.getProvidedElsewhere(), AuditType.UPDATE);
+            deB,
+            eventA,
+            dvB.getAuditValue(),
+            USER_A,
+            dvB.getProvidedElsewhere(),
+            ChangeLogType.UPDATE);
     TrackedEntityDataValueChangeLog dvaC =
         new TrackedEntityDataValueChangeLog(
-            deA, eventB, dvC.getAuditValue(), USER_A, dvC.getProvidedElsewhere(), AuditType.UPDATE);
+            deA,
+            eventB,
+            dvC.getAuditValue(),
+            USER_A,
+            dvC.getProvidedElsewhere(),
+            ChangeLogType.UPDATE);
     auditStore.addTrackedEntityDataValueChangeLog(dvaA);
     auditStore.addTrackedEntityDataValueChangeLog(dvaB);
     auditStore.addTrackedEntityDataValueChangeLog(dvaC);
@@ -298,14 +368,14 @@ class TrackedEntityDataValueChangeLogStoreTest extends SingleSetupIntegrationTes
     TrackedEntityDataValueChangeLogQueryParams params =
         new TrackedEntityDataValueChangeLogQueryParams()
             .setProgramStages(List.of(psA))
-            .setAuditTypes(List.of(AuditType.UPDATE));
+            .setAuditTypes(List.of(ChangeLogType.UPDATE));
     assertContainsOnly(List.of(dvaA, dvaB), auditStore.getTrackedEntityDataValueChangeLogs(params));
     assertEquals(2, auditStore.countTrackedEntityDataValueChangeLogs(params));
 
     params =
         new TrackedEntityDataValueChangeLogQueryParams()
             .setProgramStages(List.of(psB))
-            .setAuditTypes(List.of(AuditType.UPDATE));
+            .setAuditTypes(List.of(ChangeLogType.UPDATE));
     assertContainsOnly(List.of(dvaC), auditStore.getTrackedEntityDataValueChangeLogs(params));
     assertEquals(1, auditStore.countTrackedEntityDataValueChangeLogs(params));
   }
@@ -314,15 +384,30 @@ class TrackedEntityDataValueChangeLogStoreTest extends SingleSetupIntegrationTes
   void testGetTrackedEntityDataValueAuditsByStartEndDate() {
     TrackedEntityDataValueChangeLog dvaA =
         new TrackedEntityDataValueChangeLog(
-            deA, eventA, dvA.getAuditValue(), USER_A, dvA.getProvidedElsewhere(), AuditType.UPDATE);
+            deA,
+            eventA,
+            dvA.getAuditValue(),
+            USER_A,
+            dvA.getProvidedElsewhere(),
+            ChangeLogType.UPDATE);
     dvaA.setCreated(getDate(2021, 6, 1));
     TrackedEntityDataValueChangeLog dvaB =
         new TrackedEntityDataValueChangeLog(
-            deB, eventA, dvB.getAuditValue(), USER_A, dvB.getProvidedElsewhere(), AuditType.UPDATE);
+            deB,
+            eventA,
+            dvB.getAuditValue(),
+            USER_A,
+            dvB.getProvidedElsewhere(),
+            ChangeLogType.UPDATE);
     dvaB.setCreated(getDate(2021, 7, 1));
     TrackedEntityDataValueChangeLog dvaC =
         new TrackedEntityDataValueChangeLog(
-            deA, eventB, dvC.getAuditValue(), USER_A, dvC.getProvidedElsewhere(), AuditType.UPDATE);
+            deA,
+            eventB,
+            dvC.getAuditValue(),
+            USER_A,
+            dvC.getProvidedElsewhere(),
+            ChangeLogType.UPDATE);
     dvaC.setCreated(getDate(2021, 8, 1));
     auditStore.addTrackedEntityDataValueChangeLog(dvaA);
     auditStore.addTrackedEntityDataValueChangeLog(dvaB);
@@ -349,20 +434,35 @@ class TrackedEntityDataValueChangeLogStoreTest extends SingleSetupIntegrationTes
   void testGetTrackedEntityDataValueAuditsByAuditType() {
     TrackedEntityDataValueChangeLog dvaA =
         new TrackedEntityDataValueChangeLog(
-            deA, eventA, dvA.getAuditValue(), USER_A, dvA.getProvidedElsewhere(), AuditType.CREATE);
+            deA,
+            eventA,
+            dvA.getAuditValue(),
+            USER_A,
+            dvA.getProvidedElsewhere(),
+            ChangeLogType.CREATE);
     TrackedEntityDataValueChangeLog dvaB =
         new TrackedEntityDataValueChangeLog(
-            deB, eventA, dvB.getAuditValue(), USER_A, dvB.getProvidedElsewhere(), AuditType.UPDATE);
+            deB,
+            eventA,
+            dvB.getAuditValue(),
+            USER_A,
+            dvB.getProvidedElsewhere(),
+            ChangeLogType.UPDATE);
     TrackedEntityDataValueChangeLog dvaC =
         new TrackedEntityDataValueChangeLog(
-            deA, eventB, dvC.getAuditValue(), USER_A, dvC.getProvidedElsewhere(), AuditType.DELETE);
+            deA,
+            eventB,
+            dvC.getAuditValue(),
+            USER_A,
+            dvC.getProvidedElsewhere(),
+            ChangeLogType.DELETE);
     auditStore.addTrackedEntityDataValueChangeLog(dvaA);
     auditStore.addTrackedEntityDataValueChangeLog(dvaB);
     auditStore.addTrackedEntityDataValueChangeLog(dvaC);
 
     TrackedEntityDataValueChangeLogQueryParams params =
         new TrackedEntityDataValueChangeLogQueryParams()
-            .setAuditTypes(List.of(AuditType.UPDATE, AuditType.DELETE));
+            .setAuditTypes(List.of(ChangeLogType.UPDATE, ChangeLogType.DELETE));
     assertContainsOnly(List.of(dvaB, dvaC), auditStore.getTrackedEntityDataValueChangeLogs(params));
     assertEquals(2, auditStore.countTrackedEntityDataValueChangeLogs(params));
   }

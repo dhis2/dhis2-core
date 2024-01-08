@@ -58,7 +58,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.changelog.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -190,7 +190,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     String accessedBy = user != null ? user.getUsername() : currentUserService.getCurrentUsername();
 
     for (TrackedEntity te : trackedEntities) {
-      addTrackedEntityAudit(te, accessedBy, AuditType.SEARCH);
+      addTrackedEntityAudit(te, accessedBy, ChangeLogType.SEARCH);
     }
 
     return trackedEntities;
@@ -374,7 +374,8 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
 
       if (te != null && te.isAllowAuditLog() && accessedBy != null) {
         TrackedEntityChangeLog trackedEntityChangeLog =
-            new TrackedEntityChangeLog(entity.get(TRACKED_ENTITY_ID), accessedBy, AuditType.SEARCH);
+            new TrackedEntityChangeLog(
+                entity.get(TRACKED_ENTITY_ID), accessedBy, ChangeLogType.SEARCH);
         trackedEntityChangeLogService.addTrackedEntityChangeLog(trackedEntityChangeLog);
       }
 
@@ -791,7 +792,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
   public TrackedEntity getTrackedEntity(long id) {
     TrackedEntity te = trackedEntityStore.get(id);
 
-    addTrackedEntityAudit(te, currentUserService.getCurrentUsername(), AuditType.READ);
+    addTrackedEntityAudit(te, currentUserService.getCurrentUsername(), ChangeLogType.READ);
 
     return te;
   }
@@ -800,7 +801,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
   @Transactional
   public TrackedEntity getTrackedEntity(String uid) {
     TrackedEntity te = trackedEntityStore.getByUid(uid);
-    addTrackedEntityAudit(te, currentUserService.getCurrentUsername(), AuditType.READ);
+    addTrackedEntityAudit(te, currentUserService.getCurrentUsername(), ChangeLogType.READ);
 
     return te;
   }
@@ -808,7 +809,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
   @Override
   public TrackedEntity getTrackedEntity(String uid, User user) {
     TrackedEntity te = trackedEntityStore.getByUid(uid);
-    addTrackedEntityAudit(te, User.username(user), AuditType.READ);
+    addTrackedEntityAudit(te, User.username(user), ChangeLogType.READ);
 
     return te;
   }
@@ -858,13 +859,13 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   private void addTrackedEntityAudit(
-      TrackedEntity trackedEntity, String user, AuditType auditType) {
+      TrackedEntity trackedEntity, String user, ChangeLogType changeLogType) {
     if (user != null
         && trackedEntity != null
         && trackedEntity.getTrackedEntityType() != null
         && trackedEntity.getTrackedEntityType().isAllowAuditLog()) {
       TrackedEntityChangeLog trackedEntityChangeLog =
-          new TrackedEntityChangeLog(trackedEntity.getUid(), user, auditType);
+          new TrackedEntityChangeLog(trackedEntity.getUid(), user, changeLogType);
       trackedEntityChangeLogService.addTrackedEntityChangeLog(trackedEntityChangeLog);
     }
   }

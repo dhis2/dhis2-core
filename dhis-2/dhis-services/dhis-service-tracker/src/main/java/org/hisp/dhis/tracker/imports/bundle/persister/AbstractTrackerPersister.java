@@ -42,7 +42,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.changelog.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResource;
@@ -372,7 +372,7 @@ public abstract class AbstractTrackerPersister<
             : entityManager.merge(trackedEntityAttributeValue));
 
     logTrackedEntityAttributeValueHistory(
-        preheat.getUsername(), trackedEntityAttributeValue, trackedEntity, AuditType.DELETE);
+        preheat.getUsername(), trackedEntityAttributeValue, trackedEntity, ChangeLogType.DELETE);
   }
 
   private void saveOrUpdate(
@@ -387,24 +387,24 @@ public abstract class AbstractTrackerPersister<
           entityManager, preheat, trackedEntity.getUid(), trackedEntityAttributeValue.getValue());
     }
 
-    AuditType auditType = null;
+    ChangeLogType changeLogType = null;
 
     if (isNew) {
       entityManager.persist(trackedEntityAttributeValue);
       // In case it's a newly created attribute we'll add it back to TE,
       // so it can end up in preheat
       trackedEntity.getTrackedEntityAttributeValues().add(trackedEntityAttributeValue);
-      auditType = AuditType.CREATE;
+      changeLogType = ChangeLogType.CREATE;
     } else {
       entityManager.merge(trackedEntityAttributeValue);
 
       if (isUpdated) {
-        auditType = AuditType.UPDATE;
+        changeLogType = ChangeLogType.UPDATE;
       }
     }
 
     logTrackedEntityAttributeValueHistory(
-        preheat.getUsername(), trackedEntityAttributeValue, trackedEntity, auditType);
+        preheat.getUsername(), trackedEntityAttributeValue, trackedEntity, changeLogType);
   }
 
   private static boolean isFileResource(TrackedEntityAttributeValue trackedEntityAttributeValue) {
@@ -436,14 +436,14 @@ public abstract class AbstractTrackerPersister<
       String userName,
       TrackedEntityAttributeValue attributeValue,
       TrackedEntity trackedEntity,
-      AuditType auditType) {
+      ChangeLogType changeLogType) {
     boolean allowAuditLog = trackedEntity.getTrackedEntityType().isAllowAuditLog();
 
     // create log entry only for updated, created and deleted attributes
-    if (allowAuditLog && auditType != null) {
+    if (allowAuditLog && changeLogType != null) {
       TrackedEntityAttributeValueChangeLog valueAudit =
           new TrackedEntityAttributeValueChangeLog(
-              attributeValue, attributeValue.getValue(), userName, auditType);
+              attributeValue, attributeValue.getValue(), userName, changeLogType);
       valueAudit.setTrackedEntity(trackedEntity);
       trackedEntityAttributeValueChangeLogService.addTrackedEntityAttributeValueChangLog(
           valueAudit);

@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.deduplication.hibernate;
 
-import static org.hisp.dhis.changelog.AuditType.CREATE;
-import static org.hisp.dhis.changelog.AuditType.DELETE;
-import static org.hisp.dhis.changelog.AuditType.UPDATE;
+import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
+import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
+import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
 import java.math.BigInteger;
@@ -54,6 +54,7 @@ import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.artemis.audit.AuditableEntity;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.deduplication.DeduplicationMergeParams;
 import org.hisp.dhis.deduplication.DeduplicationStatus;
@@ -225,12 +226,12 @@ public class HibernatePotentialDuplicateStore
         .forEach(
             av -> {
               TrackedEntityAttributeValue updatedTeav;
-              org.hisp.dhis.changelog.AuditType auditType;
+              ChangeLogType changeLogType;
               if (originalAttributeValueMap.containsKey(av.getAttribute().getUid())) {
                 // Teav exists in original, overwrite the value
                 updatedTeav = originalAttributeValueMap.get(av.getAttribute().getUid());
                 updatedTeav.setValue(av.getValue());
-                auditType = UPDATE;
+                changeLogType = UPDATE;
               } else {
                 // teav does not exist in original, so create new and attach
                 // it to original
@@ -238,7 +239,7 @@ public class HibernatePotentialDuplicateStore
                 updatedTeav.setAttribute(av.getAttribute());
                 updatedTeav.setTrackedEntity(original);
                 updatedTeav.setValue(av.getValue());
-                auditType = CREATE;
+                changeLogType = CREATE;
               }
               getSession().delete(av);
               // We need to flush to make sure the previous teav is
@@ -249,21 +250,21 @@ public class HibernatePotentialDuplicateStore
 
               getSession().saveOrUpdate(updatedTeav);
 
-              auditTeav(av, updatedTeav, auditType);
+              auditTeav(av, updatedTeav, changeLogType);
             });
   }
 
   private void auditTeav(
       TrackedEntityAttributeValue av,
       TrackedEntityAttributeValue createOrUpdateTeav,
-      org.hisp.dhis.changelog.AuditType auditType) {
+      ChangeLogType changeLogType) {
     String currentUsername = currentUserService.getCurrentUsername();
 
     TrackedEntityAttributeValueChangeLog deleteTeavAudit =
         new TrackedEntityAttributeValueChangeLog(av, av.getAuditValue(), currentUsername, DELETE);
     TrackedEntityAttributeValueChangeLog updatedTeavAudit =
         new TrackedEntityAttributeValueChangeLog(
-            createOrUpdateTeav, createOrUpdateTeav.getValue(), currentUsername, auditType);
+            createOrUpdateTeav, createOrUpdateTeav.getValue(), currentUsername, changeLogType);
 
     if (config.isEnabled(CHANGELOG_TRACKER)) {
       trackedEntityAttributeValueChangeLogStore.addTrackedEntityAttributeValueChangeLog(

@@ -32,7 +32,7 @@ import java.util.Date;
 import java.util.List;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.hisp.dhis.changelog.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.Pager;
 
 /**
@@ -45,7 +45,7 @@ public class TrackedEntityChangeLogQueryParams {
 
   private List<String> users = new ArrayList<>();
 
-  private List<AuditType> auditTypes = new ArrayList<>();
+  private List<ChangeLogType> auditTypes = new ArrayList<>();
 
   private Date startDate = null;
 

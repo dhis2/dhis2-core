@@ -55,7 +55,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.changelog.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.DataValue;
@@ -368,7 +368,7 @@ public class EventManager {
             .orElse(new HashMap<>());
 
     for (DataValue dv : event.getDataValues()) {
-      AuditType auditType = AuditType.READ;
+      ChangeLogType changeLogType = ChangeLogType.READ;
 
       DataElement dateElement = workContext.getDataElementMap().get(dv.getDataElement());
 
@@ -379,19 +379,19 @@ public class EventManager {
       EventDataValue eventDataValue = dataValueDBMap.get(dv.getDataElement());
 
       if (eventDataValue == null) {
-        auditType = AuditType.CREATE;
+        changeLogType = ChangeLogType.CREATE;
         persistedDataValue = dv.getValue();
       } else if (StringUtils.isEmpty(dv.getValue())) {
-        auditType = AuditType.DELETE;
+        changeLogType = ChangeLogType.DELETE;
         persistedDataValue = eventDataValue.getValue();
       } else if (!dv.getValue().equals(eventDataValue.getValue())) {
-        auditType = AuditType.UPDATE;
+        changeLogType = ChangeLogType.UPDATE;
         persistedDataValue = eventDataValue.getValue();
       }
 
       TrackedEntityDataValueChangeLog audit = new TrackedEntityDataValueChangeLog();
       audit.setCreated(today);
-      audit.setAuditType(auditType);
+      audit.setAuditType(changeLogType);
       audit.setProvidedElsewhere(dv.getProvidedElsewhere());
       audit.setEvent(psi);
       audit.setValue(persistedDataValue != null ? persistedDataValue : dv.getValue());

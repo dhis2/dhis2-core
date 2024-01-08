@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.hisp.dhis.changelog.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -91,7 +91,7 @@ class TrackedEntityAttributeValueChangeLogTest extends TrackerTest {
             new TrackedEntityAttributeValueChangeLogQueryParams()
                 .setTrackedEntityAttributes(attributes)
                 .setTrackedEntities(trackedEntities)
-                .setAuditTypes(List.of(AuditType.CREATE)));
+                .setAuditTypes(List.of(ChangeLogType.CREATE)));
     assertEquals(5, attributeValueAudits.size());
   }
 
@@ -119,7 +119,7 @@ class TrackedEntityAttributeValueChangeLogTest extends TrackerTest {
             new TrackedEntityAttributeValueChangeLogQueryParams()
                 .setTrackedEntityAttributes(attributes1)
                 .setTrackedEntities(trackedEntities)
-                .setAuditTypes(List.of(AuditType.DELETE)));
+                .setAuditTypes(List.of(ChangeLogType.DELETE)));
     assertEquals(1, attributeValueAudits.size());
 
     attributeValueAudits =
@@ -127,7 +127,7 @@ class TrackedEntityAttributeValueChangeLogTest extends TrackerTest {
             new TrackedEntityAttributeValueChangeLogQueryParams()
                 .setTrackedEntityAttributes(attributes1)
                 .setTrackedEntities(trackedEntities)
-                .setAuditTypes(List.of(AuditType.UPDATE)));
+                .setAuditTypes(List.of(ChangeLogType.UPDATE)));
     assertEquals(1, attributeValueAudits.size());
   }
 }

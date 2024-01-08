@@ -46,7 +46,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.changelog.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -226,7 +226,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             .map(
                 tei ->
                     new TrackedEntityChangeLog(
-                        tei.getTrackedEntityInstance(), accessedBy, AuditType.SEARCH))
+                        tei.getTrackedEntityInstance(), accessedBy, ChangeLogType.SEARCH))
             .collect(Collectors.toList());
 
     if (!auditable.isEmpty()) {

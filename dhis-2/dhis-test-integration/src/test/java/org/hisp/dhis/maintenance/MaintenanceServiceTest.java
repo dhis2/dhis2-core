@@ -44,6 +44,7 @@ import org.hisp.dhis.audit.AuditQuery;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditService;
 import org.hisp.dhis.audit.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -316,12 +317,7 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     eventService.addEvent(eventA);
     TrackedEntityDataValueChangeLog trackedEntityDataValueChangeLog =
         new TrackedEntityDataValueChangeLog(
-            dataElement,
-            eventA,
-            "value",
-            "modifiedBy",
-            false,
-            org.hisp.dhis.changelog.AuditType.UPDATE);
+            dataElement, eventA, "value", "modifiedBy", false, ChangeLogType.UPDATE);
     trackedEntityDataValueAuditService.addTrackedEntityDataValueChangeLog(
         trackedEntityDataValueChangeLog);
     long idA = enrollmentService.addEnrollment(enrollment);
