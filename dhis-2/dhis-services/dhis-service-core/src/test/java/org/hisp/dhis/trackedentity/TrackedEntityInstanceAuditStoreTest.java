@@ -111,7 +111,7 @@ class TrackedEntityInstanceAuditStoreTest extends DhisSpringTest {
 
     params = new TrackedEntityInstanceAuditQueryParams().setAuditTypes(List.of(AuditType.UPDATE));
 
-    assertContainsOnly(store.getTrackedEntityInstanceAudits(params), auditA, auditC);
+    assertContainsOnly(store.getTrackedEntityInstanceAudits(params), auditB, auditC);
 
     params =
         new TrackedEntityInstanceAuditQueryParams()
