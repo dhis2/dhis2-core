@@ -138,6 +138,9 @@ updates:
       - dependency-name: "org.hisp.dhis:json-tree" # It needs to be updated only in master
         versions:
           - "> 0.5.0"
+      - dependency-name: "org.flywaydb:flyway-core" # It requires Postgres version to be >= 11
+        versions:
+          - "> 9.22.3"
   # 2.39
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -205,6 +208,9 @@ updates:
       - dependency-name: "org.hisp.dhis:json-tree" # It needs to be updated only in master
         versions:
           - "> 0.5.0"
+      - dependency-name: "org.flywaydb:flyway-core" # It requires Postgres version to be >= 11
+        versions:
+          - "> 9.22.3"
     target-branch: "2.39"
     open-pull-requests-limit: 1 # only initially so we do not take away too many CI resources
   # 2.38
@@ -274,5 +280,8 @@ updates:
       - dependency-name: "org.hisp.dhis:json-tree" # It needs to be updated only in master
         versions:
           - "> 0.5.0"
+      - dependency-name: "org.flywaydb:flyway-core" # It requires Postgres version to be >= 11
+        versions:
+          - "> 9.22.3"
     target-branch: "2.38"
     open-pull-requests-limit: 1 # only initially so we do not take away too many CI resources

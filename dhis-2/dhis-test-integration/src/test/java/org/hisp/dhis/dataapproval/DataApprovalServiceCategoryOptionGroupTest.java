@@ -52,6 +52,7 @@ import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.exceptions.DataApprovalException;
 import org.hisp.dhis.dataset.DataSet;
@@ -537,8 +538,8 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase {
     setAccess(partner2, globalUsers, chinaInteragencyUsers, chinaAgencyAUsers, chinaPartner2Users);
 
     // Agencies and partners category option group sets
-    agencies = new CategoryOptionGroupSet("Agencies");
-    partners = new CategoryOptionGroupSet("Partners");
+    agencies = new CategoryOptionGroupSet("Agencies", DataDimensionType.DISAGGREGATION);
+    partners = new CategoryOptionGroupSet("Partners", DataDimensionType.DISAGGREGATION);
     categoryService.saveCategoryOptionGroupSet(partners);
     categoryService.saveCategoryOptionGroupSet(agencies);
     setAccess(

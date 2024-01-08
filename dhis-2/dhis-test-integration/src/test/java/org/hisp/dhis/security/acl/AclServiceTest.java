@@ -37,6 +37,7 @@ import java.util.Set;
 import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dataelement.DataElement;
@@ -1075,6 +1076,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
     manager.save(user1);
     // non data shareable object //
     CategoryOptionGroupSet categoryOptionGroupSet = new CategoryOptionGroupSet();
+    categoryOptionGroupSet.setDataDimensionType(DataDimensionType.DISAGGREGATION);
     categoryOptionGroupSet.setAutoFields();
     categoryOptionGroupSet.setName("cogA");
     categoryOptionGroupSet.setShortName("cogA");

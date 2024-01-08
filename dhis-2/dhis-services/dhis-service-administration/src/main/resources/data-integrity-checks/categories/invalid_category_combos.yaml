@@ -1,0 +1,60 @@
+# Copyright (c) 2004-2022, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+  name: invalid_category_combos
+  description:  Category combinations which are invalid.
+  section: Categories
+  section_order: 7
+  summary_sql: >-
+    WITH invalid_category_combo as (
+      SELECT uid,name from categorycombo where categorycomboid not in (
+      SELECT a.categorycomboid FROM categorycombos_categories a
+      INNER JOIN categories_categoryoptions b on a.categoryid = b.categoryid
+      INNER JOIN categorycombos_optioncombos c on a.categorycomboid = c.categorycomboid )
+    )
+    SELECT COUNT(*) as value,
+    100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM categorycombo), 0.0) as percent
+    FROM invalid_category_combo;
+  details_sql: >-
+      SELECT uid,name from categorycombo where categorycomboid not in (
+      SELECT a.categorycomboid FROM categorycombos_categories a
+      INNER JOIN categories_categoryoptions b on a.categoryid = b.categoryid
+      INNER JOIN categorycombos_optioncombos c on a.categorycomboid = c.categorycomboid );
+  severity: WARNING
+  introduction: >
+      All category combos should have at least one category which has at least one member and is associated
+      with at least one category option combination. This check will identify category combos which do not meet
+      these criteria. This may be due to the category combination having been created, but not being associated with
+      any category. It could also be possible that the category combination is associated with a category, but the 
+      category itself does not have any category options. The last possibility would be that the category option
+      combination itself has been deleted.
+  details_id_type: categoryCombos
+  recommendation: >
+      Consider to remove category combinations which do not have any categories associated with them. If the
+      category combination is associated with a category, but the category itself does not have any category options,
+      consider to add category options to the category. If the category option combination itself has been deleted,
+      these can be regenerated using the data administration module. 

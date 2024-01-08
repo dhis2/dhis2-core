@@ -31,18 +31,19 @@ import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifie
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getPrefix;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension.ENROLLMENT_STATUS;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension.EVENT_STATUS;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension.PROGRAM_STATUS;
 import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.GroupableCondition;
 import org.hisp.dhis.analytics.common.query.IndexedOrder;
@@ -57,7 +58,7 @@ import org.springframework.stereotype.Service;
 public class StatusQueryBuilder extends SqlQueryBuilderAdaptor {
   /** The supported status dimensions. */
   private static final Collection<DimensionParam.StaticDimension> SUPPORTED_STATUS_DIMENSIONS =
-      List.of(ENROLLMENT_STATUS, EVENT_STATUS);
+      List.of(ENROLLMENT_STATUS, PROGRAM_STATUS, EVENT_STATUS);
 
   @Getter
   private final List<Predicate<DimensionIdentifier<DimensionParam>>> dimensionFilters =
@@ -79,21 +80,22 @@ public class StatusQueryBuilder extends SqlQueryBuilderAdaptor {
   @Override
   public RenderableSqlQuery buildSqlQuery(
       QueryContext ctx,
+      List<DimensionIdentifier<DimensionParam>> acceptedHeaders,
       List<DimensionIdentifier<DimensionParam>> acceptedDimensions,
       List<AnalyticsSortingParams> acceptedSortingParams) {
     RenderableSqlQuery.RenderableSqlQueryBuilder builder = RenderableSqlQuery.builder();
 
-    Stream.concat(
-            acceptedDimensions.stream(),
-            acceptedSortingParams.stream().map(AnalyticsSortingParams::getOrderBy))
+    streamDimensions(acceptedHeaders, acceptedDimensions, acceptedSortingParams)
         .map(
             dimensionIdentifier -> {
-              String field =
-                  dimensionIdentifier.getDimension().getStaticDimension().getColumnName();
+              StaticDimension staticDimension =
+                  dimensionIdentifier.getDimension().getStaticDimension();
               String prefix = getPrefix(dimensionIdentifier, false);
 
               return Field.ofUnquoted(
-                  doubleQuote(prefix), () -> field, prefix + DIMENSION_SEPARATOR + field);
+                  doubleQuote(prefix),
+                  staticDimension::getColumnName,
+                  prefix + DIMENSION_SEPARATOR + staticDimension.getHeaderName());
             })
         .forEach(builder::selectField);
 

@@ -66,8 +66,6 @@ import org.hisp.dhis.common.OpenApi;
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 class Property {
-
-  private static final Map<Class<?>, Object> INSTANCES_BY_TYPE = new ConcurrentHashMap<>();
   private static final Map<Class<?>, Collection<Property>> PROPERTIES = new ConcurrentHashMap<>();
 
   @Nonnull String name;

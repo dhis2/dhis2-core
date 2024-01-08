@@ -40,6 +40,7 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
+import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails.JsonDataIntegrityIssue;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,6 +81,31 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
     assertTrue(trigger.content().isA(JsonWebMessage.class));
   }
 
+  public String createSimpleIndicator(String name, String indicatorType) {
+    String indicatorId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicators",
+                // language=JSON
+                """
+                    {
+                      "name": "%s",
+                      "shortName": "%s",
+                      "indicatorType": {
+                        "id": "%s"
+                      },
+                      "numerator": "abc123",
+                      "numeratorDescription": "One",
+                      "denominator": "abc123",
+                      "denominatorDescription": "Zero"
+                    }
+                    """
+                    .formatted(name, name, indicatorType)));
+    assertNamedMetadataObjectExists("indicators", name);
+    return indicatorId;
+  }
+
   void checkDataIntegritySummary(
       String check, Integer expectedCount, Integer expectedPercentage, Boolean hasPercentage) {
 
@@ -95,7 +121,7 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
     }
   }
 
-  private Boolean hasComments(JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues) {
+  private Boolean hasComments(JsonList<JsonDataIntegrityIssue> issues) {
     return issues.stream()
         .map(issue -> issue.has("comment"))
         .reduce(Boolean.FALSE, Boolean::logicalOr);
@@ -110,7 +136,7 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
     postDetails(check);
 
     JsonDataIntegrityDetails details = getDetails(check);
-    JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
+    JsonList<JsonDataIntegrityIssue> issues = details.getIssues();
     assertTrue(issues.exists());
     assertEquals(1, issues.size());
 
@@ -143,13 +169,14 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
     postDetails(check);
 
     JsonDataIntegrityDetails details = getDetails(check);
-    JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
+    JsonList<JsonDataIntegrityIssue> issues = details.getIssues();
 
     assertTrue(issues.exists());
     assertEquals(expectedDetailsUnits.size(), issues.size());
 
     /* Always check the UIDs */
-    Set<String> issueUIDs = issues.stream().map(issue -> issue.getId()).collect(Collectors.toSet());
+    Set<String> issueUIDs =
+        issues.stream().map(JsonDataIntegrityIssue::getId).collect(Collectors.toSet());
     assertEquals(issueUIDs, expectedDetailsUnits);
 
     /*
@@ -158,7 +185,7 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
      */
     if (!expectedDetailsNames.isEmpty()) {
       Set<String> detailsNames =
-          issues.stream().map(issue -> issue.getName()).collect(Collectors.toSet());
+          issues.stream().map(JsonDataIntegrityIssue::getName).collect(Collectors.toSet());
       assertEquals(expectedDetailsNames, detailsNames);
     }
     /* This can be empty if comments do not exist in the JSON response. */
@@ -237,15 +264,6 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
   }
 
   @Autowired private TransactionTemplate txTemplate;
-
-  protected void doInTransaction(Runnable operation) {
-
-    txTemplate.execute(
-        status -> {
-          operation.run();
-          return null;
-        });
-  }
 
   protected final HttpResponse postNewDataValue(
       String period,

@@ -139,25 +139,7 @@ public class TrackedEntityInstanceCriteriaMapper {
       }
     }
 
-    validateOrgUnitParams(criteria.getOrgUnits(), criteria.getOuMode());
-
-    for (String orgUnit : criteria.getOrgUnits()) {
-      OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit(orgUnit);
-
-      if (organisationUnit == null) {
-        throw new IllegalQueryException("Organisation unit does not exist: " + orgUnit);
-      }
-
-      if (user != null
-          && !user.isSuper()
-          && !organisationUnitService.isInUserHierarchy(
-              organisationUnit.getUid(), possibleSearchOrgUnits)) {
-        throw new IllegalQueryException(
-            "Organisation unit is not part of the search scope: " + orgUnit);
-      }
-
-      params.getOrgUnits().add(organisationUnit);
-    }
+    params.getOrgUnits().addAll(validateOrgUnits(criteria, possibleSearchOrgUnits, user));
 
     if (criteria.getOuMode() == OrganisationUnitSelectionMode.CAPTURE && user != null) {
       params.getOrgUnits().addAll(user.getOrganisationUnits());
@@ -200,6 +182,42 @@ public class TrackedEntityInstanceCriteriaMapper {
         .setOrders(orderParams);
 
     return params;
+  }
+
+  private Set<OrganisationUnit> validateOrgUnits(
+      TrackedEntityInstanceCriteria criteria,
+      Set<OrganisationUnit> possibleSearchOrgUnits,
+      User user) {
+
+    Set<OrganisationUnit> organisationUnits = new HashSet<>();
+
+    if (!criteria.getOrgUnits().isEmpty()
+        && (criteria.getOuMode() == ACCESSIBLE || criteria.getOuMode() == CAPTURE)) {
+      throw new IllegalQueryException(
+          String.format(
+              "ouMode %s cannot be used with orgUnits. Please remove the ou parameter and try again.",
+              criteria.getOuMode()));
+    }
+
+    for (String orgUnit : criteria.getOrgUnits()) {
+      OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit(orgUnit);
+
+      if (organisationUnit == null) {
+        throw new IllegalQueryException("Organisation unit does not exist: " + orgUnit);
+      }
+
+      if (user != null
+          && !user.isSuper()
+          && !organisationUnitService.isInUserHierarchy(
+              organisationUnit.getUid(), possibleSearchOrgUnits)) {
+        throw new IllegalQueryException(
+            "Organisation unit is not part of the search scope: " + orgUnit);
+      }
+
+      organisationUnits.add(organisationUnit);
+    }
+
+    return organisationUnits;
   }
 
   /**
@@ -336,15 +354,6 @@ public class TrackedEntityInstanceCriteriaMapper {
           throw new IllegalQueryException("Invalid order property: " + orderParam.getField());
         }
       }
-    }
-  }
-
-  private void validateOrgUnitParams(Set<String> orgUnits, OrganisationUnitSelectionMode ouMode) {
-    if (!orgUnits.isEmpty() && (ouMode == ACCESSIBLE || ouMode == CAPTURE)) {
-      throw new IllegalQueryException(
-          String.format(
-              "ouMode %s cannot be used with orgUnits. Please remove the ou parameter and try again.",
-              ouMode));
     }
   }
 }

@@ -56,6 +56,7 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -79,7 +80,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
-import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.springframework.stereotype.Component;
 
@@ -462,15 +462,15 @@ class EventRequestToSearchParamsMapper {
 
   private void validateUser(
       User user, Program program, ProgramStage programStage, OrganisationUnit requestedOrgUnit) {
-    if (user == null || user.isSuper()) {
+    if (user.isSuper()) {
       return;
     }
 
-    if (program != null && !user.isSuper() && !aclService.canDataRead(user, program)) {
+    if (program != null && !aclService.canDataRead(user, program)) {
       throw new IllegalQueryException("User has no access to program: " + program.getUid());
     }
 
-    if (programStage != null && !user.isSuper() && !aclService.canDataRead(user, programStage)) {
+    if (programStage != null && !aclService.canDataRead(user, programStage)) {
       throw new IllegalQueryException(
           "User has no access to program stage: " + programStage.getUid());
     }

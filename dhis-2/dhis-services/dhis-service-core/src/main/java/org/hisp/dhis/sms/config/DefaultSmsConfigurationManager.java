@@ -53,20 +53,4 @@ public class DefaultSmsConfigurationManager implements SmsConfigurationManager {
   public void updateSmsConfiguration(SmsConfiguration config) {
     systemSettingManager.saveSystemSetting(SettingKey.SMS_CONFIG, config);
   }
-
-  @Override
-  public SmsGatewayConfig checkInstanceOfGateway(Class<?> clazz) {
-    if (getSmsConfiguration() == null) {
-      SmsConfiguration smsConfig = new SmsConfiguration(true);
-      updateSmsConfiguration(smsConfig);
-    }
-
-    for (SmsGatewayConfig gateway : getSmsConfiguration().getGateways()) {
-      if (gateway.getClass().equals(clazz)) {
-        return gateway;
-      }
-    }
-
-    return null;
-  }
 }

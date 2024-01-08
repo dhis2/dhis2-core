@@ -28,10 +28,13 @@
 package org.hisp.dhis.category;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import org.hibernate.PropertyValueException;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -139,5 +142,26 @@ class CategoryOptionGroupStoreTest extends SingleSetupIntegrationTestBase {
     assertEquals(2, groupsB.size());
     assertTrue(groupsB.contains(cogC));
     assertTrue(groupsB.contains(cogD));
+  }
+
+  @Test
+  @DisplayName("Should throw error if adding category option group without data dimension type")
+  void testAddCogWithoutDataDimensionType() {
+    CategoryOptionGroup cogA = createCategoryOptionGroup('A', coA, coB);
+    cogA.setDataDimensionType(null);
+    assertThrows(PropertyValueException.class, () -> categoryOptionGroupStore.save(cogA));
+  }
+
+  @Test
+  @DisplayName("Should throw error if adding category option group set without data dimension type")
+  void testAddCogsWithoutDataDimensionType() {
+    CategoryOptionGroup cogA = createCategoryOptionGroup('A', coA, coB);
+    CategoryOptionGroup cogB = createCategoryOptionGroup('B', coC, coD);
+    categoryOptionGroupStore.save(cogA);
+    categoryOptionGroupStore.save(cogB);
+    CategoryOptionGroupSet cogsA = createCategoryOptionGroupSet('A', cogA, cogB);
+    cogsA.setDataDimensionType(null);
+    assertThrows(
+        PropertyValueException.class, () -> categoryService.saveCategoryOptionGroupSet(cogsA));
   }
 }

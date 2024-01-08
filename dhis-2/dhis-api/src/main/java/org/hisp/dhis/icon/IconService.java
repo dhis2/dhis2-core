@@ -110,11 +110,14 @@ public interface IconService {
    * @param key the key of the icon to update
    * @param description the new icons description
    * @param keywords the new icons keywords
+   * @param isCustom Icon is CustomIcon or default.
    * @throws BadRequestException when icon key is not specified
    * @throws NotFoundException when no icon with the provided key exists
    */
   void updateCustomIcon(String key, String description, String[] keywords)
       throws BadRequestException, NotFoundException;
+
+  void updateCustomIcon(CustomIcon customIcon) throws BadRequestException, NotFoundException;
 
   /**
    * Deletes a custom icon given its key

@@ -28,7 +28,9 @@
 package org.hisp.dhis.analytics.tei.query.context.sql;
 
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
@@ -41,13 +43,27 @@ public interface SqlQueryBuilder {
    * Builds a {@link RenderableSqlQuery} based on the given arguments.
    *
    * @param queryContext the {@link QueryContext}.
-   * @param dimensions the list of {@link DimensionIdentifier}.
-   * @param sortingParams the list of {@link AnalyticsSortingParams}.
+   * @param acceptedHeaders the list of {@link DimensionIdentifier}.
+   * @param acceptedDimensions the list of {@link DimensionIdentifier}.
+   * @param acceptedSortingParams the list of {@link AnalyticsSortingParams}.
    */
   RenderableSqlQuery buildSqlQuery(
       @Nonnull QueryContext queryContext,
+      @Nonnull List<DimensionIdentifier<DimensionParam>> acceptedHeaders,
       @Nonnull List<DimensionIdentifier<DimensionParam>> acceptedDimensions,
       @Nonnull List<AnalyticsSortingParams> acceptedSortingParams);
+
+  /**
+   * Provides the list of {@link Predicate} functions for {@link DimensionIdentifier} (headers).
+   * They act as filters and are used to build the final {@link RenderableSqlQuery} query. By
+   * default, it returns the same as {@link #getDimensionFilters()}.
+   *
+   * @return the list of filter dimensions or empty.
+   */
+  @Nonnull
+  default List<Predicate<DimensionIdentifier<DimensionParam>>> getHeaderFilters() {
+    return getDimensionFilters();
+  }
 
   /**
    * Provides the list of {@link Predicate} functions for {@link DimensionIdentifier}. They act as
@@ -73,5 +89,16 @@ public interface SqlQueryBuilder {
 
   default boolean alwaysRun() {
     return false;
+  }
+
+  default Stream<DimensionIdentifier<DimensionParam>> streamDimensions(
+      List<DimensionIdentifier<DimensionParam>> headers,
+      List<DimensionIdentifier<DimensionParam>> dimensions,
+      List<AnalyticsSortingParams> sortingParams) {
+    return Stream.of(
+            headers.stream(),
+            dimensions.stream(),
+            sortingParams.stream().map(AnalyticsSortingParams::getOrderBy))
+        .flatMap(Function.identity());
   }
 }

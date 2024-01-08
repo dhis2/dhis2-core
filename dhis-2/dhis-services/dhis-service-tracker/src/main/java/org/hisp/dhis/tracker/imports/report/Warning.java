@@ -38,13 +38,13 @@ import lombok.Value;
 @Value
 @Builder
 public class Warning {
-  private final String warningMessage;
+  String warningMessage;
 
-  private final String warningCode;
+  String warningCode;
 
-  private final String trackerType;
+  String trackerType;
 
-  private final String uid;
+  String uid;
 
   @JsonCreator
   public Warning(

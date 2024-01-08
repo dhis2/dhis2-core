@@ -35,7 +35,6 @@ import org.hisp.dhis.programrule.engine.RuleActionImplementer;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.security.SecurityContextRunnable;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.tracker.imports.converter.TrackerSideEffectConverterService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
@@ -53,8 +52,6 @@ import org.springframework.stereotype.Component;
 public class TrackerRuleEngineThread extends SecurityContextRunnable {
   private final List<RuleActionImplementer> ruleActionImplementers;
 
-  private final TrackerSideEffectConverterService trackerSideEffectConverterService;
-
   private final Notifier notifier;
 
   private TrackerSideEffectDataBundle sideEffectDataBundle;
@@ -64,11 +61,9 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable {
           RuleActionImplementer sendMessageRuleActionImplementer,
       @Qualifier("org.hisp.dhis.programrule.engine.RuleActionScheduleMessageImplementer")
           RuleActionImplementer scheduleMessageRuleActionImplementer,
-      TrackerSideEffectConverterService trackerSideEffectConverterService,
       Notifier notifier) {
     this.ruleActionImplementers =
         List.of(scheduleMessageRuleActionImplementer, sendMessageRuleActionImplementer);
-    this.trackerSideEffectConverterService = trackerSideEffectConverterService;
     this.notifier = notifier;
   }
 
@@ -79,10 +74,8 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable {
     }
 
     Map<String, List<RuleEffect>> enrollmentRuleEffects =
-        trackerSideEffectConverterService.toRuleEffects(
-            sideEffectDataBundle.getEnrollmentRuleEffects());
-    Map<String, List<RuleEffect>> eventRuleEffects =
-        trackerSideEffectConverterService.toRuleEffects(sideEffectDataBundle.getEventRuleEffects());
+        sideEffectDataBundle.getEnrollmentRuleEffects();
+    Map<String, List<RuleEffect>> eventRuleEffects = sideEffectDataBundle.getEventRuleEffects();
 
     for (RuleActionImplementer ruleActionImplementer : ruleActionImplementers) {
       for (Map.Entry<String, List<RuleEffect>> entry : enrollmentRuleEffects.entrySet()) {

@@ -119,42 +119,31 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse {
   public FlattenedDataIntegrityReport(Map<String, DataIntegrityDetails> detailsByName) {
     // name/UID only
     this.dataElementsWithoutDataSet =
-        listOfDisplayNameOrUid(
-            detailsByName.get(DataIntegrityCheckType.DATA_ELEMENTS_WITHOUT_DATA_SETS.getName()));
+        listOfDisplayNameWithUid(detailsByName.get("data_elements_without_datasets"));
     this.dataElementsWithoutGroups =
         listOfDisplayNameWithUid(detailsByName.get("data_elements_aggregate_no_groups"));
     this.invalidCategoryCombos =
-        listOfDisplayNameOrUid(
-            detailsByName.get(DataIntegrityCheckType.CATEGORY_COMBOS_BEING_INVALID.getName()));
+        listOfDisplayNameWithUid(detailsByName.get("invalid_category_combos"));
     this.dataSetsNotAssignedToOrganisationUnits =
-        listOfDisplayNameOrUid(
-            detailsByName.get(
-                DataIntegrityCheckType.DATA_SETS_NOT_ASSIGNED_TO_ORG_UNITS.getName()));
+        listOfDisplayNameOrUid(detailsByName.get("datasets_not_assigned_to_org_units"));
     this.indicatorsWithoutGroups =
-        listOfDisplayNameOrUid(
-            detailsByName.get(DataIntegrityCheckType.INDICATORS_WITHOUT_GROUPS.getName()));
+        listOfDisplayNameOrUid(detailsByName.get("indicators_not_grouped"));
     this.duplicatePeriods =
-        listOfDisplayNameOrUid(
-            detailsByName.get(DataIntegrityCheckType.PERIODS_DUPLICATES.getName()));
+        listOfDisplayNameOrUid(detailsByName.get("periods_same_start_date_period_type"));
     this.organisationUnitsWithCyclicReferences =
         listOfDisplayNameOrUid(
             detailsByName.get(DataIntegrityCheckType.ORG_UNITS_WITH_CYCLIC_REFERENCES.getName()));
     this.orphanedOrganisationUnits =
-        listOfDisplayNameOrUid(
-            detailsByName.get(DataIntegrityCheckType.ORG_UNITS_BEING_ORPHANED.getName()));
+        listOfDisplayNameWithUid(detailsByName.get("orgunits_orphaned"));
     // Replaced with SQL based equivalent
     this.organisationUnitsWithoutGroups =
         listOfDisplayNameWithUid(detailsByName.get("organisation_units_without_groups"));
     this.organisationUnitGroupsWithoutGroupSets =
-        listOfDisplayNameOrUid(
-            detailsByName.get(DataIntegrityCheckType.ORG_UNIT_GROUPS_WITHOUT_GROUP_SETS.getName()));
+        listOfDisplayNameOrUid(detailsByName.get("org_units_not_in_compulsory_group_sets"));
     this.validationRulesWithoutGroups =
-        listOfDisplayNameOrUid(
-            detailsByName.get(DataIntegrityCheckType.VALIDATION_RULES_WITHOUT_GROUPS.getName()));
+        listOfDisplayNameOrUid(detailsByName.get("validation_rules_without_groups"));
     this.programIndicatorsWithNoExpression =
-        listOfDisplayNameOrUid(
-            detailsByName.get(
-                DataIntegrityCheckType.PROGRAM_INDICATORS_WITHOUT_EXPRESSION.getName()));
+        listOfDisplayNameOrUid(detailsByName.get("program_indicators_without_expression"));
 
     // grouped name/UID
     this.indicatorsWithIdenticalFormulas =
@@ -187,39 +176,27 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse {
         mapOfCommentByDisplayNameOrUid(
             detailsByName.get(
                 DataIntegrityCheckType.PROGRAM_INDICATORS_WITH_INVALID_FILTERS.getName()));
-
-    // refs by name/UID
     this.dataElementsAssignedToDataSetsWithDifferentPeriodTypes =
         mapOfRefsByDisplayNameOrUid(
-            detailsByName.get(
-                DataIntegrityCheckType
-                    .DATA_ELEMENTS_ASSIGNED_TO_DATA_SETS_WITH_DIFFERENT_PERIOD_TYPES
-                    .getName()));
+            detailsByName.get("data_elements_aggregate_with_different_period_types"));
     this.dataElementsViolatingExclusiveGroupSets =
         mapOfRefsByDisplayNameOrUid(
-            detailsByName.get(
-                DataIntegrityCheckType.DATA_ELEMENTS_VIOLATING_EXCLUSIVE_GROUP_SETS.getName()));
+            detailsByName.get("data_elements_violating_exclusive_group_sets"));
     this.dataElementsInDataSetNotInForm =
         mapOfRefsByDisplayNameOrUid(
             detailsByName.get(
                 DataIntegrityCheckType.DATA_ELEMENTS_IN_DATA_SET_NOT_IN_FORM.getName()));
     this.indicatorsViolatingExclusiveGroupSets =
-        mapOfRefsByDisplayNameOrUid(
-            detailsByName.get(
-                DataIntegrityCheckType.INDICATORS_VIOLATING_EXCLUSIVE_GROUP_SETS.getName()));
+        mapOfRefsByDisplayNameOrUid(detailsByName.get("indicators_violating_exclusive_group_sets"));
     this.organisationUnitsViolatingExclusiveGroupSets =
         mapOfRefsByDisplayNameOrUid(
-            detailsByName.get(
-                DataIntegrityCheckType.ORG_UNITS_VIOLATING_EXCLUSIVE_GROUP_SETS.getName()));
+            detailsByName.get("organisation_units_violating_exclusive_group_sets"));
     this.programRulesWithNoCondition =
-        mapOfRefsByDisplayNameOrUid(
-            detailsByName.get(DataIntegrityCheckType.PROGRAM_RULES_WITHOUT_CONDITION.getName()));
+        mapOfRefsByDisplayNameOrUid(detailsByName.get("program_rules_without_condition"));
     this.programRulesWithNoPriority =
-        mapOfRefsByDisplayNameOrUid(
-            detailsByName.get(DataIntegrityCheckType.PROGRAM_RULES_WITHOUT_PRIORITY.getName()));
+        mapOfRefsByDisplayNameOrUid(detailsByName.get("program_rules_no_priority"));
     this.programRulesWithNoAction =
-        mapOfRefsByDisplayNameOrUid(
-            detailsByName.get(DataIntegrityCheckType.PROGRAM_RULES_WITHOUT_ACTION.getName()));
+        mapOfRefsByDisplayNameOrUid(detailsByName.get("program_rules_no_action"));
     this.programRuleVariablesWithNoDataElement =
         mapOfRefsByDisplayNameOrUid(
             detailsByName.get(
