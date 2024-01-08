@@ -27,16 +27,20 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import static java.util.Map.entry;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport.RESOURCE_PATH;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -60,6 +64,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -80,6 +85,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class TrackerRelationshipsExportController {
   protected static final String RELATIONSHIPS = "relationships";
+
+  /**
+   * Relationships can be ordered by given fields which correspond to fields on {@link
+   * org.hisp.dhis.relationship.Relationship}.
+   */
+  private static final Map<String, String> ORDERABLE_FIELDS =
+      Map.ofEntries(entry("createdAt", "created"));
+
+  private static final Set<String> ORDERABLE_FIELD_NAMES = ORDERABLE_FIELDS.keySet();
 
   private static final String DEFAULT_FIELDS_PARAM =
       "relationship,relationshipType,from[trackedEntity[trackedEntity],enrollment[enrollment],event[event]],to[trackedEntity[trackedEntity],enrollment[enrollment],event[event]]";
@@ -195,6 +209,16 @@ public class TrackerRelationshipsExportController {
       Class<?> type,
       Supplier<WebMessage> notFoundMessageSupplier,
       PagingAndSortingCriteriaAdapter pagingAndSortingCriteria) {
+
+    if (pagingAndSortingCriteria != null) {
+      // validate and translate from user facing field names to internal field names users can order
+      // by avoiding field translation by PagingAndSortingCriteriaAdapter to validate user order
+      // fields and to not affect old tracker.
+      validateOrderParams(pagingAndSortingCriteria.getRawOrder(), ORDERABLE_FIELD_NAMES);
+      List<OrderCriteria> orders = mapOrderParam(pagingAndSortingCriteria.getRawOrder());
+      pagingAndSortingCriteria.setOrder(orders);
+    }
+
     if (identifier != null) {
       Object object = getObjectRetriever(type).apply(identifier);
       if (object != null) {
@@ -222,5 +246,19 @@ public class TrackerRelationshipsExportController {
         .map(objectRetrievers::get)
         .orElseThrow(
             () -> new IllegalArgumentException("Unable to detect object retriever from " + type));
+  }
+
+  private static List<OrderCriteria> mapOrderParam(List<OrderCriteria> orders) {
+    if (orders == null || orders.isEmpty()) {
+      return List.of();
+    }
+
+    List<OrderCriteria> result = new ArrayList<>();
+    for (OrderCriteria order : orders) {
+      if (ORDERABLE_FIELDS.containsKey(order.getField())) {
+        result.add(OrderCriteria.of(ORDERABLE_FIELDS.get(order.getField()), order.getDirection()));
+      }
+    }
+    return result;
   }
 }
