@@ -112,7 +112,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/audits")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-public class AuditController {
+public class ChangeLogController {
   private final IdentifiableObjectManager manager;
 
   private final DataValueAuditService dataValueAuditService;
@@ -253,7 +253,7 @@ public class AuditController {
   }
 
   @GetMapping("trackedEntityDataValue")
-  public RootNode getTrackedEntityDataValueAudit(
+  public RootNode getTrackedEntityDataValueChangeLog(
       @OpenApi.Param({UID[].class, DataElement.class}) @RequestParam(required = false)
           List<String> de,
       @OpenApi.Param({UID[].class, OrganisationUnit.class}) @RequestParam(required = false)
@@ -335,7 +335,7 @@ public class AuditController {
   }
 
   @GetMapping("trackedEntityAttributeValue")
-  public RootNode getTrackedEntityAttributeValueAudit(
+  public RootNode getTrackedEntityAttributeValueChangeLog(
       @OpenApi.Param({UID[].class, TrackedEntityAttribute.class}) @RequestParam(required = false)
           List<String> tea,
       @Deprecated(since = "2.41")
@@ -458,11 +458,11 @@ public class AuditController {
   }
 
   /**
-   * @deprecated use {@link #getTrackedEnityAudit} instead.
+   * @deprecated use {@link #getTrackedEnityChangeLog} instead.
    */
   @Deprecated(since = "2.41")
   @GetMapping("trackedEntityInstance")
-  public RootNode getTrackedEnityInstanceAudit(
+  public RootNode getTrackedEnityInstanceChangeLog(
       @Deprecated(since = "2.41")
           @OpenApi.Param({UID[].class, TrackedEntity.class})
           @RequestParam(required = false, defaultValue = "")
@@ -531,7 +531,7 @@ public class AuditController {
   }
 
   @GetMapping("trackedEntity")
-  public RootNode getTrackedEnityAudit(
+  public RootNode getTrackedEnityChangeLog(
       @OpenApi.Param({UID[].class, TrackedEntity.class})
           @RequestParam(required = false, defaultValue = "")
           Set<UID> trackedEntities,
