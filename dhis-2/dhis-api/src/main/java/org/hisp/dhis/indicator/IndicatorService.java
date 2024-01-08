@@ -59,9 +59,9 @@ public interface IndicatorService {
 
   List<Indicator> getIndicatorsByUid(List<String> uids);
 
-  List<Indicator> getIndicatorsContainingOtherIndicatorRefInNumerator(String uid);
+  List<Indicator> getIndicatorsWithNumeratorContaining(String uid);
 
-  List<Indicator> getIndicatorsContainingOtherIndicatorRefInDenominator(String uid);
+  List<Indicator> getIndicatorsWithDenominatorContaining(String uid);
 
   // -------------------------------------------------------------------------
   // IndicatorType

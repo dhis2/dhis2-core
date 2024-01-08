@@ -124,13 +124,15 @@ public class DefaultIndicatorService implements IndicatorService {
   }
 
   @Override
-  public List<Indicator> getIndicatorsContainingOtherIndicatorRefInNumerator(String uid) {
-    return indicatorStore.getIndicatorContainingSearchParamNum(uid);
+  @Transactional(readOnly = true)
+  public List<Indicator> getIndicatorsWithNumeratorContaining(String uid) {
+    return indicatorStore.getIndicatorsWithNumeratorContaining(uid);
   }
 
   @Override
-  public List<Indicator> getIndicatorsContainingOtherIndicatorRefInDenominator(String uid) {
-    return indicatorStore.getIndicatorContainingSearchParamDenom(uid);
+  @Transactional(readOnly = true)
+  public List<Indicator> getIndicatorsWithDenominatorContaining(String uid) {
+    return indicatorStore.getIndicatorsWithDenominatorContaining(uid);
   }
 
   // -------------------------------------------------------------------------

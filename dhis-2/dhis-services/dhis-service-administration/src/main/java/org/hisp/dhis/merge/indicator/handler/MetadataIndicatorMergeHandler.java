@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,7 +58,7 @@ public class MetadataIndicatorMergeHandler {
   private final DataEntryFormService dataEntryFormService;
   private final ConfigurationService configurationService;
 
-  public void mergeDataSets(List<Indicator> sources, Indicator target) {
+  public void handleDataSets(List<Indicator> sources, Indicator target) {
     Set<DataSet> dataSets =
         sources.stream()
             .map(Indicator::getDataSets)
@@ -72,7 +72,7 @@ public class MetadataIndicatorMergeHandler {
         });
   }
 
-  public void mergeIndicatorGroups(List<Indicator> sources, Indicator target) {
+  public void handleIndicatorGroups(List<Indicator> sources, Indicator target) {
     Set<IndicatorGroup> indicatorGroups =
         sources.stream()
             .map(Indicator::getGroups)
@@ -86,11 +86,11 @@ public class MetadataIndicatorMergeHandler {
         });
   }
 
-  public void mergeDataDimensionalItems(List<Indicator> sources, Indicator target) {
+  public void handleDataDimensionalItems(List<Indicator> sources, Indicator target) {
     // TODO might not be needed as data items is just a view of existing indicators
   }
 
-  public void mergeSections(List<Indicator> sources, Indicator target) {
+  public void handleSections(List<Indicator> sources, Indicator target) {
     List<Section> sections = sectionService.getSectionsByIndicators(sources);
     sources.stream()
         .distinct()
@@ -103,29 +103,28 @@ public class MetadataIndicatorMergeHandler {
                     }));
   }
 
-  public void mergeConfigurations(List<Indicator> sources, Indicator target) {
-    // TODO
-    // this might already be covered by the indicator group merge above - test
+  public void handleConfigurations(List<Indicator> sources, Indicator target) {
+    // TODO this might already be covered by the indicator group merge above - test
 
   }
 
-  public void replaceIndicatorRefsInIndicator(List<Indicator> sources, Indicator target) {
+  public void handleIndicatorRefsInIndicator(List<Indicator> sources, Indicator target) {
     for (Indicator source : sources) {
       // numerators
-      List<Indicator> indicators =
-          indicatorService.getIndicatorsContainingOtherIndicatorRefInNumerator(source.getUid());
-      if (CollectionUtils.isNotEmpty(indicators)) {
-        for (Indicator foundIndicator : indicators) {
+      List<Indicator> numeratorIndicators =
+          indicatorService.getIndicatorsWithNumeratorContaining(source.getUid());
+      if (CollectionUtils.isNotEmpty(numeratorIndicators)) {
+        for (Indicator foundIndicator : numeratorIndicators) {
           String existingNumerator = foundIndicator.getNumerator();
           foundIndicator.setNumerator(existingNumerator.replace(source.getUid(), target.getUid()));
         }
       }
 
       // denominators
-      List<Indicator> denominators =
-          indicatorService.getIndicatorsContainingOtherIndicatorRefInDenominator(source.getUid());
-      if (CollectionUtils.isNotEmpty(denominators)) {
-        for (Indicator foundIndicator : denominators) {
+      List<Indicator> denominatorIndicators =
+          indicatorService.getIndicatorsWithDenominatorContaining(source.getUid());
+      if (CollectionUtils.isNotEmpty(denominatorIndicators)) {
+        for (Indicator foundIndicator : denominatorIndicators) {
           String existingDenominator = foundIndicator.getDenominator();
           foundIndicator.setDenominator(
               existingDenominator.replace(source.getUid(), target.getUid()));
@@ -134,7 +133,7 @@ public class MetadataIndicatorMergeHandler {
     }
   }
 
-  public void replaceIndicatorRefsInCustomForms(List<Indicator> sources, Indicator target) {
+  public void handleIndicatorRefsInCustomForms(List<Indicator> sources, Indicator target) {
     for (Indicator source : sources) {
       List<DataEntryForm> forms =
           dataEntryFormService.getDataEntryFormsWithHtmlContaining(source.getUid());

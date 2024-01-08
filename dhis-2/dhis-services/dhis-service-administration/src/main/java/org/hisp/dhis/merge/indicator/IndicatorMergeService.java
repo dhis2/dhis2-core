@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,7 +51,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Main class for indicator type merge.
+ * Main class for indicator merge.
  *
  * @author david mackessy
  */
@@ -156,26 +156,11 @@ public class IndicatorMergeService implements MergeService {
   private void initMergeHandlers() {
     handlers =
         ImmutableList.<IndicatorMergeHandler>builder()
-            // data set - remove source & add target
-            .add(metadataIndicatorMergeHandler::mergeDataSets)
-
-            // indicator group - remove source & add target
-            .add(metadataIndicatorMergeHandler::mergeIndicatorGroups)
-
-            // data dimensional item - set target as indicator
-            // TODO need to implement - not needed, just a view of existing  indicators??
-
-            // section - remove source & add target
-            .add(metadataIndicatorMergeHandler::mergeSections)
-
-            // configuration - remove source & add target
-            // TODO may be already done in indicator group merge - test first
-
-            // handle indicator numerator / denominator
-            .add(metadataIndicatorMergeHandler::replaceIndicatorRefsInIndicator)
-
-            // handle data entry forms (custom forms - html property (STRING))
-            .add(metadataIndicatorMergeHandler::replaceIndicatorRefsInCustomForms)
+            .add(metadataIndicatorMergeHandler::handleDataSets)
+            .add(metadataIndicatorMergeHandler::handleIndicatorGroups)
+            .add(metadataIndicatorMergeHandler::handleSections)
+            .add(metadataIndicatorMergeHandler::handleIndicatorRefsInIndicator)
+            .add(metadataIndicatorMergeHandler::handleIndicatorRefsInCustomForms)
             .build();
   }
 }

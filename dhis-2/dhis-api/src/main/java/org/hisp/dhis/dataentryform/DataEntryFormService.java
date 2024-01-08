@@ -101,11 +101,11 @@ public interface DataEntryFormService {
   List<DataEntryForm> getAllDataEntryForms();
 
   /**
-   * Get all DataEntryForms that contain the string passed in.
+   * Get all DataEntryForms whose html contain the string passed in.
    *
    * @return A collection containing all matching DataEntryForms.
    */
-  List<DataEntryForm> getDataEntryFormsWithHtmlContaining(String uid);
+  List<DataEntryForm> getDataEntryFormsWithHtmlContaining(String searchString);
 
   /**
    * Prepare DataEntryForm code for save by reversing the effects of prepareDataEntryFormForEdit().

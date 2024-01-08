@@ -91,5 +91,5 @@ public interface SectionService {
    *
    * @return a Collection of Sections.
    */
-  List<Section> getSectionsByIndicators(List<Indicator> indicatorUids);
+  List<Section> getSectionsByIndicators(List<Indicator> indicators);
 }

@@ -97,7 +97,7 @@ public class HibernateIndicatorStore extends HibernateIdentifiableObjectStore<In
   }
 
   @Override
-  public List<Indicator> getIndicatorContainingSearchParamNum(String search) {
+  public List<Indicator> getIndicatorsWithNumeratorContaining(String search) {
     // language=sql
     TypedQuery<Indicator> query =
         entityManager.createQuery(
@@ -107,7 +107,7 @@ public class HibernateIndicatorStore extends HibernateIdentifiableObjectStore<In
   }
 
   @Override
-  public List<Indicator> getIndicatorContainingSearchParamDenom(String search) {
+  public List<Indicator> getIndicatorsWithDenominatorContaining(String search) {
     // language=sql
     TypedQuery<Indicator> query =
         entityManager.createQuery(
