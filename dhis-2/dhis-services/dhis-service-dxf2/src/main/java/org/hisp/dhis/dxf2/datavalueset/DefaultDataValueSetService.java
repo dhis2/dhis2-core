@@ -1059,7 +1059,6 @@ public class DefaultDataValueSetService implements DataValueSetService {
 
     String currentUsername = CurrentUserUtil.getCurrentUsername();
     User currentUser = userService.getUserByUsername(currentUsername);
-    // TODO: MAS this should be an exception if current user is null?
 
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
 

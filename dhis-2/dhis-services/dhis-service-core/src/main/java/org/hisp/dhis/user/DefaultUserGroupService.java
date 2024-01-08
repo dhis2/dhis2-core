@@ -121,22 +121,21 @@ public class DefaultUserGroupService implements UserGroupService {
   @Override
   @Transactional(readOnly = true)
   public boolean canAddOrRemoveMember(String uid) {
-    // TODO: MAS: check if this is correct
     return canAddOrRemoveMember(uid, CurrentUserUtil.getCurrentUserDetails());
   }
 
   @Override
   @Transactional(readOnly = true)
-  public boolean canAddOrRemoveMember(String uid, UserDetails currentUser) {
+  public boolean canAddOrRemoveMember(String uid, UserDetails userDetails) {
     UserGroup userGroup = getUserGroup(uid);
 
-    if (userGroup == null || currentUser == null) {
+    if (userGroup == null || userDetails == null) {
       return false;
     }
 
-    boolean canUpdate = aclService.canUpdate(currentUser, userGroup);
+    boolean canUpdate = aclService.canUpdate(userDetails, userGroup);
     boolean canAddMember =
-        currentUser.isAuthorized(Authorities.F_USER_GROUPS_READ_ONLY_ADD_MEMBERS.name());
+        userDetails.isAuthorized(Authorities.F_USER_GROUPS_READ_ONLY_ADD_MEMBERS.name());
 
     return canUpdate || canAddMember;
   }

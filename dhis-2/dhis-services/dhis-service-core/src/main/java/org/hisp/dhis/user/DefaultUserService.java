@@ -903,19 +903,6 @@ public class DefaultUserService implements UserService {
               username, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked));
     }
 
-    CurrentUserGroupInfo currentUserGroupInfo = userStore.getCurrentUserGroupInfo(user.getUid());
-    if (user.getGroups().size() != currentUserGroupInfo.getUserGroupUIDs().size()) {
-      String msg =
-          String.format(
-              "User '%s' getGroups().size() has %d groups, but  getUserGroupUIDs() returns %d groups!",
-              username, user.getGroups().size(), currentUserGroupInfo.getUserGroupUIDs().size());
-
-      RuntimeException runtimeException = new RuntimeException(msg);
-      log.error(msg, runtimeException);
-      // TODO: MAS: Remove this throw when we have found the root cause of this issue.
-      throw runtimeException;
-    }
-
     Map<String, Serializable> userSettings = userSettingService.getUserSettingsAsMap(user);
 
     return UserDetails.createUserDetails(
