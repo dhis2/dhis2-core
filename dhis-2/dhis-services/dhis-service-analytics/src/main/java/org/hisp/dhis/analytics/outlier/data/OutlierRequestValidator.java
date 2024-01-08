@@ -39,6 +39,7 @@ import static org.hisp.dhis.feedback.ErrorCode.E2207;
 import static org.hisp.dhis.feedback.ErrorCode.E2209;
 import static org.hisp.dhis.feedback.ErrorCode.E2210;
 import static org.hisp.dhis.feedback.ErrorCode.E2211;
+import static org.hisp.dhis.feedback.ErrorCode.E2212;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_LIMIT;
 
 import lombok.AllArgsConstructor;
@@ -113,9 +114,11 @@ public class OutlierRequestValidator {
 
     if (request.getDataElements().isEmpty()) {
       error = new ErrorMessage(E2200);
-    } else if (request.getStartDate() == null || request.getEndDate() == null) {
+    } else if (!request.hasStartEndDate() && !request.hasPeriods()) {
       error = new ErrorMessage(E2201);
-    } else if (request.getStartDate().after(request.getEndDate())) {
+    } else if (request.hasStartEndDate() && request.hasPeriods()) {
+      error = new ErrorMessage(E2212);
+    } else if (request.hasStartEndDate() && request.getStartDate().after(request.getEndDate())) {
       error = new ErrorMessage(E2202);
     } else if (request.getOrgUnits().isEmpty()) {
       error = new ErrorMessage(E2203);

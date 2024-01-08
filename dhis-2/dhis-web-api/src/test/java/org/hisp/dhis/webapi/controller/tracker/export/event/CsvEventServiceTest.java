@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -42,6 +43,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.webapi.controller.tracker.view.DataValue;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
@@ -223,5 +227,70 @@ class CsvEventServiceTest {
     Point expected =
         geometryFactory.createPoint(new Coordinate(-11.4283223849698, 8.06311527044516));
     assertEquals(expected, events.get(0).getGeometry());
+  }
+
+  @Test
+  void zipFileAndMatchCsvEventDataValuesWhenCreateZipFileFromEventList()
+      throws IOException, ParseException {
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+    File event = new File("src/test/resources/controller/tracker/csv/completeEvent.csv");
+    InputStream inputStream = Files.asByteSource(event).openStream();
+
+    List<Event> events = service.read(inputStream, false);
+
+    service.writeZip(outputStream, events, false, "file.json.zip");
+
+    ZipInputStream zipInputStream =
+        new ZipInputStream(new ByteArrayInputStream(outputStream.toByteArray()));
+    var buff = new byte[1024];
+
+    ZipEntry zipEntry = zipInputStream.getNextEntry();
+
+    assertNotNull(zipEntry, "Events Zip file has no entry");
+    assertEquals("file.json.zip", zipEntry.getName(), "Events Zip file has a wrong name");
+
+    var csvStream = new ByteArrayOutputStream();
+    int l;
+    while ((l = zipInputStream.read(buff)) > 0) {
+      csvStream.write(buff, 0, l);
+    }
+
+    assertEquals(
+        """
+eventId,COMPLETED,programId,programStageId,enrollmentId,orgUnitId,2020-02-26T23:01:00Z,2020-02-26T23:02:00Z,,,,false,false,2020-02-26T23:03:00Z,,2020-02-26T23:05:00Z,,admin,2020-02-26T23:07:00Z,,attributeOptionCombo,,,dataElement,value,admin,false,,2020-02-26T23:08:00Z,2020-02-26T23:09:00Z
+""",
+        csvStream.toString(),
+        "The event does not match or not exists in the Zip File.");
+  }
+
+  @Test
+  void gzipFileAndMatchCsvEventDataValuesWhenCreateGZipFileFromEventList()
+      throws IOException, ParseException {
+
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+    File event = new File("src/test/resources/controller/tracker/csv/completeEvent.csv");
+    InputStream inputStream = Files.asByteSource(event).openStream();
+
+    List<Event> events = service.read(inputStream, false);
+    service.writeGzip(outputStream, events, false);
+
+    GZIPInputStream gzipInputStream =
+        new GZIPInputStream(new ByteArrayInputStream(outputStream.toByteArray()));
+    var buff = new byte[1024];
+
+    var csvStream = new ByteArrayOutputStream();
+    int l;
+    while ((l = gzipInputStream.read(buff)) > 0) {
+      csvStream.write(buff, 0, l);
+    }
+
+    assertEquals(
+        """
+eventId,COMPLETED,programId,programStageId,enrollmentId,orgUnitId,2020-02-26T23:01:00Z,2020-02-26T23:02:00Z,,,,false,false,2020-02-26T23:03:00Z,,2020-02-26T23:05:00Z,,admin,2020-02-26T23:07:00Z,,attributeOptionCombo,,,dataElement,value,admin,false,,2020-02-26T23:08:00Z,2020-02-26T23:09:00Z
+""",
+        csvStream.toString(),
+        "The event does not match or not exists in the GZip File.");
   }
 }
