@@ -59,7 +59,8 @@ import org.springframework.web.servlet.HandlerMapping;
 public class ContextUtils {
   public static final String CONTENT_TYPE_PDF = "application/pdf";
 
-  public static final String CONTENT_TYPE_ZIP = "application/zip";
+  public static final String CONTENT_TYPE_JSON_ZIP = "application/json+zip";
+  public static final String CONTENT_TYPE_JSON_GZIP = "application/json+gzip";
 
   public static final String CONTENT_TYPE_GZIP = "application/gzip";
 
@@ -104,6 +105,8 @@ public class ContextUtils {
   public static final String HEADER_CONTENT_DISPOSITION = "Content-Disposition";
 
   public static final String HEADER_CONTENT_TRANSFER_ENCODING = "Content-Transfer-Encoding";
+
+  public static final String BINARY_HEADER_CONTENT_TRANSFER_ENCODING = "binary";
 
   public static final String HEADER_VALUE_NO_STORE =
       "no-cache, no-store, max-age=0, must-revalidate";

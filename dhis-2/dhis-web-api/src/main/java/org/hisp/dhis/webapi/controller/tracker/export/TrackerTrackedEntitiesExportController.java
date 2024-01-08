@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport.RESOURCE_PATH;
+import static org.hisp.dhis.webapi.utils.ContextUtils.BINARY_HEADER_CONTENT_TRANSFER_ENCODING;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_GZIP;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_ZIP;
@@ -38,11 +39,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
-import java.util.zip.GZIPOutputStream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
+import java.util.Objects;
 import javax.annotation.Nonnull;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -145,51 +143,96 @@ public class TrackerTrackedEntitiesExportController {
     return pagingWrapper.withInstances(objectNodes);
   }
 
-  @GetMapping(
-      produces = {
-        CONTENT_TYPE_CSV,
-        CONTENT_TYPE_CSV_GZIP,
-        CONTENT_TYPE_CSV_ZIP,
-        CONTENT_TYPE_TEXT_CSV
-      })
-  public void getCsvTrackedEntities(
+  @GetMapping(produces = {CONTENT_TYPE_CSV, CONTENT_TYPE_TEXT_CSV})
+  void getTrackedEntitiesAsCsv(
       TrackerTrackedEntityCriteria criteria,
       HttpServletResponse response,
-      HttpServletRequest request,
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader)
       throws IOException, BadRequestException, ForbiddenException {
+
     TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map(criteria);
     TrackedEntityInstanceParams trackedEntityInstanceParams =
         fieldsMapper.map(CSV_FIELDS, criteria.isIncludeDeleted());
 
-    List<TrackedEntity> trackedEntityInstances =
+    String attachment = getAttachmentOrDefault(criteria.getAttachment(), "csv");
+
+    response.setContentType(CONTENT_TYPE_CSV);
+    response.setHeader(
+        HttpHeaders.CONTENT_DISPOSITION, getContentDispositionHeaderValue(attachment));
+
+    csvEventService.writeEvents(
+        response.getOutputStream(),
         TRACKED_ENTITY_MAPPER.fromCollection(
             trackedEntityInstanceService.getTrackedEntityInstances(
-                queryParams, trackedEntityInstanceParams, false, false));
+                queryParams, trackedEntityInstanceParams, false, false)),
+        !skipHeader);
+  }
 
-    OutputStream outputStream = response.getOutputStream();
+  @GetMapping(produces = {CONTENT_TYPE_CSV_ZIP})
+  void getTrackedEntitiesAsCsvZip(
+      TrackerTrackedEntityCriteria criteria,
+      HttpServletResponse response,
+      @RequestParam(required = false, defaultValue = "false") boolean skipHeader)
+      throws IOException, BadRequestException, ForbiddenException {
 
-    if (ContextUtils.isAcceptCsvGzip(request)) {
-      response.addHeader(ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary");
-      outputStream = new GZIPOutputStream(outputStream);
-      response.setContentType(CONTENT_TYPE_CSV_GZIP);
-      response.setHeader(
-          HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"trackedEntities.csv.gz\"");
-    } else if (ContextUtils.isAcceptCsvZip(request)) {
-      response.addHeader(ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary");
-      response.setContentType(CONTENT_TYPE_CSV_ZIP);
-      response.setHeader(
-          HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"trackedEntities.csv.zip\"");
-      ZipOutputStream zos = new ZipOutputStream(outputStream);
-      zos.putNextEntry(new ZipEntry("trackedEntities.csv"));
-      outputStream = zos;
-    } else {
-      response.setContentType(CONTENT_TYPE_CSV);
-      response.setHeader(
-          HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"trackedEntities.csv\"");
-    }
+    TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map(criteria);
+    TrackedEntityInstanceParams trackedEntityInstanceParams =
+        fieldsMapper.map(CSV_FIELDS, criteria.isIncludeDeleted());
 
-    csvEventService.writeEvents(outputStream, trackedEntityInstances, !skipHeader);
+    String attachment = getAttachmentOrDefault(criteria.getAttachment(), "csv", "zip");
+
+    response.addHeader(
+        ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, BINARY_HEADER_CONTENT_TRANSFER_ENCODING);
+    response.setContentType(CONTENT_TYPE_CSV_ZIP);
+    response.setHeader(
+        HttpHeaders.CONTENT_DISPOSITION, getContentDispositionHeaderValue(attachment));
+
+    csvEventService.writeZip(
+        response.getOutputStream(),
+        TRACKED_ENTITY_MAPPER.fromCollection(
+            trackedEntityInstanceService.getTrackedEntityInstances(
+                queryParams, trackedEntityInstanceParams, false, false)),
+        !skipHeader,
+        attachment);
+  }
+
+  @GetMapping(produces = {CONTENT_TYPE_CSV_GZIP})
+  void getTrackedEntitiesAsCsvGZip(
+      TrackerTrackedEntityCriteria criteria,
+      HttpServletResponse response,
+      @RequestParam(required = false, defaultValue = "false") boolean skipHeader)
+      throws IOException, BadRequestException, ForbiddenException {
+
+    TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map(criteria);
+    TrackedEntityInstanceParams trackedEntityInstanceParams =
+        fieldsMapper.map(CSV_FIELDS, criteria.isIncludeDeleted());
+
+    String attachment = getAttachmentOrDefault(criteria.getAttachment(), "csv", "gz");
+
+    response.addHeader(
+        ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, BINARY_HEADER_CONTENT_TRANSFER_ENCODING);
+    response.setContentType(CONTENT_TYPE_CSV_GZIP);
+    response.setHeader(
+        HttpHeaders.CONTENT_DISPOSITION, getContentDispositionHeaderValue(attachment));
+
+    csvEventService.writeGzip(
+        response.getOutputStream(),
+        TRACKED_ENTITY_MAPPER.fromCollection(
+            trackedEntityInstanceService.getTrackedEntityInstances(
+                queryParams, trackedEntityInstanceParams, false, false)),
+        !skipHeader);
+  }
+
+  private String getAttachmentOrDefault(String filename, String type, String compression) {
+    return Objects.toString(filename, String.join(".", TRACKED_ENTITIES, type, compression));
+  }
+
+  private String getAttachmentOrDefault(String filename, String type) {
+    return Objects.toString(filename, String.join(".", TRACKED_ENTITIES, type));
+  }
+
+  public String getContentDispositionHeaderValue(String filename) {
+    return "attachment; filename=" + filename;
   }
 
   @GetMapping(value = "{id}")
@@ -208,7 +251,7 @@ public class TrackerTrackedEntitiesExportController {
 
   @GetMapping(
       value = "{id}",
-      produces = {CONTENT_TYPE_CSV, CONTENT_TYPE_CSV_GZIP, CONTENT_TYPE_TEXT_CSV})
+      produces = {CONTENT_TYPE_CSV, CONTENT_TYPE_TEXT_CSV})
   public void getCsvTrackedEntityInstanceById(
       @PathVariable String id,
       HttpServletResponse response,
@@ -224,8 +267,7 @@ public class TrackerTrackedEntitiesExportController {
 
     OutputStream outputStream = response.getOutputStream();
     response.setContentType(CONTENT_TYPE_CSV);
-    response.setHeader(
-        HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"trackedEntity.csv\"");
+    response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=trackedEntity.csv");
     csvEventService.writeEvents(outputStream, List.of(trackedEntity), !skipHeader);
   }
 }

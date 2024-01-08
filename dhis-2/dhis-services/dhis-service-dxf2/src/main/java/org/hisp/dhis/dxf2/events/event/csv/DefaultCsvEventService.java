@@ -109,6 +109,19 @@ public class DefaultCsvEventService implements CsvEventService<Event> {
   }
 
   @Override
+  public void writeZip(
+      OutputStream outputStream, List<Event> toCompress, boolean withHeader, String file)
+      throws IOException {
+    // in use only in the new tracker endpoints
+  }
+
+  @Override
+  public void writeGzip(OutputStream outputStream, List<Event> toCompress, boolean withHeader)
+      throws IOException {
+    // in use only in the new tracker endpoints
+  }
+
+  @Override
   public List<Event> readEvents(InputStream inputStream, boolean skipFirst)
       throws IOException, ParseException {
     List<Event> events = Lists.newArrayList();

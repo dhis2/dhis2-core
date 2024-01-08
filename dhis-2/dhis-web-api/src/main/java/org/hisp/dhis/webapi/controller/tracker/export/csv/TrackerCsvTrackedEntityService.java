@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
+import org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil;
 import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 import org.springframework.stereotype.Service;
@@ -52,14 +53,38 @@ public class TrackerCsvTrackedEntityService implements CsvEventService<TrackedEn
   public void writeEvents(
       OutputStream outputStream, List<TrackedEntity> trackedEntities, boolean withHeader)
       throws IOException {
+    ObjectWriter writer = getObjectWriter(withHeader);
+
+    writer.writeValue(outputStream, getCsvTrackedEntities(trackedEntities));
+  }
+
+  @Override
+  public void writeZip(
+      OutputStream outputStream, List<TrackedEntity> toCompress, boolean withHeader, String file)
+      throws IOException {
+    CompressionUtil.writeZip(
+        outputStream, getCsvTrackedEntities(toCompress), getObjectWriter(withHeader), file);
+  }
+
+  @Override
+  public void writeGzip(
+      OutputStream outputStream, List<TrackedEntity> toCompress, boolean withHeader)
+      throws IOException {
+    CompressionUtil.writeGzip(
+        outputStream, getCsvTrackedEntities(toCompress), getObjectWriter(withHeader));
+  }
+
+  private ObjectWriter getObjectWriter(boolean withHeader) {
     final CsvSchema csvSchema =
         CSV_MAPPER
             .schemaFor(CsvTrackedEntity.class)
             .withLineSeparator("\n")
             .withUseHeader(withHeader);
 
-    ObjectWriter writer = CSV_MAPPER.writer(csvSchema.withUseHeader(withHeader));
+    return CSV_MAPPER.writer(csvSchema.withUseHeader(withHeader));
+  }
 
+  private List<CsvTrackedEntity> getCsvTrackedEntities(List<TrackedEntity> trackedEntities) {
     List<CsvTrackedEntity> attributes = new ArrayList<>();
 
     for (TrackedEntity trackedEntity : trackedEntities) {
@@ -95,8 +120,7 @@ public class TrackerCsvTrackedEntityService implements CsvEventService<TrackedEn
         addAttributes(trackedEntity, trackedEntityValue, attributes);
       }
     }
-
-    writer.writeValue(outputStream, attributes);
+    return attributes;
   }
 
   private String checkForNull(Instant instant) {
