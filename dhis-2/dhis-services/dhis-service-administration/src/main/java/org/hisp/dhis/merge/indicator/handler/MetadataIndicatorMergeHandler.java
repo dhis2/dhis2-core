@@ -87,7 +87,7 @@ public class MetadataIndicatorMergeHandler {
   }
 
   public void mergeDataDimensionalItems(List<Indicator> sources, Indicator target) {
-    // TODO
+    // TODO might not be needed as data items is just a view of existing indicators
   }
 
   public void mergeSections(List<Indicator> sources, Indicator target) {
@@ -125,7 +125,7 @@ public class MetadataIndicatorMergeHandler {
       List<Indicator> denominators =
           indicatorService.getIndicatorsContainingOtherIndicatorRefInDenominator(source.getUid());
       if (CollectionUtils.isNotEmpty(denominators)) {
-        for (Indicator foundIndicator : indicators) {
+        for (Indicator foundIndicator : denominators) {
           String existingDenominator = foundIndicator.getDenominator();
           foundIndicator.setDenominator(
               existingDenominator.replace(source.getUid(), target.getUid()));

@@ -28,6 +28,7 @@
 package org.hisp.dhis.merge;
 
 import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
@@ -43,6 +44,7 @@ import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -56,6 +58,8 @@ class IndicatorMergeTest extends ApiTest {
   private RestApiActions dataSetActions;
   private RestApiActions indicatorGroupActions;
   private RestApiActions sectionActions;
+  private RestApiActions dataItemsActions;
+  private RestApiActions configActions;
 
   @BeforeAll
   public void before() {
@@ -66,6 +70,8 @@ class IndicatorMergeTest extends ApiTest {
     dataSetActions = new RestApiActions("dataSets");
     indicatorGroupActions = new RestApiActions("indicatorGroups");
     sectionActions = new RestApiActions("sections");
+    dataItemsActions = new RestApiActions("dataItems");
+    configActions = new RestApiActions("configuration");
     loginActions.loginAsSuperUser();
   }
 
@@ -95,17 +101,17 @@ class IndicatorMergeTest extends ApiTest {
     // indicators (2 x source & 1 target)
     String sourceUid1 =
         indicatorApiActions
-            .post(createIndicator("Ind4", indTypeUid1))
+            .post(createIndicator("Ind source 1", indTypeUid1))
             .validateStatus(201)
             .extractUid();
     String sourceUid2 =
         indicatorApiActions
-            .post(createIndicator("Ind5", indTypeUid2))
+            .post(createIndicator("Ind source 2", indTypeUid2))
             .validateStatus(201)
             .extractUid();
     String targetUid =
         indicatorApiActions
-            .post(createIndicator("Ind6", indTypeUid3))
+            .post(createIndicator("Ind target 3", indTypeUid3))
             .validateStatus(201)
             .extractUid();
 
@@ -113,12 +119,18 @@ class IndicatorMergeTest extends ApiTest {
     // indicator with numerator and denominator x 2
     String i4 =
         indicatorApiActions
-            .post(createIndicatorWithRefs("Ind5", indTypeUid2, sourceUid1, sourceUid2))
+            .post(createIndicatorWithRefs("Ind 4", indTypeUid2, sourceUid1, sourceUid2))
             .validateStatus(201)
             .extractUid();
     String i5 =
         indicatorApiActions
-            .post(createIndicatorWithRefs("Ind6", indTypeUid3, targetUid, sourceUid2))
+            .post(createIndicatorWithRefs("Ind 5", indTypeUid3, targetUid, sourceUid2))
+            .validateStatus(201)
+            .extractUid();
+
+    String i6 =
+        indicatorApiActions
+            .post(createIndicatorWithRefs("Ind 6", indTypeUid3, targetUid, "Uid45678901"))
             .validateStatus(201)
             .extractUid();
 
@@ -131,7 +143,7 @@ class IndicatorMergeTest extends ApiTest {
 
     String form2Uid =
         formsActions
-            .post(createDataEntryForm("custom form 2", targetUid, sourceUid2))
+            .post(createDataEntryForm("custom form 2", targetUid, "Uid45678901"))
             .validateStatus(201)
             .extractUid();
 
@@ -156,24 +168,27 @@ class IndicatorMergeTest extends ApiTest {
             .validateStatus(201)
             .extractUid();
 
-    // sections (have 1 part of a source and 1 not)
-    // TODO sections still exist and can't be deleted until sections resolved
-    String s1Uid =
+    // sections (have 1 reference a source and 1 not)
+    String section1Uid =
         sectionActions
             .post(createSection("Group 1", ds1Uid, sourceUid1, sourceUid2))
             .validateStatus(201)
             .extractUid();
-    String s2Uid =
+    String section2Uid =
         sectionActions
             .post(createSection("Group 2", ds2Uid, i4, i5))
             .validateStatus(201)
             .extractUid();
 
-    // data dimension items
+    // confirm 6 indicator data items exist
+    QueryParamsBuilder paramsBuilder =
+        new QueryParamsBuilder().add("filter", "dimensionItemType:eq:INDICATOR");
+    ApiResponse dataItemsResponse = dataItemsActions.get(paramsBuilder).validateStatus(200);
+    dataItemsResponse.validate().statusCode(200).body("dataItems.size()", equalTo(6));
 
-    //
-    //
-    //
+    // set config indicators
+    configActions.post("infrastructuralIndicators", ig1Uid).validateStatus(204);
+
     // when an indicator type merge request is submitted, deleting sources
     ApiResponse response =
         indicatorApiActions
@@ -192,15 +207,8 @@ class IndicatorMergeTest extends ApiTest {
 
     // and sources are deleted & target exists
     indicatorApiActions.get(sourceUid1).validateStatus(404);
-    indicatorApiActions.get(sourceUid1).validateStatus(404);
+    indicatorApiActions.get(sourceUid2).validateStatus(404);
     indicatorApiActions.get(targetUid).validateStatus(200);
-
-    // and all datasets now reference target indicator type
-    // and all sections now reference target indicator type
-    // and all config now reference target indicator type
-    // and all ddi now reference target indicator type
-    // and all indicator numer/denom now reference target indicator type
-    // and all forms now reference target indicator type
 
     // and all groups now reference target indicator type
     // group 1 has had indicator replaced
@@ -221,6 +229,110 @@ class IndicatorMergeTest extends ApiTest {
         .body("indicators", hasItem(hasEntry("id", i4)))
         .body("indicators", hasItem(hasEntry("id", i5)))
         .body("indicators", not(hasItem(hasEntry("id", targetUid))));
+
+    // and all data sets are updated where appropriate
+    // data set 1 has had indicator replaced
+    dataSetActions
+        .get(ds1Uid)
+        .validate()
+        .statusCode(200)
+        .body("indicators", hasItem(allOf(hasEntry("id", targetUid))))
+        .body(
+            "indicators",
+            not(hasItem(allOf(hasEntry("id", sourceUid1), hasEntry("id", sourceUid2)))));
+
+    // data set 2 has not had indicator replaced
+    dataSetActions
+        .get(ds2Uid)
+        .validate()
+        .statusCode(200)
+        .body("indicators", hasItem(hasEntry("id", i4)))
+        .body("indicators", hasItem(hasEntry("id", i5)))
+        .body("indicators", not(hasItem(hasEntry("id", targetUid))));
+
+    // and all sections are updated where appropriate
+    // section 1 has had indicator replaced
+    sectionActions
+        .get(section1Uid)
+        .validate()
+        .statusCode(200)
+        .body("indicators", hasItem(allOf(hasEntry("id", targetUid))))
+        .body(
+            "indicators",
+            not(hasItem(allOf(hasEntry("id", sourceUid1), hasEntry("id", sourceUid2)))));
+
+    // section 2 has not had indicator replaced
+    sectionActions
+        .get(section2Uid)
+        .validate()
+        .statusCode(200)
+        .body("indicators", hasItem(hasEntry("id", i4)))
+        .body("indicators", hasItem(hasEntry("id", i5)))
+        .body("indicators", not(hasItem(hasEntry("id", targetUid))));
+
+    // and all forms are updated where appropriate
+    // form 1 has had indicator replaced
+    formsActions
+        .get(form1Uid)
+        .validate()
+        .statusCode(200)
+        .body("htmlCode", containsString(targetUid))
+        .body("htmlCode", not(containsString(sourceUid1)))
+        .body("htmlCode", not(containsString(sourceUid2)));
+
+    // form 2 has not had indicator replaced
+    formsActions
+        .get(form2Uid)
+        .validate()
+        .statusCode(200)
+        .body("htmlCode", not(containsString(sourceUid1)))
+        .body("htmlCode", not(containsString(sourceUid2)))
+        .body("htmlCode", containsString(targetUid))
+        .body("htmlCode", containsString("Uid45678901"));
+
+    // and all indicator numerator/denominator are updated where appropriate
+    // indicator 1 has been updated
+    indicatorApiActions
+        .get(i4)
+        .validate()
+        .statusCode(200)
+        .body("numerator", containsString(targetUid))
+        .body("numerator", not(containsString(sourceUid1)))
+        .body("denominator", containsString(targetUid))
+        .body("denominator", not(containsString(sourceUid2)));
+
+    // indicator 2 has been partially updated
+    indicatorApiActions
+        .get(i5)
+        .validate()
+        .statusCode(200)
+        .body("numerator", containsString(targetUid))
+        .body("denominator", containsString(targetUid))
+        .body("denominator", not(containsString(sourceUid2)));
+
+    // indicator 3 has not been updated
+    indicatorApiActions
+        .get(i6)
+        .validate()
+        .statusCode(200)
+        .body("numerator", containsString(targetUid))
+        .body("denominator", containsString("Uid45678901"));
+
+    // and confirm 4 indicator data items exist now afer 2 sources deleted
+    QueryParamsBuilder paramsBuilder2 =
+        new QueryParamsBuilder().add("filter", "dimensionItemType:eq:INDICATOR");
+    ApiResponse dataItemsResponse2 = dataItemsActions.get(paramsBuilder2).validateStatus(200);
+    dataItemsResponse2.validate().statusCode(200).body("dataItems.size()", equalTo(4));
+
+    // and config indicator group has been updated
+    configActions
+        .get("infrastructuralIndicators")
+        .validate()
+        .statusCode(200)
+        .body("indicators", hasItem(allOf(hasEntry("id", targetUid))))
+        .body(
+            "indicators",
+            not(hasItem(allOf(hasEntry("id", sourceUid1), hasEntry("id", sourceUid2)))));
   }
 
   private String createDataEntryForm(String name, String indUid1, String indUid2) {
