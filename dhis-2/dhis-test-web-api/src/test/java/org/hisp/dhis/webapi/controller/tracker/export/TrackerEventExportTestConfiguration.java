@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,26 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.event.csv;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.List;
+import static org.mockito.Mockito.mock;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public interface CsvEventService<T> {
-  void writeEvents(OutputStream outputStream, List<T> events, boolean withHeader)
-      throws IOException;
+import org.hisp.dhis.dxf2.events.event.EventService;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 
-  void writeZip(OutputStream outputStream, List<T> toCompress, boolean withHeader, String file)
-      throws IOException;
+@Configuration
+class TrackerEventExportTestConfiguration {
 
-  void writeGzip(OutputStream outputStream, List<T> toCompress, boolean withHeader)
-      throws IOException;
-
-  List<T> readEvents(InputStream inputStream, boolean skipFirst)
-      throws IOException, org.locationtech.jts.io.ParseException;
+  @Primary
+  @Profile("TrackerEventExport")
+  @Bean
+  EventService eventService() {
+    return mock(EventService.class);
+  }
 }
