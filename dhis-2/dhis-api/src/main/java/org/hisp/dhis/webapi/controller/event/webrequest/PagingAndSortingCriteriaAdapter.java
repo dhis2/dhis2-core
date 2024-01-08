@@ -103,6 +103,15 @@ public abstract class PagingAndSortingCriteriaAdapter implements PagingCriteria,
     return dtoNameToDatabaseNameTranslator.apply(orderCriteriaPartitionedByAllowance.get(true));
   }
 
+  /**
+   * Get the raw {@link #order} field, without any field name translation. Added the method to
+   * validate the user provided order fields without affecting code relying on the existing behavior
+   * of {@link #getOrder()}.
+   */
+  public List<OrderCriteria> getRawOrder() {
+    return order;
+  }
+
   private boolean isAllowed(OrderCriteria orderCriteria) {
     return getAllowedOrderingFields().contains(orderCriteria.getField());
   }

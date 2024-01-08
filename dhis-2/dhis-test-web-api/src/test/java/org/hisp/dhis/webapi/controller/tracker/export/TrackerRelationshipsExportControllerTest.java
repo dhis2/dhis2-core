@@ -475,6 +475,18 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
   }
 
   @Test
+  void getRelationshipsByTrackedEntityWithEnrollmentsOrderByIllegalField() {
+    TrackedEntityInstance to = trackedEntityInstance();
+    ProgramInstance from = programInstance(to);
+    relationship(from, to);
+
+    GET(
+            "/tracker/relationships?trackedEntity={tei}&order=created&fields=relationship,createdAt",
+            to.getUid())
+        .content(HttpStatus.BAD_REQUEST);
+  }
+
+  @Test
   void getRelationshipsByTrackedEntityWithAttributes() {
     TrackedEntityInstance to = trackedEntityInstance(orgUnit);
     to.setTrackedEntityAttributeValues(Set.of(attributeValue(tea, to, "12")));
