@@ -179,7 +179,7 @@
     <google-api-client.version>2.2.0</google-api-client.version>
     <lombok.version>1.18.30</lombok.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
-    <joda-time.version>2.12.5</joda-time.version>
+    <joda-time.version>2.12.6</joda-time.version>
     <cron-utils.version>9.2.1</cron-utils.version>
     <commons-collections4.version>4.4</commons-collections4.version>
     <commons-beanutils.version>1.9.4</commons-beanutils.version>
@@ -230,7 +230,7 @@
     <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>2.4.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.16.2</versions-maven-plugin.version>
-    <dependency-check-maven.version>9.0.7</dependency-check-maven.version>
+    <dependency-check-maven.version>9.0.8</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.8.2.0</spotbugs-maven-plugin.version>
     <spotless.version>2.41.1</spotless.version>
     <jacoco-maven-plugin.version>0.8.11</jacoco-maven-plugin.version>
