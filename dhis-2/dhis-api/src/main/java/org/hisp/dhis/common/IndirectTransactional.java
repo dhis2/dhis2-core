@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,25 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.preheat.supplier;
+package org.hisp.dhis.common;
 
-import java.util.List;
-import java.util.stream.Collectors;
-import org.hisp.dhis.tracker.imports.preheat.mappers.PreheatMapper;
-import org.mapstruct.factory.Mappers;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * @author Luciano Fiandesio
+ * A marker annotation to indicate that the annotated method (although it being a service method)
+ * should not be annotated with spring's {@code @Transactional} annotation as it uses a different
+ * transaction management.
+ *
+ * @see NonTransactional
+ * @author Jan Bernitt
  */
-public class DetachUtils {
-
-  public static <T> List<T> detach(PreheatMapper<T> mapper, List<T> objects) {
-    return objects.stream().map(mapper::map).collect(Collectors.toList());
-  }
-
-  @SuppressWarnings("unchecked")
-  public static <T> List<T> detach(Class<? extends PreheatMapper> mapperKlass, List<T> objects) {
-    final PreheatMapper<T> mapper = Mappers.getMapper(mapperKlass);
-    return objects.stream().map(mapper::map).collect(Collectors.toList());
-  }
-}
+@Retention(RetentionPolicy.SOURCE)
+@Target(ElementType.METHOD)
+public @interface IndirectTransactional {}

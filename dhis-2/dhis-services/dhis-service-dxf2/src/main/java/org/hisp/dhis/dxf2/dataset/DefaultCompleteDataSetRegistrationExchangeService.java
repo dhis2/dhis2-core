@@ -137,8 +137,6 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
   private final ObjectMapper jsonMapper;
 
-  private final OrganisationUnitService organisationUnitService;
-
   // -------------------------------------------------------------------------
   // CompleteDataSetRegistrationService implementation
   // -------------------------------------------------------------------------

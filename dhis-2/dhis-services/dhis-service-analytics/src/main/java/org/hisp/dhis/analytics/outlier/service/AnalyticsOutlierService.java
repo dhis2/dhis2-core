@@ -42,28 +42,45 @@ import static org.hisp.dhis.analytics.common.ColumnHeader.MEDIAN_ABS_DEVIATION;
 import static org.hisp.dhis.analytics.common.ColumnHeader.MODIFIED_ZSCORE;
 import static org.hisp.dhis.analytics.common.ColumnHeader.ORG_UNIT;
 import static org.hisp.dhis.analytics.common.ColumnHeader.ORG_UNIT_NAME;
+import static org.hisp.dhis.analytics.common.ColumnHeader.ORG_UNIT_NAME_HIERARCHY;
 import static org.hisp.dhis.analytics.common.ColumnHeader.PERIOD;
 import static org.hisp.dhis.analytics.common.ColumnHeader.STANDARD_DEVIATION;
 import static org.hisp.dhis.analytics.common.ColumnHeader.UPPER_BOUNDARY;
 import static org.hisp.dhis.analytics.common.ColumnHeader.VALUE;
 import static org.hisp.dhis.analytics.common.ColumnHeader.ZSCORE;
+import static org.hisp.dhis.common.IdentifiableProperty.CODE;
+import static org.hisp.dhis.common.IdentifiableProperty.ID;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
+import java.util.Collection;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.cache.OutliersCache;
+import org.hisp.dhis.analytics.common.TableInfoReader;
 import org.hisp.dhis.analytics.outlier.data.Outlier;
 import org.hisp.dhis.analytics.outlier.data.OutlierRequest;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.ExecutionPlan;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -74,6 +91,14 @@ public class AnalyticsOutlierService {
   private final AnalyticsZScoreOutlierDetector zScoreOutlierDetector;
 
   private final OutliersCache outliersCache;
+
+  private final OrganisationUnitService organisationUnitService;
+
+  private final CurrentUserService currentUserService;
+
+  private final TableInfoReader tableInfoReader;
+
+  private final IdentifiableObjectManager idObjectManager;
 
   /**
    * Transform the incoming request into api response (json).
@@ -87,8 +112,17 @@ public class AnalyticsOutlierService {
 
     Grid grid = new ListGrid();
     setHeaders(grid, request);
-    setMetaData(grid, request, outliers);
+    setMetaData(grid, outliers, request);
     setRows(grid, outliers, request);
+
+    return grid;
+  }
+
+  public Grid getOutliersPerformanceMetrics(OutlierRequest request) {
+    List<ExecutionPlan> executionPlans = zScoreOutlierDetector.getExecutionPlans(request);
+
+    Grid grid = new ListGrid();
+    grid.addPerformanceMetrics(executionPlans);
 
     return grid;
   }
@@ -143,6 +177,19 @@ public class AnalyticsOutlierService {
     GridUtils.toHtmlCss(getOutliers(request), writer);
   }
 
+  /**
+   * The inclusion of outliers is an optional aspect of the analytics table. The outliers API entry
+   * point can generate a proper response only when outliers are exported along with the analytics
+   * table. The 'sourceid' column serves as a reliable indicator for successful outliers export. Its
+   * absence implies that the outliers were not exported.
+   */
+  public void checkAnalyticsTableForOutliers() {
+    if (tableInfoReader.getInfo("analytics").getColumns().stream()
+        .noneMatch("sourceid"::equalsIgnoreCase)) {
+      throw new IllegalQueryException(new ErrorMessage(ErrorCode.E7180));
+    }
+  }
+
   private void setHeaders(Grid grid, OutlierRequest request) {
     boolean isModifiedZScore = request.getAlgorithm() == MOD_Z_SCORE;
 
@@ -164,6 +211,13 @@ public class AnalyticsOutlierService {
     grid.addHeader(new GridHeader(ORG_UNIT.getItem(), ORG_UNIT.getName(), TEXT, false, false));
     grid.addHeader(
         new GridHeader(ORG_UNIT_NAME.getItem(), ORG_UNIT_NAME.getName(), TEXT, false, false));
+    grid.addHeader(
+        new GridHeader(
+            ORG_UNIT_NAME_HIERARCHY.getItem(),
+            ORG_UNIT_NAME_HIERARCHY.getName(),
+            TEXT,
+            false,
+            false));
     grid.addHeader(
         new GridHeader(
             CATEGORY_OPTION_COMBO.getItem(), CATEGORY_OPTION_COMBO.getName(), TEXT, false, false));
@@ -202,28 +256,58 @@ public class AnalyticsOutlierService {
         new GridHeader(UPPER_BOUNDARY.getItem(), UPPER_BOUNDARY.getName(), NUMBER, false, false));
   }
 
-  private void setMetaData(Grid grid, OutlierRequest request, List<Outlier> outliers) {
+  /**
+   * The method add the metadata into the response grid.
+   *
+   * @param grid the {@link Grid}
+   * @param outliers the list of {@link Outlier}
+   * @param request the {@link OutlierRequest}
+   */
+  private void setMetaData(Grid grid, List<Outlier> outliers, OutlierRequest request) {
     grid.addMetaData("algorithm", request.getAlgorithm());
     grid.addMetaData("threshold", request.getThreshold());
-    grid.addMetaData("orderBy", request.getOrderBy().getKey());
+    grid.addMetaData("orderBy", request.getOrderBy().getColumnName());
     grid.addMetaData("maxResults", request.getMaxResults());
     grid.addMetaData("count", outliers.size());
   }
 
+  /**
+   * The method add the rows into the response grid.
+   *
+   * @param grid the {@link Grid}
+   * @param outliers the list of {@link Outlier}
+   * @param request the {@link OutlierRequest}
+   */
   private void setRows(Grid grid, List<Outlier> outliers, OutlierRequest request) {
     outliers.forEach(
         v -> {
           boolean isModifiedZScore = request.getAlgorithm() == MOD_Z_SCORE;
+          OrganisationUnit ou = organisationUnitService.getOrganisationUnit(v.getOu());
+          User user = currentUserService.getCurrentUser();
+          Collection<OrganisationUnit> roots = user != null ? user.getOrganisationUnits() : null;
+
           grid.addRow();
-          grid.addValue(v.getDx());
-          grid.addValue(v.getDxName());
+
+          IdentifiableObject object = idObjectManager.get(DataElement.class, v.getDx());
+          grid.addValue(getIdProperty(object, v.getDx(), request.getOutputIdScheme()));
+          grid.addValue(getIdProperty(object, v.getDx(), IdScheme.NAME));
+
           grid.addValue(v.getPe());
-          grid.addValue(v.getOu());
-          grid.addValue(v.getOuName());
-          grid.addValue(v.getCoc());
-          grid.addValue(v.getCocName());
-          grid.addValue(v.getAoc());
-          grid.addValue(v.getAocName());
+
+          object = idObjectManager.get(OrganisationUnit.class, v.getOu());
+          grid.addValue(getIdProperty(object, v.getOu(), request.getOutputIdScheme()));
+          grid.addValue(getIdProperty(object, v.getOu(), IdScheme.NAME));
+
+          grid.addValue(ou.getParentNameGraph(roots, true));
+
+          object = idObjectManager.get(CategoryOptionCombo.class, v.getCoc());
+          grid.addValue(getIdProperty(object, v.getCoc(), request.getOutputIdScheme()));
+          grid.addValue(getIdProperty(object, v.getCoc(), IdScheme.NAME));
+
+          object = idObjectManager.get(CategoryOptionCombo.class, v.getAoc());
+          grid.addValue(getIdProperty(object, v.getAoc(), request.getOutputIdScheme()));
+          grid.addValue(getIdProperty(object, v.getAoc(), IdScheme.NAME));
+
           grid.addValue(v.getValue());
           grid.addValue(isModifiedZScore ? v.getMedian() : v.getMean());
           grid.addValue(v.getStdDev());
@@ -232,5 +316,29 @@ public class AnalyticsOutlierService {
           grid.addValue(v.getLowerBound());
           grid.addValue(v.getUpperBound());
         });
+  }
+
+  /**
+   * The method retrieves ID Property. Depend on the IdScheme parameter it could be ID, UID, UUID,
+   * Code or Name. The default property is the UID.
+   *
+   * @param object the {@link IdentifiableObject}
+   * @param uid the {@link String}, default UID of the identifiable object (data element,
+   *     organisation unit, category option combo, etc...)
+   * @param idScheme the {@link IdScheme}
+   * @return ID Property of the identifiable object (ID, UID, UUID, Code or Name)
+   */
+  private String getIdProperty(IdentifiableObject object, String uid, IdScheme idScheme) {
+    if (object == null || idScheme == IdScheme.UID || idScheme == IdScheme.UUID) {
+      return uid;
+    }
+    if (idScheme.getIdentifiableProperty() == ID) {
+      return Long.toString(object.getId());
+    }
+    if (idScheme.getIdentifiableProperty() == CODE) {
+      return object.getCode();
+    }
+
+    return object.getName();
   }
 }

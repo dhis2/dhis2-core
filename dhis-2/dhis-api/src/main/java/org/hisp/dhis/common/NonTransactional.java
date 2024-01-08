@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,35 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.mapper;
+package org.hisp.dhis.common;
 
-import java.util.Arrays;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-@Getter
-@AllArgsConstructor
-public enum SortDirection {
-  ASC("asc"),
-  DESC("desc");
-
-  private final String value;
-
-  public static SortDirection of(String value) {
-    return Arrays.stream(values())
-        .filter(sortDirection -> sortDirection.getValue().equalsIgnoreCase(value))
-        .findFirst()
-        .orElseThrow(
-            () ->
-                new IllegalArgumentException(
-                    "'"
-                        + value
-                        + "' is not a valid sort direction. Valid values are: "
-                        + Arrays.toString(SortDirection.values())
-                        + "."));
-  }
-
-  public boolean isAscending() {
-    return this == ASC;
-  }
-}
+/**
+ * An annotation to indicate that a service method does not need transactions at all. Such a method
+ * should not be annotated with spring's {@code @Transactional}.
+ *
+ * @see IndirectTransactional
+ * @author Jan Bernitt
+ */
+@Retention(RetentionPolicy.SOURCE)
+@Target(ElementType.METHOD)
+public @interface NonTransactional {}

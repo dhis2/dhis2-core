@@ -141,13 +141,10 @@ class GatewayAdministrationServiceTest {
 
     assertGateways(2);
 
-    when(smsConfigurationManager.checkInstanceOfGateway(bulkConfig.getClass()))
-        .thenReturn(bulkConfig);
-
     subject.addGateway(bulkConfig);
 
     // bulksms gateway already exist so it will not be added.
-    assertGateways(2);
+    assertGateways(3);
   }
 
   @Test

@@ -40,7 +40,9 @@ import lombok.Builder.Default;
 import lombok.Getter;
 import lombok.With;
 import org.hisp.dhis.analytics.OutlierDetectionAlgorithm;
+import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.outlier.Order;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.OrganisationUnitDescendants;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -71,6 +73,8 @@ public class OutlierRequest {
 
   @Default private Order orderBy = MEAN_ABS_DEV;
 
+  @Default private SortOrder sortOrder = SortOrder.DESC;
+
   @Default private int maxResults = DEFAULT_LIMIT;
 
   @Default private OrganisationUnitDescendants orgUnitSelection = DESCENDANTS;
@@ -78,6 +82,12 @@ public class OutlierRequest {
   @Default private OutlierDetectionAlgorithm algorithm = Z_SCORE;
 
   @Default private double threshold = 3.0d;
+
+  @Default private IdScheme outputIdScheme = IdScheme.UID;
+
+  private boolean analyzeOnly;
+
+  private String explainOrderId;
 
   public List<Long> getDataElementIds() {
     return dataElements.stream().map(DataElement::getId).toList();

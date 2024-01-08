@@ -444,6 +444,11 @@ public enum ErrorCode {
       "Query failed because a referenced table does not exist. Please ensure analytics job was run"),
   E7145("Query failed because of a syntax error"),
 
+  /* Analytics outliers */
+
+  E7180(
+      "The analytics outliers data does not exist. Please ensure analytics job was run and did not skip the outliers"),
+
   /* Event analytics */
   E7200(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),
   E7201("Dimensions cannot be specified more than once: `{0}`"),
