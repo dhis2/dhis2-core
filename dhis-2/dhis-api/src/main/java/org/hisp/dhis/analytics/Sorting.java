@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventvisualization;
+package org.hisp.dhis.analytics;
 
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
@@ -35,7 +35,6 @@ import java.io.Serializable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.analytics.SortOrder;
 
 /** This class is responsible for the encapsulation of objects and attributes related to sorting. */
 @Data
