@@ -35,6 +35,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.util.DateUtils.parseDate;
+import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
@@ -215,7 +216,7 @@ class TrackerTrackedEntityCriteriaMapperTest {
     criteria.setSkipPaging(false);
     criteria.setIncludeDeleted(true);
     criteria.setIncludeAllAttributes(true);
-    criteria.setOrder(Collections.singletonList(OrderCriteria.of("created", SortDirection.ASC)));
+    criteria.setOrder(Collections.singletonList(OrderCriteria.of("createdAt", SortDirection.ASC)));
 
     final TrackedEntityInstanceQueryParams params = mapper.map(criteria);
 
@@ -242,7 +243,7 @@ class TrackerTrackedEntityCriteriaMapperTest {
     assertTrue(
         params.getOrders().stream()
             .anyMatch(
-                orderParam -> orderParam.equals(new OrderParam("created", SortDirection.ASC))));
+                orderParam -> orderParam.equals(new OrderParam("createdAt", SortDirection.ASC))));
   }
 
   @Test
@@ -552,7 +553,7 @@ class TrackerTrackedEntityCriteriaMapperTest {
     criteria.setOrder(List.of(order1));
 
     BadRequestException e = assertThrows(BadRequestException.class, () -> mapper.map(criteria));
-    assertEquals("Invalid order property: invalid", e.getMessage());
+    assertContains("Cannot order by 'invalid'", e.getMessage());
   }
 
   @Test
