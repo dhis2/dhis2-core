@@ -97,7 +97,7 @@ public class HibernateTrackedEntityInstanceAuditStore
           sb.append(singleQuote(audit.getTrackedEntityInstance())).append(",");
           sb.append("now()").append(",");
           sb.append(singleQuote(audit.getAccessedBy())).append(",");
-          sb.append(singleQuote(audit.getAuditType().getValue())).append(",");
+          sb.append(singleQuote(audit.getAuditType().name())).append(",");
           sb.append(
               StringUtils.isNotEmpty(audit.getComment())
                   ? statementBuilder.encode(audit.getComment())
