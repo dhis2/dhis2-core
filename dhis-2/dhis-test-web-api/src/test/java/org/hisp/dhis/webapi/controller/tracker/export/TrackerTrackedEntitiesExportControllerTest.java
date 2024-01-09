@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertFirstRelationship;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
@@ -44,6 +45,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -407,6 +409,14 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
     JsonObject event = assertDefaultEventResponse(enrollment, programStageInstance);
 
     assertHasNoMember(event, "relationships");
+  }
+
+  @Test
+  void shouldFailToGetTrackedEntitiesWhenOrderingByIllegalField() {
+    JsonResponse response =
+        GET("/tracker/trackedEntities?order=invalid").content(HttpStatus.BAD_REQUEST);
+
+    assertContains("Cannot order by 'invalid'", response.getString("message").string());
   }
 
   private ProgramStageInstance programStageInstanceWithDataValue(ProgramInstance programInstance) {
