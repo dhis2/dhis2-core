@@ -44,6 +44,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.util.DateUtils;
+import org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.view.DataValue;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
@@ -65,14 +66,37 @@ class CsvEventService implements CsvService<Event> {
   @Override
   public void write(OutputStream outputStream, List<Event> events, boolean withHeader)
       throws IOException {
+    ObjectWriter writer = getObjectWriter(withHeader);
+
+    writer.writeValue(outputStream, getCsvEventDataValues(events));
+  }
+
+  @Override
+  public void writeZip(
+      OutputStream outputStream, List<Event> toCompress, boolean withHeader, String file)
+      throws IOException {
+    CompressionUtil.writeZip(
+        outputStream, getCsvEventDataValues(toCompress), getObjectWriter(withHeader), file);
+  }
+
+  @Override
+  public void writeGzip(OutputStream outputStream, List<Event> toCompress, boolean withHeader)
+      throws IOException {
+    CompressionUtil.writeGzip(
+        outputStream, getCsvEventDataValues(toCompress), getObjectWriter(withHeader));
+  }
+
+  private ObjectWriter getObjectWriter(boolean withHeader) {
     final CsvSchema csvSchema =
         CSV_MAPPER
             .schemaFor(CsvEventDataValue.class)
             .withLineSeparator("\n")
             .withUseHeader(withHeader);
 
-    ObjectWriter writer = CSV_MAPPER.writer(csvSchema.withUseHeader(withHeader));
+    return CSV_MAPPER.writer(csvSchema.withUseHeader(withHeader));
+  }
 
+  private List<CsvEventDataValue> getCsvEventDataValues(List<Event> events) {
     List<CsvEventDataValue> dataValues = new ArrayList<>();
 
     for (Event event : events) {
@@ -87,8 +111,7 @@ class CsvEventService implements CsvService<Event> {
         dataValues.add(map(value, templateDataValue));
       }
     }
-
-    writer.writeValue(outputStream, dataValues);
+    return dataValues;
   }
 
   private static CsvEventDataValue map(Event event) {

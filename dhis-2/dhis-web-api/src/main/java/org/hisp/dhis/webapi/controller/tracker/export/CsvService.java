@@ -35,6 +35,12 @@ import java.util.List;
 public interface CsvService<T> {
   void write(OutputStream outputStream, List<T> events, boolean withHeader) throws IOException;
 
+  void writeZip(OutputStream outputStream, List<T> toCompress, boolean withHeader, String file)
+      throws IOException;
+
+  void writeGzip(OutputStream outputStream, List<T> toCompress, boolean withHeader)
+      throws IOException;
+
   List<T> read(InputStream inputStream, boolean skipFirst)
       throws IOException, org.locationtech.jts.io.ParseException;
 }

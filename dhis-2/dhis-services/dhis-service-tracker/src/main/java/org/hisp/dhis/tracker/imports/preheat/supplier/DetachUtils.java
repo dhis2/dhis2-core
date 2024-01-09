@@ -41,6 +41,7 @@ public class DetachUtils {
     return objects.stream().map(mapper::map).collect(Collectors.toList());
   }
 
+  @SuppressWarnings("unchecked")
   public static <T> List<T> detach(Class<? extends PreheatMapper> mapperKlass, List<T> objects) {
     final PreheatMapper<T> mapper = Mappers.getMapper(mapperKlass);
     return objects.stream().map(mapper::map).collect(Collectors.toList());

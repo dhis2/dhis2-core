@@ -192,8 +192,7 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
             aggregateAccessManager,
             notificationPublisher,
             messageService,
-            JacksonObjectMapperConfig.staticJsonMapper(),
-            orgUnitService);
+            JacksonObjectMapperConfig.staticJsonMapper());
 
     DEFAULT_COC = new CategoryOptionCombo();
   }

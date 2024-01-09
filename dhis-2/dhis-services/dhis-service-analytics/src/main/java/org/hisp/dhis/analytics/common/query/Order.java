@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.analytics.common.query;
 
-import static org.hisp.dhis.webapi.controller.event.mapper.SortDirection.DESC;
+import static org.hisp.dhis.common.SortDirection.DESC;
 
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
+import org.hisp.dhis.common.SortDirection;
 
 @Builder(toBuilder = true)
 @RequiredArgsConstructor(staticName = "of")

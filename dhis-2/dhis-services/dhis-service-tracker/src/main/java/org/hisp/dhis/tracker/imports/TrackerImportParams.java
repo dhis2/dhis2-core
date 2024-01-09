@@ -58,7 +58,7 @@ public class TrackerImportParams implements JobParameters {
   @JsonProperty @Builder.Default
   private TrackerImportStrategy importStrategy = TrackerImportStrategy.CREATE_AND_UPDATE;
 
-  /** Should import be treated as a atomic import (all or nothing). */
+  /** Should import be treated as an atomic import (all or nothing). */
   @JsonProperty @Builder.Default private AtomicMode atomicMode = AtomicMode.ALL;
 
   /** Flush for every object or per type. */

@@ -45,7 +45,6 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams.RelationshipOperationParamsBuilder;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
-import org.hisp.dhis.webapi.controller.tracker.export.enrollment.EnrollmentMapper;
 import org.springframework.stereotype.Component;
 
 /**
@@ -56,8 +55,6 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 class RelationshipRequestParamsMapper {
-  private static final int DEFAULT_PAGE = 1;
-  private static final int DEFAULT_PAGE_SIZE = 50;
 
   private static final Set<String> ORDERABLE_FIELD_NAMES =
       RelationshipMapper.ORDERABLE_FIELDS.keySet();
@@ -130,9 +127,9 @@ class RelationshipRequestParamsMapper {
     }
 
     for (OrderCriteria order : orders) {
-      if (EnrollmentMapper.ORDERABLE_FIELDS.containsKey(order.getField())) {
+      if (RelationshipMapper.ORDERABLE_FIELDS.containsKey(order.getField())) {
         builder.orderBy(
-            EnrollmentMapper.ORDERABLE_FIELDS.get(order.getField()), order.getDirection());
+            RelationshipMapper.ORDERABLE_FIELDS.get(order.getField()), order.getDirection());
       }
     }
   }

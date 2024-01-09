@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,44 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.common;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import lombok.Data;
-import org.junit.jupiter.api.Test;
-
-class PageImportRequestParamsTest {
-
-  @Data
-  private static class PaginationParameters implements PageRequestParams {
-    private Integer page;
-    private Integer pageSize;
-    private Boolean totalPages;
-    private Boolean skipPaging;
-  }
-
-  @Test
-  void shouldBePagedIfSkipPagingIsNull() {
-    PaginationParameters parameters = new PaginationParameters();
-
-    assertTrue(parameters.isPaged());
-  }
-
-  @Test
-  void shouldBePagedIfSkipPagingIsFalse() {
-    PaginationParameters parameters = new PaginationParameters();
-    parameters.setSkipPaging(false);
-
-    assertTrue(parameters.isPaged());
-  }
-
-  @Test
-  void shouldBeUnpagedIfSkipPagingIsTrue() {
-    PaginationParameters parameters = new PaginationParameters();
-    parameters.setSkipPaging(true);
-
-    assertFalse(parameters.isPaged());
-  }
-}
+/**
+ * A marker annotation to indicate that the annotated method (although it being a service method)
+ * should not be annotated with spring's {@code @Transactional} annotation as it uses a different
+ * transaction management.
+ *
+ * @see NonTransactional
+ * @author Jan Bernitt
+ */
+@Retention(RetentionPolicy.SOURCE)
+@Target(ElementType.METHOD)
+public @interface IndirectTransactional {}

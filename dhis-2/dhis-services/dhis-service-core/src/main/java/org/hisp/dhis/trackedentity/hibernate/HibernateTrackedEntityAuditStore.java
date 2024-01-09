@@ -95,7 +95,7 @@ public class HibernateTrackedEntityAuditStore extends HibernateGenericStore<Trac
           sb.append(singleQuote(audit.getTrackedEntity())).append(",");
           sb.append("now()").append(",");
           sb.append(singleQuote(audit.getAccessedBy())).append(",");
-          sb.append(singleQuote(audit.getAuditType().getValue())).append(",");
+          sb.append(singleQuote(audit.getAuditType().name())).append(",");
           sb.append(
               StringUtils.isNotEmpty(audit.getComment())
                   ? statementBuilder.encode(audit.getComment())

@@ -91,7 +91,7 @@ class DateValidator implements Validator<Event> {
 
     if ((program.getCompleteEventsExpiryDays() > 0 && EventStatus.COMPLETED == event.getStatus())) {
       if (event.getCompletedAt() == null) {
-        reporter.addErrorIfNull(event.getCompletedAt(), event, E1042, event);
+        reporter.addError(event, E1042, event);
       } else {
         if (now()
             .isAfter(event.getCompletedAt().plus(ofDays(program.getCompleteEventsExpiryDays())))) {
