@@ -41,6 +41,7 @@ import org.hisp.dhis.analytics.OutlierDetectionAlgorithm;
 import org.hisp.dhis.analytics.outlier.OutlierHelper;
 import org.hisp.dhis.analytics.outlier.OutlierSqlStatementProcessor;
 import org.hisp.dhis.analytics.outlier.data.OutlierRequest;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Component;
@@ -102,14 +103,34 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
    */
   @Override
   public SqlParameterSource getSqlParameterSource(OutlierRequest request) {
-    return new MapSqlParameterSource()
-        .addValue(THRESHOLD.getKey(), request.getThreshold())
-        .addValue(DATA_ELEMENT_IDS.getKey(), request.getDataElementIds())
-        .addValue(START_DATE.getKey(), request.getStartDate())
-        .addValue(END_DATE.getKey(), request.getEndDate())
-        .addValue(MAX_RESULTS.getKey(), request.getMaxResults());
+    MapSqlParameterSource sqlParameterSource =
+        new MapSqlParameterSource()
+            .addValue(THRESHOLD.getKey(), request.getThreshold())
+            .addValue(DATA_ELEMENT_IDS.getKey(), request.getDataElementIds())
+            .addValue(MAX_RESULTS.getKey(), request.getMaxResults());
+
+    if (request.hasStartEndDate()) {
+      sqlParameterSource
+          .addValue(START_DATE.getKey(), request.getStartDate())
+          .addValue(END_DATE.getKey(), request.getEndDate());
+    } else if (request.hasPeriods()) {
+      for (int i = 0; i < request.getPeriods().size(); i++) {
+        sqlParameterSource
+            .addValue(START_DATE.getKey() + i, request.getPeriods().get(i).getStartDate())
+            .addValue(END_DATE.getKey() + i, request.getPeriods().get(i).getEndDate());
+      }
+    }
+
+    return sqlParameterSource;
   }
 
+  /**
+   * The method retrieves the sql query
+   *
+   * @param request the {@link OutlierRequest}.
+   * @param withParams indicates the parametrized sql query
+   * @return string with sql query
+   */
   private String getSqlStatement(OutlierRequest request, boolean withParams) {
     if (request == null) {
       return EMPTY;
@@ -179,10 +200,7 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
             + ") "
             + "and "
             + ouPathClause
-            + " and ax.pestartdate >= "
-            + (withParams ? ":" + START_DATE.getKey() : "'" + request.getStartDate() + "'")
-            + " and ax.peenddate <= "
-            + (withParams ? ":" + END_DATE.getKey() : "'" + request.getEndDate() + "'")
+            + getPeriodSqlSnippet(request, withParams)
             + ") t1 "
             + "where t1.z_score > "
             + thresholdParam
@@ -193,6 +211,44 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
             + " limit "
             + (withParams ? ":" + MAX_RESULTS.getKey() : request.getMaxResults())
             + " ";
+
+    return sql;
+  }
+
+  /**
+   * The method retrieves the sql snippet of the period dedicated sql predicate
+   *
+   * @param request the {@link OutlierRequest}.
+   * @param withParams indicates the parametrized sql query
+   * @return period part of the where clause
+   */
+  private String getPeriodSqlSnippet(OutlierRequest request, boolean withParams) {
+    if (request.hasStartEndDate()) {
+      return " and ax.pestartdate >= "
+          + (withParams ? ":" + START_DATE.getKey() : "'" + request.getStartDate() + "'")
+          + " and ax.peenddate <= "
+          + (withParams ? ":" + END_DATE.getKey() : "'" + request.getEndDate() + "'");
+    }
+
+    if (!request.hasPeriods()) {
+      return EMPTY;
+    }
+
+    String sql = "";
+    for (int i = 0; i < request.getPeriods().size(); i++) {
+      sql +=
+          " ax.pestartdate >= "
+              + (withParams
+                  ? ":" + START_DATE.getKey() + i
+                  : "'" + request.getPeriods().get(i).getStartDateString() + "'")
+              + " and ax.peenddate <= "
+              + (withParams
+                  ? ":" + END_DATE.getKey() + i
+                  : "'" + request.getPeriods().get(i).getEndDateString() + "'")
+              + " or ";
+    }
+
+    sql = " and (" + TextUtils.removeLastOr(sql) + ")";
 
     return sql;
   }

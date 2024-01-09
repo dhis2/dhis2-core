@@ -259,3 +259,8 @@ Valid operators are:
 - `NLIKE` - not like
 - `SW` - starts with
 - `EW` - ends with
+
+### `*.parameter.EventRequestParams.attachment`
+
+It allows you to specify the attachment file name when extracting in a binary format such as CSV, zip, or gzip.
+If not specified, it defaults to `events.<type>.<compression>` (for example, `events.csv.zip` for zip compression of a csv list)

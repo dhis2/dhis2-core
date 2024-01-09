@@ -46,6 +46,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.OrganisationUnitDescendants;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
 
 /**
  * Encapsulation of an outlier detection request.
@@ -56,6 +57,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 @Builder
 @With
 public class OutlierRequest {
+  private List<Period> periods;
 
   private Date startDate;
 
@@ -95,5 +97,13 @@ public class OutlierRequest {
 
   public boolean hasDataStartEndDate() {
     return dataStartDate != null && dataEndDate != null;
+  }
+
+  public boolean hasStartEndDate() {
+    return startDate != null && endDate != null;
+  }
+
+  public boolean hasPeriods() {
+    return periods != null && !periods.isEmpty();
   }
 }

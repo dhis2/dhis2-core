@@ -25,44 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.webapi.controller.tracker.export.event;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import lombok.Data;
-import org.junit.jupiter.api.Test;
+import java.util.HashSet;
+import org.hisp.dhis.tracker.export.event.EventService;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
-class PageImportRequestParamsTest {
+@Configuration
+public class EventExportTestConfiguration {
 
-  @Data
-  private static class PaginationParameters implements PageRequestParams {
-    private Integer page;
-    private Integer pageSize;
-    private Boolean totalPages;
-    private Boolean skipPaging;
-  }
-
-  @Test
-  void shouldBePagedIfSkipPagingIsNull() {
-    PaginationParameters parameters = new PaginationParameters();
-
-    assertTrue(parameters.isPaged());
-  }
-
-  @Test
-  void shouldBePagedIfSkipPagingIsFalse() {
-    PaginationParameters parameters = new PaginationParameters();
-    parameters.setSkipPaging(false);
-
-    assertTrue(parameters.isPaged());
-  }
-
-  @Test
-  void shouldBeUnpagedIfSkipPagingIsTrue() {
-    PaginationParameters parameters = new PaginationParameters();
-    parameters.setSkipPaging(true);
-
-    assertFalse(parameters.isPaged());
+  @Primary
+  @Bean
+  public EventService eventService() {
+    EventService eventService = mock(EventService.class);
+    // Orderable fields are checked within the controller constructor
+    when(eventService.getOrderableFields())
+        .thenReturn(new HashSet<>(EventMapper.ORDERABLE_FIELDS.values()));
+    return eventService;
   }
 }

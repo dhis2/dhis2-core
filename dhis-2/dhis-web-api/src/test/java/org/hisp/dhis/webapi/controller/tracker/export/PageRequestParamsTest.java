@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,20 +27,42 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.List;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public interface CsvService<T> {
-  void write(OutputStream outputStream, List<T> events, boolean withHeader) throws IOException;
+import lombok.Data;
+import org.junit.jupiter.api.Test;
 
-  void writeZip(OutputStream outputStream, List<T> toCompress, boolean withHeader, String file)
-      throws IOException;
+class PageRequestParamsTest {
 
-  void writeGzip(OutputStream outputStream, List<T> toCompress, boolean withHeader)
-      throws IOException;
+  @Data
+  private static class PaginationParameters implements PageRequestParams {
+    private Integer page;
+    private Integer pageSize;
+    private Boolean totalPages;
+    private Boolean skipPaging;
+  }
 
-  List<T> read(InputStream inputStream, boolean skipFirst)
-      throws IOException, org.locationtech.jts.io.ParseException;
+  @Test
+  void shouldBePagedIfSkipPagingIsNull() {
+    PaginationParameters parameters = new PaginationParameters();
+
+    assertTrue(parameters.isPaged());
+  }
+
+  @Test
+  void shouldBePagedIfSkipPagingIsFalse() {
+    PaginationParameters parameters = new PaginationParameters();
+    parameters.setSkipPaging(false);
+
+    assertTrue(parameters.isPaged());
+  }
+
+  @Test
+  void shouldBeUnpagedIfSkipPagingIsTrue() {
+    PaginationParameters parameters = new PaginationParameters();
+    parameters.setSkipPaging(true);
+
+    assertFalse(parameters.isPaged());
+  }
 }
