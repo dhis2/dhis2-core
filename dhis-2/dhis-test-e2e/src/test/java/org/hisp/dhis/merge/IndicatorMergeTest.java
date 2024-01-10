@@ -60,6 +60,7 @@ class IndicatorMergeTest extends ApiTest {
   private RestApiActions sectionActions;
   private RestApiActions dataItemsActions;
   private RestApiActions configActions;
+  private RestApiActions visualizationActions;
 
   @BeforeAll
   public void before() {
@@ -72,6 +73,7 @@ class IndicatorMergeTest extends ApiTest {
     sectionActions = new RestApiActions("sections");
     dataItemsActions = new RestApiActions("dataItems");
     configActions = new RestApiActions("configuration");
+    visualizationActions = new RestApiActions("visualizations");
     loginActions.loginAsSuperUser();
   }
 
@@ -95,8 +97,6 @@ class IndicatorMergeTest extends ApiTest {
             .post(createIndicatorType("F", 100, true))
             .validateStatus(201)
             .extractUid();
-
-    // config todo
 
     // indicators (2 x source & 1 target)
     String sourceUid1 =
@@ -180,11 +180,12 @@ class IndicatorMergeTest extends ApiTest {
             .validateStatus(201)
             .extractUid();
 
-    // confirm 6 indicator data items exist
-    QueryParamsBuilder paramsBuilder =
-        new QueryParamsBuilder().add("filter", "dimensionItemType:eq:INDICATOR");
-    ApiResponse dataItemsResponse = dataItemsActions.get(paramsBuilder).validateStatus(200);
-    dataItemsResponse.validate().statusCode(200).body("dataItems.size()", equalTo(6));
+    // and a visualization exists with data dimension items (indicators)
+    String visUid =
+        visualizationActions
+            .post(getVisualization(sourceUid1, sourceUid2))
+            .validateStatus(201)
+            .extractUid();
 
     // set config indicators
     configActions.post("infrastructuralIndicators", ig1Uid).validateStatus(204);
@@ -318,11 +319,18 @@ class IndicatorMergeTest extends ApiTest {
         .body("numerator", containsString(targetUid))
         .body("denominator", containsString("Uid45678901"));
 
-    // and confirm 4 indicator data items exist now afer 2 sources deleted
+    // and the visualization data dimension items now reference the target indicator
     QueryParamsBuilder paramsBuilder2 =
-        new QueryParamsBuilder().add("filter", "dimensionItemType:eq:INDICATOR");
-    ApiResponse dataItemsResponse2 = dataItemsActions.get(paramsBuilder2).validateStatus(200);
-    dataItemsResponse2.validate().statusCode(200).body("dataItems.size()", equalTo(4));
+        new QueryParamsBuilder().add("fields", "dataDimensionItems");
+    ApiResponse dataItemsResponse2 =
+        visualizationActions.get(visUid, paramsBuilder2).validateStatus(200);
+    dataItemsResponse2
+        .validate()
+        .statusCode(200)
+        .body("dataDimensionItems.size()", equalTo(2))
+        .body("dataDimensionItems.indicator", hasItem(hasEntry("id", targetUid)))
+        .body("dataDimensionItems.indicator", not(hasItem(hasEntry("id", sourceUid1))))
+        .body("dataDimensionItems.indicator", not(hasItem(hasEntry("id", sourceUid2))));
 
     // and config indicator group has been updated
     configActions
@@ -333,6 +341,45 @@ class IndicatorMergeTest extends ApiTest {
         .body(
             "indicators",
             not(hasItem(allOf(hasEntry("id", sourceUid1), hasEntry("id", sourceUid2)))));
+  }
+
+  private String getVisualization(String sourceUid1, String sourceUid2) {
+    return """
+      {
+        "name": "vis test 1",
+        "dataDimensionItems": [
+          {
+            "indicator": {
+              "id": "%s"
+            },
+            "dataDimensionItemType": "INDICATOR"
+          },
+          {
+            "indicator": {
+              "id": "%s"
+            },
+            "dataDimensionItemType": "INDICATOR"
+          }
+        ],
+        "type": "COLUMN",
+        "numberType": "VALUE",
+        "columns": [
+          {
+            "items": [
+              {
+                "id": "%s"
+              },
+              {
+                "id": "%s"
+              }
+            ],
+            "dimension": "dx"
+          }
+        ],
+        "displayName": "vis test 1"
+      }
+    """
+        .formatted(sourceUid1, sourceUid2, sourceUid1, sourceUid2);
   }
 
   private String createDataEntryForm(String name, String indUid1, String indUid2) {

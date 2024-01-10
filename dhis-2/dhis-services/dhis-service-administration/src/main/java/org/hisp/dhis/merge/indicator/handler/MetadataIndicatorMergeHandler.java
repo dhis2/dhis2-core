@@ -32,8 +32,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.DataDimensionItem;
+import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.commons.collection.CollectionUtils;
-import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.dataset.DataSet;
@@ -56,7 +57,7 @@ public class MetadataIndicatorMergeHandler {
   private final SectionService sectionService;
   private final IndicatorService indicatorService;
   private final DataEntryFormService dataEntryFormService;
-  private final ConfigurationService configurationService;
+  private final DimensionService dimensionService;
 
   public void handleDataSets(List<Indicator> sources, Indicator target) {
     Set<DataSet> dataSets =
@@ -87,7 +88,9 @@ public class MetadataIndicatorMergeHandler {
   }
 
   public void handleDataDimensionalItems(List<Indicator> sources, Indicator target) {
-    // TODO might not be needed as data items is just a view of existing indicators
+    List<DataDimensionItem> dataDimensionItems =
+        dimensionService.getIndicatorDataDimensionItems(sources);
+    dataDimensionItems.forEach(item -> item.setIndicator(target));
   }
 
   public void handleSections(List<Indicator> sources, Indicator target) {
@@ -101,11 +104,6 @@ public class MetadataIndicatorMergeHandler {
                       s.getIndicators().remove(i);
                       s.getIndicators().add(target);
                     }));
-  }
-
-  public void handleConfigurations(List<Indicator> sources, Indicator target) {
-    // TODO this might already be covered by the indicator group merge above - test
-
   }
 
   public void handleIndicatorRefsInIndicator(List<Indicator> sources, Indicator target) {

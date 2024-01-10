@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.user.User;
 
 /**
@@ -107,4 +108,6 @@ public interface DimensionService {
    */
   Map<DimensionalItemId, DimensionalItemObject> getNoAclDataDimensionalItemObjectMap(
       Set<DimensionalItemId> itemIds);
+
+  List<DataDimensionItem> getIndicatorDataDimensionItems(List<Indicator> indicators);
 }

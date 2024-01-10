@@ -88,6 +88,7 @@ import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
+import org.hisp.dhis.datadimensionitem.DataDimensionItemStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -98,6 +99,7 @@ import org.hisp.dhis.eventvisualization.Attribute;
 import org.hisp.dhis.eventvisualization.EventRepetition;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -145,6 +147,7 @@ public class DefaultDimensionService implements DimensionService {
   private final MetadataMergeService metadataMergeService;
 
   private final DataDimensionExtractor dataDimensionExtractor;
+  private final DataDimensionItemStore dataDimensionItemStore;
 
   // --------------------------------------------------------------------------
   // DimensionService implementation
@@ -415,6 +418,12 @@ public class DefaultDimensionService implements DimensionService {
         dataDimensionExtractor.getNoAclAtomicObjects(atomicIds);
 
     return dataDimensionExtractor.getItemObjectMap(itemIds, atomicObjects);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<DataDimensionItem> getIndicatorDataDimensionItems(List<Indicator> indicators) {
+    return dataDimensionItemStore.getIndicatorDataDimensionItems(indicators);
   }
 
   // --------------------------------------------------------------------------
