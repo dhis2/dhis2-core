@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.io.InputStream;
+import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.web.HttpStatus;
@@ -47,6 +48,8 @@ class IconControllerTest extends DhisControllerIntegrationTest {
   private static final String description = "description";
 
   private static final String keywords = "[\"k1\",\"k2\"]";
+
+  private static final String keyword = "[\"m1\"]";
 
   @Autowired private CurrentUserService currentUserService;
 
@@ -75,7 +78,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
   @Test
   void shouldGetIconWhenIconKeyExists() throws IOException {
     String fileResourceId = createFileResource();
-    createIcon(fileResourceId);
+    createIcon(fileResourceId, keywords);
 
     JsonObject response = GET(String.format("/icons/%s", iconKey)).content();
 
@@ -94,7 +97,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
   void shouldUpdateIconWhenKeyExists() throws IOException {
     String updatedDescription = "updatedDescription";
     String updatedKeywords = "['new k1', 'new k2']";
-    createIcon(createFileResource());
+    createIcon(createFileResource(), keywords);
 
     JsonObject response =
         PUT(
@@ -112,15 +115,41 @@ class IconControllerTest extends DhisControllerIntegrationTest {
   }
 
   @Test
+  void shouldGetOnlyCustomIcons() throws IOException {
+    String fileResourceId = createFileResource();
+    createIcon(fileResourceId, keywords);
+
+    JsonArray iconArray = GET("/icons?type=CUSTOM").content(HttpStatus.OK);
+
+    assertEquals(iconKey, iconArray.getObject(0).getString("key").string());
+    assertEquals(description, iconArray.getObject(0).getString("description").string());
+    assertEquals(fileResourceId, iconArray.getObject(0).getString("fileResourceUid").string());
+    assertEquals(keywords, iconArray.getObject(0).getArray("keywords").toString());
+  }
+
+  @Test
+  void shouldGetIconsWithSpecifiedKey() throws IOException {
+    String fileResourceId = createFileResource();
+    createIcon(fileResourceId, keyword);
+
+    JsonArray iconArray = GET("/icons?keywords=m1").content(HttpStatus.OK);
+
+    assertEquals(iconKey, iconArray.getObject(0).getString("key").string());
+    assertEquals(description, iconArray.getObject(0).getString("description").string());
+    assertEquals(fileResourceId, iconArray.getObject(0).getString("fileResourceUid").string());
+    assertEquals(keyword, iconArray.getObject(0).getArray("keywords").toString());
+  }
+
+  @Test
   void shouldDeleteIconWhenKeyExists() throws IOException {
-    createIcon(createFileResource());
+    createIcon(createFileResource(), keywords);
 
     JsonObject response = DELETE(String.format("/icons/%s", iconKey)).content();
 
     assertEquals(String.format("Icon %s deleted", iconKey), response.getString("message").string());
   }
 
-  private String createIcon(String fileResourceId) {
+  private String createIcon(String fileResourceId, String keywords) {
     JsonWebMessage message =
         POST(
                 "/icons/",
