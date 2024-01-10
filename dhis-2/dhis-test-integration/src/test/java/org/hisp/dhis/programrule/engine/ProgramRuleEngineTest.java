@@ -29,7 +29,6 @@ package org.hisp.dhis.programrule.engine;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -86,9 +85,6 @@ import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.hisp.dhis.rules.models.RuleAction;
-import org.hisp.dhis.rules.models.RuleActionMessage;
-import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
-import org.hisp.dhis.rules.models.RuleActionSendMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
@@ -286,9 +282,8 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
         programRuleEngine.evaluate(enrollment, Sets.newHashSet(), List.of(programRule));
     assertEquals(1, ruleEffects.size());
     RuleAction ruleAction = ruleEffects.get(0).getRuleAction();
-    assertInstanceOf(RuleActionSendMessage.class, ruleAction);
-    RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) ruleAction;
-    assertEquals("PNT-1", ruleActionSendMessage.getNotification());
+    assertEquals(ProgramRuleActionType.SENDMESSAGE.name(), ruleAction.getType());
+    assertEquals("PNT-1", ruleAction.getValues().get("notification"));
   }
 
   @Test
@@ -303,9 +298,8 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     assertTrue(enrollmentRuleEffects.isEnrollment());
     assertEquals("UID-P1", enrollmentRuleEffects.getTrackerObjectUid());
     RuleAction ruleAction = enrollmentRuleEffects.getRuleEffects().get(0).getRuleAction();
-    assertInstanceOf(RuleActionSendMessage.class, ruleAction);
-    RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) ruleAction;
-    assertEquals("PNT-1", ruleActionSendMessage.getNotification());
+    assertEquals(ProgramRuleActionType.SENDMESSAGE.name(), ruleAction.getType());
+    assertEquals("PNT-1", ruleAction.getValues().get("notification"));
   }
 
   @Test
@@ -316,9 +310,8 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
         programRuleEngine.evaluate(enrollment, Sets.newHashSet(), List.of(programRule));
     assertEquals(1, ruleEffects.size());
     RuleAction ruleAction = ruleEffects.get(0).getRuleAction();
-    assertInstanceOf(RuleActionSendMessage.class, ruleAction);
-    RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) ruleAction;
-    assertEquals("PNT-2", ruleActionSendMessage.getNotification());
+    assertEquals(ProgramRuleActionType.SENDMESSAGE.name(), ruleAction.getType());
+    assertEquals("PNT-2", ruleAction.getValues().get("notification"));
     ProgramNotificationTemplate template = programNotificationTemplateStore.getByUid("PNT-2");
     assertNotNull(template);
     assertEquals(NotificationTrigger.PROGRAM_RULE, template.getNotificationTrigger());
@@ -339,9 +332,8 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     assertTrue(enrollmentRuleEffects.isEnrollment());
     assertEquals("UID-P2", enrollmentRuleEffects.getTrackerObjectUid());
     RuleAction ruleAction = enrollmentRuleEffects.getRuleEffects().get(0).getRuleAction();
-    assertInstanceOf(RuleActionSendMessage.class, ruleAction);
-    RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) ruleAction;
-    assertEquals("PNT-2", ruleActionSendMessage.getNotification());
+    assertEquals(ProgramRuleActionType.SENDMESSAGE.name(), ruleAction.getType());
+    assertEquals("PNT-2", ruleAction.getValues().get("notification"));
     ProgramNotificationTemplate template = programNotificationTemplateStore.getByUid("PNT-2");
     assertNotNull(template);
     assertEquals(NotificationTrigger.PROGRAM_RULE, template.getNotificationTrigger());
@@ -359,9 +351,8 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
             event.getEnrollment(), event, Sets.newHashSet(), List.of(programRule));
     assertEquals(1, ruleEffects.size());
     RuleAction ruleAction = ruleEffects.get(0).getRuleAction();
-    assertInstanceOf(RuleActionSendMessage.class, ruleAction);
-    RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) ruleAction;
-    assertEquals("PNT-1", ruleActionSendMessage.getNotification());
+    assertEquals(ProgramRuleActionType.SENDMESSAGE.name(), ruleAction.getType());
+    assertEquals("PNT-1", ruleAction.getValues().get("notification"));
     ProgramNotificationTemplate template = programNotificationTemplateStore.getByUid("PNT-1");
     assertNotNull(template);
     assertEquals(NotificationTrigger.PROGRAM_RULE, template.getNotificationTrigger());
@@ -384,10 +375,9 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     assertEquals("UID-PS1", eventRuleEffects.getTrackerObjectUid());
     RuleAction eventRuleAction = eventRuleEffects.getRuleEffects().get(0).getRuleAction();
     RuleAction enrollmentRuleAction = enrollmentRuleEffects.getRuleEffects().get(0).getRuleAction();
-    assertInstanceOf(RuleActionSendMessage.class, eventRuleAction);
-    assertInstanceOf(RuleActionSendMessage.class, enrollmentRuleAction);
-    RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) eventRuleAction;
-    assertEquals("PNT-1", ruleActionSendMessage.getNotification());
+    assertEquals(ProgramRuleActionType.SENDMESSAGE.name(), eventRuleAction.getType());
+    assertEquals(ProgramRuleActionType.SENDMESSAGE.name(), enrollmentRuleAction.getType());
+    assertEquals("PNT-1", eventRuleAction.getValues().get("notification"));
     ProgramNotificationTemplate template = programNotificationTemplateStore.getByUid("PNT-1");
     assertNotNull(template);
     assertEquals(NotificationTrigger.PROGRAM_RULE, template.getNotificationTrigger());
@@ -403,19 +393,17 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
         programRuleEngineService.evaluateEnrollmentAndRunEffects(enrollment.getId());
     assertEquals(1, ruleEffects.size());
     RuleAction ruleAction = ruleEffects.get(0).getRuleAction();
-    assertInstanceOf(RuleActionScheduleMessage.class, ruleAction);
-    RuleActionScheduleMessage ruleActionScheduleMessage = (RuleActionScheduleMessage) ruleAction;
-    assertEquals("PNT-1-SCH", ruleActionScheduleMessage.getNotification());
+    assertEquals(ProgramRuleActionType.SCHEDULEMESSAGE.name(), ruleAction.getType());
+    assertEquals("PNT-1-SCH", ruleAction.getValues().get("notification"));
     assertEquals(scheduledDate, ruleEffects.get(0).getData());
     // For duplication detection
     List<RuleEffect> ruleEffects2 =
         programRuleEngineService.evaluateEnrollmentAndRunEffects(enrollment.getId());
     assertNotNull(ruleEffects2.get(0));
-    assertInstanceOf(RuleActionScheduleMessage.class, ruleEffects2.get(0).getRuleAction());
-    RuleActionScheduleMessage ruleActionScheduleMessage2 =
-        (RuleActionScheduleMessage) ruleEffects2.get(0).getRuleAction();
+    RuleAction ruleAction2 = ruleEffects2.get(0).getRuleAction();
+    assertEquals(ProgramRuleActionType.SCHEDULEMESSAGE.name(), ruleAction2.getType());
     assertNotNull(
-        programNotificationTemplateStore.getByUid(ruleActionScheduleMessage2.getNotification()));
+        programNotificationTemplateStore.getByUid(ruleAction2.getValues().get("notification")));
     assertEquals(
         1,
         programNotificationInstanceService
@@ -433,18 +421,16 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
         programRuleEngineService.evaluateEnrollmentAndRunEffects(enrollment.getId());
     assertEquals(1, ruleEffects.size());
     RuleAction ruleAction = ruleEffects.get(0).getRuleAction();
-    assertInstanceOf(RuleActionScheduleMessage.class, ruleAction);
-    RuleActionScheduleMessage ruleActionScheduleMessage = (RuleActionScheduleMessage) ruleAction;
-    assertEquals("PNT-1-SCH", ruleActionScheduleMessage.getNotification());
+    assertEquals(ProgramRuleActionType.SCHEDULEMESSAGE.name(), ruleAction.getType());
+    assertEquals("PNT-1-SCH", ruleAction.getValues().get("notification"));
     assertEquals(scheduledDate, ruleEffects.get(0).getData());
     List<RuleEffect> ruleEffects2 =
         programRuleEngineService.evaluateEnrollmentAndRunEffects(enrollment.getId());
     assertNotNull(ruleEffects2.get(0));
-    assertInstanceOf(RuleActionScheduleMessage.class, ruleEffects2.get(0).getRuleAction());
-    RuleActionScheduleMessage ruleActionScheduleMessage2 =
-        (RuleActionScheduleMessage) ruleEffects2.get(0).getRuleAction();
+    RuleAction ruleAction2 = ruleEffects2.get(0).getRuleAction();
+    assertEquals(ProgramRuleActionType.SCHEDULEMESSAGE.name(), ruleAction2.getType());
     assertNotNull(
-        programNotificationTemplateStore.getByUid(ruleActionScheduleMessage2.getNotification()));
+        programNotificationTemplateStore.getByUid(ruleAction2.getValues().get("notification")));
     List<ProgramNotificationInstance> instances =
         programNotificationInstanceService.getProgramNotificationInstances(
             ProgramNotificationInstanceParam.builder().enrollment(enrollment).build());
@@ -516,7 +502,8 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
             event.getEnrollment(), event, Sets.newHashSet(), List.of(programRuleToTestOptionSet));
 
     assertNotNull(ruleEffects);
-    assertInstanceOf(RuleActionMessage.class, ruleEffects.get(0).getRuleAction());
+    assertEquals(
+        ProgramRuleActionType.SHOWWARNING.name(), ruleEffects.get(0).getRuleAction().getType());
     assertThat(ruleEffects.get(0).getData(), Matchers.is(option1.getName()));
   }
 
@@ -530,7 +517,8 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
             event.getEnrollment(), event, Sets.newHashSet(), List.of(programRuleToTestOptionSet));
 
     assertNotNull(ruleEffects);
-    assertInstanceOf(RuleActionMessage.class, ruleEffects.get(0).getRuleAction());
+    assertEquals(
+        ProgramRuleActionType.SHOWERROR.name(), ruleEffects.get(0).getRuleAction().getType());
     assertThat(ruleEffects.get(0).getData(), Matchers.is(option1.getCode()));
   }
 
