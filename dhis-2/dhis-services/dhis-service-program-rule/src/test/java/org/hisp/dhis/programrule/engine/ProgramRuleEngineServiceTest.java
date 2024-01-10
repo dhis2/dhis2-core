@@ -190,12 +190,9 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
     verify(ruleActionSendMessage).implement(any(RuleEffect.class), argumentCaptor.capture());
 
     assertEquals(1, this.ruleEffects.size());
-    assertTrue(
-        this.ruleEffects
-            .get(0)
-            .getRuleAction()
-            .getType()
-            .equals(ProgramRuleActionType.SENDMESSAGE.name()));
+    assertEquals(
+        ProgramRuleActionType.SENDMESSAGE.name(),
+        this.ruleEffects.get(0).getRuleAction().getType());
   }
 
   @Test
@@ -237,12 +234,9 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
     verify(ruleActionSendMessage).implement(any(RuleEffect.class), any(Event.class));
 
     assertEquals(1, this.ruleEffects.size());
-    assertTrue(
-        this.ruleEffects
-            .get(0)
-            .getRuleAction()
-            .getType()
-            .equals(ProgramRuleActionType.SENDMESSAGE.name()));
+    assertEquals(
+        ProgramRuleActionType.SENDMESSAGE.name(),
+        this.ruleEffects.get(0).getRuleAction().getType());
   }
 
   @Test
@@ -291,12 +285,9 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
     verify(ruleActionSendMessage).implement(any(RuleEffect.class), any(Event.class));
 
     assertEquals(1, this.ruleEffects.size());
-    assertTrue(
-        this.ruleEffects
-            .get(0)
-            .getRuleAction()
-            .getType()
-            .equals(ProgramRuleActionType.SENDMESSAGE.name()));
+    assertEquals(
+        ProgramRuleActionType.SENDMESSAGE.name(),
+        this.ruleEffects.get(0).getRuleAction().getType());
   }
 
   @Test

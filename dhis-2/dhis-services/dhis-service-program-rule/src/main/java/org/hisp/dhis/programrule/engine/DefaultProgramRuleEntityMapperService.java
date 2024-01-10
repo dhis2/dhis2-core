@@ -53,6 +53,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import kotlinx.datetime.Instant;
 import kotlinx.datetime.LocalDateTime;
 import lombok.extern.slf4j.Slf4j;
@@ -103,10 +105,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 @Service("org.hisp.dhis.programrule.engine.ProgramRuleEntityMapperService")
 public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityMapperService {
-  private static final String LOCATION_FEEDBACK = "feedback";
-
-  private static final String LOCATION_INDICATOR = "indicators";
-
   private final ImmutableMap<ProgramRuleActionType, Function<ProgramRuleAction, RuleAction>>
       ACTION_MAPPER =
           new ImmutableMap.Builder<ProgramRuleActionType, Function<ProgramRuleAction, RuleAction>>()
@@ -116,7 +114,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                       new RuleAction(
                           pra.getData(),
                           ASSIGN.name(),
-                          Map.of(
+                          createValues(
                               "content",
                               pra.getContent(),
                               "field",
@@ -129,28 +127,28 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                       new RuleAction(
                           pra.getData(),
                           CREATEEVENT.name(),
-                          Map.of("content", pra.getContent(), "location", pra.getLocation())))
+                          createValues("content", pra.getContent(), "location", pra.getLocation())))
               .put(
                   ProgramRuleActionType.DISPLAYKEYVALUEPAIR,
                   pra ->
                       new RuleAction(
                           pra.getData(),
                           DISPLAYKEYVALUEPAIR.name(),
-                          Map.of("content", pra.getContent(), "location", pra.getLocation())))
+                          createValues("content", pra.getContent(), "location", pra.getLocation())))
               .put(
                   ProgramRuleActionType.DISPLAYTEXT,
                   pra ->
                       new RuleAction(
                           pra.getData(),
                           DISPLAYTEXT.name(),
-                          Map.of("content", pra.getContent(), "location", pra.getLocation())))
+                          createValues("content", pra.getContent(), "location", pra.getLocation())))
               .put(
                   ProgramRuleActionType.HIDEFIELD,
                   pra ->
                       new RuleAction(
                           null,
                           HIDEFIELD.name(),
-                          Map.of(
+                          createValues(
                               "content",
                               pra.getContent(),
                               "field",
@@ -163,21 +161,22 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                       new RuleAction(
                           null,
                           HIDEPROGRAMSTAGE.name(),
-                          Map.of("programStage", pra.getProgramStage().getUid())))
+                          createValues("programStage", pra.getProgramStage().getUid())))
               .put(
                   ProgramRuleActionType.HIDESECTION,
                   pra ->
                       new RuleAction(
                           null,
                           HIDESECTION.name(),
-                          Map.of("programStageSection", pra.getProgramStageSection().getUid())))
+                          createValues(
+                              "programStageSection", pra.getProgramStageSection().getUid())))
               .put(
                   SHOWERROR,
                   pra ->
                       new RuleAction(
                           pra.getData(),
                           SHOWERROR.name(),
-                          Map.of(
+                          createValues(
                               "content",
                               pra.getContent(),
                               "field",
@@ -190,7 +189,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                       new RuleAction(
                           pra.getData(),
                           SHOWWARNING.name(),
-                          Map.of(
+                          createValues(
                               "content",
                               pra.getContent(),
                               "field",
@@ -203,7 +202,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                       new RuleAction(
                           null,
                           SETMANDATORYFIELD.name(),
-                          Map.of(
+                          createValues(
                               "field",
                               getAssignedParameter(pra),
                               "attributeType",
@@ -214,7 +213,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                       new RuleAction(
                           pra.getData(),
                           WARNINGONCOMPLETE.name(),
-                          Map.of(
+                          createValues(
                               "content",
                               pra.getContent(),
                               "field",
@@ -227,7 +226,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                       new RuleAction(
                           pra.getData(),
                           ERRORONCOMPLETE.name(),
-                          Map.of(
+                          createValues(
                               "content",
                               pra.getContent(),
                               "field",
@@ -240,15 +239,73 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                       new RuleAction(
                           pra.getData(),
                           SENDMESSAGE.name(),
-                          Map.of("notification", pra.getTemplateUid())))
+                          createValues("notification", pra.getTemplateUid())))
               .put(
                   ProgramRuleActionType.SCHEDULEMESSAGE,
                   pra ->
                       new RuleAction(
                           pra.getData(),
                           SCHEDULEMESSAGE.name(),
-                          Map.of("notification", pra.getTemplateUid())))
+                          createValues("notification", pra.getTemplateUid())))
               .build();
+
+  private Map<String, String> createValues(@Nonnull String key1, @Nullable String value1) {
+    Map<String, String> values = new HashMap<>();
+
+    if (value1 != null) {
+      values.put(key1, value1);
+    }
+
+    return values;
+  }
+
+  private Map<String, String> createValues(
+      @Nonnull String key1,
+      @Nullable String value1,
+      @Nonnull String key2,
+      @Nullable String value2) {
+    Map<String, String> values = createValues(key1, value1);
+
+    if (value2 != null) {
+      values.put(key2, value2);
+    }
+
+    return values;
+  }
+
+  private Map<String, String> createValues(
+      @Nonnull String key1,
+      @Nullable String value1,
+      @Nonnull String key2,
+      @Nullable String value2,
+      @Nonnull String key3,
+      @Nullable String value3) {
+    Map<String, String> values = createValues(key1, value1, key2, value2);
+
+    if (value3 != null) {
+      values.put(key3, value3);
+    }
+
+    return values;
+  }
+
+  private Map<String, String> createValues(String content, String field, String attributeType) {
+    HashMap<String, String> values = new HashMap<>();
+
+    if (content != null) {
+      values.put("content", content);
+    }
+
+    if (field != null) {
+      values.put("field", field);
+    }
+
+    if (attributeType != null) {
+      values.put("attributeType", attributeType);
+    }
+
+    return values;
+  }
 
   private final ImmutableMap<
           ProgramRuleVariableSourceType, Function<ProgramRuleVariable, RuleVariable>>
@@ -635,7 +692,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                 new RuleAction(
                     pra.getData(),
                     ASSIGN.name(),
-                    Map.of(
+                    createValues(
                         "content",
                         pra.getContent(),
                         "field",
