@@ -30,13 +30,13 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.findColumn;
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.applyIfNonEmpty;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAndFilterUids;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAttributeQueryItems;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseQueryFilter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseUids;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -70,6 +70,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -83,6 +84,22 @@ import org.springframework.transaction.annotation.Transactional;
 @Component("org.hisp.dhis.webapi.controller.tracker.export.TrackedEntityCriteriaMapper")
 @RequiredArgsConstructor
 public class TrackerTrackedEntityCriteriaMapper {
+
+  /**
+   * Tracked entities can be ordered by given fields which correspond to fields on {@link
+   * org.hisp.dhis.trackedentity.TrackedEntityInstance}. These user facing field names are
+   * translated to internal ones in {@link TrackedEntityInstanceQueryParams.OrderColumn}.
+   */
+  private static final Set<String> ORDERABLE_FIELD_NAMES =
+      Set.of(
+          "trackedEntity",
+          "createdAt",
+          "createdAtClient",
+          "updatedAt",
+          "updatedAtClient",
+          "enrolledAt",
+          "inactive");
+
   @Nonnull private final CurrentUserService currentUserService;
 
   @Nonnull private final OrganisationUnitService organisationUnitService;
@@ -134,8 +151,8 @@ public class TrackerTrackedEntityCriteriaMapper {
 
     validateDuplicatedAttributeFilters(filters);
 
-    List<OrderParam> orderParams = toOrderParams(criteria.getOrder());
-    validateOrderParams(orderParams, attributes);
+    validateOrderBy(criteria.getRawOrder(), attributes);
+    List<OrderParam> orderParams = toOrderParams(criteria.getRawOrder());
 
     Set<String> trackedEntities = parseUids(criteria.getTrackedEntity());
 
@@ -279,15 +296,31 @@ public class TrackerTrackedEntityCriteriaMapper {
     }
   }
 
-  private void validateOrderParams(
-      List<OrderParam> orderParams, Map<String, TrackedEntityAttribute> attributes)
+  private void validateOrderBy(
+      List<OrderCriteria> orderCriterias, Map<String, TrackedEntityAttribute> attributes)
       throws BadRequestException {
-    if (orderParams != null && !orderParams.isEmpty()) {
-      for (OrderParam orderParam : orderParams) {
-        if (findColumn(orderParam.getField()).isEmpty()
-            && !attributes.containsKey(orderParam.getField())) {
-          throw new BadRequestException("Invalid order property: " + orderParam.getField());
-        }
+    validateOrderParams(orderCriterias, ORDERABLE_FIELD_NAMES, "attribute");
+    validateOrderByAttributes(orderCriterias, attributes);
+  }
+
+  /**
+   * Validates that UID order parameters are existing attributes.
+   *
+   * <p>It assumes that anything that is not in our {@link #ORDERABLE_FIELD_NAMES} is a UID. This
+   * means {@link RequestParamsValidator#validateOrderParams(List, Set, String)} should have been
+   * called before this method.
+   */
+  private void validateOrderByAttributes(
+      List<OrderCriteria> orderCriterias, Map<String, TrackedEntityAttribute> attributes)
+      throws BadRequestException {
+    if (orderCriterias == null || orderCriterias.isEmpty()) {
+      return;
+    }
+
+    for (OrderCriteria orderCriteria : orderCriterias) {
+      if (!ORDERABLE_FIELD_NAMES.contains(orderCriteria.getField())
+          && !attributes.containsKey(orderCriteria.getField())) {
+        throw new BadRequestException("Invalid order property: " + orderCriteria.getField());
       }
     }
   }
