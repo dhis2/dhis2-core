@@ -28,9 +28,8 @@
 package org.hisp.dhis.changelog;
 
 /**
- * This class is deprecated in favor of new async auditing solution, do not use.
- *
  * @author Halvdan Hoem Grelland
+ * @author Luca Cambi split Changelog from Audit
  */
 public enum ChangeLogType {
   CREATE,
