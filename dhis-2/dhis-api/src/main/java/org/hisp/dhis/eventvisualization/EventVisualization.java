@@ -56,6 +56,7 @@ import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.analytics.EventDataType;
 import org.hisp.dhis.analytics.EventOutputType;
+import org.hisp.dhis.analytics.Sorting;
 import org.hisp.dhis.common.AnalyticsType;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.BaseDimensionalItemObject;

@@ -224,6 +224,8 @@
 
     <property name="icons" type="jbIcons"/>
 
+    <property name="sorting" type="jblSorting"/>
+
     <component name="legendDefinitions" class="org.hisp.dhis.visualization.LegendDefinitions">
       <property name="legendDisplayStyle" length="40">
         <type name="org.hibernate.type.EnumType">

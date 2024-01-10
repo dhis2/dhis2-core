@@ -30,6 +30,8 @@ package org.hisp.dhis.webapi.controller;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
 import static org.hisp.dhis.feedback.ErrorCode.E4002;
+import static org.hisp.dhis.feedback.ErrorCode.E7237;
+import static org.hisp.dhis.feedback.ErrorCode.E7238;
 import static org.hisp.dhis.schema.descriptors.VisualizationSchemaDescriptor.API_ENDPOINT;
 import static org.hisp.dhis.visualization.OutlierAnalysis.MAX_RESULTS_MAX_VALUE;
 import static org.hisp.dhis.visualization.OutlierAnalysis.MAX_RESULTS_MIN_VALUE;
@@ -41,6 +43,7 @@ import java.util.Map;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.collections4.CollectionUtils;
+import org.hisp.dhis.analytics.Sorting;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.DimensionService;
@@ -49,6 +52,8 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dxf2.expressiondimensionitem.ExpressionDimensionItemService;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.legend.LegendSetService;
@@ -94,6 +99,26 @@ public class VisualizationController extends AbstractCrudController<Visualizatio
     return visualization;
   }
 
+  @Override
+  protected void preCreateEntity(Visualization visualization) throws ConflictException {
+
+    validateSorting(visualization);
+  }
+
+  @Override
+  protected void preUpdateEntity(Visualization visualization, Visualization newVisualization)
+      throws ConflictException {
+
+    validateSorting(newVisualization);
+  }
+
+  @Override
+  protected void prePatchEntity(Visualization visualization, Visualization newVisualization)
+      throws ConflictException {
+
+    validateSorting(newVisualization);
+  }
+
   private void validate(Visualization visualization) {
     if (visualization != null
         && visualization.getOutlierAnalysis() != null
@@ -104,6 +129,23 @@ public class VisualizationController extends AbstractCrudController<Visualizatio
           MAX_RESULTS_MIN_VALUE,
           MAX_RESULTS_MAX_VALUE,
           visualization.getOutlierAnalysis().getMaxResults());
+    }
+  }
+
+  /**
+   * Simply validates the state of the {@link Sorting} attribute in the given {@link Visualization}
+   * object.
+   *
+   * @param visualization the {@link Visualization}.
+   * @throws ConflictException if the {@link Sorting} attribute is not valid.
+   */
+  private void validateSorting(Visualization visualization) throws ConflictException {
+    try {
+      visualization.validateSortingState();
+    } catch (IllegalArgumentException e) {
+      throw new ConflictException(new ErrorMessage(E7237));
+    } catch (IllegalStateException e) {
+      throw new ConflictException(new ErrorMessage(E7238, e.getMessage()));
     }
   }
 
