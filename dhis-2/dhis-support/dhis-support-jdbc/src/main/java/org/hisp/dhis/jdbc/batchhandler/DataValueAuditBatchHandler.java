@@ -32,7 +32,7 @@ import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
-import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.quick.JdbcConfiguration;
 import org.hisp.quick.batchhandler.AbstractBatchHandler;
@@ -123,7 +123,7 @@ public class DataValueAuditBatchHandler extends AbstractBatchHandler<DataValueAu
     dva.setValue(resultSet.getString("value"));
     dva.setModifiedBy(resultSet.getString("modifiedby"));
     dva.setCreated(resultSet.getDate("created"));
-    dva.setAuditType(AuditType.valueOf(resultSet.getString("audittype")));
+    dva.setAuditType(ChangeLogType.valueOf(resultSet.getString("audittype")));
 
     return dva;
   }

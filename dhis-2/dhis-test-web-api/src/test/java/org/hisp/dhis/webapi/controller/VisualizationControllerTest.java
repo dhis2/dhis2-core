@@ -27,19 +27,37 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.hisp.dhis.web.HttpStatus.CONFLICT;
+import static org.hisp.dhis.web.HttpStatus.CREATED;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.web.WebClient;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 class VisualizationControllerTest extends DhisControllerConvenienceTest {
+
+  @Autowired private IdentifiableObjectManager manager;
+  private Program mockProgram;
+
+  @BeforeEach
+  public void beforeEach() {
+    mockProgram = createProgram('A');
+    manager.save(mockProgram);
+  }
 
   @Test
   void testGetVisualizationWithNestedFilters() {
@@ -89,6 +107,162 @@ class VisualizationControllerTest extends DhisControllerConvenienceTest {
     // Then
     assertEquals(
         "Allowed length range for property `maxResults` is [1 to 500], but given length was 501",
+        response.error(CONFLICT).getMessage());
+  }
+
+  @Test
+  void testPostInvalidSortingObject() {
+    // Given
+    String invalidDimension = "invalidOne";
+    String sorting = "'sorting': [{'dimension': '" + invalidDimension + "', 'direction':'ASC'}]";
+    String body =
+        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}, 'columns': [{'dimension': 'pe'}],"
+            + sorting
+            + "}";
+
+    // When
+    HttpResponse response = POST("/visualizations/", body);
+
+    // Then
+    assertEquals(
+        "Sorting dimension ‘" + invalidDimension + "’ is not a column",
+        response.error(CONFLICT).getMessage());
+  }
+
+  @Test
+  void testPostSortingObject() {
+    // Given
+    String dimension = "pe";
+    String sorting = "'sorting': [{'dimension': '" + dimension + "', 'direction':'ASC'}]";
+    String body =
+        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}, 'columns': [{'dimension': '"
+            + dimension
+            + "'}],"
+            + sorting
+            + "}";
+
+    // When
+    String uid = assertStatus(CREATED, POST("/visualizations/", body));
+
+    // Then
+    String getParams = "?fields=:all,columns[:all,items,sorting]";
+    JsonObject response = GET("/visualizations/" + uid + getParams).content();
+
+    assertThat(response.get("sorting").toString(), containsString("pe"));
+    assertThat(response.get("sorting").toString(), containsString("ASC"));
+  }
+
+  @Test
+  void testPostMultipleSortingObject() {
+    // Given
+    String dimension1 = "pe";
+    String dimension2 = "ou";
+    String sorting =
+        "'sorting': [{'dimension': '"
+            + dimension1
+            + "', 'direction':'ASC'},"
+            + "{'dimension': '"
+            + dimension2
+            + "', 'direction':'DESC'}]";
+    String body =
+        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}, 'columns': [{'dimension': '"
+            + dimension1
+            + "'}, {'dimension': '"
+            + dimension2
+            + "'}],"
+            + sorting
+            + "}";
+
+    // When
+    String uid = assertStatus(CREATED, POST("/visualizations/", body));
+
+    // Then
+    String getParams = "?fields=:all,columns[:all,items,sorting]";
+    JsonObject response = GET("/visualizations/" + uid + getParams).content();
+
+    assertThat(response.get("sorting").toString(), containsString("pe"));
+    assertThat(response.get("sorting").toString(), containsString("ASC"));
+    assertThat(response.get("sorting").toString(), containsString("ou"));
+    assertThat(response.get("sorting").toString(), containsString("DESC"));
+  }
+
+  @Test
+  void testPostSortingObjectWithDuplication() {
+    // Given
+    String dimension = "pe";
+    String sorting =
+        "'sorting': [{'dimension': '"
+            + dimension
+            + "', 'direction':'ASC'},"
+            + "{'dimension': '"
+            + dimension
+            + "', 'direction':'DESC'}]";
+    String body =
+        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}, 'columns': [{'dimension': '"
+            + dimension
+            + "'}],"
+            + sorting
+            + "}";
+
+    // When
+    String uid = assertStatus(CREATED, POST("/visualizations/", body));
+
+    // Then
+    String getParams = "?fields=:all,columns[:all,items,sorting]";
+    JsonObject response = GET("/visualizations/" + uid + getParams).content();
+
+    assertThat(response.get("sorting").toString(), containsString("pe"));
+    assertThat(response.get("sorting").toString(), containsString("ASC"));
+    assertThat(response.get("sorting").toString(), not(containsString("DESC")));
+  }
+
+  @Test
+  void testPostBlankSortingObject() {
+    // Given
+    String blankDimension = " ";
+    String sorting = "'sorting': [{'dimension': '" + blankDimension + "', 'direction':'ASC'}]";
+    String body =
+        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}, 'columns': [{'dimension': 'pe'}],"
+            + sorting
+            + "}";
+
+    // When
+    HttpResponse response = POST("/visualizations/", body);
+
+    // Then
+    assertEquals(
+        "Sorting must have a valid dimension and a direction",
+        response.error(CONFLICT).getMessage());
+  }
+
+  @Test
+  void testPostNullSortingObject() {
+    // Given
+    String blankDimension = " ";
+    String sorting = "'sorting': [{'dimension': '" + blankDimension + "', 'direction':'ASC'}]";
+    String body =
+        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}, 'columns': [{'dimension': 'pe'}],"
+            + sorting
+            + "}";
+
+    // When
+    HttpResponse response = POST("/visualizations/", body);
+
+    // Then
+    assertEquals(
+        "Sorting must have a valid dimension and a direction",
         response.error(CONFLICT).getMessage());
   }
 }
