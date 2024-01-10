@@ -98,9 +98,12 @@ class CrudControllerIntegrationTest extends DhisControllerIntegrationTest {
     userSettingService.saveUserSetting(UserSettingKey.DB_LOCALE, Locale.FRENCH, userA);
     injectSecurityContext(userA);
     assertTrue(
-        GET("/dataSets?filter=identifiable:token:bb").content().getArray("dataSets").isEmpty());
+        GET("/dataSets?filter=identifiable:token:testToken")
+            .content()
+            .getArray("dataSets")
+            .isEmpty());
     assertFalse(
-        GET("/dataSets?filter=identifiable:token:fr").content().getArray("dataSets").isEmpty());
+        GET("/dataSets?filter=identifiable:token:french").content().getArray("dataSets").isEmpty());
     assertFalse(
         GET("/dataSets?filter=identifiable:token:dataSet")
             .content()
@@ -118,9 +121,12 @@ class CrudControllerIntegrationTest extends DhisControllerIntegrationTest {
 
     systemSettingManager.saveSystemSetting(SettingKey.DB_LOCALE, Locale.ENGLISH);
     assertTrue(
-        GET("/dataSets?filter=identifiable:token:bb").content().getArray("dataSets").isEmpty());
+        GET("/dataSets?filter=identifiable:token:testToken")
+            .content()
+            .getArray("dataSets")
+            .isEmpty());
     assertTrue(
-        GET("/dataSets?filter=identifiable:token:fr").content().getArray("dataSets").isEmpty());
+        GET("/dataSets?filter=identifiable:token:french").content().getArray("dataSets").isEmpty());
     assertTrue(
         GET("/dataSets?filter=identifiable:token:dataSet")
             .content()
@@ -128,7 +134,10 @@ class CrudControllerIntegrationTest extends DhisControllerIntegrationTest {
             .isEmpty());
 
     assertFalse(
-        GET("/dataSets?filter=identifiable:token:my").content().getArray("dataSets").isEmpty());
+        GET("/dataSets?filter=identifiable:token:english")
+            .content()
+            .getArray("dataSets")
+            .isEmpty());
   }
 
   @Test
@@ -147,9 +156,12 @@ class CrudControllerIntegrationTest extends DhisControllerIntegrationTest {
     userSettingService.saveUserSetting(UserSettingKey.DB_LOCALE, null);
 
     assertTrue(
-        GET("/dataSets?filter=identifiable:token:bb").content().getArray("dataSets").isEmpty());
+        GET("/dataSets?filter=identifiable:token:testToken")
+            .content()
+            .getArray("dataSets")
+            .isEmpty());
     assertTrue(
-        GET("/dataSets?filter=identifiable:token:fr").content().getArray("dataSets").isEmpty());
+        GET("/dataSets?filter=identifiable:token:french").content().getArray("dataSets").isEmpty());
     assertTrue(
         GET("/dataSets?filter=identifiable:token:dataSet")
             .content()
@@ -157,7 +169,10 @@ class CrudControllerIntegrationTest extends DhisControllerIntegrationTest {
             .isEmpty());
 
     assertFalse(
-        GET("/dataSets?filter=identifiable:token:my").content().getArray("dataSets").isEmpty());
+        GET("/dataSets?filter=identifiable:token:english")
+            .content()
+            .getArray("dataSets")
+            .isEmpty());
   }
 
   private void setUpTranslation() {
@@ -166,11 +181,11 @@ class CrudControllerIntegrationTest extends DhisControllerIntegrationTest {
             HttpStatus.CREATED,
             POST(
                 "/dataSets/",
-                "{'name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly'}"));
+                "{'name':'english data Set', 'shortName': 'MDS', 'periodType':'Monthly'}"));
 
     PUT(
             "/dataSets/" + id + "/translations",
-            "{'translations': [{'locale':'fr', 'property':'NAME', 'value':'fr dataSet'}]}")
+            "{'translations': [{'locale':'fr', 'property':'NAME', 'value':'french dataSet'}]}")
         .content(HttpStatus.NO_CONTENT);
 
     assertEquals(1, GET("/dataSets", id).content().getArray("dataSets").size());
