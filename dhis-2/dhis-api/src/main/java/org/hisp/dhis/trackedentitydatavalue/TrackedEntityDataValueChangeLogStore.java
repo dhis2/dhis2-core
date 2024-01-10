@@ -30,20 +30,21 @@ package org.hisp.dhis.trackedentitydatavalue;
 import java.util.List;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentity.TrackedEntityDataValueAuditQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityDataValueChangeLogQueryParams;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface TrackedEntityDataValueAuditService {
-  void addTrackedEntityDataValueAudit(TrackedEntityDataValueAudit trackedEntityDataValueAudit);
+public interface TrackedEntityDataValueChangeLogStore {
+  void addTrackedEntityDataValueChangeLog(
+      TrackedEntityDataValueChangeLog trackedEntityDataValueChangeLog);
 
-  List<TrackedEntityDataValueAudit> getTrackedEntityDataValueAudits(
-      TrackedEntityDataValueAuditQueryParams params);
+  List<TrackedEntityDataValueChangeLog> getTrackedEntityDataValueChangeLogs(
+      TrackedEntityDataValueChangeLogQueryParams params);
 
-  int countTrackedEntityDataValueAudits(TrackedEntityDataValueAuditQueryParams params);
+  int countTrackedEntityDataValueChangeLogs(TrackedEntityDataValueChangeLogQueryParams params);
 
-  void deleteTrackedEntityDataValueAudit(DataElement dataElement);
+  void deleteTrackedEntityDataValueChangeLog(DataElement dataElement);
 
-  void deleteTrackedEntityDataValueAudit(Event event);
+  void deleteTrackedEntityDataValueChangeLog(Event event);
 }

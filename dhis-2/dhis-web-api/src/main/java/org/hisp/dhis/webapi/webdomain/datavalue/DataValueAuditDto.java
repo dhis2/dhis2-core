@@ -34,7 +34,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
@@ -77,5 +77,5 @@ public class DataValueAuditDto {
 
   @JsonProperty private Date created;
 
-  @JsonProperty private AuditType auditType;
+  @JsonProperty private ChangeLogType auditType;
 }

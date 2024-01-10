@@ -35,13 +35,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 import java.util.List;
-import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentity.TrackedEntityDataValueAuditQueryParams;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
+import org.hisp.dhis.trackedentity.TrackedEntityDataValueChangeLogQueryParams;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -51,7 +51,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Zubair Asghar
  */
-public class TrackedEntityDataValueAuditTest extends TrackerTest {
+public class TrackedEntityDataValueChangeLogTest extends TrackerTest {
   private static final String ORIGINAL_VALUE = "value1";
 
   private static final String UPDATED_VALUE = "value1-updated";
@@ -64,7 +64,7 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest {
 
   @Autowired private IdentifiableObjectManager manager;
 
-  @Autowired private TrackedEntityDataValueAuditService dataValueAuditService;
+  @Autowired private TrackedEntityDataValueChangeLogService dataValueAuditService;
 
   private DataElement dataElement;
 
@@ -94,45 +94,47 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest {
     assertNotNull(dataElement);
     assertNotNull(event);
 
-    List<TrackedEntityDataValueAudit> createdAudit =
-        dataValueAuditService.getTrackedEntityDataValueAudits(
-            new TrackedEntityDataValueAuditQueryParams()
+    List<TrackedEntityDataValueChangeLog> createdAudit =
+        dataValueAuditService.getTrackedEntityDataValueChangeLogs(
+            new TrackedEntityDataValueChangeLogQueryParams()
                 .setDataElements(List.of(dataElement))
                 .setEvents(List.of(event))
-                .setAuditTypes(List.of(AuditType.CREATE)));
-    List<TrackedEntityDataValueAudit> updatedAudit =
-        dataValueAuditService.getTrackedEntityDataValueAudits(
-            new TrackedEntityDataValueAuditQueryParams()
+                .setAuditTypes(List.of(ChangeLogType.CREATE)));
+    List<TrackedEntityDataValueChangeLog> updatedAudit =
+        dataValueAuditService.getTrackedEntityDataValueChangeLogs(
+            new TrackedEntityDataValueChangeLogQueryParams()
                 .setDataElements(List.of(dataElement))
                 .setEvents(List.of(event))
-                .setAuditTypes(List.of(AuditType.UPDATE)));
-    List<TrackedEntityDataValueAudit> deletedAudit =
-        dataValueAuditService.getTrackedEntityDataValueAudits(
-            new TrackedEntityDataValueAuditQueryParams()
+                .setAuditTypes(List.of(ChangeLogType.UPDATE)));
+    List<TrackedEntityDataValueChangeLog> deletedAudit =
+        dataValueAuditService.getTrackedEntityDataValueChangeLogs(
+            new TrackedEntityDataValueChangeLogQueryParams()
                 .setDataElements(List.of(dataElement))
                 .setEvents(List.of(event))
-                .setAuditTypes(List.of(AuditType.DELETE)));
+                .setAuditTypes(List.of(ChangeLogType.DELETE)));
 
     assertAll(
         () -> assertNotNull(createdAudit),
         () -> assertNotNull(updatedAudit),
         () -> assertNotNull(deletedAudit));
-    assertAuditCollection(createdAudit, AuditType.CREATE, ORIGINAL_VALUE);
-    assertAuditCollection(updatedAudit, AuditType.UPDATE, ORIGINAL_VALUE);
-    assertAuditCollection(deletedAudit, AuditType.DELETE, UPDATED_VALUE);
+    assertAuditCollection(createdAudit, ChangeLogType.CREATE, ORIGINAL_VALUE);
+    assertAuditCollection(updatedAudit, ChangeLogType.UPDATE, ORIGINAL_VALUE);
+    assertAuditCollection(deletedAudit, ChangeLogType.DELETE, UPDATED_VALUE);
   }
 
   private void assertAuditCollection(
-      List<TrackedEntityDataValueAudit> audits, AuditType auditType, String expectedValue) {
+      List<TrackedEntityDataValueChangeLog> audits,
+      ChangeLogType changeLogType,
+      String expectedValue) {
     assertAll(
         () -> assertFalse(audits.isEmpty()),
         () ->
             assertEquals(
-                auditType,
+                changeLogType,
                 audits.get(0).getAuditType(),
                 () ->
                     "Expected audit type is "
-                        + auditType
+                        + changeLogType
                         + " but found "
                         + audits.get(0).getAuditType()),
         () ->

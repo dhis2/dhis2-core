@@ -60,7 +60,7 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -1321,7 +1321,7 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
                               () ->
                                   String.format(
                                       "expected change to dataValue %s to be audited once", dv));
-                          assertEquals(AuditType.UPDATE, audits.get(0).getAuditType());
+                          assertEquals(ChangeLogType.UPDATE, audits.get(0).getAuditType());
                         })
             .collect(Collectors.toList()));
   }

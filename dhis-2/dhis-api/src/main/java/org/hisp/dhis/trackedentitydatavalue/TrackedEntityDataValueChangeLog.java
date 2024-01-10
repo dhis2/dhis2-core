@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.audit.payloads;
+package org.hisp.dhis.trackedentitydatavalue;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -33,53 +33,58 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
-import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.program.Event;
 
 /**
- * This class is deprecated.
- *
- * @author Abyot Asalefew Gizaw abyota@gmail.com
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement(localName = "trackedEntityInstanceAudit", namespace = DxfNamespaces.DXF_2_0)
-public class TrackedEntityAudit implements Serializable {
-  private static final long serialVersionUID = 4260110537887403524L;
-
+@JacksonXmlRootElement(localName = "trackedEntityDataValueAudit", namespace = DxfNamespaces.DXF_2_0)
+public class TrackedEntityDataValueChangeLog implements Serializable {
   private long id;
 
-  private String trackedEntity;
+  private DataElement dataElement;
 
-  private String comment;
+  private Event event;
 
   private Date created;
 
-  private String accessedBy;
+  private String value;
 
-  private AuditType auditType;
+  private Boolean providedElsewhere;
+
+  private String modifiedBy;
+
+  private ChangeLogType auditType;
 
   // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
 
-  public TrackedEntityAudit() {}
+  public TrackedEntityDataValueChangeLog() {}
 
-  public TrackedEntityAudit(String trackedEntity, String accessedBy, AuditType auditType) {
-    this.trackedEntity = trackedEntity;
-    this.accessedBy = accessedBy;
+  public TrackedEntityDataValueChangeLog(
+      DataElement dataElement,
+      Event event,
+      String value,
+      String modifiedBy,
+      boolean providedElsewhere,
+      ChangeLogType auditType) {
+    this.dataElement = dataElement;
+    this.event = event;
+    this.providedElsewhere = providedElsewhere;
     this.created = new Date();
+    this.value = value;
+    this.modifiedBy = modifiedBy;
     this.auditType = auditType;
-  }
-
-  public TrackedEntityAudit(
-      String trackedEntity, String comment, Date created, String accessedBy, AuditType auditType) {
-    this(trackedEntity, accessedBy, auditType);
-    this.comment = comment;
-    this.created = created;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(trackedEntity, comment, created, accessedBy, auditType);
+    return Objects.hash(
+        dataElement, event, created, value, providedElsewhere, modifiedBy, auditType);
   }
 
   @Override
@@ -92,13 +97,28 @@ public class TrackedEntityAudit implements Serializable {
       return false;
     }
 
-    final TrackedEntityAudit other = (TrackedEntityAudit) obj;
+    final TrackedEntityDataValueChangeLog other = (TrackedEntityDataValueChangeLog) obj;
 
-    return Objects.equals(this.trackedEntity, other.trackedEntity)
-        && Objects.equals(this.comment, other.comment)
+    return Objects.equals(this.dataElement, other.dataElement)
+        && Objects.equals(this.event, other.event)
         && Objects.equals(this.created, other.created)
-        && Objects.equals(this.accessedBy, other.accessedBy)
+        && Objects.equals(this.value, other.value)
+        && Objects.equals(this.providedElsewhere, other.providedElsewhere)
+        && Objects.equals(this.modifiedBy, other.modifiedBy)
         && Objects.equals(this.auditType, other.auditType);
+  }
+
+  @Override
+  public String toString() {
+    return "[dataElement: '"
+        + dataElement.getUid()
+        + "', "
+        + "event: '"
+        + event.getUid()
+        + "', "
+        + "value: '"
+        + value
+        + "']";
   }
 
   // -------------------------------------------------------------------------
@@ -115,22 +135,22 @@ public class TrackedEntityAudit implements Serializable {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getTrackedEntity() {
-    return trackedEntity;
+  public Event getEvent() {
+    return event;
   }
 
-  public void setTrackedEntity(String trackedEntity) {
-    this.trackedEntity = trackedEntity;
+  public void setEvent(Event event) {
+    this.event = event;
   }
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getComment() {
-    return comment;
+  public DataElement getDataElement() {
+    return dataElement;
   }
 
-  public void setComment(String comment) {
-    this.comment = comment;
+  public void setDataElement(DataElement dataElement) {
+    this.dataElement = dataElement;
   }
 
   @JsonProperty
@@ -145,21 +165,41 @@ public class TrackedEntityAudit implements Serializable {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getAccessedBy() {
-    return accessedBy;
+  public String getValue() {
+    return value;
   }
 
-  public void setAccessedBy(String accessedBy) {
-    this.accessedBy = accessedBy;
+  public void setValue(String value) {
+    this.value = value;
   }
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public AuditType getAuditType() {
+  public boolean getProvidedElsewhere() {
+    return providedElsewhere;
+  }
+
+  public void setProvidedElsewhere(boolean providedElsewhere) {
+    this.providedElsewhere = providedElsewhere;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getModifiedBy() {
+    return modifiedBy;
+  }
+
+  public void setModifiedBy(String modifiedBy) {
+    this.modifiedBy = modifiedBy;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public ChangeLogType getAuditType() {
     return auditType;
   }
 
-  public void setAuditType(AuditType auditType) {
+  public void setAuditType(ChangeLogType auditType) {
     this.auditType = auditType;
   }
 }

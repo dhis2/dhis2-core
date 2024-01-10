@@ -25,22 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentityattributevalue;
+package org.hisp.dhis.trackedentitydatavalue;
 
 import java.util.List;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.trackedentity.TrackedEntityDataValueChangeLogQueryParams;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface TrackedEntityAttributeValueAuditService {
-  void addTrackedEntityAttributeValueAudit(
-      TrackedEntityAttributeValueAudit trackedEntityAttributeValueAudit);
+public interface TrackedEntityDataValueChangeLogService {
+  void addTrackedEntityDataValueChangeLog(
+      TrackedEntityDataValueChangeLog trackedEntityDataValueChangeLog);
 
-  List<TrackedEntityAttributeValueAudit> getTrackedEntityAttributeValueAudits(
-      TrackedEntityAttributeValueAuditQueryParams params);
+  List<TrackedEntityDataValueChangeLog> getTrackedEntityDataValueChangeLogs(
+      TrackedEntityDataValueChangeLogQueryParams params);
 
-  int countTrackedEntityAttributeValueAudits(TrackedEntityAttributeValueAuditQueryParams params);
+  int countTrackedEntityDataValueChangeLogs(TrackedEntityDataValueChangeLogQueryParams params);
 
-  void deleteTrackedEntityAttributeValueAudits(TrackedEntity trackedEntity);
+  void deleteTrackedEntityDataValueChangeLog(DataElement dataElement);
+
+  void deleteTrackedEntityDataValueChangeLog(Event event);
 }

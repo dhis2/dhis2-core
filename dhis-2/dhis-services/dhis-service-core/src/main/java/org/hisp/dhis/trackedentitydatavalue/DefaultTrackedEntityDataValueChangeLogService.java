@@ -34,7 +34,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentity.TrackedEntityDataValueAuditQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityDataValueChangeLogQueryParams;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Service;
@@ -43,25 +43,25 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Service("org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService")
-public class DefaultTrackedEntityDataValueAuditService
-    implements TrackedEntityDataValueAuditService {
-  private final TrackedEntityDataValueAuditStore trackedEntityDataValueAuditStore;
+@Service("org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService")
+public class DefaultTrackedEntityDataValueChangeLogService
+    implements TrackedEntityDataValueChangeLogService {
+  private final TrackedEntityDataValueChangeLogStore trackedEntityDataValueChangeLogStore;
 
-  private final Predicate<TrackedEntityDataValueAudit> aclFilter;
+  private final Predicate<TrackedEntityDataValueChangeLog> aclFilter;
 
-  public DefaultTrackedEntityDataValueAuditService(
-      TrackedEntityDataValueAuditStore trackedEntityDataValueAuditStore,
+  public DefaultTrackedEntityDataValueChangeLogService(
+      TrackedEntityDataValueChangeLogStore trackedEntityDataValueChangeLogStore,
       TrackerAccessManager trackerAccessManager,
       CurrentUserService currentUserService) {
-    checkNotNull(trackedEntityDataValueAuditStore);
+    checkNotNull(trackedEntityDataValueChangeLogStore);
     checkNotNull(trackerAccessManager);
     checkNotNull(currentUserService);
 
-    this.trackedEntityDataValueAuditStore = trackedEntityDataValueAuditStore;
+    this.trackedEntityDataValueChangeLogStore = trackedEntityDataValueChangeLogStore;
 
     aclFilter =
-        (audit) ->
+        audit ->
             trackerAccessManager
                 .canRead(
                     currentUserService.getCurrentUser(),
@@ -77,35 +77,37 @@ public class DefaultTrackedEntityDataValueAuditService
 
   @Override
   @Transactional
-  public void addTrackedEntityDataValueAudit(
-      TrackedEntityDataValueAudit trackedEntityDataValueAudit) {
-    trackedEntityDataValueAuditStore.addTrackedEntityDataValueAudit(trackedEntityDataValueAudit);
+  public void addTrackedEntityDataValueChangeLog(
+      TrackedEntityDataValueChangeLog trackedEntityDataValueChangeLog) {
+    trackedEntityDataValueChangeLogStore.addTrackedEntityDataValueChangeLog(
+        trackedEntityDataValueChangeLog);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public List<TrackedEntityDataValueAudit> getTrackedEntityDataValueAudits(
-      TrackedEntityDataValueAuditQueryParams params) {
-    return trackedEntityDataValueAuditStore.getTrackedEntityDataValueAudits(params).stream()
+  public List<TrackedEntityDataValueChangeLog> getTrackedEntityDataValueChangeLogs(
+      TrackedEntityDataValueChangeLogQueryParams params) {
+    return trackedEntityDataValueChangeLogStore.getTrackedEntityDataValueChangeLogs(params).stream()
         .filter(aclFilter)
         .collect(Collectors.toList());
   }
 
   @Override
   @Transactional(readOnly = true)
-  public int countTrackedEntityDataValueAudits(TrackedEntityDataValueAuditQueryParams params) {
-    return trackedEntityDataValueAuditStore.countTrackedEntityDataValueAudits(params);
+  public int countTrackedEntityDataValueChangeLogs(
+      TrackedEntityDataValueChangeLogQueryParams params) {
+    return trackedEntityDataValueChangeLogStore.countTrackedEntityDataValueChangeLogs(params);
   }
 
   @Override
   @Transactional
-  public void deleteTrackedEntityDataValueAudit(DataElement dataElement) {
-    trackedEntityDataValueAuditStore.deleteTrackedEntityDataValueAudit(dataElement);
+  public void deleteTrackedEntityDataValueChangeLog(DataElement dataElement) {
+    trackedEntityDataValueChangeLogStore.deleteTrackedEntityDataValueChangeLog(dataElement);
   }
 
   @Override
   @Transactional
-  public void deleteTrackedEntityDataValueAudit(Event event) {
-    trackedEntityDataValueAuditStore.deleteTrackedEntityDataValueAudit(event);
+  public void deleteTrackedEntityDataValueChangeLog(Event event) {
+    trackedEntityDataValueChangeLogStore.deleteTrackedEntityDataValueChangeLog(event);
   }
 }

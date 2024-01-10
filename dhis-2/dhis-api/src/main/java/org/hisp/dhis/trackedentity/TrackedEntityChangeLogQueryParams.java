@@ -32,42 +32,49 @@ import java.util.Date;
 import java.util.List;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.hisp.dhis.common.AuditType;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.ProgramStage;
 
 /**
- * Encapsulation of a web API request for tracked entity data value audit records.
- *
- * @author Lars Helge Overland
+ * @author Abyot Asalefew Gizaw abyota@gmail.com
  */
 @Data
 @Accessors(chain = true)
-public class TrackedEntityDataValueAuditQueryParams {
-  private List<DataElement> dataElements = new ArrayList<>();
+public class TrackedEntityChangeLogQueryParams {
+  private List<String> trackedEntities = new ArrayList<>();
 
-  private List<OrganisationUnit> orgUnits = new ArrayList<>();
+  private List<String> users = new ArrayList<>();
 
-  private List<Event> events = new ArrayList<>();
+  private List<ChangeLogType> auditTypes = new ArrayList<>();
 
-  private List<ProgramStage> programStages = new ArrayList<>();
+  private Date startDate = null;
 
-  private Date startDate;
-
-  private Date endDate;
-
-  private OrganisationUnitSelectionMode ouMode;
-
-  private List<AuditType> auditTypes = new ArrayList<>();
+  private Date endDate = null;
 
   private Pager pager;
 
-  public boolean hasOuMode() {
-    return ouMode != null;
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
+
+  public boolean hasTrackedEntities() {
+    return trackedEntities != null && !trackedEntities.isEmpty();
+  }
+
+  public boolean hasUsers() {
+    return users != null && !users.isEmpty();
+  }
+
+  public boolean hasAuditTypes() {
+    return auditTypes != null && !auditTypes.isEmpty();
+  }
+
+  public boolean hasStartDate() {
+    return startDate != null;
+  }
+
+  public boolean hasEndDate() {
+    return endDate != null;
   }
 
   public boolean hasPaging() {

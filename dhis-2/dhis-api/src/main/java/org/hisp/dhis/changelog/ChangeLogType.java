@@ -25,33 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
-
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
-import org.springframework.stereotype.Component;
+package org.hisp.dhis.changelog;
 
 /**
- * @author Zubair Asghar
+ * @author Halvdan Hoem Grelland
+ * @author Luca Cambi split Changelog from Audit
  */
-@Component
-@RequiredArgsConstructor
-public class TrackedEntityDataValueAuditDeletionHandler extends DeletionHandler {
-  private final TrackedEntityDataValueAuditService trackedEntityDataValueAuditService;
-
-  @Override
-  protected void register() {
-    whenDeleting(DataElement.class, this::deleteDataElement);
-    whenDeleting(Event.class, this::deleteEvent);
-  }
-
-  private void deleteDataElement(DataElement dataElement) {
-    trackedEntityDataValueAuditService.deleteTrackedEntityDataValueAudit(dataElement);
-  }
-
-  private void deleteEvent(Event event) {
-    trackedEntityDataValueAuditService.deleteTrackedEntityDataValueAudit(event);
-  }
+public enum ChangeLogType {
+  CREATE,
+  UPDATE,
+  DELETE,
+  READ,
+  SEARCH
 }

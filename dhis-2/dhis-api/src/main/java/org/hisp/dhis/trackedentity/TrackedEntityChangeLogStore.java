@@ -28,42 +28,34 @@
 package org.hisp.dhis.trackedentity;
 
 import java.util.List;
-import org.hisp.dhis.audit.payloads.TrackedEntityAudit;
 
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
  */
-public interface TrackedEntityAuditStore {
-  String ID = TrackedEntityAuditStore.class.getName();
+public interface TrackedEntityChangeLogStore {
+  String ID = TrackedEntityChangeLogStore.class.getName();
 
   /**
    * Adds the given tracked entity audit.
    *
-   * @param trackedEntityAudit the {@link TrackedEntityAudit} to add.
+   * @param trackedEntityChangeLog the {@link TrackedEntityChangeLog} to add.
    */
-  void addTrackedEntityAudit(TrackedEntityAudit trackedEntityAudit);
+  void addTrackedEntityChangeLog(TrackedEntityChangeLog trackedEntityChangeLog);
 
   /**
-   * Adds the given {@link TrackedEntityAudit}s.
+   * Adds the given {@link TrackedEntityChangeLog}s.
    *
-   * @param trackedEntityAudit the list of {@link TrackedEntityAudit}.
+   * @param trackedEntityChangeLog the list of {@link TrackedEntityChangeLog}.
    */
-  void addTrackedEntityAudit(List<TrackedEntityAudit> trackedEntityAudit);
-
-  /**
-   * Deletes tracked entity audit for the given tracked entity.
-   *
-   * @param trackedEntity the {@link TrackedEntity}.
-   */
-  void deleteTrackedEntityAudit(TrackedEntity trackedEntity);
+  void addTrackedEntityChangeLog(List<TrackedEntityChangeLog> trackedEntityChangeLog);
 
   /**
    * Returns tracked entity audits matching query params
    *
    * @param params tracked entity audit query params
-   * @return a list of {@link TrackedEntityAudit}.
+   * @return a list of {@link TrackedEntityChangeLog}.
    */
-  List<TrackedEntityAudit> getTrackedEntityAudits(TrackedEntityAuditQueryParams params);
+  List<TrackedEntityChangeLog> getTrackedEntityChangeLogs(TrackedEntityChangeLogQueryParams params);
 
   /**
    * Returns count of tracked entity audits matching query params
@@ -71,5 +63,5 @@ public interface TrackedEntityAuditStore {
    * @param params tracked entity audit query params
    * @return count of audits.
    */
-  int getTrackedEntityAuditsCount(TrackedEntityAuditQueryParams params);
+  int getTrackedEntityChangeLogsCount(TrackedEntityChangeLogQueryParams params);
 }
