@@ -142,11 +142,17 @@ class JobConfigurationTest {
     ZonedDateTime today10am = todayMidnight.withHour(10);
     ZonedDateTime tomorrow8_40am = today8_40am.plusDays(1);
 
-    // when the job never executed the next execution is on the next day the intended time
-    // if now is already after the intended time
+    // when the job never executed the next execution is today's as long as
+    // now is in the window from intended execution time to max delayed execution time
+    assertEquals(
+        today8_40am.toInstant(),
+        config.nextExecutionTime(zone, today10am.toInstant(), maxCronDelay));
+
+    // when the job never executed the next execution is tomorrow when
+    // now is after the window from intended execution time to max delayed execution time
     assertEquals(
         tomorrow8_40am.toInstant(),
-        config.nextExecutionTime(zone, today10am.toInstant(), maxCronDelay));
+        config.nextExecutionTime(zone, today10am.plusHours(5).toInstant(), maxCronDelay));
 
     // when the job did execute last yesterday the intended time,
     // and we are still in the 2h window after 8:40am at 10am
