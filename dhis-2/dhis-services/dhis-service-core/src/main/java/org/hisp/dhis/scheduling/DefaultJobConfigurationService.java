@@ -240,11 +240,10 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
     Instant endOfWindow = now.plusSeconds(dueInNextSeconds);
     Duration maxCronDelay =
         Duration.ofHours(systemSettings.getIntSetting(SettingKey.JOBS_MAX_CRON_DELAY_HOURS));
-    Stream<JobConfiguration> dueJobs =
-        jobConfigurationStore
-            .getDueJobConfigurations(includeWaiting)
-            .filter(c -> c.isDueBetween(now, endOfWindow, maxCronDelay));
-    return dueJobs.toList();
+    return jobConfigurationStore
+        .getDueJobConfigurations(includeWaiting)
+        .filter(c -> c.isDueBetween(now, endOfWindow, maxCronDelay))
+        .toList();
   }
 
   @Override

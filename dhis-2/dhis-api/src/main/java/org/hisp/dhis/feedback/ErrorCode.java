@@ -150,7 +150,7 @@ public enum ErrorCode {
 
   /* Outlier detection */
   E2200("At least one data element must be specified"),
-  E2201("Start date and end date must be specified"),
+  E2201("Start date and end date or relative period must be specified"),
   E2202("Start date must be before end date"),
   E2203(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),
   E2204("Threshold must be a positive number"),
@@ -161,6 +161,7 @@ public enum ErrorCode {
   E2209("Data start date not allowed"),
   E2210("Data end date not allowed"),
   E2211("Algorithm min-max values not allowed"),
+  E2212("Specifying both a start date/end date and a relative period is not allowed"),
 
   /* Followup analysis */
   E2300("At least one data element or data set must be specified"),

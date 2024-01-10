@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Locale;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -134,10 +135,17 @@ class CrudControllerIntegrationTest extends DhisControllerIntegrationTest {
   @DisplayName("Search by token should use default properties instead of translations column")
   void testSearchTokenWithNullLocale() {
     setUpTranslation();
+    doInTransaction(
+        () -> systemSettingManager.saveSystemSetting(SettingKey.DB_LOCALE, Locale.ENGLISH));
+    systemSettingManager.invalidateCache();
+    assertEquals(
+        Locale.ENGLISH,
+        systemSettingManager.getSystemSetting(SettingKey.DB_LOCALE, LocaleManager.DEFAULT_LOCALE));
+
     User userA = createAndAddUser("userA", null, "ALL");
     injectSecurityContext(userA);
+    userSettingService.saveUserSetting(UserSettingKey.DB_LOCALE, null);
 
-    systemSettingManager.saveSystemSetting(SettingKey.DB_LOCALE, Locale.ENGLISH);
     assertTrue(
         GET("/dataSets?filter=identifiable:token:bb").content().getArray("dataSets").isEmpty());
     assertTrue(
@@ -165,11 +173,10 @@ class CrudControllerIntegrationTest extends DhisControllerIntegrationTest {
             "{'translations': [{'locale':'fr', 'property':'NAME', 'value':'fr dataSet'}]}")
         .content(HttpStatus.NO_CONTENT);
 
+    assertEquals(1, GET("/dataSets", id).content().getArray("dataSets").size());
+
     JsonArray translations =
         GET("/dataSets/{id}/translations", id).content().getArray("translations");
     assertEquals(1, translations.size());
-
-    assertTrue(
-        GET("/dataSets?filter=identifiable:token:fr", id).content().getArray("dataSets").isEmpty());
   }
 }

@@ -40,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -143,7 +143,7 @@ public class DefaultDataValueService implements DataValueService {
       if (config.isEnabled(CHANGELOG_AGGREGATE)) {
         DataValueAudit dataValueAudit =
             new DataValueAudit(
-                dataValue, dataValue.getValue(), dataValue.getStoredBy(), AuditType.CREATE);
+                dataValue, dataValue.getValue(), dataValue.getStoredBy(), ChangeLogType.CREATE);
 
         dataValueAuditService.addDataValueAudit(dataValueAudit);
       }
@@ -165,7 +165,10 @@ public class DefaultDataValueService implements DataValueService {
           && !Objects.equals(dataValue.getAuditValue(), dataValue.getValue())) {
         DataValueAudit dataValueAudit =
             new DataValueAudit(
-                dataValue, dataValue.getAuditValue(), dataValue.getStoredBy(), AuditType.UPDATE);
+                dataValue,
+                dataValue.getAuditValue(),
+                dataValue.getStoredBy(),
+                ChangeLogType.UPDATE);
 
         dataValueAuditService.addDataValueAudit(dataValueAudit);
       }
@@ -193,7 +196,7 @@ public class DefaultDataValueService implements DataValueService {
               dataValue,
               dataValue.getAuditValue(),
               currentUserService.getCurrentUsername(),
-              AuditType.DELETE);
+              ChangeLogType.DELETE);
 
       dataValueAuditService.addDataValueAudit(dataValueAudit);
     }

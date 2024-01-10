@@ -66,7 +66,7 @@
   </typedef>
 
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jblSorting">
-    <param name="clazz">org.hisp.dhis.eventvisualization.Sorting</param>
+    <param name="clazz">org.hisp.dhis.analytics.Sorting</param>
   </typedef>
 
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jblDashboardLayout">
