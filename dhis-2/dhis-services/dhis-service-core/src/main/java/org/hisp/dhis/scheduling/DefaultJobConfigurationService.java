@@ -102,26 +102,10 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   private final PlatformTransactionManager transactionManager;
   private final ApplicationContext applicationContext;
   private static final List<String> TEST_PROFILES =
-      List.of("cache-invalidation-test", "test", "test-h2", "test-postgres");
-
-  private TransactionTemplate getTransactionTemplate() {
-    boolean isTestProfile = isRunningTestProfile();
-    TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
-    transactionTemplate.setPropagationBehavior(
-        !isTestProfile ? Propagation.REQUIRES_NEW.value() : Propagation.REQUIRED.value());
-    return transactionTemplate;
-  }
-
-  private boolean isRunningTestProfile() {
-    String[] activeProfiles = applicationContext.getEnvironment().getActiveProfiles();
-    List<String> profileList = Arrays.asList(activeProfiles);
-    boolean isTest = profileList.stream().anyMatch(TEST_PROFILES::contains);
-    return isTest;
-  }
+      List.of("test", "test-h2", "test-postgres", "cache-invalidation-test");
 
   @Override
   public String create(JobConfiguration config) throws ConflictException {
-
     return getTransactionTemplate()
         .execute(
             status -> {
@@ -524,5 +508,17 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
     return Arrays.stream(enumType.getEnumConstants())
         .map(e -> ((Enum<?>) e).name())
         .collect(Collectors.toList());
+  }
+
+  private boolean isRunningTestProfile() {
+    String[] activeProfiles = applicationContext.getEnvironment().getActiveProfiles();
+    return Arrays.stream(activeProfiles).anyMatch(TEST_PROFILES::contains);
+  }
+
+  private TransactionTemplate getTransactionTemplate() {
+    TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+    transactionTemplate.setPropagationBehavior(
+        isRunningTestProfile() ? Propagation.REQUIRED.value() : Propagation.REQUIRES_NEW.value());
+    return transactionTemplate;
   }
 }
