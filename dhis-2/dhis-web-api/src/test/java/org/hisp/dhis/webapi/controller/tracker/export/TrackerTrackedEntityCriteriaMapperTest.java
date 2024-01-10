@@ -43,12 +43,10 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -216,7 +214,6 @@ class TrackerTrackedEntityCriteriaMapperTest {
     criteria.setSkipPaging(false);
     criteria.setIncludeDeleted(true);
     criteria.setIncludeAllAttributes(true);
-    criteria.setOrder(Collections.singletonList(OrderCriteria.of("createdAt", SortDirection.ASC)));
 
     final TrackedEntityInstanceQueryParams params = mapper.map(criteria);
 
@@ -240,10 +237,22 @@ class TrackerTrackedEntityCriteriaMapperTest {
         params.getAssignedUserQueryParam().getMode(), is(AssignedUserSelectionMode.PROVIDED));
     assertThat(params.isIncludeDeleted(), is(true));
     assertThat(params.isIncludeAllAttributes(), is(true));
-    assertTrue(
-        params.getOrders().stream()
-            .anyMatch(
-                orderParam -> orderParam.equals(new OrderParam("createdAt", SortDirection.ASC))));
+  }
+
+  @Test
+  void mapOrderParam() throws ForbiddenException, BadRequestException {
+    criteria.setOrder(
+        List.of(
+            OrderCriteria.of("inactive", SortDirection.ASC),
+            OrderCriteria.of("createdAt", SortDirection.DESC)));
+
+    final TrackedEntityInstanceQueryParams params = mapper.map(criteria);
+
+    assertEquals(
+        List.of(
+            new OrderParam("inactive", SortDirection.ASC),
+            new OrderParam("createdAt", SortDirection.DESC)),
+        params.getOrders());
   }
 
   @Test
