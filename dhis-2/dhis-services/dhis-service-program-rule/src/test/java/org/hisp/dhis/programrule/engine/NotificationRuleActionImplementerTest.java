@@ -40,6 +40,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.HashSet;
+import java.util.Map;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
@@ -54,10 +55,9 @@ import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.program.notification.event.ProgramRuleEnrollmentEvent;
 import org.hisp.dhis.program.notification.event.ProgramRuleStageEvent;
 import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.rules.models.AttributeType;
 import org.hisp.dhis.rules.models.RuleAction;
-import org.hisp.dhis.rules.models.RuleActionSendMessage;
-import org.hisp.dhis.rules.models.RuleActionSetMandatoryField;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -295,12 +295,17 @@ class NotificationRuleActionImplementerTest extends DhisConvenienceTest {
     template = new ProgramNotificationTemplate();
     template.setUid(NOTIFICATION_UID);
 
-    ruleActionSendMessage = new RuleActionSendMessage("", NOTIFICATION_UID);
+    ruleActionSendMessage =
+        new RuleAction(
+            "", ProgramRuleActionType.SENDMESSAGE.name(), Map.of("notification", NOTIFICATION_UID));
 
     ruleEffectWithActionSendMessage = new RuleEffect("", ruleActionSendMessage, "");
 
     setMandatoryFieldFalse =
-        new RuleActionSetMandatoryField(MANDATORY_FIELD, AttributeType.UNKNOWN);
+        new RuleAction(
+            null,
+            ProgramRuleActionType.SETMANDATORYFIELD.name(),
+            Map.of("field", MANDATORY_FIELD, "attributeType", AttributeType.UNKNOWN.name()));
 
     OrganisationUnit organisationUnitA = createOrganisationUnit('A');
 

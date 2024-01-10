@@ -90,7 +90,7 @@ public class ProgramRuleEngine {
     List<ProgramRule> rules =
         getProgramRules(
             enrollment.getProgram(),
-            events.stream().map(Event::getProgramStage).distinct().collect(Collectors.toList()));
+            events.stream().map(Event::getProgramStage).distinct().toList());
     return evaluateProgramRulesForMultipleTrackerObjects(
         enrollment,
         enrollment.getProgram(),
@@ -131,12 +131,10 @@ public class ProgramRuleEngine {
       List<ProgramRule> rules) {
 
     try {
-      RuleEngineContext ruleEngineContext =
-          getRuleEngineContext(
-              program, enrollment, trackedEntityAttributeValues, ruleEvents, rules);
+      RuleEngineContext ruleEngineContext = getRuleEngineContext(program, rules);
 
       return getRuleEngineEvaluation(
-          ruleEngineContext, enrollment, event, trackedEntityAttributeValues);
+          ruleEngineContext, enrollment, event, ruleEvents, trackedEntityAttributeValues);
     } catch (Exception e) {
       log.error(DebugUtils.getStackTrace(e));
       return Collections.emptyList();
@@ -150,25 +148,13 @@ public class ProgramRuleEngine {
       List<RuleEvent> ruleEvents,
       List<ProgramRule> rules) {
     try {
-      RuleEngineContext ruleEngineContext =
-          getRuleEngineContext(
-              program, enrollment, trackedEntityAttributeValues, ruleEvents, rules);
-      return ruleEngine.evaluate(ruleEngineContext);
+      RuleEnrollment ruleEnrollment = getRuleEnrollment(enrollment, trackedEntityAttributeValues);
+      RuleEngineContext ruleEngineContext = getRuleEngineContext(program, rules);
+      return ruleEngine.evaluateAll(ruleEnrollment, ruleEvents, ruleEngineContext);
     } catch (Exception e) {
       log.error(DebugUtils.getStackTrace(e));
       return Collections.emptyList();
     }
-  }
-
-  private RuleEngineContext getRuleEngineContext(
-      Program program,
-      Enrollment enrollment,
-      List<TrackedEntityAttributeValue> trackedEntityAttributeValues,
-      List<RuleEvent> ruleEvents,
-      List<ProgramRule> programRules) {
-    RuleEnrollment ruleEnrollment = getRuleEnrollment(enrollment, trackedEntityAttributeValues);
-
-    return getRuleEngineContext(program, programRules, ruleEvents, ruleEnrollment);
   }
 
   public List<ProgramRule> getProgramRules(Program program, List<ProgramStage> programStage) {
@@ -226,11 +212,7 @@ public class ProgramRuleEngine {
             programRuleVariableService.getProgramRuleVariable(program)));
   }
 
-  private RuleEngineContext getRuleEngineContext(
-      Program program,
-      List<ProgramRule> programRules,
-      List<RuleEvent> ruleEvents,
-      RuleEnrollment ruleEnrollment) {
+  private RuleEngineContext getRuleEngineContext(Program program, List<ProgramRule> programRules) {
     List<ProgramRuleVariable> programRuleVariables =
         programRuleVariableService.getProgramRuleVariable(program);
 
@@ -245,8 +227,6 @@ public class ProgramRuleEngine {
     return new RuleEngineContext(
         programRuleEntityMapperService.toMappedProgramRules(programRules),
         programRuleEntityMapperService.toMappedProgramRuleVariables(programRuleVariables),
-        ruleEvents,
-        ruleEnrollment,
         supplementaryData,
         constantMap);
   }
@@ -269,12 +249,19 @@ public class ProgramRuleEngine {
       RuleEngineContext ruleEngineContext,
       Enrollment enrollment,
       Event event,
+      List<RuleEvent> ruleEvents,
       List<TrackedEntityAttributeValue> trackedEntityAttributeValues) {
     if (event == null) {
       return ruleEngine.evaluate(
-          getRuleEnrollment(enrollment, trackedEntityAttributeValues), ruleEngineContext);
+          getRuleEnrollment(enrollment, trackedEntityAttributeValues),
+          ruleEvents,
+          ruleEngineContext);
     } else {
-      return ruleEngine.evaluate(getRuleEvent(event), ruleEngineContext);
+      return ruleEngine.evaluate(
+          getRuleEvent(event),
+          getRuleEnrollment(enrollment, trackedEntityAttributeValues),
+          ruleEvents,
+          ruleEngineContext);
     }
   }
 }

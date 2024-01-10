@@ -42,8 +42,6 @@ import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.rules.models.RuleAction;
-import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
-import org.hisp.dhis.rules.models.RuleActionSendMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -79,14 +77,7 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
 
   @Transactional(readOnly = true)
   public ProgramNotificationTemplate getNotificationTemplate(RuleAction action) {
-    String uid = "";
-
-    if (action instanceof RuleActionSendMessage sendMessage) {
-      uid = sendMessage.getNotification();
-    } else if (action instanceof RuleActionScheduleMessage scheduledMessage) {
-      uid = scheduledMessage.getNotification();
-    }
-
+    String uid = action.getValues().get("notification");
     return programNotificationTemplateService.getByUid(uid);
   }
 

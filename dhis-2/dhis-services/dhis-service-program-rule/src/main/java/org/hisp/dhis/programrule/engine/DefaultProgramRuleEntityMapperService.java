@@ -28,7 +28,20 @@
 package org.hisp.dhis.programrule.engine;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.programrule.ProgramRuleActionType.ASSIGN;
+import static org.hisp.dhis.programrule.ProgramRuleActionType.CREATEEVENT;
+import static org.hisp.dhis.programrule.ProgramRuleActionType.DISPLAYKEYVALUEPAIR;
+import static org.hisp.dhis.programrule.ProgramRuleActionType.DISPLAYTEXT;
+import static org.hisp.dhis.programrule.ProgramRuleActionType.ERRORONCOMPLETE;
+import static org.hisp.dhis.programrule.ProgramRuleActionType.HIDEFIELD;
+import static org.hisp.dhis.programrule.ProgramRuleActionType.HIDEPROGRAMSTAGE;
+import static org.hisp.dhis.programrule.ProgramRuleActionType.HIDESECTION;
+import static org.hisp.dhis.programrule.ProgramRuleActionType.SCHEDULEMESSAGE;
+import static org.hisp.dhis.programrule.ProgramRuleActionType.SENDMESSAGE;
+import static org.hisp.dhis.programrule.ProgramRuleActionType.SETMANDATORYFIELD;
 import static org.hisp.dhis.programrule.ProgramRuleActionType.SHOWERROR;
+import static org.hisp.dhis.programrule.ProgramRuleActionType.SHOWWARNING;
+import static org.hisp.dhis.programrule.ProgramRuleActionType.WARNINGONCOMPLETE;
 import static org.hisp.dhis.rules.models.AttributeType.DATA_ELEMENT;
 import static org.hisp.dhis.rules.models.AttributeType.TRACKED_ENTITY_ATTRIBUTE;
 
@@ -65,16 +78,6 @@ import org.hisp.dhis.rules.models.AttributeType;
 import org.hisp.dhis.rules.models.Option;
 import org.hisp.dhis.rules.models.Rule;
 import org.hisp.dhis.rules.models.RuleAction;
-import org.hisp.dhis.rules.models.RuleActionAssign;
-import org.hisp.dhis.rules.models.RuleActionCreateEvent;
-import org.hisp.dhis.rules.models.RuleActionHideField;
-import org.hisp.dhis.rules.models.RuleActionHideProgramStage;
-import org.hisp.dhis.rules.models.RuleActionHideSection;
-import org.hisp.dhis.rules.models.RuleActionMessage;
-import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
-import org.hisp.dhis.rules.models.RuleActionSendMessage;
-import org.hisp.dhis.rules.models.RuleActionSetMandatoryField;
-import org.hisp.dhis.rules.models.RuleActionText;
 import org.hisp.dhis.rules.models.RuleAttributeValue;
 import org.hisp.dhis.rules.models.RuleDataValue;
 import org.hisp.dhis.rules.models.RuleEnrollment;
@@ -110,77 +113,141 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
               .put(
                   ProgramRuleActionType.ASSIGN,
                   pra ->
-                      RuleActionAssign.Companion.create(
-                          pra.getContent(),
+                      new RuleAction(
                           pra.getData(),
-                          getAssignedParameter(pra),
-                          getAttributeType(pra)))
+                          ASSIGN.name(),
+                          Map.of(
+                              "content",
+                              pra.getContent(),
+                              "field",
+                              getAssignedParameter(pra),
+                              "attributeType",
+                              getAttributeType(pra).name())))
               .put(
                   ProgramRuleActionType.CREATEEVENT,
                   pra ->
-                      new RuleActionCreateEvent(pra.getLocation(), pra.getContent(), pra.getData()))
+                      new RuleAction(
+                          pra.getData(),
+                          CREATEEVENT.name(),
+                          Map.of("content", pra.getContent(), "location", pra.getLocation())))
               .put(
                   ProgramRuleActionType.DISPLAYKEYVALUEPAIR,
-                  this::getLocationBasedDisplayRuleAction)
-              .put(ProgramRuleActionType.DISPLAYTEXT, this::getLocationBasedDisplayRuleAction)
+                  pra ->
+                      new RuleAction(
+                          pra.getData(),
+                          DISPLAYKEYVALUEPAIR.name(),
+                          Map.of("content", pra.getContent(), "location", pra.getLocation())))
+              .put(
+                  ProgramRuleActionType.DISPLAYTEXT,
+                  pra ->
+                      new RuleAction(
+                          pra.getData(),
+                          DISPLAYTEXT.name(),
+                          Map.of("content", pra.getContent(), "location", pra.getLocation())))
               .put(
                   ProgramRuleActionType.HIDEFIELD,
                   pra ->
-                      new RuleActionHideField(
-                          getAssignedParameter(pra), pra.getContent(), getAttributeType(pra)))
+                      new RuleAction(
+                          null,
+                          HIDEFIELD.name(),
+                          Map.of(
+                              "content",
+                              pra.getContent(),
+                              "field",
+                              getAssignedParameter(pra),
+                              "attributeType",
+                              getAttributeType(pra).name())))
               .put(
                   ProgramRuleActionType.HIDEPROGRAMSTAGE,
-                  pra -> new RuleActionHideProgramStage(pra.getProgramStage().getUid()))
+                  pra ->
+                      new RuleAction(
+                          null,
+                          HIDEPROGRAMSTAGE.name(),
+                          Map.of("programStage", pra.getProgramStage().getUid())))
               .put(
                   ProgramRuleActionType.HIDESECTION,
-                  pra -> new RuleActionHideSection(pra.getProgramStageSection().getUid()))
+                  pra ->
+                      new RuleAction(
+                          null,
+                          HIDESECTION.name(),
+                          Map.of("programStageSection", pra.getProgramStageSection().getUid())))
               .put(
                   SHOWERROR,
                   pra ->
-                      RuleActionMessage.Companion.create(
-                          pra.getContent(),
+                      new RuleAction(
                           pra.getData(),
-                          getAssignedParameter(pra),
-                          getAttributeType(pra),
-                          RuleActionMessage.Type.SHOW_ERROR))
+                          SHOWERROR.name(),
+                          Map.of(
+                              "content",
+                              pra.getContent(),
+                              "field",
+                              getAssignedParameter(pra),
+                              "attributeType",
+                              getAttributeType(pra).name())))
               .put(
-                  ProgramRuleActionType.SHOWWARNING,
+                  SHOWWARNING,
                   pra ->
-                      RuleActionMessage.Companion.create(
-                          pra.getContent(),
+                      new RuleAction(
                           pra.getData(),
-                          getAssignedParameter(pra),
-                          getAttributeType(pra),
-                          RuleActionMessage.Type.SHOW_WARNING))
+                          SHOWWARNING.name(),
+                          Map.of(
+                              "content",
+                              pra.getContent(),
+                              "field",
+                              getAssignedParameter(pra),
+                              "attributeType",
+                              getAttributeType(pra).name())))
               .put(
                   ProgramRuleActionType.SETMANDATORYFIELD,
                   pra ->
-                      new RuleActionSetMandatoryField(
-                          getAssignedParameter(pra), getAttributeType(pra)))
+                      new RuleAction(
+                          null,
+                          SETMANDATORYFIELD.name(),
+                          Map.of(
+                              "field",
+                              getAssignedParameter(pra),
+                              "attributeType",
+                              getAttributeType(pra).name())))
               .put(
-                  ProgramRuleActionType.WARNINGONCOMPLETE,
+                  WARNINGONCOMPLETE,
                   pra ->
-                      RuleActionMessage.Companion.create(
-                          pra.getContent(),
+                      new RuleAction(
                           pra.getData(),
-                          getAssignedParameter(pra),
-                          getAttributeType(pra),
-                          RuleActionMessage.Type.WARNING_ON_COMPILATION))
+                          WARNINGONCOMPLETE.name(),
+                          Map.of(
+                              "content",
+                              pra.getContent(),
+                              "field",
+                              getAssignedParameter(pra),
+                              "attributeType",
+                              getAttributeType(pra).name())))
               .put(
-                  ProgramRuleActionType.ERRORONCOMPLETE,
+                  ERRORONCOMPLETE,
                   pra ->
-                      RuleActionMessage.Companion.create(
-                          pra.getContent(),
+                      new RuleAction(
                           pra.getData(),
-                          getAssignedParameter(pra),
-                          getAttributeType(pra),
-                          RuleActionMessage.Type.ERROR_ON_COMPILATION))
+                          ERRORONCOMPLETE.name(),
+                          Map.of(
+                              "content",
+                              pra.getContent(),
+                              "field",
+                              getAssignedParameter(pra),
+                              "attributeType",
+                              getAttributeType(pra).name())))
               .put(
                   ProgramRuleActionType.SENDMESSAGE,
-                  pra -> new RuleActionSendMessage(pra.getTemplateUid(), pra.getData()))
+                  pra ->
+                      new RuleAction(
+                          pra.getData(),
+                          SENDMESSAGE.name(),
+                          Map.of("notification", pra.getTemplateUid())))
               .put(
                   ProgramRuleActionType.SCHEDULEMESSAGE,
-                  pra -> new RuleActionScheduleMessage(pra.getTemplateUid(), pra.getData()))
+                  pra ->
+                      new RuleAction(
+                          pra.getData(),
+                          SCHEDULEMESSAGE.name(),
+                          Map.of("notification", pra.getTemplateUid())))
               .build();
 
   private final ImmutableMap<
@@ -565,8 +632,16 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
         .getOrDefault(
             programRuleAction.getProgramRuleActionType(),
             pra ->
-                RuleActionAssign.Companion.create(
-                    pra.getContent(), pra.getData(), getAssignedParameter(pra)))
+                new RuleAction(
+                    pra.getData(),
+                    ASSIGN.name(),
+                    Map.of(
+                        "content",
+                        pra.getContent(),
+                        "field",
+                        getAssignedParameter(pra),
+                        "attributeType",
+                        getAttributeType(pra).name())))
         .apply(programRuleAction);
   }
 
@@ -638,48 +713,6 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
             programRuleAction.getProgramRule().getUid()));
 
     return StringUtils.EMPTY;
-  }
-
-  private RuleAction getLocationBasedDisplayRuleAction(ProgramRuleAction programRuleAction) {
-    if (ProgramRuleActionType.DISPLAYTEXT.equals(programRuleAction.getProgramRuleActionType())) {
-      if (LOCATION_FEEDBACK.equals(programRuleAction.getLocation())) {
-        return RuleActionText.Companion.createForFeedback(
-            RuleActionText.Type.DISPLAYTEXT,
-            programRuleAction.getContent(),
-            programRuleAction.getData());
-      }
-
-      if (LOCATION_INDICATOR.equals(programRuleAction.getLocation())) {
-        return RuleActionText.Companion.createForIndicators(
-            RuleActionText.Type.DISPLAYTEXT,
-            programRuleAction.getContent(),
-            programRuleAction.getData());
-      }
-
-      return RuleActionText.Companion.createForFeedback(
-          RuleActionText.Type.DISPLAYTEXT,
-          programRuleAction.getContent(),
-          programRuleAction.getData());
-    } else {
-      if (LOCATION_FEEDBACK.equals(programRuleAction.getLocation())) {
-        return RuleActionText.Companion.createForFeedback(
-            RuleActionText.Type.DISPLAYKEYVALUEPAIR,
-            programRuleAction.getContent(),
-            programRuleAction.getData());
-      }
-
-      if (LOCATION_INDICATOR.equals(programRuleAction.getLocation())) {
-        return RuleActionText.Companion.createForIndicators(
-            RuleActionText.Type.DISPLAYKEYVALUEPAIR,
-            programRuleAction.getContent(),
-            programRuleAction.getData());
-      }
-
-      return RuleActionText.Companion.createForFeedback(
-          RuleActionText.Type.DISPLAYKEYVALUEPAIR,
-          programRuleAction.getContent(),
-          programRuleAction.getData());
-    }
   }
 
   private String getTrackedEntityAttributeValue(TrackedEntityAttributeValue attributeValue) {

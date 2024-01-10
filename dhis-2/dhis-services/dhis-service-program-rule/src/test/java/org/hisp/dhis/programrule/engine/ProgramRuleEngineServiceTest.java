@@ -46,6 +46,7 @@ import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -62,7 +63,6 @@ import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.rules.models.RuleAction;
-import org.hisp.dhis.rules.models.RuleActionSendMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.rules.models.RuleValidationResult;
 import org.junit.jupiter.api.BeforeEach;
@@ -157,7 +157,14 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
         .implement(any(), any(Enrollment.class));
 
     List<RuleEffect> effects = new ArrayList<>();
-    effects.add(new RuleEffect("", new RuleActionSendMessage(NOTIFICATION_UID, DATA), ""));
+    effects.add(
+        new RuleEffect(
+            "",
+            new RuleAction(
+                "",
+                ProgramRuleActionType.SENDMESSAGE.name(),
+                Map.of("notification", NOTIFICATION_UID)),
+            DATA));
 
     when(enrollmentService.getEnrollment(anyLong())).thenReturn(enrollment);
     when(programRuleEngine.evaluate(any(), any(), any())).thenReturn(effects);
@@ -172,10 +179,8 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
     assertEquals(1, ruleEffects.size());
 
     RuleAction action = ruleEffects.get(0).getRuleAction();
-    if (action instanceof RuleActionSendMessage) {
-      RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) action;
-
-      assertEquals(NOTIFICATION_UID, ruleActionSendMessage.getNotification());
+    if (action.getType().equals(ProgramRuleActionType.SENDMESSAGE.name())) {
+      assertEquals(NOTIFICATION_UID, action.getValues().get("notification"));
     }
 
     verify(programRuleEngine, times(1)).evaluate(argumentCaptor.capture(), any(), any());
@@ -185,7 +190,12 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
     verify(ruleActionSendMessage).implement(any(RuleEffect.class), argumentCaptor.capture());
 
     assertEquals(1, this.ruleEffects.size());
-    assertTrue(this.ruleEffects.get(0).getRuleAction() instanceof RuleActionSendMessage);
+    assertTrue(
+        this.ruleEffects
+            .get(0)
+            .getRuleAction()
+            .getType()
+            .equals(ProgramRuleActionType.SENDMESSAGE.name()));
   }
 
   @Test
@@ -199,7 +209,14 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
         .implement(any(), any(Event.class));
 
     List<RuleEffect> effects = new ArrayList<>();
-    effects.add(new RuleEffect("", new RuleActionSendMessage(NOTIFICATION_UID, DATA), ""));
+    effects.add(
+        new RuleEffect(
+            "",
+            new RuleAction(
+                "",
+                ProgramRuleActionType.SENDMESSAGE.name(),
+                Map.of("notification", NOTIFICATION_UID)),
+            DATA));
 
     when(eventService.getEvent(anyString())).thenReturn(event);
     when(enrollmentService.getEnrollment(anyLong())).thenReturn(enrollment);
@@ -220,7 +237,12 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
     verify(ruleActionSendMessage).implement(any(RuleEffect.class), any(Event.class));
 
     assertEquals(1, this.ruleEffects.size());
-    assertTrue(this.ruleEffects.get(0).getRuleAction() instanceof RuleActionSendMessage);
+    assertTrue(
+        this.ruleEffects
+            .get(0)
+            .getRuleAction()
+            .getType()
+            .equals(ProgramRuleActionType.SENDMESSAGE.name()));
   }
 
   @Test
@@ -234,7 +256,14 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
         .implement(any(), any(Event.class));
 
     List<RuleEffect> effects = new ArrayList<>();
-    effects.add(new RuleEffect("", new RuleActionSendMessage(NOTIFICATION_UID, DATA), ""));
+    effects.add(
+        new RuleEffect(
+            "",
+            new RuleAction(
+                "",
+                ProgramRuleActionType.SENDMESSAGE.name(),
+                Map.of("notification", NOTIFICATION_UID)),
+            DATA));
     Program program = createProgram('A');
     program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
     ProgramStage programStage = createProgramStage('A', program);
@@ -262,7 +291,12 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
     verify(ruleActionSendMessage).implement(any(RuleEffect.class), any(Event.class));
 
     assertEquals(1, this.ruleEffects.size());
-    assertTrue(this.ruleEffects.get(0).getRuleAction() instanceof RuleActionSendMessage);
+    assertTrue(
+        this.ruleEffects
+            .get(0)
+            .getRuleAction()
+            .getType()
+            .equals(ProgramRuleActionType.SENDMESSAGE.name()));
   }
 
   @Test

@@ -34,11 +34,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.ListUtils;
+import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.rules.models.RuleAction;
-import org.hisp.dhis.rules.models.RuleActionAssign;
-import org.hisp.dhis.rules.models.RuleActionError;
-import org.hisp.dhis.rules.models.RuleActionMessage;
-import org.hisp.dhis.rules.models.RuleActionSetMandatoryField;
 import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -94,34 +91,30 @@ class RuleActionEnrollmentMapper {
 
   private RuleActionExecutor<Enrollment> buildEnrollmentRuleActionExecutor(
       String ruleId, String data, RuleAction ruleAction, List<Attribute> attributes) {
-    if (ruleAction instanceof RuleActionAssign action) {
+    if (ruleAction.getType().equals(ProgramRuleActionType.ASSIGN.name())) {
       return new AssignAttributeExecutor(
-          systemSettingManager, ruleId, data, action.getField(), attributes);
+          systemSettingManager, ruleId, data, ruleAction.field(), attributes);
     }
-    if (ruleAction instanceof RuleActionSetMandatoryField action) {
-      return new SetMandatoryFieldExecutor(ruleId, action.getField());
+    if (ruleAction.getType().equals(ProgramRuleActionType.SETMANDATORYFIELD.name())) {
+      return new SetMandatoryFieldExecutor(ruleId, ruleAction.field());
     }
-    if (ruleAction instanceof RuleActionMessage action
-        && action.getType() == RuleActionMessage.Type.SHOW_ERROR) {
+    if (ruleAction.getType().equals(ProgramRuleActionType.SHOWERROR.name())) {
       return new ShowErrorExecutor(
-          new ValidationRuleAction(ruleId, data, action.getField(), action.getContent()));
+          new ValidationRuleAction(ruleId, data, ruleAction.field(), ruleAction.content()));
     }
-    if (ruleAction instanceof RuleActionMessage action
-        && action.getType() == RuleActionMessage.Type.SHOW_WARNING) {
+    if (ruleAction.getType().equals(ProgramRuleActionType.SHOWWARNING.name())) {
       return new ShowWarningExecutor(
-          new ValidationRuleAction(ruleId, data, action.getField(), action.getContent()));
+          new ValidationRuleAction(ruleId, data, ruleAction.field(), ruleAction.content()));
     }
-    if (ruleAction instanceof RuleActionMessage action
-        && action.getType() == RuleActionMessage.Type.ERROR_ON_COMPILATION) {
+    if (ruleAction.getType().equals(ProgramRuleActionType.ERRORONCOMPLETE.name())) {
       return new ShowErrorOnCompleteExecutor(
-          new ValidationRuleAction(ruleId, data, action.getField(), action.getContent()));
+          new ValidationRuleAction(ruleId, data, ruleAction.field(), ruleAction.content()));
     }
-    if (ruleAction instanceof RuleActionMessage action
-        && action.getType() == RuleActionMessage.Type.WARNING_ON_COMPILATION) {
+    if (ruleAction.getType().equals(ProgramRuleActionType.WARNINGONCOMPLETE.name())) {
       return new ShowWarningOnCompleteExecutor(
-          new ValidationRuleAction(ruleId, data, action.getField(), action.getContent()));
+          new ValidationRuleAction(ruleId, data, ruleAction.field(), ruleAction.content()));
     }
-    if (ruleAction instanceof RuleActionError) {
+    if (ruleAction.getType().equals("ERROR")) {
       return new RuleEngineErrorExecutor(ruleId, data);
     }
     return null;

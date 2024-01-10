@@ -44,8 +44,8 @@ import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.program.notification.template.snapshot.NotificationTemplateService;
+import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.rules.models.RuleAction;
-import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
@@ -85,7 +85,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
   @Override
   public boolean accept(RuleAction ruleAction) {
-    return ruleAction instanceof RuleActionScheduleMessage;
+    return ruleAction.getType().equals(ProgramRuleActionType.SCHEDULEMESSAGE.name());
   }
 
   @Override
