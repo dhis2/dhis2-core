@@ -47,7 +47,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class HeartbeatJob implements Job {
+public class HousekeepingJob implements Job {
 
   private final JobSchedulerLoopService jobSchedulerService;
   private final JobConfigurationService jobConfigurationService;
@@ -59,7 +59,7 @@ public class HeartbeatJob implements Job {
 
   @Override
   public void execute(JobConfiguration config, JobProgress progress) {
-    progress.startingProcess("Heartbeat");
+    progress.startingProcess("Housekeeping");
 
     progress.startingStage("Apply job cancellation", SKIP_STAGE);
     progress.runStage(

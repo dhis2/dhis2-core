@@ -50,6 +50,7 @@ import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.fileresource.FileResourceRetentionStrategy;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.period.RelativePeriodEnum;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.sms.config.SmsConfiguration;
 
 /**
@@ -253,7 +254,8 @@ public enum SettingKey {
    * its intended time of the day to trigger. If time has passed past this point the execution for
    * that day is skipped, and it will trigger on the intended time the day after.
    */
-  JOBS_MAX_CRON_DELAY_HOURS("jobsMaxCronDelayHours", 4, Integer.class),
+  JOBS_MAX_CRON_DELAY_HOURS(
+      "jobsMaxCronDelayHours", JobConfiguration.MAX_CRON_DELAY_HOURS, Integer.class),
 
   /**
    * A job running with a smaller delay than the given value is logged on debug level instead of
