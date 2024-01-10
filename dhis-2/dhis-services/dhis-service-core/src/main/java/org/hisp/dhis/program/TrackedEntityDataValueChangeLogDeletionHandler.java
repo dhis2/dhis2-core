@@ -25,59 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentity;
+package org.hisp.dhis.program;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import lombok.Data;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.common.AuditType;
-import org.hisp.dhis.common.Pager;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Abyot Asalefew Gizaw abyota@gmail.com
+ * @author Zubair Asghar
  */
-@Data
-@Accessors(chain = true)
-public class TrackedEntityAuditQueryParams {
-  private List<String> trackedEntities = new ArrayList<>();
+@Component
+@RequiredArgsConstructor
+public class TrackedEntityDataValueChangeLogDeletionHandler extends DeletionHandler {
+  private final TrackedEntityDataValueChangeLogService trackedEntityDataValueAuditService;
 
-  private List<String> users = new ArrayList<>();
-
-  private List<AuditType> auditTypes = new ArrayList<>();
-
-  private Date startDate = null;
-
-  private Date endDate = null;
-
-  private Pager pager;
-
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
-  public boolean hasTrackedEntities() {
-    return trackedEntities != null && !trackedEntities.isEmpty();
+  @Override
+  protected void register() {
+    whenDeleting(DataElement.class, this::deleteDataElement);
+    whenDeleting(Event.class, this::deleteEvent);
   }
 
-  public boolean hasUsers() {
-    return users != null && !users.isEmpty();
+  private void deleteDataElement(DataElement dataElement) {
+    trackedEntityDataValueAuditService.deleteTrackedEntityDataValueChangeLog(dataElement);
   }
 
-  public boolean hasAuditTypes() {
-    return auditTypes != null && !auditTypes.isEmpty();
-  }
-
-  public boolean hasStartDate() {
-    return startDate != null;
-  }
-
-  public boolean hasEndDate() {
-    return endDate != null;
-  }
-
-  public boolean hasPaging() {
-    return pager != null;
+  private void deleteEvent(Event event) {
+    trackedEntityDataValueAuditService.deleteTrackedEntityDataValueChangeLog(event);
   }
 }

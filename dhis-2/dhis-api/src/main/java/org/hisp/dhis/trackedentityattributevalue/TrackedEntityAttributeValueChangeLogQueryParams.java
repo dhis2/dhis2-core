@@ -25,17 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.trackedentityattributevalue;
+
+import java.util.ArrayList;
+import java.util.List;
+import lombok.Data;
+import lombok.experimental.Accessors;
+import org.hisp.dhis.changelog.ChangeLogType;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 /**
- * This class is deprecated in favor of new async auditing solution, do not use.
+ * Encapsulation of a web API request for tracked entity data value audit records.
  *
- * @author Halvdan Hoem Grelland
+ * @author Lars Helge Overland
  */
-public enum AuditType {
-  CREATE,
-  UPDATE,
-  DELETE,
-  READ,
-  SEARCH
+@Data
+@Accessors(chain = true)
+public class TrackedEntityAttributeValueChangeLogQueryParams {
+  private List<TrackedEntityAttribute> trackedEntityAttributes = new ArrayList<>();
+
+  private List<TrackedEntity> trackedEntities = new ArrayList<>();
+
+  private List<ChangeLogType> auditTypes = new ArrayList<>();
+
+  private Pager pager;
+
+  public boolean hasPager() {
+    return pager != null;
+  }
 }
