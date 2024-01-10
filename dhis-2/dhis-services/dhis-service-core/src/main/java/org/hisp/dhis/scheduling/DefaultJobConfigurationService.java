@@ -52,6 +52,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
@@ -79,8 +80,12 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.MimeType;
 
 /**
@@ -94,30 +99,68 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   private final JobConfigurationStore jobConfigurationStore;
   private final FileResourceService fileResourceService;
   private final SystemSettingManager systemSettings;
+  private final PlatformTransactionManager transactionManager;
+  private final ApplicationContext applicationContext;
+  private static final List<String> TEST_PROFILES =
+      List.of("cache-invalidation-test", "test", "test-h2", "test-postgres");
 
-  // TODO: MAS: investigate use of propagation req. new and failing tests
-  @Override
-  //    @Transactional(propagation = Propagation.REQUIRES_NEW, noRollbackFor =
-  //        Exception.class)
-  @Transactional
-  public String create(JobConfiguration config) throws ConflictException {
-    config.setAutoFields();
-    jobConfigurationStore.save(config);
-    return config.getUid();
+  private TransactionTemplate getTransactionTemplate() {
+    boolean isTestProfile = isRunningTestProfile();
+    TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+    transactionTemplate.setPropagationBehavior(
+        !isTestProfile ? Propagation.REQUIRES_NEW.value() : Propagation.REQUIRED.value());
+    return transactionTemplate;
+  }
+
+  private boolean isRunningTestProfile() {
+    String[] activeProfiles = applicationContext.getEnvironment().getActiveProfiles();
+    List<String> profileList = Arrays.asList(activeProfiles);
+    boolean isTest = profileList.stream().anyMatch(TEST_PROFILES::contains);
+    return isTest;
   }
 
   @Override
-  //  @Transactional(propagation = Propagation.REQUIRES_NEW)
-  @Transactional
+  public String create(JobConfiguration config) throws ConflictException {
+
+    return getTransactionTemplate()
+        .execute(
+            status -> {
+              config.setAutoFields();
+              jobConfigurationStore.save(config);
+              return config.getUid();
+            });
+  }
+
+  @Override
   public String create(JobConfiguration config, MimeType contentType, InputStream content)
       throws ConflictException {
+
     if (config.getSchedulingType() != SchedulingType.ONCE_ASAP)
       throw new ConflictException(
           "Job must be of type %s to allow content data".formatted(SchedulingType.ONCE_ASAP));
-    config.setAutoFields(); // ensure UID is set
-    saveJobData(config.getUid(), contentType, content);
-    jobConfigurationStore.save(config);
-    return config.getUid();
+
+    AtomicReference<ConflictException> conflictException = new AtomicReference<>();
+
+    String uid =
+        getTransactionTemplate()
+            .execute(
+                status -> {
+                  config.setAutoFields(); // ensure UID is set
+                  try {
+                    saveJobData(config.getUid(), contentType, content);
+                  } catch (ConflictException e) {
+                    conflictException.set(e);
+                    return "conflict";
+                  }
+                  jobConfigurationStore.save(config);
+                  return config.getUid();
+                });
+
+    if (uid != null && uid.equals("conflict") && conflictException.get() != null) {
+      throw conflictException.get();
+    }
+
+    return uid;
   }
 
   @SuppressWarnings("java:S4790")
