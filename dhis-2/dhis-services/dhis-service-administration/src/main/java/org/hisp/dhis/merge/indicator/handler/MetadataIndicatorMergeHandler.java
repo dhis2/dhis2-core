@@ -87,7 +87,7 @@ public class MetadataIndicatorMergeHandler {
         });
   }
 
-  public void handleDataDimensionalItems(List<Indicator> sources, Indicator target) {
+  public void handleDataDimensionItems(List<Indicator> sources, Indicator target) {
     List<DataDimensionItem> dataDimensionItems =
         dimensionService.getIndicatorDataDimensionItems(sources);
     dataDimensionItems.forEach(item -> item.setIndicator(target));
