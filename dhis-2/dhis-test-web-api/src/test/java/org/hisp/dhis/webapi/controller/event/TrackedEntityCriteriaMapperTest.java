@@ -36,8 +36,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
-import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -61,6 +61,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.DhisWebSpringTest;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
+import org.hisp.dhis.webapi.controller.event.mapper.OrderParam.SortDirection;
 import org.hisp.dhis.webapi.controller.event.mapper.TrackedEntityCriteriaMapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.event.webrequest.TrackedEntityInstanceCriteria;
@@ -167,9 +168,9 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest {
     criteria.setSkipPaging(false);
     criteria.setIncludeDeleted(true);
     criteria.setIncludeAllAttributes(true);
-    criteria.setOrder(
-        Collections.singletonList(OrderCriteria.of("created", OrderParam.SortDirection.ASC)));
-    final TrackedEntityInstanceQueryParams queryParams = trackedEntityCriteriaMapper.map(criteria);
+
+    TrackedEntityInstanceQueryParams queryParams = trackedEntityCriteriaMapper.map(criteria);
+
     assertThat(queryParams.getQuery().getFilter(), is("query-test"));
     assertThat(queryParams.getQuery().getOperator(), is(QueryOperator.EQ));
     assertThat(queryParams.getProgram(), is(programA));
@@ -214,15 +215,23 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest {
     assertThat(queryParams.getAssignedUsers().stream().anyMatch(u -> u.equals(userId3)), is(false));
     assertThat(queryParams.isIncludeDeleted(), is(true));
     assertThat(queryParams.isIncludeAllAttributes(), is(true));
-    assertTrue(
-        queryParams.getOrders().stream()
-            .anyMatch(
-                orderParam ->
-                    orderParam.equals(
-                        OrderParam.builder()
-                            .field("created")
-                            .direction(OrderParam.SortDirection.ASC)
-                            .build())));
+  }
+
+  @Test
+  void mapOrderParam() {
+    TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
+    criteria.setOrder(
+        List.of(
+            OrderCriteria.of("inactive", SortDirection.ASC),
+            OrderCriteria.of("createdAt", SortDirection.DESC)));
+
+    TrackedEntityInstanceQueryParams queryParams = trackedEntityCriteriaMapper.map(criteria);
+
+    assertEquals(
+        List.of(
+            OrderParam.builder().field("inactive").direction(SortDirection.ASC).build(),
+            OrderParam.builder().field("createdAt").direction(SortDirection.DESC).build()),
+        queryParams.getOrders());
   }
 
   @Test
