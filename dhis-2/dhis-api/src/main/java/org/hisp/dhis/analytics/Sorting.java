@@ -25,44 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.analytics;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import java.io.Serializable;
 import lombok.Data;
-import org.junit.jupiter.api.Test;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
-class PageImportRequestParamsTest {
+/** This class is responsible for the encapsulation of objects and attributes related to sorting. */
+@Data
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@NoArgsConstructor
+public class Sorting implements Serializable {
+  /** A dimension can have the format "uid", "uid.uid1", "uid.uid1.uid2" or "uid[-2].uid1". */
+  @EqualsAndHashCode.Include
+  @JsonProperty(required = true)
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private String dimension;
 
-  @Data
-  private static class PaginationParameters implements PageRequestParams {
-    private Integer page;
-    private Integer pageSize;
-    private Boolean totalPages;
-    private Boolean skipPaging;
-  }
-
-  @Test
-  void shouldBePagedIfSkipPagingIsNull() {
-    PaginationParameters parameters = new PaginationParameters();
-
-    assertTrue(parameters.isPaged());
-  }
-
-  @Test
-  void shouldBePagedIfSkipPagingIsFalse() {
-    PaginationParameters parameters = new PaginationParameters();
-    parameters.setSkipPaging(false);
-
-    assertTrue(parameters.isPaged());
-  }
-
-  @Test
-  void shouldBeUnpagedIfSkipPagingIsTrue() {
-    PaginationParameters parameters = new PaginationParameters();
-    parameters.setSkipPaging(true);
-
-    assertFalse(parameters.isPaged());
-  }
+  @JsonProperty(required = true)
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private SortOrder direction;
 }

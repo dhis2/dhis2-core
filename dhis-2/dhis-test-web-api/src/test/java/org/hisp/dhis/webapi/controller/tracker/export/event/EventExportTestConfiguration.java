@@ -25,30 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventvisualization;
+package org.hisp.dhis.webapi.controller.tracker.export.event;
 
-import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import java.io.Serializable;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import org.hisp.dhis.analytics.SortOrder;
+import java.util.HashSet;
+import org.hisp.dhis.tracker.export.event.EventService;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
-/** This class is responsible for the encapsulation of objects and attributes related to sorting. */
-@Data
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@NoArgsConstructor
-public class Sorting implements Serializable {
-  /** A dimension can have the format "uid", "uid.uid1", "uid.uid1.uid2" or "uid[-2].uid1". */
-  @EqualsAndHashCode.Include
-  @JsonProperty(required = true)
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  private String dimension;
+@Configuration
+public class EventExportTestConfiguration {
 
-  @JsonProperty(required = true)
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  private SortOrder direction;
+  @Primary
+  @Bean
+  public EventService eventService() {
+    EventService eventService = mock(EventService.class);
+    // Orderable fields are checked within the controller constructor
+    when(eventService.getOrderableFields())
+        .thenReturn(new HashSet<>(EventMapper.ORDERABLE_FIELDS.values()));
+    return eventService;
+  }
 }
