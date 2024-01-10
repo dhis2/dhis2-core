@@ -326,6 +326,7 @@ public class HibernateJobConfigurationStore
         """
         update jobconfiguration j1
         set
+          lastupdated = now(),
           jobstatus = 'RUNNING',
           lastexecuted = now(),
           lastalive = now(),
@@ -351,6 +352,7 @@ public class HibernateJobConfigurationStore
         """
         update jobconfiguration
         set
+          lastupdated = now(),
           cancel = case when jobstatus = 'RUNNING' then true else false end,
           enabled = case
             when queueposition is null and schedulingtype = 'ONCE_ASAP' and cronexpression is null and delay is null then false
@@ -380,6 +382,7 @@ public class HibernateJobConfigurationStore
         """
         update jobconfiguration
         set
+          lastupdated = now(),
           lastexecutedstatus = case when cancel = true then 'STOPPED' else :status end,
           lastfinished = now(),
           lastalive = null,
@@ -412,6 +415,7 @@ public class HibernateJobConfigurationStore
         """
         update jobconfiguration
         set
+          lastupdated = now(),
           lastexecutedstatus = 'NOT_STARTED',
           lastexecuted = now(),
           lastfinished = now(),
@@ -454,7 +458,9 @@ public class HibernateJobConfigurationStore
     String sql =
         """
         update jobconfiguration
-        set jobstatus = 'DISABLED'
+        set
+          lastupdated = now(),
+          jobstatus = 'DISABLED'
         where jobstatus = 'SCHEDULED'
         and enabled = false
         """;
@@ -496,6 +502,7 @@ public class HibernateJobConfigurationStore
         """
         update jobconfiguration
         set
+          lastupdated = now(),
           jobstatus = 'SCHEDULED',
           cancel = false,
           lastexecutedstatus = 'FAILED',

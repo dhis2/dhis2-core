@@ -100,7 +100,7 @@ public class JobScheduler implements Runnable, JobRunner {
 
   public void start() {
     long loopTimeMs = LOOP_SECONDS * 1000L;
-    long alignment = currentTimeMillis() % loopTimeMs;
+    long alignment = loopTimeMs - (currentTimeMillis() % loopTimeMs);
     Executors.newSingleThreadScheduledExecutor()
         .scheduleAtFixedRate(this, alignment, loopTimeMs, TimeUnit.MILLISECONDS);
     scheduling.set(true);
@@ -222,6 +222,7 @@ public class JobScheduler implements Runnable, JobRunner {
               jobId, start.atZone(ZoneId.systemDefault())));
       return;
     }
+    log.debug("Running job %s");
     JobProgress progress = null;
     try {
       AtomicLong lastAlive = new AtomicLong(currentTimeMillis());
