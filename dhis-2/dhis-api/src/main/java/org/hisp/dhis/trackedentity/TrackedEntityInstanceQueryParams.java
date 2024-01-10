@@ -998,11 +998,13 @@ public class TrackedEntityInstanceQueryParams {
   @Getter
   @AllArgsConstructor
   public enum OrderColumn {
-    TRACKEDENTITY("trackedEntityInstance", "uid", MAIN_QUERY_ALIAS),
+    TRACKEDENTITY_INSTANCE("trackedEntityInstance", "uid", MAIN_QUERY_ALIAS),
+    TRACKEDENTITY("trackedEntity", "uid", MAIN_QUERY_ALIAS),
     CREATED("created", CREATED_ID, MAIN_QUERY_ALIAS),
     CREATED_AT("createdAt", CREATED_ID, MAIN_QUERY_ALIAS),
     CREATED_AT_CLIENT("createdAtClient", "createdatclient", MAIN_QUERY_ALIAS),
-    UPDATED_AT("lastUpdated", "lastupdated", MAIN_QUERY_ALIAS),
+    LAST_UPDATED_AT("lastUpdated", "lastupdated", MAIN_QUERY_ALIAS),
+    UPDATED_AT("updatedAt", "lastupdated", MAIN_QUERY_ALIAS),
     UPDATED_AT_CLIENT("updatedAtClient", "lastupdatedatclient", MAIN_QUERY_ALIAS),
     ENROLLED_AT(
         "enrolledAt",
