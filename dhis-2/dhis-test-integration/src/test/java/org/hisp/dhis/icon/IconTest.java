@@ -101,6 +101,20 @@ class IconTest extends TrackerTest {
   }
 
   @Test
+  void shouldGetAllIcons() {
+    Map<String, DefaultIcon> defaultIconMap = getAllDefaultIcons();
+
+    IconCriteria iconCriteria = new IconCriteria();
+
+    assertEquals(
+        defaultIconMap.size() + 1,
+        iconService.getIcons(iconCriteria).size(),
+        String.format(
+            "Expected to find %d icons, but found %d instead",
+            defaultIconMap.size() + 1, iconService.getIcons(iconCriteria).size()));
+  }
+
+  @Test
   void shouldGetDefaultIconWhenKeyBelongsToDefaultIcon() throws NotFoundException {
     String defaultIconKey = getAllDefaultIcons().keySet().stream().findAny().orElse(null);
 

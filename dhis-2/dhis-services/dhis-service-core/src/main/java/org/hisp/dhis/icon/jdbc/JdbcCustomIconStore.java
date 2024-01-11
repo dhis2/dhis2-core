@@ -78,34 +78,21 @@ public class JdbcCustomIconStore implements CustomIconStore {
 
   @Override
   public List<CustomIcon> getIconsByKeywords(List<String> keywords) {
+    String sql =
+        """
+                  select c.key as iconkey, c.description as icondescription, c.keywords as keywords, c.created as created, c.lastupdated as lastupdated,
+                  f.uid as fileresourceuid, u.uid as useruid
+                  from customicon c join fileresource f on f.fileresourceid = c.fileresourceid
+                  join userinfo u on u.userinfoid = c.createdby
+                  """;
 
     if (keywords.isEmpty()) {
-      return getAllIcons();
+      return jdbcTemplate.query(sql, customIconRowMapper);
     }
 
-    final String sql =
-        """
-            select c.key as iconkey, c.description as icondescription, c.keywords as keywords, c.created as created, c.lastupdated as lastupdated,
-            f.uid as fileresourceuid, u.uid as useruid
-            from customicon c join fileresource f on f.fileresourceid = c.fileresourceid
-            join userinfo u on u.userinfoid = c.createdby
-            where keywords @> string_to_array(?,',')
-            """;
+    sql = sql + " where keywords @> string_to_array(?,',') ";
 
     return jdbcTemplate.query(sql, customIconRowMapper, String.join(",", keywords));
-  }
-
-  @Override
-  public List<CustomIcon> getAllIcons() {
-    final String sql =
-        """
-            select c.key as iconkey, c.description as icondescription, c.keywords as keywords, c.created as created, c.lastupdated as lastupdated,
-            f.uid as fileresourceuid, u.uid as useruid
-            from customicon c join fileresource f on f.fileresourceid = c.fileresourceid
-            join userinfo u on u.userinfoid = c.createdby
-            """;
-
-    return jdbcTemplate.query(sql, customIconRowMapper);
   }
 
   @Override

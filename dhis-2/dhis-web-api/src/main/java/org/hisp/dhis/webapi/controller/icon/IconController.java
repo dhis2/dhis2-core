@@ -126,9 +126,7 @@ public class IconController {
   @GetMapping
   public @ResponseBody List<IconResponse> getAllIcons(IconCriteria iconCriteria) {
 
-    List<? extends Icon> icons = iconService.getIcons(iconCriteria);
-
-    return icons.stream().map(iconMapper::from).toList();
+    return iconService.getIcons(iconCriteria).stream().map(iconMapper::from).toList();
   }
 
   @GetMapping("/keywords")

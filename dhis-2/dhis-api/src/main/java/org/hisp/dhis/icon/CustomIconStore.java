@@ -50,13 +50,6 @@ public interface CustomIconStore {
   List<CustomIcon> getIconsByKeywords(List<String> keywords);
 
   /**
-   * Gets all custom icons present in the database
-   *
-   * @return a list containing all icons
-   */
-  List<CustomIcon> getAllIcons();
-
-  /**
    * Returns a list with all the custom icon keywords
    *
    * @return a list with all the custom icon keywords
