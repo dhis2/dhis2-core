@@ -68,7 +68,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -127,9 +127,7 @@ public class MapController extends AbstractCrudController<Map> {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @ResponseBody
   public WebMessage putJsonObject(
-      @PathVariable String uid,
-      @CurrentUser UserDetailsImpl currentUserDetails,
-      HttpServletRequest request)
+      @PathVariable String uid, @CurrentUser UserDetails currentUser, HttpServletRequest request)
       throws IOException {
     Map map = mappingService.getMap(uid);
 

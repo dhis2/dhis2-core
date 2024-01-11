@@ -40,7 +40,7 @@ import org.hisp.dhis.route.Route;
 import org.hisp.dhis.route.RouteService;
 import org.hisp.dhis.schema.descriptors.RouteSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.UserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -64,10 +64,10 @@ public class RouteController extends AbstractCrudController<Route> {
       method = {RequestMethod.GET, RequestMethod.POST})
   public ResponseEntity<String> run(
       @PathVariable("id") String id,
-      @CurrentUser UserDetailsImpl currentUserDetails,
+      @CurrentUser UserDetails currentUser,
       HttpServletRequest request)
       throws IOException, ForbiddenException, NotFoundException, BadRequestException {
-    return runWithSubpath(id, currentUserDetails, request);
+    return runWithSubpath(id, currentUser, request);
   }
 
   @RequestMapping(
@@ -75,7 +75,7 @@ public class RouteController extends AbstractCrudController<Route> {
       method = {RequestMethod.GET, RequestMethod.POST})
   public ResponseEntity<String> runWithSubpath(
       @PathVariable("id") String id,
-      @CurrentUser UserDetailsImpl currentUserDetails,
+      @CurrentUser UserDetails currentUser,
       HttpServletRequest request)
       throws IOException, ForbiddenException, NotFoundException, BadRequestException {
     Route route = routeService.getDecryptedRoute(id);
@@ -84,14 +84,14 @@ public class RouteController extends AbstractCrudController<Route> {
       throw new NotFoundException(String.format("Route %s not found", id));
     }
 
-    if (!aclService.canRead(currentUserDetails, route)
-        && !currentUserDetails.hasAnyAuthority(route.getAuthorities())) {
+    if (!aclService.canRead(currentUser, route)
+        && !currentUser.hasAnyAuthority(route.getAuthorities())) {
       throw new ForbiddenException("User not authorized");
     }
 
     Optional<String> subPath = getSubPath(request.getPathInfo(), id);
 
-    return routeService.exec(route, currentUserDetails, subPath, request);
+    return routeService.exec(route, currentUser, subPath, request);
   }
 
   private Optional<String> getSubPath(String path, String id) {

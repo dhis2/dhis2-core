@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,41 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.dataentry;
+package org.hisp.dhis.scheduling;
 
-import static org.hisp.dhis.webapi.utils.ContextUtils.getEtag;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import javax.servlet.http.HttpServletRequest;
+import java.io.InputStream;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.dxf2.metadata.DataSetMetadataExportService;
-import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.utils.ResponseEntityUtils;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.fileresource.FileResourceService;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.MimeType;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@OpenApi.Tags("data")
-@RestController
+@Slf4j
 @RequiredArgsConstructor
-@RequestMapping("/dataEntry")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-public class DataSetMetadataController {
-  private final DataSetMetadataExportService exportService;
+public class JobCreationHelperForProduction implements JobCreationHelper {
 
-  @GetMapping("/metadata")
-  public ResponseEntity<JsonNode> getMetadata(
-      @CurrentUser UserDetails currentUser, HttpServletRequest request) {
-    String etag = getEtag(exportService.getDataSetMetadataLastModified(), currentUser);
+  private final JobConfigurationStore jobConfigurationStore;
+  private final FileResourceService fileResourceService;
 
-    return ResponseEntityUtils.withEtagCaching(etag, request, exportService::getDataSetMetadata);
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public String create(JobConfiguration config) throws ConflictException {
+    return createFromConfig(config, jobConfigurationStore);
+  }
+
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public String create(JobConfiguration config, MimeType contentType, InputStream content)
+      throws ConflictException {
+    return createFromConfigAndInputStream(
+        config, contentType, content, jobConfigurationStore, fileResourceService);
   }
 }

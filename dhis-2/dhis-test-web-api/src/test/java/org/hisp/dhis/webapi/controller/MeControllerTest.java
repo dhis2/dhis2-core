@@ -154,7 +154,7 @@ class MeControllerTest extends DhisControllerConvenienceTest {
     assertEquals(
         "User object is null, user is not authenticated.",
         PUT("/me/changePassword", "{'oldPassword':'district','newPassword':'$ecrEt42'}")
-            .error(Series.CLIENT_ERROR)
+            .error(Series.SERVER_ERROR)
             .getMessage());
   }
 

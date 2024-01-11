@@ -72,7 +72,6 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.hisp.dhis.webapi.utils.HeaderUtils;
@@ -147,7 +146,7 @@ public class DataValueController {
       @RequestParam(required = false) String comment,
       @RequestParam(required = false) Boolean followUp,
       @RequestParam(required = false) boolean force,
-      @CurrentUser UserDetailsImpl currentUserDetails)
+      @CurrentUser UserDetails currentUser)
       throws WebMessageException {
     DataValueCategoryDto attribute = dataValidator.getDataValueCategoryDto(cc, cp);
 
@@ -164,16 +163,16 @@ public class DataValueController {
             .setFollowUp(followUp)
             .setForce(force);
 
-    saveDataValueInternal(dataValue, currentUserDetails);
+    saveDataValueInternal(dataValue, currentUser);
   }
 
   @PreAuthorize("hasRole('ALL') or hasRole('F_DATAVALUE_ADD')")
   @PostMapping(consumes = "application/json")
   @ResponseStatus(HttpStatus.CREATED)
   public void saveDataValueWithBody(
-      @RequestBody DataValueDto dataValue, @CurrentUser UserDetailsImpl currentUserDetails)
+      @RequestBody DataValueDto dataValue, @CurrentUser UserDetails currentUser)
       throws WebMessageException {
-    saveDataValueInternal(dataValue, currentUserDetails);
+    saveDataValueInternal(dataValue, currentUser);
   }
 
   @PreAuthorize("hasRole('ALL') or hasRole('F_DATAVALUE_ADD')")
@@ -191,7 +190,7 @@ public class DataValueController {
       @RequestParam(required = false) Boolean followUp,
       @RequestParam(required = false) boolean force,
       @RequestParam(required = false) MultipartFile file,
-      @CurrentUser UserDetailsImpl currentUserDetails)
+      @CurrentUser UserDetails currentUser)
       throws WebMessageException, IOException {
     DataValueCategoryDto attribute = dataValidator.getDataValueCategoryDto(cc, cp);
 
@@ -213,7 +212,7 @@ public class DataValueController {
             .setFollowUp(followUp)
             .setForce(force);
 
-    saveDataValueInternal(dataValue, currentUserDetails);
+    saveDataValueInternal(dataValue, currentUser);
 
     WebMessage webMessage = new WebMessage(Status.OK, HttpStatus.ACCEPTED);
     if (fileResource != null) {
@@ -470,7 +469,7 @@ public class DataValueController {
       DataValueQueryParams params,
       @OpenApi.Param({UID.class, DataSet.class}) @RequestParam(required = false) String ds,
       @RequestParam(required = false) boolean force,
-      @CurrentUser UserDetailsImpl currentUser,
+      @CurrentUser UserDetails currentUser,
       HttpServletResponse response)
       throws WebMessageException {
     FileResourceRetentionStrategy retentionStrategy =
@@ -539,7 +538,7 @@ public class DataValueController {
   @GetMapping
   public List<String> getDataValue(
       DataValueQueryParams params,
-      @CurrentUser UserDetailsImpl currentUserDetails,
+      @CurrentUser UserDetails currentUser,
       HttpServletResponse response)
       throws WebMessageException {
     // ---------------------------------------------------------------------
@@ -575,7 +574,7 @@ public class DataValueController {
     // Data Sharing check
     // ---------------------------------------------------------------------
 
-    dataValidator.checkDataValueSharing(currentUserDetails, dataValue);
+    dataValidator.checkDataValueSharing(currentUser, dataValue);
 
     List<String> value = new ArrayList<>();
     value.add(dataValue.getValue());

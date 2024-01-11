@@ -32,19 +32,26 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.DefaultResourceBundleManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager;
 import org.hisp.dhis.message.EmailMessageSender;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.DefaultOutboundMessageBatchService;
+import org.hisp.dhis.scheduling.JobConfigurationStore;
+import org.hisp.dhis.scheduling.JobCreationHelperForProduction;
+import org.hisp.dhis.scheduling.JobCreationHelperForTests;
+import org.hisp.dhis.scheduling.JobCreationHelperWrapper;
 import org.hisp.dhis.setting.DefaultStyleManager;
 import org.hisp.dhis.setting.StyleManager;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.sms.config.SmsMessageSender;
 import org.hisp.dhis.user.UserSettingService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
@@ -52,8 +59,27 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  */
 @Configuration("coreServiceConfig")
 public class ServiceConfig {
+
+  @Autowired private JobConfigurationStore jobConfigurationStore;
+  @Autowired private FileResourceService fileResourceService;
+
+  @Bean("JobCreationHelperBean")
+  @Profile({"!test", "!test-h2", "!test-postgres", "!cache-invalidation-test"})
+  public JobCreationHelperWrapper jobCreationHelperBeanTests() {
+    return new JobCreationHelperWrapper(
+        new JobCreationHelperForTests(jobConfigurationStore, fileResourceService));
+  }
+
+  @Bean("JobCreationHelperBean")
+  @Profile({"test", "test-h2", "test-postgres", "cache-invalidation-test"})
+  public JobCreationHelperWrapper jobCreationHelperBeanProduction() {
+    return new JobCreationHelperWrapper(
+        new JobCreationHelperForProduction(jobConfigurationStore, fileResourceService));
+  }
+
   @Bean("taskScheduler")
   public ThreadPoolTaskScheduler threadPoolTaskScheduler() {
+
     ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
     threadPoolTaskScheduler.setPoolSize(25);
     return threadPoolTaskScheduler;

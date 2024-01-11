@@ -81,7 +81,6 @@ import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
@@ -156,7 +155,7 @@ public class MessageConversationController
   public ResponseEntity<?> getObject(
       @PathVariable String uid,
       Map<String, String> rpParameters,
-      @CurrentUser UserDetailsImpl currentUserDetails,
+      @CurrentUser UserDetails currentUser,
       HttpServletRequest request,
       HttpServletResponse response)
       throws ForbiddenException, NotFoundException {
@@ -173,11 +172,11 @@ public class MessageConversationController
       return ResponseEntity.ok(objectNode);
     }
 
-    if (!canReadMessageConversation(currentUserDetails, messageConversation)) {
+    if (!canReadMessageConversation(currentUser, messageConversation)) {
       throw new AccessDeniedException("Not authorized to access this conversation.");
     }
 
-    return super.getObject(uid, rpParameters, currentUserDetails, request, response);
+    return super.getObject(uid, rpParameters, currentUser, request, response);
   }
 
   @Override
@@ -369,7 +368,7 @@ public class MessageConversationController
       @RequestBody String message,
       @RequestParam(value = "internal", defaultValue = "false") boolean internal,
       @RequestParam(value = "attachments", required = false) Set<String> attachments,
-      @CurrentUser UserDetailsImpl currentUser,
+      @CurrentUser UserDetails currentUser,
       HttpServletRequest request) {
     String metaData =
         MessageService.META_USER_AGENT + request.getHeader(ContextUtils.HEADER_USER_AGENT);
@@ -470,7 +469,7 @@ public class MessageConversationController
   public @ResponseBody RootNode setMessagePriority(
       @PathVariable String uid,
       @RequestParam MessageConversationPriority messageConversationPriority,
-      @CurrentUser UserDetailsImpl currentUser,
+      @CurrentUser UserDetails currentUser,
       HttpServletResponse response) {
     RootNode responseNode = new RootNode("response");
 
@@ -511,7 +510,7 @@ public class MessageConversationController
   public @ResponseBody RootNode setMessageStatus(
       @PathVariable String uid,
       @RequestParam MessageConversationStatus messageConversationStatus,
-      @CurrentUser UserDetailsImpl currentUser,
+      @CurrentUser UserDetails currentUser,
       HttpServletResponse response) {
     RootNode responseNode = new RootNode("response");
 
@@ -552,7 +551,7 @@ public class MessageConversationController
   public @ResponseBody RootNode setUserAssigned(
       @PathVariable String uid,
       @RequestParam(required = false) String userId,
-      @CurrentUser UserDetailsImpl currentUser,
+      @CurrentUser UserDetails currentUser,
       HttpServletResponse response) {
     RootNode responseNode = new RootNode("response");
 
@@ -607,7 +606,7 @@ public class MessageConversationController
       produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   public @ResponseBody RootNode removeUserAssigned(
       @PathVariable String uid,
-      @CurrentUser UserDetailsImpl currentUser,
+      @CurrentUser UserDetails currentUser,
       HttpServletResponse response) {
     RootNode responseNode = new RootNode("response");
 
@@ -645,7 +644,7 @@ public class MessageConversationController
       @PathVariable String uid,
       @RequestParam(required = false) String userUid,
       HttpServletResponse response,
-      @CurrentUser UserDetailsImpl currentUser) {
+      @CurrentUser UserDetails currentUser) {
     return modifyMessageConversationRead(
         userUid, Lists.newArrayList(uid), response, true, currentUser);
   }
@@ -657,7 +656,7 @@ public class MessageConversationController
       @RequestParam(value = "user", required = false) String userUid,
       @RequestBody List<String> uids,
       HttpServletResponse response,
-      @CurrentUser UserDetailsImpl currentUser) {
+      @CurrentUser UserDetails currentUser) {
     return modifyMessageConversationRead(userUid, uids, response, true, currentUser);
   }
 
@@ -672,7 +671,7 @@ public class MessageConversationController
       @PathVariable String uid,
       @RequestParam(required = false) String userUid,
       HttpServletResponse response,
-      @CurrentUser UserDetailsImpl currentUser) {
+      @CurrentUser UserDetails currentUser) {
     return modifyMessageConversationRead(
         userUid, Lists.newArrayList(uid), response, false, currentUser);
   }
@@ -684,7 +683,7 @@ public class MessageConversationController
       @RequestParam(value = "user", required = false) String userUid,
       @RequestBody List<String> uids,
       HttpServletResponse response,
-      @CurrentUser UserDetailsImpl currentUser) {
+      @CurrentUser UserDetails currentUser) {
     return modifyMessageConversationRead(userUid, uids, response, false, currentUser);
   }
 
@@ -699,7 +698,7 @@ public class MessageConversationController
       @RequestParam(value = "user", required = false) String userUid,
       @RequestBody List<String> uids,
       HttpServletResponse response,
-      @CurrentUser UserDetailsImpl currentUser) {
+      @CurrentUser UserDetails currentUser) {
     RootNode responseNode = new RootNode("response");
 
     User user =
@@ -754,7 +753,7 @@ public class MessageConversationController
       @RequestParam(value = "user", required = false) String userUid,
       @RequestBody List<String> uids,
       HttpServletResponse response,
-      @CurrentUser UserDetailsImpl currentUser) {
+      @CurrentUser UserDetails currentUser) {
     RootNode responseNode = new RootNode("response");
 
     User user =
@@ -812,7 +811,7 @@ public class MessageConversationController
   @PreAuthorize("hasRole('ALL') or hasRole('F_METADATA_IMPORT')")
   public WebMessage deleteObject(
       @PathVariable String uid,
-      @CurrentUser UserDetailsImpl currentUser,
+      @CurrentUser UserDetails currentUser,
       HttpServletRequest request,
       HttpServletResponse response)
       throws ForbiddenException,
@@ -833,7 +832,7 @@ public class MessageConversationController
   public @ResponseBody RootNode removeUserFromMessageConversation(
       @PathVariable(value = "mc-uid") String mcUid,
       @PathVariable(value = "user-uid") String userUid,
-      @CurrentUser UserDetailsImpl currentUser,
+      @CurrentUser UserDetails currentUser,
       HttpServletResponse response)
       throws DeleteAccessDeniedException {
     RootNode responseNode = new RootNode("reply");
@@ -881,7 +880,7 @@ public class MessageConversationController
       @RequestParam("mc") List<String> mcUids,
       @RequestParam(value = "user", required = false) String userUid,
       HttpServletResponse response,
-      @CurrentUser UserDetailsImpl currentUser)
+      @CurrentUser UserDetails currentUser)
       throws DeleteAccessDeniedException {
     RootNode responseNode = new RootNode("response");
 
@@ -929,7 +928,7 @@ public class MessageConversationController
       @PathVariable(value = "mcUid") String mcUid,
       @PathVariable(value = "msgUid") String msgUid,
       @PathVariable(value = "fileUid") String fileUid,
-      @CurrentUser UserDetailsImpl currentUser,
+      @CurrentUser UserDetails currentUser,
       HttpServletResponse response)
       throws WebMessageException {
 
@@ -1009,7 +1008,7 @@ public class MessageConversationController
       List<String> uids,
       HttpServletResponse response,
       boolean readValue,
-      UserDetailsImpl currentUser) {
+      UserDetails currentUser) {
     RootNode responseNode = new RootNode("response");
 
     User user =

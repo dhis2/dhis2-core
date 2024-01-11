@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,41 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.dataentry;
+package org.hisp.dhis.scheduling;
 
-import static org.hisp.dhis.webapi.utils.ContextUtils.getEtag;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import javax.servlet.http.HttpServletRequest;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.dxf2.metadata.DataSetMetadataExportService;
-import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.utils.ResponseEntityUtils;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@OpenApi.Tags("data")
-@RestController
 @RequiredArgsConstructor
-@RequestMapping("/dataEntry")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-public class DataSetMetadataController {
-  private final DataSetMetadataExportService exportService;
+@Getter
+public class JobCreationHelperWrapper {
 
-  @GetMapping("/metadata")
-  public ResponseEntity<JsonNode> getMetadata(
-      @CurrentUser UserDetails currentUser, HttpServletRequest request) {
-    String etag = getEtag(exportService.getDataSetMetadataLastModified(), currentUser);
-
-    return ResponseEntityUtils.withEtagCaching(etag, request, exportService::getDataSetMetadata);
-  }
+  private final JobCreationHelper jobCreationHelper;
 }

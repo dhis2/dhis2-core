@@ -106,7 +106,6 @@ import org.hisp.dhis.user.PasswordValidationService;
 import org.hisp.dhis.user.RestoreOptions;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
@@ -258,7 +257,7 @@ public class UserController extends AbstractCrudController<User> {
       @PathVariable("property") String pvProperty,
       @RequestParam Map<String, String> rpParameters,
       TranslateParams translateParams,
-      @CurrentUser UserDetailsImpl currentUser,
+      @CurrentUser UserDetails currentUser,
       HttpServletResponse response)
       throws ForbiddenException, NotFoundException {
     if (!"dataApprovalWorkflows".equals(pvProperty)) {
@@ -572,7 +571,7 @@ public class UserController extends AbstractCrudController<User> {
   @ResponseBody
   public WebMessage putXmlObject(
       @PathVariable("uid") String pvUid,
-      @CurrentUser UserDetailsImpl currentUser,
+      @CurrentUser UserDetails currentUser,
       HttpServletRequest request,
       HttpServletResponse response)
       throws IOException, ForbiddenException, ConflictException, NotFoundException {
@@ -589,7 +588,7 @@ public class UserController extends AbstractCrudController<User> {
   @ResponseBody
   public WebMessage putJsonObject(
       @PathVariable("uid") String pvUid,
-      @CurrentUser UserDetailsImpl currentUser,
+      @CurrentUser UserDetails currentUser,
       HttpServletRequest request)
       throws IOException, ConflictException, ForbiddenException, NotFoundException {
     User inputUser = renderService.fromJson(request.getInputStream(), getEntityClass());

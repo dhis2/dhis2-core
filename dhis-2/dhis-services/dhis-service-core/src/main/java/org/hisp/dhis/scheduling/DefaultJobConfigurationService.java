@@ -33,8 +33,6 @@ import static org.hisp.dhis.scheduling.JobType.values;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Maps;
-import com.google.common.hash.Hashing;
-import com.google.common.io.ByteSource;
 import com.google.common.primitives.Primitives;
 import java.beans.PropertyDescriptor;
 import java.io.IOException;
@@ -52,14 +50,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.PropertyUtils;
-import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -67,8 +63,6 @@ import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonNode;
@@ -80,12 +74,8 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.MimeType;
 
 /**
@@ -99,72 +89,17 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   private final JobConfigurationStore jobConfigurationStore;
   private final FileResourceService fileResourceService;
   private final SystemSettingManager systemSettings;
-  private final PlatformTransactionManager transactionManager;
-  private final ApplicationContext applicationContext;
-  private static final List<String> TEST_PROFILES =
-      List.of("test", "test-h2", "test-postgres", "cache-invalidation-test");
+  private final JobCreationHelperWrapper jobCreationHelperWrapper;
 
   @Override
   public String create(JobConfiguration config) throws ConflictException {
-    return getTransactionTemplate()
-        .execute(
-            status -> {
-              config.setAutoFields();
-              jobConfigurationStore.save(config);
-              return config.getUid();
-            });
+    return jobCreationHelperWrapper.getJobCreationHelper().create(config);
   }
 
   @Override
   public String create(JobConfiguration config, MimeType contentType, InputStream content)
       throws ConflictException {
-
-    if (config.getSchedulingType() != SchedulingType.ONCE_ASAP)
-      throw new ConflictException(
-          "Job must be of type %s to allow content data".formatted(SchedulingType.ONCE_ASAP));
-
-    AtomicReference<ConflictException> conflictException = new AtomicReference<>();
-
-    String uid =
-        getTransactionTemplate()
-            .execute(
-                status -> {
-                  config.setAutoFields(); // ensure UID is set
-                  try {
-                    saveJobData(config.getUid(), contentType, content);
-                  } catch (ConflictException e) {
-                    conflictException.set(e);
-                    return "conflict";
-                  }
-                  jobConfigurationStore.save(config);
-                  return config.getUid();
-                });
-
-    if (uid != null && uid.equals("conflict") && conflictException.get() != null) {
-      throw conflictException.get();
-    }
-
-    return uid;
-  }
-
-  @SuppressWarnings("java:S4790")
-  private void saveJobData(String uid, MimeType contentType, InputStream content)
-      throws ConflictException {
-    try {
-      byte[] data = IOUtils.toByteArray(content);
-      FileResource fr =
-          new FileResource(
-              "job_input_data_for_" + uid,
-              contentType.toString(),
-              data.length,
-              ByteSource.wrap(data).hash(Hashing.md5()).toString(),
-              FileResourceDomain.JOB_DATA);
-      fr.setUid(uid);
-      fr.setAssigned(true);
-      fileResourceService.syncSaveFileResource(fr, data);
-    } catch (IOException ex) {
-      throw new ConflictException("Failed to create job data file resource: " + ex.getMessage());
-    }
+    return jobCreationHelperWrapper.getJobCreationHelper().create(config, contentType, content);
   }
 
   @Override
@@ -507,17 +442,5 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
     return Arrays.stream(enumType.getEnumConstants())
         .map(e -> ((Enum<?>) e).name())
         .collect(Collectors.toList());
-  }
-
-  private boolean isRunningTestProfile() {
-    String[] activeProfiles = applicationContext.getEnvironment().getActiveProfiles();
-    return Arrays.stream(activeProfiles).anyMatch(TEST_PROFILES::contains);
-  }
-
-  private TransactionTemplate getTransactionTemplate() {
-    TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
-    transactionTemplate.setPropagationBehavior(
-        isRunningTestProfile() ? Propagation.REQUIRED.value() : Propagation.REQUIRES_NEW.value());
-    return transactionTemplate;
   }
 }

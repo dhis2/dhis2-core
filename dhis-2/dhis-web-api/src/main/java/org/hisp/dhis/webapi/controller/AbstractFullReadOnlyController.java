@@ -87,7 +87,6 @@ import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.CheckedFunction;
@@ -273,7 +272,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
   public ResponseEntity<String> getObjectListCsv(
       @RequestParam Map<String, String> rpParameters,
       OrderParams orderParams,
-      @CurrentUser UserDetailsImpl currentUser,
+      @CurrentUser UserDetails currentUser,
       @RequestParam(defaultValue = ",") char separator,
       @RequestParam(defaultValue = ";") String arraySeparator,
       @RequestParam(defaultValue = "false") boolean skipHeader,
@@ -427,7 +426,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
   public @ResponseBody ResponseEntity<?> getObject(
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
       @RequestParam Map<String, String> rpParameters,
-      @CurrentUser UserDetailsImpl currentUser,
+      @CurrentUser UserDetails currentUser,
       HttpServletRequest request,
       HttpServletResponse response)
       throws ForbiddenException, NotFoundException {
@@ -480,7 +479,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
       @OpenApi.Param(PropertyNames.class) @PathVariable("property") String pvProperty,
       @RequestParam Map<String, String> rpParameters,
       TranslateParams translateParams,
-      @CurrentUser UserDetailsImpl currentUser,
+      @CurrentUser UserDetails currentUser,
       HttpServletResponse response)
       throws ForbiddenException, NotFoundException {
 

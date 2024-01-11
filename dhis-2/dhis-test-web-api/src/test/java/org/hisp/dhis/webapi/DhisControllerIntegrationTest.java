@@ -87,13 +87,10 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
 
   @BeforeEach
   final void setup() throws Exception {
-    // TODO MAS: Cleanup
     userService = _userService;
     clearSecurityContext();
 
-    User userAdmin = XpreCreateInjectAdminUserWithoutPersistence();
-    manager.persist(userAdmin);
-    XinjectSecurityContextUser(userAdmin);
+    createAndPersistAdminUserAndRole();
 
     superUser = createAndAddAdminUser("ALL");
 
@@ -114,18 +111,18 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
 
   protected void beforeEach() {}
 
-  protected void XinjectSecurityContextUser(User user) {
+  protected void lookUpInjectUserSecurityContext(User user) {
     if (user == null) {
       clearSecurityContext();
       return;
     }
     hibernateService.flushSession();
-    User user1 = manager.find(User.class, user.getId());
-    //    user = userService.getUser(user.getUid());
-    injectSecurityContext(UserDetails.fromUser(user1));
+
+    User foundUser = manager.find(User.class, user.getId());
+    injectSecurityContext(UserDetails.fromUser(foundUser));
   }
 
-  protected User XpreCreateInjectAdminUserWithoutPersistence() {
+  protected User createAndPersistAdminUserAndRole() {
     UserRole role = createUserRole("Superuser_Test_" + CodeGenerator.generateUid(), "ALL");
     role.setUid(CodeGenerator.generateUid());
 
@@ -140,6 +137,9 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
     user.getUserRoles().add(role);
     user.setLastUpdated(new Date());
     user.setCreated(new Date());
+
+    manager.persist(user);
+    lookUpInjectUserSecurityContext(user);
 
     return user;
   }

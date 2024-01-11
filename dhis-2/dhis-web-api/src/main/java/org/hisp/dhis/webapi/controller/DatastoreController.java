@@ -53,7 +53,7 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.UserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -175,7 +175,7 @@ public class DatastoreController extends AbstractDatastoreController {
   public @ResponseBody DatastoreEntry getEntryMetaData(
       @PathVariable String namespace,
       @PathVariable String key,
-      @CurrentUser UserDetailsImpl currentUserDetails)
+      @CurrentUser UserDetails currentUser)
       throws NotFoundException, InvocationTargetException, IllegalAccessException {
     DatastoreEntry entry = getExistingEntry(namespace, key);
 
@@ -184,7 +184,7 @@ public class DatastoreController extends AbstractDatastoreController {
     metaData.setValue(null);
     metaData.setJbPlainValue(null);
     metaData.setEncryptedValue(null);
-    metaData.setAccess(aclService.getAccess(entry, currentUserDetails));
+    metaData.setAccess(aclService.getAccess(entry, currentUser));
     return metaData;
   }
 
