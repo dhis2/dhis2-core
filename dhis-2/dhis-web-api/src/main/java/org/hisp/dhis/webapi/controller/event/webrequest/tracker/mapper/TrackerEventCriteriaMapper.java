@@ -40,6 +40,7 @@ import org.mapstruct.Mapping;
  */
 @Mapper
 public interface TrackerEventCriteriaMapper {
+  @Mapping(target = "rawOrder", ignore = true)
   @Mapping(source = "trackedEntity", target = "trackedEntityInstance")
   @Mapping(source = "occurredAfter", target = "startDate")
   @Mapping(source = "occurredBefore", target = "endDate")
