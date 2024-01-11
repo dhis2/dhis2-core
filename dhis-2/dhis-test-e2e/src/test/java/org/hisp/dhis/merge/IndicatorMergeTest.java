@@ -341,6 +341,16 @@ class IndicatorMergeTest extends ApiTest {
         .body(
             "indicators",
             not(hasItem(allOf(hasEntry("id", sourceUid1), hasEntry("id", sourceUid2)))));
+
+    // and visualization sorting is updated
+    QueryParamsBuilder paramsBuilder3 = new QueryParamsBuilder().add("fields", "sorting");
+    visualizationActions
+        .get(visUid, paramsBuilder3)
+        .validate()
+        .statusCode(200)
+        .body("sorting", hasItem(allOf(hasEntry("dimension", targetUid))))
+        .body("sorting", not(hasItem(allOf(hasEntry("dimension", sourceUid1)))))
+        .body("sorting", not(hasItem(allOf(hasEntry("dimension", section2Uid)))));
   }
 
   private String getVisualization(String sourceUid1, String sourceUid2) {
@@ -374,12 +384,30 @@ class IndicatorMergeTest extends ApiTest {
               }
             ],
             "dimension": "dx"
+          },
+          {
+            "items": [
+              {
+                 "name": "CHP",
+                 "id": "uYxK4wmcPqA",
+                 "displayName": "CHP",
+                 "displayShortName": "CHP",
+                 "dimensionItemType": "ORGANISATION_UNIT_GROUP"
+               }
+            ],
+            "dimension": "%s"
+          }
+        ],
+        "sorting": [
+          {
+              "dimension": "%s",
+              "direction": "ASC"
           }
         ],
         "displayName": "vis test 1"
       }
     """
-        .formatted(sourceUid1, sourceUid2, sourceUid1, sourceUid2);
+        .formatted(sourceUid1, sourceUid2, sourceUid1, sourceUid2, sourceUid1, sourceUid1);
   }
 
   private String createDataEntryForm(String name, String indUid1, String indUid2) {

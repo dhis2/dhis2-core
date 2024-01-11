@@ -33,6 +33,7 @@ import org.hibernate.query.Query;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.common.BaseAnalyticalObject;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
@@ -186,6 +187,18 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     String hql =
         "from " + clazz.getName() + " c where c." + embeddedObject + "legendSet = :legendSet";
     return getQuery(hql).setParameter("legendSet", legendSet).list();
+  }
+
+  @Override
+  public List<T> getAnalyticalObjectsByIndicator(List<Indicator> indicators) {
+    List<String> uids = IdentifiableObjectUtils.getUids(indicators);
+    String sql =
+        """
+    select * from visualization, jsonb_array_elements(sorting) as sort
+    where sort->>'dimension' in :uids
+    """;
+
+    return getSession().createNativeQuery(sql, clazz).setParameter("uids", uids).list();
   }
 
   @Override

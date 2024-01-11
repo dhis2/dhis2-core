@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.analytics.Sorting;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.commons.collection.CollectionUtils;
@@ -40,9 +41,12 @@ import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.SectionService;
+import org.hisp.dhis.eventvisualization.EventVisualizationService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorService;
+import org.hisp.dhis.visualization.Visualization;
+import org.hisp.dhis.visualization.VisualizationService;
 import org.springframework.stereotype.Service;
 
 /**
@@ -58,6 +62,8 @@ public class MetadataIndicatorMergeHandler {
   private final IndicatorService indicatorService;
   private final DataEntryFormService dataEntryFormService;
   private final DimensionService dimensionService;
+  private final VisualizationService visualizationService;
+  private final EventVisualizationService eventVisualizationService;
 
   public void handleDataSets(List<Indicator> sources, Indicator target) {
     Set<DataSet> dataSets =
@@ -88,6 +94,27 @@ public class MetadataIndicatorMergeHandler {
   }
 
   public void handleDataDimensionItems(List<Indicator> sources, Indicator target) {
+    List<DataDimensionItem> dataDimensionItems =
+        dimensionService.getIndicatorDataDimensionItems(sources);
+    dataDimensionItems.forEach(item -> item.setIndicator(target));
+  }
+
+  public void handleVisualizations(List<Indicator> sources, Indicator target) {
+    List<Visualization> visualizations =
+        visualizationService.getVisualizationsWithIndicatorSorting(sources);
+    sources.forEach(
+        source ->
+            visualizations.forEach(
+                v -> {
+                  List<Sorting> sorting = v.getSorting();
+                  sorting.forEach(
+                      sort ->
+                          sort.setDimension(
+                              sort.getDimension().replace(source.getUid(), target.getUid())));
+                }));
+  }
+
+  public void handleEventVisualizations(List<Indicator> sources, Indicator target) {
     List<DataDimensionItem> dataDimensionItems =
         dimensionService.getIndicatorDataDimensionItems(sources);
     dataDimensionItems.forEach(item -> item.setIndicator(target));

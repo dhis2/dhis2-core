@@ -162,6 +162,7 @@ public class IndicatorMergeService implements MergeService {
             .add(metadataIndicatorMergeHandler::handleIndicatorRefsInIndicator)
             .add(metadataIndicatorMergeHandler::handleIndicatorRefsInCustomForms)
             .add(metadataIndicatorMergeHandler::handleDataDimensionItems)
+            .add(metadataIndicatorMergeHandler::handleVisualizations)
             .build();
   }
 }
