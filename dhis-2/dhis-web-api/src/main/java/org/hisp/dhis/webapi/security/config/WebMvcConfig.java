@@ -45,7 +45,6 @@ import org.hisp.dhis.node.DefaultNodeService;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
-import org.hisp.dhis.webapi.mvc.CurrentUserInfoHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
@@ -115,9 +114,6 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   @Autowired
   public CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;
 
-  @Autowired
-  public CurrentUserInfoHandlerMethodArgumentResolver currentUserInfoHandlerMethodArgumentResolver;
-
   @Autowired public DefaultRequestInfoService requestInfoService;
 
   @Autowired private UserSettingService userSettingService;
@@ -147,9 +143,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   @Override
   public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
     resolvers.add(dhisApiVersionHandlerMethodArgumentResolver());
-
     resolvers.add(currentUserHandlerMethodArgumentResolver);
-    resolvers.add(currentUserInfoHandlerMethodArgumentResolver);
   }
 
   @Bean

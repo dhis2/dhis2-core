@@ -448,7 +448,7 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
       Map<String, String> rpParameters,
       OrderParams orderParams,
       HttpServletResponse response,
-      UserDetailsImpl currentUser) {
+      UserDetails currentUser) {
     return null;
   }
 

@@ -198,7 +198,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
       @RequestParam Map<String, String> rpParameters,
       OrderParams orderParams,
       HttpServletResponse response,
-      @CurrentUser UserDetailsImpl currentUser)
+      @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException {
     return getObjectList(
         rpParameters,

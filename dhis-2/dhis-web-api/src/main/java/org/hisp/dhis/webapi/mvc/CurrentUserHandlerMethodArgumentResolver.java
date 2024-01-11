@@ -31,9 +31,9 @@ import lombok.AllArgsConstructor;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.webapi.controller.exception.NotAuthenticatedException;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.support.WebDataBinderFactory;
@@ -55,14 +55,16 @@ public class CurrentUserHandlerMethodArgumentResolver implements HandlerMethodAr
 
   @Override
   public boolean supportsParameter(MethodParameter parameter) {
-
     Class<?> type = parameter.getParameterType();
-
-    boolean isAssignable =
-        type == String.class || type == UserDetailsImpl.class || User.class.isAssignableFrom(type);
-
     CurrentUser parameterAnnotation = parameter.getParameterAnnotation(CurrentUser.class);
-    return parameterAnnotation != null && isAssignable;
+    if (parameterAnnotation == null) {
+      return false;
+    }
+
+    return type == String.class
+        || type == UserDetails.class
+        || type == UserDetailsImpl.class
+        || type == User.class;
   }
 
   @Override
@@ -72,23 +74,25 @@ public class CurrentUserHandlerMethodArgumentResolver implements HandlerMethodAr
       NativeWebRequest webRequest,
       WebDataBinderFactory binderFactory)
       throws Exception {
+
     Class<?> type = parameter.getParameterType();
+
     if (type == String.class) {
       return CurrentUserUtil.getCurrentUsername();
+    }
+
+    if (type == UserDetails.class) {
+      return CurrentUserUtil.getCurrentUserDetails();
     }
 
     if (type == UserDetailsImpl.class) {
       return CurrentUserUtil.getCurrentUserDetails();
     }
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    CurrentUser annotation = parameter.getParameterAnnotation(CurrentUser.class);
-    if (currentUser == null && annotation != null && annotation.required()) {
-      throw new NotAuthenticatedException();
+    if (type == User.class) {
+      return userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     }
-    if (User.class.isAssignableFrom(type)) {
-      return currentUser;
-    }
-    throw new UnsupportedOperationException("Not yet supported @CurrentUser type: " + type);
+
+    throw new UnsupportedOperationException("Not supported @CurrentUser type: " + type);
   }
 }

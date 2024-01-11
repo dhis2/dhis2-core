@@ -107,14 +107,11 @@ class CrudControllerIntegrationTest extends DhisControllerIntegrationTest {
     injectSecurityContextUser(userService.getUserByUsername(userA.getUsername()));
 
     JsonArray dataSets =
-        GET("/dataSets?filter=identifiable:token:testToken")
-            .content()
-            .getArray("dataSets");
+        GET("/dataSets?filter=identifiable:token:testToken").content().getArray("dataSets");
 
     log.error("dataSets: {}", dataSets);
 
-    assertTrue(dataSets
-            .isEmpty());
+    assertTrue(dataSets.isEmpty());
     assertFalse(
         GET("/dataSets?filter=identifiable:token:french").content().getArray("dataSets").isEmpty());
     assertFalse(
@@ -144,12 +141,9 @@ class CrudControllerIntegrationTest extends DhisControllerIntegrationTest {
         systemSettingManager.getSystemSetting(SettingKey.DB_LOCALE, Locale.class);
 
     JsonArray dataSets =
-        GET("/dataSets?filter=identifiable:token:testToken")
-            .content()
-            .getArray("dataSets");
+        GET("/dataSets?filter=identifiable:token:testToken").content().getArray("dataSets");
 
-    assertTrue(dataSets
-            .isEmpty());
+    assertTrue(dataSets.isEmpty());
     assertTrue(
         GET("/dataSets?filter=identifiable:token:french").content().getArray("dataSets").isEmpty());
     assertTrue(
