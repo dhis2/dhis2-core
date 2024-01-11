@@ -1,2 +1,2 @@
-event,orgUnit,program,programStage,occurredAt
-eventId,orgUnitId,programId,programStageId,2018-11-01T00:00:00Z
+event,orgUnit,program,programStage,attributeOptionCombo,occurredAt
+eventId,orgUnitId,programId,programStageId,attributeOptionComboId,2018-11-01T00:00:00Z
