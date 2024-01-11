@@ -1042,7 +1042,8 @@ public abstract class AbstractEventService
   }
 
   private void updateEntities(User user) {
-    trackedEntityInstancesToUpdate.forEach(tei -> manager.update(tei, UserDetails.fromUser(user)));
+    UserDetails currentUserDetails = UserDetails.fromUser(user);
+    trackedEntityInstancesToUpdate.forEach(tei -> manager.update(tei, currentUserDetails));
     trackedEntityInstancesToUpdate.clear();
   }
 
@@ -1051,11 +1052,12 @@ public abstract class AbstractEventService
   }
 
   private void updateTrackedEntityInstance(List<Event> events, User user, boolean bulkUpdate) {
+    UserDetails currentUserDetails = UserDetails.fromUser(user);
     for (org.hisp.dhis.program.Event event : events) {
       if (event.getEnrollment() != null) {
         if (!bulkUpdate) {
           if (event.getEnrollment().getTrackedEntity() != null) {
-            manager.update(event.getEnrollment().getTrackedEntity(), UserDetails.fromUser(user));
+            manager.update(event.getEnrollment().getTrackedEntity(), currentUserDetails);
           }
         } else {
           if (event.getEnrollment().getTrackedEntity() != null) {

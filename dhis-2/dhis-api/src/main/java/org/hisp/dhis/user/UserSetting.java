@@ -41,8 +41,6 @@ public class UserSetting implements Serializable {
   /** Required. Unique together with name. */
   private User user;
 
-  private Long userId;
-
   /** Required. Unique together with user. */
   private String name;
 

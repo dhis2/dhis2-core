@@ -532,10 +532,11 @@ public class DimensionalObjectProducer {
       Class<? extends DimensionalItemObject> itemClass =
           DIMENSION_CLASS_ITEM_CLASS_MAP.get(dimClass);
 
+      UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
       List<DimensionalItemObject> dimItems =
           !allItems
               ? asList(idObjectManager.getOrdered(itemClass, inputIdScheme, items))
-              : getReadableItems(CurrentUserUtil.getCurrentUserDetails(), dimObject);
+              : getReadableItems(currentUserDetails, dimObject);
 
       return Optional.of(
           new BaseDimensionalObject(

@@ -71,6 +71,7 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.webdomain.CompleteDataSetRegQueryParams;
@@ -216,6 +217,7 @@ public class CompleteDataSetRegistrationController {
     // ---------------------------------------------------------------------
     List<String> lockedDataSets = new ArrayList<>();
 
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     for (DataSet dataSet : dataSets) {
       if (!dataSetService
           .getLockStatus(
@@ -223,7 +225,7 @@ public class CompleteDataSetRegistrationController {
               period,
               organisationUnit,
               attributeOptionCombo,
-              CurrentUserUtil.getCurrentUserDetails(),
+              currentUserDetails,
               null,
               multiOu)
           .isOpen()) {

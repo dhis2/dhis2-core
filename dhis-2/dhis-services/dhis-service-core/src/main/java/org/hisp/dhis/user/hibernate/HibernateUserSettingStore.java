@@ -102,13 +102,6 @@ public class HibernateUserSettingStore implements UserSettingStore {
     getSession().delete(userSetting);
   }
 
-  //  @Override
-  //  public void removeUserSettings(String username) {
-  //    String hql = "delete from UserSetting us where us.user.username = :username";
-  //
-  //    getSession().createQuery(hql).setParameter(username, username).executeUpdate();
-  //  }
-
   private Session getSession() {
     return entityManager.unwrap(Session.class);
   }

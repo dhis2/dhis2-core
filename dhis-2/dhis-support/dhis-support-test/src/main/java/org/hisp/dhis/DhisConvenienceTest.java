@@ -2890,7 +2890,6 @@ public abstract class DhisConvenienceTest {
     user.setFirstName("Admin");
     user.setSurname("User");
     user.setUsername(DEFAULT_USERNAME + "_test");
-    //    user.setUsername(DEFAULT_USERNAME + "_test_" + uid);
     user.setPassword(DEFAULT_ADMIN_PASSWORD);
     user.getUserRoles().add(role);
 

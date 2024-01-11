@@ -142,21 +142,10 @@ public class HibernateDataElementStore extends HibernateIdentifiableObjectStore<
   public DataElement getDataElement(String uid, User user) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
+    // TODO MAS: Remove this in separate PR when we invalidate user sessions on user group changes.
     // Need to refetch here since the user might have been updated, and tests transactional
     // semantics might not have committed yet.
     CurrentUserGroupInfo currentUserGroupInfo = getCurrentUserGroupInfo(user.getUid());
-    if (user.getGroups().size() != currentUserGroupInfo.getUserGroupUIDs().size()) {
-      String msg =
-          String.format(
-              "User '%s' getGroups().size() has %d groups, but  getUserGroupUIDs() returns %d groups!",
-              user.getUsername(),
-              user.getGroups().size(),
-              currentUserGroupInfo.getUserGroupUIDs().size());
-
-      RuntimeException runtimeException = new RuntimeException(msg);
-      log.error(msg, runtimeException);
-      throw runtimeException;
-    }
 
     List<Function<Root<DataElement>, Predicate>> sharingPredicates =
         getSharingPredicates(

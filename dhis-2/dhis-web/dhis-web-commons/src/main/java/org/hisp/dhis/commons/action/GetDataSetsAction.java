@@ -107,13 +107,13 @@ public class GetDataSetsAction extends ActionPagingSupport<DataSet> {
           ServletActionContext.getRequest(), ServletActionContext.getResponse(), dataSets);
     }
 
-    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUserDetails1 = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUserDetails = currentUserDetails1;
     if (!currentUserDetails.isSuper()) {
       dataSets.retainAll(dataSetService.getUserDataWrite(currentUserDetails));
     }
 
-    dataSets.forEach(
-        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUserDetails()));
+    dataSets.forEach(instance -> canReadInstance(instance, currentUserDetails1));
 
     Collections.sort(dataSets);
 

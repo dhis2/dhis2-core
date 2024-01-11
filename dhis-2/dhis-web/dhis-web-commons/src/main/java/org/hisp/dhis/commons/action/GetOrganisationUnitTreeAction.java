@@ -35,6 +35,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
@@ -167,8 +168,8 @@ public class GetOrganisationUnitTreeAction extends BaseAction implements Action 
       rootOrganisationUnits = new ArrayList<>(organisationUnitService.getRootOrganisationUnits());
     }
 
-    rootOrganisationUnits.forEach(
-        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUserDetails()));
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    rootOrganisationUnits.forEach(instance -> canReadInstance(instance, currentUserDetails));
 
     if (byName != null) {
       List<OrganisationUnit> organisationUnitByName =
@@ -235,8 +236,7 @@ public class GetOrganisationUnitTreeAction extends BaseAction implements Action 
 
     Collections.sort(rootOrganisationUnits);
 
-    organisationUnits.forEach(
-        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUserDetails()));
+    organisationUnits.forEach(instance -> canReadInstance(instance, currentUserDetails));
 
     return SUCCESS;
   }

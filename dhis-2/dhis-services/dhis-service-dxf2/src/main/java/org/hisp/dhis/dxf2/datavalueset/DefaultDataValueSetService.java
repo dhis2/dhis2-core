@@ -335,8 +335,9 @@ public class DefaultDataValueSetService implements DataValueSetService {
   public void decideAccess(DataExportParams params) {
     // Verify data set read sharing
 
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     for (DataSet dataSet : params.getDataSets()) {
-      if (!aclService.canDataRead(CurrentUserUtil.getCurrentUserDetails(), dataSet)) {
+      if (!aclService.canDataRead(currentUserDetails, dataSet)) {
         throw new IllegalQueryException(new ErrorMessage(ErrorCode.E2010, dataSet.getUid()));
       }
     }
@@ -344,7 +345,7 @@ public class DefaultDataValueSetService implements DataValueSetService {
     // Verify attribute option combination data read sharing
 
     for (CategoryOptionCombo optionCombo : params.getAttributeOptionCombos()) {
-      if (!aclService.canDataRead(CurrentUserUtil.getCurrentUserDetails(), optionCombo)) {
+      if (!aclService.canDataRead(currentUserDetails, optionCombo)) {
         throw new IllegalQueryException(new ErrorMessage(ErrorCode.E2011, optionCombo.getUid()));
       }
     }

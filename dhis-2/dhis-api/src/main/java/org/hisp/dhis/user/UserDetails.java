@@ -38,6 +38,8 @@ import org.springframework.security.core.GrantedAuthority;
 
 public interface UserDetails extends org.springframework.security.core.userdetails.UserDetails {
 
+  // TODO MAS: This is a workaround and usually indicated a design flaw, and that we should refactor
+  // to use UserDetails higher up in the layers.
   static UserDetails fromUser(User user) {
     if (user == null) {
       return null;

@@ -35,6 +35,7 @@ import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.ContextUtils;
 
 /**
@@ -74,8 +75,8 @@ public class GetAttributesAction extends BaseAction implements Action {
     ContextUtils.clearIfNotModified(
         ServletActionContext.getRequest(), ServletActionContext.getResponse(), attributes);
 
-    attributes.forEach(
-        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUserDetails()));
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    attributes.forEach(instance -> canReadInstance(instance, currentUserDetails));
 
     Collections.sort(attributes);
 

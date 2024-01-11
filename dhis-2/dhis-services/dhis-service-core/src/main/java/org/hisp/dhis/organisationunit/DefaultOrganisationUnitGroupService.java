@@ -198,7 +198,8 @@ public class DefaultOrganisationUnitGroupService implements OrganisationUnitGrou
 
     Set<OrganisationUnit> userOrganisationUnits = new HashSet<>();
 
-    for (String orgUnitId : CurrentUserUtil.getCurrentUserDetails().getUserGroupIds()) {
+    Set<String> userGroupIds = CurrentUserUtil.getCurrentUserDetails().getUserGroupIds();
+    for (String orgUnitId : userGroupIds) {
       userOrganisationUnits.addAll(
           organisationUnitService.getOrganisationUnitWithChildren(orgUnitId));
     }

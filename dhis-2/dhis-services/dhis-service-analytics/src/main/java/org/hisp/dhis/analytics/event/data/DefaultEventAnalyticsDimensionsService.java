@@ -61,6 +61,7 @@ import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -119,6 +120,7 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
 
   private List<PrefixedDimension> dimensions(ProgramStage programStage) {
 
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     return Optional.of(programStage)
         .map(ProgramStage::getProgram)
         .map(
@@ -127,10 +129,7 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
                     List.of(
                         ofProgramIndicators(
                             p.getProgramIndicators().stream()
-                                .filter(
-                                    pi ->
-                                        aclService.canRead(
-                                            CurrentUserUtil.getCurrentUserDetails(), pi))
+                                .filter(pi -> aclService.canRead(currentUserDetails, pi))
                                 .collect(Collectors.toSet())),
                         filterByValueType(QUERY, ofDataElements(programStage)),
                         filterByValueType(

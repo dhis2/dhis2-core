@@ -37,6 +37,7 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.comparator.DescendingPeriodComparator;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Lars Helge Overland
@@ -98,7 +99,8 @@ public class GetPeriodsAction extends ActionPagingSupport<Period> {
       periods = new ArrayList<>(periodService.getPeriodsByPeriodType(periodType));
     }
 
-    periods.forEach(instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUserDetails()));
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    periods.forEach(instance -> canReadInstance(instance, currentUserDetails));
 
     for (Period period : periods) {
       period.setName(format.formatPeriod(period));

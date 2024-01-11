@@ -80,7 +80,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class Dhis2JwtAuthenticationManagerResolver
     implements AuthenticationManagerResolver<HttpServletRequest> {
-  //  @Autowired private UserService userService;
 
   @Autowired private UserStore userStore;
   @Autowired private DhisOidcProviderRepository clientRegistrationRepository;

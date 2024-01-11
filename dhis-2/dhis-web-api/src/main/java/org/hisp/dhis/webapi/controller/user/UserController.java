@@ -873,6 +873,7 @@ public class UserController extends AbstractCrudController<User> {
   }
 
   private void checkCurrentUserCanModify(User userToModify) throws WebMessageException {
+
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
 
     if (!aclService.canUpdate(currentUserDetails, userToModify)) {

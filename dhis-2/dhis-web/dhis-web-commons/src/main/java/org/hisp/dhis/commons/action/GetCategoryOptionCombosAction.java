@@ -35,6 +35,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Lars Helge Overland
@@ -116,8 +117,8 @@ public class GetCategoryOptionCombosAction extends BaseAction implements Action 
       }
     }
 
-    categoryOptionCombos.forEach(
-        instance -> canReadInstance(instance, CurrentUserUtil.getCurrentUserDetails()));
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    categoryOptionCombos.forEach(instance -> canReadInstance(instance, currentUserDetails));
 
     return SUCCESS;
   }

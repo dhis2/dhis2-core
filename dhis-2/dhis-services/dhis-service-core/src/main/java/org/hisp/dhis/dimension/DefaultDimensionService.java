@@ -323,8 +323,9 @@ public class DefaultDimensionService implements DimensionService {
     BaseDimensionalObject copy = metadataMergeService.clone(dimension);
 
     if (filterCanRead) {
+      UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
       List<DimensionalItemObject> items =
-          filterReadableObjects(CurrentUserUtil.getCurrentUserDetails(), dimension.getItems());
+          filterReadableObjects(currentUserDetails, dimension.getItems());
       copy.setItems(items);
     }
 

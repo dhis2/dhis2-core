@@ -35,83 +35,8 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class SpringSecurityActionAccessResolver implements ActionAccessResolver {
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
-
-  //  private RequiredAuthoritiesProvider requiredAuthoritiesProvider;
-  //
-  //  public void setRequiredAuthoritiesProvider(
-  //      RequiredAuthoritiesProvider requiredAuthoritiesProvider) {
-  //    this.requiredAuthoritiesProvider = requiredAuthoritiesProvider;
-  //  }
-  //
-  //  private AccessDecisionManager accessDecisionManager;
-  //
-  //  public void setAccessDecisionManager(@Lazy AccessDecisionManager accessDecisionManager) {
-  //    this.accessDecisionManager = accessDecisionManager;
-  //  }
-  //
-  //  // -------------------------------------------------------------------------
-  //  // ActionAccessResolver implementation
-  //  // -------------------------------------------------------------------------
-
   @Override
   public boolean hasAccess(String module, String name) {
     return true;
-    // ---------------------------------------------------------------------
-    // Get ObjectDefinitionSource
-    // ---------------------------------------------------------------------
-    //
-    //    Configuration config =
-    // Dispatcher.getInstance().getConfigurationManager().getConfiguration();
-    //
-    //    PackageConfig packageConfig = config.getPackageConfig(module);
-    //
-    //    if (packageConfig == null) {
-    //      throw new IllegalArgumentException("Module doesn't exist: '" + module + "'");
-    //    }
-    //
-    //    ActionConfig actionConfig = packageConfig.getActionConfigs().get(name);
-    //
-    //    if (actionConfig == null) {
-    //      throw new IllegalArgumentException(
-    //          "Module " + module + " doesn't have an action named: '" + name + "'");
-    //    }
-    //
-    //    SecurityMetadataSource securityMetadataSource =
-    //        requiredAuthoritiesProvider.createSecurityMetadataSource(actionConfig);
-    //
-    //    // ---------------------------------------------------------------------
-    //    // Test access
-    //    // ---------------------------------------------------------------------
-    //
-    //    SecurityContext securityContext = SecurityContextHolder.getContext();
-    //
-    //    Authentication authentication = securityContext.getAuthentication();
-    //
-    //    try {
-    //      if (securityMetadataSource.getAttributes(actionConfig) != null) {
-    //        if (authentication == null || !authentication.isAuthenticated()) {
-    //          return false;
-    //        }
-    //
-    //        accessDecisionManager.decide(
-    //            authentication, actionConfig, securityMetadataSource.getAttributes(actionConfig));
-    //      }
-    //
-    //      log.debug("Access to [" + module + ", " + name + "]: TRUE");
-    //
-    //      return true;
-    //    } catch (AccessDeniedException e) {
-    //      log.debug("Access to [" + module + ", " + name + "]: FALSE (access denied)");
-    //
-    //      return false;
-    //    } catch (InsufficientAuthenticationException e) {
-    //      log.debug("Access to [" + module + ", " + name + "]: FALSE (insufficient
-    // authentication)");
-    //
-    //      return false;
-    //    }
   }
 }

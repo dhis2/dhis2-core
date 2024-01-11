@@ -562,8 +562,9 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
       @Nonnull String actingUsername, @Nonnull String activeUsername) {
 
     User actionUser = getUserByUsername(actingUsername);
-    Instant oneHourAgo = Instant.now().minus(1, ChronoUnit.HOURS);
-    Instant oneHourInTheFuture = Instant.now().plus(1, ChronoUnit.HOURS);
+    Instant now = Instant.now();
+    Instant oneHourAgo = now.minus(1, ChronoUnit.HOURS);
+    Instant oneHourInTheFuture = now.plus(1, ChronoUnit.HOURS);
 
     List<User> linkedUserAccounts = getLinkedUserAccounts(actionUser);
     for (User user : linkedUserAccounts) {

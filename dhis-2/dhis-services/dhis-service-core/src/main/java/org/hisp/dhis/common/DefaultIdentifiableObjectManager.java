@@ -1028,8 +1028,8 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   }
 
   @Override
-  public void persist(Object userAdmin) {
-    entityManager.persist(userAdmin);
+  public void persist(Object object) {
+    entityManager.persist(object);
   }
 
   @Override

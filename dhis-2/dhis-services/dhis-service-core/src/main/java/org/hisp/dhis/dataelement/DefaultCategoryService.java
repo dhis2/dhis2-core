@@ -635,8 +635,9 @@ public class DefaultCategoryService implements CategoryService {
     CategoryOptionCombo coc = idObjectManager.getObject(CategoryOptionCombo.class, idScheme, id);
 
     if (coc != null) {
+      UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
       for (CategoryOption categoryOption : coc.getCategoryOptions()) {
-        if (!aclService.canDataWrite(CurrentUserUtil.getCurrentUserDetails(), categoryOption)) {
+        if (!aclService.canDataWrite(currentUserDetails, categoryOption)) {
           return null;
         }
       }
