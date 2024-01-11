@@ -89,17 +89,17 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   private final JobConfigurationStore jobConfigurationStore;
   private final FileResourceService fileResourceService;
   private final SystemSettingManager systemSettings;
-  private final JobCreationHelperWrapper jobCreationHelperWrapper;
+  private final JobCreationHelper jobCreationHelper;
 
   @Override
   public String create(JobConfiguration config) throws ConflictException {
-    return jobCreationHelperWrapper.getJobCreationHelper().create(config);
+    return jobCreationHelper.create(config);
   }
 
   @Override
   public String create(JobConfiguration config, MimeType contentType, InputStream content)
       throws ConflictException {
-    return jobCreationHelperWrapper.getJobCreationHelper().create(config, contentType, content);
+    return jobCreationHelper.create(config, contentType, content);
   }
 
   @Override

@@ -32,6 +32,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MimeType;
 
@@ -40,6 +42,8 @@ import org.springframework.util.MimeType;
  */
 @Slf4j
 @RequiredArgsConstructor
+@Service
+@Profile("test")
 public class JobCreationHelperForTests implements JobCreationHelper {
 
   private final JobConfigurationStore jobConfigurationStore;
