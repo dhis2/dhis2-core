@@ -292,7 +292,7 @@ public final class DatastoreQuery {
     int size = max(1, min(1000, params.getInt("pageSize", 50)));
     boolean isPaging = params.getBoolean("paging", true);
     return toBuilder()
-        .headless(params.getBoolean("headless", false) || !isPaging)
+        .headless(params.getBoolean("headless", false))
         .anyFilter(params.getString("rootJunction", "AND").equalsIgnoreCase("OR"))
         .order(Order.parse(params.getString("order", KEY_ASC.path)))
         .paging(isPaging)
