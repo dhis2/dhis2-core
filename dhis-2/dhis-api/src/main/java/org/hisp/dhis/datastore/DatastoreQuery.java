@@ -235,14 +235,14 @@ public final class DatastoreQuery {
     ENDS_WITH("ilike$", "endswith"),
     NOT_ENDS_WITH("!ilike$", "!endswith");
 
-    private Set<String> operators;
+    private final Set<String> operators;
 
     Comparison(String... operators) {
       this.operators = Set.of(operators);
     }
 
     public boolean isUnary() {
-      return ordinal() >= NULL.ordinal() && ordinal() <= NOT_EMPTY.ordinal();
+      return ordinal() <= NOT_EMPTY.ordinal();
     }
 
     public boolean isCaseInsensitive() {
@@ -292,7 +292,7 @@ public final class DatastoreQuery {
     int size = max(1, min(1000, params.getPageSize()));
     boolean isPaging = params.isPaging();
     return toBuilder()
-        .headless(params.isHeadless() || !isPaging)
+        .headless(params.isHeadless())
         .anyFilter(params.getRootJunction() == DatastoreParams.Junction.OR)
         .order(Order.parse(params.getOrder()))
         .paging(isPaging)
