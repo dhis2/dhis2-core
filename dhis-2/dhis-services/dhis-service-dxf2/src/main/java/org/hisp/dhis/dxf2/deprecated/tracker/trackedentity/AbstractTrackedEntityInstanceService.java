@@ -46,8 +46,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.audit.payloads.TrackedEntityAudit;
-import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -91,7 +90,8 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
-import org.hisp.dhis.trackedentity.TrackedEntityAuditService;
+import org.hisp.dhis.trackedentity.TrackedEntityChangeLog;
+import org.hisp.dhis.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
@@ -143,7 +143,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
   protected EnrollmentService programInstanceService;
 
-  protected TrackedEntityAuditService trackedEntityAuditService;
+  protected TrackedEntityChangeLogService trackedEntityChangeLogService;
 
   protected SchemaService schemaService;
 
@@ -217,19 +217,19 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         trackedEntityTypeService.getAllTrackedEntityType().stream()
             .collect(Collectors.toMap(TrackedEntityType::getUid, t -> t));
 
-    List<TrackedEntityAudit> auditable =
+    List<TrackedEntityChangeLog> auditable =
         trackedEntityInstances.stream()
             .filter(Objects::nonNull)
             .filter(tei -> tei.getTrackedEntityType() != null)
             .filter(tei -> tetMap.get(tei.getTrackedEntityType()).isAllowAuditLog())
             .map(
                 tei ->
-                    new TrackedEntityAudit(
-                        tei.getTrackedEntityInstance(), accessedBy, AuditType.SEARCH))
+                    new TrackedEntityChangeLog(
+                        tei.getTrackedEntityInstance(), accessedBy, ChangeLogType.SEARCH))
             .collect(Collectors.toList());
 
     if (!auditable.isEmpty()) {
-      trackedEntityAuditService.addTrackedEntityAudit(auditable);
+      trackedEntityChangeLogService.addTrackedEntityChangeLog(auditable);
     }
   }
 

@@ -33,8 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.audit.payloads.TrackedEntityAudit;
-import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,46 +44,47 @@ import org.springframework.beans.factory.annotation.Autowired;
 class TrackedEntityAuditStoreTest extends SingleSetupIntegrationTestBase {
   private final Date CREATED = getDate(2022, 3, 1);
 
-  @Autowired private TrackedEntityAuditStore store;
+  @Autowired private TrackedEntityChangeLogStore store;
 
-  private final TrackedEntityAudit auditA =
-      new TrackedEntityAudit("WGW7UnVcIIb", "Access", CREATED, "userA", AuditType.CREATE);
-  private final TrackedEntityAudit auditB =
-      new TrackedEntityAudit("WGW7UnVcIIb", "Access", CREATED, "userB", AuditType.UPDATE);
-  private final TrackedEntityAudit auditC =
-      new TrackedEntityAudit("zIAwTY3Drrn", "Access", CREATED, "userA", AuditType.UPDATE);
-  private final TrackedEntityAudit auditD =
-      new TrackedEntityAudit("zIAwTY3Drrn", "Access", CREATED, "userB", AuditType.DELETE);
+  private final TrackedEntityChangeLog auditA =
+      new TrackedEntityChangeLog("WGW7UnVcIIb", "Access", CREATED, "userA", ChangeLogType.CREATE);
+  private final TrackedEntityChangeLog auditB =
+      new TrackedEntityChangeLog("WGW7UnVcIIb", "Access", CREATED, "userB", ChangeLogType.UPDATE);
+  private final TrackedEntityChangeLog auditC =
+      new TrackedEntityChangeLog("zIAwTY3Drrn", "Access", CREATED, "userA", ChangeLogType.UPDATE);
+  private final TrackedEntityChangeLog auditD =
+      new TrackedEntityChangeLog("zIAwTY3Drrn", "Access", CREATED, "userB", ChangeLogType.DELETE);
 
   @Test
   void shouldAuditTrackedEntity_whenAddAuditList() {
-    List<TrackedEntityAudit> trackedEntityAuditInput = List.of(auditA, auditB);
+    List<TrackedEntityChangeLog> trackedEntityAuditInput = List.of(auditA, auditB);
 
-    store.addTrackedEntityAudit(trackedEntityAuditInput);
+    store.addTrackedEntityChangeLog(trackedEntityAuditInput);
 
-    TrackedEntityAuditQueryParams params =
-        new TrackedEntityAuditQueryParams().setTrackedEntities(List.of("WGW7UnVcIIb"));
+    TrackedEntityChangeLogQueryParams params =
+        new TrackedEntityChangeLogQueryParams().setTrackedEntities(List.of("WGW7UnVcIIb"));
 
-    List<TrackedEntityAudit> trackedEntityAudits = store.getTrackedEntityAudits(params);
+    List<TrackedEntityChangeLog> trackedEntityAudits = store.getTrackedEntityChangeLogs(params);
 
     assertEquals(trackedEntityAuditInput.size(), trackedEntityAudits.size());
-    TrackedEntityAudit entityAudit = filterByAuditType(trackedEntityAudits, AuditType.CREATE);
+    TrackedEntityChangeLog entityAudit =
+        filterByAuditType(trackedEntityAudits, ChangeLogType.CREATE);
 
     assertNotNull(entityAudit);
     assertEquals("userA", entityAudit.getAccessedBy());
     assertEquals("WGW7UnVcIIb", entityAudit.getTrackedEntity());
 
-    entityAudit = filterByAuditType(trackedEntityAudits, AuditType.UPDATE);
+    entityAudit = filterByAuditType(trackedEntityAudits, ChangeLogType.UPDATE);
 
     assertNotNull(entityAudit);
     assertEquals("userB", entityAudit.getAccessedBy());
     assertEquals("WGW7UnVcIIb", entityAudit.getTrackedEntity());
   }
 
-  private static TrackedEntityAudit filterByAuditType(
-      List<TrackedEntityAudit> trackedEntityAuditsStore, AuditType auditType) {
+  private static TrackedEntityChangeLog filterByAuditType(
+      List<TrackedEntityChangeLog> trackedEntityAuditsStore, ChangeLogType changeLogType) {
     return trackedEntityAuditsStore.stream()
-        .filter(a -> a.getAuditType() == auditType)
+        .filter(a -> a.getAuditType() == changeLogType)
         .findFirst()
         .orElse(null);
   }
@@ -92,35 +92,35 @@ class TrackedEntityAuditStoreTest extends SingleSetupIntegrationTestBase {
   @Test
   void testGetAuditsByParams() {
 
-    store.addTrackedEntityAudit(auditA);
-    store.addTrackedEntityAudit(auditB);
-    store.addTrackedEntityAudit(auditC);
-    store.addTrackedEntityAudit(auditD);
+    store.addTrackedEntityChangeLog(auditA);
+    store.addTrackedEntityChangeLog(auditB);
+    store.addTrackedEntityChangeLog(auditC);
+    store.addTrackedEntityChangeLog(auditD);
 
-    TrackedEntityAuditQueryParams params =
-        new TrackedEntityAuditQueryParams().setTrackedEntities(List.of("WGW7UnVcIIb"));
+    TrackedEntityChangeLogQueryParams params =
+        new TrackedEntityChangeLogQueryParams().setTrackedEntities(List.of("WGW7UnVcIIb"));
 
-    assertContainsOnly(List.of(auditA, auditB), store.getTrackedEntityAudits(params));
+    assertContainsOnly(List.of(auditA, auditB), store.getTrackedEntityChangeLogs(params));
 
-    params = new TrackedEntityAuditQueryParams().setUsers(List.of("userA"));
+    params = new TrackedEntityChangeLogQueryParams().setUsers(List.of("userA"));
 
-    assertContainsOnly(List.of(auditA, auditC), store.getTrackedEntityAudits(params));
+    assertContainsOnly(List.of(auditA, auditC), store.getTrackedEntityChangeLogs(params));
 
-    params = new TrackedEntityAuditQueryParams().setAuditTypes(List.of(AuditType.UPDATE));
+    params = new TrackedEntityChangeLogQueryParams().setAuditTypes(List.of(ChangeLogType.UPDATE));
 
-    assertContainsOnly(List.of(auditB, auditC), store.getTrackedEntityAudits(params));
-
-    params =
-        new TrackedEntityAuditQueryParams()
-            .setAuditTypes(List.of(AuditType.CREATE, AuditType.DELETE));
-
-    assertContainsOnly(List.of(auditA, auditD), store.getTrackedEntityAudits(params));
+    assertContainsOnly(List.of(auditB, auditC), store.getTrackedEntityChangeLogs(params));
 
     params =
-        new TrackedEntityAuditQueryParams()
+        new TrackedEntityChangeLogQueryParams()
+            .setAuditTypes(List.of(ChangeLogType.CREATE, ChangeLogType.DELETE));
+
+    assertContainsOnly(List.of(auditA, auditD), store.getTrackedEntityChangeLogs(params));
+
+    params =
+        new TrackedEntityChangeLogQueryParams()
             .setTrackedEntities(List.of("WGW7UnVcIIb"))
             .setUsers(List.of("userA"));
 
-    assertContainsOnly(List.of(auditA), store.getTrackedEntityAudits(params));
+    assertContainsOnly(List.of(auditA), store.getTrackedEntityChangeLogs(params));
   }
 }

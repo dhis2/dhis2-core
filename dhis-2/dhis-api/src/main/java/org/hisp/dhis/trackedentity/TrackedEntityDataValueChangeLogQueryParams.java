@@ -27,46 +27,50 @@
  */
 package org.hisp.dhis.trackedentity;
 
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.audit.payloads.TrackedEntityAudit;
+import lombok.Data;
+import lombok.experimental.Accessors;
+import org.hisp.dhis.changelog.ChangeLogType;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.ProgramStage;
 
 /**
- * @author Abyot Asalefew Gizaw abyota@gmail.com
+ * Encapsulation of a web API request for tracked entity data value audit records.
+ *
+ * @author Lars Helge Overland
  */
-public interface TrackedEntityAuditService {
+@Data
+@Accessors(chain = true)
+public class TrackedEntityDataValueChangeLogQueryParams {
+  private List<DataElement> dataElements = new ArrayList<>();
 
-  String ID = TrackedEntityAuditService.class.getName();
+  private List<OrganisationUnit> orgUnits = new ArrayList<>();
 
-  /**
-   * Adds tracked entity audit
-   *
-   * @param trackedEntityAudit the audit to add
-   */
-  void addTrackedEntityAudit(TrackedEntityAudit trackedEntityAudit);
+  private List<Event> events = new ArrayList<>();
 
-  /** Adds multiple tracked entity audit */
-  void addTrackedEntityAudit(List<TrackedEntityAudit> trackedEntityAudits);
+  private List<ProgramStage> programStages = new ArrayList<>();
 
-  /**
-   * Deletes tracked entity audit for the given tracked entity
-   *
-   * @param trackedEntity the tracked entity
-   */
-  void deleteTrackedEntityAudit(TrackedEntity trackedEntity);
+  private Date startDate;
 
-  /**
-   * Returns tracked entity audits matching query params
-   *
-   * @param params tracked entity audit query params
-   * @return matching TrackedEntityAudits
-   */
-  List<TrackedEntityAudit> getTrackedEntityAudits(TrackedEntityAuditQueryParams params);
+  private Date endDate;
 
-  /**
-   * Returns count of tracked entity audits matching query params
-   *
-   * @param params tracked entity audit query params
-   * @return count of TrackedEntityAudits
-   */
-  int getTrackedEntityAuditsCount(TrackedEntityAuditQueryParams params);
+  private OrganisationUnitSelectionMode ouMode;
+
+  private List<ChangeLogType> auditTypes = new ArrayList<>();
+
+  private Pager pager;
+
+  public boolean hasOuMode() {
+    return ouMode != null;
+  }
+
+  public boolean hasPaging() {
+    return pager != null;
+  }
 }

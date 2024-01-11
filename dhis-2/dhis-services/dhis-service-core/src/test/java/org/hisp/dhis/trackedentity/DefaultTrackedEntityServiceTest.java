@@ -40,7 +40,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -71,9 +71,9 @@ class DefaultTrackedEntityServiceTest {
 
   @Mock private TrackerOwnershipManager trackerOwnershipAccessManager;
 
-  @Mock private TrackedEntityAuditService trackedEntityAuditService;
+  @Mock private TrackedEntityChangeLogService trackedEntityChangeLogService;
 
-  @Mock private TrackedEntityAttributeValueAuditService attributeValueAuditService;
+  @Mock private TrackedEntityAttributeValueChangeLogService attributeValueAuditService;
 
   private TrackedEntityQueryParams params;
 
@@ -93,7 +93,7 @@ class DefaultTrackedEntityServiceTest {
             organisationUnitService,
             aclService,
             trackerOwnershipAccessManager,
-            trackedEntityAuditService,
+            trackedEntityChangeLogService,
             attributeValueAuditService);
 
     User user = new User();

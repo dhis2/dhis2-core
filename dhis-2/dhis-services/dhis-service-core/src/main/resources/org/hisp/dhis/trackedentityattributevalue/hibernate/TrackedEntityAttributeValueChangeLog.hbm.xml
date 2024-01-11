@@ -4,7 +4,7 @@
         "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping>
-    <class name="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit"
+    <class name="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLog"
            table="trackedentityattributevalueaudit">
 
         <id name="id" column="trackedentityattributevalueauditid">
@@ -30,7 +30,7 @@
 
         <property name="auditType" column="audittype" length="100" not-null="true">
             <type name="org.hibernate.type.EnumType">
-                <param name="enumClass">org.hisp.dhis.common.AuditType</param>
+                <param name="enumClass">org.hisp.dhis.changelog.ChangeLogType</param>
               <param name="useNamed">true</param>
                 <param name="type">12</param>
             </type>

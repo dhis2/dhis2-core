@@ -35,7 +35,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
@@ -60,7 +60,8 @@ public class DefaultTrackedEntityAttributeValueService
 
   private final FileResourceService fileResourceService;
 
-  private final TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService;
+  private final TrackedEntityAttributeValueChangeLogService
+      trackedEntityAttributeValueChangeLogService;
 
   private final ReservedValueService reservedValueService;
 
@@ -75,16 +76,16 @@ public class DefaultTrackedEntityAttributeValueService
   @Override
   @Transactional
   public void deleteTrackedEntityAttributeValue(TrackedEntityAttributeValue attributeValue) {
-    TrackedEntityAttributeValueAudit trackedEntityAttributeValueAudit =
-        new TrackedEntityAttributeValueAudit(
+    TrackedEntityAttributeValueChangeLog trackedEntityAttributeValueChangeLog =
+        new TrackedEntityAttributeValueChangeLog(
             attributeValue,
             attributeValue.getAuditValue(),
             CurrentUserUtil.getCurrentUsername(),
-            AuditType.DELETE);
+            ChangeLogType.DELETE);
 
     if (config.isEnabled(CHANGELOG_TRACKER)) {
-      trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit(
-          trackedEntityAttributeValueAudit);
+      trackedEntityAttributeValueChangeLogService.addTrackedEntityAttributeValueChangLog(
+          trackedEntityAttributeValueChangeLog);
     }
 
     deleteFileValue(attributeValue);
@@ -190,16 +191,16 @@ public class DefaultTrackedEntityAttributeValueService
         throw new IllegalQueryException("Value is not valid:  " + result);
       }
 
-      TrackedEntityAttributeValueAudit trackedEntityAttributeValueAudit =
-          new TrackedEntityAttributeValueAudit(
+      TrackedEntityAttributeValueChangeLog trackedEntityAttributeValueChangeLog =
+          new TrackedEntityAttributeValueChangeLog(
               attributeValue,
               attributeValue.getAuditValue(),
               User.username(user),
-              AuditType.UPDATE);
+              ChangeLogType.UPDATE);
 
       if (config.isEnabled(CHANGELOG_TRACKER)) {
-        trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit(
-            trackedEntityAttributeValueAudit);
+        trackedEntityAttributeValueChangeLogService.addTrackedEntityAttributeValueChangLog(
+            trackedEntityAttributeValueChangeLog);
       }
 
       attributeValueStore.update(attributeValue);

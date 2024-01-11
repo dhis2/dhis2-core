@@ -43,9 +43,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.audit.payloads.TrackedEntityAudit;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
@@ -85,14 +84,15 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
-import org.hisp.dhis.trackedentity.TrackedEntityAuditService;
-import org.hisp.dhis.trackedentity.TrackedEntityDataValueAuditQueryParams;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditQueryParams;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
+import org.hisp.dhis.trackedentity.TrackedEntityChangeLog;
+import org.hisp.dhis.trackedentity.TrackedEntityChangeLogQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityChangeLogService;
+import org.hisp.dhis.trackedentity.TrackedEntityDataValueChangeLogQueryParams;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLog;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogQueryParams;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -112,18 +112,18 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/audits")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-public class AuditController {
+public class ChangeLogController {
   private final IdentifiableObjectManager manager;
 
   private final DataValueAuditService dataValueAuditService;
 
-  private final TrackedEntityDataValueAuditService trackedEntityDataValueAuditService;
+  private final TrackedEntityDataValueChangeLogService trackedEntityDataValueChangeLogService;
 
-  private final TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService;
+  private final TrackedEntityAttributeValueChangeLogService attributeValueChangeLogService;
 
   private final DataApprovalAuditService dataApprovalAuditService;
 
-  private final TrackedEntityAuditService trackedEntityAuditService;
+  private final TrackedEntityChangeLogService trackedEntityChangeLogService;
 
   private final FieldFilterService fieldFilterService;
 
@@ -183,7 +183,7 @@ public class AuditController {
           String co,
       @OpenApi.Param({UID.class, CategoryOptionCombo.class}) @RequestParam(required = false)
           String cc,
-      @RequestParam(required = false) List<AuditType> auditType,
+      @RequestParam(required = false) List<ChangeLogType> auditType,
       @RequestParam(required = false) Boolean skipPaging,
       @RequestParam(required = false) Boolean paging,
       @RequestParam(required = false, defaultValue = "50") int pageSize,
@@ -203,7 +203,7 @@ public class AuditController {
     List<OrganisationUnit> organisationUnits = manager.loadByUid(OrganisationUnit.class, ou);
     CategoryOptionCombo categoryOptionCombo = manager.get(CategoryOptionCombo.class, co);
     CategoryOptionCombo attributeOptionCombo = manager.get(CategoryOptionCombo.class, cc);
-    List<AuditType> auditTypes = emptyIfNull(auditType);
+    List<ChangeLogType> changeLogTypes = emptyIfNull(auditType);
 
     DataValueAuditQueryParams params =
         new DataValueAuditQueryParams()
@@ -212,7 +212,7 @@ public class AuditController {
             .setOrgUnits(organisationUnits)
             .setCategoryOptionCombo(categoryOptionCombo)
             .setAttributeOptionCombo(attributeOptionCombo)
-            .setAuditTypes(auditTypes);
+            .setAuditTypes(changeLogTypes);
 
     List<DataValueAudit> dataValueAudits;
     Pager pager = null;
@@ -232,7 +232,7 @@ public class AuditController {
                   .setOrgUnits(organisationUnits)
                   .setCategoryOptionCombo(categoryOptionCombo)
                   .setAttributeOptionCombo(attributeOptionCombo)
-                  .setAuditTypes(auditTypes)
+                  .setAuditTypes(changeLogTypes)
                   .setPager(pager));
     }
 
@@ -253,7 +253,7 @@ public class AuditController {
   }
 
   @GetMapping("trackedEntityDataValue")
-  public RootNode getTrackedEntityDataValueAudit(
+  public RootNode getTrackedEntityDataValueChangeLog(
       @OpenApi.Param({UID[].class, DataElement.class}) @RequestParam(required = false)
           List<String> de,
       @OpenApi.Param({UID[].class, OrganisationUnit.class}) @RequestParam(required = false)
@@ -269,7 +269,7 @@ public class AuditController {
       @RequestParam(required = false) Date startDate,
       @RequestParam(required = false) Date endDate,
       @RequestParam(required = false) OrganisationUnitSelectionMode ouMode,
-      @RequestParam(required = false) List<AuditType> auditType,
+      @RequestParam(required = false) List<ChangeLogType> auditType,
       @RequestParam(required = false) Boolean skipPaging,
       @RequestParam(required = false) Boolean paging,
       @RequestParam(required = false, defaultValue = "50") int pageSize,
@@ -286,13 +286,13 @@ public class AuditController {
     List<ProgramStage> programStages = manager.loadByUid(ProgramStage.class, ps);
     Set<UID> eventUids =
         validateDeprecatedUidsParameter("psi", String.join(";", psi), "events", events);
-    List<AuditType> auditTypes = emptyIfNull(auditType);
+    List<ChangeLogType> changeLogTypes = emptyIfNull(auditType);
 
-    List<TrackedEntityDataValueAudit> dataValueAudits;
+    List<TrackedEntityDataValueChangeLog> dataValueChangeLogs;
     Pager pager = null;
 
-    TrackedEntityDataValueAuditQueryParams params =
-        new TrackedEntityDataValueAuditQueryParams()
+    TrackedEntityDataValueChangeLogQueryParams params =
+        new TrackedEntityDataValueChangeLogQueryParams()
             .setDataElements(dataElements)
             .setOrgUnits(orgUnits)
             .setEvents(manager.loadByUid(Event.class, UID.toValueSet(eventUids)))
@@ -300,17 +300,19 @@ public class AuditController {
             .setStartDate(startDate)
             .setEndDate(endDate)
             .setOuMode(ouMode)
-            .setAuditTypes(auditTypes);
+            .setAuditTypes(changeLogTypes);
 
     if (PagerUtils.isSkipPaging(skipPaging, paging)) {
-      dataValueAudits = trackedEntityDataValueAuditService.getTrackedEntityDataValueAudits(params);
+      dataValueChangeLogs =
+          trackedEntityDataValueChangeLogService.getTrackedEntityDataValueChangeLogs(params);
     } else {
-      int total = trackedEntityDataValueAuditService.countTrackedEntityDataValueAudits(params);
+      int total =
+          trackedEntityDataValueChangeLogService.countTrackedEntityDataValueChangeLogs(params);
 
       pager = new Pager(page, total, pageSize);
 
-      dataValueAudits =
-          trackedEntityDataValueAuditService.getTrackedEntityDataValueAudits(
+      dataValueChangeLogs =
+          trackedEntityDataValueChangeLogService.getTrackedEntityDataValueChangeLogs(
               params.setPager(pager));
     }
 
@@ -320,19 +322,20 @@ public class AuditController {
       rootNode.addChild(NodeUtils.createPager(pager));
     }
 
-    CollectionNode trackedEntityAttributeValueAudits =
+    CollectionNode trackedEntityAttributeValueChangeLogs =
         rootNode.addChild(new CollectionNode("trackedEntityDataValueAudits", true));
-    trackedEntityAttributeValueAudits.addChildren(
+    trackedEntityAttributeValueChangeLogs.addChildren(
         fieldFilterService
             .toCollectionNode(
-                TrackedEntityDataValueAudit.class, new FieldFilterParams(dataValueAudits, fields))
+                TrackedEntityDataValueChangeLog.class,
+                new FieldFilterParams(dataValueChangeLogs, fields))
             .getChildren());
 
     return rootNode;
   }
 
   @GetMapping("trackedEntityAttributeValue")
-  public RootNode getTrackedEntityAttributeValueAudit(
+  public RootNode getTrackedEntityAttributeValueChangeLog(
       @OpenApi.Param({UID[].class, TrackedEntityAttribute.class}) @RequestParam(required = false)
           List<String> tea,
       @Deprecated(since = "2.41")
@@ -342,7 +345,7 @@ public class AuditController {
       @OpenApi.Param({UID[].class, TrackedEntity.class})
           @RequestParam(required = false, defaultValue = "")
           Set<UID> trackedEntities,
-      @RequestParam(required = false) List<AuditType> auditType,
+      @RequestParam(required = false) List<ChangeLogType> auditType,
       @RequestParam(required = false) Boolean skipPaging,
       @RequestParam(required = false) Boolean paging,
       @RequestParam(required = false, defaultValue = "50") int pageSize,
@@ -355,28 +358,27 @@ public class AuditController {
     Set<UID> teUids =
         validateDeprecatedUidsParameter(
             "tei", String.join(";", tei), "trackedEntities", trackedEntities);
-    List<AuditType> auditTypes = emptyIfNull(auditType);
+    List<ChangeLogType> changeLogTypes = emptyIfNull(auditType);
 
-    List<TrackedEntityAttributeValueAudit> attributeValueAudits;
+    List<TrackedEntityAttributeValueChangeLog> attributeValueChangeLogs;
     Pager pager = null;
 
-    TrackedEntityAttributeValueAuditQueryParams params =
-        new TrackedEntityAttributeValueAuditQueryParams()
+    TrackedEntityAttributeValueChangeLogQueryParams params =
+        new TrackedEntityAttributeValueChangeLogQueryParams()
             .setTrackedEntityAttributes(trackedEntityAttributes)
             .setTrackedEntities(manager.loadByUid(TrackedEntity.class, UID.toValueList(teUids)))
-            .setAuditTypes(auditTypes);
+            .setAuditTypes(changeLogTypes);
 
     if (PagerUtils.isSkipPaging(skipPaging, paging)) {
-      attributeValueAudits =
-          trackedEntityAttributeValueAuditService.getTrackedEntityAttributeValueAudits(params);
+      attributeValueChangeLogs =
+          attributeValueChangeLogService.getTrackedEntityAttributeValueChangeLogs(params);
     } else {
-      int total =
-          trackedEntityAttributeValueAuditService.countTrackedEntityAttributeValueAudits(params);
+      int total = attributeValueChangeLogService.countTrackedEntityAttributeValueChangeLogs(params);
 
       pager = new Pager(page, total, pageSize);
 
-      attributeValueAudits =
-          trackedEntityAttributeValueAuditService.getTrackedEntityAttributeValueAudits(
+      attributeValueChangeLogs =
+          attributeValueChangeLogService.getTrackedEntityAttributeValueChangeLogs(
               params.setPager(pager));
     }
 
@@ -386,13 +388,13 @@ public class AuditController {
       rootNode.addChild(NodeUtils.createPager(pager));
     }
 
-    CollectionNode trackedEntityAttributeValueAudits =
+    CollectionNode changeLogs =
         rootNode.addChild(new CollectionNode("trackedEntityAttributeValueAudits", true));
-    trackedEntityAttributeValueAudits.addChildren(
+    changeLogs.addChildren(
         fieldFilterService
             .toCollectionNode(
-                TrackedEntityAttributeValueAudit.class,
-                new FieldFilterParams(attributeValueAudits, fields))
+                TrackedEntityAttributeValueChangeLog.class,
+                new FieldFilterParams(attributeValueChangeLogs, fields))
             .getChildren());
 
     return rootNode;
@@ -456,11 +458,11 @@ public class AuditController {
   }
 
   /**
-   * @deprecated use {@link #getTrackedEnityAudit} instead.
+   * @deprecated use {@link #getTrackedEnityChangeLog} instead.
    */
   @Deprecated(since = "2.41")
   @GetMapping("trackedEntityInstance")
-  public RootNode getTrackedEnityInstanceAudit(
+  public RootNode getTrackedEnityInstanceChangeLog(
       @Deprecated(since = "2.41")
           @OpenApi.Param({UID[].class, TrackedEntity.class})
           @RequestParam(required = false, defaultValue = "")
@@ -469,7 +471,7 @@ public class AuditController {
           @RequestParam(required = false, defaultValue = "")
           Set<UID> trackedEntities,
       @OpenApi.Param({UID[].class, User.class}) @RequestParam(required = false) List<String> user,
-      @RequestParam(required = false) List<AuditType> auditType,
+      @RequestParam(required = false) List<ChangeLogType> auditType,
       @RequestParam(required = false) Date startDate,
       @RequestParam(required = false) Date endDate,
       @RequestParam(required = false) Boolean skipPaging,
@@ -483,31 +485,32 @@ public class AuditController {
       fields.addAll(Preset.ALL.getFields());
     }
 
-    List<AuditType> auditTypes = emptyIfNull(auditType);
+    List<ChangeLogType> changeLogTypes = emptyIfNull(auditType);
 
     Set<UID> teUids =
         validateDeprecatedUidsParameter(
             "tei", String.join(";", tei), "trackedEntities", trackedEntities);
 
-    TrackedEntityAuditQueryParams params =
-        new TrackedEntityAuditQueryParams()
+    TrackedEntityChangeLogQueryParams params =
+        new TrackedEntityChangeLogQueryParams()
             .setTrackedEntities(UID.toValueList(teUids))
             .setUsers(user)
-            .setAuditTypes(auditTypes)
+            .setAuditTypes(changeLogTypes)
             .setStartDate(startDate)
             .setEndDate(endDate);
 
-    List<TrackedEntityAudit> teiAudits;
+    List<TrackedEntityChangeLog> teChangeLogs;
     Pager pager = null;
 
     if (PagerUtils.isSkipPaging(skipPaging, paging)) {
-      int total = trackedEntityAuditService.getTrackedEntityAuditsCount(params);
+      int total = trackedEntityChangeLogService.getTrackedEntityChangeLogsCount(params);
 
       pager = new Pager(page, total, pageSize);
 
-      teiAudits = trackedEntityAuditService.getTrackedEntityAudits(params);
+      teChangeLogs = trackedEntityChangeLogService.getTrackedEntityChangeLogs(params);
     } else {
-      teiAudits = trackedEntityAuditService.getTrackedEntityAudits(params.setPager(pager));
+      teChangeLogs =
+          trackedEntityChangeLogService.getTrackedEntityChangeLogs(params.setPager(pager));
     }
 
     RootNode rootNode = NodeUtils.createMetadata();
@@ -516,23 +519,24 @@ public class AuditController {
       rootNode.addChild(NodeUtils.createPager(pager));
     }
 
-    CollectionNode trackedEntityAudits =
+    CollectionNode changeLogs =
         rootNode.addChild(new CollectionNode("trackedEntityInstanceAudits", true));
-    trackedEntityAudits.addChildren(
+    changeLogs.addChildren(
         fieldFilterService
-            .toCollectionNode(TrackedEntityAudit.class, new FieldFilterParams(teiAudits, fields))
+            .toCollectionNode(
+                TrackedEntityChangeLog.class, new FieldFilterParams(teChangeLogs, fields))
             .getChildren());
 
     return rootNode;
   }
 
   @GetMapping("trackedEntity")
-  public RootNode getTrackedEnityAudit(
+  public RootNode getTrackedEnityChangeLog(
       @OpenApi.Param({UID[].class, TrackedEntity.class})
           @RequestParam(required = false, defaultValue = "")
           Set<UID> trackedEntities,
       @OpenApi.Param({UID[].class, User.class}) @RequestParam(required = false) List<String> user,
-      @RequestParam(required = false) List<AuditType> auditType,
+      @RequestParam(required = false) List<ChangeLogType> auditType,
       @RequestParam(required = false) Date startDate,
       @RequestParam(required = false) Date endDate,
       @RequestParam(required = false) Boolean skipPaging,
@@ -545,27 +549,28 @@ public class AuditController {
       fields.addAll(Preset.ALL.getFields());
     }
 
-    List<AuditType> auditTypes = emptyIfNull(auditType);
+    List<ChangeLogType> changeLogTypes = emptyIfNull(auditType);
 
-    TrackedEntityAuditQueryParams params =
-        new TrackedEntityAuditQueryParams()
+    TrackedEntityChangeLogQueryParams params =
+        new TrackedEntityChangeLogQueryParams()
             .setTrackedEntities(UID.toValueList(trackedEntities))
             .setUsers(user)
-            .setAuditTypes(auditTypes)
+            .setAuditTypes(changeLogTypes)
             .setStartDate(startDate)
             .setEndDate(endDate);
 
-    List<TrackedEntityAudit> teiAudits;
+    List<TrackedEntityChangeLog> teChangeLogs;
     Pager pager = null;
 
     if (PagerUtils.isSkipPaging(skipPaging, paging)) {
-      int total = trackedEntityAuditService.getTrackedEntityAuditsCount(params);
+      int total = trackedEntityChangeLogService.getTrackedEntityChangeLogsCount(params);
 
       pager = new Pager(page, total, pageSize);
 
-      teiAudits = trackedEntityAuditService.getTrackedEntityAudits(params);
+      teChangeLogs = trackedEntityChangeLogService.getTrackedEntityChangeLogs(params);
     } else {
-      teiAudits = trackedEntityAuditService.getTrackedEntityAudits(params.setPager(pager));
+      teChangeLogs =
+          trackedEntityChangeLogService.getTrackedEntityChangeLogs(params.setPager(pager));
     }
 
     RootNode rootNode = NodeUtils.createMetadata();
@@ -574,11 +579,11 @@ public class AuditController {
       rootNode.addChild(NodeUtils.createPager(pager));
     }
 
-    CollectionNode trackedEntityAudits =
-        rootNode.addChild(new CollectionNode("trackedEntityAudits", true));
-    trackedEntityAudits.addChildren(
+    CollectionNode changeLogs = rootNode.addChild(new CollectionNode("trackedEntityAudits", true));
+    changeLogs.addChildren(
         fieldFilterService
-            .toCollectionNode(TrackedEntityAudit.class, new FieldFilterParams(teiAudits, fields))
+            .toCollectionNode(
+                TrackedEntityChangeLog.class, new FieldFilterParams(teChangeLogs, fields))
             .getChildren());
 
     return rootNode;

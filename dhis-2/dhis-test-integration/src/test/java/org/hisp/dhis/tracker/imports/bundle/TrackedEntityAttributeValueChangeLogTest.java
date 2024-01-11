@@ -33,14 +33,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditQueryParams;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLog;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogQueryParams;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -55,14 +55,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Zubair Asghar
  */
-class TrackedEntityAttributeValueAuditTest extends TrackerTest {
+class TrackedEntityAttributeValueChangeLogTest extends TrackerTest {
   @Autowired private TrackerImportService trackerImportService;
 
   @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
   @Autowired private IdentifiableObjectManager manager;
 
-  @Autowired private TrackedEntityAttributeValueAuditService attributeValueAuditService;
+  @Autowired private TrackedEntityAttributeValueChangeLogService attributeValueAuditService;
   @Autowired protected UserService _userService;
 
   @Override
@@ -89,12 +89,12 @@ class TrackedEntityAttributeValueAuditTest extends TrackerTest {
         attributeValues.stream()
             .map(TrackedEntityAttributeValue::getAttribute)
             .collect(Collectors.toList());
-    List<TrackedEntityAttributeValueAudit> attributeValueAudits =
-        attributeValueAuditService.getTrackedEntityAttributeValueAudits(
-            new TrackedEntityAttributeValueAuditQueryParams()
+    List<TrackedEntityAttributeValueChangeLog> attributeValueAudits =
+        attributeValueAuditService.getTrackedEntityAttributeValueChangeLogs(
+            new TrackedEntityAttributeValueChangeLogQueryParams()
                 .setTrackedEntityAttributes(attributes)
                 .setTrackedEntities(trackedEntities)
-                .setAuditTypes(List.of(AuditType.CREATE)));
+                .setAuditTypes(List.of(ChangeLogType.CREATE)));
     assertEquals(5, attributeValueAudits.size());
   }
 
@@ -117,20 +117,20 @@ class TrackedEntityAttributeValueAuditTest extends TrackerTest {
     importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);
     List<TrackedEntity> trackedEntities = manager.getAll(TrackedEntity.class);
-    List<TrackedEntityAttributeValueAudit> attributeValueAudits =
-        attributeValueAuditService.getTrackedEntityAttributeValueAudits(
-            new TrackedEntityAttributeValueAuditQueryParams()
+    List<TrackedEntityAttributeValueChangeLog> attributeValueAudits =
+        attributeValueAuditService.getTrackedEntityAttributeValueChangeLogs(
+            new TrackedEntityAttributeValueChangeLogQueryParams()
                 .setTrackedEntityAttributes(attributes1)
                 .setTrackedEntities(trackedEntities)
-                .setAuditTypes(List.of(AuditType.DELETE)));
+                .setAuditTypes(List.of(ChangeLogType.DELETE)));
     assertEquals(1, attributeValueAudits.size());
 
     attributeValueAudits =
-        attributeValueAuditService.getTrackedEntityAttributeValueAudits(
-            new TrackedEntityAttributeValueAuditQueryParams()
+        attributeValueAuditService.getTrackedEntityAttributeValueChangeLogs(
+            new TrackedEntityAttributeValueChangeLogQueryParams()
                 .setTrackedEntityAttributes(attributes1)
                 .setTrackedEntities(trackedEntities)
-                .setAuditTypes(List.of(AuditType.UPDATE)));
+                .setAuditTypes(List.of(ChangeLogType.UPDATE)));
     assertEquals(1, attributeValueAudits.size());
   }
 }

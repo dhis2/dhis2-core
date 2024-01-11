@@ -25,25 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentitydatavalue;
+package org.hisp.dhis.trackedentity;
 
 import java.util.List;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentity.TrackedEntityDataValueAuditQueryParams;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Abyot Asalefew Gizaw abyota@gmail.com
  */
-public interface TrackedEntityDataValueAuditStore {
-  void addTrackedEntityDataValueAudit(TrackedEntityDataValueAudit trackedEntityDataValueAudit);
+public interface TrackedEntityChangeLogService {
 
-  List<TrackedEntityDataValueAudit> getTrackedEntityDataValueAudits(
-      TrackedEntityDataValueAuditQueryParams params);
+  String ID = TrackedEntityChangeLogService.class.getName();
 
-  int countTrackedEntityDataValueAudits(TrackedEntityDataValueAuditQueryParams params);
+  /**
+   * Adds tracked entity audit
+   *
+   * @param trackedEntityChangeLog the audit to add
+   */
+  void addTrackedEntityChangeLog(TrackedEntityChangeLog trackedEntityChangeLog);
 
-  void deleteTrackedEntityDataValueAudit(DataElement dataElement);
+  /** Adds multiple tracked entity audit */
+  void addTrackedEntityChangeLog(List<TrackedEntityChangeLog> trackedEntityChangeLogs);
 
-  void deleteTrackedEntityDataValueAudit(Event event);
+  /**
+   * Returns tracked entity audits matching query params
+   *
+   * @param params tracked entity audit query params
+   * @return matching TrackedEntityAudits
+   */
+  List<TrackedEntityChangeLog> getTrackedEntityChangeLogs(TrackedEntityChangeLogQueryParams params);
+
+  /**
+   * Returns count of tracked entity audits matching query params
+   *
+   * @param params tracked entity audit query params
+   * @return count of TrackedEntityAudits
+   */
+  int getTrackedEntityChangeLogsCount(TrackedEntityChangeLogQueryParams params);
 }

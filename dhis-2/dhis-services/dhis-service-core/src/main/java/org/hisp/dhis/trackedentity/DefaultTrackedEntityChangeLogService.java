@@ -30,7 +30,6 @@ package org.hisp.dhis.trackedentity;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.audit.payloads.TrackedEntityAudit;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -42,9 +41,9 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Abyot Asalefew Gizaw abyota@gmail.com
  */
 @RequiredArgsConstructor
-@Service("org.hisp.dhis.trackedentity.TrackedEntityAuditService")
-public class DefaultTrackedEntityAuditService implements TrackedEntityAuditService {
-  private final TrackedEntityAuditStore trackedEntityAuditStore;
+@Service("org.hisp.dhis.trackedentity.TrackedEntityChangeLogService")
+public class DefaultTrackedEntityChangeLogService implements TrackedEntityChangeLogService {
+  private final TrackedEntityChangeLogStore trackedEntityChangeLogStore;
 
   private final TrackedEntityStore trackedEntityStore;
 
@@ -59,28 +58,23 @@ public class DefaultTrackedEntityAuditService implements TrackedEntityAuditServi
   @Override
   @Async
   @Transactional
-  public void addTrackedEntityAudit(TrackedEntityAudit trackedEntityAudit) {
-    trackedEntityAuditStore.addTrackedEntityAudit(trackedEntityAudit);
+  public void addTrackedEntityChangeLog(TrackedEntityChangeLog trackedEntityChangeLog) {
+    trackedEntityChangeLogStore.addTrackedEntityChangeLog(trackedEntityChangeLog);
   }
 
   @Override
   @Async
   @Transactional
-  public void addTrackedEntityAudit(List<TrackedEntityAudit> trackedEntityAudits) {
-    trackedEntityAuditStore.addTrackedEntityAudit(trackedEntityAudits);
-  }
-
-  @Override
-  @Transactional
-  public void deleteTrackedEntityAudit(TrackedEntity trackedEntity) {
-    trackedEntityAuditStore.deleteTrackedEntityAudit(trackedEntity);
+  public void addTrackedEntityChangeLog(List<TrackedEntityChangeLog> trackedEntityChangeLogs) {
+    trackedEntityChangeLogStore.addTrackedEntityChangeLog(trackedEntityChangeLogs);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public List<TrackedEntityAudit> getTrackedEntityAudits(TrackedEntityAuditQueryParams params) {
+  public List<TrackedEntityChangeLog> getTrackedEntityChangeLogs(
+      TrackedEntityChangeLogQueryParams params) {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    return trackedEntityAuditStore.getTrackedEntityAudits(params).stream()
+    return trackedEntityChangeLogStore.getTrackedEntityChangeLogs(params).stream()
         .filter(
             a ->
                 trackerAccessManager
@@ -91,7 +85,7 @@ public class DefaultTrackedEntityAuditService implements TrackedEntityAuditServi
 
   @Override
   @Transactional(readOnly = true)
-  public int getTrackedEntityAuditsCount(TrackedEntityAuditQueryParams params) {
-    return trackedEntityAuditStore.getTrackedEntityAuditsCount(params);
+  public int getTrackedEntityChangeLogsCount(TrackedEntityChangeLogQueryParams params) {
+    return trackedEntityChangeLogStore.getTrackedEntityChangeLogsCount(params);
   }
 }

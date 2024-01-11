@@ -41,29 +41,27 @@ import org.springframework.stereotype.Service;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @RequiredArgsConstructor
-@Service("org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService")
-public class DefaultTrackedEntityAttributeValueAuditService
-    implements TrackedEntityAttributeValueAuditService {
-  private final TrackedEntityAttributeValueAuditStore trackedEntityAttributeValueAuditStore;
+@Service("org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService")
+public class DefaultTrackedEntityAttributeValueChangeLogService
+    implements TrackedEntityAttributeValueChangeLogService {
+  private final TrackedEntityAttributeValueChangeLogStore attributeValueChangeLogStore;
 
   private final TrackedEntityAttributeService trackedEntityAttributeService;
 
   @Override
-  public void addTrackedEntityAttributeValueAudit(
-      TrackedEntityAttributeValueAudit trackedEntityAttributeValueAudit) {
-    trackedEntityAttributeValueAuditStore.addTrackedEntityAttributeValueAudit(
-        trackedEntityAttributeValueAudit);
+  public void addTrackedEntityAttributeValueChangLog(
+      TrackedEntityAttributeValueChangeLog attributeValueChangeLog) {
+    attributeValueChangeLogStore.addTrackedEntityAttributeValueChangeLog(attributeValueChangeLog);
   }
 
   @Override
-  public List<TrackedEntityAttributeValueAudit> getTrackedEntityAttributeValueAudits(
-      TrackedEntityAttributeValueAuditQueryParams params) {
-    return aclFilter(
-        trackedEntityAttributeValueAuditStore.getTrackedEntityAttributeValueAudits(params));
+  public List<TrackedEntityAttributeValueChangeLog> getTrackedEntityAttributeValueChangeLogs(
+      TrackedEntityAttributeValueChangeLogQueryParams params) {
+    return aclFilter(attributeValueChangeLogStore.getTrackedEntityAttributeValueChangeLogs(params));
   }
 
-  private List<TrackedEntityAttributeValueAudit> aclFilter(
-      List<TrackedEntityAttributeValueAudit> trackedEntityAttributeValueAudits) {
+  private List<TrackedEntityAttributeValueChangeLog> aclFilter(
+      List<TrackedEntityAttributeValueChangeLog> attributeValueChangeLogs) {
     // Fetch all the Tracked Entity Attributes this user has access
     // to (only store UIDs). Not a very efficient solution, but at the
     // moment
@@ -76,20 +74,20 @@ public class DefaultTrackedEntityAttributeValueAuditService
             .map(IdentifiableObject::getUid)
             .collect(Collectors.toSet());
 
-    return trackedEntityAttributeValueAudits.stream()
+    return attributeValueChangeLogs.stream()
         .filter(
             audit -> allUserReadableTrackedEntityAttributes.contains(audit.getAttribute().getUid()))
         .toList();
   }
 
   @Override
-  public int countTrackedEntityAttributeValueAudits(
-      TrackedEntityAttributeValueAuditQueryParams params) {
-    return trackedEntityAttributeValueAuditStore.countTrackedEntityAttributeValueAudits(params);
+  public int countTrackedEntityAttributeValueChangeLogs(
+      TrackedEntityAttributeValueChangeLogQueryParams params) {
+    return attributeValueChangeLogStore.countTrackedEntityAttributeValueChangeLogs(params);
   }
 
   @Override
-  public void deleteTrackedEntityAttributeValueAudits(TrackedEntity trackedEntity) {
-    trackedEntityAttributeValueAuditStore.deleteTrackedEntityAttributeValueAudits(trackedEntity);
+  public void deleteTrackedEntityAttributeValueChangeLogs(TrackedEntity trackedEntity) {
+    attributeValueChangeLogStore.deleteTrackedEntityAttributeValueChangeLogs(trackedEntity);
   }
 }
