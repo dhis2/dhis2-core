@@ -65,7 +65,6 @@ import org.hisp.dhis.split.orgunit.OrgUnitSplitService;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.version.VersionService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
@@ -475,7 +474,7 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
         && withinUserSearchHierarchy == null) {
 
       return super.getObjectList(
-          rpParameters, orderParams, response, (UserDetailsImpl) UserDetails.fromUser(currentUser));
+          rpParameters, orderParams, response, UserDetails.fromUser(currentUser));
     }
     return getObjectList(
         rpParameters,

@@ -90,9 +90,7 @@ public class CurrentUserHandlerMethodArgumentResolver implements HandlerMethodAr
     }
 
     if (type == User.class) {
-      String currentUsername = CurrentUserUtil.getCurrentUsername();
-      User currentUser = userService.getUserByUsername(currentUsername);
-      return currentUser;
+      return userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     }
 
     throw new UnsupportedOperationException("Not supported @CurrentUser type: " + type);
