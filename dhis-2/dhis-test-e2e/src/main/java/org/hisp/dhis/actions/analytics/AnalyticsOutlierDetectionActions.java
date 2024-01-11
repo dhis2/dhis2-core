@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,13 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.generator;
+package org.hisp.dhis.actions.analytics;
 
-import org.hisp.dhis.analytics.generator.impl.OutlierDetectionGenerator;
+import org.hisp.dhis.actions.RestApiActions;
 
-/** This class simply hold the generator implementation to be used during the code generation. */
-public class TestGenerator {
-  static Generator get() {
-    return new OutlierDetectionGenerator();
+/**
+ * Provides tracked entities endpoints/operations associated to the parent
+ * "analytics/outlierDetection".
+ *
+ * @author maikel arabori
+ */
+public class AnalyticsOutlierDetectionActions extends RestApiActions {
+  public AnalyticsOutlierDetectionActions() {
+    super("/analytics/outlierDetection");
+  }
+
+  public AnalyticsOutlierDetectionActions(String endpoint) {
+    super("/analytics/outlierDetection" + endpoint);
+  }
+
+  public AnalyticsOutlierDetectionActions query() {
+    return new AnalyticsOutlierDetectionActions("");
   }
 }
