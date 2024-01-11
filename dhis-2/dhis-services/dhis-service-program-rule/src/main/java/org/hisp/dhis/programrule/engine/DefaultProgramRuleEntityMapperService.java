@@ -289,24 +289,6 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     return values;
   }
 
-  private Map<String, String> createValues(String content, String field, String attributeType) {
-    HashMap<String, String> values = new HashMap<>();
-
-    if (content != null) {
-      values.put("content", content);
-    }
-
-    if (field != null) {
-      values.put("field", field);
-    }
-
-    if (attributeType != null) {
-      values.put("attributeType", attributeType);
-    }
-
-    return values;
-  }
-
   private final ImmutableMap<
           ProgramRuleVariableSourceType, Function<ProgramRuleVariable, RuleVariable>>
       VARIABLE_MAPPER =
