@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.icon;
 
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertGreaterOrEqual;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -89,19 +88,21 @@ class IconTest extends TrackerTest {
     Map<String, DefaultIcon> defaultIconMap = getAllDefaultIcons();
 
     IconCriteria iconCriteria = new IconCriteria();
-    iconCriteria.setType(IconType.ALL);
+    iconCriteria.setType(IconTypeFilter.ALL);
     iconCriteria.setKeywords(List.of());
 
     assertEquals(
         defaultIconMap.size() + 1,
         iconService.getIcons(iconCriteria).size(),
         String.format(
-            "Expected to find %d icons, but found %d instead",
-            defaultIconMap.size() + 1, iconService.getIcons(iconCriteria).size()));
+            "Expected to find %d icons, but found %d instead: %s",
+            defaultIconMap.size() + 1,
+            iconService.getIcons(iconCriteria).size(),
+            iconService.getIcons(iconCriteria)));
   }
 
   @Test
-  void shouldGetAllIcons() {
+  void shouldGetAllIconsByDefault() {
     Map<String, DefaultIcon> defaultIconMap = getAllDefaultIcons();
 
     IconCriteria iconCriteria = new IconCriteria();
@@ -110,8 +111,10 @@ class IconTest extends TrackerTest {
         defaultIconMap.size() + 1,
         iconService.getIcons(iconCriteria).size(),
         String.format(
-            "Expected to find %d icons, but found %d instead",
-            defaultIconMap.size() + 1, iconService.getIcons(iconCriteria).size()));
+            "Expected to find %d icons, but found %d instead: %s",
+            defaultIconMap.size() + 1,
+            iconService.getIcons(iconCriteria).size(),
+            iconService.getIcons(iconCriteria)));
   }
 
   @Test
@@ -132,7 +135,7 @@ class IconTest extends TrackerTest {
             .collect(Collectors.toSet());
 
     IconCriteria iconCriteria = new IconCriteria();
-    iconCriteria.setType(IconType.ALL);
+    iconCriteria.setType(IconTypeFilter.ALL);
     iconCriteria.setKeywords(keywordList.stream().toList());
 
     assertEquals(
@@ -157,7 +160,7 @@ class IconTest extends TrackerTest {
     FileResource fileResourceD = createAndPersistFileResource('D');
 
     IconCriteria iconCriteria = new IconCriteria();
-    iconCriteria.setType(IconType.ALL);
+    iconCriteria.setType(IconTypeFilter.ALL);
     iconCriteria.setKeywords(List.of(keyword));
 
     iconService.addCustomIcon(
@@ -195,7 +198,7 @@ class IconTest extends TrackerTest {
     iconService.addCustomIcon(iconC);
 
     IconCriteria iconCriteria = new IconCriteria();
-    iconCriteria.setType(IconType.CUSTOM);
+    iconCriteria.setType(IconTypeFilter.CUSTOM);
     iconCriteria.setKeywords(List.of("k4", "k5", "k6"));
 
     assertContainsOnly(List.of(iconB), iconService.getIcons(iconCriteria));

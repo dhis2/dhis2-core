@@ -57,20 +57,13 @@ class IconControllerTest extends DhisControllerIntegrationTest {
 
   @Test
   void shouldCreateCustomIconWhenFileResourceExist() throws IOException {
+
+    String key =
+        """
+    {'key': '%s','description': '%s','fileResourceUid': '%s','keywords': %s}"""
+            .formatted(iconKey, description, createFileResource(), keywords);
     JsonWebMessage message =
-        POST(
-                "/icons/",
-                "{'key':'"
-                    + iconKey
-                    + "', 'description':'"
-                    + description
-                    + "', 'fileResourceUid':'"
-                    + createFileResource()
-                    + "', 'keywords':"
-                    + keywords
-                    + "}")
-            .content(HttpStatus.CREATED)
-            .as(JsonWebMessage.class);
+        POST("/icons/", key).content(HttpStatus.CREATED).as(JsonWebMessage.class);
 
     assertEquals(String.format("Icon %s created", iconKey), message.getMessage());
   }
@@ -150,20 +143,14 @@ class IconControllerTest extends DhisControllerIntegrationTest {
   }
 
   private String createIcon(String fileResourceId, String keywords) {
+
+    String key =
+        """
+    {'key': '%s','description': '%s','fileResourceUid': '%s','keywords': %s}"""
+            .formatted(iconKey, description, fileResourceId, keywords);
     JsonWebMessage message =
-        POST(
-                "/icons/",
-                "{'key':'"
-                    + iconKey
-                    + "', 'description':'"
-                    + description
-                    + "', 'fileResourceUid':'"
-                    + fileResourceId
-                    + "', 'keywords':"
-                    + keywords
-                    + "}")
-            .content(HttpStatus.CREATED)
-            .as(JsonWebMessage.class);
+        POST("/icons/", key).content(HttpStatus.CREATED).as(JsonWebMessage.class);
+
     return message.getMessage();
   }
 

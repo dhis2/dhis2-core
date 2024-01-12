@@ -73,13 +73,13 @@ public class DefaultIconService implements IconService {
   @Override
   @Transactional(readOnly = true)
   public List<? extends Icon> getIcons(IconCriteria iconCriteria) {
-    if (IconType.DEFAULT == iconCriteria.getType()) {
+    if (IconTypeFilter.DEFAULT == iconCriteria.getType()) {
       return defaultIcons.values().stream()
           .filter(icon -> Set.of(icon.getKeywords()).containsAll(iconCriteria.getKeywords()))
           .toList();
     }
 
-    if (IconType.CUSTOM == iconCriteria.getType()) {
+    if (IconTypeFilter.CUSTOM == iconCriteria.getType()) {
       return customIconStore.getIconsByKeywords(iconCriteria.getKeywords());
     }
 

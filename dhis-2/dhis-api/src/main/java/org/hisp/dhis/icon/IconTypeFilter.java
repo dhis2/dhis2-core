@@ -32,20 +32,20 @@ import java.util.Optional;
 /**
  * @author Zubair Asghar
  */
-public enum IconType {
+public enum IconTypeFilter {
   ALL("all"),
   CUSTOM("custom"),
   DEFAULT("default");
 
   private String type;
 
-  IconType(String type) {
+  IconTypeFilter(String type) {
 
     this.type = type;
   }
 
-  public static Optional<IconType> from(String iconType) {
-    for (IconType type : IconType.values()) {
+  public static Optional<IconTypeFilter> from(String iconType) {
+    for (IconTypeFilter type : IconTypeFilter.values()) {
       if (type.type.equals(iconType)) {
         return Optional.of(type);
       }

@@ -41,5 +41,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class IconCriteria {
   private List<String> keywords = new ArrayList<>();
-  private IconType type = IconType.ALL;
+  private IconTypeFilter type = IconTypeFilter.ALL;
 }
