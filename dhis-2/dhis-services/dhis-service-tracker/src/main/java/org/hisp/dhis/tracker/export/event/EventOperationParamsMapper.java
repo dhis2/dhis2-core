@@ -52,8 +52,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -73,7 +74,7 @@ class EventOperationParamsMapper {
 
   private final CategoryOptionComboService categoryOptionComboService;
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   private final TrackedEntityAttributeService trackedEntityAttributeService;
 
@@ -84,15 +85,17 @@ class EventOperationParamsMapper {
   @Transactional(readOnly = true)
   public EventQueryParams map(EventOperationParams operationParams)
       throws BadRequestException, ForbiddenException {
-    User user = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    Program program = paramsValidator.validateProgram(operationParams.getProgramUid(), user);
-    ProgramStage programStage = validateProgramStage(operationParams.getProgramStageUid(), user);
+    Program program = paramsValidator.validateProgram(operationParams.getProgramUid(), currentUser);
+    ProgramStage programStage =
+        validateProgramStage(operationParams.getProgramStageUid(), currentUser);
     TrackedEntity trackedEntity =
-        paramsValidator.validateTrackedEntity(operationParams.getTrackedEntityUid(), user);
+        paramsValidator.validateTrackedEntity(operationParams.getTrackedEntityUid(), currentUser);
 
-    OrganisationUnit orgUnit = validateRequestedOrgUnit(operationParams.getOrgUnitUid(), user);
-    validateOrgUnitMode(operationParams.getOrgUnitMode(), user, program);
+    OrganisationUnit orgUnit =
+        validateRequestedOrgUnit(operationParams.getOrgUnitUid(), currentUser);
+    validateOrgUnitMode(operationParams.getOrgUnitMode(), currentUser, program);
 
     CategoryOptionCombo attributeOptionCombo =
         categoryOptionComboService.getAttributeOptionCombo(
@@ -102,7 +105,7 @@ class EventOperationParamsMapper {
             operationParams.getAttributeCategoryOptions(),
             true);
 
-    validateAttributeOptionCombo(attributeOptionCombo, user);
+    validateAttributeOptionCombo(attributeOptionCombo, currentUser);
 
     EventQueryParams queryParams = new EventQueryParams();
 
@@ -120,7 +123,9 @@ class EventOperationParamsMapper {
         .setOrgUnitMode(operationParams.getOrgUnitMode())
         .setAssignedUserQueryParam(
             new AssignedUserQueryParam(
-                operationParams.getAssignedUserMode(), user, operationParams.getAssignedUsers()))
+                operationParams.getAssignedUserMode(),
+                currentUser,
+                operationParams.getAssignedUsers()))
         .setOccurredStartDate(operationParams.getOccurredAfter())
         .setOccurredEndDate(operationParams.getOccurredBefore())
         .setScheduledStartDate(operationParams.getScheduledAfter())

@@ -41,7 +41,6 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewStore;
 import org.hisp.dhis.sqlview.SqlViewType;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.BadSqlGrammarException;
@@ -66,19 +65,11 @@ public class HibernateSqlViewStore extends HibernateIdentifiableObjectStore<SqlV
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService,
       StatementBuilder statementBuilder,
       @Qualifier("readOnlyJdbcTemplate") JdbcTemplate readOnlyJdbcTemplate,
       SystemSettingManager systemSettingManager) {
-    super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        SqlView.class,
-        currentUserService,
-        aclService,
-        false);
+    super(entityManager, jdbcTemplate, publisher, SqlView.class, aclService, false);
 
     checkNotNull(statementBuilder);
     checkNotNull(readOnlyJdbcTemplate);

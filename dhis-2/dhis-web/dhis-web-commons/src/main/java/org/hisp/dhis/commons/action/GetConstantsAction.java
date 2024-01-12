@@ -35,7 +35,8 @@ import java.util.List;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.paging.ActionPagingSupport;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Dang Duy Hieu
@@ -96,8 +97,8 @@ public class GetConstantsAction extends ActionPagingSupport<Constant> {
               constantService.getConstantsBetween(paging.getStartPos(), paging.getPageSize()));
     }
 
-    User currentUser = currentUserService.getCurrentUser();
-    constants.forEach(instance -> canReadInstance(instance, currentUser));
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    constants.forEach(instance -> canReadInstance(instance, currentUserDetails));
 
     Collections.sort(constants);
 

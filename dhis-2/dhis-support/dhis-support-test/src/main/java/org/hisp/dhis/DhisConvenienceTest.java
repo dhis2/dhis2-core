@@ -63,6 +63,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
+import javax.persistence.EntityManager;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
@@ -189,8 +190,10 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityfilter.EntityQueryCriteria;
 import org.hisp.dhis.trackedentityfilter.TrackedEntityFilter;
 import org.hisp.dhis.trackerdataview.TrackerDataView;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserGroupInfo;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
@@ -294,6 +297,9 @@ public abstract class DhisConvenienceTest {
   // -------------------------------------------------------------------------
   // Convenience methods
   // -------------------------------------------------------------------------
+  public User getCurrentUser() {
+    return userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+  }
 
   /**
    * Creates a date.
@@ -518,7 +524,6 @@ public abstract class DhisConvenienceTest {
     DataElement dataElement = createDataElement(uniqueCharacter);
     dataElement.setValueType(valueType);
     dataElement.setAggregationType(aggregationType);
-
     return dataElement;
   }
 
@@ -573,7 +578,6 @@ public abstract class DhisConvenienceTest {
         new CategoryCombo(name, DISAGGREGATION, Arrays.asList(categories));
     categoryCombo.setAutoFields();
     categoryCombo.setUid(uid);
-
     return categoryCombo;
   }
 
@@ -616,7 +620,6 @@ public abstract class DhisConvenienceTest {
     categoryOptionCombo.setName(name);
     categoryOptionCombo.setShortName(name);
     categoryOptionCombo.setUid(uid);
-
     return categoryOptionCombo;
   }
 
@@ -668,7 +671,6 @@ public abstract class DhisConvenienceTest {
         new Category("Category" + categoryUniqueIdentifier, DataDimensionType.DISAGGREGATION);
     category.setAutoFields();
     category.setShortName(category.getName());
-
     for (CategoryOption categoryOption : categoryOptions) {
       category.addCategoryOption(categoryOption);
     }
@@ -966,6 +968,7 @@ public abstract class DhisConvenienceTest {
     unit.setCode("OrganisationUnitCode" + uniqueCharacter);
     unit.setOpeningDate(date);
     unit.setComment("Comment" + uniqueCharacter);
+    //    unit.getSharing().setPublicAccess("--------");
 
     return unit;
   }
@@ -985,7 +988,6 @@ public abstract class DhisConvenienceTest {
   public static OrganisationUnit createOrganisationUnit(
       char uniqueCharacter, OrganisationUnit parent) {
     OrganisationUnit unit = createOrganisationUnit(uniqueCharacter);
-
     unit.setParent(parent);
     parent.getChildren().add(unit);
 
@@ -1586,7 +1588,6 @@ public abstract class DhisConvenienceTest {
       CategoryCombo categoryCombo) {
     Program program = new Program();
     program.setAutoFields();
-
     program.setUid(BASE_PR_UID + uniqueCharacter);
     program.setName("Program" + uniqueCharacter);
     program.setCode("ProgramCode" + uniqueCharacter);
@@ -2517,7 +2518,7 @@ public abstract class DhisConvenienceTest {
 
     userService.addUser(user);
 
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     return user;
   }
@@ -2599,25 +2600,42 @@ public abstract class DhisConvenienceTest {
 
   protected final User createAndInjectAdminUser(String... authorities) {
     User user = createAndAddAdminUser(authorities);
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
     return user;
   }
 
   protected void injectAdminUser() {
-    injectSecurityContext(userService.getUser(ADMIN_USER_UID));
+    injectSecurityContextUser(userService.getUser(ADMIN_USER_UID));
   }
 
-  protected void injectSecurityContext(User user) {
+  protected void injectSecurityContextUser(User user) {
     if (user == null) {
       clearSecurityContext();
       return;
     }
 
-    hibernateService.flushSession();
     user = userService.getUser(user.getUid());
 
-    CurrentUserDetails currentUserDetails = userService.createUserDetails(user);
+    CurrentUserGroupInfo currentUserGroupInfo = userService.getCurrentUserGroupInfo(user.getUid());
+    if (user.getGroups().size() != currentUserGroupInfo.getUserGroupUIDs().size()) {
+      String msg =
+          String.format(
+              "User '%s' getGroups().size() has %d groups, but  getUserGroupUIDs() returns %d groups!",
+              user.getUsername(),
+              user.getGroups().size(),
+              currentUserGroupInfo.getUserGroupUIDs().size());
 
+      log.error(msg);
+
+      throw new RuntimeException(msg);
+    }
+
+    UserDetails userDetails = userService.createUserDetails(user);
+
+    injectSecurityContext(userDetails);
+  }
+
+  public static void injectSecurityContext(UserDetails currentUserDetails) {
     Authentication authentication =
         new UsernamePasswordAuthenticationToken(
             currentUserDetails, "", currentUserDetails.getAuthorities());
@@ -2626,12 +2644,11 @@ public abstract class DhisConvenienceTest {
     SecurityContextHolder.setContext(context);
   }
 
-  protected void clearSecurityContext() {
+  public static void clearSecurityContext() {
     SecurityContext context = SecurityContextHolder.getContext();
     if (context != null) {
       SecurityContextHolder.getContext().setAuthentication(null);
     }
-
     SecurityContextHolder.clearContext();
   }
 
@@ -2863,17 +2880,20 @@ public abstract class DhisConvenienceTest {
   }
 
   protected User preCreateInjectAdminUserWithoutPersistence() {
-    UserRole role = createUserRole("Superuser_Test", "ALL");
-    role.setUid(CodeGenerator.generateUid());
+    String uid = CodeGenerator.generateUid();
+
+    UserRole role = createUserRole("Superuser_Test_" + uid, "ALL");
+    role.setUid(uid);
 
     User user = new User();
+    user.setUid(uid);
     user.setFirstName("Admin");
     user.setSurname("User");
     user.setUsername(DEFAULT_USERNAME + "_test");
     user.setPassword(DEFAULT_ADMIN_PASSWORD);
     user.getUserRoles().add(role);
 
-    CurrentUserDetails currentUserDetails = userService.createUserDetails(user);
+    UserDetails currentUserDetails = userService.createUserDetails(user);
     Authentication authentication =
         new UsernamePasswordAuthenticationToken(
             currentUserDetails, DEFAULT_ADMIN_PASSWORD, List.of(new SimpleGrantedAuthority("ALL")));
@@ -2918,5 +2938,26 @@ public abstract class DhisConvenienceTest {
     }
     layout.setColumns(columns);
     return layout;
+  }
+
+  public static User createRandomAdminUserWithEntityManager(EntityManager entityManager) {
+    UserRole role = createUserRole("Superuser_Test_" + CodeGenerator.generateUid(), "ALL");
+    role.setUid(CodeGenerator.generateUid());
+
+    entityManager.persist(role);
+
+    User user = new User();
+    user.setUid("A_" + CodeGenerator.generateUid().substring(2));
+    user.setFirstName("Admin");
+    user.setSurname("User");
+    user.setUsername(DEFAULT_USERNAME + "_test_" + CodeGenerator.generateUid());
+    user.setPassword(DEFAULT_ADMIN_PASSWORD);
+    user.getUserRoles().add(role);
+    user.setLastUpdated(new Date());
+    user.setCreated(new Date());
+
+    entityManager.persist(user);
+
+    return user;
   }
 }

@@ -232,6 +232,21 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
   // -------------------------------------------------------------------------
 
   @Override
+  public void tearDownTest() {
+    for (AnalyticsTableService service : analyticsTableServices) {
+      service.dropTables();
+    }
+  }
+
+  @BeforeEach
+  public void beforeEach() {
+    // Reset the security context for each test.
+    clearSecurityContext();
+
+    reLoginAdminUser();
+  }
+
+  @Override
   public void setUpTest() throws IOException, InterruptedException {
     userService = _userService;
 
@@ -276,8 +291,11 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
     // Organisation Unit Levels
     OrganisationUnitLevel ou1 = new OrganisationUnitLevel(1, "Ou Level 1");
+    ou1.getSharing().setPublicAccess("--------");
     OrganisationUnitLevel ou2 = new OrganisationUnitLevel(2, "Ou Level 2");
+    ou2.getSharing().setPublicAccess("--------");
     OrganisationUnitLevel ou3 = new OrganisationUnitLevel(3, "Ou Level 3");
+    ou3.getSharing().setPublicAccess("--------");
     idObjectManager.save(ou1);
     idObjectManager.save(ou2);
     idObjectManager.save(ou3);
@@ -554,19 +572,6 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     programOwnershipHistoryService.addProgramOwnershipHistory(poh);
   }
 
-  @Override
-  public void tearDownTest() {
-    for (AnalyticsTableService service : analyticsTableServices) {
-      service.dropTables();
-    }
-  }
-
-  @BeforeEach
-  public void beforeEach() {
-    // Reset the security context for each test.
-    clearSecurityContext();
-  }
-
   // -------------------------------------------------------------------------
   // Test dimension restrictions
   // -------------------------------------------------------------------------
@@ -589,7 +594,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     categoryService.updateCategory(caB);
 
     // The user is active
-    injectSecurityContext(userA);
+    injectSecurityContextUser(userA);
 
     // All events in 2017
     EventQueryParams events_2017_params =
@@ -606,10 +611,14 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
   @Test
   void testDimensionRestrictionWhenUserCannotReadCategoryOptions() {
+    reLoginAdminUser();
+
     // Given
     // The category options are not readable by the user
     coA.getSharing().setOwner("cannotRead");
+    coA.getSharing().setPublicAccess("--------");
     coB.getSharing().setOwner("cannotRead");
+    coB.getSharing().setPublicAccess("--------");
     removeUserAccess(coA);
     removeUserAccess(coB);
     categoryService.updateCategoryOption(coA);
@@ -617,12 +626,14 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
     // The category is not readable by the user
     caA.getSharing().setOwner("cannotRead");
+    coA.getSharing().setPublicAccess("--------");
     caB.getSharing().setOwner("cannotRead");
+    caB.getSharing().setPublicAccess("--------");
     categoryService.updateCategory(caA);
     categoryService.updateCategory(caB);
 
     // The user is active
-    injectSecurityContext(userA);
+    injectSecurityContextUser(userA);
 
     // All events in 2017
     EventQueryParams events_2017_params =
@@ -638,6 +649,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         assertThrows(
             IllegalQueryException.class,
             () -> eventTarget.getAggregatedEventData(events_2017_params));
+
     assertThat(
         exception.getMessage(),
         containsString(

@@ -33,24 +33,28 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Session;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.common.adapter.Sharing_;
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.CurrentUserGroupInfo;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -58,11 +62,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * This class contains methods for generating predicates which are used for validating sharing
  * access permission.
  */
+@Slf4j
 public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
     extends HibernateGenericStore<T> implements InternalHibernateGenericStore<T> {
   protected AclService aclService;
-
-  protected final CurrentUserService currentUserService;
 
   public InternalHibernateGenericStoreImpl(
       EntityManager entityManager,
@@ -70,14 +73,16 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
       ApplicationEventPublisher publisher,
       Class<T> clazz,
       AclService aclService,
-      CurrentUserService currentUserService,
       boolean cacheable) {
     super(entityManager, jdbcTemplate, publisher, clazz, cacheable);
 
     checkNotNull(aclService);
-    checkNotNull(currentUserService);
     this.aclService = aclService;
-    this.currentUserService = currentUserService;
+  }
+
+  @Override
+  public List<Function<Root<T>, Predicate>> getSharingPredicates(CriteriaBuilder builder) {
+    return getSharingPredicates(builder, CurrentUserUtil.getCurrentUserDetails());
   }
 
   /**
@@ -218,47 +223,67 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
 
   @Override
   public List<Function<Root<T>, Predicate>> getDataSharingPredicates(
-      CriteriaBuilder builder, User user) {
-    return user == null
-        ? List.of()
-        : getDataSharingPredicates(
-            builder,
-            user,
-            currentUserService.getCurrentUserGroupsInfo(user.getUid()),
-            AclService.LIKE_READ_DATA);
-  }
+      CriteriaBuilder builder, UserDetails userDetails) {
 
-  @Override
-  public List<Function<Root<T>, Predicate>> getSharingPredicates(
-      CriteriaBuilder builder, User user) {
-    return user == null
-        ? List.of()
-        : getSharingPredicates(
-            builder,
-            user,
-            currentUserService.getCurrentUserGroupsInfo(user.getUid()),
-            AclService.LIKE_READ_METADATA);
-  }
-
-  @Override
-  public List<Function<Root<T>, Predicate>> getSharingPredicates(
-      CriteriaBuilder builder, User user, String access) {
-    if (user == null || !sharingEnabled(user)) {
+    if (userDetails == null) {
       return List.of();
     }
 
-    Set<String> groupIds =
-        currentUserService.getCurrentUserGroupsInfo(user.getUid()).getUserGroupUIDs();
+    CurrentUserGroupInfo currentUserGroupInfo = getCurrentUserGroupInfo(userDetails.getUid());
+    if (userDetails.getUserGroupIds().size() != currentUserGroupInfo.getUserGroupUIDs().size()) {
+      String msg =
+          String.format(
+              "User '%s' getGroups().size() has %d groups, but  getUserGroupUIDs() returns %d groups!",
+              userDetails.getUsername(),
+              userDetails.getUserGroupIds().size(),
+              currentUserGroupInfo.getUserGroupUIDs().size());
 
-    return getSharingPredicates(builder, user.getUid(), groupIds, access);
+      RuntimeException runtimeException = new RuntimeException(msg);
+      log.error(msg, runtimeException);
+      throw runtimeException;
+    }
+
+    return getDataSharingPredicates(
+        builder, userDetails, currentUserGroupInfo, AclService.LIKE_READ_DATA);
+  }
+
+  @Override
+  public List<Function<Root<T>, Predicate>> getSharingPredicates(
+      CriteriaBuilder builder, UserDetails userDetails) {
+    if (userDetails == null) {
+      return List.of();
+    }
+
+    // TODO: MAS: we need to keep this for the special case when the acting user's UserGroups are
+    // changed in the request.
+    // See tests in AbstractCrudControllerTest#testMergeCollectionItemsJson()
+    // If it was not the acting user, we could easily invalidate the changed user if they are
+    // logged in.
+    CurrentUserGroupInfo currentUserGroupInfo = getCurrentUserGroupInfo(userDetails.getUid());
+    if (userDetails.getUserGroupIds().size() != currentUserGroupInfo.getUserGroupUIDs().size()) {
+      String msg =
+          String.format(
+              "User '%s' getGroups().size() has %d groups, but  getUserGroupUIDs() returns %d groups!",
+              userDetails.getUsername(),
+              userDetails.getUserGroupIds().size(),
+              currentUserGroupInfo.getUserGroupUIDs().size());
+
+      log.error(msg, new RuntimeException(msg));
+    }
+
+    return getSharingPredicates(
+        builder, userDetails, currentUserGroupInfo, AclService.LIKE_READ_METADATA);
   }
 
   @Override
   public List<Function<Root<T>, Predicate>> getDataSharingPredicates(
-      CriteriaBuilder builder, User user, CurrentUserGroupInfo groupInfo, String access) {
+      CriteriaBuilder builder,
+      UserDetails userDetails,
+      CurrentUserGroupInfo groupInfo,
+      String access) {
     List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
 
-    if (user == null || !dataSharingEnabled(user) || groupInfo == null) {
+    if (userDetails == null || dataSharingDisabled(userDetails) || groupInfo == null) {
       return predicates;
     }
 
@@ -268,66 +293,81 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
 
   @Override
   public List<Function<Root<T>, Predicate>> getDataSharingPredicates(
-      CriteriaBuilder builder, User user, String access) {
+      CriteriaBuilder builder, UserDetails userDetails, String access) {
     List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
 
-    if (user == null || !dataSharingEnabled(user)) {
+    if (userDetails == null || dataSharingDisabled(userDetails)) {
       return predicates;
     }
 
-    Set<String> groupIds =
-        user.getGroups().stream().map(g -> g.getUid()).collect(Collectors.toSet());
+    Set<String> groupIds = userDetails.getUserGroupIds();
 
-    return getDataSharingPredicates(builder, user.getUid(), groupIds, access);
+    return getDataSharingPredicates(builder, userDetails.getUid(), groupIds, access);
   }
 
   protected boolean forceAcl() {
     return Dashboard.class.isAssignableFrom(clazz);
   }
 
-  /**
-   * @deprecated use {@link #sharingEnabled( CurrentUserDetails )} instead.
-   */
-  @Deprecated
-  protected boolean sharingEnabled(User user) {
+  protected boolean sharingEnabled(UserDetails userDetails) {
     boolean b = forceAcl();
 
     if (b) {
       return b;
     } else {
-      return (aclService.isClassShareable(clazz) && !(user == null || user.isSuper()));
+      return (aclService.isClassShareable(clazz)
+          && !(userDetails == null || userDetails.isSuper()));
     }
   }
 
-  protected boolean sharingEnabled(CurrentUserDetails user) {
-    boolean b = forceAcl();
-
-    if (b) {
-      return b;
-    } else {
-      return (aclService.isClassShareable(clazz) && !(user == null || user.isSuper()));
-    }
-  }
-
-  protected boolean dataSharingEnabled(CurrentUserDetails user) {
-    return aclService.isDataClassShareable(clazz) && !user.isSuper();
-  }
-
-  /**
-   * @deprecated use {@link #dataSharingEnabled( CurrentUserDetails )} instead.
-   */
-  @Deprecated
-  private boolean dataSharingEnabled(User user) {
-    return aclService.isDataClassShareable(clazz) && !user.isSuper();
+  protected boolean dataSharingDisabled(UserDetails userDetails) {
+    return !aclService.isDataClassShareable(clazz) || userDetails.isSuper();
   }
 
   private List<Function<Root<T>, Predicate>> getSharingPredicates(
-      CriteriaBuilder builder, User user, CurrentUserGroupInfo groupInfo, String access) {
-    if (user == null || groupInfo == null || !sharingEnabled(user)) {
+      CriteriaBuilder builder,
+      UserDetails userDetails,
+      CurrentUserGroupInfo groupInfo,
+      String access) {
+
+    if (userDetails == null || groupInfo == null || !sharingEnabled(userDetails)) {
       return List.of();
     }
 
     return getSharingPredicates(
         builder, groupInfo.getUserUID(), groupInfo.getUserGroupUIDs(), access);
+  }
+
+  @Override
+  // TODO: MAS can this be removed and we rely on first fetch on login? make sure current logged in
+  // users are get invalidated when group changes
+  public CurrentUserGroupInfo getCurrentUserGroupInfo(String userUID) {
+    CriteriaBuilder builder = getCriteriaBuilder();
+    CriteriaQuery<Object[]> query = builder.createQuery(Object[].class);
+    Root<User> root = query.from(User.class);
+    query.where(builder.equal(root.get("uid"), userUID));
+    query.select(builder.array(root.get("uid"), root.join("groups", JoinType.LEFT).get("uid")));
+
+    Session session = getSession();
+    List<Object[]> results = session.createQuery(query).getResultList();
+
+    CurrentUserGroupInfo currentUserGroupInfo = new CurrentUserGroupInfo();
+
+    if (CollectionUtils.isEmpty(results)) {
+      currentUserGroupInfo.setUserUID(userUID);
+      return currentUserGroupInfo;
+    }
+
+    for (Object[] result : results) {
+      if (currentUserGroupInfo.getUserUID() == null) {
+        currentUserGroupInfo.setUserUID(result[0].toString());
+      }
+
+      if (result[1] != null) {
+        currentUserGroupInfo.getUserGroupUIDs().add(result[1].toString());
+      }
+    }
+
+    return currentUserGroupInfo;
   }
 }

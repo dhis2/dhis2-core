@@ -44,7 +44,7 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
@@ -62,8 +62,6 @@ public class DefaultSharingService implements SharingService {
   @Nonnull private final AclService aclService;
 
   @Nonnull private final IdentifiableObjectManager manager;
-
-  @Nonnull private final CurrentUserService currentUserService;
 
   @Nonnull private final UserGroupService userGroupService;
 
@@ -85,9 +83,7 @@ public class DefaultSharingService implements SharingService {
               .setErrorKlass(entityClass));
     }
 
-    User user = currentUserService.getCurrentUser();
-
-    if (!aclService.canManage(user, object)) {
+    if (!aclService.canManage(CurrentUserUtil.getCurrentUserDetails(), object)) {
       objectReport.addErrorReport(
           new ErrorReport(Sharing.class, ErrorCode.E3014).setErrorKlass(entityClass));
     }
@@ -102,7 +98,7 @@ public class DefaultSharingService implements SharingService {
     // Ignore externalAccess if user is not allowed to make objects external
     // ---------------------------------------------------------------------
 
-    if (aclService.canMakeClassExternal(user, entityClass)) {
+    if (aclService.canMakeClassExternal(CurrentUserUtil.getCurrentUserDetails(), entityClass)) {
       object.getSharing().setExternal(sharing.isExternal());
     }
 
@@ -112,7 +108,7 @@ public class DefaultSharingService implements SharingService {
 
     Schema schema = schemaService.getDynamicSchema(entityClass);
 
-    if (aclService.canMakePublic(user, object)) {
+    if (aclService.canMakePublic(CurrentUserUtil.getCurrentUserDetails(), object)) {
       object.getSharing().setPublicAccess(sharing.getPublicAccess());
     }
 
@@ -189,7 +185,7 @@ public class DefaultSharingService implements SharingService {
       syncSharingForEventProgram((Program) object);
     }
 
-    log.info(SharingUtils.sharingToString(object, currentUserService.getCurrentUsername()));
+    log.info(SharingUtils.sharingToString(object, CurrentUserUtil.getCurrentUsername()));
 
     return objectReport;
   }

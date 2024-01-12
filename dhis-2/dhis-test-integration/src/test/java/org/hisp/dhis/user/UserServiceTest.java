@@ -55,11 +55,13 @@ import java.util.Set;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -80,6 +82,7 @@ class UserServiceTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager idObjectManager;
 
+  @Autowired private DataElementService dataElementService;
   private OrganisationUnit unitA;
 
   private OrganisationUnit unitB;
@@ -95,6 +98,8 @@ class UserServiceTest extends SingleSetupIntegrationTestBase {
   private UserRole roleB;
 
   private UserRole roleC;
+
+  private User adminUser;
 
   @Override
   public void setUpTest() throws Exception {
@@ -122,6 +127,14 @@ class UserServiceTest extends SingleSetupIntegrationTestBase {
     userService.addUserRole(roleA);
     userService.addUserRole(roleB);
     userService.addUserRole(roleC);
+  }
+
+  @BeforeEach
+  final void setup() throws Exception {
+    String adminUsername = this.adminUsername;
+    User adminUser = userService.getUserByUsername(adminUsername);
+    injectSecurityContextUser(adminUser);
+    this.adminUser = adminUser;
   }
 
   private UserQueryParams getDefaultParams() {
@@ -184,12 +197,13 @@ class UserServiceTest extends SingleSetupIntegrationTestBase {
   @Test
   void testDeleteLastUpdatedByUser() {
     User userA = createUserWithAuth("A", "ALL");
+    injectSecurityContext(UserDetails.fromUser(userA));
 
     DataElement dataElement = createDataElement('A');
     idObjectManager.save(dataElement);
 
     dataElement.setDescription("Updated");
-    idObjectManager.update(dataElement, userA);
+    idObjectManager.update(dataElement);
 
     assertThrows(DeleteNotAllowedException.class, () -> userService.deleteUser(userA));
   }
@@ -430,11 +444,14 @@ class UserServiceTest extends SingleSetupIntegrationTestBase {
               user.getOrganisationUnits().add(unitA);
             });
     UserQueryParams params = getDefaultParams().addOrganisationUnit(unitA);
-    assertEquals(
-        userService.getUsers(params, singletonList("email:idesc")), asList(userA, userB, userC));
-    assertEquals(userService.getUsers(params, null), asList(userB, userC, userA));
-    assertEquals(
-        userService.getUsers(params, singletonList("firstName:asc")), asList(userA, userC, userB));
+    List<User> allUsersA = userService.getUsers(params, singletonList("email:idesc"));
+    assertEquals(allUsersA, asList(this.adminUser, userA, userB, userC));
+
+    List<User> allUsersB = userService.getUsers(params, null);
+    assertEquals(allUsersB, asList(userB, userC, this.adminUser, userA));
+
+    List<User> allUserC = userService.getUsers(params, singletonList("firstName:asc"));
+    assertEquals(allUserC, asList(this.adminUser, userA, userC, userB));
   }
 
   @Test
@@ -499,8 +516,11 @@ class UserServiceTest extends SingleSetupIntegrationTestBase {
     addUser("B", unitB);
     User userC = addUser("C", unitA);
     addUser("D", unitB);
+
     UserQueryParams params = getDefaultParams().addOrganisationUnit(unitA);
-    assertContainsOnly(List.of(userA, userC), userService.getUsers(params));
+    clearSecurityContext();
+    List<User> users = userService.getUsers(params);
+    assertContainsOnly(List.of(userA, userC), users);
     assertEquals(2, userService.getUserCount(params));
   }
 

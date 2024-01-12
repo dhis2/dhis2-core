@@ -31,7 +31,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.forbidden;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
-import static org.hisp.dhis.security.DefaultSecurityService.RECOVERY_LOCKOUT_MINS;
+import static org.hisp.dhis.user.DefaultUserService.RECOVERY_LOCKOUT_MINS;
 import static org.springframework.http.CacheControl.noStore;
 
 import com.google.common.base.Strings;
@@ -59,10 +59,6 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.PasswordManager;
-import org.hisp.dhis.security.RecaptchaResponse;
-import org.hisp.dhis.security.RestoreOptions;
-import org.hisp.dhis.security.RestoreType;
-import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -71,6 +67,9 @@ import org.hisp.dhis.user.CredentialsInfo;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.PasswordValidationResult;
 import org.hisp.dhis.user.PasswordValidationService;
+import org.hisp.dhis.user.RecaptchaResponse;
+import org.hisp.dhis.user.RestoreOptions;
+import org.hisp.dhis.user.RestoreType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
@@ -111,8 +110,6 @@ public class AccountController {
 
   private final PasswordManager passwordManager;
 
-  private final SecurityService securityService;
-
   private final SystemSettingManager systemSettingManager;
 
   private final PasswordValidationService passwordValidationService;
@@ -133,13 +130,13 @@ public class AccountController {
       return conflict("User does not exist: " + username);
     }
 
-    ErrorCode errorCode = securityService.validateRestore(user);
+    ErrorCode errorCode = userService.validateRestore(user);
 
     if (errorCode != null) {
       throw new IllegalQueryException(errorCode);
     }
 
-    if (!securityService.sendRestoreOrInviteMessage(
+    if (!userService.sendRestoreOrInviteMessage(
         user, ContextUtils.getContextPath(request), RestoreOptions.RECOVER_PASSWORD_OPTION)) {
       return conflict("Account could not be recovered");
     }
@@ -150,7 +147,7 @@ public class AccountController {
   }
 
   private void handleRecoveryLock(String username) throws WebMessageException {
-    if (securityService.isRecoveryLocked(username)) {
+    if (userService.isRecoveryLocked(username)) {
       throw new WebMessageException(
           forbidden(
               "The account recovery operation for the given user is temporarily locked due to too "
@@ -159,14 +156,14 @@ public class AccountController {
                   + "' minutes. Username:"
                   + username));
     } else {
-      securityService.registerRecoveryAttempt(username);
+      userService.registerRecoveryAttempt(username);
     }
   }
 
   @PostMapping("/restore")
   @ResponseBody
   public WebMessage restoreAccount(@RequestParam String token, @RequestParam String password) {
-    String[] idAndRestoreToken = securityService.decodeEncodedTokens(token);
+    String[] idAndRestoreToken = userService.decodeEncodedTokens(token);
     String idToken = idAndRestoreToken[0];
 
     User user = userService.getUserByIdToken(idToken);
@@ -195,7 +192,7 @@ public class AccountController {
     }
 
     boolean restoreSuccess =
-        securityService.restore(user, restoreToken, password, RestoreType.RECOVER_PASSWORD);
+        userService.restore(user, restoreToken, password, RestoreType.RECOVER_PASSWORD);
 
     if (!restoreSuccess) {
       return badRequest("Account could not be restored");
@@ -228,10 +225,10 @@ public class AccountController {
 
     boolean invitedByEmail = !Strings.isNullOrEmpty(inviteUsername);
     if (invitedByEmail) {
-      String[] idAndRestoreToken = securityService.decodeEncodedTokens(inviteToken);
+      String[] idAndRestoreToken = userService.decodeEncodedTokens(inviteToken);
       String idToken = idAndRestoreToken[0];
       String restoreToken = idAndRestoreToken[1];
-      boolean usernameChoice = securityService.getRestoreOptions(restoreToken).isUsernameChoice();
+      boolean usernameChoice = userService.getRestoreOptions(restoreToken).isUsernameChoice();
 
       UserRegistration userRegistration =
           UserRegistration.builder()
@@ -254,7 +251,7 @@ public class AccountController {
         return badRequest("Invitation link not valid");
       }
 
-      if (!securityService.canRestore(user, restoreToken, RestoreType.INVITE)) {
+      if (!userService.canRestore(user, restoreToken, RestoreType.INVITE)) {
         return badRequest("Invitation code not valid");
       }
 
@@ -262,7 +259,7 @@ public class AccountController {
         return badRequest("Email don't match invited email");
       }
 
-      if (!securityService.restore(user, restoreToken, password, RestoreType.INVITE)) {
+      if (!userService.restore(user, restoreToken, password, RestoreType.INVITE)) {
         log.warn("Invite restore failed for: " + userRegistration.getUsername());
         return badRequest("Unable to create invited user account");
       }
@@ -307,7 +304,7 @@ public class AccountController {
       }
 
       RecaptchaResponse recaptchaResponse =
-          securityService.verifyRecaptcha(recapResponse, request.getRemoteAddr());
+          userService.verifyRecaptcha(recapResponse, request.getRemoteAddr());
       if (!recaptchaResponse.success()) {
         log.warn("Recaptcha validation failed: " + recaptchaResponse.getErrorCodes());
         return badRequest("Recaptcha validation failed: " + recaptchaResponse.getErrorCodes());

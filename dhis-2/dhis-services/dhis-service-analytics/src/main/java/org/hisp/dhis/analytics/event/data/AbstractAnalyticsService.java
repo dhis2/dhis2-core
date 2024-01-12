@@ -91,8 +91,9 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 
 /**
  * @author Luciano Fiandesio
@@ -105,7 +106,7 @@ public abstract class AbstractAnalyticsService {
 
   protected final SchemeIdResponseMapper schemeIdResponseMapper;
 
-  private final CurrentUserService currentUserService;
+  protected final UserService userService;
 
   /**
    * Returns a grid based on the given query.
@@ -396,7 +397,8 @@ public abstract class AbstractAnalyticsService {
 
       Map<String, Object> items = new HashMap<>();
       AnalyticsOrganisationUnitUtils.getUserOrganisationUnitItems(
-              currentUserService.getCurrentUser(), params.getUserOrganisationUnitsCriteria())
+              userService.getUserByUsername(CurrentUserUtil.getCurrentUsername()),
+              params.getUserOrganisationUnitsCriteria())
           .forEach(items::putAll);
 
       if (params.isComingFromQuery()) {

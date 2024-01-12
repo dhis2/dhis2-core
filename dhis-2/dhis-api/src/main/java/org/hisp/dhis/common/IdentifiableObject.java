@@ -35,6 +35,7 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
 
 /**
@@ -64,9 +65,9 @@ public interface IdentifiableObject
 
   boolean isFavorite();
 
-  boolean setAsFavorite(User user);
+  boolean setAsFavorite(UserDetails user);
 
-  boolean removeAsFavorite(User user);
+  boolean removeAsFavorite(UserDetails user);
 
   // -----------------------------------------------------------------------------
   // Sharing

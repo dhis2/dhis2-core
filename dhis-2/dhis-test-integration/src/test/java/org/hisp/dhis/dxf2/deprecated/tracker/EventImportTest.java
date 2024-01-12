@@ -162,6 +162,8 @@ class EventImportTest extends TransactionalIntegrationTest {
   @Override
   protected void setUpTest() throws Exception {
     userService = _userService;
+    superUser = userService.getUserByUsername("admin_test");
+    injectSecurityContextUser(superUser);
 
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitB = createOrganisationUnit('B');
@@ -251,7 +253,7 @@ class EventImportTest extends TransactionalIntegrationTest {
     manager.save(enrollment);
     event = createEvent("eventUid001");
     superUser = createAndAddAdminUser(AUTHORITY_ALL);
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
   }
 
   @Test

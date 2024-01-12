@@ -63,6 +63,7 @@ import org.hisp.dhis.legend.LegendSetService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.ChartService;
 import org.hisp.dhis.visualization.PlotData;
@@ -158,7 +159,7 @@ public class EventVisualizationController extends AbstractCrudController<EventVi
       EventVisualization eventVisualization, WebOptions options, Map<String, String> parameters) {
     eventVisualization.populateAnalyticalProperties();
 
-    User currentUser = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     if (currentUser != null) {
       Set<OrganisationUnit> roots = currentUser.getDataViewOrganisationUnitsWithFallback();

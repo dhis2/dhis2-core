@@ -71,7 +71,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -96,8 +96,6 @@ public class EventManager {
   @Nonnull private final EventPersistenceService eventPersistenceService;
 
   @Nonnull private final TrackedEntityDataValueChangeLogService entityDataValueAuditService;
-
-  @Nonnull private final CurrentUserService currentUserService;
 
   private static final String IMPORT_ERROR_STRING = "Invalid or conflicting data";
 
@@ -396,7 +394,7 @@ public class EventManager {
       audit.setEvent(psi);
       audit.setValue(persistedDataValue != null ? persistedDataValue : dv.getValue());
       audit.setDataElement(workContext.getDataElementMap().get(dv.getDataElement()));
-      audit.setModifiedBy(currentUserService.getCurrentUsername());
+      audit.setModifiedBy(CurrentUserUtil.getCurrentUsername());
 
       entityDataValueAuditService.addTrackedEntityDataValueChangeLog(audit);
     }

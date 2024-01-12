@@ -62,6 +62,7 @@ import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -81,8 +82,11 @@ class AclEventExporterTest extends TrackerTest {
 
   private EventOperationParams.EventOperationParamsBuilder operationParamsBuilder;
 
+  @Autowired protected UserService _userService;
+
   @Override
   protected void initTest() throws IOException {
+    userService = _userService;
     setUpMetadata("tracker/simple_metadata.json");
     User userA = userService.getUser("M5zQapPyTZI");
     TrackerImportParams params = TrackerImportParams.builder().userId(userA.getUid()).build();
@@ -111,7 +115,7 @@ class AclEventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsWhenProgramClosedOuModeDescendantsAndOrgUnitInCaptureScope()
       throws ForbiddenException, BadRequestException {
-    injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
+    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
     EventOperationParams params =
         operationParamsBuilder
             .programUid("pcxIanBWlSY")
@@ -137,7 +141,7 @@ class AclEventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsWhenNoProgramSpecifiedOuModeDescendantsAndOrgUnitInSearchScope()
       throws ForbiddenException, BadRequestException {
-    injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
+    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
     EventOperationParams params =
         operationParamsBuilder.orgUnitUid(orgUnit.getUid()).orgUnitMode(DESCENDANTS).build();
 
@@ -161,7 +165,7 @@ class AclEventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsWhenProgramClosedOuModeChildrenAndOrgUnitInCaptureScope()
       throws ForbiddenException, BadRequestException {
-    injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
+    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
     EventOperationParams params =
         operationParamsBuilder
             .programUid("pcxIanBWlSY")
@@ -187,7 +191,7 @@ class AclEventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsWhenNoProgramSpecifiedOuModeChildrenAndOrgUnitInSearchScope()
       throws ForbiddenException, BadRequestException {
-    injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
+    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
     EventOperationParams params =
         operationParamsBuilder.orgUnitUid(orgUnit.getUid()).orgUnitMode(CHILDREN).build();
 
@@ -203,7 +207,7 @@ class AclEventExporterTest extends TrackerTest {
 
   @Test
   void shouldFailWhenProgramIsOpenAndOrgUnitNotInSearchScope() {
-    injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
+    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
     EventOperationParams params =
         operationParamsBuilder
             .programUid(program.getUid())
@@ -219,7 +223,7 @@ class AclEventExporterTest extends TrackerTest {
 
   @Test
   void shouldFailWhenProgramIsClosedAndOrgUnitNotInSearchScope() {
-    injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
+    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
     EventOperationParams params =
         operationParamsBuilder
             .programUid("pcxIanBWlSY")
@@ -236,7 +240,7 @@ class AclEventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsWhenProgramClosedOuModeSelectedAndOrgUnitInCaptureScope()
       throws ForbiddenException, BadRequestException {
-    injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
+    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
     EventOperationParams params =
         operationParamsBuilder
             .programUid("pcxIanBWlSY")
@@ -262,7 +266,7 @@ class AclEventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsWhenNoProgramSpecifiedOuModeSelectedAndOrgUnitInSearchScope()
       throws ForbiddenException, BadRequestException {
-    injectSecurityContext(userService.getUser("nIidJVYpQQK"));
+    injectSecurityContextUser(userService.getUser("nIidJVYpQQK"));
     EventOperationParams params =
         operationParamsBuilder.orgUnitUid("DiszpKrYNg8").orgUnitMode(SELECTED).build();
 
@@ -280,7 +284,7 @@ class AclEventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsWhenNoProgramSpecifiedOuModeSelectedAndOrgUnitInCaptureScope()
       throws ForbiddenException, BadRequestException {
-    injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
+    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
     EventOperationParams params =
         operationParamsBuilder.orgUnitUid("RojfDTBhoGC").orgUnitMode(SELECTED).build();
 
@@ -298,7 +302,7 @@ class AclEventExporterTest extends TrackerTest {
   @Test
   void shouldReturnNoEventsWhenProgramOpenOuModeSelectedAndNoProgramEvents()
       throws ForbiddenException, BadRequestException {
-    injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
+    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
     EventOperationParams params =
         operationParamsBuilder
             .programUid("shPjYNifvMK")
@@ -314,7 +318,7 @@ class AclEventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsWhenProgramClosedOuModeAccessible()
       throws ForbiddenException, BadRequestException {
-    injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
+    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
     EventOperationParams params =
         operationParamsBuilder.programUid("pcxIanBWlSY").orgUnitMode(ACCESSIBLE).build();
 
@@ -335,7 +339,7 @@ class AclEventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsWhenProgramOpenOuModeAccessible()
       throws ForbiddenException, BadRequestException {
-    injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
+    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
     EventOperationParams params =
         operationParamsBuilder.programUid(program.getUid()).orgUnitMode(ACCESSIBLE).build();
 
@@ -356,7 +360,7 @@ class AclEventExporterTest extends TrackerTest {
   @Test
   void shouldReturnEventsWhenProgramClosedOuModeCapture()
       throws ForbiddenException, BadRequestException {
-    injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
+    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
     EventOperationParams params =
         operationParamsBuilder.programUid("pcxIanBWlSY").orgUnitMode(CAPTURE).build();
 
@@ -377,7 +381,7 @@ class AclEventExporterTest extends TrackerTest {
   @Test
   void shouldReturnAccessibleOrgUnitEventsWhenNoOrgUnitSpecified()
       throws ForbiddenException, BadRequestException {
-    injectSecurityContext(userService.getUser("FIgVWzUCkpw"));
+    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
     EventOperationParams params =
         operationParamsBuilder.programUid("pcxIanBWlSY").orgUnitMode(ACCESSIBLE).build();
 
@@ -401,7 +405,7 @@ class AclEventExporterTest extends TrackerTest {
       throws ForbiddenException, BadRequestException {
     // given events have a COC which has a CO which the
     // user owns yMj2MnmNI8L and has user read access to OUUdG3sdOqb
-    injectSecurityContext(userService.getUser("o1HMTIzBGo7"));
+    injectSecurityContextUser(userService.getUser("o1HMTIzBGo7"));
 
     EventOperationParams params =
         operationParamsBuilder
@@ -435,7 +439,7 @@ class AclEventExporterTest extends TrackerTest {
   void shouldReturnNoEventsGivenUserHasNoAccess() throws ForbiddenException, BadRequestException {
     // given events have a COC which has a CO (OUUdG3sdOqb/yMj2MnmNI8L) which are not publicly
     // readable, user is not the owner and has no user access
-    injectSecurityContext(userService.getUser("CYVgFNKCaUS"));
+    injectSecurityContextUser(userService.getUser("CYVgFNKCaUS"));
 
     EventOperationParams params =
         operationParamsBuilder
@@ -452,7 +456,7 @@ class AclEventExporterTest extends TrackerTest {
   @Test
   void shouldReturnAllEventsWhenOrgUnitModeAllAndNoOrgUnitProvided()
       throws ForbiddenException, BadRequestException {
-    injectSecurityContext(userService.getUser("lPaILkLkgOM"));
+    injectSecurityContextUser(userService.getUser("lPaILkLkgOM"));
 
     EventOperationParams params = operationParamsBuilder.orgUnitMode(ALL).build();
 
@@ -475,7 +479,7 @@ class AclEventExporterTest extends TrackerTest {
   @Test
   void shouldIgnoreRequestedOrgUnitAndReturnAllEventsWhenOrgUnitModeAllAndOrgUnitProvided()
       throws ForbiddenException, BadRequestException {
-    injectSecurityContext(userService.getUser("lPaILkLkgOM"));
+    injectSecurityContextUser(userService.getUser("lPaILkLkgOM"));
 
     EventOperationParams params =
         operationParamsBuilder.orgUnitUid("uoNW0E3xXUy").orgUnitMode(ALL).build();
@@ -500,7 +504,7 @@ class AclEventExporterTest extends TrackerTest {
   void
       shouldReturnOnlyVisibleEventsInSearchAndCaptureScopeWhenNoProgramPresentOrgUnitModeAccessible()
           throws ForbiddenException, BadRequestException {
-    injectSecurityContext(userService.getUser("nIidJVYpQQK"));
+    injectSecurityContextUser(userService.getUser("nIidJVYpQQK"));
 
     EventOperationParams params = operationParamsBuilder.orgUnitMode(ACCESSIBLE).build();
 

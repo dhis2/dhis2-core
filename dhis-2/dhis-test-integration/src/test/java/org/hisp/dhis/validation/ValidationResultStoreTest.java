@@ -311,7 +311,7 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest {
             validationResultBB,
             validationResultBC));
     // Superuser can see all unreported results.
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
     assertEqualSets(
         asList(
             validationResultAA,
@@ -321,7 +321,7 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest {
             validationResultBC),
         validationResultStore.getAllUnreportedValidationResults());
     // User A can see all unreported results from sourceA or its children.
-    injectSecurityContext(userA);
+    injectSecurityContextUser(userA);
     assertEqualSets(
         asList(
             validationResultAA,
@@ -331,17 +331,17 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest {
             validationResultBC),
         validationResultStore.getAllUnreportedValidationResults());
     // User B can see all unreported results from sourceB.
-    injectSecurityContext(userB);
+    injectSecurityContextUser(userB);
     assertEqualSets(
         asList(validationResultBA, validationResultBB, validationResultBC),
         validationResultStore.getAllUnreportedValidationResults());
     // User C can see only optionA from sourceB.
-    injectSecurityContext(userC);
+    injectSecurityContextUser(userC);
     assertEqualSets(
         singletonList(validationResultBA),
         validationResultStore.getAllUnreportedValidationResults());
     // User D can see only optionB from sourceB.
-    injectSecurityContext(userD);
+    injectSecurityContextUser(userD);
     assertEqualSets(
         singletonList(validationResultBB),
         validationResultStore.getAllUnreportedValidationResults());
@@ -357,35 +357,35 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest {
             validationResultBA,
             validationResultBB,
             validationResultBC));
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
     assertEquals(validationResultAA, validationResultStore.getById(validationResultAA.getId()));
     assertEquals(validationResultAB, validationResultStore.getById(validationResultAB.getId()));
     assertEquals(validationResultAC, validationResultStore.getById(validationResultAC.getId()));
     assertEquals(validationResultBA, validationResultStore.getById(validationResultBA.getId()));
     assertEquals(validationResultBB, validationResultStore.getById(validationResultBB.getId()));
     assertEquals(validationResultBC, validationResultStore.getById(validationResultBC.getId()));
-    injectSecurityContext(userA);
+    injectSecurityContextUser(userA);
     assertEquals(validationResultAA, validationResultStore.getById(validationResultAA.getId()));
     assertEquals(validationResultAB, validationResultStore.getById(validationResultAB.getId()));
     assertEquals(validationResultAC, validationResultStore.getById(validationResultAC.getId()));
     assertEquals(validationResultBA, validationResultStore.getById(validationResultBA.getId()));
     assertEquals(validationResultBB, validationResultStore.getById(validationResultBB.getId()));
     assertEquals(validationResultBC, validationResultStore.getById(validationResultBC.getId()));
-    injectSecurityContext(userB);
+    injectSecurityContextUser(userB);
     assertNull(validationResultStore.getById(validationResultAA.getId()));
     assertNull(validationResultStore.getById(validationResultAB.getId()));
     assertNull(validationResultStore.getById(validationResultAC.getId()));
     assertEquals(validationResultBA, validationResultStore.getById(validationResultBA.getId()));
     assertEquals(validationResultBB, validationResultStore.getById(validationResultBB.getId()));
     assertEquals(validationResultBC, validationResultStore.getById(validationResultBC.getId()));
-    injectSecurityContext(userC);
+    injectSecurityContextUser(userC);
     assertNull(validationResultStore.getById(validationResultAA.getId()));
     assertNull(validationResultStore.getById(validationResultAB.getId()));
     assertNull(validationResultStore.getById(validationResultAC.getId()));
     assertEquals(validationResultBA, validationResultStore.getById(validationResultBA.getId()));
     assertNull(validationResultStore.getById(validationResultBB.getId()));
     assertNull(validationResultStore.getById(validationResultBC.getId()));
-    injectSecurityContext(userD);
+    injectSecurityContextUser(userD);
     assertNull(validationResultStore.getById(validationResultAA.getId()));
     assertNull(validationResultStore.getById(validationResultAB.getId()));
     assertNull(validationResultStore.getById(validationResultAC.getId()));
@@ -406,17 +406,17 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest {
             validationResultBC);
     save(expected);
     ValidationResultQuery query = new ValidationResultQuery();
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
     assertEqualSets(expected, validationResultStore.query(query));
-    injectSecurityContext(userA);
+    injectSecurityContextUser(userA);
     assertEqualSets(expected, validationResultStore.query(query));
-    injectSecurityContext(userB);
+    injectSecurityContextUser(userB);
     assertEqualSets(
         asList(validationResultBA, validationResultBB, validationResultBC),
         validationResultStore.query(query));
-    injectSecurityContext(userC);
+    injectSecurityContextUser(userC);
     assertEqualSets(singletonList(validationResultBA), validationResultStore.query(query));
-    injectSecurityContext(userD);
+    injectSecurityContextUser(userD);
     assertEqualSets(singletonList(validationResultBB), validationResultStore.query(query));
   }
 
@@ -431,7 +431,7 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest {
             validationResultBB,
             validationResultBC));
     // test with superuser so user adds no extra restrictions
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
     ValidationResultQuery query = new ValidationResultQuery();
     // filter on A gives results for A
     query.setOu(singletonList(sourceA.getUid()));
@@ -458,7 +458,7 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest {
             validationResultBC),
         validationResultStore.query(query));
     // now we restrict user to only be able to see Bs
-    injectSecurityContext(userB);
+    injectSecurityContextUser(userB);
     // so filtering on As should not give any result
     query.setOu(singletonList(sourceA.getUid()));
     assertEqualSets(emptyList(), validationResultStore.query(query));
@@ -475,7 +475,7 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest {
             validationResultBB,
             validationResultBC));
     // test with superuser so user adds no extra restrictions
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
     ValidationResultQuery query = new ValidationResultQuery();
     // filter on A gives results for A
     query.setVr(singletonList(validationRuleA.getUid()));
@@ -499,7 +499,7 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest {
             validationResultBC),
         validationResultStore.query(query));
     // now we restrict user to only be able to see Bs
-    injectSecurityContext(userB);
+    injectSecurityContextUser(userB);
     // so filtering on As should not give any result
     query.setVr(singletonList(validationRuleA.getUid()));
     assertEqualSets(emptyList(), validationResultStore.query(query));
@@ -516,7 +516,7 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest {
             validationResultBB,
             validationResultBC));
     // test with superuser so user adds no extra restrictions
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
     ValidationResultQuery query = new ValidationResultQuery();
     // periodA is Jan 2017, periodB is Feb 2017
     // monthly ISO pattern: YYYY-MM
@@ -606,7 +606,7 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest {
             validationResultBB,
             validationResultBC));
     // test with superuser so user adds no extra restrictions
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
     // filter on A gives results for A
     ValidationResultQuery query = new ValidationResultQuery();
     query.setPe(singletonList("2017"));
@@ -632,15 +632,15 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest {
             validationResultBB,
             validationResultBC));
     ValidationResultQuery query = new ValidationResultQuery();
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
     assertEquals(6, validationResultStore.count(query));
-    injectSecurityContext(userA);
+    injectSecurityContextUser(userA);
     assertEquals(6, validationResultStore.count(query));
-    injectSecurityContext(userB);
+    injectSecurityContextUser(userB);
     assertEquals(3, validationResultStore.count(query));
-    injectSecurityContext(userC);
+    injectSecurityContextUser(userC);
     assertEquals(1, validationResultStore.count(query));
-    injectSecurityContext(userD);
+    injectSecurityContextUser(userD);
     assertEquals(1, validationResultStore.count(query));
   }
 

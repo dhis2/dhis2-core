@@ -27,40 +27,61 @@
  */
 package org.hisp.dhis.user;
 
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import org.springframework.security.core.GrantedAuthority;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.ArrayList;
+import java.util.List;
 
-@AllArgsConstructor
-@Getter
-@Builder
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class CurrentUserDetailsImpl implements CurrentUserDetails {
-  private final String uid;
+/**
+ * @author Lars Helge Overland
+ */
+public class RecaptchaResponse {
+  @JsonProperty(value = "success")
+  private Boolean success;
 
-  @EqualsAndHashCode.Include private final String username;
+  @JsonProperty(value = "challenge_ts")
+  private String challengeTs;
 
-  private final String password;
+  @JsonProperty(value = "hostname")
+  private String hostname;
 
-  private final boolean enabled;
+  @JsonProperty(value = "error-codes")
+  private List<String> errorCodes = new ArrayList<>();
 
-  private final boolean accountNonExpired;
+  @JsonIgnore
+  public boolean success() {
+    return success != null && success;
+  }
 
-  private final boolean accountNonLocked;
+  public Boolean getSuccess() {
+    return success;
+  }
 
-  private final boolean credentialsNonExpired;
+  public void setSuccess(Boolean success) {
+    this.success = success;
+  }
 
-  private final Collection<GrantedAuthority> authorities;
+  public String getChallengeTs() {
+    return challengeTs;
+  }
 
-  private final Map<String, Serializable> userSettings;
+  public void setChallengeTs(String challengeTs) {
+    this.challengeTs = challengeTs;
+  }
 
-  private final Set<String> userGroupIds;
+  public String getHostname() {
+    return hostname;
+  }
 
-  private final boolean isSuper;
+  public void setHostname(String hostname) {
+    this.hostname = hostname;
+  }
+
+  public List<String> getErrorCodes() {
+    return errorCodes;
+  }
+
+  public void setErrorCodes(List<String> errorCodes) {
+    this.errorCodes = errorCodes;
+  }
 }

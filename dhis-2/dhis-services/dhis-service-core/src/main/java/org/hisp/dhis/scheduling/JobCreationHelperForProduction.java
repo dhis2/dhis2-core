@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,41 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.mvc;
+package org.hisp.dhis.scheduling;
 
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
-import org.springframework.core.MethodParameter;
-import org.springframework.stereotype.Component;
-import org.springframework.web.bind.support.WebDataBinderFactory;
-import org.springframework.web.context.request.NativeWebRequest;
-import org.springframework.web.method.support.HandlerMethodArgumentResolver;
-import org.springframework.web.method.support.ModelAndViewContainer;
+import java.io.InputStream;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.fileresource.FileResourceService;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.MimeType;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Component
-public class CurrentUserInfoHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver {
-  private final CurrentUserService currentUserService;
+@Slf4j
+@RequiredArgsConstructor
+@Service
+@Profile("!test")
+public class JobCreationHelperForProduction implements JobCreationHelper {
 
-  public CurrentUserInfoHandlerMethodArgumentResolver(CurrentUserService currentUserService) {
-    this.currentUserService = currentUserService;
+  private final JobConfigurationStore jobConfigurationStore;
+  private final FileResourceService fileResourceService;
+
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public String create(JobConfiguration config) throws ConflictException {
+    return createFromConfig(config, jobConfigurationStore);
   }
 
-  @Override
-  public boolean supportsParameter(MethodParameter parameter) {
-    return "currentUser".equals(parameter.getParameterName())
-        && User.class.isAssignableFrom(parameter.getParameterType());
-  }
-
-  @Override
-  public Object resolveArgument(
-      MethodParameter parameter,
-      ModelAndViewContainer mavContainer,
-      NativeWebRequest webRequest,
-      WebDataBinderFactory binderFactory)
-      throws Exception {
-    return currentUserService.getCurrentUser();
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public String create(JobConfiguration config, MimeType contentType, InputStream content)
+      throws ConflictException {
+    return createFromConfigAndInputStream(
+        config, contentType, content, jobConfigurationStore, fileResourceService);
   }
 }
