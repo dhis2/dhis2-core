@@ -28,8 +28,7 @@
 package org.hisp.dhis.security.ldap.authentication;
 
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.user.UserStore;
 import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.ldap.core.support.BaseLdapPathContextSource;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -44,15 +43,17 @@ import org.springframework.security.ldap.authentication.BindAuthenticator;
  * @author Lars Helge Overland
  */
 public class DhisBindAuthenticator extends BindAuthenticator {
-  @Autowired private UserService userService;
 
-  public DhisBindAuthenticator(BaseLdapPathContextSource contextSource) {
+  private UserStore userStore;
+
+  public DhisBindAuthenticator(BaseLdapPathContextSource contextSource, UserStore userStore) {
     super(contextSource);
+    this.userStore = userStore;
   }
 
   @Override
   public DirContextOperations authenticate(Authentication authentication) {
-    User user = userService.getUserByUsername(authentication.getName());
+    User user = userStore.getUserByUsername(authentication.getName());
 
     if (user == null) {
       throw new BadCredentialsException("Incorrect user credentials");

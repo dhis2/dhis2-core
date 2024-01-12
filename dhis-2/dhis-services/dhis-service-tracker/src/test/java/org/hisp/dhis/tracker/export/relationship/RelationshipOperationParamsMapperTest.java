@@ -34,6 +34,7 @@ import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -52,8 +53,9 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -78,7 +80,7 @@ class RelationshipOperationParamsMapperTest extends DhisConvenienceTest {
 
   @Mock private TrackerAccessManager accessManager;
 
-  @Mock private CurrentUserService currentUserService;
+  @Mock private UserService userService;
 
   @InjectMocks private RelationshipOperationParamsMapper mapper;
 
@@ -104,8 +106,10 @@ class RelationshipOperationParamsMapperTest extends DhisConvenienceTest {
     event.setUid(EV_UID);
 
     user = new User();
+    user.setUsername("admin");
 
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+    injectSecurityContext(UserDetails.fromUser(user));
+    when(userService.getUserByUsername(anyString())).thenReturn(user);
   }
 
   @Test

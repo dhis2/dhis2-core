@@ -40,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -49,7 +49,7 @@ import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -68,8 +68,6 @@ public class DefaultDataValueService implements DataValueService {
   private final DataValueStore dataValueStore;
 
   private final DataValueAuditService dataValueAuditService;
-
-  private final CurrentUserService currentUserService;
 
   private final CategoryService categoryService;
 
@@ -143,7 +141,7 @@ public class DefaultDataValueService implements DataValueService {
       if (config.isEnabled(CHANGELOG_AGGREGATE)) {
         DataValueAudit dataValueAudit =
             new DataValueAudit(
-                dataValue, dataValue.getValue(), dataValue.getStoredBy(), AuditType.CREATE);
+                dataValue, dataValue.getValue(), dataValue.getStoredBy(), ChangeLogType.CREATE);
 
         dataValueAuditService.addDataValueAudit(dataValueAudit);
       }
@@ -165,7 +163,10 @@ public class DefaultDataValueService implements DataValueService {
           && !Objects.equals(dataValue.getAuditValue(), dataValue.getValue())) {
         DataValueAudit dataValueAudit =
             new DataValueAudit(
-                dataValue, dataValue.getAuditValue(), dataValue.getStoredBy(), AuditType.UPDATE);
+                dataValue,
+                dataValue.getAuditValue(),
+                dataValue.getStoredBy(),
+                ChangeLogType.UPDATE);
 
         dataValueAuditService.addDataValueAudit(dataValueAudit);
       }
@@ -192,8 +193,8 @@ public class DefaultDataValueService implements DataValueService {
           new DataValueAudit(
               dataValue,
               dataValue.getAuditValue(),
-              currentUserService.getCurrentUsername(),
-              AuditType.DELETE);
+              CurrentUserUtil.getCurrentUsername(),
+              ChangeLogType.DELETE);
 
       dataValueAuditService.addDataValueAudit(dataValueAudit);
     }

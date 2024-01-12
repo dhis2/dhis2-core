@@ -53,8 +53,9 @@ import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.GeoJsonImportJobParams;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -78,7 +79,7 @@ public class GeoJsonImportController {
 
   private final JobConfigurationService jobConfigurationService;
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   @PostMapping(
       value = "/geometry",
@@ -109,7 +110,8 @@ public class GeoJsonImportController {
   private WebMessage runImport(
       boolean async, GeoJsonImportJobParams params, HttpServletRequest request)
       throws ConflictException, NotFoundException, IOException {
-    User currentUser = currentUserService.getCurrentUser();
+
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     if (async) {
       JobConfiguration jobConfig = new JobConfiguration(JobType.GEOJSON_IMPORT);
       jobConfig.setJobParameters(params);

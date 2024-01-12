@@ -44,7 +44,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -63,8 +62,6 @@ class TrackedEntityAttributeServiceTest {
   @Mock private TrackedEntityTypeService trackedEntityTypeService;
 
   @Mock private ProgramService programService;
-
-  @Mock private CurrentUserService currentUserService;
 
   @Mock private AclService aclService;
 
@@ -101,7 +98,6 @@ class TrackedEntityAttributeServiceTest {
             trackedEntityTypeService,
             fileResourceService,
             userService,
-            currentUserService,
             aclService,
             trackedEntityAttributeStore,
             entityTypeAttributeStore,

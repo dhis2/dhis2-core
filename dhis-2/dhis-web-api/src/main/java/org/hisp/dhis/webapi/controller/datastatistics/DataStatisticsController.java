@@ -53,7 +53,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.scheduling.NoopJobProgress;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -80,8 +80,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class DataStatisticsController {
   public static final String RESOURCE_PATH = "/dataStatistics";
 
-  private final CurrentUserService currentUserService;
-
   private final DataStatisticsService dataStatisticsService;
 
   private final FieldFilterService fieldFilterService;
@@ -90,7 +88,7 @@ public class DataStatisticsController {
   @ResponseStatus(HttpStatus.CREATED)
   public void saveEvent(@RequestParam DataStatisticsEventType eventType, String favorite) {
     Date timestamp = new Date();
-    String username = currentUserService.getCurrentUsername();
+    String username = CurrentUserUtil.getCurrentUsername();
 
     DataStatisticsEvent event = new DataStatisticsEvent(eventType, timestamp, username, favorite);
     dataStatisticsService.addEvent(event);

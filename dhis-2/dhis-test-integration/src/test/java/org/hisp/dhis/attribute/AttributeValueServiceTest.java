@@ -48,8 +48,8 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementStore;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,8 +68,6 @@ class AttributeValueServiceTest extends TransactionalIntegrationTest {
   @Autowired private CategoryService _categoryService;
 
   @Autowired private IdentifiableObjectManager manager;
-
-  @Autowired private CurrentUserService currentUserService;
 
   private DataElement dataElementA;
 
@@ -90,7 +88,7 @@ class AttributeValueServiceTest extends TransactionalIntegrationTest {
     userService = _userService;
     categoryService = _categoryService;
     createAndInjectAdminUser();
-    currentUser = currentUserService.getCurrentUser();
+    currentUser = getCurrentUser();
     attribute1 = new Attribute("attribute 1", ValueType.TEXT);
     attribute1.setDataElementAttribute(true);
     attribute2 = new Attribute("attribute 2", ValueType.TEXT);
@@ -241,14 +239,16 @@ class AttributeValueServiceTest extends TransactionalIntegrationTest {
     attributeService.addAttributeValue(dataElementA, attributeValueA);
     attributeService.addAttributeValue(dataElementB, attributeValueB);
     attributeService.addAttributeValue(dataElementC, attributeValueC);
-    DataElement deA = dataElementStore.getByUniqueAttributeValue(attribute, "CID1", currentUser);
-    DataElement deB = dataElementStore.getByUniqueAttributeValue(attribute, "CID2", currentUser);
-    DataElement deC = dataElementStore.getByUniqueAttributeValue(attribute, "CID3", currentUser);
+
+    UserDetails userDetails = userService.createUserDetails(currentUser);
+    DataElement deA = dataElementStore.getByUniqueAttributeValue(attribute, "CID1", userDetails);
+    DataElement deB = dataElementStore.getByUniqueAttributeValue(attribute, "CID2", userDetails);
+    DataElement deC = dataElementStore.getByUniqueAttributeValue(attribute, "CID3", userDetails);
     assertNotNull(deA);
     assertNotNull(deB);
     assertNotNull(deC);
-    assertNull(dataElementStore.getByUniqueAttributeValue(attribute, "CID4", currentUser));
-    assertNull(dataElementStore.getByUniqueAttributeValue(attribute, "CID5", currentUser));
+    assertNull(dataElementStore.getByUniqueAttributeValue(attribute, "CID4", userDetails));
+    assertNull(dataElementStore.getByUniqueAttributeValue(attribute, "CID5", userDetails));
     assertEquals("DataElementA", deA.getName());
     assertEquals("DataElementB", deB.getName());
     assertEquals("DataElementC", deC.getName());
@@ -277,9 +277,11 @@ class AttributeValueServiceTest extends TransactionalIntegrationTest {
     assertEquals(1, dataElementA.getAttributeValues().size());
     assertEquals(1, dataElementB.getAttributeValues().size());
     assertEquals(1, dataElementC.getAttributeValues().size());
-    DataElement de1 = dataElementStore.getByUniqueAttributeValue(attributeA, "VALUE", currentUser);
-    DataElement de2 = dataElementStore.getByUniqueAttributeValue(attributeB, "VALUE", currentUser);
-    DataElement de3 = dataElementStore.getByUniqueAttributeValue(attributeC, "VALUE", currentUser);
+
+    UserDetails userDetails = userService.createUserDetails(currentUser);
+    DataElement de1 = dataElementStore.getByUniqueAttributeValue(attributeA, "VALUE", userDetails);
+    DataElement de2 = dataElementStore.getByUniqueAttributeValue(attributeB, "VALUE", userDetails);
+    DataElement de3 = dataElementStore.getByUniqueAttributeValue(attributeC, "VALUE", userDetails);
     assertNotNull(de1);
     assertNotNull(de2);
     assertNotNull(de3);

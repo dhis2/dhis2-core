@@ -223,7 +223,7 @@ class DataValueSetServiceExportTest extends IntegrationTestBase {
     user = makeUser("A");
     user.setOrganisationUnits(Sets.newHashSet(ouA, ouB));
     userService.addUser(user);
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     enableDataSharing(user, dsA, AccessStringHelper.DATA_READ_WRITE);
     enableDataSharing(user, dsB, AccessStringHelper.DATA_READ_WRITE);

@@ -48,6 +48,7 @@ import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheatService;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -64,8 +65,11 @@ class TrackedEntityAttributeTest extends TrackerTest {
 
   @Autowired private IdentifiableObjectManager manager;
 
+  @Autowired protected UserService _userService;
+
   @Override
   protected void initTest() throws IOException {
+    userService = _userService;
     setUpMetadata("tracker/te_with_tea_metadata.json");
     injectAdminUser();
   }

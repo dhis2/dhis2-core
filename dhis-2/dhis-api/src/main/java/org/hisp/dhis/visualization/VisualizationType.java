@@ -45,7 +45,8 @@ public enum VisualizationType {
   SCATTER,
   BUBBLE,
   SINGLE_VALUE,
-  PIVOT_TABLE;
+  PIVOT_TABLE,
+  OUTLIER_TABLE;
 
   private static final Set<VisualizationType> CHART_TYPES =
       Set.of(

@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -60,14 +61,14 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
-import org.hisp.dhis.util.SharingUtils;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.webdomain.sharing.Sharing;
@@ -96,8 +97,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class SharingController {
   public static final String RESOURCE_PATH = "/sharing";
 
-  @Autowired private CurrentUserService currentUserService;
-
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private UserGroupService userGroupService;
@@ -109,6 +108,8 @@ public class SharingController {
   @Autowired private RenderService renderService;
 
   @Autowired private SchemaService schemaService;
+
+  @Autowired private EntityManager entityManager;
 
   // -------------------------------------------------------------------------
   // Resources
@@ -129,16 +130,17 @@ public class SharingController {
           notFound("Object of type " + type + " with ID " + id + " was not found."));
     }
 
-    User user = currentUserService.getCurrentUser();
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
 
-    if (!aclService.canRead(user, object)) {
+    if (!aclService.canRead(currentUserDetails, object)) {
       throw new AccessDeniedException("You do not have manage access to this object.");
     }
 
     Sharing sharing = new Sharing();
-
-    sharing.getMeta().setAllowPublicAccess(aclService.canMakePublic(user, object));
-    sharing.getMeta().setAllowExternalAccess(aclService.canMakeExternal(user, object));
+    sharing.getMeta().setAllowPublicAccess(aclService.canMakePublic(currentUserDetails, object));
+    sharing
+        .getMeta()
+        .setAllowExternalAccess(aclService.canMakeExternal(currentUserDetails, object));
 
     sharing.getObject().setId(object.getUid());
     sharing.getObject().setName(object.getDisplayName());
@@ -148,7 +150,7 @@ public class SharingController {
     if (object.getSharing().getPublicAccess() == null) {
       String access;
 
-      if (aclService.canMakeClassPublic(user, klass)) {
+      if (aclService.canMakeClassPublic(currentUserDetails, klass)) {
         access =
             AccessStringHelper.newInstance()
                 .enable(AccessStringHelper.Permission.READ)
@@ -236,9 +238,9 @@ public class SharingController {
               + " cannot be modified.");
     }
 
-    User user = currentUserService.getCurrentUser();
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
 
-    if (!aclService.canManage(user, object)) {
+    if (!aclService.canManage(currentUserDetails, object)) {
       throw new AccessDeniedException("You do not have manage access to this object.");
     }
 
@@ -252,7 +254,7 @@ public class SharingController {
     // Ignore externalAccess if user is not allowed to make objects external
     // ---------------------------------------------------------------------
 
-    if (aclService.canMakeExternal(user, object)) {
+    if (aclService.canMakeExternal(currentUserDetails, object)) {
       object.getSharing().setExternal(sharing.getObject().hasExternalAccess());
     }
 
@@ -262,7 +264,7 @@ public class SharingController {
 
     Schema schema = schemaService.getDynamicSchema(sharingClass);
 
-    if (aclService.canMakePublic(user, object)) {
+    if (aclService.canMakePublic(currentUserDetails, object)) {
       object.getSharing().setPublicAccess(sharing.getObject().getPublicAccess());
     }
 
@@ -275,7 +277,8 @@ public class SharingController {
       }
     }
 
-    if (object.getCreatedBy() == null) {
+    if (object.getCreatedBy() == null && currentUserDetails != null) {
+      User user = entityManager.getReference(User.class, currentUserDetails.getId());
       object.setCreatedBy(user);
     }
 
@@ -342,8 +345,6 @@ public class SharingController {
           sharing.getObject().getUserAccesses(),
           sharing.getObject().getUserGroupAccesses());
     }
-
-    log.info(SharingUtils.sharingToString(object, currentUserService.getCurrentUsername()));
 
     return ok("Access control set");
   }

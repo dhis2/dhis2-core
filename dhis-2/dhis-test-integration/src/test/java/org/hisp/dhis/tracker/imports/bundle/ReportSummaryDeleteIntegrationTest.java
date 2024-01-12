@@ -45,6 +45,7 @@ import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -55,8 +56,11 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest {
 
   @Autowired private TrackerImportService trackerImportService;
 
+  @Autowired protected UserService _userService;
+
   @Override
   protected void initTest() throws IOException {
+    userService = _userService;
     setUpMetadata("tracker/tracker_basic_metadata.json");
     injectAdminUser();
     TrackerObjects trackerObjects = fromJson("tracker/tracker_basic_data_before_deletion.json");

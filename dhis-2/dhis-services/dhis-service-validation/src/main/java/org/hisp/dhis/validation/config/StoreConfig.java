@@ -31,7 +31,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,8 +50,6 @@ public class StoreConfig {
 
   @Autowired private ApplicationEventPublisher publisher;
 
-  @Autowired private CurrentUserService currentUserService;
-
   @Autowired private AclService aclService;
 
   @Bean("org.hisp.dhis.validation.notification.ValidationNotificationTemplateStore")
@@ -63,7 +60,6 @@ public class StoreConfig {
         jdbcTemplate,
         publisher,
         ValidationNotificationTemplate.class,
-        currentUserService,
         aclService,
         true);
   }
@@ -71,12 +67,6 @@ public class StoreConfig {
   @Bean("org.hisp.dhis.validation.ValidationRuleGroupStore")
   public HibernateIdentifiableObjectStore<ValidationRuleGroup> validationRuleGroupStore() {
     return new HibernateIdentifiableObjectStore<ValidationRuleGroup>(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        ValidationRuleGroup.class,
-        currentUserService,
-        aclService,
-        true);
+        entityManager, jdbcTemplate, publisher, ValidationRuleGroup.class, aclService, true);
   }
 }

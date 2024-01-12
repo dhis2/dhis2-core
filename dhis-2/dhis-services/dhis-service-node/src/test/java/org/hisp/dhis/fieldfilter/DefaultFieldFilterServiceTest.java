@@ -58,7 +58,6 @@ import org.hisp.dhis.schema.DefaultSchemaService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.schema.introspection.JacksonPropertyIntrospector;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Assertions;
@@ -78,8 +77,6 @@ class DefaultFieldFilterServiceTest {
   @Mock private EntityManagerFactory entityManagerFactory;
 
   @Mock private AclService aclService;
-
-  @Mock private CurrentUserService currentUserService;
 
   @Mock private AttributeService attributeService;
 
@@ -106,7 +103,6 @@ class DefaultFieldFilterServiceTest {
             new DefaultFieldParser(),
             schemaService,
             aclService,
-            currentUserService,
             attributeService,
             cacheProvider,
             userGroupService,

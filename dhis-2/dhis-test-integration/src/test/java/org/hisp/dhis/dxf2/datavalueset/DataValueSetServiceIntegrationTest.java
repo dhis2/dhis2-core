@@ -60,7 +60,7 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -165,8 +165,9 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
   @Override
   public void setUpTest() {
     userService = _userService;
-    superUser = preCreateInjectAdminUser();
-    injectSecurityContext(superUser);
+    //    superUser = preCreateInjectAdminUser();
+    superUser = userService.getUserByUsername("admin_test");
+    injectSecurityContextUser(superUser);
 
     CategoryOptionCombo categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
     Attribute attribute = new Attribute("CUSTOM_ID", ValueType.TEXT);
@@ -288,7 +289,7 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
     enableDataSharing(user, categoryOptionA, AccessStringHelper.DATA_READ_WRITE);
     enableDataSharing(user, categoryOptionB, AccessStringHelper.DATA_READ_WRITE);
     userService.updateUser(user);
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     CompleteDataSetRegistration completeDataSetRegistration =
         new CompleteDataSetRegistration(
@@ -1246,11 +1247,11 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
 
   @Test
   void testImportDataValuesInvalidAttributeOptionComboDates() {
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
     categoryOptionA.setStartDate(peB.getStartDate());
     categoryOptionA.setEndDate(peB.getEndDate());
     categoryService.updateCategoryOption(categoryOptionA);
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     ImportSummary summary =
         dataValueSetService.importDataValueSetXml(readFile("dxf2/datavalueset/dataValueSetH.xml"));
@@ -1269,10 +1270,10 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
 
   @Test
   void testImportDataValuesInvalidAttributeOptionComboOrgUnit() {
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
     categoryOptionA.setOrganisationUnits(Sets.newHashSet(ouA, ouB));
     categoryService.updateCategoryOption(categoryOptionA);
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     ImportSummary summary =
         dataValueSetService.importDataValueSetXml(readFile("dxf2/datavalueset/dataValueSetH.xml"));
@@ -1321,7 +1322,7 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
                               () ->
                                   String.format(
                                       "expected change to dataValue %s to be audited once", dv));
-                          assertEquals(AuditType.UPDATE, audits.get(0).getAuditType());
+                          assertEquals(ChangeLogType.UPDATE, audits.get(0).getAuditType());
                         })
             .collect(Collectors.toList()));
   }
@@ -1369,7 +1370,7 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
 
   @Test
   void testImportDataValuesWithDataSetAllowsPeriods() {
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
     Date thisMonth = DateUtils.truncate(new Date(), Calendar.MONTH);
     dsA.setExpiryDays(62);
     dsA.setOpenFuturePeriods(2);
@@ -1401,7 +1402,7 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
             + outOfRange.getIsoDate()
             + "\" value=\"10005\" />\n"
             + "</dataValueSet>\n";
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     ImportSummary summary =
         dataValueSetService.importDataValueSetXml(
@@ -1424,9 +1425,10 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
   @Test
   void testImportValueDataSetWriteFail() {
     clearSecurityContext();
+    injectSecurityContextUser(superUser);
     enableDataSharing(user, dsA, AccessStringHelper.DATA_READ);
     dataSetService.updateDataSet(dsA);
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     ImportSummary summary =
         dataValueSetService.importDataValueSetXml(readFile("dxf2/datavalueset/dataValueSetA.xml"));
@@ -1439,10 +1441,10 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
   /** User has data write access for DataSet DataValue use default category combo Expect success */
   @Test
   void testImportValueDefaultCatComboOk() {
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
     enableDataSharing(user, dsA, AccessStringHelper.DATA_READ_WRITE);
     dataSetService.updateDataSet(dsA);
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     ImportSummary summary =
         dataValueSetService.importDataValueSetXml(readFile("dxf2/datavalueset/dataValueSetA.xml"));

@@ -33,7 +33,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
@@ -50,8 +49,6 @@ class IconControllerTest extends DhisControllerIntegrationTest {
   private static final String keywords = "[\"k1\",\"k2\"]";
 
   private static final String keyword = "[\"m1\"]";
-
-  @Autowired private CurrentUserService currentUserService;
 
   @Autowired private ContextService contextService;
 
@@ -79,8 +76,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     assertEquals(description, response.getString("description").string());
     assertEquals(fileResourceId, response.getString("fileResourceUid").string());
     assertEquals(keywords, response.getArray("keywords").toString());
-    assertEquals(
-        currentUserService.getCurrentUser().getUid(), response.getString("userUid").string());
+    assertEquals(getCurrentUser().getUid(), response.getString("userUid").string());
     assertEquals(
         String.format(contextService.getApiPath() + "/icons/%s/icon", iconKey),
         response.getString("href").string());

@@ -49,6 +49,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.user.SystemUser;
 import org.springframework.stereotype.Component;
 
 /**
@@ -99,7 +100,7 @@ public class JobScheduler implements Runnable, JobRunner {
 
   public void start() {
     long loopTimeMs = LOOP_SECONDS * 1000L;
-    long alignment = currentTimeMillis() % loopTimeMs;
+    long alignment = loopTimeMs - (currentTimeMillis() % loopTimeMs);
     Executors.newSingleThreadScheduledExecutor()
         .scheduleAtFixedRate(this, alignment, loopTimeMs, TimeUnit.MILLISECONDS);
     scheduling.set(true);
@@ -138,9 +139,9 @@ public class JobScheduler implements Runnable, JobRunner {
 
   private void createHousekeepingJob() {
     try {
-      service.createHousekeepingJob();
+      service.createHousekeepingJob(new SystemUser());
     } catch (Exception ex) {
-      log.error("Unable to create house-keeping job: " + ex.getMessage());
+      log.error("Unable to create house-keeping job: " + ex.getMessage(), ex);
     }
   }
 
@@ -221,6 +222,7 @@ public class JobScheduler implements Runnable, JobRunner {
               jobId, start.atZone(ZoneId.systemDefault())));
       return;
     }
+    log.debug("Running job %s");
     JobProgress progress = null;
     try {
       AtomicLong lastAlive = new AtomicLong(currentTimeMillis());

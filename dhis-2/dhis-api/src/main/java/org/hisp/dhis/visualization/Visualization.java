@@ -32,6 +32,7 @@ import static com.google.common.base.Verify.verify;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.apache.commons.lang3.StringUtils.containsAny;
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -828,15 +829,22 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
 
   /** Validates the state of the current list of {@link Sorting} objects (if one is defined). */
   public void validateSortingState() {
-    List<String> columns = getColumnDimensions();
+    List<String> columns = defaultIfNull(getColumnDimensions(), List.of());
     List<Sorting> sortingList = getSorting();
+    List<DimensionalItemObject> items =
+        getColumns().stream()
+            .filter(c -> c.hasItems())
+            .flatMap(c -> c.getItems().stream())
+            .toList();
 
     sortingList.forEach(
         s -> {
           if (isBlank(s.getDimension()) || s.getDirection() == null) {
             throw new IllegalArgumentException("Sorting is not valid");
-          } else if (columns.stream()
-              .noneMatch(c -> containsAny(s.getDimension(), c.split("\\.")))) {
+          } else if (columns.stream().noneMatch(c -> containsAny(s.getDimension(), c.split("\\.")))
+              && items.stream()
+                  .noneMatch(
+                      c -> containsAny(s.getDimension(), c.getDimensionItem().split("\\.")))) {
             throw new IllegalStateException(s.getDimension());
           }
         });

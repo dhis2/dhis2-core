@@ -99,7 +99,8 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
   @Override
   protected void setUpTest() throws Exception {
     userService = _userService;
-    User admin = preCreateInjectAdminUser();
+    //    User admin = preCreateInjectAdminUser();
+    User admin = userService.getUserByUsername("admin_test");
 
     OrganisationUnit orgUnit = createOrganisationUnit('A');
     manager.save(orgUnit, false);
@@ -217,12 +218,13 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
     eventToEventType.getSharing().setOwner(user);
     manager.save(eventToEventType, false);
 
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
   }
 
   @Test
   void shouldNotReturnRelationshipByTrackedEntityIfUserHasNoAccessToTrackedEntityType()
       throws ForbiddenException, NotFoundException {
+
     Relationship accessible = relationship(teA, teB);
     relationship(teA, inaccessibleTe, teToInaccessibleTeType);
 
