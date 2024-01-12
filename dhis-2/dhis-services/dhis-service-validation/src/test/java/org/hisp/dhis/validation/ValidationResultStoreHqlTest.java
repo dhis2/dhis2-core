@@ -55,14 +55,20 @@ import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.validation.comparator.ValidationResultQuery;
 import org.hisp.dhis.validation.hibernate.HibernateValidationResultStore;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * Simple unit tests for {@link HibernateValidationResultStore} that mocks the actual hibernate part
@@ -81,7 +87,7 @@ class ValidationResultStoreHqlTest {
 
   private ValidationResultStore store;
 
-  private CurrentUserService currentUserService;
+  private UserService userService;
 
   @BeforeEach
   void setUp() {
@@ -90,10 +96,8 @@ class ValidationResultStoreHqlTest {
     Session session = mock(Session.class);
     ApplicationEventPublisher publisher = mock(ApplicationEventPublisher.class);
     when(entityManager.unwrap(Session.class)).thenReturn(session);
-    currentUserService = mock(CurrentUserService.class);
-    store =
-        new HibernateValidationResultStore(
-            entityManager, jdbcTemplate, publisher, currentUserService);
+    userService = mock(UserService.class);
+    store = new HibernateValidationResultStore(entityManager, jdbcTemplate, publisher, userService);
     when(session.createQuery(anyString()))
         .then(
             createQueryInvocation -> {
@@ -119,9 +123,26 @@ class ValidationResultStoreHqlTest {
             });
   }
 
+  @AfterEach
+  void tearDown() {
+    SecurityContextHolder.clearContext();
+  }
+
+  public static void injectSecurityContext(User user) {
+    UserDetails currentUserDetails = UserDetails.fromUser(user);
+    Authentication authentication =
+        new UsernamePasswordAuthenticationToken(
+            currentUserDetails, "", currentUserDetails.getAuthorities());
+    SecurityContext context = SecurityContextHolder.createEmptyContext();
+    context.setAuthentication(authentication);
+    SecurityContextHolder.setContext(context);
+  }
+
   private void setUpUser(String orgUnitUid, Category category, CategoryOptionGroupSet groupSet) {
     User user = new User();
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+    user.setUsername("testuser");
+    injectSecurityContext(user);
+    when(userService.getUserByUsername(anyString())).thenReturn(user);
     user.setGroups(emptySet());
     OrganisationUnit unit = new OrganisationUnit();
     unit.setUid(orgUnitUid);
@@ -136,18 +157,21 @@ class ValidationResultStoreHqlTest {
 
   @Test
   void getById() {
+    //    setUpUser("uid", null, null);
     store.getById(13L);
     assertHQLMatches("from ValidationResult vr where vr.id = :id");
   }
 
   @Test
   void getAllUnreportedValidationResults() {
+    //    setUpUser("uid", null, null);
     store.getAllUnreportedValidationResults();
     assertHQLMatches("from ValidationResult vr where vr.notificationSent = false");
   }
 
   @Test
   void queryDefaultQuery() {
+    //    setUpUser("uid", null, null);
     store.query(new ValidationResultQuery());
     assertHQLMatches("from ValidationResult vr");
   }

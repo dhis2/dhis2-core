@@ -30,7 +30,9 @@ package org.hisp.dhis.trackedentity;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,7 +49,7 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
 
   private final TrackerAccessManager trackerAccessManager;
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   // -------------------------------------------------------------------------
   // TrackedEntityAuditService implementation
@@ -71,13 +73,12 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
   @Transactional(readOnly = true)
   public List<TrackedEntityChangeLog> getTrackedEntityChangeLogs(
       TrackedEntityChangeLogQueryParams params) {
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     return trackedEntityChangeLogStore.getTrackedEntityChangeLogs(params).stream()
         .filter(
             a ->
                 trackerAccessManager
-                    .canRead(
-                        currentUserService.getCurrentUser(),
-                        trackedEntityStore.getByUid(a.getTrackedEntity()))
+                    .canRead(currentUser, trackedEntityStore.getByUid(a.getTrackedEntity()))
                     .isEmpty())
         .collect(Collectors.toList());
   }

@@ -53,7 +53,7 @@ import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -100,7 +100,7 @@ abstract class AnalyticsServiceBaseTest {
 
   @Mock private ExecutionPlanStore executionPlanStore;
 
-  @Mock private CurrentUserService currentUserService;
+  @Mock private UserService userService;
 
   DataAggregator target;
 
@@ -108,7 +108,7 @@ abstract class AnalyticsServiceBaseTest {
   public void baseSetUp() {
     HeaderHandler headerHandler = new HeaderHandler();
     MetadataHandler metadataHandler =
-        new MetadataHandler(dataQueryService, schemeIdResponseMapper, currentUserService);
+        new MetadataHandler(dataQueryService, schemeIdResponseMapper, userService);
     DataHandler dataHandler =
         new DataHandler(
             eventAnalyticsService,

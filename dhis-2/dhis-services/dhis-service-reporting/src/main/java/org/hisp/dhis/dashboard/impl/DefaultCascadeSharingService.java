@@ -799,7 +799,7 @@ public class DefaultCascadeSharingService implements CascadeSharingService {
               new ErrorReport(
                   HibernateProxyUtils.getRealClass(object),
                   ErrorCode.E3001,
-                  parameters.getUser().getUsername(),
+                  parameters,
                   object.getUid()));
       return false;
     }

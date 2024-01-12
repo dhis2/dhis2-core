@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,48 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
+package org.hisp.dhis.scheduling;
 
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
+import java.io.InputStream;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.fileresource.FileResourceService;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.MimeType;
 
-public interface CurrentUserDetails extends UserDetails {
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+@Slf4j
+@RequiredArgsConstructor
+@Service
+@Profile("test")
+public class JobCreationHelperForTests implements JobCreationHelper {
 
-  @Override
-  Collection<? extends GrantedAuthority> getAuthorities();
+  private final JobConfigurationStore jobConfigurationStore;
+  private final FileResourceService fileResourceService;
 
-  @Override
-  String getPassword();
+  @Transactional
+  public String create(JobConfiguration config) throws ConflictException {
+    return createFromConfig(config, jobConfigurationStore);
+  }
 
-  @Override
-  String getUsername();
-
-  @Override
-  boolean isAccountNonExpired();
-
-  @Override
-  boolean isAccountNonLocked();
-
-  @Override
-  boolean isCredentialsNonExpired();
-
-  @Override
-  boolean isEnabled();
-
-  boolean isSuper();
-
-  String getUid();
-
-  /**
-   * Set of UserGroup UID which current User belongs to.
-   *
-   * @return
-   */
-  Set<String> getUserGroupIds();
-
-  Map<String, Serializable> getUserSettings();
+  @Transactional
+  public String create(JobConfiguration config, MimeType contentType, InputStream content)
+      throws ConflictException {
+    return createFromConfigAndInputStream(
+        config, contentType, content, jobConfigurationStore, fileResourceService);
+  }
 }

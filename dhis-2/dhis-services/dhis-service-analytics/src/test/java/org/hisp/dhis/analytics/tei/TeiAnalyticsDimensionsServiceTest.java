@@ -47,7 +47,6 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -70,8 +69,7 @@ class TeiAnalyticsDimensionsServiceTest {
     teiAnalyticsDimensionsService =
         new DefaultTeiAnalyticsDimensionsService(
             trackedEntityTypeService,
-            new DefaultEnrollmentAnalyticsDimensionsService(
-                programService, mock(AclService.class), mock(CurrentUserService.class)),
+            new DefaultEnrollmentAnalyticsDimensionsService(programService, mock(AclService.class)),
             programService);
   }
 

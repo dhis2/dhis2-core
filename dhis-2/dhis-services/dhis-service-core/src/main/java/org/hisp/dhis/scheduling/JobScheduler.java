@@ -49,6 +49,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.user.SystemUser;
 import org.springframework.stereotype.Component;
 
 /**
@@ -138,9 +139,9 @@ public class JobScheduler implements Runnable, JobRunner {
 
   private void createHousekeepingJob() {
     try {
-      service.createHousekeepingJob();
+      service.createHousekeepingJob(new SystemUser());
     } catch (Exception ex) {
-      log.error("Unable to create house-keeping job: " + ex.getMessage());
+      log.error("Unable to create house-keeping job: " + ex.getMessage(), ex);
     }
   }
 

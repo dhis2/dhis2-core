@@ -326,6 +326,8 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("previouspasswords");
     emptyTable("usersetting");
     emptyTable("fileresource");
+    emptyTable("jobconfiguration");
+    // userinfo should be last, since many tables has a foreign key to it
     emptyTable("userinfo");
     emptyTable("route");
 

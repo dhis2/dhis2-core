@@ -44,8 +44,8 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dxf2.deprecated.tracker.DeprecatedTrackerTest;
 import org.hisp.dhis.dxf2.deprecated.tracker.TrackedEntityInstanceParams;
-import org.hisp.dhis.dxf2.deprecated.tracker.TrackerTest;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.Attribute;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstanceService;
@@ -63,7 +63,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.junit.jupiter.api.BeforeEach;
@@ -73,7 +72,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Luciano Fiandesio
  */
-class TrackedEntityAttributesAggregateTest extends TrackerTest {
+class TrackedEntityAttributesAggregateTest extends DeprecatedTrackerTest {
   @Autowired private TrackedEntityInstanceService trackedEntityInstanceService;
 
   @Autowired private TrackedEntityAttributeService attributeService;
@@ -83,8 +82,6 @@ class TrackedEntityAttributesAggregateTest extends TrackerTest {
   @Autowired private ProgramService programService;
 
   @Autowired private TrackerOwnershipManager trackerOwnershipManager;
-
-  @Autowired private CurrentUserService currentUserService;
 
   private Program programB;
 
@@ -104,8 +101,9 @@ class TrackedEntityAttributesAggregateTest extends TrackerTest {
   void setUp() {
     doInTransaction(
         () -> {
-          superUser = preCreateInjectAdminUser();
-          injectSecurityContext(superUser);
+          //          superUser = preCreateInjectAdminUser();
+          superUser = userService.getUserByUsername("admin_test");
+          injectSecurityContextUser(superUser);
 
           nonSuperUser = createUserWithAuth("testUser2");
           nonSuperUser.addOrganisationUnit(organisationUnitA);
@@ -133,7 +131,7 @@ class TrackedEntityAttributesAggregateTest extends TrackerTest {
   @Test
   void testTrackedEntityInstanceIncludeAllAttributesEnrollmentsEventsRelationshipsOwners() {
     populatePrerequisites(true);
-    injectSecurityContext(nonSuperUser);
+    injectSecurityContextUser(nonSuperUser);
     TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
     queryParams.setOrgUnits(Sets.newHashSet(organisationUnitA));
     queryParams.setTrackedEntityType(trackedEntityTypeA);
@@ -148,7 +146,7 @@ class TrackedEntityAttributesAggregateTest extends TrackerTest {
   @Test
   void testTrackedEntityInstanceIncludeAllAttributesInProtectedProgramNoAccess() {
     populatePrerequisites(true);
-    injectSecurityContext(nonSuperUser);
+    injectSecurityContextUser(nonSuperUser);
     TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
     queryParams.setOrgUnits(Sets.newHashSet(organisationUnitA));
     queryParams.setTrackedEntityType(trackedEntityTypeA);
@@ -162,7 +160,7 @@ class TrackedEntityAttributesAggregateTest extends TrackerTest {
   @Test
   void testTrackedEntityInstanceIncludeSpecificProtectedProgram() {
     populatePrerequisites(false);
-    injectSecurityContext(nonSuperUser);
+    injectSecurityContextUser(nonSuperUser);
     TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
     queryParams.setOrgUnits(Sets.newHashSet(organisationUnitA));
     queryParams.setProgram(programB);
@@ -176,7 +174,7 @@ class TrackedEntityAttributesAggregateTest extends TrackerTest {
   @Test
   void testTrackedEntityInstanceIncludeSpecificOpenProgram() {
     populatePrerequisites(false);
-    injectSecurityContext(nonSuperUser);
+    injectSecurityContextUser(nonSuperUser);
     TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
     queryParams.setOrgUnits(Sets.newHashSet(organisationUnitA));
     queryParams.setProgram(programA);
@@ -205,7 +203,7 @@ class TrackedEntityAttributesAggregateTest extends TrackerTest {
   private void populatePrerequisites(boolean removeOwnership) {
     doInTransaction(
         () -> {
-          User currentUser = currentUserService.getCurrentUser();
+          User currentUser = getCurrentUser();
 
           ProgramStage programStageA = createProgramStage(programB, true);
           ProgramStage programStageB = createProgramStage(programB, true);

@@ -106,7 +106,7 @@ class ValidationServiceIntegrationTest extends IntegrationTestBase {
     defaultCombo = categoryService.getDefaultCategoryOptionCombo();
 
     User user = createAndAddUser(true, "SUPERUSER", Sets.newHashSet(orgUnitA), null);
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
   }
 
   // -------------------------------------------------------------------------

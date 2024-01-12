@@ -42,14 +42,14 @@ import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.config.InclusionStrategy;
 import org.hisp.dhis.query.Query;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class MetadataExportParams {
   /** User to use for sharing filtering. */
-  private User user;
+  private UserDetails currentUserDetails;
 
   /** If doing full export, this contains the list of classes you want exported. */
   private Set<Class<? extends IdentifiableObject>> classes = new HashSet<>();
@@ -92,18 +92,6 @@ public class MetadataExportParams {
   private boolean download = false;
 
   public MetadataExportParams() {}
-
-  public String getUsername() {
-    return user != null ? user.getUsername() : "system-process";
-  }
-
-  public User getUser() {
-    return user;
-  }
-
-  public void setUser(User user) {
-    this.user = user;
-  }
 
   public Set<Class<? extends IdentifiableObject>> getClasses() {
     return classes;
@@ -148,6 +136,14 @@ public class MetadataExportParams {
   public List<String> getFields(Class<? extends IdentifiableObject> klass) {
     List<String> strings = fields.get(klass);
     return strings != null ? strings : defaultFields;
+  }
+
+  public UserDetails getCurrentUserDetails() {
+    return currentUserDetails;
+  }
+
+  public void setCurrentUserDetails(UserDetails currentUserDetails) {
+    this.currentUserDetails = currentUserDetails;
   }
 
   public List<String> getDefaultFields() {

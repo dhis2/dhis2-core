@@ -51,7 +51,9 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,7 +70,7 @@ public class DefaultFollowupAnalysisService implements FollowupAnalysisService {
 
   private final FollowupValueManager followupValueManager;
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   private final I18nManager i18nManager;
 
@@ -109,8 +111,9 @@ public class DefaultFollowupAnalysisService implements FollowupAnalysisService {
   public FollowupAnalysisResponse getFollowupDataValues(FollowupAnalysisRequest request) {
     validate(request);
 
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     List<FollowupValue> followupValues =
-        followupValueManager.getFollowupDataValues(currentUserService.getCurrentUser(), request);
+        followupValueManager.getFollowupDataValues(currentUser, request);
 
     I18nFormat format = i18nManager.getI18nFormat();
     followupValues.forEach(value -> value.setPeName(format.formatPeriod(value.getPeAsPeriod())));

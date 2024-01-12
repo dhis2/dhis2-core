@@ -38,7 +38,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.schema.descriptors.LegendSetSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -68,7 +68,7 @@ public class LegendSetController extends AbstractCrudController<LegendSet> {
   @PreAuthorize(
       "hasRole('F_LEGEND_SET_PUBLIC_ADD') or hasRole('F_LEGEND_SET_PRIVATE_ADD')  or hasRole('ALL')")
   public WebMessage putJsonObject(
-      @PathVariable String uid, @CurrentUser User currentUser, HttpServletRequest request)
+      @PathVariable String uid, @CurrentUser UserDetails currentUser, HttpServletRequest request)
       throws ForbiddenException,
           ConflictException,
           NotFoundException,
@@ -81,7 +81,7 @@ public class LegendSetController extends AbstractCrudController<LegendSet> {
   @PreAuthorize("hasRole('F_LEGEND_SET_DELETE') or hasRole('ALL')")
   public WebMessage deleteObject(
       @PathVariable String uid,
-      @CurrentUser User currentUser,
+      @CurrentUser UserDetails currentUser,
       HttpServletRequest request,
       HttpServletResponse response)
       throws ForbiddenException,

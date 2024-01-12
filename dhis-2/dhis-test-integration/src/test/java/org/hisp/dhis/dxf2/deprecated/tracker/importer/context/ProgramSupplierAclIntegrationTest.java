@@ -49,6 +49,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
@@ -71,11 +72,11 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest {
 
   private Event event = new Event();
 
-  @Override
-  protected void setUpTest() throws Exception {
-    userService = _userService;
-    createAndInjectAdminUser();
-  }
+  //  @Override
+  //  protected void setUpTest() throws Exception {
+  //    userService = _userService;
+  //    createAndInjectAdminUser();
+  //  }
 
   //
   // PROGRAM ACL TESTS
@@ -84,17 +85,26 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest {
   @Test
   void verifyUserHasNoWriteAccessToProgram() {
     // Given
-    final User demo = createUserWithAuth("demo");
+    final User demo = createUserWithAuth("demo", "ALL");
+
+    UserDetails currentUserDetails = UserDetails.fromUser(demo);
+    injectSecurityContext(currentUserDetails);
+
     final Program program = createProgram('A');
     program.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     manager.save(program, false);
     dbmsManager.flushSession();
+
     // When
     final Map<String, Program> programs =
         programSupplier.get(getDefaultImportOptions(), singletonList(event));
+
     // Then
     assertThat(programs.keySet(), hasSize(1));
-    assertFalse(aclService.canDataWrite(demo, programs.get(program.getUid())));
+
+    final User noAuthUser = createUserWithAuth("noauth");
+    assertFalse(
+        aclService.canDataWrite(UserDetails.fromUser(noAuthUser), programs.get(program.getUid())));
   }
 
   @Test
@@ -198,6 +208,7 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest {
   void verifyUserHasWriteAccessToProgramStageForGroupAccess() {
     // Given
     final User user = createUserWithAuth("user1");
+
     final ProgramStage programStage = createProgramStage('A', 1);
     programStage.setPublicAccess(AccessStringHelper.DEFAULT);
     UserGroup userGroup = new UserGroup("test-group-programstage", singleton(user));
@@ -219,7 +230,9 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest {
         programSupplier.get(getDefaultImportOptions(), singletonList(event));
     // Then
     assertThat(programs.keySet(), hasSize(1));
-    assertTrue(aclService.canDataWrite(user, getProgramStage(programs.get(program.getUid()))));
+
+    ProgramStage programStage1 = getProgramStage(programs.get(program.getUid()));
+    assertTrue(aclService.canDataWrite(UserDetails.fromUser(user), programStage1));
   }
 
   @Test
@@ -311,7 +324,9 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest {
         programSupplier.get(getDefaultImportOptions(), singletonList(event));
     // Then
     assertThat(programs.keySet(), hasSize(1));
-    assertTrue(aclService.canDataWrite(user, getTrackedEntityType(programs.get(program.getUid()))));
+    assertTrue(
+        aclService.canDataWrite(
+            UserDetails.fromUser(user), getTrackedEntityType(programs.get(program.getUid()))));
   }
 
   @Test

@@ -65,13 +65,10 @@ import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.ldap.authentication.LdapAuthenticator;
-import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
@@ -172,26 +169,15 @@ public class WebTestConfiguration {
     return new BCryptPasswordEncoder();
   }
 
-  @Bean
-  public LdapAuthenticator ldapAuthenticator() {
-    return authentication -> null;
-  }
+  //  @Bean
+  //  public LdapAuthenticator ldapAuthenticator() {
+  //    return authentication -> null;
+  //  }
 
-  @Bean
-  public LdapAuthoritiesPopulator ldapAuthoritiesPopulator() {
-    return (dirContextOperations, s) -> null;
-  }
-
-  @Bean("oAuth2AuthenticationManager")
-  public AuthenticationManager oAuth2AuthenticationManager() {
-    return authentication -> null;
-  }
-
-  @Bean("authenticationManager")
-  @Primary
-  public AuthenticationManager authenticationManager() {
-    return authentication -> null;
-  }
+  //  @Bean
+  //  public LdapAuthoritiesPopulator ldapAuthoritiesPopulator() {
+  //    return (dirContextOperations, s) -> null;
+  //  }
 
   @Bean
   public DefaultAuthenticationEventPublisher authenticationEventPublisher() {

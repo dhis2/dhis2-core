@@ -41,6 +41,7 @@ import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.StreamSupport;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -402,7 +403,9 @@ class ObjectBundleServiceTest extends TransactionalIntegrationTest {
     assertFalse(userRoles.isEmpty());
     Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults = manager.getDefaults();
     DataSet dataSet = dataSets.get(0);
-    User user = users.get(0);
+
+    User user = manager.getByUid(User.class, Set.of("ueKaFVdR8Fz")).get(0);
+
     for (DataElement dataElement : dataElements) {
       assertNotNull(dataElement.getCategoryCombo());
       assertEquals(defaults.get(CategoryCombo.class), dataElement.getCategoryCombo());
@@ -439,8 +442,8 @@ class ObjectBundleServiceTest extends TransactionalIntegrationTest {
     List<UserGroup> userGroups = manager.getAll(UserGroup.class);
     assertEquals(1, organisationUnits.size());
     assertEquals(2, dataElements.size());
-    assertEquals(1, userRoles.size());
-    assertEquals(1, users.size());
+    assertEquals(2, userRoles.size());
+    assertEquals(2, users.size());
     assertEquals(2, userGroups.size());
     assertEquals(1, dataElements.get(0).getSharing().getUserGroups().size());
     assertEquals(1, dataElements.get(1).getSharing().getUserGroups().size());
@@ -479,8 +482,8 @@ class ObjectBundleServiceTest extends TransactionalIntegrationTest {
     List<UserGroup> userGroups = manager.getAll(UserGroup.class);
     assertEquals(1, organisationUnits.size());
     assertEquals(2, dataElements.size());
-    assertEquals(1, userRoles.size());
-    assertEquals(1, users.size());
+    assertEquals(2, userRoles.size());
+    assertEquals(2, users.size());
     assertEquals(2, userGroups.size());
     assertEquals(1, dataElements.get(0).getSharing().getUserGroups().size());
     assertEquals(1, dataElements.get(1).getSharing().getUserGroups().size());

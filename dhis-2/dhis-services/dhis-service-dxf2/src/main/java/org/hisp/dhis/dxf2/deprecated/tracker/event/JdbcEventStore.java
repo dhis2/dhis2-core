@@ -123,8 +123,10 @@ import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.SqlUtils;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
@@ -348,13 +350,13 @@ public class JdbcEventStore implements EventStore {
   @Qualifier("dataValueJsonMapper")
   private final ObjectMapper jsonMapper;
 
-  private final CurrentUserService currentUserService;
-
   private final IdentifiableObjectManager manager;
 
   private final org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.store.EventStore eventStore;
 
   private final SkipLockedProvider skipLockedProvider;
+
+  private final UserService userService;
 
   // -------------------------------------------------------------------------
   // EventStore implementation
@@ -363,9 +365,9 @@ public class JdbcEventStore implements EventStore {
   @Override
   public List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> getEvents(
       EventSearchParams params, Map<String, Set<String>> psdesWithSkipSyncTrue) {
-    User user = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    setAccessiblePrograms(user, params);
+    setAccessiblePrograms(isSuper(currentUser), params);
 
     List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> events = new ArrayList<>();
     List<Long> relationshipIds = new ArrayList<>();
@@ -374,7 +376,7 @@ public class JdbcEventStore implements EventStore {
 
     final MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
 
-    String sql = buildSql(params, mapSqlParameterSource, user);
+    String sql = buildSql(params, mapSqlParameterSource, currentUser);
 
     return jdbcTemplate.query(
         sql,
@@ -579,13 +581,13 @@ public class JdbcEventStore implements EventStore {
 
   @Override
   public List<Map<String, String>> getEventsGrid(EventSearchParams params) {
-    User user = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    setAccessiblePrograms(user, params);
+    setAccessiblePrograms(isSuper(currentUser), params);
 
     final MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
 
-    String sql = buildGridSql(params, user, mapSqlParameterSource);
+    String sql = buildGridSql(params, currentUser, mapSqlParameterSource);
 
     return jdbcTemplate.query(
         sql,
@@ -615,15 +617,15 @@ public class JdbcEventStore implements EventStore {
 
   @Override
   public List<EventRow> getEventRows(EventSearchParams params) {
-    User user = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    setAccessiblePrograms(user, params);
+    setAccessiblePrograms(isSuper(currentUser), params);
 
     List<EventRow> eventRows = new ArrayList<>();
 
     final MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
 
-    String sql = buildSql(params, mapSqlParameterSource, user);
+    String sql = buildSql(params, mapSqlParameterSource, currentUser);
 
     return jdbcTemplate.query(
         sql,
@@ -823,17 +825,18 @@ public class JdbcEventStore implements EventStore {
 
   @Override
   public int getEventCount(EventSearchParams params) {
-    User user = currentUserService.getCurrentUser();
-    setAccessiblePrograms(user, params);
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
+    setAccessiblePrograms(isSuper(currentUser), params);
 
     String sql;
 
     MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
 
     if (params.hasFilters()) {
-      sql = buildGridSql(params, user, mapSqlParameterSource);
+      sql = buildGridSql(params, currentUser, mapSqlParameterSource);
     } else {
-      sql = getEventSelectQuery(params, mapSqlParameterSource, user);
+      sql = getEventSelectQuery(params, mapSqlParameterSource, currentUser);
     }
 
     sql = sql.replaceFirst("select .*? from", "select count(*) from");
@@ -1739,7 +1742,7 @@ public class JdbcEventStore implements EventStore {
           joinCondition
               + " having bool_and(case when "
               + JpaQueryUtils.generateSQlQueryForSharingCheck(
-                  "co.sharing", user, AclService.LIKE_READ_DATA)
+                  "co.sharing", UserDetails.fromUser(user), AclService.LIKE_READ_DATA)
               + " then true else false end) = True ";
     }
 
@@ -2087,8 +2090,8 @@ public class JdbcEventStore implements EventStore {
     }
   }
 
-  private void setAccessiblePrograms(User user, EventSearchParams params) {
-    if (!isSuper(user)) {
+  private void setAccessiblePrograms(boolean userIsSuper, EventSearchParams params) {
+    if (!userIsSuper) {
       params.setAccessiblePrograms(
           manager.getDataReadAll(Program.class).stream()
               .map(Program::getUid)

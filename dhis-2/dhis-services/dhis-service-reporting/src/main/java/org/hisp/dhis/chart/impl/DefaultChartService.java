@@ -71,8 +71,9 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.util.MathUtils;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.visualization.ChartService;
 import org.hisp.dhis.visualization.PlotData;
 import org.hisp.dhis.visualization.Visualization;
@@ -158,7 +159,7 @@ public class DefaultChartService implements ChartService {
 
   private final MinMaxDataElementService minMaxDataElementService;
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   private final OrganisationUnitService organisationUnitService;
 
@@ -175,7 +176,7 @@ public class DefaultChartService implements ChartService {
   public JFreeChart getJFreeChart(
       PlotData plotData, Date date, OrganisationUnit organisationUnit, I18nFormat format) {
     return getJFreeChart(
-        plotData, date, organisationUnit, format, currentUserService.getCurrentUser());
+        plotData, date, organisationUnit, format, CurrentUserUtil.getCurrentUsername());
   }
 
   @Override
@@ -185,8 +186,12 @@ public class DefaultChartService implements ChartService {
       Date date,
       OrganisationUnit organisationUnit,
       I18nFormat format,
-      User currentUser) {
-    User user = (currentUser != null ? currentUser : currentUserService.getCurrentUser());
+      String username) {
+
+    User user =
+        (username != null
+            ? userService.getUserByUsername(username)
+            : userService.getUserByUsername(CurrentUserUtil.getCurrentUsername()));
 
     if (organisationUnit == null && user != null) {
       organisationUnit = user.getOrganisationUnit();

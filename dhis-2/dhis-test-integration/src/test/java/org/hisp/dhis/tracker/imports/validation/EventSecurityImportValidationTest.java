@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -65,7 +66,9 @@ import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -126,6 +129,10 @@ class EventSecurityImportValidationTest extends TrackerTest {
     userService = _userService;
     setUpMetadata("tracker/tracker_basic_metadata.json");
     injectAdminUser();
+
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    Set<String> allAuthorities = currentUserDetails.getAllAuthorities();
+
     assertNoErrors(
         trackerImportService.importTracker(
             new TrackerImportParams(),
