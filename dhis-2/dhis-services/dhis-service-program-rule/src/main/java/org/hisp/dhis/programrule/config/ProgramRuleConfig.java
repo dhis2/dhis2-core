@@ -35,7 +35,7 @@ import org.hisp.dhis.programrule.engine.ProgramRuleEngineListener;
 import org.hisp.dhis.programrule.engine.ProgramRuleEntityMapperService;
 import org.hisp.dhis.programrule.engine.ServerSideImplementableRuleService;
 import org.hisp.dhis.programrule.engine.SupplementaryDataProvider;
-import org.hisp.dhis.rules.engine.DefaultRuleEngine;
+import org.hisp.dhis.rules.api.RuleEngine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -66,7 +66,7 @@ public class ProgramRuleConfig {
         constantService,
         notificationImplementableRuleService,
         supplementaryDataProvider,
-        new DefaultRuleEngine());
+        RuleEngine.Companion.getInstance());
   }
 
   /**
@@ -81,6 +81,6 @@ public class ProgramRuleConfig {
         constantService,
         serverSideImplementableRuleService,
         supplementaryDataProvider,
-        new DefaultRuleEngine());
+        RuleEngine.Companion.getInstance());
   }
 }
