@@ -101,12 +101,10 @@ public class HibernateDataStatisticsEventStore extends HibernateGenericStore<Dat
     jdbcTemplate.query(
         sql,
         pss,
-        (rs, i) -> {
-          eventTypeCountMap.put(
-              DataStatisticsEventType.valueOf(rs.getString("eventtype")),
-              rs.getDouble("numberofviews"));
-          return eventTypeCountMap;
-        });
+        (rs, i) ->
+            eventTypeCountMap.put(
+                DataStatisticsEventType.valueOf(rs.getString("eventtype")),
+                rs.getDouble("numberofviews")));
 
     final String totalSql =
         "select count(eventtype) as total "
@@ -116,10 +114,9 @@ public class HibernateDataStatisticsEventStore extends HibernateGenericStore<Dat
     jdbcTemplate.query(
         totalSql,
         pss,
-        (resultSet, i) -> {
-          return eventTypeCountMap.put(
-              DataStatisticsEventType.TOTAL_VIEW, resultSet.getDouble("total"));
-        });
+        (resultSet, i) ->
+            eventTypeCountMap.put(
+                DataStatisticsEventType.TOTAL_VIEW, resultSet.getDouble("total")));
 
     final String activeUsersSql =
         "select count(distinct username) as activeusers "
@@ -128,10 +125,9 @@ public class HibernateDataStatisticsEventStore extends HibernateGenericStore<Dat
     jdbcTemplate.query(
         activeUsersSql,
         pss,
-        (resultSet, i) -> {
-          return eventTypeCountMap.put(
-              DataStatisticsEventType.ACTIVE_USERS, resultSet.getDouble("activeusers"));
-        });
+        (resultSet, i) ->
+            eventTypeCountMap.put(
+                DataStatisticsEventType.ACTIVE_USERS, resultSet.getDouble("activeusers")));
 
     return eventTypeCountMap;
   }
