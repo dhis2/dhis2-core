@@ -40,6 +40,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.comparator.LocaleNameComparator;
 import org.hisp.dhis.i18n.locale.I18nLocale;
 import org.hisp.dhis.system.util.LocaleUtils;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -124,6 +125,12 @@ public class DefaultI18nLocaleService implements I18nLocaleService {
   @Transactional
   public void saveI18nLocale(I18nLocale locale) {
     localeStore.save(locale);
+  }
+
+  @Override
+  @Transactional
+  public void saveI18nLocale(I18nLocale locale, UserDetails actingUser) {
+    localeStore.save(locale, actingUser, false);
   }
 
   @Override

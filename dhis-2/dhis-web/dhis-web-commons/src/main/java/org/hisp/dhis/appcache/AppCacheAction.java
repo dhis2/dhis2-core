@@ -30,19 +30,13 @@ package org.hisp.dhis.appcache;
 import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class AppCacheAction implements Action {
-  private CurrentUserService currentUserService;
-
-  @Autowired
-  public void setCurrentUserService(CurrentUserService currentUserService) {
-    this.currentUserService = currentUserService;
-  }
 
   private SystemService systemService;
 
@@ -65,7 +59,7 @@ public class AppCacheAction implements Action {
 
   @Override
   public String execute() throws Exception {
-    username = currentUserService.getCurrentUsername();
+    username = CurrentUserUtil.getCurrentUsername();
 
     systemInfo = systemService.getSystemInfo();
 

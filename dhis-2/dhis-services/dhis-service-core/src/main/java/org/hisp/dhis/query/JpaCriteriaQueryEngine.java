@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -48,7 +47,8 @@ import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.query.planner.QueryPlan;
 import org.hisp.dhis.query.planner.QueryPlanner;
 import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
 /**
@@ -56,8 +56,6 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements QueryEngine<T> {
-  private final CurrentUserService currentUserService;
-
   private final QueryPlanner queryPlanner;
 
   private final List<IdentifiableObjectStore<T>> hibernateGenericStores;
@@ -69,17 +67,15 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
   private Map<Class<?>, IdentifiableObjectStore<T>> stores = new HashMap<>();
 
   public JpaCriteriaQueryEngine(
-      CurrentUserService currentUserService,
       QueryPlanner queryPlanner,
       List<IdentifiableObjectStore<T>> hibernateGenericStores,
       QueryCacheManager queryCacheManager,
       EntityManager entityManager) {
-    checkNotNull(currentUserService);
+
     checkNotNull(queryPlanner);
     checkNotNull(hibernateGenericStores);
     checkNotNull(entityManager);
 
-    this.currentUserService = currentUserService;
     this.queryPlanner = queryPlanner;
     this.hibernateGenericStores = hibernateGenericStores;
     this.queryCacheManager = queryCacheManager;
@@ -98,8 +94,8 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
       return new ArrayList<>();
     }
 
-    if (query.getUser() == null) {
-      query.setUser(currentUserService.getCurrentUser());
+    if (query.getCurrentUserDetails() == null) {
+      query.setCurrentUserDetails(CurrentUserUtil.getCurrentUserDetails());
     }
 
     if (!query.isPlannedQuery()) {
@@ -113,14 +109,21 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
     Root<T> root = criteriaQuery.from(klass);
 
     if (query.isEmpty()) {
+
+      UserDetails userDetails =
+          query.getCurrentUserDetails() != null
+              ? query.getCurrentUserDetails()
+              : CurrentUserUtil.getCurrentUserDetails();
+
       Predicate predicate = builder.conjunction();
-      if (!query.isSkipSharing()) {
+      boolean shareable = schema.isShareable();
+      if (shareable && !query.isSkipSharing()) {
         predicate
             .getExpressions()
             .addAll(
-                store.getSharingPredicates(builder, query.getUser()).stream()
+                store.getSharingPredicates(builder, userDetails).stream()
                     .map(t -> t.apply(root))
-                    .collect(Collectors.toList()));
+                    .toList());
       }
       criteriaQuery.where(predicate);
 
@@ -133,14 +136,28 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
     }
 
     Predicate predicate = buildPredicates(builder, root, query);
-    if (!query.isSkipSharing()) {
+    boolean shareable = schema.isShareable();
+
+    String username =
+        CurrentUserUtil.getCurrentUsername() != null
+            ? CurrentUserUtil.getCurrentUsername()
+            : "system-process";
+
+    if (!username.equals("system-process") && shareable && !query.isSkipSharing()) {
+
+      UserDetails userDetails =
+          query.getCurrentUserDetails() != null
+              ? query.getCurrentUserDetails()
+              : CurrentUserUtil.getCurrentUserDetails();
+
       predicate
           .getExpressions()
           .addAll(
-              store.getSharingPredicates(builder, query.getUser()).stream()
+              store.getSharingPredicates(builder, userDetails).stream()
                   .map(t -> t.apply(root))
-                  .collect(Collectors.toList()));
+                  .toList());
     }
+
     criteriaQuery.where(predicate);
 
     if (!query.getOrders().isEmpty()) {
@@ -151,7 +168,7 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
                       o.isAscending()
                           ? builder.asc(root.get(o.getProperty().getFieldName()))
                           : builder.desc(root.get(o.getProperty().getFieldName())))
-              .collect(Collectors.toList()));
+              .toList());
     }
 
     TypedQuery<T> typedQuery = entityManager.createQuery(criteriaQuery);
@@ -181,8 +198,8 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
       return 0;
     }
 
-    if (query.getUser() == null) {
-      query.setUser(currentUserService.getCurrentUser());
+    if (query.getCurrentUserDetails() == null) {
+      query.setCurrentUserDetails(CurrentUserUtil.getCurrentUserDetails());
     }
 
     if (!query.isPlannedQuery()) {
@@ -199,12 +216,16 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
 
     Predicate predicate = buildPredicates(builder, root, query);
 
-    predicate
-        .getExpressions()
-        .addAll(
-            store.getSharingPredicates(builder, query.getUser()).stream()
-                .map(t -> t.apply(root))
-                .collect(Collectors.toList()));
+    boolean shareable = schema.isShareable();
+    if (shareable && !query.isSkipSharing()) {
+      UserDetails currentUserDetails = query.getCurrentUserDetails();
+      predicate
+          .getExpressions()
+          .addAll(
+              store.getSharingPredicates(builder, currentUserDetails).stream()
+                  .map(t -> t.apply(root))
+                  .toList());
+    }
 
     criteriaQuery.where(predicate);
 
@@ -216,7 +237,7 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
                       o.isAscending()
                           ? builder.asc(root.get(o.getProperty().getName()))
                           : builder.desc(root.get(o.getProperty().getName())))
-              .collect(Collectors.toList()));
+              .toList());
     }
 
     TypedQuery<Long> typedQuery = entityManager.createQuery(criteriaQuery);

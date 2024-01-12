@@ -47,6 +47,7 @@ import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -62,8 +63,11 @@ class TeTaValidationTest extends TrackerTest {
 
   @Autowired private FileResourceService fileResourceService;
 
+  @Autowired protected UserService _userService;
+
   @Override
   protected void initTest() throws IOException {
+    userService = _userService;
     setUpMetadata("tracker/validations/te-program_with_tea_fileresource_metadata.json");
     injectAdminUser();
   }

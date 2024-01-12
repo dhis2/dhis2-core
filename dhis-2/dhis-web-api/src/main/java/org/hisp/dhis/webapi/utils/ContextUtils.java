@@ -42,6 +42,7 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.service.WebCache;
 import org.springframework.http.CacheControl;
@@ -318,7 +319,7 @@ public class ContextUtils {
    * @param user the {@link User}.
    * @return an ETag string.
    */
-  public static String getEtag(Date lastModified, User user) {
+  public static String getEtag(Date lastModified, UserDetails user) {
     if (lastModified == null || user == null) {
       return null;
     }

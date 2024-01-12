@@ -41,8 +41,8 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 
 /**
@@ -55,21 +55,16 @@ public class DefaultAnalyticsDimensionService implements AnalyticsDimensionServi
 
   private final AclService aclService;
 
-  private final CurrentUserService currentUserService;
-
   private final IdentifiableObjectManager idObjectManager;
 
   @Override
   public List<DimensionalObject> getRecommendedDimensions(DataQueryRequest request) {
     DataQueryParams params = dataQueryService.getFromRequest(request);
-
     return getRecommendedDimensions(params);
   }
 
   @Override
   public List<DimensionalObject> getRecommendedDimensions(DataQueryParams params) {
-    User user = currentUserService.getCurrentUser();
-
     Set<DimensionalObject> dimensions = new HashSet<>();
 
     if (!params.getDataElements().isEmpty()) {
@@ -96,8 +91,9 @@ public class DefaultAnalyticsDimensionService implements AnalyticsDimensionServi
 
     // TODO Filter org unit group sets
 
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     return dimensions.stream()
-        .filter(d -> aclService.canDataOrMetadataRead(user, d))
+        .filter(d -> aclService.canDataOrMetadataRead(currentUserDetails, d))
         .sorted()
         .collect(Collectors.toList());
   }

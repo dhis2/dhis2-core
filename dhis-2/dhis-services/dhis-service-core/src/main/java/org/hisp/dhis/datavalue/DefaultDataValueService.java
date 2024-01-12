@@ -49,7 +49,7 @@ import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -68,8 +68,6 @@ public class DefaultDataValueService implements DataValueService {
   private final DataValueStore dataValueStore;
 
   private final DataValueAuditService dataValueAuditService;
-
-  private final CurrentUserService currentUserService;
 
   private final CategoryService categoryService;
 
@@ -195,7 +193,7 @@ public class DefaultDataValueService implements DataValueService {
           new DataValueAudit(
               dataValue,
               dataValue.getAuditValue(),
-              currentUserService.getCurrentUsername(),
+              CurrentUserUtil.getCurrentUsername(),
               ChangeLogType.DELETE);
 
       dataValueAuditService.addDataValueAudit(dataValueAudit);

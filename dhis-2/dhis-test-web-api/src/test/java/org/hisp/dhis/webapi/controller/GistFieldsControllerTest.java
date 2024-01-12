@@ -99,7 +99,7 @@ class GistFieldsControllerTest extends AbstractGistControllerTest {
   void testField_PresetExpandsToReadableFields() {
     switchToGuestUser();
     JsonArray users = GET("/users/gist?headless=true").content();
-    JsonObject user0 = users.getObject(0);
+    JsonObject user0 = users.getObject(1);
     assertContainsOnly(Set.of("id", "code", "surname", "firstName", "username"), user0.names());
     switchToSuperuser();
     users = GET("/users/gist?headless=true").content();
@@ -198,7 +198,7 @@ class GistFieldsControllerTest extends AbstractGistControllerTest {
   @Test
   void testField_UserNameAutomaticFromTransformation() {
     JsonArray users = GET("/users/gist?fields=id,name&headless=true").content();
-    assertEquals("FirstNameadmin Surnameadmin", users.getObject(0).getString("name").string());
+    assertEquals("FirstNameadmin Surnameadmin", users.getObject(1).getString("name").string());
   }
 
   @Test

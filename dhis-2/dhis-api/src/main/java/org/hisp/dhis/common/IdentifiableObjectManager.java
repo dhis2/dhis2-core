@@ -40,6 +40,7 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Lars Helge Overland
@@ -55,15 +56,11 @@ public interface IdentifiableObjectManager {
 
   void update(@Nonnull IdentifiableObject object);
 
-  void update(@Nonnull IdentifiableObject object, @CheckForNull User user);
+  void update(@Nonnull IdentifiableObject object, UserDetails currentUserDetails);
 
   void update(@Nonnull List<IdentifiableObject> objects);
 
-  void update(@Nonnull List<IdentifiableObject> objects, @CheckForNull User user);
-
   void delete(@Nonnull IdentifiableObject object);
-
-  void delete(@Nonnull IdentifiableObject object, @CheckForNull User user);
 
   /**
    * Lookup objects of unknown type.
@@ -192,7 +189,7 @@ public interface IdentifiableObjectManager {
       @Nonnull Class<T> type,
       @Nonnull Attribute attribute,
       @Nonnull String value,
-      @CheckForNull User userInfo);
+      @CheckForNull String username);
 
   @CheckForNull
   <T extends IdentifiableObject> T search(@Nonnull Class<T> type, @Nonnull String query);
@@ -389,4 +386,8 @@ public interface IdentifiableObjectManager {
 
   @Nonnull
   <T extends IdentifiableObject> List<T> getAllNoAcl(@Nonnull Class<T> type);
+
+  void persist(Object userAdmin);
+
+  User find(Class<User> userClass, long id);
 }

@@ -79,6 +79,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
@@ -274,7 +275,8 @@ public abstract class CompressionSMSListener extends BaseSMSListener {
     event.setAttributeOptionCombo(aoc);
     event.setStoredBy(user.getUsername());
 
-    UserInfoSnapshot currentUserInfo = UserInfoSnapshot.from(user);
+    UserDetails currentUserDetails = UserDetails.fromUser(user);
+    UserInfoSnapshot currentUserInfo = UserInfoSnapshot.from(currentUserDetails);
 
     event.setCreatedByUserInfo(currentUserInfo);
     event.setLastUpdatedByUserInfo(currentUserInfo);

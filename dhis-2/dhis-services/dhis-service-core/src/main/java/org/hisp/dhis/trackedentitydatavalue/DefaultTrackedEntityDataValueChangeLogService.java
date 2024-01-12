@@ -36,7 +36,9 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackedEntityDataValueChangeLogQueryParams;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,21 +55,19 @@ public class DefaultTrackedEntityDataValueChangeLogService
   public DefaultTrackedEntityDataValueChangeLogService(
       TrackedEntityDataValueChangeLogStore trackedEntityDataValueChangeLogStore,
       TrackerAccessManager trackerAccessManager,
-      CurrentUserService currentUserService) {
+      UserService userService) {
     checkNotNull(trackedEntityDataValueChangeLogStore);
     checkNotNull(trackerAccessManager);
-    checkNotNull(currentUserService);
+    checkNotNull(userService);
 
     this.trackedEntityDataValueChangeLogStore = trackedEntityDataValueChangeLogStore;
+
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     aclFilter =
         audit ->
             trackerAccessManager
-                .canRead(
-                    currentUserService.getCurrentUser(),
-                    audit.getEvent(),
-                    audit.getDataElement(),
-                    false)
+                .canRead(currentUser, audit.getEvent(), audit.getDataElement(), false)
                 .isEmpty();
   }
 

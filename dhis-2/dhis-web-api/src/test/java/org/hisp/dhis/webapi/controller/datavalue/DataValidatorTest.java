@@ -52,6 +52,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.user.UserService;
 import org.joda.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -80,6 +81,7 @@ class DataValidatorTest {
   @Mock private AggregateAccessManager accessManager;
 
   @Mock private DataValidator dataValidator;
+  @Mock private UserService userService;
 
   private Period peJan;
 
@@ -111,7 +113,8 @@ class DataValidatorTest {
             inputUtils,
             fileResourceService,
             calendarService,
-            accessManager);
+            accessManager,
+            userService);
 
     peJan = createPeriod("202001");
     peFeb = createPeriod("202002");

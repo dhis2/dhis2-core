@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,63 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security;
+package org.hisp.dhis.config;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.ArrayList;
-import java.util.List;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.ldap.authentication.LdapAuthenticator;
+import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class RecaptchaResponse {
-  @JsonProperty(value = "success")
-  private Boolean success;
-
-  @JsonProperty(value = "challenge_ts")
-  private String challengeTs;
-
-  @JsonProperty(value = "hostname")
-  private String hostname;
-
-  @JsonProperty(value = "error-codes")
-  private List<String> errorCodes = new ArrayList<>();
-
-  @JsonIgnore
-  public boolean success() {
-    return success != null && success;
+@Configuration
+@ComponentScan("org.hisp.dhis")
+public class IntegrationBaseConfig {
+  @Bean
+  public static SessionRegistry sessionRegistry() {
+    return new SessionRegistryImpl();
   }
 
-  public Boolean getSuccess() {
-    return success;
+  @Bean
+  public LdapAuthenticator ldapAuthenticator() {
+    return authentication -> null;
   }
 
-  public void setSuccess(Boolean success) {
-    this.success = success;
+  @Bean
+  public LdapAuthoritiesPopulator ldapAuthoritiesPopulator() {
+    return (dirContextOperations, s) -> null;
   }
 
-  public String getChallengeTs() {
-    return challengeTs;
-  }
-
-  public void setChallengeTs(String challengeTs) {
-    this.challengeTs = challengeTs;
-  }
-
-  public String getHostname() {
-    return hostname;
-  }
-
-  public void setHostname(String hostname) {
-    this.hostname = hostname;
-  }
-
-  public List<String> getErrorCodes() {
-    return errorCodes;
-  }
-
-  public void setErrorCodes(List<String> errorCodes) {
-    this.errorCodes = errorCodes;
+  @Bean
+  public PasswordEncoder encoder() {
+    return new BCryptPasswordEncoder();
   }
 }

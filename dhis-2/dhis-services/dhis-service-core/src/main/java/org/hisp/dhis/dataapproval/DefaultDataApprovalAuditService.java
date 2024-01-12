@@ -43,8 +43,9 @@ import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,7 +59,7 @@ public class DefaultDataApprovalAuditService implements DataApprovalAuditService
 
   private final DataApprovalLevelService dataApprovalLevelService;
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   private final AclService aclService;
 
@@ -75,11 +76,12 @@ public class DefaultDataApprovalAuditService implements DataApprovalAuditService
   @Override
   @Transactional(readOnly = true)
   public List<DataApprovalAudit> getDataApprovalAudits(DataApprovalAuditQueryParams params) {
-    if (!currentUserService.currentUserIsSuper()) {
+
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
+    if (!CurrentUserUtil.getCurrentUserDetails().isSuper()) {
       Set<DataApprovalLevel> userLevels =
-          new HashSet<>(
-              dataApprovalLevelService.getUserDataApprovalLevels(
-                  currentUserService.getCurrentUser()));
+          new HashSet<>(dataApprovalLevelService.getUserDataApprovalLevels(currentUser));
 
       if (params.hasLevels()) {
         params.setLevels(Sets.intersection(params.getLevels(), userLevels));
@@ -106,12 +108,12 @@ public class DefaultDataApprovalAuditService implements DataApprovalAuditService
    * @param audits the list of audit records.
    */
   private void retainFromDimensionConstraints(List<DataApprovalAudit> audits) {
-    User user = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    Set<CategoryOptionGroupSet> cogDimensionConstraints = user.getCogsDimensionConstraints();
-    Set<Category> catDimensionConstraints = user.getCatDimensionConstraints();
+    Set<CategoryOptionGroupSet> cogDimensionConstraints = currentUser.getCogsDimensionConstraints();
+    Set<Category> catDimensionConstraints = currentUser.getCatDimensionConstraints();
 
-    if (currentUserService.currentUserIsSuper()
+    if (CurrentUserUtil.getCurrentUserDetails().isSuper()
         || (CollectionUtils.isEmpty(cogDimensionConstraints)
             && CollectionUtils.isEmpty(catDimensionConstraints))) {
       return;
@@ -128,7 +130,8 @@ public class DefaultDataApprovalAuditService implements DataApprovalAuditService
 
       if (canRead == null) {
         canRead =
-            canReadOptionCombo(user, optionCombo, cogDimensionConstraints, catDimensionConstraints);
+            canReadOptionCombo(
+                currentUser, optionCombo, cogDimensionConstraints, catDimensionConstraints);
 
         readableOptionCombos.put(optionCombo, canRead);
       }
@@ -146,7 +149,7 @@ public class DefaultDataApprovalAuditService implements DataApprovalAuditService
    * <p>In order to read an option combo, the user must be able to read *every* option in the option
    * combo.
    *
-   * @param user the user.
+   * @param username the user.
    * @param optionCombo the record to test.
    * @param cogDimensionConstraints category option combo group constraints, if any.
    * @param catDimensionConstraints category constraints, if any.
@@ -213,7 +216,6 @@ public class DefaultDataApprovalAuditService implements DataApprovalAuditService
     if (CollectionUtils.isEmpty(catDimensionConstraints)) {
       return true; // No category dimension constraints.
     }
-
     return !CollectionUtils.intersection(catDimensionConstraints, option.getCategories()).isEmpty()
         && aclService.canRead(user, option);
   }

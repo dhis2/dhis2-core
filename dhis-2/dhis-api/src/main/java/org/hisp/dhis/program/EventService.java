@@ -33,7 +33,6 @@ import java.util.Map;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.user.User;
 
 /**
  * @author Abyot Asalefew
@@ -49,15 +48,6 @@ public interface EventService {
    */
   long addEvent(Event event);
 
-  /**
-   * Adds an {@link Event}
-   *
-   * @param event The Event to add.
-   * @param user the current user.
-   * @return A generated unique id of the added {@link Event}.
-   */
-  long addEvent(Event event, User user);
-
   /** Soft deletes an {@link Event}. */
   void deleteEvent(Event event);
 
@@ -67,14 +57,6 @@ public interface EventService {
    * @param event the Event to update.
    */
   void updateEvent(Event event);
-
-  /**
-   * Updates an {@link Event}.
-   *
-   * @param event the Event to update.
-   * @param user the current user.
-   */
-  void updateEvent(Event event, User user);
 
   /**
    * Updates a last sync timestamp on specified events

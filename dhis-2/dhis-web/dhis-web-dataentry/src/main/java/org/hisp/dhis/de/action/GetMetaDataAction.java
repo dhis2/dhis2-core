@@ -56,9 +56,9 @@ import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.option.OptionSet;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.DateUtils;
@@ -97,10 +97,10 @@ public class GetMetaDataAction implements Action {
     this.categoryService = categoryService;
   }
 
-  private CurrentUserService currentUserService;
+  private UserService userService;
 
-  public void setCurrentUserService(CurrentUserService currentUserService) {
-    this.currentUserService = currentUserService;
+  public void setUserService(UserService userService) {
+    this.userService = userService;
   }
 
   @Autowired private DataSetService dataSetService;
@@ -185,8 +185,6 @@ public class GetMetaDataAction implements Action {
 
   @Override
   public String execute() {
-    User user = currentUserService.getCurrentUser();
-
     Locale dbLocale = getLocaleWithDefault(new TranslateParams(true));
     CurrentUserUtil.setUserSetting(UserSettingKey.DB_LOCALE, dbLocale);
 
@@ -201,16 +199,16 @@ public class GetMetaDataAction implements Action {
                 identifiableObjectManager.getLastUpdated(Category.class),
                 identifiableObjectManager.getLastUpdated(CategoryOption.class)));
 
-    String tag = ContextUtils.getEtag(lastUpdated, user);
+    String tag = ContextUtils.getEtag(lastUpdated, CurrentUserUtil.getCurrentUserDetails());
 
     if (ContextUtils.isNotModified(
         ServletActionContext.getRequest(), ServletActionContext.getResponse(), tag)) {
       return SUCCESS;
     }
 
-    if (user != null && user.getOrganisationUnits().isEmpty()) {
+    UserDetails userDetails = CurrentUserUtil.getCurrentUserDetails();
+    if (userDetails != null && userDetails.getUserOrgUnitIds().isEmpty()) {
       emptyOrganisationUnits = true;
-
       return SUCCESS;
     }
 
@@ -228,7 +226,7 @@ public class GetMetaDataAction implements Action {
 
     expressionService.substituteIndicatorExpressions(indicators);
 
-    dataSets = dataSetService.getUserDataWrite(user);
+    dataSets = dataSetService.getUserDataWrite(userDetails);
 
     Set<CategoryCombo> categoryComboSet = new HashSet<>();
     Set<Category> categorySet = new HashSet<>();
@@ -250,7 +248,7 @@ public class GetMetaDataAction implements Action {
 
     for (Category category : categories) {
       List<CategoryOption> categoryOptions =
-          new ArrayList<>(categoryService.getDataWriteCategoryOptions(category, user));
+          new ArrayList<>(categoryService.getDataWriteCategoryOptions(category, userDetails));
       Collections.sort(categoryOptions);
       categoryOptionMap.put(category.getUid(), categoryOptions);
     }

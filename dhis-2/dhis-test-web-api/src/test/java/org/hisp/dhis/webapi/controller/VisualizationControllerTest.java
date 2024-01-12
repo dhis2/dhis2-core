@@ -36,6 +36,8 @@ import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -153,6 +155,38 @@ class VisualizationControllerTest extends DhisControllerConvenienceTest {
     JsonObject response = GET("/visualizations/" + uid + getParams).content();
 
     assertThat(response.get("sorting").toString(), containsString("pe"));
+    assertThat(response.get("sorting").toString(), containsString("ASC"));
+  }
+
+  @Test
+  void testPostSortingObjectForColumnItems() {
+    // Given
+    IndicatorType indicatorType = createIndicatorType('A');
+    manager.save(indicatorType);
+
+    Indicator mockIndicator = createIndicator('A', indicatorType);
+    manager.save(mockIndicator);
+
+    String sorting =
+        "'sorting': [{'dimension': '" + mockIndicator.getUid() + "', 'direction':'ASC'}]";
+    String body =
+        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}, 'columns': [{'dimension': 'dx',"
+            + "'items': [{'id': '"
+            + mockIndicator.getUid()
+            + "'}]}],"
+            + sorting
+            + "}";
+
+    // When
+    String uid = assertStatus(CREATED, POST("/visualizations/", body));
+
+    // Then
+    String getParams = "?fields=:all,columns[:all,items,sorting]";
+    JsonObject response = GET("/visualizations/" + uid + getParams).content();
+
+    assertThat(response.get("sorting").toString(), containsString(mockIndicator.getUid()));
     assertThat(response.get("sorting").toString(), containsString("ASC"));
   }
 

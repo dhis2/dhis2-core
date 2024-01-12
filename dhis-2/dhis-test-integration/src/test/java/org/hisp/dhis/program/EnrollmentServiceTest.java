@@ -48,6 +48,7 @@ import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
@@ -163,7 +164,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     enrollmentD.setUid("UID-D");
     enrollmentD.setOrganisationUnit(organisationUnitB);
 
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
   }
 
   @Test
@@ -286,7 +287,9 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
     List<Enrollment> enrollments =
         enrollmentService.getEnrollments(
-            new EnrollmentQueryParams().setUser(user).setOrganisationUnitMode(CAPTURE));
+            new EnrollmentQueryParams()
+                .setCurrentUserDetails(UserDetails.fromUser(user))
+                .setOrganisationUnitMode(CAPTURE));
 
     assertEquals(2, enrollments.size());
     assertTrue(enrollments.contains(enrollmentA));
