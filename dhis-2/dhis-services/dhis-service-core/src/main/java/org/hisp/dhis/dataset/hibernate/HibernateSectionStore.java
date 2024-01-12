@@ -85,9 +85,10 @@ public class HibernateSectionStore extends HibernateIdentifiableObjectStore<Sect
     // language sql
     String sql =
         """
-        select * from section s
+        select s.sectionid from section s
         join sectionindicators si on s.sectionid = si.sectionid
         where si.indicatorid in :indicators
+        group by s.sectionid
       """;
     return getSession()
         .createNativeQuery(sql, Section.class)

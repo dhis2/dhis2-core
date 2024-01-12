@@ -59,7 +59,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class IndicatorMergeService implements MergeService {
 
   private final IndicatorService indicatorService;
-  //  private final IdentifiableObjectManager idObjectManager;
   private final MetadataIndicatorMergeHandler metadataIndicatorMergeHandler;
   private ImmutableList<IndicatorMergeHandler> handlers;
 

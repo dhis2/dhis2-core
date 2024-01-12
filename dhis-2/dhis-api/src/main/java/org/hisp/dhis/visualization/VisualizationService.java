@@ -29,7 +29,6 @@ package org.hisp.dhis.visualization;
 
 import java.util.List;
 import org.hisp.dhis.common.AnalyticalObjectService;
-import org.hisp.dhis.indicator.Indicator;
 
 /**
  * Interface responsible for providing CRUD and business methods related to a Visualization object.
@@ -80,5 +79,5 @@ public interface VisualizationService extends AnalyticalObjectService<Visualizat
    * @param indicators the indicators to search for.
    * @return the Visualization.
    */
-  List<Visualization> getVisualizationsWithIndicatorSorting(List<Indicator> indicators);
+  List<Visualization> getVisualizationsWithIndicatorSorting(List<String> indicators);
 }

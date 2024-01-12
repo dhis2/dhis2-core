@@ -32,9 +32,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.analytics.Sorting;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
@@ -98,18 +98,19 @@ public class MetadataIndicatorMergeHandler {
   }
 
   public void handleVisualizations(List<Indicator> sources, Indicator target) {
+    List<String> sourceUids = IdentifiableObjectUtils.getUids(sources);
     List<Visualization> visualizations =
-        visualizationService.getVisualizationsWithIndicatorSorting(sources);
-    sources.forEach(
-        source ->
-            visualizations.forEach(
-                v -> {
-                  List<Sorting> sorting = v.getSorting();
-                  sorting.forEach(
-                      sort ->
-                          sort.setDimension(
-                              sort.getDimension().replace(source.getUid(), target.getUid())));
-                }));
+        visualizationService.getVisualizationsWithIndicatorSorting(sourceUids);
+
+    visualizations.stream()
+        .map(Visualization::getSorting)
+        .flatMap(Collection::stream)
+        .forEach(
+            sorting ->
+                sources.forEach(
+                    source ->
+                        sorting.setDimension(
+                            sorting.getDimension().replace(source.getUid(), target.getUid()))));
   }
 
   public void handleSections(List<Indicator> sources, Indicator target) {
@@ -117,8 +118,7 @@ public class MetadataIndicatorMergeHandler {
     sections.forEach(
         s -> {
           s.removeIndicators(sources);
-          boolean sectionContainsIndicator = CollectionUtils.containsUid(s.getIndicators(), target);
-          if (!sectionContainsIndicator) s.addIndicator(target);
+          s.addIndicator(target);
         });
   }
 
@@ -127,23 +127,22 @@ public class MetadataIndicatorMergeHandler {
       // numerators
       List<Indicator> numeratorIndicators =
           indicatorService.getIndicatorsWithNumeratorContaining(source.getUid());
-      if (CollectionUtils.isNotEmpty(numeratorIndicators)) {
-        for (Indicator foundIndicator : numeratorIndicators) {
-          String existingNumerator = foundIndicator.getNumerator();
-          foundIndicator.setNumerator(existingNumerator.replace(source.getUid(), target.getUid()));
-        }
-      }
+
+      numeratorIndicators.forEach(
+          i -> {
+            String existingNumerator = i.getNumerator();
+            i.setNumerator(existingNumerator.replace(source.getUid(), target.getUid()));
+          });
 
       // denominators
       List<Indicator> denominatorIndicators =
           indicatorService.getIndicatorsWithDenominatorContaining(source.getUid());
-      if (CollectionUtils.isNotEmpty(denominatorIndicators)) {
-        for (Indicator foundIndicator : denominatorIndicators) {
-          String existingDenominator = foundIndicator.getDenominator();
-          foundIndicator.setDenominator(
-              existingDenominator.replace(source.getUid(), target.getUid()));
-        }
-      }
+
+      denominatorIndicators.forEach(
+          i -> {
+            String existingDenominator = i.getDenominator();
+            i.setDenominator(existingDenominator.replace(source.getUid(), target.getUid()));
+          });
     }
   }
 

@@ -33,7 +33,6 @@ import org.hibernate.query.Query;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.common.BaseAnalyticalObject;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
@@ -188,15 +187,15 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
   }
 
   @Override
-  public List<T> getAnalyticalObjectsByIndicator(List<Indicator> indicators) {
-    List<String> uids = IdentifiableObjectUtils.getUids(indicators);
+  public List<T> getAnalyticalObjectsByIndicator(List<String> indicators) {
+    // language=sql
     String sql =
         """
     select * from visualization, jsonb_array_elements(sorting) as sort
-    where sort->>'dimension' in :uids
+    where sort->>'dimension' in :indicators
     """;
 
-    return getSession().createNativeQuery(sql, clazz).setParameter("uids", uids).list();
+    return getSession().createNativeQuery(sql, clazz).setParameter("indicators", indicators).list();
   }
 
   @Override
