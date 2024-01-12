@@ -63,8 +63,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityQueryParams;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -80,7 +81,7 @@ public class TrackedEntityAggregate implements Aggregate {
   @Nonnull
   private final EnrollmentAggregate enrollmentAggregate;
 
-  @Nonnull private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   @Qualifier("org.hisp.dhis.tracker.trackedentity.aggregates.AclStore")
   @Nonnull
@@ -121,8 +122,8 @@ public class TrackedEntityAggregate implements Aggregate {
     if (ids.isEmpty()) {
       return Collections.emptyList();
     }
-
-    final Optional<User> user = Optional.ofNullable(currentUserService.getCurrentUser());
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    final Optional<User> user = Optional.ofNullable(currentUser);
 
     user.ifPresent(
         u -> {

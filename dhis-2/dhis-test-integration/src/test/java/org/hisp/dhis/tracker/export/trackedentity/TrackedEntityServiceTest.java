@@ -100,7 +100,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Disabled;
@@ -125,8 +124,6 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   @Autowired private TrackedEntityAttributeValueService attributeValueService;
 
   @Autowired private TrackerOwnershipManager trackerOwnershipManager;
-
-  @Autowired private CurrentUserService currentUserService;
 
   private User user;
 
@@ -208,7 +205,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     orgUnitChildA.setChildren(Set.of(orgUnitGrandchildA));
     manager.update(orgUnitChildA);
 
-    superuser = preCreateInjectAdminUser();
+    //    superuser = preCreateInjectAdminUser();
+    superuser = userService.getUserByUsername("admin_test");
     superuser.setOrganisationUnits(Set.of(orgUnitA, orgUnitB));
     manager.save(superuser);
 
@@ -283,7 +281,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     programA.getProgramAttributes().add(programTrackedEntityAttribute);
     manager.update(programA);
 
-    User currentUser = currentUserService.getCurrentUser();
+    User currentUser = getCurrentUser();
 
     programB = createProgram('B', new HashSet<>(), orgUnitA);
     programB.setProgramType(ProgramType.WITH_REGISTRATION);
@@ -474,7 +472,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     relationshipC.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(relationshipC));
     manager.save(relationshipC, false);
 
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
   }
 
   @Test
@@ -1441,7 +1439,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   @Test
   void shouldReturnAllEntitiesWhenSuperuserAndNotInSearchScope()
       throws ForbiddenException, BadRequestException, NotFoundException {
-    injectSecurityContext(superuser);
+    injectSecurityContextUser(superuser);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -1458,7 +1456,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   @Test
   void shouldReturnAllEntitiesByTrackedEntityTypeMatchingFilterWhenAuthorizedUserNotInSearchScope()
       throws ForbiddenException, BadRequestException, NotFoundException {
-    injectSecurityContext(authorizedUser);
+    injectSecurityContextUser(authorizedUser);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -1477,7 +1475,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   @Test
   void shouldReturnAllEntitiesEnrolledInProgramMatchingFilterWhenAuthorizedUserNotInSearchScope()
       throws ForbiddenException, BadRequestException, NotFoundException {
-    injectSecurityContext(authorizedUser);
+    injectSecurityContextUser(authorizedUser);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -1494,7 +1492,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   @Test
   void shouldFailWhenModeAllUserCanSearchEverywhereButNotSuperuserAndNoAccessToProgram() {
-    injectSecurityContext(userWithSearchInAllAuthority);
+    injectSecurityContextUser(userWithSearchInAllAuthority);
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ALL)
@@ -1568,7 +1566,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   @Test
   void shouldReturnAllEntitiesWhenSuperuserAndModeAll()
       throws ForbiddenException, BadRequestException, NotFoundException {
-    injectSecurityContext(superuser);
+    injectSecurityContextUser(superuser);
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ALL)

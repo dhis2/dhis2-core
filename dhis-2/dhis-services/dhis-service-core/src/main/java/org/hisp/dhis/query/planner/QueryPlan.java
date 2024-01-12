@@ -32,7 +32,6 @@ import lombok.Builder;
 import lombok.Getter;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.user.User;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -53,25 +52,5 @@ public class QueryPlan {
       return nonPersistedQuery.getSchema();
     }
     return null;
-  }
-
-  public User getUser() {
-    if (persistedQuery != null) {
-      return persistedQuery.getUser();
-    }
-    if (nonPersistedQuery != null) {
-      return nonPersistedQuery.getUser();
-    }
-    return null;
-  }
-
-  public void setUser(User user) {
-    if (persistedQuery != null) {
-      persistedQuery.setUser(user);
-    }
-
-    if (nonPersistedQuery != null) {
-      nonPersistedQuery.setUser(user);
-    }
   }
 }

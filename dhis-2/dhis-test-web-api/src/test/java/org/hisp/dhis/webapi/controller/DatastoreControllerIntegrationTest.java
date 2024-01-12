@@ -37,8 +37,11 @@ import java.io.IOException;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
+import org.hisp.dhis.datastore.DatastoreEntry;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
 import org.hisp.dhis.datastore.DatastoreService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.hisp.dhis.webapi.json.domain.JsonDatastoreValue;
@@ -61,6 +64,14 @@ class DatastoreControllerIntegrationTest extends DhisControllerIntegrationTest {
    * REST API.
    */
   @Autowired private DatastoreService service;
+
+  @Override
+  protected void beforeEach() {
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    currentUserDetails.setId(0L);
+    clearSecurityContext();
+    injectSecurityContext(currentUserDetails);
+  }
 
   @Test
   void testUpdateKeyJsonValue_AndroidApp() {
@@ -92,6 +103,8 @@ class DatastoreControllerIntegrationTest extends DhisControllerIntegrationTest {
 
   @Test
   void testPutEntry_EntryAlreadyExistsAndIsUpdated() {
+
+    assertStatus(HttpStatus.CREATED, POST("/dataStore/ns1/key1", "42"));
     doInTransaction(
         () -> assertStatus(HttpStatus.CREATED, PUT("/dataStore/pets/emu", "{\"name\":\"harry\"}")));
     doInTransaction(
@@ -131,13 +144,20 @@ class DatastoreControllerIntegrationTest extends DhisControllerIntegrationTest {
 
   @Test
   void testUpdateKeyJsonValue_ProtectedNamespaceWithSharing() {
+    switchContextToUser(superUser);
+
     setUpNamespaceProtectionWithSharing(
         "pets", DatastoreNamespaceProtection.ProtectionType.HIDDEN, "pets-admin");
     assertStatus(HttpStatus.CREATED, POST("/dataStore/pets/cat", "{}"));
     String uid = GET("/dataStore/pets/cat/metaData").content().as(JsonDatastoreValue.class).getId();
+
     assertStatus(
         HttpStatus.OK,
         POST("/sharing?type=dataStore&id=" + uid, "{'object':{'publicAccess':'r-------'}}"));
+
+    DatastoreEntry entry = service.getEntry("pets", "cat");
+    DatastoreEntry datastoreEntry = manager.get(DatastoreEntry.class, entry.getId());
+
     switchToNewUser("someone", "pets-admin");
     assertEquals(
         "Access denied for key 'cat' in namespace 'pets'",

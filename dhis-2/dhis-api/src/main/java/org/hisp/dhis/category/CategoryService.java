@@ -36,6 +36,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Abyot Asalefew
@@ -55,12 +56,16 @@ public interface CategoryService {
    */
   long addCategory(Category category);
 
+  long addCategory(Category category, UserDetails actingUser);
+
   /**
    * Updates a Category.
    *
    * @param category the Category to update.
    */
   void updateCategory(Category category);
+
+  void updateCategory(Category category, UserDetails actingUser);
 
   /**
    * Deletes a Category. The Category is also removed from any CategoryCombos if it is a member of.
@@ -143,12 +148,16 @@ public interface CategoryService {
    */
   long addCategoryOption(CategoryOption dataElementCategoryOption);
 
+  long addCategoryOption(CategoryOption dataElementCategoryOption, UserDetails actingUser);
+
   /**
    * Updates a CategoryOption.
    *
    * @param dataElementCategoryOption the CategoryOption to update.
    */
   void updateCategoryOption(CategoryOption dataElementCategoryOption);
+
+  void updateCategoryOption(CategoryOption dataElementCategoryOption, UserDetails actingUser);
 
   /**
    * Deletes a CategoryOption.
@@ -203,7 +212,7 @@ public interface CategoryService {
    * @param user to check data write access for
    * @return a list of all CategoryOptions, or an empty collection if there are no CategoryOptions.
    */
-  List<CategoryOption> getDataWriteCategoryOptions(Category category, User user);
+  List<CategoryOption> getDataWriteCategoryOptions(Category category, UserDetails user);
 
   /**
    * Returns a set of CategoryOptions that may be seen by the current user, if the current user has
@@ -236,12 +245,16 @@ public interface CategoryService {
    */
   long addCategoryCombo(CategoryCombo dataElementCategoryCombo);
 
+  long addCategoryCombo(CategoryCombo dataElementCategoryCombo, UserDetails actingUser);
+
   /**
    * Updates a CategoryCombo.
    *
    * @param dataElementCategoryCombo the CategoryCombo to update.
    */
   void updateCategoryCombo(CategoryCombo dataElementCategoryCombo);
+
+  void updateCategoryCombo(CategoryCombo dataElementCategoryCombo, UserDetails actingUser);
 
   /**
    * Deletes a CategoryCombo.
@@ -328,12 +341,18 @@ public interface CategoryService {
    */
   long addCategoryOptionCombo(CategoryOptionCombo dataElementCategoryOptionCombo);
 
+  long addCategoryOptionCombo(
+      CategoryOptionCombo dataElementCategoryOptionCombo, UserDetails actingUser);
+
   /**
    * Updates a CategoryOptionCombo.
    *
    * @param dataElementCategoryOptionCombo the CategoryOptionCombo to update.
    */
   void updateCategoryOptionCombo(CategoryOptionCombo dataElementCategoryOptionCombo);
+
+  void updateCategoryOptionCombo(
+      CategoryOptionCombo dataElementCategoryOptionCombo, UserDetails actingUser);
 
   /**
    * Deletes a CategoryOptionCombo.
@@ -388,7 +407,7 @@ public interface CategoryService {
    * Generates and persists a default Category, CategoryOption, CategoryCombo and
    * CategoryOptionCombo.
    */
-  void generateDefaultDimension();
+  void generateDefaultDimension(UserDetails actingUser);
 
   /**
    * Retrieves the default CategoryOptionCombo.

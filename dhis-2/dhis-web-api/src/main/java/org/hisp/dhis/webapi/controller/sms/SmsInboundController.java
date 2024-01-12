@@ -115,6 +115,7 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms> {
   @ResponseBody
   public WebMessage receiveSMSMessage(HttpServletRequest request, @CurrentUser User currentUser)
       throws WebMessageException, IOException {
+
     IncomingSms sms = renderService.fromJson(request.getInputStream(), IncomingSms.class);
     sms.setCreatedBy(getUserByPhoneNumber(sms.getOriginator(), sms.getText(), currentUser));
 

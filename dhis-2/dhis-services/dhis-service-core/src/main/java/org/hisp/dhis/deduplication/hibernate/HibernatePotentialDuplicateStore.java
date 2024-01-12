@@ -41,7 +41,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -75,7 +74,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityStore;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLog;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogStore;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -96,20 +96,12 @@ public class HibernatePotentialDuplicateStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService,
       TrackedEntityStore trackedEntityStore,
       AuditManager auditManager,
       TrackedEntityAttributeValueChangeLogStore trackedEntityAttributeValueChangeLogStore,
       DhisConfigurationProvider config) {
-    super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        PotentialDuplicate.class,
-        currentUserService,
-        aclService,
-        false);
+    super(entityManager, jdbcTemplate, publisher, PotentialDuplicate.class, aclService, false);
     this.trackedEntityStore = trackedEntityStore;
     this.auditManager = auditManager;
     this.trackedEntityAttributeValueChangeLogStore = trackedEntityAttributeValueChangeLogStore;
@@ -149,7 +141,7 @@ public class HibernatePotentialDuplicateStore
                     order.getDirection().isAscending()
                         ? cb.asc(root.get(order.getField()))
                         : cb.desc(root.get(order.getField())))
-            .collect(Collectors.toList()));
+            .toList());
 
     TypedQuery<PotentialDuplicate> relationshipTypedQuery = getSession().createQuery(cq);
 
@@ -182,7 +174,7 @@ public class HibernatePotentialDuplicateStore
     return status == DeduplicationStatus.ALL
         ? Arrays.stream(DeduplicationStatus.values())
             .filter(s -> s != DeduplicationStatus.ALL)
-            .collect(Collectors.toList())
+            .toList()
         : Collections.singletonList(status);
   }
 
@@ -258,7 +250,7 @@ public class HibernatePotentialDuplicateStore
       TrackedEntityAttributeValue av,
       TrackedEntityAttributeValue createOrUpdateTeav,
       ChangeLogType changeLogType) {
-    String currentUsername = currentUserService.getCurrentUsername();
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
 
     TrackedEntityAttributeValueChangeLog deleteTeavAudit =
         new TrackedEntityAttributeValueChangeLog(av, av.getAuditValue(), currentUsername, DELETE);
@@ -294,15 +286,22 @@ public class HibernatePotentialDuplicateStore
         duplicate.getEnrollments().stream()
             .filter(e -> !e.isDeleted())
             .filter(e -> enrollments.contains(e.getUid()))
-            .collect(Collectors.toList());
+            .toList();
 
     enrollmentList.forEach(duplicate.getEnrollments()::remove);
+
+    User currentUser =
+        CurrentUserUtil.getCurrentUserDetails() == null
+            ? null
+            : entityManager.getReference(
+                User.class, CurrentUserUtil.getCurrentUserDetails().getId());
 
     enrollmentList.forEach(
         e -> {
           e.setTrackedEntity(original);
-          e.setLastUpdatedBy(currentUserService.getCurrentUser());
-          e.setLastUpdatedByUserInfo(UserInfoSnapshot.from(currentUserService.getCurrentUser()));
+          e.setLastUpdatedBy(currentUser);
+          e.setLastUpdatedByUserInfo(
+              UserInfoSnapshot.from(CurrentUserUtil.getCurrentUserDetails()));
           e.setLastUpdated(new Date());
           getSession().update(e);
         });

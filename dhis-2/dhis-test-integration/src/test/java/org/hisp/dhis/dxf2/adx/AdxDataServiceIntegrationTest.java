@@ -303,7 +303,7 @@ class AdxDataServiceIntegrationTest extends IntegrationTestBase {
     user = createAndInjectAdminUser();
     user.setOrganisationUnits(Sets.newHashSet(ouA, ouB));
     userService.addUser(user);
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
   }
 
   // --------------------------------------------------------------------------

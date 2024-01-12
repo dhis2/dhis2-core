@@ -42,8 +42,9 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,24 +55,25 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 @RequiredArgsConstructor
 class EnrollmentOperationParamsMapper {
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   private final OperationsParamsValidator paramsValidator;
 
   @Transactional(readOnly = true)
   public EnrollmentQueryParams map(EnrollmentOperationParams operationParams)
       throws BadRequestException, ForbiddenException {
-    User user = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    Program program = paramsValidator.validateProgram(operationParams.getProgramUid(), user);
+    Program program = paramsValidator.validateProgram(operationParams.getProgramUid(), currentUser);
     TrackedEntityType trackedEntityType =
-        paramsValidator.validateTrackedEntityType(operationParams.getTrackedEntityTypeUid(), user);
+        paramsValidator.validateTrackedEntityType(
+            operationParams.getTrackedEntityTypeUid(), currentUser);
     TrackedEntity trackedEntity =
-        paramsValidator.validateTrackedEntity(operationParams.getTrackedEntityUid(), user);
+        paramsValidator.validateTrackedEntity(operationParams.getTrackedEntityUid(), currentUser);
 
     Set<OrganisationUnit> orgUnits =
-        paramsValidator.validateOrgUnits(operationParams.getOrgUnitUids(), user);
-    validateOrgUnitMode(operationParams.getOrgUnitMode(), user, program);
+        paramsValidator.validateOrgUnits(operationParams.getOrgUnitUids(), currentUser);
+    validateOrgUnitMode(operationParams.getOrgUnitMode(), currentUser, program);
 
     EnrollmentQueryParams params = new EnrollmentQueryParams();
     params.setProgram(program);
@@ -86,11 +88,11 @@ class EnrollmentOperationParamsMapper {
     params.addOrganisationUnits(orgUnits);
     params.setOrganisationUnitMode(operationParams.getOrgUnitMode());
     params.setIncludeDeleted(operationParams.isIncludeDeleted());
-    params.setUser(user);
+    params.setUser(currentUser);
     params.setOrder(operationParams.getOrder());
     params.setEnrollmentUids(operationParams.getEnrollmentUids());
 
-    mergeOrgUnitModes(operationParams, user, params);
+    mergeOrgUnitModes(operationParams, currentUser, params);
 
     return params;
   }

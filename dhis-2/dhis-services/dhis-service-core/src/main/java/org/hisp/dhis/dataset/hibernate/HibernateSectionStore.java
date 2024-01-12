@@ -36,7 +36,6 @@ import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.SectionStore;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -51,16 +50,8 @@ public class HibernateSectionStore extends HibernateIdentifiableObjectStore<Sect
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
-    super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        Section.class,
-        currentUserService,
-        aclService,
-        true);
+    super(entityManager, jdbcTemplate, publisher, Section.class, aclService, true);
   }
 
   @Override

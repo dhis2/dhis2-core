@@ -46,7 +46,6 @@ import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.system.util.SmsUtils;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -63,7 +62,6 @@ public class SingleEventListener extends CommandSMSListener {
       CategoryService dataElementCategoryService,
       EventService eventService,
       UserService userService,
-      CurrentUserService currentUserService,
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
       SMSCommandService smsCommandService) {
@@ -72,7 +70,6 @@ public class SingleEventListener extends CommandSMSListener {
         dataElementCategoryService,
         eventService,
         userService,
-        currentUserService,
         incomingSmsService,
         smsSender);
 

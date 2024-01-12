@@ -38,7 +38,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.security.apikey.ApiTokenAuthenticationToken;
 import org.hisp.dhis.security.oidc.DhisOidcUser;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.context.ApplicationListener;
 import org.springframework.security.authentication.event.AbstractAuthenticationEvent;
 import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
@@ -102,7 +102,7 @@ public class AuthenticationLoggerListener
     } else if (event.getSource() instanceof OAuth2AuthenticationToken authenticationToken) {
       authName = getUsernameFromPrincipal(authenticationToken.getPrincipal());
     } else if (event.getSource() instanceof ApiTokenAuthenticationToken authenticationToken) {
-      CurrentUserDetails principal = authenticationToken.getPrincipal();
+      UserDetails principal = authenticationToken.getPrincipal();
       if (principal != null) {
         authName = principal.getUsername();
       }

@@ -71,7 +71,6 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserSettingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -129,8 +128,6 @@ class DataSetNotificationServiceTest extends DhisConvenienceTest {
   @Mock private DataSetNotificationTemplateService dsntService;
 
   @Mock private MessageConversationStore messageConversationStore;
-
-  @Mock private CurrentUserService currentUserService;
 
   @Mock private ConfigurationService configurationService;
 

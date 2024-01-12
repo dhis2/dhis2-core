@@ -69,7 +69,7 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserService;
 import org.hisp.quick.BatchHandlerFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -93,8 +93,6 @@ class DataValueSetServiceImportTest extends DhisConvenienceTest {
   @Mock private BatchHandlerFactory batchHandlerFactory;
 
   @Mock private CompleteDataSetRegistrationService completeDataSetRegistrationService;
-
-  @Mock private CurrentUserService currentUserService;
 
   @Mock private DataValueSetStore dataValueSetStore;
 
@@ -123,6 +121,8 @@ class DataValueSetServiceImportTest extends DhisConvenienceTest {
   @Mock private DataValueSetImportValidator dataValueSetImportValidator;
 
   @Mock private SchemaService schemaService;
+
+  @Mock private UserService userService;
 
   @InjectMocks private DefaultDataValueSetService dataValueSetService;
 

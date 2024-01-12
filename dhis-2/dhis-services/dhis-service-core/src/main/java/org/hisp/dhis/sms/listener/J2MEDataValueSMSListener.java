@@ -65,7 +65,6 @@ import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -93,7 +92,6 @@ public class J2MEDataValueSMSListener extends CommandSMSListener {
       CategoryService dataElementCategoryService,
       EventService eventService,
       UserService userService,
-      CurrentUserService currentUserService,
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
       DataValueService dataValueService,
@@ -105,7 +103,6 @@ public class J2MEDataValueSMSListener extends CommandSMSListener {
         dataElementCategoryService,
         eventService,
         userService,
-        currentUserService,
         incomingSmsService,
         smsSender);
 

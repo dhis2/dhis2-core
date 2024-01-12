@@ -50,7 +50,8 @@ import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
@@ -65,7 +66,6 @@ import org.springframework.util.StreamUtils;
 public class JacksonRelationshipService extends AbstractRelationshipService {
   public JacksonRelationshipService(
       DbmsManager dbmsManager,
-      CurrentUserService currentUserService,
       SchemaService schemaService,
       QueryService queryService,
       TrackerAccessManager trackerAccessManager,
@@ -78,7 +78,6 @@ public class JacksonRelationshipService extends AbstractRelationshipService {
       ObjectMapper jsonMapper,
       @Qualifier("xmlMapper") ObjectMapper xmlMapper) {
     checkNotNull(dbmsManager);
-    checkNotNull(currentUserService);
     checkNotNull(schemaService);
     checkNotNull(queryService);
     checkNotNull(trackerAccessManager);
@@ -92,7 +91,6 @@ public class JacksonRelationshipService extends AbstractRelationshipService {
     checkNotNull(xmlMapper);
 
     this.dbmsManager = dbmsManager;
-    this.currentUserService = currentUserService;
     this.schemaService = schemaService;
     this.queryService = queryService;
     this.trackerAccessManager = trackerAccessManager;
@@ -166,8 +164,10 @@ public class JacksonRelationshipService extends AbstractRelationshipService {
       importOptions = new ImportOptions();
     }
 
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
     if (importOptions.getUser() == null) {
-      importOptions.setUser(currentUserService.getCurrentUser());
+      importOptions.setUser(currentUser);
     }
 
     return importOptions;

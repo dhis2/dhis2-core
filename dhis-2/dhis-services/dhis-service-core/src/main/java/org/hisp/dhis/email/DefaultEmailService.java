@@ -36,8 +36,9 @@ import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,7 +59,7 @@ public class DefaultEmailService implements EmailService {
 
   private final MessageSender emailMessageSender;
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   private final SystemSettingManager systemSettingManager;
 
@@ -86,12 +87,11 @@ public class DefaultEmailService implements EmailService {
   public OutboundMessageResponse sendTestEmail() {
     String instanceName = systemSettingManager.getStringSetting(SettingKey.APPLICATION_TITLE);
 
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
     Email email =
         new Email(
-            TEST_EMAIL_SUBJECT,
-            TEST_EMAIL_TEXT + instanceName,
-            null,
-            Sets.newHashSet(currentUserService.getCurrentUser()));
+            TEST_EMAIL_SUBJECT, TEST_EMAIL_TEXT + instanceName, null, Sets.newHashSet(currentUser));
 
     return sendEmail(email);
   }

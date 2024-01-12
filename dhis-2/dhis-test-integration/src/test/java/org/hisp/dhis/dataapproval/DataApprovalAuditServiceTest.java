@@ -202,8 +202,8 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest {
   // -------------------------------------------------------------------------
   @Override
   public void setUpTest() throws Exception {
-    userService = _userService;
-    preCreateInjectAdminUser();
+    //    userService = _userService;
+    //    preCreateInjectAdminUser();
 
     // ---------------------------------------------------------------------
     // Add supporting data
@@ -324,7 +324,7 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest {
   void testDeleteDataApprovalAudits() {
     DataApprovalAuditQueryParams params = new DataApprovalAuditQueryParams();
     List<DataApprovalAudit> audits;
-    injectSecurityContext(userA);
+    injectSecurityContextUser(userA);
     dataApprovalAuditService.deleteDataApprovalAudits(sourceB);
     audits = dataApprovalAuditService.getDataApprovalAudits(params);
     assertEquals(3, audits.size());
@@ -339,7 +339,7 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest {
     DataApprovalAuditQueryParams params = new DataApprovalAuditQueryParams();
     List<DataApprovalAudit> audits;
     // Superuser can see all audits.
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
     audits = dataApprovalAuditStore.getDataApprovalAudits(params);
     assertEquals(9, audits.size());
     assertTrue(audits.contains(auditAA1));
@@ -352,7 +352,7 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest {
     assertTrue(audits.contains(auditBB3));
     assertTrue(audits.contains(auditBC3));
     // User A can see all options from sourceA or its children.
-    injectSecurityContext(userA);
+    injectSecurityContextUser(userA);
     audits = dataApprovalAuditService.getDataApprovalAudits(params);
     assertEquals(9, audits.size());
     assertTrue(audits.contains(auditAA1));
@@ -365,7 +365,7 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest {
     assertTrue(audits.contains(auditBB3));
     assertTrue(audits.contains(auditBC3));
     // User B can see all options from sourceB.
-    injectSecurityContext(userB);
+    injectSecurityContextUser(userB);
     audits = dataApprovalAuditService.getDataApprovalAudits(params);
     assertEquals(6, audits.size());
     assertTrue(audits.contains(auditBA2));
@@ -375,12 +375,12 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest {
     assertTrue(audits.contains(auditBB3));
     assertTrue(audits.contains(auditBC3));
     // User C can see only level 3, optionA from sourceB.
-    injectSecurityContext(userC);
+    injectSecurityContextUser(userC);
     audits = dataApprovalAuditService.getDataApprovalAudits(params);
     assertEquals(1, audits.size());
     assertTrue(audits.contains(auditBA3));
     // User D can see only level 3, optionB from sourceB.
-    injectSecurityContext(userD);
+    injectSecurityContextUser(userD);
     audits = dataApprovalAuditService.getDataApprovalAudits(params);
     assertEquals(1, audits.size());
     assertTrue(audits.contains(auditBB3));

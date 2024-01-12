@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.outlier.service;
 
 import static java.lang.Double.NaN;
+import static org.apache.commons.math3.util.Precision.round;
 import static org.hisp.dhis.analytics.OutlierDetectionAlgorithm.MOD_Z_SCORE;
 import static org.hisp.dhis.analytics.outlier.OutlierHelper.withExceptionHandling;
 import static org.hisp.dhis.period.PeriodType.getIsoPeriod;
@@ -142,18 +143,18 @@ public class AnalyticsZScoreOutlierDetector {
    */
   private void addZScoreBasedParamsToOutlier(Outlier outlier, ResultSet rs, boolean modifiedZ)
       throws SQLException {
-
+    final int scale = 5;
     if (modifiedZ) {
-      outlier.setMedian(rs.getDouble("middle_value"));
-      outlier.setStdDev(rs.getDouble("mad"));
+      outlier.setMedian(round(rs.getDouble("middle_value"), scale));
+      outlier.setStdDev(round(rs.getDouble("mad"), scale));
     } else {
-      outlier.setMean(rs.getDouble("middle_value"));
-      outlier.setStdDev(rs.getDouble("std_dev"));
+      outlier.setMean(round(rs.getDouble("middle_value"), scale));
+      outlier.setStdDev(round(rs.getDouble("std_dev"), scale));
     }
 
-    outlier.setAbsDev(rs.getDouble("middle_value_abs_dev"));
-    outlier.setZScore(outlier.getStdDev() == 0 ? NaN : rs.getDouble("z_score"));
-    outlier.setLowerBound(rs.getDouble("lower_bound"));
-    outlier.setUpperBound(rs.getDouble("upper_bound"));
+    outlier.setAbsDev(round(rs.getDouble("middle_value_abs_dev"), scale));
+    outlier.setZScore(round(outlier.getStdDev() == 0 ? NaN : rs.getDouble("z_score"), scale));
+    outlier.setLowerBound(round(rs.getDouble("lower_bound"), scale));
+    outlier.setUpperBound(round(rs.getDouble("upper_bound"), scale));
   }
 }

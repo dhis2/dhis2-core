@@ -28,8 +28,12 @@
 package org.hisp.dhis.dataelement.hibernate;
 
 import java.util.List;
+import java.util.function.Function;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -38,7 +42,7 @@ import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.User;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -47,6 +51,7 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Torgeir Lorange Ostby
  */
+@Slf4j
 @Repository("org.hisp.dhis.dataelement.DataElementStore")
 public class HibernateDataElementStore extends HibernateIdentifiableObjectStore<DataElement>
     implements DataElementStore {
@@ -54,16 +59,8 @@ public class HibernateDataElementStore extends HibernateIdentifiableObjectStore<
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
-    super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        DataElement.class,
-        currentUserService,
-        aclService,
-        false);
+    super(entityManager, jdbcTemplate, publisher, DataElement.class, aclService, false);
   }
 
   // -------------------------------------------------------------------------
@@ -145,9 +142,21 @@ public class HibernateDataElementStore extends HibernateIdentifiableObjectStore<
   public DataElement getDataElement(String uid, User user) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
+    // TODO MAS: Remove this in separate PR when we invalidate user sessions on user group changes.
+    // Need to refetch here since the user might have been updated, and tests transactional
+    // semantics might not have committed yet.
+    CurrentUserGroupInfo currentUserGroupInfo = getCurrentUserGroupInfo(user.getUid());
+
+    List<Function<Root<DataElement>, Predicate>> sharingPredicates =
+        getSharingPredicates(
+            builder,
+            user.getUid(),
+            currentUserGroupInfo.getUserGroupUIDs(),
+            AclService.LIKE_READ_METADATA);
+
     JpaQueryParameters<DataElement> param =
         new JpaQueryParameters<DataElement>()
-            .addPredicates(getSharingPredicates(builder, user, AclService.LIKE_READ_METADATA))
+            .addPredicates(sharingPredicates)
             .addPredicate(root -> builder.equal(root.get("uid"), uid));
 
     return getSingleResult(builder, param);
