@@ -121,6 +121,18 @@ public class HibernateDataStatisticsEventStore extends HibernateGenericStore<Dat
               DataStatisticsEventType.TOTAL_VIEW, resultSet.getDouble("total"));
         });
 
+    final String activeUsersSql =
+        "select count(distinct username) as activeusers "
+            + "from datastatisticsevent "
+            + "where timestamp between ? and ?;";
+    jdbcTemplate.query(
+        activeUsersSql,
+        pss,
+        (resultSet, i) -> {
+          return eventTypeCountMap.put(
+              DataStatisticsEventType.ACTIVE_USERS, resultSet.getDouble("activeusers"));
+        });
+
     return eventTypeCountMap;
   }
 
