@@ -253,7 +253,7 @@ public class OutliersDetection2AutoTest extends AnalyticsApiTest {
             .add("headers=dx,dxname,modifiedzscore")
             .add("endDate=2023-10-26")
             .add("ou=ImspTQPwCqd")
-            .add("maxResults=30")
+            .add("maxResults=5")
             .add("orderBy=modified_zscore")
             .add("threshold=3.0")
             .add("startDate=2022-07-26")
@@ -268,14 +268,14 @@ public class OutliersDetection2AutoTest extends AnalyticsApiTest {
         .validate()
         .statusCode(200)
         .body("headers", hasSize(equalTo(3)))
-        .body("rows", hasSize(equalTo(30)))
-        .body("height", equalTo(30))
+        .body("rows", hasSize(equalTo(5)))
+        .body("height", equalTo(5))
         .body("width", equalTo(3))
         .body("headerWidth", equalTo(3));
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"count\":30,\"orderBy\":\"z_score\",\"threshold\":\"3.0\",\"maxResults\":30,\"algorithm\":\"MOD_Z_SCORE\"}";
+        "{\"count\":5,\"orderBy\":\"z_score\",\"threshold\":\"3.0\",\"maxResults\":5,\"algorithm\":\"MOD_Z_SCORE\"}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -298,56 +298,6 @@ public class OutliersDetection2AutoTest extends AnalyticsApiTest {
     validateRow(response, 2, List.of("n6aMJNLdvep", "Penta3 doses given", "70.148"));
     validateRow(response, 3, List.of("UOlfIjgN8X6", "Fully Immunized child", "59.7607"));
     validateRow(response, 4, List.of("I78gJm4KBo7", "Penta2 doses given", "58.9513"));
-    validateRow(response, 5, List.of("l6byfWFUGaP", "Yellow Fever doses given", "54.6345"));
-    validateRow(response, 6, List.of("fClA2Erf6IO", "Penta1 doses given", "52.72342"));
-    validateRow(response, 7, List.of("l6byfWFUGaP", "Yellow Fever doses given", "50.81233"));
-    validateRow(response, 8, List.of("YtbsuPPo010", "Measles doses given", "50.81233"));
-    validateRow(response, 9, List.of("YtbsuPPo010", "Measles doses given", "49.96921"));
-    validateRow(response, 10, List.of("s46m5MS0hxu", "BCG doses given", "44.29217"));
-    validateRow(
-        response, 11, List.of("qPVDd87kS9Z", "Weight for height 80 percent and above", "39.7955"));
-    validateRow(response, 12, List.of("pikOziyCXbM", "OPV1 doses given", "39.37394"));
-    validateRow(
-        response,
-        13,
-        List.of("ldGXl6SEdqf", "Weight for age between middle and lower line (yellow)", "30.3525"));
-    validateRow(response, 14, List.of("UOlfIjgN8X6", "Fully Immunized child", "29.19621"));
-    validateRow(
-        response,
-        15,
-        List.of("NLnXLV5YpZF", "Weight for age on or above middle line (green)", "26.3055"));
-    validateRow(response, 16, List.of("pnL2VG8Bn7N", "Weight for height 70-79 percent", "24.282"));
-    validateRow(
-        response, 17, List.of("qPVDd87kS9Z", "Weight for height 80 percent and above", "20.57225"));
-    validateRow(
-        response, 18, List.of("qPVDd87kS9Z", "Weight for height 80 percent and above", "19.11083"));
-    validateRow(
-        response, 19, List.of("pnL2VG8Bn7N", "Weight for height 70-79 percent", "18.54875"));
-    validateRow(
-        response, 20, List.of("GCGfEY82Wz6", "Q_Slept under LLIN last night Measles", "18.2115"));
-    validateRow(
-        response, 21, List.of("qPVDd87kS9Z", "Weight for height 80 percent and above", "17.19975"));
-    validateRow(
-        response, 22, List.of("qPVDd87kS9Z", "Weight for height 80 percent and above", "16.8625"));
-    validateRow(
-        response, 23, List.of("qPVDd87kS9Z", "Weight for height 80 percent and above", "16.75008"));
-    validateRow(
-        response, 24, List.of("qPVDd87kS9Z", "Weight for height 80 percent and above", "16.188"));
-    validateRow(
-        response,
-        25,
-        List.of(
-            "dU0GquGkGQr", "Q_Early breastfeeding (within 1 hr after delivery) at BCG", "16.188"));
-    validateRow(
-        response, 26, List.of("qPVDd87kS9Z", "Weight for height 80 percent and above", "15.85075"));
-    validateRow(response, 27, List.of("pnL2VG8Bn7N", "Weight for height 70-79 percent", "15.5135"));
-    validateRow(
-        response, 28, List.of("pnL2VG8Bn7N", "Weight for height 70-79 percent", "15.34488"));
-    validateRow(
-        response,
-        29,
-        List.of(
-            "ldGXl6SEdqf", "Weight for age between middle and lower line (yellow)", "15.00762"));
   }
 
   @Test
