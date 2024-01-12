@@ -66,7 +66,7 @@ public class IndicatorMergeService implements MergeService {
   @Override
   public MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport) {
     // sources
-    Set<UID> sources = new HashSet<>(); // TODO possible to generify & reuse?
+    Set<UID> sources = new HashSet<>();
     Optional.ofNullable(params.getSources())
         .filter(CollectionUtils::isNotEmpty)
         .ifPresentOrElse(

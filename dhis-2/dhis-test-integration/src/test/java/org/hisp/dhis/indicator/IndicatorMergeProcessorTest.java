@@ -64,9 +64,20 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class IndicatorMergeProcessorTest extends IntegrationTestBase {
   @Autowired private MergeProcessor indicatorMergeProcessor;
-
   @Autowired private IdentifiableObjectManager manager;
   @Autowired private ConfigurationService configService;
+
+  private Indicator validTarget;
+  private Indicator validSource1;
+  private Indicator validSource2;
+  private Indicator indicatorWithSourceNumerator;
+  private Indicator indicatorWithSourceDenominator;
+  private IndicatorGroup group;
+  private DataSet dataSet;
+  private DataEntryForm entryForm;
+  private Visualization viz;
+  private Visualization viz2;
+  private Section section;
 
   @Test
   @DisplayName("merge with no sources")
@@ -209,45 +220,120 @@ class IndicatorMergeProcessorTest extends IntegrationTestBase {
   @Test
   @DisplayName("valid indicator merge with source indicators replaced and then deleted")
   void validMergeTest() throws ConflictException {
+    setupTestData();
+
+    // given merge params with a target indicator and source indicators
+    MergeParams params = new MergeParams();
+    params.setSources(Set.of(UID.of(validSource1.getUid()), UID.of(validSource2.getUid())));
+    params.setTarget(UID.of(validTarget.getUid()));
+    params.setDeleteSources(true);
+
+    // when a merge request is processed
+    MergeReport report = indicatorMergeProcessor.processMerge(params, MergeType.INDICATOR);
+
+    // then the merge report has the correct error info
+    assertFalse(report.hasErrorMessages());
+
+    // and all source indicator associations are updated
+    // indicator numerators and denominators have been updated
+    Indicator numeratorIndicator =
+        manager.get(Indicator.class, indicatorWithSourceNumerator.getUid());
+    assertNotNull(numeratorIndicator);
+    assertEquals(validTarget.getUid(), numeratorIndicator.getNumerator());
+    Indicator denominatorIndicator =
+        manager.get(Indicator.class, indicatorWithSourceDenominator.getUid());
+    assertNotNull(denominatorIndicator);
+    assertEquals(validTarget.getUid(), denominatorIndicator.getDenominator());
+
+    // data entry form html code is updated
+    DataEntryForm dataEntryForm = manager.get(DataEntryForm.class, entryForm.getUid());
+    assertNotNull(dataEntryForm);
+    assertEquals("<p>{#%s}</p>".formatted(validTarget.getUid()), dataEntryForm.getHtmlCode());
+
+    // group is updated
+    IndicatorGroup group1 = manager.get(IndicatorGroup.class, group.getUid());
+    assertNotNull(group1);
+    assertEquals(1, group1.getMembers().size());
+    assertEquals(
+        List.of(validTarget.getUid()),
+        group1.getMembers().stream().map(BaseIdentifiableObject::getUid).toList());
+
+    // data sets are updated
+    DataSet dataSet1 = manager.get(DataSet.class, dataSet.getUid());
+    assertNotNull(dataSet1);
+    assertEquals(1, dataSet1.getIndicators().size());
+    assertTrue(dataSet1.getIndicators().contains(validTarget));
+
+    // sections are updated
+    Section section1 = manager.get(Section.class, section.getUid());
+    assertNotNull(section1);
+    assertEquals(1, section1.getIndicators().size());
+    assertTrue(section1.getIndicators().contains(validTarget));
+
+    // visualizations are updated
+    Visualization visualization = manager.get(Visualization.class, viz.getUid());
+    assertNotNull(visualization);
+    assertEquals(2, visualization.getDataDimensionItems().size());
+    assertEquals(1, visualization.getIndicators().size());
+    assertTrue(visualization.getIndicators().contains(validTarget));
+    assertEquals(
+        2,
+        visualization.getDataDimensionItems().stream()
+            .filter(ddi -> ddi.getIndicator().getUid().equals(validTarget.getUid()))
+            .count());
+
+    // sorting updated
+    Visualization visualization2 = manager.get(Visualization.class, viz2.getUid());
+    assertNotNull(visualization2);
+    Sorting sorting1 = visualization2.getSorting().get(0);
+    assertEquals(validTarget.getUid(), sorting1.getDimension());
+
+    // config updated
+    Configuration configuration = configService.getConfiguration();
+    assertTrue(configuration.getInfrastructuralIndicators().getMembers().contains(validTarget));
+    assertEquals(1, configuration.getInfrastructuralIndicators().getMembers().size());
+  }
+
+  private void setupTestData() {
     IndicatorType indType1 = createIndicatorType('g');
     manager.save(indType1);
-    Indicator validSource1 = createIndicator('g', indType1);
-    Indicator validSource2 = createIndicator('h', indType1);
-    Indicator validTarget = createIndicator('i', indType1);
-    Indicator indicatorWithSourceNumerator = createIndicator('j', indType1);
+    validSource1 = createIndicator('g', indType1);
+    validSource2 = createIndicator('h', indType1);
+    validTarget = createIndicator('i', indType1);
+    indicatorWithSourceNumerator = createIndicator('j', indType1);
     indicatorWithSourceNumerator.setNumerator(validSource1.getUid());
 
-    Indicator indicatorWithSourceDenominator = createIndicator('k', indType1);
+    indicatorWithSourceDenominator = createIndicator('k', indType1);
     indicatorWithSourceDenominator.setDenominator(validSource2.getUid());
 
-    DataEntryForm entryForm = createDataEntryForm('l');
+    entryForm = createDataEntryForm('l');
     entryForm.setHtmlCode("<p>{#%s}</p>".formatted(validSource1.getUid()));
 
     PeriodType periodType = PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY);
-    DataSet dataSet = createDataSet('m');
+    dataSet = createDataSet('m');
     dataSet.addIndicator(validSource1);
     dataSet.addIndicator(validSource2);
     dataSet.setPeriodType(periodType);
     validSource1.addDataSet(dataSet);
     validSource2.addDataSet(dataSet);
 
-    IndicatorGroup group = createIndicatorGroup('n');
+    group = createIndicatorGroup('n');
     group.addIndicator(validSource1);
     group.addIndicator(validSource2);
     validSource1.addIndicatorGroup(group);
     validSource2.addIndicatorGroup(group);
 
-    Section section = new Section();
+    section = new Section();
     section.setName("section1");
     section.addIndicator(validSource1);
     section.addIndicator(validSource2);
     section.setDataSet(dataSet);
 
-    Visualization viz = createVisualization('o');
+    viz = createVisualization('o');
     viz.addDataDimensionItem(validSource1);
     viz.addDataDimensionItem(validSource2);
 
-    Visualization viz2 = createVisualization('p');
+    viz2 = createVisualization('p');
     Sorting sorting = new Sorting();
     sorting.setDimension(validSource1.getUid());
     viz2.setSorting(new ArrayList<>(List.of(sorting)));
@@ -267,75 +353,5 @@ class IndicatorMergeProcessorTest extends IntegrationTestBase {
     manager.save(viz);
     manager.save(viz2);
     configService.setConfiguration(config);
-
-    // given merge params with a target indicator and source indicators
-    MergeParams params = new MergeParams();
-    params.setSources(Set.of(UID.of(validSource1.getUid()), UID.of(validSource2.getUid())));
-    params.setTarget(UID.of(validTarget.getUid()));
-    params.setDeleteSources(true);
-
-    // when a merge request is processed
-    MergeReport report = indicatorMergeProcessor.processMerge(params, MergeType.INDICATOR);
-
-    // then the merge report has the correct error info
-    assertFalse(report.hasErrorMessages());
-
-    // and indicator numerators and denominators have been updated
-    Indicator numeratorIndicator =
-        manager.get(Indicator.class, indicatorWithSourceNumerator.getUid());
-    assertNotNull(numeratorIndicator);
-    assertEquals(validTarget.getUid(), numeratorIndicator.getNumerator());
-    Indicator denominatorIndicator =
-        manager.get(Indicator.class, indicatorWithSourceDenominator.getUid());
-    assertNotNull(denominatorIndicator);
-    assertEquals(validTarget.getUid(), denominatorIndicator.getDenominator());
-
-    // and data entry form html code is updated
-    DataEntryForm dataEntryForm = manager.get(DataEntryForm.class, entryForm.getUid());
-    assertNotNull(dataEntryForm);
-    assertEquals("<p>{#%s}</p>".formatted(validTarget.getUid()), dataEntryForm.getHtmlCode());
-
-    // and group is updated
-    IndicatorGroup group1 = manager.get(IndicatorGroup.class, group.getUid());
-    assertNotNull(group1);
-    assertEquals(1, group1.getMembers().size());
-    assertEquals(
-        List.of(validTarget.getUid()),
-        group1.getMembers().stream().map(BaseIdentifiableObject::getUid).toList());
-
-    // and data sets are updated
-    DataSet dataSet1 = manager.get(DataSet.class, dataSet.getUid());
-    assertNotNull(dataSet1);
-    assertEquals(1, dataSet1.getIndicators().size());
-    assertTrue(dataSet1.getIndicators().contains(validTarget));
-
-    // and sections are updated
-    Section section1 = manager.get(Section.class, section.getUid());
-    assertNotNull(section1);
-    assertEquals(1, section1.getIndicators().size());
-    assertTrue(section1.getIndicators().contains(validTarget));
-
-    // and visualizations are updated
-    Visualization visualization = manager.get(Visualization.class, viz.getUid());
-    assertNotNull(visualization);
-    assertEquals(2, visualization.getDataDimensionItems().size());
-    assertEquals(1, visualization.getIndicators().size());
-    assertTrue(visualization.getIndicators().contains(validTarget));
-    assertEquals(
-        2,
-        visualization.getDataDimensionItems().stream()
-            .filter(ddi -> ddi.getIndicator().getUid().equals(validTarget.getUid()))
-            .count());
-
-    // sorting updated
-    Visualization visualization2 = manager.get(Visualization.class, viz2.getUid());
-    assertNotNull(visualization2);
-    Sorting sorting1 = visualization2.getSorting().get(0);
-    assertEquals(validTarget.getUid(), sorting1.getDimension());
-
-    // and config updated
-    Configuration configuration = configService.getConfiguration();
-    assertTrue(configuration.getInfrastructuralIndicators().getMembers().contains(validTarget));
-    assertEquals(1, configuration.getInfrastructuralIndicators().getMembers().size());
   }
 }

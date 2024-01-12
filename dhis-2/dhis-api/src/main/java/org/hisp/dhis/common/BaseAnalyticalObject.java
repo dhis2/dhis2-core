@@ -491,6 +491,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
     return ImmutableSet.copyOf(
         dataDimensionItems.stream()
             .map(DataDimensionItem::getIndicator)
+            .filter(Objects::nonNull)
             .collect(Collectors.toSet()));
   }
 
