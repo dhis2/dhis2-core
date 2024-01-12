@@ -876,11 +876,11 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         true);
 
     // Validate the first three rows, as samples.
-    validateRow(response, 0, List.of("Tambaliabalia MCHP", "", "0.0"));
+    validateRow(response, 0, List.of("Tambaliabalia MCHP", "", "0"));
 
-    validateRow(response, 1, List.of("Kathanta Bana MCHP", "", "0.0"));
+    validateRow(response, 1, List.of("Kathanta Bana MCHP", "", "0"));
 
-    validateRow(response, 2, List.of("Sam Lean's MCHP", "", "0.0"));
+    validateRow(response, 2, List.of("Sam Lean's MCHP", "", "0"));
   }
 
   @Test
@@ -2917,5 +2917,31 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         "java.lang.String",
         false,
         true);
+  }
+
+  @Test
+  public void noNaNinRows() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=IpHINAT79UW.GxdhnY5wmHq")
+            .add("headers=IpHINAT79UW.GxdhnY5wmHq")
+            .add("asc=lastupdated")
+            .add("relativePeriodDate=2016-01-01");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("rows", hasSize(equalTo(50)))
+        .body("height", equalTo(50))
+        .body("width", equalTo(1))
+        .body("headerWidth", equalTo(1))
+        .body("headers", hasSize(equalTo(1)));
+
+    validateRow(response, 0, List.of(""));
   }
 }
