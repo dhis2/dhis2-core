@@ -63,57 +63,30 @@ public class DefaultUserSettingService implements UserSettingService {
   /** Cache for user settings. Does not accept nulls. Disabled during test phase. */
   private final Cache<SerializableOptional> userSettingCache;
 
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
-
-  private final CurrentUserService currentUserService;
-
   private final UserSettingStore userSettingStore;
-
-  private final UserService userService;
 
   private final SystemSettingManager systemSettingManager;
 
   public DefaultUserSettingService(
       CacheProvider cacheProvider,
-      CurrentUserService currentUserService,
       UserSettingStore userSettingStore,
-      UserService userService,
       SystemSettingManager systemSettingManager) {
     checkNotNull(cacheProvider);
-    checkNotNull(currentUserService);
     checkNotNull(userSettingStore);
-    checkNotNull(userService);
     checkNotNull(systemSettingManager);
 
-    this.currentUserService = currentUserService;
     this.userSettingStore = userSettingStore;
-    this.userService = userService;
     this.systemSettingManager = systemSettingManager;
     this.userSettingCache = cacheProvider.createUserSettingCache();
-  }
-
-  // -------------------------------------------------------------------------
-  // UserSettingService implementation
-  // -------------------------------------------------------------------------
-
-  @Override
-  @Transactional
-  public void saveUserSetting(UserSettingKey key, Serializable value, String username) {
-    User user = userService.getUserByUsername(username);
-
-    if (user != null) {
-      saveUserSetting(key, value, user);
-    }
   }
 
   @Override
   @Transactional
   public void saveUserSetting(UserSettingKey key, Serializable value) {
-    User currentUser = currentUserService.getCurrentUser();
-
-    saveUserSetting(key, value, currentUser);
+    Long userId = CurrentUserUtil.getCurrentUserDetails().getId();
+    User user = new User();
+    user.setId(userId);
+    saveUserSetting(key, value, user);
   }
 
   @Override
@@ -122,14 +95,11 @@ public class DefaultUserSettingService implements UserSettingService {
     if (user == null) {
       return;
     }
-
     userSettingCache.invalidate(getCacheKey(key.getName(), user.getUsername()));
-
-    UserSetting userSetting = userSettingStore.getUserSetting(user, key.getName());
+    UserSetting userSetting = userSettingStore.getUserSetting(user.getUsername(), key.getName());
 
     if (userSetting == null) {
       userSetting = new UserSetting(user, key.getName(), value);
-
       userSettingStore.addUserSetting(userSetting);
     } else {
       userSetting.setValue(value);
@@ -164,11 +134,9 @@ public class DefaultUserSettingService implements UserSettingService {
   @Override
   @Transactional
   public void deleteUserSetting(UserSettingKey key) {
-    User currentUser = currentUserService.getCurrentUser();
-
-    if (currentUser != null) {
-      UserSetting setting = userSettingStore.getUserSetting(currentUser, key.getName());
-
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
+    if (currentUsername != null) {
+      UserSetting setting = userSettingStore.getUserSetting(currentUsername, key.getName());
       if (setting != null) {
         deleteUserSetting(setting);
       }
@@ -177,8 +145,8 @@ public class DefaultUserSettingService implements UserSettingService {
 
   @Override
   @Transactional
-  public void deleteUserSetting(UserSettingKey key, User user) {
-    UserSetting setting = userSettingStore.getUserSetting(user, key.getName());
+  public void deleteUserSetting(UserSettingKey key, String username) {
+    UserSetting setting = userSettingStore.getUserSetting(username, key.getName());
 
     if (setting != null) {
       deleteUserSetting(setting);
@@ -201,16 +169,8 @@ public class DefaultUserSettingService implements UserSettingService {
    */
   @Override
   @Transactional(readOnly = true)
-  public Serializable getUserSetting(UserSettingKey key, User user) {
-    return getUserSetting(key, Optional.ofNullable(user)).get();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<UserSetting> getAllUserSettings() {
-    User currentUser = currentUserService.getCurrentUser();
-
-    return getUserSettings(currentUser);
+  public Serializable getUserSetting(UserSettingKey key, String username) {
+    return getUserSetting(key, Optional.ofNullable(username)).get();
   }
 
   @Override
@@ -252,13 +212,11 @@ public class DefaultUserSettingService implements UserSettingService {
       return new ArrayList<>();
     }
 
-    List<UserSetting> userSettings = userSettingStore.getAllUserSettings(user);
+    List<UserSetting> userSettings = userSettingStore.getAllUserSettings(user.getUsername());
     Set<UserSetting> defaultUserSettings = UserSettingKey.getDefaultUserSettings(user);
 
     userSettings.addAll(
-        defaultUserSettings.stream()
-            .filter(x -> !userSettings.contains(x))
-            .collect(Collectors.toList()));
+        defaultUserSettings.stream().filter(x -> !userSettings.contains(x)).toList());
 
     return userSettings;
   }
@@ -270,12 +228,11 @@ public class DefaultUserSettingService implements UserSettingService {
 
   @Override
   @Transactional(readOnly = true)
-  public Map<String, Serializable> getUserSettingsAsMap() {
+  public Map<String, Serializable> getUserSettingsAsMap(User user) {
     Set<UserSettingKey> userSettingKeys =
         Stream.of(UserSettingKey.values()).collect(Collectors.toSet());
 
-    return getUserSettingsWithFallbackByUserAsMap(
-        currentUserService.getCurrentUser(), userSettingKeys, false);
+    return getUserSettingsWithFallbackByUserAsMap(user, userSettingKeys, false);
   }
 
   // -------------------------------------------------------------------------
@@ -287,21 +244,20 @@ public class DefaultUserSettingService implements UserSettingService {
    * corresponding system setting will be looked up.
    *
    * @param key the user setting key.
-   * @param user an optional {@link User}.
+   * @param username an optional {@link String}.
    * @return an optional user setting value.
    */
-  private SerializableOptional getUserSetting(UserSettingKey key, Optional<User> user) {
+  private SerializableOptional getUserSetting(UserSettingKey key, Optional<String> username) {
     if (key == null) {
       return SerializableOptional.empty();
     }
 
-    String username =
-        user.isPresent() ? user.get().getUsername() : currentUserService.getCurrentUsername();
+    String realUsername = username.orElseGet(CurrentUserUtil::getCurrentUsername);
 
-    String cacheKey = getCacheKey(key.getName(), username);
+    String cacheKey = getCacheKey(key.getName(), realUsername);
 
     SerializableOptional result =
-        userSettingCache.get(cacheKey, c -> getUserSettingOptional(key, username));
+        userSettingCache.get(cacheKey, c -> getUserSettingOptional(key, realUsername));
 
     if (!result.isPresent() && NAME_SETTING_KEY_MAP.containsKey(key.getName())) {
       SettingKey settingKey = NAME_SETTING_KEY_MAP.get(key.getName());
@@ -323,13 +279,11 @@ public class DefaultUserSettingService implements UserSettingService {
    * @return an optional user setting value.
    */
   private SerializableOptional getUserSettingOptional(UserSettingKey key, String username) {
-    User user = userService.getUserByUsername(username);
-
-    if (user == null) {
+    if (username == null) {
       return SerializableOptional.empty();
     }
 
-    UserSetting setting = userSettingStore.getUserSettingTx(user, key.getName());
+    UserSetting setting = userSettingStore.getUserSettingTx(username, key.getName());
 
     Serializable value =
         setting != null && setting.hasValue() ? setting.getValue() : key.getDefaultValue();

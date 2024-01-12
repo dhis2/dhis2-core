@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.trackedentity;
 
+import static org.hisp.dhis.DhisConvenienceTest.injectSecurityContext;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.any;
@@ -41,8 +42,10 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -62,7 +65,7 @@ class DefaultTrackedEntityServiceTest {
 
   @Mock private OrganisationUnitService organisationUnitService;
 
-  @Mock private CurrentUserService currentUserService;
+  @Mock private UserService userService;
 
   @Mock private AclService aclService;
 
@@ -76,25 +79,29 @@ class DefaultTrackedEntityServiceTest {
 
   private DefaultTrackedEntityService teiService;
 
+  private User user;
+
   @BeforeEach
   void setup() {
     teiService =
         new DefaultTrackedEntityService(
+            userService,
             trackedEntityStore,
             attributeValueService,
             attributeService,
             trackedEntityTypeService,
             organisationUnitService,
-            currentUserService,
             aclService,
             trackerOwnershipAccessManager,
             trackedEntityChangeLogService,
             attributeValueAuditService);
 
     User user = new User();
+    user.setUsername("test");
     user.setOrganisationUnits(Set.of(new OrganisationUnit("A")));
     user.setTeiSearchOrganisationUnits(Set.of(new OrganisationUnit("B")));
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+    this.user = user;
+    injectSecurityContext(UserDetails.fromUser(user));
 
     params = new TrackedEntityQueryParams();
     params.setOrgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE);
@@ -108,6 +115,9 @@ class DefaultTrackedEntityServiceTest {
     when(trackedEntityStore.getTrackedEntityCountForGridWithMaxTeiLimit(
             any(TrackedEntityQueryParams.class)))
         .thenReturn(20);
+
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
+    when(userService.getUserByUsername(currentUsername)).thenReturn(user);
 
     IllegalQueryException expectedException =
         assertThrows(
@@ -123,6 +133,9 @@ class DefaultTrackedEntityServiceTest {
     when(trackedEntityStore.getTrackedEntityCountForGridWithMaxTeiLimit(
             any(TrackedEntityQueryParams.class)))
         .thenReturn(0);
+
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
+    when(userService.getUserByUsername(currentUsername)).thenReturn(user);
 
     teiService.validateSearchScope(params, true);
   }

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.icon;
 
+import static org.hisp.dhis.DhisConvenienceTest.injectSecurityContext;
 import static org.hisp.dhis.fileresource.FileResourceDomain.CUSTOM_ICON;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -42,8 +43,9 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -56,8 +58,7 @@ class IconServiceTest {
   @Mock private CustomIconStore customIconStore;
 
   @Mock private FileResourceService fileResourceService;
-
-  @Mock private CurrentUserService currentUserService;
+  @Mock private UserService userService;
 
   @Spy @InjectMocks private DefaultIconService iconService;
 
@@ -69,16 +70,18 @@ class IconServiceTest {
     when(customIconStore.getIconByKey(uniqueKey)).thenReturn(null);
     when(fileResourceService.getFileResource(fileResourceUid, CUSTOM_ICON))
         .thenReturn(Optional.of(new FileResource()));
+
     User user = new User();
     user.setId(1234);
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+    user.setUsername("user");
+    injectSecurityContext(UserDetails.fromUser(user));
 
     iconService.addCustomIcon(
         new CustomIcon(
             uniqueKey, "description", new String[] {"keyword1"}, fileResourceUid, "userUid"));
 
     verify(customIconStore, times(1))
-        .save(any(CustomIcon.class), any(FileResource.class), any(User.class));
+        .save(any(CustomIcon.class), any(FileResource.class), any(UserDetails.class));
   }
 
   @Test

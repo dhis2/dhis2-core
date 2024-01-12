@@ -60,7 +60,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -87,7 +86,6 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService {
       TrackedEntityService teiService,
       TrackedEntityAttributeService trackedEntityAttributeService,
       TrackedEntityAttributeValueService trackedEntityAttributeValueService,
-      CurrentUserService currentUserService,
       NoteService commentService,
       IdentifiableObjectManager manager,
       I18nManager i18nManager,
@@ -110,7 +108,6 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService {
     checkNotNull(teiService);
     checkNotNull(trackedEntityAttributeService);
     checkNotNull(trackedEntityAttributeValueService);
-    checkNotNull(currentUserService);
     checkNotNull(commentService);
     checkNotNull(manager);
     checkNotNull(i18nManager);
@@ -134,7 +131,6 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService {
     this.teiService = teiService;
     this.trackedEntityAttributeService = trackedEntityAttributeService;
     this.trackedEntityAttributeValueService = trackedEntityAttributeValueService;
-    this.currentUserService = currentUserService;
     this.commentService = commentService;
     this.manager = manager;
     this.i18nManager = i18nManager;

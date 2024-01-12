@@ -50,8 +50,10 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,7 +62,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class EnrollmentCriteriaMapper {
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   private final OrganisationUnitService organisationUnitService;
 
@@ -114,7 +116,7 @@ public class EnrollmentCriteriaMapper {
 
     Set<OrganisationUnit> possibleSearchOrgUnits = new HashSet<>();
 
-    User user = currentUserService.getCurrentUser();
+    User user = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     if (user != null) {
       possibleSearchOrgUnits = user.getTeiSearchOrganisationUnitsWithFallback();
@@ -193,7 +195,7 @@ public class EnrollmentCriteriaMapper {
     params.setTotalPages(totalPages);
     params.setSkipPaging(skipPaging);
     params.setIncludeDeleted(includeDeleted);
-    params.setUser(user);
+    params.setCurrentUserDetails(UserDetails.fromUser(user));
     params.setOrder(toOrderParams(orderCriteria));
 
     return params;

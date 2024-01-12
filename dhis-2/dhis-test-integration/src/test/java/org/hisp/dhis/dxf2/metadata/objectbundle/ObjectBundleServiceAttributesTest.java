@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -121,7 +122,8 @@ class ObjectBundleServiceAttributesTest extends IntegrationTestBase {
     assertEquals(1, optionSets.size());
     Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults = manager.getDefaults();
     DataSet dataSet = dataSets.get(0);
-    User user = users.get(0);
+    //    User user = users.get(0);
+    User user = manager.getByUid(User.class, Set.of("ueKaFVdR8Fz")).get(0);
     OptionSet optionSet = optionSets.get(0);
     for (DataElement dataElement : dataElements) {
       assertNotNull(dataElement.getCategoryCombo());

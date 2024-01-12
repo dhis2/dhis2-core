@@ -39,18 +39,20 @@ import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.hisp.dhis.association.AbstractOrganisationUnitAssociationsQueryBuilder;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 @RequiredArgsConstructor
 public class JdbcOrgUnitAssociationsStore {
-  private final CurrentUserService currentUserService;
-
   private final JdbcTemplate jdbcTemplate;
 
   private final AbstractOrganisationUnitAssociationsQueryBuilder queryBuilder;
 
   private final Cache<Set<String>> orgUnitAssociationCache;
+
+  private final UserService userService;
 
   public SetValuedMap<String, String> getOrganisationUnitsAssociationsForCurrentUser(
       Set<String> uids) {
@@ -60,8 +62,9 @@ public class JdbcOrgUnitAssociationsStore {
 
     Set<String> userOrgUnitPaths = getUserOrgUnitPaths();
 
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     return jdbcTemplate.query(
-        queryBuilder.buildSqlQuery(uids, userOrgUnitPaths, currentUserService.getCurrentUser()),
+        queryBuilder.buildSqlQuery(uids, userOrgUnitPaths, currentUser),
         resultSet -> {
           SetValuedMap<String, String> setValuedMap = new HashSetValuedHashMap<>();
           while (resultSet.next()) {
@@ -102,8 +105,9 @@ public class JdbcOrgUnitAssociationsStore {
   }
 
   private Set<String> getUserOrgUnitPaths() {
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     Set<String> allUserOrgUnitPaths =
-        currentUserService.getCurrentUserOrganisationUnits().stream()
+        currentUser.getOrganisationUnits().stream()
             .map(OrganisationUnit::getPath)
             .collect(Collectors.toSet());
 

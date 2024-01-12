@@ -106,5 +106,13 @@ public interface DataElementStore extends GenericDimensionalObjectStore<DataElem
    */
   List<DataElement> getDataElementsByAggregationLevel(int aggregationLevel);
 
+  /**
+   * Returns all DataElements which the user hav access to.
+   *
+   * <p>NOTE: it should only be used in tests, should not be used in production code!
+   *
+   * @param uid data element uid.
+   * @return all DataElements which the user has access to.
+   */
   DataElement getDataElement(String uid, User user);
 }

@@ -29,7 +29,10 @@ package org.hisp.dhis.webapi;
 
 import static org.hisp.dhis.web.WebClientUtils.failOnException;
 
+import javax.persistence.EntityManager;
+import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.IntegrationH2Test;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.config.ConfigProviderConfiguration;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -74,6 +77,9 @@ public abstract class DhisControllerWithApiTokenAuthTest extends DhisMockMvcCont
 
   @Autowired private UserService _userService;
 
+  @Autowired protected IdentifiableObjectManager manager;
+  @Autowired EntityManager entityManager;
+
   protected MockMvc mvc;
 
   protected User adminUser;
@@ -81,8 +87,12 @@ public abstract class DhisControllerWithApiTokenAuthTest extends DhisMockMvcCont
   @BeforeEach
   public void setup() throws Exception {
     userService = _userService;
-
     clearSecurityContext();
+
+    User randomAdminUser =
+        DhisConvenienceTest.createRandomAdminUserWithEntityManager(entityManager);
+    injectSecurityContextUser(randomAdminUser);
+
     adminUser = createAndAddAdminUser("ALL");
 
     mvc =
@@ -90,9 +100,13 @@ public abstract class DhisControllerWithApiTokenAuthTest extends DhisMockMvcCont
             .addFilter(springSecurityFilterChain)
             .build();
 
-    injectSecurityContext(adminUser);
+    injectSecurityContextUser(adminUser);
 
     TestUtils.executeStartupRoutines(webApplicationContext);
+  }
+
+  public User getAdminUser() {
+    return adminUser;
   }
 
   @Override

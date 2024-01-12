@@ -48,7 +48,6 @@ import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -68,11 +67,9 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService,
       CacheProvider cacheProvider) {
-    super(
-        entityManager, jdbcTemplate, publisher, Period.class, currentUserService, aclService, true);
+    super(entityManager, jdbcTemplate, publisher, Period.class, aclService, true);
 
     transientIdentifiableProperties = true;
     this.periodIdCache = cacheProvider.createPeriodIdCache();

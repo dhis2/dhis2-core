@@ -50,7 +50,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -83,14 +82,6 @@ public class DefaultEventService implements EventService {
 
   @Override
   @Transactional
-  public long addEvent(Event event, User user) {
-    event.setAutoFields();
-    eventStore.save(event, user);
-    return event.getId();
-  }
-
-  @Override
-  @Transactional
   public void deleteEvent(Event event) {
     eventStore.delete(event);
   }
@@ -112,13 +103,6 @@ public class DefaultEventService implements EventService {
   public void updateEvent(Event event) {
     event.setAutoFields();
     eventStore.update(event);
-  }
-
-  @Override
-  @Transactional
-  public void updateEvent(Event event, User user) {
-    event.setAutoFields();
-    eventStore.update(event, user);
   }
 
   @Override

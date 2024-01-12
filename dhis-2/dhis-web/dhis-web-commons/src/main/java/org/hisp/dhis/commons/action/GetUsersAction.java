@@ -33,7 +33,9 @@ import java.util.List;
 import java.util.ListIterator;
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.paging.ActionPagingSupport;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.comparator.UserComparator;
 import org.hisp.dhis.util.ContextUtils;
@@ -78,8 +80,8 @@ public class GetUsersAction extends ActionPagingSupport<User> {
 
     users = new ArrayList<>(userService.getAllUsers());
 
-    User currentUser = currentUserService.getCurrentUser();
-    users.forEach(instance -> canReadInstance(instance, currentUser));
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    users.forEach(instance -> canReadInstance(instance, currentUserDetails));
 
     ContextUtils.clearIfNotModified(
         ServletActionContext.getRequest(), ServletActionContext.getResponse(), users);

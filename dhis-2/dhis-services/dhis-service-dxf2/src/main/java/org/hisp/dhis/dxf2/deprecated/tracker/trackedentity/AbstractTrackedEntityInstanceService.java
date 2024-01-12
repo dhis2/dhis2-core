@@ -101,8 +101,9 @@ import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.locationtech.jts.geom.Geometry;
@@ -143,8 +144,6 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
   protected EnrollmentService programInstanceService;
 
   protected TrackedEntityChangeLogService trackedEntityChangeLogService;
-
-  protected CurrentUserService currentUserService;
 
   protected SchemaService schemaService;
 
@@ -213,7 +212,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
       return;
     }
     final String accessedBy =
-        user != null ? user.getUsername() : currentUserService.getCurrentUsername();
+        user != null ? user.getUsername() : CurrentUserUtil.getCurrentUsername();
     Map<String, TrackedEntityType> tetMap =
         trackedEntityTypeService.getAllTrackedEntityType().stream()
             .collect(Collectors.toMap(TrackedEntityType::getUid, t -> t));
@@ -267,7 +266,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
   @Transactional(readOnly = true)
   public TrackedEntityInstance getTrackedEntityInstance(
       TrackedEntity daoTrackedEntity, TrackedEntityInstanceParams params) {
-    return getTrackedEntityInstance(daoTrackedEntity, params, currentUserService.getCurrentUser());
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    return getTrackedEntityInstance(daoTrackedEntity, params, currentUser);
   }
 
   @Override
@@ -285,7 +285,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     }
 
     Set<TrackedEntityAttribute> readableAttributes =
-        trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes(user);
+        trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes(
+            user == null ? null : UserDetails.fromUser(user));
 
     return getTei(daoTrackedEntity, readableAttributes, params, user);
   }
@@ -373,8 +374,10 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
     daoEntityInstance.setStoredBy(storedBy);
     daoEntityInstance.setPotentialDuplicate(dtoEntityInstance.isPotentialDuplicate());
-    daoEntityInstance.setCreatedByUserInfo(UserInfoSnapshot.from(importOptions.getUser()));
-    daoEntityInstance.setLastUpdatedByUserInfo(UserInfoSnapshot.from(importOptions.getUser()));
+    daoEntityInstance.setCreatedByUserInfo(
+        UserInfoSnapshot.from(UserDetails.fromUser(importOptions.getUser())));
+    daoEntityInstance.setLastUpdatedByUserInfo(
+        UserInfoSnapshot.from(UserDetails.fromUser(importOptions.getUser())));
     updateDateFields(dtoEntityInstance, daoEntityInstance);
 
     return daoEntityInstance;
@@ -791,7 +794,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     daoEntityInstance.setOrganisationUnit(organisationUnit);
     daoEntityInstance.setInactive(dtoEntityInstance.isInactive());
     daoEntityInstance.setPotentialDuplicate(dtoEntityInstance.isPotentialDuplicate());
-    daoEntityInstance.setLastUpdatedByUserInfo(UserInfoSnapshot.from(importOptions.getUser()));
+    daoEntityInstance.setLastUpdatedByUserInfo(
+        UserInfoSnapshot.from(UserDetails.fromUser(importOptions.getUser())));
 
     if (dtoEntityInstance.getGeometry() != null) {
       FeatureType featureType = daoEntityInstance.getTrackedEntityType().getFeatureType();
@@ -1156,7 +1160,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
     if (!orgUnits.isEmpty()) {
       Query query = Query.from(schemaService.getDynamicSchema(OrganisationUnit.class));
-      query.setUser(user);
+      query.setCurrentUserDetails(UserDetails.fromUser(user));
       query.add(Restrictions.in("id", orgUnits));
       queryService
           .query(query)
@@ -1169,7 +1173,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
     if (!trackedEntityAttributes.isEmpty()) {
       Query query = Query.from(schemaService.getDynamicSchema(TrackedEntityAttribute.class));
-      query.setUser(user);
+      query.setCurrentUserDetails(UserDetails.fromUser(user));
       query.add(Restrictions.in("id", trackedEntityAttributes));
       queryService
           .query(query)
@@ -1526,7 +1530,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     }
 
     if (importOptions.getUser() == null) {
-      importOptions.setUser(currentUserService.getCurrentUser());
+      User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+      importOptions.setUser(currentUser);
     }
 
     return importOptions;

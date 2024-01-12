@@ -182,7 +182,7 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest {
       throws ForbiddenException, BadRequestException {
 
     when(eventService.getEvents(any())).thenReturn(List.of());
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     HttpResponse res = GET(url);
     assertEquals(HttpStatus.OK, res.status());

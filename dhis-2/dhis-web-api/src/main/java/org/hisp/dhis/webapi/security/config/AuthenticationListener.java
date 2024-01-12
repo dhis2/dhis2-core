@@ -30,9 +30,9 @@ package org.hisp.dhis.webapi.security.config;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.oidc.DhisOidcUser;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
+import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +52,6 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class AuthenticationListener {
-  @Autowired private SecurityService securityService;
 
   @Autowired private UserService userService;
 
@@ -87,7 +86,7 @@ public class AuthenticationListener {
       log.debug(String.format("OIDC login attempt failed for remote IP: %s", remoteAddress));
     }
 
-    securityService.registerFailedLogin(username);
+    userService.registerFailedLogin(username);
   }
 
   @EventListener({InteractiveAuthenticationSuccessEvent.class, AuthenticationSuccessEvent.class})
@@ -126,12 +125,12 @@ public class AuthenticationListener {
     if (Objects.nonNull(user) && !readOnly) {
       user.updateLastLogin();
       try {
-        userService.updateUser(user);
+        userService.updateUser(user, new SystemUser());
       } catch (Exception e) {
         log.warn("Failed to update the user!", e);
       }
     }
 
-    securityService.registerSuccessfulLogin(username);
+    userService.registerSuccessfulLogin(username);
   }
 }

@@ -68,7 +68,7 @@ class EventControllerIntegrationTest extends DhisControllerIntegrationTest {
 
   @Test
   void testQueryCsv() {
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
     HttpResponse res =
         GET(
             "/events/query.csv?format=csv&orgUnit=ZiMBqH865GV&program=q04UBOqq3rp&programStage=pSllsjpfLH2");
@@ -78,7 +78,7 @@ class EventControllerIntegrationTest extends DhisControllerIntegrationTest {
 
   @Test
   void testGetCsvZip() {
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
     HttpResponse res =
         GET(
             "/events.csv.zip?attachment=events.csv.zip&orgUnit=ZiMBqH865GV&program=q04UBOqq3rp&programStage=pSllsjpfLH2");
@@ -89,7 +89,7 @@ class EventControllerIntegrationTest extends DhisControllerIntegrationTest {
 
   @Test
   void testGetXml() {
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
     HttpResponse res =
         GET(
             "/events.xml?attachment=events.xml&orgUnit=ZiMBqH865GV&program=q04UBOqq3rp&programStage=pSllsjpfLH2");
@@ -100,7 +100,7 @@ class EventControllerIntegrationTest extends DhisControllerIntegrationTest {
 
   @Test
   void testGetXmlZip() {
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
     HttpResponse res =
         GET(
             "/events.xml.zip?attachment=events.xml.zip&orgUnit=ZiMBqH865GV&program=q04UBOqq3rp&programStage=pSllsjpfLH2");
@@ -111,7 +111,7 @@ class EventControllerIntegrationTest extends DhisControllerIntegrationTest {
 
   @Test
   void testGetJsonZip() {
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     HttpResponse res =
         GET(

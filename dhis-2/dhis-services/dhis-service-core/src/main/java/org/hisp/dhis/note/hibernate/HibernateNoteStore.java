@@ -32,7 +32,6 @@ import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.note.NoteStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -47,10 +46,8 @@ public class HibernateNoteStore extends HibernateIdentifiableObjectStore<Note>
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
-    super(
-        entityManager, jdbcTemplate, publisher, Note.class, currentUserService, aclService, false);
+    super(entityManager, jdbcTemplate, publisher, Note.class, aclService, false);
   }
 
   @Override

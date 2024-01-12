@@ -35,6 +35,7 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
+import org.hisp.dhis.user.SystemUser;
 
 /**
  * When storing DataValues without associated dimensions there is a need to refer to a default
@@ -69,24 +70,26 @@ public class DataElementDefaultDimensionPopulator extends TransactionContextStar
 
   @Override
   public void executeInTransaction() {
+    SystemUser actingUser = new SystemUser();
+
     Category defaultCategory = categoryService.getCategoryByName(Category.DEFAULT_NAME);
 
     if (defaultCategory == null) {
-      categoryService.generateDefaultDimension();
+      categoryService.generateDefaultDimension(actingUser);
 
       defaultCategory = categoryService.getCategoryByName(Category.DEFAULT_NAME);
 
       log.info("Added default category");
     }
 
-    categoryService.updateCategory(defaultCategory);
+    categoryService.updateCategory(defaultCategory, actingUser);
 
     String defaultName = CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 
     CategoryCombo categoryCombo = categoryService.getCategoryComboByName(defaultName);
 
     if (categoryCombo == null) {
-      categoryService.generateDefaultDimension();
+      categoryService.generateDefaultDimension(actingUser);
 
       log.info("Added default dataelement dimension");
 

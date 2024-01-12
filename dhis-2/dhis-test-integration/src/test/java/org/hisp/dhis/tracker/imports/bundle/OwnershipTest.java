@@ -56,6 +56,7 @@ import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,16 +70,17 @@ class OwnershipTest extends TrackerTest {
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private TrackerOwnershipManager trackerOwnershipManager;
-
+  @Autowired protected UserService _userService;
   private User superUser;
 
   private User nonSuperUser;
 
   @Override
   protected void initTest() throws IOException {
+    userService = _userService;
     setUpMetadata("tracker/ownership_metadata.json");
     superUser = userService.getUser("M5zQapPyTZI");
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
 
     nonSuperUser = userService.getUser("Tu9fv8ezgHl");
     TrackerImportParams params = TrackerImportParams.builder().userId(superUser.getUid()).build();
@@ -114,7 +116,7 @@ class OwnershipTest extends TrackerTest {
   @Test
   void testClientDatesForTeiEnrollmentEvent() throws IOException {
     User nonSuperUser = userService.getUser(this.nonSuperUser.getUid());
-    injectSecurityContext(nonSuperUser);
+    injectSecurityContextUser(nonSuperUser);
     TrackerImportParams params =
         TrackerImportParams.builder().userId(nonSuperUser.getUid()).build();
     TrackerObjects trackerObjects = fromJson("tracker/ownership_event.json");
@@ -210,7 +212,7 @@ class OwnershipTest extends TrackerTest {
 
   @Test
   void testCreateEnrollmentAfterDeleteEnrollment() throws IOException {
-    injectSecurityContext(userService.getUser(nonSuperUser.getUid()));
+    injectSecurityContextUser(userService.getUser(nonSuperUser.getUid()));
     TrackerImportParams params =
         TrackerImportParams.builder().userId(nonSuperUser.getUid()).build();
     TrackerObjects trackerObjects = fromJson("tracker/ownership_enrollment.json");
@@ -233,7 +235,7 @@ class OwnershipTest extends TrackerTest {
 
   @Test
   void testCreateEnrollmentWithoutOwnership() throws IOException {
-    injectSecurityContext(userService.getUser(nonSuperUser.getUid()));
+    injectSecurityContextUser(userService.getUser(nonSuperUser.getUid()));
     TrackerImportParams params =
         TrackerImportParams.builder().userId(nonSuperUser.getUid()).build();
     TrackerObjects trackerObjects = fromJson("tracker/ownership_enrollment.json");
