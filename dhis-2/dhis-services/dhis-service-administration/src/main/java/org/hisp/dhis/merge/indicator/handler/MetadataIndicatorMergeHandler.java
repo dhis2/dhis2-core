@@ -41,7 +41,6 @@ import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.SectionService;
-import org.hisp.dhis.eventvisualization.EventVisualizationService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorService;
@@ -63,7 +62,6 @@ public class MetadataIndicatorMergeHandler {
   private final DataEntryFormService dataEntryFormService;
   private final DimensionService dimensionService;
   private final VisualizationService visualizationService;
-  private final EventVisualizationService eventVisualizationService;
 
   public void handleDataSets(List<Indicator> sources, Indicator target) {
     Set<DataSet> dataSets =
@@ -114,23 +112,14 @@ public class MetadataIndicatorMergeHandler {
                 }));
   }
 
-  public void handleEventVisualizations(List<Indicator> sources, Indicator target) {
-    List<DataDimensionItem> dataDimensionItems =
-        dimensionService.getIndicatorDataDimensionItems(sources);
-    dataDimensionItems.forEach(item -> item.setIndicator(target));
-  }
-
   public void handleSections(List<Indicator> sources, Indicator target) {
     List<Section> sections = sectionService.getSectionsByIndicators(sources);
-    sources.stream()
-        .distinct()
-        .forEach(
-            i ->
-                sections.forEach(
-                    s -> {
-                      s.getIndicators().remove(i);
-                      s.getIndicators().add(target);
-                    }));
+    sections.forEach(
+        s -> {
+          s.removeIndicators(sources);
+          boolean sectionContainsIndicator = CollectionUtils.containsUid(s.getIndicators(), target);
+          if (!sectionContainsIndicator) s.addIndicator(target);
+        });
   }
 
   public void handleIndicatorRefsInIndicator(List<Indicator> sources, Indicator target) {

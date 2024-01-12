@@ -70,6 +70,18 @@ public class DefaultSectionService implements SectionService {
   }
 
   @Override
+  @Transactional
+  public void removeIndicator(Section s, Indicator i) {
+    s.removeIndicator(i);
+  }
+
+  @Override
+  @Transactional
+  public void addIndicator(Section s, Indicator i) {
+    s.addIndicator(i);
+  }
+
+  @Override
   @Transactional(readOnly = true)
   public Section getSection(long id) {
     return sectionStore.get(id);

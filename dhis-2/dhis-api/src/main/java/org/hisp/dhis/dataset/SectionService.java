@@ -92,4 +92,8 @@ public interface SectionService {
    * @return a Collection of Sections.
    */
   List<Section> getSectionsByIndicators(List<Indicator> indicators);
+
+  void removeIndicator(Section s, Indicator i);
+
+  void addIndicator(Section s, Indicator i);
 }

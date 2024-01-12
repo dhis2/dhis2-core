@@ -33,18 +33,28 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.analytics.Sorting;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.configuration.Configuration;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataentryform.DataEntryForm;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeProcessor;
 import org.hisp.dhis.merge.MergeType;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
+import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.visualization.Visualization;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,10 +62,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author david mackessy
  */
-class IndicatorMergeProcessorTest extends SingleSetupIntegrationTestBase {
+class IndicatorMergeProcessorTest extends IntegrationTestBase {
   @Autowired private MergeProcessor indicatorMergeProcessor;
 
   @Autowired private IdentifiableObjectManager manager;
+  @Autowired private ConfigurationService configService;
 
   @Test
   @DisplayName("merge with no sources")
@@ -212,8 +223,37 @@ class IndicatorMergeProcessorTest extends SingleSetupIntegrationTestBase {
     DataEntryForm entryForm = createDataEntryForm('l');
     entryForm.setHtmlCode("<p>{#%s}</p>".formatted(validSource1.getUid()));
 
-    //    dataSet = createDataSet('a');
-    //    dataSet.setIndicators(Set.of(validSource1, validSource2));
+    PeriodType periodType = PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY);
+    DataSet dataSet = createDataSet('m');
+    dataSet.addIndicator(validSource1);
+    dataSet.addIndicator(validSource2);
+    dataSet.setPeriodType(periodType);
+    validSource1.addDataSet(dataSet);
+    validSource2.addDataSet(dataSet);
+
+    IndicatorGroup group = createIndicatorGroup('n');
+    group.addIndicator(validSource1);
+    group.addIndicator(validSource2);
+    validSource1.addIndicatorGroup(group);
+    validSource2.addIndicatorGroup(group);
+
+    Section section = new Section();
+    section.setName("section1");
+    section.addIndicator(validSource1);
+    section.addIndicator(validSource2);
+    section.setDataSet(dataSet);
+
+    Visualization viz = createVisualization('o');
+    viz.addDataDimensionItem(validSource1);
+    viz.addDataDimensionItem(validSource2);
+
+    Visualization viz2 = createVisualization('p');
+    Sorting sorting = new Sorting();
+    sorting.setDimension(validSource1.getUid());
+    viz2.setSorting(new ArrayList<>(List.of(sorting)));
+
+    Configuration config = new Configuration();
+    config.setInfrastructuralIndicators(group);
 
     manager.save(validSource1);
     manager.save(validSource2);
@@ -221,6 +261,12 @@ class IndicatorMergeProcessorTest extends SingleSetupIntegrationTestBase {
     manager.save(indicatorWithSourceNumerator);
     manager.save(indicatorWithSourceDenominator);
     manager.save(entryForm);
+    manager.save(dataSet);
+    manager.save(group);
+    manager.save(section);
+    manager.save(viz);
+    manager.save(viz2);
+    configService.setConfiguration(config);
 
     // given merge params with a target indicator and source indicators
     MergeParams params = new MergeParams();
@@ -249,9 +295,47 @@ class IndicatorMergeProcessorTest extends SingleSetupIntegrationTestBase {
     assertNotNull(dataEntryForm);
     assertEquals("<p>{#%s}</p>".formatted(validTarget.getUid()), dataEntryForm.getHtmlCode());
 
-    // and data sets
-    //    DataSet dataSet1 = manager.get(DataSet.class, dataSet.getUid());
-    //    assertNotNull(dataSet1);
-    //    assertEquals(1, dataSet1.getIndicators().size());
+    // and group is updated
+    IndicatorGroup group1 = manager.get(IndicatorGroup.class, group.getUid());
+    assertNotNull(group1);
+    assertEquals(1, group1.getMembers().size());
+    assertEquals(
+        List.of(validTarget.getUid()),
+        group1.getMembers().stream().map(BaseIdentifiableObject::getUid).toList());
+
+    // and data sets are updated
+    DataSet dataSet1 = manager.get(DataSet.class, dataSet.getUid());
+    assertNotNull(dataSet1);
+    assertEquals(1, dataSet1.getIndicators().size());
+    assertTrue(dataSet1.getIndicators().contains(validTarget));
+
+    // and sections are updated
+    Section section1 = manager.get(Section.class, section.getUid());
+    assertNotNull(section1);
+    assertEquals(1, section1.getIndicators().size());
+    assertTrue(section1.getIndicators().contains(validTarget));
+
+    // and visualizations are updated
+    Visualization visualization = manager.get(Visualization.class, viz.getUid());
+    assertNotNull(visualization);
+    assertEquals(2, visualization.getDataDimensionItems().size());
+    assertEquals(1, visualization.getIndicators().size());
+    assertTrue(visualization.getIndicators().contains(validTarget));
+    assertEquals(
+        2,
+        visualization.getDataDimensionItems().stream()
+            .filter(ddi -> ddi.getIndicator().getUid().equals(validTarget.getUid()))
+            .count());
+
+    // sorting updated
+    Visualization visualization2 = manager.get(Visualization.class, viz2.getUid());
+    assertNotNull(visualization2);
+    Sorting sorting1 = visualization2.getSorting().get(0);
+    assertEquals(validTarget.getUid(), sorting1.getDimension());
+
+    // and config updated
+    Configuration configuration = configService.getConfiguration();
+    assertTrue(configuration.getInfrastructuralIndicators().getMembers().contains(validTarget));
+    assertEquals(1, configuration.getInfrastructuralIndicators().getMembers().size());
   }
 }

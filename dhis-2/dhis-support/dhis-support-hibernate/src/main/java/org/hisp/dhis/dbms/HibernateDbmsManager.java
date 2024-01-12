@@ -199,6 +199,7 @@ public class HibernateDbmsManager implements DbmsManager {
 
     emptyTable("sectiongreyedfields");
     emptyTable("sectiondataelements");
+    emptyTable("sectionindicators");
     emptyTable("section");
 
     emptyTable("datasetsource");
@@ -285,6 +286,7 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("deletedobject");
     emptyTable("period");
 
+    emptyTable("configuration");
     emptyTable("indicatorgroupsetmembers");
     emptyTable("indicatorgroupset");
 

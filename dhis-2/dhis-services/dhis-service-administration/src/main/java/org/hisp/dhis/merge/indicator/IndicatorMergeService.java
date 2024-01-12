@@ -35,7 +35,6 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -60,7 +59,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class IndicatorMergeService implements MergeService {
 
   private final IndicatorService indicatorService;
-  private final IdentifiableObjectManager idObjectManager;
+  //  private final IdentifiableObjectManager idObjectManager;
   private final MetadataIndicatorMergeHandler metadataIndicatorMergeHandler;
   private ImmutableList<IndicatorMergeHandler> handlers;
 
@@ -103,19 +102,19 @@ public class IndicatorMergeService implements MergeService {
     return mergeReport;
   }
 
+  private void handleDeleteSources(List<Indicator> sources, MergeReport mergeReport) {
+    for (Indicator source : sources) {
+      mergeReport.addDeletedSource(source.getUid());
+      indicatorService.deleteIndicator(source);
+    }
+  }
+
   private void checkIsTargetInSources(
       Set<UID> sources, Optional<UID> target, MergeReport mergeReport) {
     target.ifPresent(
         t -> {
           if (sources.contains(t)) mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1542));
         });
-  }
-
-  private void handleDeleteSources(List<Indicator> sources, MergeReport mergeReport) {
-    for (Indicator source : sources) {
-      mergeReport.addDeletedSource(source.getUid());
-      idObjectManager.delete(source);
-    }
   }
 
   /**
@@ -126,7 +125,7 @@ public class IndicatorMergeService implements MergeService {
    * @return {@link Optional<UID>}
    */
   private Optional<UID> getAndVerifyIndicator(UID uid, MergeReport mergeReport, String ind) {
-    return Optional.ofNullable(idObjectManager.get(Indicator.class, uid.getValue()))
+    return Optional.ofNullable(indicatorService.getIndicator(uid.getValue()))
         .map(i -> UID.of(i.getUid()))
         .or(
             () -> {

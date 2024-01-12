@@ -58,6 +58,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -480,14 +481,17 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
             .collect(Collectors.toList()));
   }
 
-  /** Returns all indicators in the data dimensions. The returned list is immutable. */
+  /**
+   * Returns all indicators in the data dimensions. The returned set is immutable. Return as
+   * distinct set instead of list as there can be many data dimension items referencing the same
+   * indicator
+   */
   @JsonIgnore
-  public List<Indicator> getIndicators() {
-    return ImmutableList.copyOf(
+  public Set<Indicator> getIndicators() {
+    return ImmutableSet.copyOf(
         dataDimensionItems.stream()
-            .filter(i -> i.getIndicator() != null)
             .map(DataDimensionItem::getIndicator)
-            .collect(Collectors.toList()));
+            .collect(Collectors.toSet()));
   }
 
   /**
