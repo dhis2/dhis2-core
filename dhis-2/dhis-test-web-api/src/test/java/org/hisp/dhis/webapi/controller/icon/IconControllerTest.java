@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.icon;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
@@ -110,10 +111,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
 
     JsonArray iconArray = GET("/icons?type=CUSTOM").content(HttpStatus.OK);
 
-    assertEquals(iconKey, iconArray.getObject(0).getString("key").string());
-    assertEquals(description, iconArray.getObject(0).getString("description").string());
-    assertEquals(fileResourceId, iconArray.getObject(0).getString("fileResourceUid").string());
-    assertEquals(keywords, iconArray.getObject(0).getArray("keywords").toString());
+    verifyAll(iconArray, keywords, fileResourceId);
   }
 
   @Test
@@ -123,10 +121,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
 
     JsonArray iconArray = GET("/icons?keywords=m1").content(HttpStatus.OK);
 
-    assertEquals(iconKey, iconArray.getObject(0).getString("key").string());
-    assertEquals(description, iconArray.getObject(0).getString("description").string());
-    assertEquals(fileResourceId, iconArray.getObject(0).getString("fileResourceUid").string());
-    assertEquals(keyword, iconArray.getObject(0).getArray("keywords").toString());
+    verifyAll(iconArray, keyword, fileResourceId);
   }
 
   @Test
@@ -159,5 +154,37 @@ class IconControllerTest extends DhisControllerIntegrationTest {
         response.content(HttpStatus.ACCEPTED).getObject("response").getObject("fileResource");
 
     return savedObject.getString("id").string();
+  }
+
+  private void verifyAll(JsonArray iconArray, String keywords, String fileResourceId) {
+
+    String actualKey = iconArray.getObject(0).getString("key").string();
+    String actualDescription = iconArray.getObject(0).getString("description").string();
+    String actualFileResourceId = iconArray.getObject(0).getString("fileResourceUid").string();
+    String actualKeywords = iconArray.getObject(0).getArray("keywords").toString();
+    assertAll(
+        () ->
+            assertEquals(
+                iconKey,
+                actualKey,
+                String.format("Expected IconKey was %s but found %s", iconKey, actualKey)),
+        () ->
+            assertEquals(
+                description,
+                actualDescription,
+                String.format(
+                    "Expected Description was %s but found %s", description, actualDescription)),
+        () ->
+            assertEquals(
+                fileResourceId,
+                actualFileResourceId,
+                String.format(
+                    "Expected FileResourceId was %s but found %s",
+                    fileResourceId, actualFileResourceId)),
+        () ->
+            assertEquals(
+                keywords,
+                actualKeywords,
+                String.format("Expected keywords were %s but found %s", keywords, actualKeywords)));
   }
 }
