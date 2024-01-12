@@ -107,7 +107,7 @@ public class IndicatorMergeService implements MergeService {
       Set<UID> sources, Optional<UID> target, MergeReport mergeReport) {
     target.ifPresent(
         t -> {
-          if (sources.contains(t)) mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1532));
+          if (sources.contains(t)) mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1542));
         });
   }
 
