@@ -301,6 +301,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
             trackedEntityAttributeService.getProgramTrackedEntityAttributes(programs).stream(),
             /* all attributes of the trackedEntityType */
             getAllTrackedEntityAttributes(trackedEntityType))
+        .distinct()
         .toList();
   }
 
