@@ -83,8 +83,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -98,7 +99,7 @@ public class AnalyticsOutlierService {
 
   private final OrganisationUnitService organisationUnitService;
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   private final TableInfoReader tableInfoReader;
 
@@ -287,12 +288,13 @@ public class AnalyticsOutlierService {
    * @param outlierRequest the {@link OutlierRequest}
    */
   private void setRows(Grid grid, List<Outlier> outliers, OutlierRequest outlierRequest) {
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     outliers.forEach(
         outlier -> {
           boolean isModifiedZScore = outlierRequest.getAlgorithm() == MOD_Z_SCORE;
           OrganisationUnit ou = organisationUnitService.getOrganisationUnit(outlier.getOu());
-          User user = currentUserService.getCurrentUser();
-          Collection<OrganisationUnit> roots = user != null ? user.getOrganisationUnits() : null;
+          Collection<OrganisationUnit> roots =
+              currentUser != null ? currentUser.getOrganisationUnits() : null;
 
           grid.addRow();
 

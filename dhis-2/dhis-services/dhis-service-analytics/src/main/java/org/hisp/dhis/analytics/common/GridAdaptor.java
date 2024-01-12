@@ -39,7 +39,7 @@ import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
 /**
@@ -57,8 +57,6 @@ public class GridAdaptor {
 
   private final SchemeIdResponseMapper schemeIdResponseMapper;
 
-  private final CurrentUserService currentUserService;
-
   /**
    * Based on the given headers and result map, this method takes care of the logic needed to create
    * a valid {@link Grid} object. If the given "sqlQueryResult" is not present, the resulting {@link
@@ -74,7 +72,9 @@ public class GridAdaptor {
       Optional<SqlQueryResult> sqlQueryResult,
       long rowsCount,
       TeiQueryParams teiQueryParams,
-      List<Field> fields) {
+      List<Field> fields,
+      User user) {
+
     notNull(teiQueryParams, "The 'teiQueryParams' must not be null");
 
     Grid grid = new ListGrid();
@@ -86,8 +86,7 @@ public class GridAdaptor {
     sqlQueryResult.ifPresent(queryResult -> grid.addNamedRows(queryResult.result()));
 
     // Adding metadata info.
-    metadataParamsHandler.handle(
-        grid, teiQueryParams.getCommonParams(), currentUserService.getCurrentUser(), rowsCount);
+    metadataParamsHandler.handle(grid, teiQueryParams.getCommonParams(), user, rowsCount);
 
     schemeIdResponseMapper.applyCustomIdScheme(teiQueryParams.getCommonParams(), grid);
     schemeIdResponseMapper.applyOptionAndLegendSetMapping(

@@ -33,8 +33,8 @@ import static org.hamcrest.Matchers.hasSize;
 import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.hisp.dhis.dxf2.deprecated.tracker.DeprecatedTrackerTest;
 import org.hisp.dhis.dxf2.deprecated.tracker.TrackedEntityInstanceParams;
-import org.hisp.dhis.dxf2.deprecated.tracker.TrackerTest;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
@@ -43,7 +43,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class TrackedEntityAggregateUserTest extends TrackerTest {
+class TrackedEntityAggregateUserTest extends DeprecatedTrackerTest {
   @Autowired private TrackedEntityInstanceService trackedEntityInstanceService;
 
   private User superUser;
@@ -54,8 +54,8 @@ class TrackedEntityAggregateUserTest extends TrackerTest {
   void setUp() {
     doInTransaction(
         () -> {
-          superUser = preCreateInjectAdminUser();
-          injectSecurityContext(superUser);
+          superUser = userService.getUserByUsername("admin_test");
+          injectSecurityContextUser(superUser);
 
           nonSuperUser = createUserWithAuth("testUser2");
           nonSuperUser.addOrganisationUnit(organisationUnitA);

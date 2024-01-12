@@ -31,8 +31,6 @@ import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupStore;
 import org.springframework.context.ApplicationEventPublisher;
@@ -46,31 +44,26 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
-    super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        UserGroup.class,
-        currentUserService,
-        aclService,
-        true);
+    super(entityManager, jdbcTemplate, publisher, UserGroup.class, aclService, true);
   }
 
   @Override
   public void save(@Nonnull UserGroup object, boolean clearSharing) {
     super.save(object, clearSharing);
-    object
-        .getMembers()
-        .forEach(member -> currentUserService.invalidateUserGroupCache(member.getUid()));
+
+    // TODO: MAS: send event to invalidate sessions for users in this group
+    //        object
+    //            .getMembers()
+    //            .forEach(member -> currentUserService.invalidateUserGroupCache(member.getUid()));
   }
 
-  @Override
-  public void update(@Nonnull UserGroup object, User user) {
-    super.update(object, user);
-    object
-        .getMembers()
-        .forEach(member -> currentUserService.invalidateUserGroupCache(member.getUid()));
-  }
+  //  @Override
+  // TODO: MAS: send event to invalidate sessions for users in this group
+  //  public void update(@Nonnull UserGroup object, User user) {
+  //    super.update(object, user);
+  //    //    object
+  //    //        .getMembers()
+  //    //        .forEach(member -> currentUserService.invalidateUserGroupCache(member.getUid()));
+  //  }
 }

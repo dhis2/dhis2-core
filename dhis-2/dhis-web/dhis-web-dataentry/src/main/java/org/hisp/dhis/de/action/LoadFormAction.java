@@ -60,9 +60,8 @@ import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.util.SectionUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -97,12 +96,6 @@ public class LoadFormAction implements Action {
 
   public void setAccessManager(AggregateAccessManager accessManager) {
     this.accessManager = accessManager;
-  }
-
-  @Autowired private CurrentUserService currentUserService;
-
-  public void setCurrentUserService(CurrentUserService currentUserService) {
-    this.currentUserService = currentUserService;
   }
 
   @Autowired private SectionUtils sectionUtils;
@@ -235,11 +228,8 @@ public class LoadFormAction implements Action {
   // -------------------------------------------------------------------------
   // Action implementation
   // -------------------------------------------------------------------------
-
   @Override
   public String execute() throws Exception {
-    User currentUser = currentUserService.getCurrentUser();
-
     Locale dbLocale = getLocaleWithDefault(new TranslateParams(true));
     CurrentUserUtil.setUserSetting(UserSettingKey.DB_LOCALE, dbLocale);
 
@@ -283,7 +273,7 @@ public class LoadFormAction implements Action {
 
       orderedCategoryOptionCombos.put(categoryCombo.getId(), optionCombos);
 
-      addOptionAccess(currentUser, optionComboAccessMap, optionCombos);
+      addOptionAccess(CurrentUserUtil.getCurrentUserDetails(), optionComboAccessMap, optionCombos);
 
       // -----------------------------------------------------------------
       // Perform ordering of categories and their options so that they
@@ -487,7 +477,9 @@ public class LoadFormAction implements Action {
   }
 
   private void addOptionAccess(
-      User user, Map<String, Boolean> optionAccessMap, List<CategoryOptionCombo> optionCombos) {
+      UserDetails user,
+      Map<String, Boolean> optionAccessMap,
+      List<CategoryOptionCombo> optionCombos) {
     optionCombos.forEach(
         o -> {
           List<String> err = accessManager.canWrite(user, o);

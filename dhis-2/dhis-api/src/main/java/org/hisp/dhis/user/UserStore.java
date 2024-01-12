@@ -94,6 +94,8 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    * @param ignoreCase
    * @return User for given username or null
    */
+  User getUserByUsername(String username);
+
   User getUserByUsername(String username, boolean ignoreCase);
 
   /**
@@ -103,9 +105,6 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    * @return User with given userId
    */
   User getUser(long userId);
-
-  /** Return CurrentUserGroupInfo used for ACL check in {@link IdentifiableObjectStore} */
-  CurrentUserGroupInfo getCurrentUserGroupInfo(String userUID);
 
   /**
    * Sets {@link User#setDisabled(boolean)} to {@code true} for all users where the {@link
@@ -186,4 +185,15 @@ public interface UserStore extends IdentifiableObjectStore<User> {
   List<User> getHasAuthority(String authority);
 
   List<User> getLinkedUserAccounts(User currentUser);
+
+  /** Return CurrentUserGroupInfo used for ACL check in {@link IdentifiableObjectStore} */
+  CurrentUserGroupInfo getCurrentUserGroupInfo(String userUID);
+
+  /**
+   * Get active linked user accounts for the given user
+   *
+   * @param actingUser the acting/current user
+   * @param activeUsername the username of the user to set as active
+   */
+  void setActiveLinkedAccounts(@Nonnull String actingUser, @Nonnull String activeUsername);
 }

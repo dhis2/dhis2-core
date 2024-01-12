@@ -176,7 +176,7 @@ class DataValueSetExportAccessControlTest extends TransactionalIntegrationTest {
     idObjectManager.update(dsA);
 
     User user1 = userService.getUser(user.getUid());
-    injectSecurityContext(user1);
+    injectSecurityContextUser(user1);
 
     // Test
     ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -240,7 +240,7 @@ class DataValueSetExportAccessControlTest extends TransactionalIntegrationTest {
     idObjectManager.update(dsA);
 
     User user1 = userService.getUser(user.getUid());
-    injectSecurityContext(user1);
+    injectSecurityContextUser(user1);
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     DataExportParams params =
         new DataExportParams()
@@ -268,7 +268,7 @@ class DataValueSetExportAccessControlTest extends TransactionalIntegrationTest {
     dbmsManager.flushSession();
 
     User user1 = userService.getUser(user.getUid());
-    injectSecurityContext(user1);
+    injectSecurityContextUser(user1);
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     DataExportParams params =
         new DataExportParams()
@@ -287,6 +287,6 @@ class DataValueSetExportAccessControlTest extends TransactionalIntegrationTest {
    */
   private void setCurrentUser(User user) {
     userService.addUser(user);
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
   }
 }

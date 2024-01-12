@@ -51,6 +51,7 @@ import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -88,6 +89,7 @@ class HibernateIdentifiableObjectStoreTest extends TransactionalIntegrationTest 
   @Test
   void testMetadataRead() {
     User admin = createAndInjectAdminUser();
+
     User user1 = createAndAddUser("A");
     User user2 = createAndAddUser("B");
     User user3 = createAndAddUser("C");
@@ -108,6 +110,7 @@ class HibernateIdentifiableObjectStoreTest extends TransactionalIntegrationTest 
     userSharing.put(user2.getUid(), new UserAccess(user2, AccessStringHelper.READ));
     userSharing.put(user3.getUid(), new UserAccess(user3, AccessStringHelper.DEFAULT));
     userSharing.put(user4.getUid(), new UserAccess(user4, AccessStringHelper.DEFAULT));
+
     Map<String, UserGroupAccess> userGroupSharing = new HashMap<>();
     userGroupSharing.put(
         userGroup1.getUid(), new UserGroupAccess(userGroup1, AccessStringHelper.READ_WRITE));
@@ -134,15 +137,24 @@ class HibernateIdentifiableObjectStoreTest extends TransactionalIntegrationTest 
     assertEquals(2, dataElement.getSharing().getUserGroups().size());
     assertEquals(4, dataElement.getSharing().getUsers().size());
 
-    // User1 can't access but it belong to UserGroup1 which has access
-    assertNotNull(dataElementStore.getDataElement(dataElement.getUid(), user1));
+    // Needed to make the user groups available on the user object.
+    manager.flush();
+    manager.clear();
+
+    User reloadedUser1 = manager.get(User.class, user1.getId());
+    DataElement dataElement1 = dataElementStore.getDataElement(dataElement.getUid(), reloadedUser1);
+    assertNotNull(dataElement1);
     // User2 has access to DEA
-    assertNotNull(dataElementStore.getDataElement(dataElement.getUid(), user2));
+    DataElement dataElement2 = dataElementStore.getDataElement(dataElement.getUid(), user2);
+    assertNotNull(dataElement2);
     // User3 doesn't have access and also does't belong to any groups
-    assertNull(dataElementStore.getDataElement(dataElement.getUid(), user3));
+    DataElement dataElement3 = dataElementStore.getDataElement(dataElement.getUid(), user3);
+    assertNull(dataElement3);
     // User4 doesn't have access and it belong to UserGroup2 which also
     // doesn't have access
-    assertNull(dataElementStore.getDataElement(dataElement.getUid(), user4));
+    User reloadedUser4 = manager.get(User.class, user4.getId());
+    DataElement dataElement4 = dataElementStore.getDataElement(dataElement.getUid(), reloadedUser4);
+    assertNull(dataElement4);
   }
 
   @Test
@@ -196,13 +208,13 @@ class HibernateIdentifiableObjectStoreTest extends TransactionalIntegrationTest 
         createDataValue(dataElement, period, organisationUnitA, "test", defaultCategoryOptionCombo);
     dataValueStore.addDataValue(dataValue);
     // User1 can't access but it belongs to UserGroup1 which has access
-    assertEquals(0, accessManager.canRead(user1, dataValue).size());
+    assertEquals(0, accessManager.canRead(UserDetails.fromUser(user1), dataValue).size());
     // User2 has access to DEA
-    assertEquals(0, accessManager.canRead(user2, dataValue).size());
+    assertEquals(0, accessManager.canRead(UserDetails.fromUser(user1), dataValue).size());
     // User3 doesn't have access and also doesn't belong to any groups
-    assertEquals(1, accessManager.canRead(user3, dataValue).size());
+    assertEquals(1, accessManager.canRead(UserDetails.fromUser(user3), dataValue).size());
     // User4 doesn't have access and it belong to UserGroup2 which also
     // doesn't have access
-    assertEquals(1, accessManager.canRead(user4, dataValue).size());
+    assertEquals(1, accessManager.canRead(UserDetails.fromUser(user4), dataValue).size());
   }
 }

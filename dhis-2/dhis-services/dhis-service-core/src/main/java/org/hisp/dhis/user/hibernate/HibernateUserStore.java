@@ -32,7 +32,9 @@ import static java.lang.String.format;
 import static java.time.ZoneId.systemDefault;
 import static java.util.stream.Collectors.toMap;
 
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -52,20 +54,16 @@ import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.CriteriaUpdate;
-import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.Session;
 import org.hibernate.annotations.QueryHints;
 import org.hibernate.query.Query;
 import org.hisp.dhis.cache.QueryCacheManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -75,8 +73,6 @@ import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserGroupInfo;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccountExpiryInfo;
 import org.hisp.dhis.user.UserInvitationStatus;
@@ -103,28 +99,22 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService,
       SchemaService schemaService,
       QueryCacheManager queryCacheManager) {
-    super(entityManager, jdbcTemplate, publisher, User.class, currentUserService, aclService, true);
+
+    super(entityManager, jdbcTemplate, publisher, User.class, aclService, true);
 
     checkNotNull(schemaService);
+    checkNotNull(queryCacheManager);
+
     this.schemaService = schemaService;
     this.queryCacheManager = queryCacheManager;
   }
 
   @Override
-  public void save(@Nonnull User user, boolean clearSharing) {
-    super.save(user, clearSharing);
-
-    currentUserService.invalidateUserGroupCache(user.getUid());
-  }
-
-  @Override
   public List<User> getUsers(UserQueryParams params, @Nullable List<String> orders) {
     Query<?> userQuery = getUserQuery(params, orders, false);
-
     return extractUserQueryUsers(userQuery.list());
   }
 
@@ -421,6 +411,11 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   }
 
   @Override
+  public User getUserByUsername(String username) {
+    return getUserByUsername(username, false);
+  }
+
+  @Override
   public User getUserByUsername(String username, boolean ignoreCase) {
     if (username == null) {
       return null;
@@ -436,37 +431,6 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
     typedQuery.setHint(QueryHints.CACHEABLE, true);
 
     return QueryUtils.getSingleResult(typedQuery);
-  }
-
-  @Override
-  public CurrentUserGroupInfo getCurrentUserGroupInfo(String userUID) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-    CriteriaQuery<Object[]> query = builder.createQuery(Object[].class);
-    Root<User> root = query.from(User.class);
-    query.where(builder.equal(root.get("uid"), userUID));
-    query.select(builder.array(root.get("uid"), root.join("groups", JoinType.LEFT).get("uid")));
-
-    Session session = getSession();
-    List<Object[]> results = session.createQuery(query).getResultList();
-
-    CurrentUserGroupInfo currentUserGroupInfo = new CurrentUserGroupInfo();
-
-    if (CollectionUtils.isEmpty(results)) {
-      currentUserGroupInfo.setUserUID(userUID);
-      return currentUserGroupInfo;
-    }
-
-    for (Object[] result : results) {
-      if (currentUserGroupInfo.getUserUID() == null) {
-        currentUserGroupInfo.setUserUID(result[0].toString());
-      }
-
-      if (result[1] != null) {
-        currentUserGroupInfo.getUserGroupUIDs().add(result[1].toString());
-      }
-    }
-
-    return currentUserGroupInfo;
   }
 
   @Override
@@ -591,5 +555,25 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
     query.setParameter("usernames", usernames);
 
     return query.getResultList();
+  }
+
+  @Override
+  public void setActiveLinkedAccounts(
+      @Nonnull String actingUsername, @Nonnull String activeUsername) {
+
+    User actionUser = getUserByUsername(actingUsername);
+    Instant now = Instant.now();
+    Instant oneHourAgo = now.minus(1, ChronoUnit.HOURS);
+    Instant oneHourInTheFuture = now.plus(1, ChronoUnit.HOURS);
+
+    List<User> linkedUserAccounts = getLinkedUserAccounts(actionUser);
+    for (User user : linkedUserAccounts) {
+      user.setLastLogin(
+          user.getUsername().equals(activeUsername)
+              ? Date.from(oneHourInTheFuture)
+              : Date.from(oneHourAgo));
+
+      update(user);
+    }
   }
 }

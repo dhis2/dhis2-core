@@ -32,6 +32,7 @@ import static java.util.stream.Collectors.toList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.analytics.data.DimensionalObjectProducer;
@@ -44,7 +45,9 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.RelativePeriodEnum;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 
 /** Parse and transform the incoming query params into the OutlierDetectionRequest. */
@@ -53,7 +56,7 @@ import org.springframework.stereotype.Component;
 public class OutlierQueryParser {
   private final IdentifiableObjectManager idObjectManager;
   private final DimensionalObjectProducer dimensionalObjectProducer;
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   /**
    * Creates a {@link OutlierRequest} from the given query.
@@ -126,11 +129,18 @@ public class OutlierQueryParser {
    * @return a list of the {@link OrganisationUnit}.
    */
   private List<OrganisationUnit> getOrganisationUnits(OutlierQueryParams queryParams) {
+
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
+    User currentUser = userService.getUserByUsername(currentUsername);
+
+    Set<OrganisationUnit> organisationUnits =
+        currentUser == null ? Set.of() : currentUser.getOrganisationUnits();
+
     BaseDimensionalObject baseDimensionalObject =
         dimensionalObjectProducer.getOrgUnitDimension(
             queryParams.getOu().stream().toList(),
             DisplayProperty.NAME,
-            currentUserService.getCurrentUserOrganisationUnits().stream().toList(),
+            organisationUnits.stream().toList(),
             IdScheme.UID);
 
     return baseDimensionalObject.getItems().stream().map(ou -> (OrganisationUnit) ou).toList();

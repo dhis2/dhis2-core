@@ -121,7 +121,7 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.grid.GridUtils;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -163,8 +163,6 @@ public class EventController {
   // --------------------------------------------------------------------------
   // Dependencies
   // --------------------------------------------------------------------------
-
-  private final CurrentUserService currentUserService;
 
   private final AsyncTaskExecutor taskExecutor;
 
@@ -1197,7 +1195,7 @@ public class EventController {
   private WebMessage startAsyncImport(ImportOptions importOptions, List<Event> events) {
     JobConfiguration jobId =
         new JobConfiguration(
-            "inMemoryEventImport", EVENT_IMPORT, currentUserService.getCurrentUser().getUid());
+            "inMemoryEventImport", EVENT_IMPORT, CurrentUserUtil.getCurrentUserDetails().getUid());
     taskExecutor.executeTask(
         new ImportEventsTask(events, eventService, importOptions, jobId, entityManagerFactory));
 

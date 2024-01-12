@@ -84,6 +84,7 @@ import org.hisp.dhis.user.PasswordValidationResult;
 import org.hisp.dhis.user.PasswordValidationService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentialsDto;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
@@ -162,6 +163,7 @@ public class MeController {
   public @ResponseBody ResponseEntity<JsonNode> getCurrentUser(
       @CurrentUser(required = true) User user,
       @RequestParam(defaultValue = "*") List<String> fields) {
+
     if (fieldsContains("access", fields)) {
       Access access = aclService.getAccess(user, user);
       user.setAccess(access);
@@ -174,7 +176,9 @@ public class MeController {
         programService.getCurrentUserPrograms().stream().map(IdentifiableObject::getUid).toList();
 
     List<String> dataSets =
-        dataSetService.getUserDataRead(user).stream().map(IdentifiableObject::getUid).toList();
+        dataSetService.getUserDataRead(UserDetails.fromUser(user)).stream()
+            .map(IdentifiableObject::getUid)
+            .toList();
 
     List<ApiToken> patTokens = apiTokenService.getAllOwning(user);
 
@@ -313,7 +317,8 @@ public class MeController {
       throw new ConflictException("Key is not supported: " + key);
     }
 
-    Serializable value = userSettingService.getUserSetting(keyEnum.get(), currentUser);
+    Serializable value =
+        userSettingService.getUserSetting(keyEnum.get(), currentUser.getUsername());
 
     if (value == null) {
       throw new NotFoundException("User setting not found for key: " + key);
@@ -345,7 +350,7 @@ public class MeController {
     updatePassword(currentUser, newPassword);
     manager.update(currentUser);
 
-    userService.expireActiveSessions(currentUser);
+    userService.invalidateUserSessions(currentUser.getUid());
   }
 
   @PostMapping(value = "/verifyPassword", consumes = "text/*")

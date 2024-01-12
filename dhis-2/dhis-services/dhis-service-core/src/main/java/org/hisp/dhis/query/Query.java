@@ -39,7 +39,7 @@ import lombok.experimental.Accessors;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -48,7 +48,7 @@ import org.hisp.dhis.user.User;
 @Setter
 @Accessors(chain = true)
 public class Query extends Criteria {
-  private User user;
+  private UserDetails currentUserDetails;
 
   private String locale;
 
@@ -83,7 +83,7 @@ public class Query extends Criteria {
   public static Query from(Query query) {
     Query clone = Query.from(query.getSchema(), query.getRootJunctionType());
     clone.setSkipSharing(query.isSkipSharing());
-    clone.setUser(query.getUser());
+    clone.setCurrentUserDetails(query.getCurrentUserDetails());
     clone.setLocale(query.getLocale());
     clone.addOrders(query.getOrders());
     clone.setFirstResult(query.getFirstResult());

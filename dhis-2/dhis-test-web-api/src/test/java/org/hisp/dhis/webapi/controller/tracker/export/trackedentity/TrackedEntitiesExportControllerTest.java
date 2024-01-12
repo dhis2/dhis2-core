@@ -179,7 +179,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
   @Test
   void getTrackedEntitiesNeedsProgramOrType() {
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     assertEquals(
         "Either `program`, `trackedEntityType` or `trackedEntities` should be specified",
@@ -412,7 +412,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
   @Test
   void getTrackedEntityReturnsCsvFormat() {
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     WebClient.HttpResponse response =
         GET(
@@ -468,7 +468,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
   @Test
   void getTrackedEntityReturnsCsvZipFormat() {
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     WebClient.HttpResponse response =
         GET(
@@ -491,7 +491,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
   @Test
   void getTrackedEntityReturnsCsvGZipFormat() {
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     WebClient.HttpResponse response =
         GET(
