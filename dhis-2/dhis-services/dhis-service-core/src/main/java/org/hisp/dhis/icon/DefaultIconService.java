@@ -74,15 +74,17 @@ public class DefaultIconService implements IconService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<? extends Icon> getIcons(IconCriteria iconCriteria) {
+  public List<Icon> getIcons(IconCriteria iconCriteria) {
     if (IconTypeFilter.DEFAULT == iconCriteria.getType()) {
       return defaultIcons.values().stream()
           .filter(icon -> Set.of(icon.getKeywords()).containsAll(iconCriteria.getKeywords()))
-          .toList();
+          .collect(Collectors.toList());
     }
 
     if (IconTypeFilter.CUSTOM == iconCriteria.getType()) {
-      return customIconStore.getIconsByKeywords(iconCriteria.getKeywords());
+      return customIconStore
+          .getIconsByKeywords(iconCriteria.getKeywords())
+          .collect(Collectors.toList());
     }
 
     return Stream.concat(
@@ -90,8 +92,8 @@ public class DefaultIconService implements IconService {
                 .filter(icon -> Set.of(icon.getKeywords()).containsAll(iconCriteria.getKeywords()))
                 .toList()
                 .stream(),
-            customIconStore.getIconsByKeywords(iconCriteria.getKeywords()).stream())
-        .toList();
+            customIconStore.getIconsByKeywords(iconCriteria.getKeywords()))
+        .collect(Collectors.toList());
   }
 
   @Override

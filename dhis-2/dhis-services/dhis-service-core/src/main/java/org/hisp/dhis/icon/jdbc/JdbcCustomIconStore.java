@@ -29,6 +29,7 @@ package org.hisp.dhis.icon.jdbc;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.fileresource.FileResource;
@@ -77,7 +78,7 @@ public class JdbcCustomIconStore implements CustomIconStore {
   }
 
   @Override
-  public List<CustomIcon> getIconsByKeywords(List<String> keywords) {
+  public Stream<CustomIcon> getIconsByKeywords(List<String> keywords) {
     String sql =
         """
                   select c.key as iconkey, c.description as icondescription, c.keywords as keywords, c.created as created, c.lastupdated as lastupdated,
@@ -87,12 +88,12 @@ public class JdbcCustomIconStore implements CustomIconStore {
                   """;
 
     if (keywords.isEmpty()) {
-      return jdbcTemplate.query(sql, customIconRowMapper);
+      return jdbcTemplate.query(sql, customIconRowMapper).stream();
     }
 
     sql = sql + " where keywords @> string_to_array(?,',') ";
 
-    return jdbcTemplate.query(sql, customIconRowMapper, String.join(",", keywords));
+    return jdbcTemplate.query(sql, customIconRowMapper, String.join(",", keywords)).stream();
   }
 
   @Override
