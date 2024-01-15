@@ -44,7 +44,6 @@ import org.hisp.dhis.datastore.DatastoreFields;
 import org.hisp.dhis.datastore.DatastoreQuery;
 import org.hisp.dhis.datastore.hibernate.DatastoreQueryBuilder;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.userdatastore.UserDatastoreEntry;
 import org.hisp.dhis.userdatastore.UserDatastoreStore;
@@ -62,16 +61,8 @@ public class HibernateUserDatastoreStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
-    super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        UserDatastoreEntry.class,
-        currentUserService,
-        aclService,
-        true);
+    super(entityManager, jdbcTemplate, publisher, UserDatastoreEntry.class, aclService, true);
   }
 
   @Override

@@ -60,8 +60,8 @@ import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -79,7 +79,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequiredArgsConstructor
 public class ResourceTableController {
 
-  private final CurrentUserService currentUserService;
   private final JobConfigurationService jobConfigurationService;
   private final JobSchedulerService jobSchedulerService;
 
@@ -126,7 +125,7 @@ public class ResourceTableController {
     }
 
     JobConfiguration config = new JobConfiguration(ANALYTICS_TABLE);
-    config.setExecutedBy(currentUserService.getCurrentUser().getUid());
+    config.setExecutedBy(CurrentUserUtil.getCurrentUserDetails().getUid());
     config.setJobParameters(
         new AnalyticsJobParameters(
             lastYears, skipTableTypes, skipPrograms, skipResourceTables, skipOutliers));
@@ -137,7 +136,7 @@ public class ResourceTableController {
   @RequestMapping(method = {PUT, POST})
   @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
   @ResponseBody
-  public WebMessage resourceTables(@CurrentUser User currentUser)
+  public WebMessage resourceTables(@CurrentUser UserDetails currentUser)
       throws ConflictException, @OpenApi.Ignore NotFoundException {
     JobConfiguration config = new JobConfiguration(RESOURCE_TABLE);
     config.setExecutedBy(currentUser.getUid());

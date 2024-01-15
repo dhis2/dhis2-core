@@ -37,6 +37,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Lars Helge Overland
@@ -122,7 +123,7 @@ public interface DataSetService extends DataSetDataIntegrityProvider {
    * @param user the user to query for data set list.
    * @return a list of data sets which the given user has data read access to.
    */
-  List<DataSet> getUserDataRead(User user);
+  List<DataSet> getUserDataRead(UserDetails user);
 
   /**
    * Returns the data sets which current user have WRITE access. If the current user has the ALL
@@ -131,7 +132,7 @@ public interface DataSetService extends DataSetDataIntegrityProvider {
    * @param user the user to query for data set list.
    * @return a list of data sets which given user has data write access to.
    */
-  List<DataSet> getUserDataWrite(User user);
+  List<DataSet> getUserDataWrite(UserDetails user);
 
   // -------------------------------------------------------------------------
   // DataSet LockExceptions
@@ -230,7 +231,7 @@ public interface DataSetService extends DataSetDataIntegrityProvider {
       Period period,
       OrganisationUnit organisationUnit,
       CategoryOptionCombo attributeOptionCombo,
-      User user,
+      UserDetails user,
       Date now);
 
   /**
@@ -251,7 +252,7 @@ public interface DataSetService extends DataSetDataIntegrityProvider {
       Period period,
       OrganisationUnit organisationUnit,
       CategoryOptionCombo attributeOptionCombo,
-      User user,
+      UserDetails user,
       Date now,
       boolean useOrgUnitChildren);
 
@@ -267,6 +268,14 @@ public interface DataSetService extends DataSetDataIntegrityProvider {
    * @param now the base date for deciding locked date, current date if null.
    * @return the {@link LockStatus}.
    */
+  LockStatus getLockStatus(
+      DataElement dataElement,
+      Period period,
+      OrganisationUnit organisationUnit,
+      CategoryOptionCombo attributeOptionCombo,
+      UserDetails user,
+      Date now);
+
   LockStatus getLockStatus(
       DataElement dataElement,
       Period period,
@@ -322,7 +331,11 @@ public interface DataSetService extends DataSetDataIntegrityProvider {
    * @return true or false indicating whether the system is locked or not.
    */
   boolean isLocked(
-      User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit, Date now);
+      UserDetails user,
+      DataSet dataSet,
+      Period period,
+      OrganisationUnit organisationUnit,
+      Date now);
 
   /**
    * Return a list of LockException with given filter list

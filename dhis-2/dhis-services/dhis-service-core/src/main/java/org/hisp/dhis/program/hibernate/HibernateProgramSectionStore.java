@@ -32,7 +32,6 @@ import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.program.ProgramSection;
 import org.hisp.dhis.program.ProgramSectionStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -47,15 +46,7 @@ public class HibernateProgramSectionStore extends HibernateIdentifiableObjectSto
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
-    super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        ProgramSection.class,
-        currentUserService,
-        aclService,
-        true);
+    super(entityManager, jdbcTemplate, publisher, ProgramSection.class, aclService, true);
   }
 }

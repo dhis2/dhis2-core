@@ -64,7 +64,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.Timer;
 import org.springframework.stereotype.Service;
 
@@ -85,8 +85,8 @@ public class DefaultEnrollmentAnalyticsService extends AbstractAnalyticsService
       EventQueryPlanner queryPlanner,
       EventQueryValidator queryValidator,
       SchemeIdResponseMapper schemeIdResponseMapper,
-      CurrentUserService currentUserService) {
-    super(securityManager, queryValidator, schemeIdResponseMapper, currentUserService);
+      UserService userService) {
+    super(securityManager, queryValidator, schemeIdResponseMapper, userService);
 
     checkNotNull(enrollmentAnalyticsManager);
     checkNotNull(queryPlanner);

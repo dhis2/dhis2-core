@@ -41,8 +41,9 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,16 +57,15 @@ public class DefaultVisualizationGridService implements VisualizationGridService
 
   private final OrganisationUnitService organisationUnitService;
 
-  private final CurrentUserService currentUserService;
-
   private final I18nManager i18nManager;
+
+  private final UserService userService;
 
   @Override
   @Transactional(readOnly = true)
   public Grid getVisualizationGrid(String uid, Date relativePeriodDate, String orgUnitUid) {
-    User user = currentUserService.getCurrentUser();
-
-    return getVisualizationGrid(uid, relativePeriodDate, orgUnitUid, user);
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    return getVisualizationGrid(uid, relativePeriodDate, orgUnitUid, currentUser);
   }
 
   @Override

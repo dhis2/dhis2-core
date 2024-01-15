@@ -234,7 +234,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
             tet ->
                 new AnalyticsTable(
                     getAnalyticsTableType(), getTableColumns(params, tet), emptyList(), tet))
-        .collect(toList());
+        .toList();
   }
 
   private Map<String, List<Program>> getProgramsByTetUid(AnalyticsTableUpdateParams params) {
@@ -242,7 +242,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
         params.isSkipPrograms()
             ? idObjectManager.getAllNoAcl(Program.class).stream()
                 .filter(p -> !params.getSkipPrograms().contains(p.getUid()))
-                .collect(toList())
+                .toList()
             : idObjectManager.getAllNoAcl(Program.class);
 
     return programs.stream()
@@ -272,12 +272,14 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
                             + program.getId()
                             + ")")));
 
-    List<TrackedEntityAttribute> trackedEntityAttributes = new ArrayList<>();
-
-    if (programsByTetUid.containsKey(tet.getUid())) {
-      trackedEntityAttributes =
-          getAllTrackedEntityAttributes(tet, programsByTetUid.get(tet.getUid()));
-    }
+    List<TrackedEntityAttribute> trackedEntityAttributes =
+        programsByTetUid.containsKey(tet.getUid())
+            ?
+            // programs defined for TET -> get attr from program and TET
+            getAllTrackedEntityAttributes(tet, programsByTetUid.get(tet.getUid()))
+            :
+            // no programs defined for TET -> get only attributes from TET
+            getAllTrackedEntityAttributes(tet).toList();
 
     params.addExtraParam(tet.getUid(), ALL_TET_ATTRIBUTES, trackedEntityAttributes);
 
@@ -298,9 +300,14 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
             /* all attributes of programs */
             trackedEntityAttributeService.getProgramTrackedEntityAttributes(programs).stream(),
             /* all attributes of the trackedEntityType */
-            CollectionUtils.emptyIfNull(trackedEntityType.getTrackedEntityAttributes()).stream())
+            getAllTrackedEntityAttributes(trackedEntityType))
         .distinct()
-        .collect(toList());
+        .toList();
+  }
+
+  private Stream<TrackedEntityAttribute> getAllTrackedEntityAttributes(
+      TrackedEntityType trackedEntityType) {
+    return CollectionUtils.emptyIfNull(trackedEntityType.getTrackedEntityAttributes()).stream();
   }
 
   /**

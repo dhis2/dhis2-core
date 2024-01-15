@@ -34,7 +34,8 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.paging.ActionPagingSupport;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author mortenoh
@@ -96,8 +97,8 @@ public class GetDataElementsNotInGroupAction extends ActionPagingSupport<DataEle
       Collections.sort(groupMembers);
     }
 
-    User currentUser = currentUserService.getCurrentUser();
-    groupMembers.forEach(instance -> canReadInstance(instance, currentUser));
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    groupMembers.forEach(instance -> canReadInstance(instance, currentUserDetails));
 
     // ---------------------------------------------------------------------
     // Get available elements
@@ -109,7 +110,7 @@ public class GetDataElementsNotInGroupAction extends ActionPagingSupport<DataEle
 
     Collections.sort(dataElements);
 
-    dataElements.forEach(instance -> canReadInstance(instance, currentUser));
+    dataElements.forEach(instance -> canReadInstance(instance, currentUserDetails));
 
     if (usePaging) {
       this.paging = createPaging(dataElements.size());

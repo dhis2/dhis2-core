@@ -35,6 +35,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Lars Helge Overland
@@ -48,21 +49,23 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
    */
   void save(@Nonnull T object, boolean clearSharing);
 
+  void save(@Nonnull T object, @Nonnull UserDetails userDetails, boolean clearSharing);
+
   /**
    * Saves the given object instance.
    *
    * @param object the object instance.
    * @param user the user currently in the security context.
    */
-  void save(@Nonnull T object, @CheckForNull User user);
+  void save(@Nonnull T object, @Nonnull User user);
 
   /**
    * Updates the given object instance.
    *
    * @param object the object instance.
-   * @param user User
+   * @param userDetails User
    */
-  void update(@Nonnull T object, @CheckForNull User user);
+  void update(@Nonnull T object, @Nonnull UserDetails userDetails);
 
   /**
    * Update object. Bypasses the ACL system.
@@ -75,9 +78,9 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
    * Removes the given object instance.
    *
    * @param object the object instance to delete.
-   * @param user User
    */
-  void delete(@Nonnull T object, @CheckForNull User user);
+  @Override
+  void delete(@Nonnull T object);
 
   /**
    * Retrieves the object with the given UID, or null if no object exists.
@@ -160,12 +163,12 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
    *
    * @param attribute the attribute.
    * @param value the value.
-   * @param user the user.
+   * @param userDetails the user.
    * @return the attribute value or null if not found
    */
   @CheckForNull
   T getByUniqueAttributeValue(
-      @Nonnull Attribute attribute, @Nonnull String value, @CheckForNull User user);
+      @Nonnull Attribute attribute, @Nonnull String value, @CheckForNull UserDetails userDetails);
 
   /**
    * Retrieves a List of all objects (sorted on name).
@@ -275,16 +278,6 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
   List<T> getById(@Nonnull Collection<Long> ids);
 
   /**
-   * Retrieves a list of objects referenced by the given collection of ids.
-   *
-   * @param ids a collection of ids.
-   * @param user the {@link User} for sharing restrictions
-   * @return a list of objects.
-   */
-  @Nonnull
-  List<T> getById(@Nonnull Collection<Long> ids, @CheckForNull User user);
-
-  /**
    * Retrieves a list of objects referenced by the given collection of uids.
    *
    * @param uids a collection of uids.
@@ -292,18 +285,6 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
    */
   @Nonnull
   List<T> getByUid(@Nonnull Collection<String> uids);
-
-  /**
-   * Retrieves a list of objects referenced by the given collection of uids.
-   *
-   * <p>Objects which are soft-deleted (deleted=true) are filtered out
-   *
-   * @param uids a collection of uids.
-   * @param user the {@link User} for sharing restrictions
-   * @return a list of objects.
-   */
-  @Nonnull
-  List<T> getByUid(@Nonnull Collection<String> uids, @CheckForNull User user);
 
   /**
    * Retrieves a list of objects referenced by the given collection of codes.
@@ -315,16 +296,6 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
   List<T> getByCode(@Nonnull Collection<String> codes);
 
   /**
-   * Retrieves a list of objects referenced by the given collection of codes.
-   *
-   * @param codes a collection of codes.
-   * @param user the {@link User} for sharing restrictions
-   * @return a list of objects.
-   */
-  @Nonnull
-  List<T> getByCode(@Nonnull Collection<String> codes, @CheckForNull User user);
-
-  /**
    * Retrieves a list of objects referenced by the given collection of names.
    *
    * @param names a collection of names.
@@ -332,16 +303,6 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
    */
   @Nonnull
   List<T> getByName(@Nonnull Collection<String> names);
-
-  /**
-   * Retrieves a list of objects referenced by the given collection of names.
-   *
-   * @param names a collection of names.
-   * @param user the {@link User} for sharing restrictions
-   * @return a list of objects.
-   */
-  @Nonnull
-  List<T> getByName(@Nonnull Collection<String> names, @CheckForNull User user);
 
   /**
    * Retrieves a list of objects referenced by the given List of uids. Bypasses the ACL system.
@@ -415,13 +376,13 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
   List<T> getDataReadAll();
 
   @Nonnull
-  List<T> getDataReadAll(@CheckForNull User user);
+  List<T> getDataReadAll(@CheckForNull UserDetails userDetails);
 
   @Nonnull
   List<T> getDataWriteAll();
 
   @Nonnull
-  List<T> getDataWriteAll(@CheckForNull User user);
+  List<T> getDataWriteAll(@CheckForNull UserDetails userDetails);
 
   /** Remove given UserGroup UID from all sharing records in database */
   void removeUserGroupFromSharing(@Nonnull String userGroupUID, @Nonnull String tableName);
@@ -430,26 +391,26 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
    * Look up list objects which have property createdBy or lastUpdatedBy linked to given {@link
    * User}
    *
-   * @param user the {@link User} for filtering
+   * @param userDetails the {@link User} for filtering
    * @return List of objects found.
    */
-  List<T> findByUser(@Nonnull User user);
+  List<T> findByUser(@Nonnull UserDetails userDetails);
 
   /**
    * Look up list objects which have property lastUpdatedBy linked to given {@link User}
    *
-   * @param user the {@link User} for filtering
+   * @param userDetails the {@link User} for filtering
    * @return List of objects found.
    */
-  List<T> findByLastUpdatedBy(@Nonnull User user);
+  List<T> findByLastUpdatedBy(@Nonnull UserDetails userDetails);
 
   /**
    * Look up list objects which have property createdBy linked to given {@link User}
    *
-   * @param user the {@link User} for filtering
+   * @param userDetails the {@link User} for filtering
    * @return List of objects found.
    */
-  List<T> findByCreatedBy(@Nonnull User user);
+  List<T> findByCreatedBy(@Nonnull UserDetails userDetails);
 
   /**
    * Look up list objects which have property createdBy or lastUpdatedBy linked to given {@link

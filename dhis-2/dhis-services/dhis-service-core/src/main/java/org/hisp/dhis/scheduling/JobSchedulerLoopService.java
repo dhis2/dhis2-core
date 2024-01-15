@@ -31,6 +31,7 @@ import java.util.List;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * The service abstraction with all support functions the {@link JobScheduler} needs. This is used
@@ -48,7 +49,7 @@ public interface JobSchedulerLoopService {
    * Make sure the {@link JobType#HOUSEKEEPING} entry exists as it is responsible for spawning the
    * other system jobs when needed using {@link JobConfigurationService#createDefaultJobs()}.
    */
-  void createHousekeepingJob();
+  void createHousekeepingJob(UserDetails actingUser);
 
   /**
    * @return true, if node is or become the leader, else false

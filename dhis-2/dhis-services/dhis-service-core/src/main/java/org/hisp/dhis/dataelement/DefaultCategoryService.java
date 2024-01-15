@@ -59,8 +59,9 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -90,8 +91,6 @@ public class DefaultCategoryService implements CategoryService {
 
   private final IdentifiableObjectManager idObjectManager;
 
-  private final CurrentUserService currentUserService;
-
   private final AclService aclService;
 
   @Qualifier("jdbcCategoryOptionOrgUnitAssociationsStore")
@@ -111,8 +110,22 @@ public class DefaultCategoryService implements CategoryService {
 
   @Override
   @Transactional
+  public long addCategory(Category dataElementCategory, UserDetails actingUser) {
+    categoryStore.save(dataElementCategory, actingUser, false);
+
+    return dataElementCategory.getId();
+  }
+
+  @Override
+  @Transactional
   public void updateCategory(Category dataElementCategory) {
     categoryStore.update(dataElementCategory);
+  }
+
+  @Override
+  @Transactional
+  public void updateCategory(Category category, UserDetails actingUser) {
+    categoryStore.update(category, actingUser);
   }
 
   @Override
@@ -195,8 +208,23 @@ public class DefaultCategoryService implements CategoryService {
 
   @Override
   @Transactional
+  public long addCategoryOption(CategoryOption dataElementCategoryOption, UserDetails actingUser) {
+    categoryOptionStore.save(dataElementCategoryOption, actingUser, false);
+
+    return dataElementCategoryOption.getId();
+  }
+
+  @Override
+  @Transactional
   public void updateCategoryOption(CategoryOption dataElementCategoryOption) {
     categoryOptionStore.update(dataElementCategoryOption);
+  }
+
+  @Override
+  @Transactional
+  public void updateCategoryOption(
+      CategoryOption dataElementCategoryOption, UserDetails actingUser) {
+    categoryOptionStore.update(dataElementCategoryOption, actingUser);
   }
 
   @Override
@@ -243,14 +271,15 @@ public class DefaultCategoryService implements CategoryService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<CategoryOption> getDataWriteCategoryOptions(Category category, User user) {
-    if (user == null) {
+  public List<CategoryOption> getDataWriteCategoryOptions(
+      Category category, UserDetails userDetails) {
+    if (userDetails == null) {
       return Lists.newArrayList();
     }
 
-    return user.isSuper()
+    return userDetails.isSuper()
         ? getCategoryOptions(category)
-        : categoryOptionStore.getDataWriteCategoryOptions(category, user);
+        : categoryOptionStore.getDataWriteCategoryOptions(category, userDetails);
   }
 
   @Override
@@ -285,8 +314,22 @@ public class DefaultCategoryService implements CategoryService {
 
   @Override
   @Transactional
+  public long addCategoryCombo(CategoryCombo dataElementCategoryCombo, UserDetails actingUser) {
+    categoryComboStore.save(dataElementCategoryCombo, actingUser, false);
+
+    return dataElementCategoryCombo.getId();
+  }
+
+  @Override
+  @Transactional
   public void updateCategoryCombo(CategoryCombo dataElementCategoryCombo) {
     categoryComboStore.update(dataElementCategoryCombo);
+  }
+
+  @Override
+  @Transactional
+  public void updateCategoryCombo(CategoryCombo dataElementCategoryCombo, UserDetails actingUser) {
+    categoryComboStore.update(dataElementCategoryCombo, actingUser);
   }
 
   @Override
@@ -383,8 +426,24 @@ public class DefaultCategoryService implements CategoryService {
 
   @Override
   @Transactional
+  public long addCategoryOptionCombo(
+      CategoryOptionCombo dataElementCategoryOptionCombo, UserDetails actingUser) {
+    categoryOptionComboStore.save(dataElementCategoryOptionCombo, actingUser, false);
+
+    return dataElementCategoryOptionCombo.getId();
+  }
+
+  @Override
+  @Transactional
   public void updateCategoryOptionCombo(CategoryOptionCombo dataElementCategoryOptionCombo) {
     categoryOptionComboStore.update(dataElementCategoryOptionCombo);
+  }
+
+  @Override
+  @Transactional
+  public void updateCategoryOptionCombo(
+      CategoryOptionCombo dataElementCategoryOptionCombo, UserDetails actingUser) {
+    categoryOptionComboStore.update(dataElementCategoryOptionCombo, actingUser);
   }
 
   @Override
@@ -432,7 +491,7 @@ public class DefaultCategoryService implements CategoryService {
 
   @Override
   @Transactional
-  public void generateDefaultDimension() {
+  public void generateDefaultDimension(UserDetails actingUser) {
     // ---------------------------------------------------------------------
     // CategoryOption
     // ---------------------------------------------------------------------
@@ -441,10 +500,10 @@ public class DefaultCategoryService implements CategoryService {
     categoryOption.setUid("xYerKDKCefk");
     categoryOption.setCode("default");
 
-    addCategoryOption(categoryOption);
+    addCategoryOption(categoryOption, actingUser);
 
     categoryOption.getSharing().setPublicAccess(AccessStringHelper.CATEGORY_OPTION_DEFAULT);
-    updateCategoryOption(categoryOption);
+    updateCategoryOption(categoryOption, actingUser);
 
     // ---------------------------------------------------------------------
     // Category
@@ -455,12 +514,12 @@ public class DefaultCategoryService implements CategoryService {
     category.setCode("default");
     category.setShortName("default");
     category.setDataDimension(false);
-
     category.addCategoryOption(categoryOption);
-    addCategory(category);
+
+    addCategory(category, actingUser);
 
     category.getSharing().setPublicAccess(AccessStringHelper.CATEGORY_NO_DATA_SHARING_DEFAULT);
-    updateCategory(category);
+    updateCategory(category, actingUser);
 
     // ---------------------------------------------------------------------
     // CategoryCombo
@@ -472,12 +531,12 @@ public class DefaultCategoryService implements CategoryService {
     categoryCombo.setUid("bjDvmb4bfuf");
     categoryCombo.setCode("default");
     categoryCombo.setDataDimensionType(DataDimensionType.DISAGGREGATION);
-
     categoryCombo.addCategory(category);
-    addCategoryCombo(categoryCombo);
+
+    addCategoryCombo(categoryCombo, actingUser);
 
     categoryCombo.getSharing().setPublicAccess(AccessStringHelper.CATEGORY_NO_DATA_SHARING_DEFAULT);
-    updateCategoryCombo(categoryCombo);
+    updateCategoryCombo(categoryCombo, actingUser);
 
     // ---------------------------------------------------------------------
     // CategoryOptionCombo
@@ -486,25 +545,26 @@ public class DefaultCategoryService implements CategoryService {
     CategoryOptionCombo categoryOptionCombo = new CategoryOptionCombo();
     categoryOptionCombo.setUid("HllvX50cXC0");
     categoryOptionCombo.setCode("default");
-
     categoryOptionCombo.setCategoryCombo(categoryCombo);
     categoryOptionCombo.addCategoryOption(categoryOption);
 
-    addCategoryOptionCombo(categoryOptionCombo);
+    addCategoryOptionCombo(categoryOptionCombo, actingUser);
 
     categoryOptionCombo
         .getSharing()
         .setPublicAccess(AccessStringHelper.CATEGORY_NO_DATA_SHARING_DEFAULT);
-    updateCategoryOptionCombo(categoryOptionCombo);
+
+    updateCategoryOptionCombo(categoryOptionCombo, actingUser);
 
     Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();
     categoryOptionCombos.add(categoryOptionCombo);
     categoryCombo.setOptionCombos(categoryOptionCombos);
 
-    updateCategoryCombo(categoryCombo);
+    updateCategoryCombo(categoryCombo, actingUser);
 
     categoryOption.setCategoryOptionCombos(categoryOptionCombos);
-    updateCategoryOption(categoryOption);
+
+    updateCategoryOption(categoryOption, actingUser);
   }
 
   @Override
@@ -575,10 +635,9 @@ public class DefaultCategoryService implements CategoryService {
     CategoryOptionCombo coc = idObjectManager.getObject(CategoryOptionCombo.class, idScheme, id);
 
     if (coc != null) {
-      User user = currentUserService.getCurrentUser();
-
+      UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
       for (CategoryOption categoryOption : coc.getCategoryOptions()) {
-        if (!aclService.canDataWrite(user, categoryOption)) {
+        if (!aclService.canDataWrite(currentUserDetails, categoryOption)) {
           return null;
         }
       }

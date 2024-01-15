@@ -97,8 +97,10 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
@@ -229,7 +231,7 @@ class JdbcEventStore implements EventStore {
   @Qualifier("dataValueJsonMapper")
   private final ObjectMapper jsonMapper;
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   private final IdentifiableObjectManager manager;
 
@@ -248,9 +250,8 @@ class JdbcEventStore implements EventStore {
   }
 
   private List<Event> fetchEvents(EventQueryParams queryParams, PageParams pageParams) {
-    User user = currentUserService.getCurrentUser();
-
-    setAccessiblePrograms(user, queryParams);
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    setAccessiblePrograms(currentUser, queryParams);
 
     Map<String, Event> eventsByUid;
     if (pageParams == null) {
@@ -265,7 +266,7 @@ class JdbcEventStore implements EventStore {
 
     final MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
 
-    String sql = buildSql(queryParams, pageParams, mapSqlParameterSource, user);
+    String sql = buildSql(queryParams, pageParams, mapSqlParameterSource, currentUser);
 
     return jdbcTemplate.query(
         sql,
@@ -534,14 +535,14 @@ class JdbcEventStore implements EventStore {
   }
 
   private int getEventCount(EventQueryParams params) {
-    User user = currentUserService.getCurrentUser();
-    setAccessiblePrograms(user, params);
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    setAccessiblePrograms(currentUser, params);
 
     String sql;
 
     MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
 
-    sql = getEventSelectQuery(params, mapSqlParameterSource, user);
+    sql = getEventSelectQuery(params, mapSqlParameterSource, currentUser);
 
     sql = sql.replaceFirst("select .*? from", "select count(*) from");
 
@@ -1482,7 +1483,7 @@ class JdbcEventStore implements EventStore {
           joinCondition
               + " having bool_and(case when "
               + JpaQueryUtils.generateSQlQueryForSharingCheck(
-                  "co.sharing", user, AclService.LIKE_READ_DATA)
+                  "co.sharing", UserDetails.fromUser(user), AclService.LIKE_READ_DATA)
               + " then true else false end) = True ";
     }
 

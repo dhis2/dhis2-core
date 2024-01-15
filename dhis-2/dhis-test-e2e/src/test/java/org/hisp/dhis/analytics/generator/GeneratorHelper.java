@@ -149,6 +149,11 @@ public class GeneratorHelper {
               + "().get(\""
               + dimensionUid
               + "\", JSON, JSON, params);\n";
+    } else {
+      testTarget =
+          "\n// When\n ApiResponse response = actions."
+              + ACTION
+              + "().get(\"\",JSON, JSON, params);\n";
     }
 
     String response = getResponse(url);

@@ -50,7 +50,6 @@ import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -72,10 +71,8 @@ public class HibernateEventStore extends SoftDeleteHibernateObjectStore<Event>
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
-    super(
-        entityManager, jdbcTemplate, publisher, Event.class, currentUserService, aclService, false);
+    super(entityManager, jdbcTemplate, publisher, Event.class, aclService, false);
   }
 
   @Override

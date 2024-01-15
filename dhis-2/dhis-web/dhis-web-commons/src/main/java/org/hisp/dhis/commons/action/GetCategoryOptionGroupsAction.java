@@ -33,7 +33,8 @@ import java.util.Collections;
 import java.util.List;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -63,8 +64,8 @@ public class GetCategoryOptionGroupsAction extends BaseAction implements Action 
 
     categoryOptionGroups = new ArrayList<>(dataElementCategoryService.getAllCategoryOptionGroups());
 
-    User currentUser = currentUserService.getCurrentUser();
-    categoryOptionGroups.forEach(instance -> canReadInstance(instance, currentUser));
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    categoryOptionGroups.forEach(instance -> canReadInstance(instance, currentUserDetails));
 
     Collections.sort(categoryOptionGroups);
 

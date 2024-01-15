@@ -43,7 +43,9 @@ import org.hisp.dhis.dxf2.deprecated.tracker.event.Event;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.Events;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
@@ -56,24 +58,24 @@ import org.springframework.stereotype.Service;
 public class EventServiceFacade {
   private final EventImporter eventImporter;
 
-  private final CurrentUserService currentUserService;
-
   private final ObjectMapper jsonMapper;
 
   private final ObjectMapper xmlMapper;
 
+  private final UserService userService;
+
   public EventServiceFacade(
+      final UserService userService,
       final EventImporter eventImporter,
-      final CurrentUserService currentUserService,
       final ObjectMapper jsonMapper,
       @Qualifier("xmlMapper") final ObjectMapper xmlMapper) {
     checkNotNull(eventImporter);
-    checkNotNull(currentUserService);
     checkNotNull(jsonMapper);
     checkNotNull(xmlMapper);
+    checkNotNull(userService);
 
+    this.userService = userService;
     this.eventImporter = eventImporter;
-    this.currentUserService = currentUserService;
     this.jsonMapper = jsonMapper;
     this.xmlMapper = xmlMapper;
   }
@@ -105,8 +107,9 @@ public class EventServiceFacade {
       importOptions = new ImportOptions();
     }
 
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     if (importOptions.getUser() == null) {
-      importOptions.setUser(currentUserService.getCurrentUser());
+      importOptions.setUser(currentUser);
     }
 
     return importOptions;

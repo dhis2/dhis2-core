@@ -44,6 +44,7 @@ import java.io.Writer;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -111,8 +112,10 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.quick.BatchHandler;
@@ -147,8 +150,6 @@ public class DefaultDataValueSetService implements DataValueSetService {
 
   private final CompleteDataSetRegistrationService registrationService;
 
-  private final CurrentUserService currentUserService;
-
   private final DataValueSetStore dataValueSetStore;
 
   private final SystemSettingManager systemSettingManager;
@@ -174,6 +175,8 @@ public class DefaultDataValueSetService implements DataValueSetService {
   private final DataValueSetImportValidator importValidator;
 
   private final SchemaService schemaService;
+
+  private final UserService userService;
 
   // -------------------------------------------------------------------------
   // DataValueSet implementation
@@ -330,12 +333,11 @@ public class DefaultDataValueSetService implements DataValueSetService {
 
   @Override
   public void decideAccess(DataExportParams params) {
-    User user = currentUserService.getCurrentUser();
-
     // Verify data set read sharing
 
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     for (DataSet dataSet : params.getDataSets()) {
-      if (!aclService.canDataRead(user, dataSet)) {
+      if (!aclService.canDataRead(currentUserDetails, dataSet)) {
         throw new IllegalQueryException(new ErrorMessage(ErrorCode.E2010, dataSet.getUid()));
       }
     }
@@ -343,15 +345,17 @@ public class DefaultDataValueSetService implements DataValueSetService {
     // Verify attribute option combination data read sharing
 
     for (CategoryOptionCombo optionCombo : params.getAttributeOptionCombos()) {
-      if (!aclService.canDataRead(user, optionCombo)) {
+      if (!aclService.canDataRead(currentUserDetails, optionCombo)) {
         throw new IllegalQueryException(new ErrorMessage(ErrorCode.E2011, optionCombo.getUid()));
       }
     }
 
     // Verify org unit being located within user data capture hierarchy
 
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
     for (OrganisationUnit unit : params.getOrganisationUnits()) {
-      if (!organisationUnitService.isInUserDataViewHierarchy(unit)) {
+      if (!organisationUnitService.isInUserDataViewHierarchy(currentUser, unit)) {
         throw new IllegalQueryException(new ErrorMessage(ErrorCode.E2012, unit.getUid()));
       }
     }
@@ -1056,11 +1060,16 @@ public class DefaultDataValueSetService implements DataValueSetService {
       DataValueSet data,
       BatchHandler<DataValue> dataValueBatchHandler,
       BatchHandler<DataValueAudit> auditBatchHandler) {
-    final User currentUser = currentUserService.getCurrentUser();
+
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
+    User currentUser = userService.getUserByUsername(currentUsername);
+
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
 
     boolean auditEnabled = config.isEnabled(CHANGELOG_AGGREGATE);
     boolean hasSkipAuditAuth =
-        currentUser != null && currentUser.isAuthorized(Authorities.F_SKIP_DATA_IMPORT_AUDIT);
+        currentUserDetails != null
+            && currentUserDetails.isAuthorized(Authorities.F_SKIP_DATA_IMPORT_AUDIT.name());
     boolean skipAudit = (options.isSkipAudit() && hasSkipAuditAuth) || !auditEnabled;
 
     SystemSettingManager settings = systemSettingManager;
@@ -1077,6 +1086,7 @@ public class DefaultDataValueSetService implements DataValueSetService {
             IdSchemes::getCategoryOptionComboIdScheme);
     IdScheme dataSetIdScheme =
         createIdScheme(data.getDataSetIdSchemeProperty(), options, IdSchemes::getDataSetIdScheme);
+
     return ImportContext.builder()
         .importOptions(options)
         .summary(new ImportSummary().setImportOptions(options))
@@ -1084,7 +1094,8 @@ public class DefaultDataValueSetService implements DataValueSetService {
         .skipLockExceptionCheck(!lockExceptionStore.anyExists())
         .i18n(i18nManager.getI18n())
         .currentUser(currentUser)
-        .currentOrgUnits(currentUserService.getCurrentUserOrganisationUnits())
+        .currentOrgUnits(
+            currentUser != null ? currentUser.getOrganisationUnits() : Collections.emptySet())
         .hasSkipAuditAuth(hasSkipAuditAuth)
         .skipAudit(skipAudit)
         .idScheme(createIdScheme(data.getIdSchemeProperty(), options, IdSchemes::getIdScheme))
@@ -1128,7 +1139,8 @@ public class DefaultDataValueSetService implements DataValueSetService {
         .requireAttrOptionCombo(
             options.isRequireAttributeOptionCombo()
                 || settings.getBoolSetting(SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO))
-        .forceDataInput(inputUtils.canForceDataInput(currentUser, options.isForce()))
+        .forceDataInput(
+            inputUtils.canForceDataInput(UserDetails.fromUser(currentUser), options.isForce()))
 
         // data fetching state
         .dataElementCallable(

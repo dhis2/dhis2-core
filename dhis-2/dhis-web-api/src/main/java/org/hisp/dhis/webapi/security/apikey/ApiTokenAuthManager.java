@@ -27,18 +27,22 @@
  */
 package org.hisp.dhis.webapi.security.apikey;
 
+import java.io.Serializable;
+import java.util.Map;
 import java.util.Optional;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenAuthenticationToken;
 import org.hisp.dhis.security.apikey.ApiTokenDeletedEvent;
 import org.hisp.dhis.security.apikey.ApiTokenService;
-import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.UserStore;
 import org.hisp.dhis.util.ObjectUtils;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
@@ -55,19 +59,23 @@ public class ApiTokenAuthManager implements AuthenticationManager {
   private final ApiTokenService apiTokenService;
 
   private final UserService userService;
+  private final UserStore userStore;
 
-  private final SecurityService securityService;
+  private final UserSettingService userSettingService;
 
   private final Cache<ApiTokenAuthenticationToken> apiTokenCache;
 
   public ApiTokenAuthManager(
-      UserService userService,
-      SecurityService securityService,
+      UserStore userStore,
       ApiTokenService apiTokenService,
-      CacheProvider cacheProvider) {
-    this.securityService = securityService;
+      CacheProvider cacheProvider,
+      @Lazy UserService userService,
+      UserSettingService userSettingService) {
     this.userService = userService;
+    this.userStore = userStore;
     this.apiTokenService = apiTokenService;
+    this.userSettingService = userSettingService;
+
     this.apiTokenCache = cacheProvider.createApiKeyCache();
   }
 
@@ -94,7 +102,7 @@ public class ApiTokenAuthManager implements AuthenticationManager {
 
       validateTokenExpiry(apiToken.getExpire());
 
-      CurrentUserDetails currentUserDetails = validateAndCreateUserDetails(apiToken.getCreatedBy());
+      UserDetails currentUserDetails = validateAndCreateUserDetails(apiToken.getCreatedBy());
 
       ApiTokenAuthenticationToken authenticationToken =
           new ApiTokenAuthenticationToken(apiToken, currentUserDetails);
@@ -105,13 +113,13 @@ public class ApiTokenAuthManager implements AuthenticationManager {
     }
   }
 
-  private CurrentUserDetails validateAndCreateUserDetails(User createdBy) {
+  private UserDetails validateAndCreateUserDetails(User createdBy) {
     if (createdBy == null) {
       throw new ApiTokenAuthenticationException(
           ApiTokenErrors.invalidToken("The API token does not have any owner."));
     }
 
-    User user = userService.getUserWithEagerFetchAuthorities(createdBy.getUsername());
+    User user = userStore.getUserByUsername(createdBy.getUsername());
     if (user == null) {
       throw new ApiTokenAuthenticationException(
           ApiTokenErrors.invalidToken("The API token owner does not exists."));
@@ -119,17 +127,22 @@ public class ApiTokenAuthManager implements AuthenticationManager {
 
     boolean isTwoFactorDisabled = !user.isTwoFactorEnabled();
     boolean enabled = !user.isDisabled();
+
     boolean credentialsNonExpired = userService.userNonExpired(user);
-    boolean accountNonLocked = !securityService.isLocked(user.getUsername());
-    boolean accountNonExpired = !userService.isAccountExpired(user);
+    boolean accountNonLocked = !userService.isLocked(user.getUsername());
+    boolean accountNonExpired = user.isAccountNonExpired();
 
     if (ObjectUtils.anyIsFalse(
         enabled, isTwoFactorDisabled, credentialsNonExpired, accountNonLocked, accountNonExpired)) {
+
       throw new ApiTokenAuthenticationException(
           ApiTokenErrors.invalidToken("The API token is disabled, locked or 2FA is enabled."));
     }
 
-    return userService.createUserDetails(user, accountNonLocked, credentialsNonExpired);
+    Map<String, Serializable> userSettings = userSettingService.getUserSettingsAsMap(user);
+
+    return UserDetails.createUserDetails(
+        user, accountNonLocked, credentialsNonExpired, userSettings);
   }
 
   private static void validateTokenExpiry(Long expiry) {

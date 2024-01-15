@@ -37,6 +37,7 @@ import org.hisp.dhis.query.Order;
 import org.hisp.dhis.schema.descriptors.UserRoleSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
@@ -81,7 +82,7 @@ public class UserRoleController extends AbstractCrudController<UserRole> {
   public void addUserToRole(
       @PathVariable(value = "id") String pvId,
       @PathVariable("userId") String pvUserId,
-      @CurrentUser User currentUser,
+      @CurrentUser UserDetails currentUser,
       HttpServletResponse response)
       throws NotFoundException, ForbiddenException {
     UserRole userRole = userService.getUserRole(pvId);
@@ -111,7 +112,7 @@ public class UserRoleController extends AbstractCrudController<UserRole> {
   public void removeUserFromRole(
       @PathVariable(value = "id") String pvId,
       @PathVariable("userId") String pvUserId,
-      @CurrentUser User currentUser,
+      @CurrentUser UserDetails currentUser,
       HttpServletResponse response)
       throws NotFoundException, ForbiddenException {
     UserRole userRole = userService.getUserRole(pvId);

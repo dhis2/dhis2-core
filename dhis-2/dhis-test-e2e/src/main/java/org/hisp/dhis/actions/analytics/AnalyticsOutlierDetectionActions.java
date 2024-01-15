@@ -25,63 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security;
+package org.hisp.dhis.actions.analytics;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.ArrayList;
-import java.util.List;
+import org.hisp.dhis.actions.RestApiActions;
 
 /**
- * @author Lars Helge Overland
+ * Provides tracked entities endpoints/operations associated to the parent
+ * "analytics/outlierDetection".
+ *
+ * @author maikel arabori
  */
-public class RecaptchaResponse {
-  @JsonProperty(value = "success")
-  private Boolean success;
-
-  @JsonProperty(value = "challenge_ts")
-  private String challengeTs;
-
-  @JsonProperty(value = "hostname")
-  private String hostname;
-
-  @JsonProperty(value = "error-codes")
-  private List<String> errorCodes = new ArrayList<>();
-
-  @JsonIgnore
-  public boolean success() {
-    return success != null && success;
+public class AnalyticsOutlierDetectionActions extends RestApiActions {
+  public AnalyticsOutlierDetectionActions() {
+    super("/analytics/outlierDetection");
   }
 
-  public Boolean getSuccess() {
-    return success;
+  public AnalyticsOutlierDetectionActions(String endpoint) {
+    super("/analytics/outlierDetection" + endpoint);
   }
 
-  public void setSuccess(Boolean success) {
-    this.success = success;
-  }
-
-  public String getChallengeTs() {
-    return challengeTs;
-  }
-
-  public void setChallengeTs(String challengeTs) {
-    this.challengeTs = challengeTs;
-  }
-
-  public String getHostname() {
-    return hostname;
-  }
-
-  public void setHostname(String hostname) {
-    this.hostname = hostname;
-  }
-
-  public List<String> getErrorCodes() {
-    return errorCodes;
-  }
-
-  public void setErrorCodes(List<String> errorCodes) {
-    this.errorCodes = errorCodes;
+  public AnalyticsOutlierDetectionActions query() {
+    return new AnalyticsOutlierDetectionActions("");
   }
 }

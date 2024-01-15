@@ -40,7 +40,6 @@ import org.hisp.dhis.program.ProgramStore;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -55,16 +54,8 @@ public class HibernateProgramStore extends HibernateIdentifiableObjectStore<Prog
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
-    super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        Program.class,
-        currentUserService,
-        aclService,
-        true);
+    super(entityManager, jdbcTemplate, publisher, Program.class, aclService, true);
   }
 
   // -------------------------------------------------------------------------
