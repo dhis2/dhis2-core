@@ -76,7 +76,7 @@ public class OutliersDetection2AutoTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"count\":0,\"orderBy\":\"z_score\",\"threshold\":\"3.0\",\"maxResults\":30,\"algorithm\":\"MOD_Z_SCORE\"}";
+        "{\"count\":0,\"orderBy\":\"MODIFIED_Z_SCORE\",\"threshold\":\"3.0\",\"maxResults\":30,\"algorithm\":\"MODIFIED_Z_SCORE\"}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -120,7 +120,7 @@ public class OutliersDetection2AutoTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"count\":3,\"orderBy\":\"z_score\",\"threshold\":\"3.0\",\"maxResults\":30,\"algorithm\":\"Z_SCORE\"}";
+        "{\"count\":3,\"orderBy\":\"Z_SCORE\",\"threshold\":\"3.0\",\"maxResults\":30,\"algorithm\":\"Z_SCORE\"}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -275,7 +275,7 @@ public class OutliersDetection2AutoTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"count\":5,\"orderBy\":\"z_score\",\"threshold\":\"3.0\",\"maxResults\":5,\"algorithm\":\"MOD_Z_SCORE\"}";
+        "{\"count\":5,\"orderBy\":\"MODIFIED_Z_SCORE\",\"threshold\":\"3.0\",\"maxResults\":5,\"algorithm\":\"MODIFIED_Z_SCORE\"}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -330,7 +330,7 @@ public class OutliersDetection2AutoTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"count\":3,\"orderBy\":\"z_score\",\"threshold\":\"3.0\",\"maxResults\":30,\"algorithm\":\"Z_SCORE\"}";
+        "{\"count\":3,\"orderBy\":\"Z_SCORE\",\"threshold\":\"3.0\",\"maxResults\":30,\"algorithm\":\"Z_SCORE\"}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 

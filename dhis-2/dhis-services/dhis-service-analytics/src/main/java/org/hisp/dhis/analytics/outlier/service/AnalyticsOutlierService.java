@@ -277,7 +277,7 @@ public class AnalyticsOutlierService {
   private void setMetaData(Grid grid, List<Outlier> outliers, OutlierRequest request) {
     grid.addMetaData("algorithm", request.getAlgorithm());
     grid.addMetaData("threshold", request.getThreshold());
-    grid.addMetaData("orderBy", request.getOrderBy().getColumnName());
+    grid.addMetaData("orderBy", request.getOrderBy());
     grid.addMetaData("maxResults", request.getMaxResults());
     grid.addMetaData("count", outliers.size());
   }
