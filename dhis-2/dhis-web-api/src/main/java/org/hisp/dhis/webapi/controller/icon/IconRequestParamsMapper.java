@@ -27,11 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.icon;
 
+import java.util.ArrayList;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.icon.IconOperationParams;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
 
 /**
  * @author Zubair Asghar
@@ -44,7 +43,10 @@ public class IconRequestParamsMapper {
 
     return IconOperationParams.builder()
         .iconTypeFilter(iconRequestParams.getIconTypeFilter())
-        .keywords(iconRequestParams.getKeywords() == null ? new ArrayList<>() : iconRequestParams.getKeywords())
+        .keywords(
+            iconRequestParams.getKeywords() == null
+                ? new ArrayList<>()
+                : iconRequestParams.getKeywords())
         .created(iconRequestParams.getCreated())
         .lastUpdated(iconRequestParams.getLastUpdated())
         .build();
