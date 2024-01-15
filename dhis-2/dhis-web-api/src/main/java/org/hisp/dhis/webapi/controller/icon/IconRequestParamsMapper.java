@@ -46,7 +46,7 @@ public class IconRequestParamsMapper {
         iconRequestParams.getKeywords() != null
             ? iconRequestParams.getKeywords()
             : new ArrayList<>());
-    operationParams.setIconTypeFilter(iconRequestParams.getIconTypeFilter());
+    operationParams.setIconTypeFilter(iconRequestParams.getType());
     operationParams.setCreated(iconRequestParams.getCreated());
     operationParams.setLastUpdated(iconRequestParams.getLastUpdated());
 
