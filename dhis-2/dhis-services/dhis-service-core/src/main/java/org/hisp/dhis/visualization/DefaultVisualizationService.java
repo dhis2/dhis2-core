@@ -81,6 +81,6 @@ public class DefaultVisualizationService extends GenericAnalyticalObjectService<
 
   @Override
   public List<Visualization> getVisualizationsWithIndicatorSorting(List<String> indicators) {
-    return visualizationStore.getAnalyticalObjectsByIndicator(indicators);
+    return visualizationStore.getVisualizationsBySortingIndicator(indicators);
   }
 }

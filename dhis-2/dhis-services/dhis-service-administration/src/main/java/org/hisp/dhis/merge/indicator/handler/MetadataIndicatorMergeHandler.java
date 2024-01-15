@@ -63,6 +63,12 @@ public class MetadataIndicatorMergeHandler {
   private final DimensionService dimensionService;
   private final VisualizationService visualizationService;
 
+  /**
+   * Remove sources from {@link DataSet} and add target to {@link DataSet}
+   *
+   * @param sources to be removed
+   * @param target to add
+   */
   public void handleDataSets(List<Indicator> sources, Indicator target) {
     Set<DataSet> dataSets =
         sources.stream()
@@ -77,6 +83,12 @@ public class MetadataIndicatorMergeHandler {
         });
   }
 
+  /**
+   * Remove sources from {@link IndicatorGroup} and add target to {@link IndicatorGroup}
+   *
+   * @param sources to be removed
+   * @param target to add
+   */
   public void handleIndicatorGroups(List<Indicator> sources, Indicator target) {
     Set<IndicatorGroup> indicatorGroups =
         sources.stream()
@@ -91,12 +103,25 @@ public class MetadataIndicatorMergeHandler {
         });
   }
 
+  /**
+   * Replace any links to source {@link Indicator}s with the target {@link Indicator}
+   *
+   * @param sources links to be removed
+   * @param target to be linked
+   */
   public void handleDataDimensionItems(List<Indicator> sources, Indicator target) {
     List<DataDimensionItem> dataDimensionItems =
         dimensionService.getIndicatorDataDimensionItems(sources);
     dataDimensionItems.forEach(item -> item.setIndicator(target));
   }
 
+  /**
+   * Replace all {@link Indicator} refs in the {@link org.hisp.dhis.analytics.Sorting} 'dimension'
+   * field
+   *
+   * @param sources to be replaced
+   * @param target to replace each source
+   */
   public void handleVisualizations(List<Indicator> sources, Indicator target) {
     List<String> sourceUids = IdentifiableObjectUtils.getUids(sources);
     List<Visualization> visualizations =
@@ -113,6 +138,12 @@ public class MetadataIndicatorMergeHandler {
                             sorting.getDimension().replace(source.getUid(), target.getUid()))));
   }
 
+  /**
+   * Remove sources from {@link Section} and add target to {@link Section}
+   *
+   * @param sources to be removed
+   * @param target to add
+   */
   public void handleSections(List<Indicator> sources, Indicator target) {
     List<Section> sections = sectionService.getSectionsByIndicators(sources);
     sections.forEach(
@@ -122,6 +153,12 @@ public class MetadataIndicatorMergeHandler {
         });
   }
 
+  /**
+   * Replace all {@link Indicator} refs in the numerator and denominator fields
+   *
+   * @param sources to be replaced
+   * @param target to replace each source
+   */
   public void handleIndicatorRefsInIndicator(List<Indicator> sources, Indicator target) {
     for (Indicator source : sources) {
       // numerators
@@ -146,6 +183,12 @@ public class MetadataIndicatorMergeHandler {
     }
   }
 
+  /**
+   * Replace all {@link Indicator} refs in the htmlCode fields
+   *
+   * @param sources to be replaced
+   * @param target to replace each source
+   */
   public void handleIndicatorRefsInCustomForms(List<Indicator> sources, Indicator target) {
     for (Indicator source : sources) {
       List<DataEntryForm> forms =

@@ -108,5 +108,11 @@ public interface DimensionService {
   Map<DimensionalItemId, DimensionalItemObject> getNoAclDataDimensionalItemObjectMap(
       Set<DimensionalItemId> itemIds);
 
+  /**
+   * Gets all {@link DataDimensionItem}s that reference any of the supplied {@link Indicator}s
+   *
+   * @param indicators to search for
+   * @return matching {@link DataDimensionItem}s
+   */
   List<DataDimensionItem> getIndicatorDataDimensionItems(List<Indicator> indicators);
 }

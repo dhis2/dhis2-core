@@ -74,10 +74,11 @@ public interface VisualizationService extends AnalyticalObjectService<Visualizat
   Visualization getVisualizationNoAcl(String uid);
 
   /**
-   * Retrieves all Visualizations that have Indicator refs in the sorting object.
+   * Retrieves all {@link Visualization}s that have {@link org.hisp.dhis.indicator.Indicator} refs
+   * in the sorting object.
    *
-   * @param indicators the indicators to search for.
-   * @return the Visualization.
+   * @param indicators the {@link org.hisp.dhis.indicator.Indicator} refs to search for.
+   * @return matching {@link Visualization}s.
    */
   List<Visualization> getVisualizationsWithIndicatorSorting(List<String> indicators);
 }

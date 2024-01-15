@@ -186,8 +186,15 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     return getQuery(hql).setParameter("legendSet", legendSet).list();
   }
 
+  /**
+   * Method that gets all {@link Visualization}s where its {@link org.hisp.dhis.analytics.Sorting}'
+   * column (jsonb) contains any of the supplied {@link Indicator} references.
+   *
+   * @param indicators references to search for
+   * @return matching {@link Visualization}s
+   */
   @Override
-  public List<T> getAnalyticalObjectsByIndicator(List<String> indicators) {
+  public List<T> getVisualizationsBySortingIndicator(List<String> indicators) {
     // language=sql
     String sql =
         """

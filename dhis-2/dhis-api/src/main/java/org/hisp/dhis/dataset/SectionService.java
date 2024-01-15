@@ -87,9 +87,9 @@ public interface SectionService {
   List<Section> getAllSections();
 
   /**
-   * Retrieves all Sections referencing the provided Indicators.
+   * Retrieves all {@link Section}s referencing the provided {@link Indicator}s.
    *
-   * @return a Collection of Sections.
+   * @return a Collection of {@link Section}s.
    */
   List<Section> getSectionsByIndicators(List<Indicator> indicators);
 

@@ -44,5 +44,10 @@ public interface SectionStore extends IdentifiableObjectStore<Section> {
 
   List<Section> getSectionsByDataElement(String dataElementUid);
 
+  /**
+   * Retrieves all {@link Section}s referencing the provided {@link Indicator}s.
+   *
+   * @return a Collection of {@link Section}s.
+   */
   List<Section> getSectionsByIndicators(List<Indicator> indicators);
 }

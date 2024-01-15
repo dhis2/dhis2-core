@@ -42,10 +42,10 @@ public interface DataEntryFormStore extends IdentifiableObjectStore<DataEntryFor
   DataEntryForm getDataEntryFormByName(String name);
 
   /**
-   * Returns DataEntryForms whose html contain the search param passed in.
+   * Returns {@link DataEntryForm}s whose html contain the search param passed in.
    *
    * @param searchString The string to search for in the html column.
-   * @return Matching DataEntryForms.
+   * @return matching {@link DataEntryForm}s.
    */
   List<DataEntryForm> getDataEntryFormsHtmlContaining(String searchString);
 }

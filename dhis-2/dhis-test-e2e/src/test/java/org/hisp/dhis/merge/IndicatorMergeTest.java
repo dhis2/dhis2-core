@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,24 +54,36 @@ class IndicatorMergeTest extends ApiTest {
   private RestApiActions indicatorApiActions;
   private RestApiActions indicatorTypeApiActions;
   private RestApiActions formsActions;
-  private LoginActions loginActions;
   private RestApiActions dataSetActions;
   private RestApiActions indicatorGroupActions;
   private RestApiActions sectionActions;
-  private RestApiActions dataItemsActions;
   private RestApiActions configActions;
   private RestApiActions visualizationActions;
+  private String sourceUid1;
+  private String sourceUid2;
+  private String targetUid;
+  private String ind4WithIndRef;
+  private String ind5WithIndRef;
+  private String indWithoutSourceRef;
+  private String indGroupWithSources;
+  private String indGroupWithNoSources;
+  private String datasetWithSources;
+  private String datasetWithoutSources;
+  private String sectionWithSources;
+  private String sectionWithoutSources;
+  private String formWithSources;
+  private String formWithoutSources;
+  private String visUid;
 
   @BeforeAll
   public void before() {
-    loginActions = new LoginActions();
+    LoginActions loginActions = new LoginActions();
     indicatorApiActions = new RestApiActions("indicators");
     indicatorTypeApiActions = new RestApiActions("indicatorTypes");
     formsActions = new RestApiActions("dataEntryForms");
     dataSetActions = new RestApiActions("dataSets");
     indicatorGroupActions = new RestApiActions("indicatorGroups");
     sectionActions = new RestApiActions("sections");
-    dataItemsActions = new RestApiActions("dataItems");
     configActions = new RestApiActions("configuration");
     visualizationActions = new RestApiActions("visualizations");
     loginActions.loginAsSuperUser();
@@ -80,115 +92,8 @@ class IndicatorMergeTest extends ApiTest {
   @Test
   @DisplayName("Valid Indicator merge completes successfully")
   void testValidIndicatorMerge() {
-    // given
-    // indicator types
-    String indTypeUid1 =
-        indicatorTypeApiActions
-            .post(createIndicatorType("D", 98, true))
-            .validateStatus(201)
-            .extractUid();
-    String indTypeUid2 =
-        indicatorTypeApiActions
-            .post(createIndicatorType("E", 99, false))
-            .validateStatus(201)
-            .extractUid();
-    String indTypeUid3 =
-        indicatorTypeApiActions
-            .post(createIndicatorType("F", 100, true))
-            .validateStatus(201)
-            .extractUid();
-
-    // indicators (2 x source & 1 target)
-    String sourceUid1 =
-        indicatorApiActions
-            .post(createIndicator("Ind source 1", indTypeUid1))
-            .validateStatus(201)
-            .extractUid();
-    String sourceUid2 =
-        indicatorApiActions
-            .post(createIndicator("Ind source 2", indTypeUid2))
-            .validateStatus(201)
-            .extractUid();
-    String targetUid =
-        indicatorApiActions
-            .post(createIndicator("Ind target 3", indTypeUid3))
-            .validateStatus(201)
-            .extractUid();
-
-    // indicators containing refs to other indicators in numerator/denominator
-    // indicator with numerator and denominator x 2
-    String i4 =
-        indicatorApiActions
-            .post(createIndicatorWithRefs("Ind 4", indTypeUid2, sourceUid1, sourceUid2))
-            .validateStatus(201)
-            .extractUid();
-    String i5 =
-        indicatorApiActions
-            .post(createIndicatorWithRefs("Ind 5", indTypeUid3, targetUid, sourceUid2))
-            .validateStatus(201)
-            .extractUid();
-
-    String i6 =
-        indicatorApiActions
-            .post(createIndicatorWithRefs("Ind 6", indTypeUid3, targetUid, "Uid45678901"))
-            .validateStatus(201)
-            .extractUid();
-
-    // 2 data entry forms containing indicator refs in html code
-    String form1Uid =
-        formsActions
-            .post(createDataEntryForm("custom form 1", sourceUid2, sourceUid1))
-            .validateStatus(201)
-            .extractUid();
-
-    String form2Uid =
-        formsActions
-            .post(createDataEntryForm("custom form 2", targetUid, "Uid45678901"))
-            .validateStatus(201)
-            .extractUid();
-
-    // datasets (have 1 part of a source and 1 not)
-    String ds1Uid =
-        dataSetActions
-            .post(createDataSet("Data set 1", sourceUid1, sourceUid2))
-            .validateStatus(201)
-            .extractUid();
-    String ds2Uid =
-        dataSetActions.post(createDataSet("Data set 2", i4, i5)).validateStatus(201).extractUid();
-
-    // indicator groups (have 1 part of a source and 1 not)
-    String ig1Uid =
-        indicatorGroupActions
-            .post(createIndicatorGroup("Group 1", sourceUid1, sourceUid2))
-            .validateStatus(201)
-            .extractUid();
-    String ig2Uid =
-        indicatorGroupActions
-            .post(createIndicatorGroup("Group 2", i4, i5))
-            .validateStatus(201)
-            .extractUid();
-
-    // sections (have 1 reference a source and 1 not)
-    String section1Uid =
-        sectionActions
-            .post(createSection("Group 1", ds1Uid, sourceUid1, sourceUid2))
-            .validateStatus(201)
-            .extractUid();
-    String section2Uid =
-        sectionActions
-            .post(createSection("Group 2", ds2Uid, i4, i5))
-            .validateStatus(201)
-            .extractUid();
-
-    // and a visualization exists with data dimension items (indicators)
-    String visUid =
-        visualizationActions
-            .post(getVisualization(sourceUid1, sourceUid2))
-            .validateStatus(201)
-            .extractUid();
-
-    // set config indicators
-    configActions.post("infrastructuralIndicators", ig1Uid).validateStatus(204);
+    // given some indicators exist and have references with many other metadata types
+    setupIndicatorData();
 
     // when an indicator type merge request is submitted, deleting sources
     ApiResponse response =
@@ -206,15 +111,16 @@ class IndicatorMergeTest extends ApiTest {
         .body("response.mergeReport.mergeType", equalTo("INDICATOR"))
         .body("response.mergeReport.sourcesDeleted", hasItems(sourceUid1, sourceUid2));
 
+    // and all the following source indicator references have been handled appropriately
     // and sources are deleted & target exists
     indicatorApiActions.get(sourceUid1).validateStatus(404);
     indicatorApiActions.get(sourceUid2).validateStatus(404);
     indicatorApiActions.get(targetUid).validateStatus(200);
 
     // and all groups now reference target indicator type
-    // group 1 has had indicator replaced
+    // group has had indicators replaced
     indicatorGroupActions
-        .get(ig1Uid)
+        .get(indGroupWithSources)
         .validate()
         .statusCode(200)
         .body("indicators", hasItem(allOf(hasEntry("id", targetUid))))
@@ -222,19 +128,19 @@ class IndicatorMergeTest extends ApiTest {
             "indicators",
             not(hasItem(allOf(hasEntry("id", sourceUid1), hasEntry("id", sourceUid2)))));
 
-    // group 2 has not had indicator replaced
+    // group has not had indicator replaced
     indicatorGroupActions
-        .get(ig2Uid)
+        .get(indGroupWithNoSources)
         .validate()
         .statusCode(200)
-        .body("indicators", hasItem(hasEntry("id", i4)))
-        .body("indicators", hasItem(hasEntry("id", i5)))
+        .body("indicators", hasItem(hasEntry("id", ind4WithIndRef)))
+        .body("indicators", hasItem(hasEntry("id", ind5WithIndRef)))
         .body("indicators", not(hasItem(hasEntry("id", targetUid))));
 
     // and all data sets are updated where appropriate
-    // data set 1 has had indicator replaced
+    // data set has had indicator replaced
     dataSetActions
-        .get(ds1Uid)
+        .get(datasetWithSources)
         .validate()
         .statusCode(200)
         .body("indicators", hasItem(allOf(hasEntry("id", targetUid))))
@@ -242,19 +148,19 @@ class IndicatorMergeTest extends ApiTest {
             "indicators",
             not(hasItem(allOf(hasEntry("id", sourceUid1), hasEntry("id", sourceUid2)))));
 
-    // data set 2 has not had indicator replaced
+    // data set has not had indicator replaced
     dataSetActions
-        .get(ds2Uid)
+        .get(datasetWithoutSources)
         .validate()
         .statusCode(200)
-        .body("indicators", hasItem(hasEntry("id", i4)))
-        .body("indicators", hasItem(hasEntry("id", i5)))
+        .body("indicators", hasItem(hasEntry("id", ind4WithIndRef)))
+        .body("indicators", hasItem(hasEntry("id", ind5WithIndRef)))
         .body("indicators", not(hasItem(hasEntry("id", targetUid))));
 
     // and all sections are updated where appropriate
-    // section 1 has had indicator replaced
+    // section has had indicator replaced
     sectionActions
-        .get(section1Uid)
+        .get(sectionWithSources)
         .validate()
         .statusCode(200)
         .body("indicators", hasItem(allOf(hasEntry("id", targetUid))))
@@ -262,28 +168,28 @@ class IndicatorMergeTest extends ApiTest {
             "indicators",
             not(hasItem(allOf(hasEntry("id", sourceUid1), hasEntry("id", sourceUid2)))));
 
-    // section 2 has not had indicator replaced
+    // section has not had indicator replaced
     sectionActions
-        .get(section2Uid)
+        .get(sectionWithoutSources)
         .validate()
         .statusCode(200)
-        .body("indicators", hasItem(hasEntry("id", i4)))
-        .body("indicators", hasItem(hasEntry("id", i5)))
+        .body("indicators", hasItem(hasEntry("id", ind4WithIndRef)))
+        .body("indicators", hasItem(hasEntry("id", ind5WithIndRef)))
         .body("indicators", not(hasItem(hasEntry("id", targetUid))));
 
     // and all forms are updated where appropriate
-    // form 1 has had indicator replaced
+    // form has had indicator replaced
     formsActions
-        .get(form1Uid)
+        .get(formWithSources)
         .validate()
         .statusCode(200)
         .body("htmlCode", containsString(targetUid))
         .body("htmlCode", not(containsString(sourceUid1)))
         .body("htmlCode", not(containsString(sourceUid2)));
 
-    // form 2 has not had indicator replaced
+    // form has not had indicator replaced
     formsActions
-        .get(form2Uid)
+        .get(formWithoutSources)
         .validate()
         .statusCode(200)
         .body("htmlCode", not(containsString(sourceUid1)))
@@ -292,9 +198,9 @@ class IndicatorMergeTest extends ApiTest {
         .body("htmlCode", containsString("Uid45678901"));
 
     // and all indicator numerator/denominator are updated where appropriate
-    // indicator 1 has been updated
+    // indicator has been updated
     indicatorApiActions
-        .get(i4)
+        .get(ind4WithIndRef)
         .validate()
         .statusCode(200)
         .body("numerator", containsString(targetUid))
@@ -302,18 +208,18 @@ class IndicatorMergeTest extends ApiTest {
         .body("denominator", containsString(targetUid))
         .body("denominator", not(containsString(sourceUid2)));
 
-    // indicator 2 has been partially updated
+    // indicator has been partially updated
     indicatorApiActions
-        .get(i5)
+        .get(ind5WithIndRef)
         .validate()
         .statusCode(200)
         .body("numerator", containsString(targetUid))
         .body("denominator", containsString(targetUid))
         .body("denominator", not(containsString(sourceUid2)));
 
-    // indicator 3 has not been updated
+    // indicator has not been updated
     indicatorApiActions
-        .get(i6)
+        .get(indWithoutSourceRef)
         .validate()
         .statusCode(200)
         .body("numerator", containsString(targetUid))
@@ -350,7 +256,121 @@ class IndicatorMergeTest extends ApiTest {
         .statusCode(200)
         .body("sorting", hasItem(allOf(hasEntry("dimension", targetUid))))
         .body("sorting", not(hasItem(allOf(hasEntry("dimension", sourceUid1)))))
-        .body("sorting", not(hasItem(allOf(hasEntry("dimension", section2Uid)))));
+        .body("sorting", not(hasItem(allOf(hasEntry("dimension", sectionWithoutSources)))));
+  }
+
+  private void setupIndicatorData() {
+    // indicator types
+    String indTypeUid1 =
+        indicatorTypeApiActions
+            .post(createIndicatorType("D", 98, true))
+            .validateStatus(201)
+            .extractUid();
+    String indTypeUid2 =
+        indicatorTypeApiActions
+            .post(createIndicatorType("E", 99, false))
+            .validateStatus(201)
+            .extractUid();
+    String indTypeUid3 =
+        indicatorTypeApiActions
+            .post(createIndicatorType("F", 100, true))
+            .validateStatus(201)
+            .extractUid();
+
+    // indicators (2 x source & 1 target)
+    sourceUid1 =
+        indicatorApiActions
+            .post(createIndicator("Ind source 1", indTypeUid1))
+            .validateStatus(201)
+            .extractUid();
+    sourceUid2 =
+        indicatorApiActions
+            .post(createIndicator("Ind source 2", indTypeUid2))
+            .validateStatus(201)
+            .extractUid();
+    targetUid =
+        indicatorApiActions
+            .post(createIndicator("Ind target 3", indTypeUid3))
+            .validateStatus(201)
+            .extractUid();
+
+    // indicators containing refs to other indicators in numerator/denominator
+    // indicator with numerator and denominator x 2
+    ind4WithIndRef =
+        indicatorApiActions
+            .post(createIndicatorWithRefs("Ind 4", indTypeUid2, sourceUid1, sourceUid2))
+            .validateStatus(201)
+            .extractUid();
+    ind5WithIndRef =
+        indicatorApiActions
+            .post(createIndicatorWithRefs("Ind 5", indTypeUid3, targetUid, sourceUid2))
+            .validateStatus(201)
+            .extractUid();
+
+    indWithoutSourceRef =
+        indicatorApiActions
+            .post(createIndicatorWithRefs("Ind 6", indTypeUid3, targetUid, "Uid45678901"))
+            .validateStatus(201)
+            .extractUid();
+
+    // 2 data entry forms containing indicator refs in html code
+    formWithSources =
+        formsActions
+            .post(createDataEntryForm("custom form 1", sourceUid2, sourceUid1))
+            .validateStatus(201)
+            .extractUid();
+
+    formWithoutSources =
+        formsActions
+            .post(createDataEntryForm("custom form 2", targetUid, "Uid45678901"))
+            .validateStatus(201)
+            .extractUid();
+
+    // datasets (have 1 part of a source and 1 not)
+    datasetWithSources =
+        dataSetActions
+            .post(createDataSet("Data set 1", sourceUid1, sourceUid2))
+            .validateStatus(201)
+            .extractUid();
+    datasetWithoutSources =
+        dataSetActions
+            .post(createDataSet("Data set 2", ind4WithIndRef, ind5WithIndRef))
+            .validateStatus(201)
+            .extractUid();
+
+    // indicator groups (have 1 part of a source and 1 not)
+    indGroupWithSources =
+        indicatorGroupActions
+            .post(createIndicatorGroup("Group 1", sourceUid1, sourceUid2))
+            .validateStatus(201)
+            .extractUid();
+    indGroupWithNoSources =
+        indicatorGroupActions
+            .post(createIndicatorGroup("Group 2", ind4WithIndRef, ind5WithIndRef))
+            .validateStatus(201)
+            .extractUid();
+
+    // sections (have 1 reference a source and 1 not)
+    sectionWithSources =
+        sectionActions
+            .post(createSection("Group 1", datasetWithSources, sourceUid1, sourceUid2))
+            .validateStatus(201)
+            .extractUid();
+    sectionWithoutSources =
+        sectionActions
+            .post(createSection("Group 2", datasetWithoutSources, ind4WithIndRef, ind5WithIndRef))
+            .validateStatus(201)
+            .extractUid();
+
+    // and a visualization exists with data dimension items (indicators)
+    visUid =
+        visualizationActions
+            .post(getVisualization(sourceUid1, sourceUid2))
+            .validateStatus(201)
+            .extractUid();
+
+    // set config indicators
+    configActions.post("infrastructuralIndicators", indGroupWithSources).validateStatus(204);
   }
 
   private String getVisualization(String sourceUid1, String sourceUid2) {
@@ -431,28 +451,6 @@ class IndicatorMergeTest extends ApiTest {
     json.addProperty("target", target);
     json.addProperty("deleteSources", deleteSources);
     return json;
-  }
-
-  private String getMergeBodyNoSources(String target, boolean deleteSources) {
-    return """
-     {
-        "sources": [],
-        "target": "%s",
-        "number": "%b"
-     }
-    """
-        .formatted(target, deleteSources);
-  }
-
-  private String getMergeBodyNoTarget(String target, boolean deleteSources) {
-    return """
-     {
-        "sources": ["%s"],
-        "target": null,
-        "number": "%b"
-     }
-    """
-        .formatted(target, deleteSources);
   }
 
   private String createIndicatorWithRefs(

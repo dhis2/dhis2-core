@@ -36,5 +36,12 @@ import org.hisp.dhis.indicator.Indicator;
  * @author david mackessy
  */
 public interface DataDimensionItemStore extends GenericStore<DataDimensionItem> {
+
+  /**
+   * Gets all {@link DataDimensionItem}s that reference any of the supplied {@link Indicator}s
+   *
+   * @param indicators to search for
+   * @return matching {@link DataDimensionItem}s
+   */
   List<DataDimensionItem> getIndicatorDataDimensionItems(List<Indicator> indicators);
 }
