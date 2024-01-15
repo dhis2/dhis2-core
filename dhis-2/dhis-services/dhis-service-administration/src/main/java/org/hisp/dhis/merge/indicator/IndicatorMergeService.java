@@ -123,12 +123,13 @@ public class IndicatorMergeService implements MergeService {
    * @param uid the indicator identifier
    * @return {@link Optional<UID>}
    */
-  private Optional<UID> getAndVerifyIndicator(UID uid, MergeReport mergeReport, String ind) {
+  private Optional<UID> getAndVerifyIndicator(
+      UID uid, MergeReport mergeReport, String mergeObjectType) {
     return Optional.ofNullable(indicatorService.getIndicator(uid.getValue()))
         .map(i -> UID.of(i.getUid()))
         .or(
             () -> {
-              mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1543, ind, uid));
+              mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1543, mergeObjectType, uid));
               return Optional.empty();
             });
   }
