@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics.outlier.service;
 
-import static org.hisp.dhis.analytics.OutlierDetectionAlgorithm.MOD_Z_SCORE;
+import static org.hisp.dhis.analytics.OutlierDetectionAlgorithm.MODIFIED_Z_SCORE;
 import static org.hisp.dhis.analytics.common.ColumnHeader.ABSOLUTE_DEVIATION;
 import static org.hisp.dhis.analytics.common.ColumnHeader.ATTRIBUTE_OPTION_COMBO;
 import static org.hisp.dhis.analytics.common.ColumnHeader.ATTRIBUTE_OPTION_COMBO_NAME;
@@ -39,7 +39,6 @@ import static org.hisp.dhis.analytics.common.ColumnHeader.LOWER_BOUNDARY;
 import static org.hisp.dhis.analytics.common.ColumnHeader.MEAN;
 import static org.hisp.dhis.analytics.common.ColumnHeader.MEDIAN;
 import static org.hisp.dhis.analytics.common.ColumnHeader.MEDIAN_ABS_DEVIATION;
-import static org.hisp.dhis.analytics.common.ColumnHeader.MODIFIED_ZSCORE;
 import static org.hisp.dhis.analytics.common.ColumnHeader.ORG_UNIT;
 import static org.hisp.dhis.analytics.common.ColumnHeader.ORG_UNIT_NAME;
 import static org.hisp.dhis.analytics.common.ColumnHeader.ORG_UNIT_NAME_HIERARCHY;
@@ -63,6 +62,7 @@ import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.cache.OutliersCache;
+import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.common.TableInfoReader;
 import org.hisp.dhis.analytics.data.DimensionalObjectProducer;
 import org.hisp.dhis.analytics.outlier.data.Outlier;
@@ -198,10 +198,12 @@ public class AnalyticsOutlierService {
   }
 
   private void setHeaders(Grid grid, OutlierRequest request) {
-    boolean isModifiedZScore = request.getAlgorithm() == MOD_Z_SCORE;
+    boolean isModifiedZScore = request.getAlgorithm() == MODIFIED_Z_SCORE;
 
-    String zScoreOrModZScoreItem = isModifiedZScore ? MODIFIED_ZSCORE.getItem() : ZSCORE.getItem();
-    String zScoreOrModZScoreName = isModifiedZScore ? MODIFIED_ZSCORE.getName() : ZSCORE.getName();
+    String zScoreOrModZScoreItem =
+        isModifiedZScore ? ColumnHeader.MODIFIED_Z_SCORE.getItem() : ZSCORE.getItem();
+    String zScoreOrModZScoreName =
+        isModifiedZScore ? ColumnHeader.MODIFIED_Z_SCORE.getName() : ZSCORE.getName();
 
     String meanOrMedianItem = isModifiedZScore ? MEDIAN.getItem() : MEAN.getItem();
     String meanOrMedianName = isModifiedZScore ? MEDIAN.getName() : MEAN.getName();
@@ -291,7 +293,7 @@ public class AnalyticsOutlierService {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     outliers.forEach(
         outlier -> {
-          boolean isModifiedZScore = outlierRequest.getAlgorithm() == MOD_Z_SCORE;
+          boolean isModifiedZScore = outlierRequest.getAlgorithm() == MODIFIED_Z_SCORE;
           OrganisationUnit ou = organisationUnitService.getOrganisationUnit(outlier.getOu());
           Collection<OrganisationUnit> roots =
               currentUser != null ? currentUser.getOrganisationUnits() : null;

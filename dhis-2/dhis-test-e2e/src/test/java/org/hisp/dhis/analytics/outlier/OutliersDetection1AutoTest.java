@@ -342,11 +342,11 @@ public class OutliersDetection1AutoTest extends AnalyticsApiTest {
             .add("endDate=2023-01-02")
             .add("ou=O6uvpzGd5pu,fdc6uOvgoji")
             .add("maxResults=30")
-            .add("orderBy=modified_zscore")
+            .add("orderBy=modified_z_score")
             .add("threshold=10")
             .add("startDate=2022-10-01")
             .add("ds=BfMAe6Itzgt")
-            .add("algorithm=MOD_Z_SCORE");
+            .add("algorithm=MODIFIED_Z_SCORE");
 
     // When
     ApiResponse response = actions.query().get("", JSON, JSON, params);
@@ -446,9 +446,9 @@ public class OutliersDetection1AutoTest extends AnalyticsApiTest {
             .add("endDate=2023-01-02")
             .add("ou=O6uvpzGd5pu,fdc6uOvgoji")
             .add("maxResults=30")
-            .add("orderBy=modified_zscore")
+            .add("orderBy=modified_z_score")
             .add("startDate=2022-10-01")
-            .add("algorithm=MOD_Z_SCORE");
+            .add("algorithm=MODIFIED_Z_SCORE");
 
     // When
     ApiResponse response = actions.query().get("", JSON, JSON, params);
