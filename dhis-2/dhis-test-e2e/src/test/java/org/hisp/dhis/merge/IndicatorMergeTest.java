@@ -424,10 +424,10 @@ class IndicatorMergeTest extends ApiTest {
   private JsonObject getMergeBody(
       String source1, String source2, String target, boolean deleteSources) {
     JsonObject json = new JsonObject();
-    JsonArray array = new JsonArray();
-    array.add(source1);
-    array.add(source2);
-    json.add("sources", array);
+    JsonArray sources = new JsonArray();
+    sources.add(source1);
+    sources.add(source2);
+    json.add("sources", sources);
     json.addProperty("target", target);
     json.addProperty("deleteSources", deleteSources);
     return json;

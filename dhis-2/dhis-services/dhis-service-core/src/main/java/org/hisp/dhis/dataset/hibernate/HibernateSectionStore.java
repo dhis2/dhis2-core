@@ -82,14 +82,14 @@ public class HibernateSectionStore extends HibernateIdentifiableObjectStore<Sect
 
   @Override
   public List<Section> getSectionsByIndicators(List<Indicator> indicators) {
-    // language sql
+    // language=sql
     String sql =
         """
-        select s.sectionid from section s
-        join sectionindicators si on s.sectionid = si.sectionid
-        where si.indicatorid in :indicators
-        group by s.sectionid
-      """;
+            select s.* from section s
+            join sectionindicators si on s.sectionid = si.sectionid
+            where si.indicatorid in :indicators
+            group by s.sectionid
+          """;
     return getSession()
         .createNativeQuery(sql, Section.class)
         .setParameter("indicators", indicators)
