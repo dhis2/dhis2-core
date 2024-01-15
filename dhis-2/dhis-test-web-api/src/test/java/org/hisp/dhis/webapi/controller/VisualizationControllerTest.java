@@ -40,6 +40,7 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.web.HttpStatus;
@@ -156,6 +157,30 @@ class VisualizationControllerTest extends DhisControllerConvenienceTest {
 
     assertThat(response.get("sorting").toString(), containsString("pe"));
     assertThat(response.get("sorting").toString(), containsString("ASC"));
+  }
+
+  @Test
+  void testPostOutlierTypeObject() {
+    // Given
+    String dimension = "pe";
+    String body =
+        "{'name': 'Name Test', 'type': 'OUTLIER_TABLE', 'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}, 'columns': [{'dimension': '"
+            + dimension
+            + "'}]"
+            + "}";
+
+    // When
+    String uid = assertStatus(CREATED, POST("/visualizations/", body));
+
+    // Then
+    String getParams = "?filter=type:eq:OUTLIER_TABLE&fields=:all,columns[:all,items,sorting]";
+    JsonObject response = GET("/visualizations" + getParams).content();
+
+    JsonNode visualization = response.getArray("visualizations").getArray(0).node();
+    assertEquals(uid, visualization.get("id").value().toString());
+    assertEquals("OUTLIER_TABLE", visualization.get("type").value().toString());
   }
 
   @Test
