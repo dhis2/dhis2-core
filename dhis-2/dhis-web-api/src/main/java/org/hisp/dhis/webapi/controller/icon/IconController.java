@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.icon;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.net.MediaType;
 import java.io.IOException;
 import java.util.List;
@@ -48,12 +49,13 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.icon.CustomIcon;
 import org.hisp.dhis.icon.DefaultIcon;
 import org.hisp.dhis.icon.Icon;
-import org.hisp.dhis.icon.IconCriteria;
+import org.hisp.dhis.icon.IconOperationParams;
 import org.hisp.dhis.icon.IconResponse;
 import org.hisp.dhis.icon.IconService;
 import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
@@ -94,6 +96,10 @@ public class IconController {
 
   private final DhisConfigurationProvider dhisConfig;
 
+  private final FieldFilterService fieldFilterService;
+
+  private final IconRequestParamsMapper iconRequestParamsMapper;
+
   @GetMapping("/{iconKey}")
   public @ResponseBody IconResponse getIcon(@PathVariable String iconKey) throws NotFoundException {
     Icon icon = iconService.getIcon(iconKey);
@@ -124,9 +130,14 @@ public class IconController {
   }
 
   @GetMapping
-  public @ResponseBody List<IconResponse> getAllIcons(IconCriteria iconCriteria) {
+  public @ResponseBody List<ObjectNode> getAllIcons(IconRequestParams iconRequestParams) {
 
-    return iconService.getIcons(iconCriteria).stream().map(iconMapper::from).toList();
+    IconOperationParams iconOperationParams = iconRequestParamsMapper.map(iconRequestParams);
+
+    List<IconResponse> iconResponses =
+        iconService.getIcons(iconOperationParams).stream().map(iconMapper::from).toList();
+
+    return fieldFilterService.toObjectNodes(iconResponses, iconRequestParams.getFields());
   }
 
   @GetMapping("/keywords")

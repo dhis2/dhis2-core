@@ -88,34 +88,36 @@ class IconTest extends TrackerTest {
   void shouldGetAllIconsWhenRequested() {
     Map<String, DefaultIcon> defaultIconMap = getAllDefaultIcons();
 
-    IconCriteria iconCriteria = new IconCriteria();
-    iconCriteria.setType(IconTypeFilter.ALL);
-    iconCriteria.setKeywords(List.of());
+    IconOperationParams operationParams =
+        IconOperationParams.builder()
+            .iconTypeFilter(IconTypeFilter.ALL)
+            .keywords(List.of())
+            .build();
 
     assertEquals(
         defaultIconMap.size() + 1,
-        iconService.getIcons(iconCriteria).size(),
+        iconService.getIcons(operationParams).size(),
         String.format(
             "Expected to find %d icons, but found %d instead: %s",
             defaultIconMap.size() + 1,
-            iconService.getIcons(iconCriteria).size(),
-            iconService.getIcons(iconCriteria)));
+            iconService.getIcons(operationParams).size(),
+            iconService.getIcons(operationParams)));
   }
 
   @Test
   void shouldGetAllIconsByDefault() {
     Map<String, DefaultIcon> defaultIconMap = getAllDefaultIcons();
 
-    IconCriteria iconCriteria = new IconCriteria();
+    IconOperationParams operationParams = IconOperationParams.builder().build();
 
     assertEquals(
         defaultIconMap.size() + 1,
-        iconService.getIcons(iconCriteria).size(),
+        iconService.getIcons(operationParams).size(),
         String.format(
             "Expected to find %d icons, but found %d instead: %s",
             defaultIconMap.size() + 1,
-            iconService.getIcons(iconCriteria).size(),
-            iconService.getIcons(iconCriteria)));
+            iconService.getIcons(operationParams).size(),
+            iconService.getIcons(operationParams)));
   }
 
   @Test
@@ -135,16 +137,18 @@ class IconTest extends TrackerTest {
             .flatMap(Arrays::stream)
             .collect(Collectors.toSet());
 
-    IconCriteria iconCriteria = new IconCriteria();
-    iconCriteria.setType(IconTypeFilter.ALL);
-    iconCriteria.setKeywords(keywordList.stream().toList());
+    IconOperationParams operationParams =
+        IconOperationParams.builder()
+            .iconTypeFilter(IconTypeFilter.ALL)
+            .keywords(keywordList.stream().toList())
+            .build();
 
     assertEquals(
         keywordList.size() + keywords.length,
         iconService.getKeywords().size(),
         String.format(
             "Expected to find %d icons, but found %d instead",
-            keywordList.size() + keywords.length, iconService.getIcons(iconCriteria).size()));
+            keywordList.size() + keywords.length, iconService.getIcons(operationParams).size()));
   }
 
   @Test
@@ -160,9 +164,11 @@ class IconTest extends TrackerTest {
     String keyword = defaultIcon.get().getKeywords()[0];
     FileResource fileResourceD = createAndPersistFileResource('D');
 
-    IconCriteria iconCriteria = new IconCriteria();
-    iconCriteria.setType(IconTypeFilter.ALL);
-    iconCriteria.setKeywords(List.of(keyword));
+    IconOperationParams operationParams =
+        IconOperationParams.builder()
+            .iconTypeFilter(IconTypeFilter.ALL)
+            .keywords(List.of(keyword))
+            .build();
 
     iconService.addCustomIcon(
         new CustomIcon(
@@ -172,7 +178,7 @@ class IconTest extends TrackerTest {
             fileResourceD.getUid(),
             getCurrentUser().getUid()));
 
-    assertGreaterOrEqual(2, iconService.getIcons(iconCriteria).size());
+    assertGreaterOrEqual(2, iconService.getIcons(operationParams).size());
   }
 
   @Test
@@ -198,19 +204,25 @@ class IconTest extends TrackerTest {
             getCurrentUser().getUid());
     iconService.addCustomIcon(iconC);
 
-    IconCriteria iconCriteria = new IconCriteria();
-    iconCriteria.setType(IconTypeFilter.CUSTOM);
-    iconCriteria.setKeywords(List.of("k4", "k5", "k6"));
+    IconOperationParams operationParams1 =
+        IconOperationParams.builder()
+            .iconTypeFilter(IconTypeFilter.CUSTOM)
+            .keywords(List.of("k4", "k5", "k6"))
+            .build();
+    IconOperationParams operationParams2 =
+        IconOperationParams.builder()
+            .iconTypeFilter(IconTypeFilter.CUSTOM)
+            .keywords(List.of("k6", "k7"))
+            .build();
+    IconOperationParams operationParams3 =
+        IconOperationParams.builder()
+            .iconTypeFilter(IconTypeFilter.CUSTOM)
+            .keywords(List.of("k6"))
+            .build();
 
-    assertContainsOnly(List.of(iconB), iconService.getIcons(iconCriteria));
-
-    iconCriteria.setKeywords(List.of("k6", "k7"));
-
-    assertContainsOnly(List.of(iconC), iconService.getIcons(iconCriteria));
-
-    iconCriteria.setKeywords(List.of("k6"));
-
-    assertContainsOnly(List.of(iconB, iconC), iconService.getIcons(iconCriteria));
+    assertContainsOnly(List.of(iconB), iconService.getIcons(operationParams1));
+    assertContainsOnly(List.of(iconC), iconService.getIcons(operationParams2));
+    assertContainsOnly(List.of(iconB, iconC), iconService.getIcons(operationParams3));
   }
 
   @Test

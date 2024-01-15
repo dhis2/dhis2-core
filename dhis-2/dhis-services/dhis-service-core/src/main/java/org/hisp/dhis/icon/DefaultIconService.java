@@ -74,25 +74,27 @@ public class DefaultIconService implements IconService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<Icon> getIcons(IconCriteria iconCriteria) {
-    if (IconTypeFilter.DEFAULT == iconCriteria.getType()) {
+  public List<Icon> getIcons(IconOperationParams iconOperationParams) {
+    if (IconTypeFilter.DEFAULT == iconOperationParams.getIconTypeFilter()) {
       return defaultIcons.values().stream()
-          .filter(icon -> Set.of(icon.getKeywords()).containsAll(iconCriteria.getKeywords()))
+          .filter(icon -> Set.of(icon.getKeywords()).containsAll(iconOperationParams.getKeywords()))
           .collect(Collectors.toList());
     }
 
-    if (IconTypeFilter.CUSTOM == iconCriteria.getType()) {
+    if (IconTypeFilter.CUSTOM == iconOperationParams.getIconTypeFilter()) {
       return customIconStore
-          .getIconsByKeywords(iconCriteria.getKeywords())
+          .getIconsByKeywords(iconOperationParams.getKeywords())
           .collect(Collectors.toList());
     }
 
     return Stream.concat(
             defaultIcons.values().stream()
-                .filter(icon -> Set.of(icon.getKeywords()).containsAll(iconCriteria.getKeywords()))
+                .filter(
+                    icon ->
+                        Set.of(icon.getKeywords()).containsAll(iconOperationParams.getKeywords()))
                 .toList()
                 .stream(),
-            customIconStore.getIconsByKeywords(iconCriteria.getKeywords()))
+            customIconStore.getIconsByKeywords(iconOperationParams.getKeywords()))
         .collect(Collectors.toList());
   }
 

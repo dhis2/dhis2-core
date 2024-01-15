@@ -40,10 +40,10 @@ public interface IconService {
   /**
    * Gets data about all the icons in the system
    *
-   * @param iconCriteria criteria to fetch icons
+   * @param iconOperationParams params to fetch icons
    * @return a collection of data about all the icons in the system
    */
-  List<Icon> getIcons(IconCriteria iconCriteria);
+  List<Icon> getIcons(IconOperationParams iconOperationParams);
 
   /**
    * Gets the icon associated to a key, if it exists
