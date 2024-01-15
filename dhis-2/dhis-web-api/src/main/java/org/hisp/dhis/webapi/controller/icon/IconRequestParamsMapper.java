@@ -41,14 +41,15 @@ public class IconRequestParamsMapper {
 
   public IconOperationParams map(IconRequestParams iconRequestParams) {
 
-    return IconOperationParams.builder()
-        .iconTypeFilter(iconRequestParams.getIconTypeFilter())
-        .keywords(
-            iconRequestParams.getKeywords() == null
-                ? new ArrayList<>()
-                : iconRequestParams.getKeywords())
-        .created(iconRequestParams.getCreated())
-        .lastUpdated(iconRequestParams.getLastUpdated())
-        .build();
+    IconOperationParams operationParams = new IconOperationParams();
+    operationParams.setKeywords(
+        iconRequestParams.getKeywords() != null
+            ? iconRequestParams.getKeywords()
+            : new ArrayList<>());
+    operationParams.setIconTypeFilter(iconRequestParams.getIconTypeFilter());
+    operationParams.setCreated(iconRequestParams.getCreated());
+    operationParams.setLastUpdated(iconRequestParams.getLastUpdated());
+
+    return operationParams;
   }
 }

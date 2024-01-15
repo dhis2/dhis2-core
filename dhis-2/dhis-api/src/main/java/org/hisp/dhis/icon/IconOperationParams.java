@@ -30,22 +30,20 @@ package org.hisp.dhis.icon;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /** Represents query parameters sent to {@link org.hisp.dhis.icon.IconService}. */
 
 /**
  * @author Zubair Asghar
  */
-@Getter
-@Builder
-@AllArgsConstructor
+@Data
+@NoArgsConstructor
 public class IconOperationParams {
 
-  private List<String> keywords = new ArrayList<>();
   private IconTypeFilter iconTypeFilter = IconTypeFilter.ALL;
+  private List<String> keywords = new ArrayList<>();
   private Date created;
   private Date lastUpdated;
 }
