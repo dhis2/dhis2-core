@@ -72,7 +72,8 @@ public class ProgramRuleEngine {
 
   private final RuleEngine ruleEngine;
 
-  public List<RuleEffect> evaluate(
+  @Deprecated
+  public List<RuleEffect> evaluateEvent(
       Enrollment enrollment, Set<Event> events, List<ProgramRule> rules) {
     return evaluateProgramRules(
         enrollment,
@@ -81,6 +82,25 @@ public class ProgramRuleEngine {
         Collections.emptyList(),
         getRuleEvents(events, null),
         rules);
+  }
+
+  @Deprecated
+  public List<RuleEffect> evaluateEvent(
+      Enrollment enrollment, Event event, Set<Event> events, List<ProgramRule> rules) {
+    return evaluateProgramRules(
+        enrollment,
+        event,
+        enrollment.getProgram(),
+        Collections.emptyList(),
+        getRuleEvents(events, event),
+        rules);
+  }
+
+  @Deprecated
+  public List<RuleEffect> evaluateProgramEvent(
+      Event event, Program program, List<ProgramRule> rules) {
+    return evaluateProgramRules(
+        null, null, program, List.of(), getRuleEvents(Set.of(event), null), rules);
   }
 
   public List<RuleEffects> evaluateEnrollmentAndEvents(
@@ -92,9 +112,8 @@ public class ProgramRuleEngine {
             enrollment.getProgram(),
             events.stream().map(Event::getProgramStage).distinct().toList());
     return evaluateProgramRulesForMultipleTrackerObjects(
-        enrollment,
+        getRuleEnrollment(enrollment, trackedEntityAttributeValues),
         enrollment.getProgram(),
-        trackedEntityAttributeValues,
         getRuleEvents(events, null),
         rules);
   }
@@ -102,24 +121,7 @@ public class ProgramRuleEngine {
   public List<RuleEffects> evaluateProgramEvents(Set<Event> events, Program program) {
     List<ProgramRule> rules = getProgramRules(program);
     return evaluateProgramRulesForMultipleTrackerObjects(
-        null, program, null, getRuleEvents(events, null), rules);
-  }
-
-  public List<RuleEffect> evaluateProgramEvent(
-      Event event, Program program, List<ProgramRule> rules) {
-    return evaluateProgramRules(
-        null, null, program, List.of(), getRuleEvents(Set.of(event), null), rules);
-  }
-
-  public List<RuleEffect> evaluate(
-      Enrollment enrollment, Event event, Set<Event> events, List<ProgramRule> rules) {
-    return evaluateProgramRules(
-        enrollment,
-        event,
-        enrollment.getProgram(),
-        Collections.emptyList(),
-        getRuleEvents(events, event),
-        rules);
+        null, program, getRuleEvents(events, null), rules);
   }
 
   private List<RuleEffect> evaluateProgramRules(
@@ -142,13 +144,11 @@ public class ProgramRuleEngine {
   }
 
   private List<RuleEffects> evaluateProgramRulesForMultipleTrackerObjects(
-      Enrollment enrollment,
+      RuleEnrollment ruleEnrollment,
       Program program,
-      List<TrackedEntityAttributeValue> trackedEntityAttributeValues,
       List<RuleEvent> ruleEvents,
       List<ProgramRule> rules) {
     try {
-      RuleEnrollment ruleEnrollment = getRuleEnrollment(enrollment, trackedEntityAttributeValues);
       RuleEngineContext ruleEngineContext = getRuleEngineContext(program, rules);
       return ruleEngine.evaluateAll(ruleEnrollment, ruleEvents, ruleEngineContext);
     } catch (Exception e) {

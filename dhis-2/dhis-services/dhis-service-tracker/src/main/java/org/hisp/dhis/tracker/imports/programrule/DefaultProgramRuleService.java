@@ -76,6 +76,15 @@ class DefaultProgramRuleService implements ProgramRuleService {
 
   private final RuleActionEventMapper ruleActionEventMapper;
 
+  /* This is calculating the rule effects for all the enrollments and events present in the payload.
+   * Enrollments present in the payload and related events (also the ones not present in the payload)
+   * are evaluated.
+   * Events present in the payload and related enrollment (also if it is not present in the payload)
+   * are evaluated.
+   * `calculateTrackerEventRuleEffects` method makes sure that only events that were not already evaluated
+   * are sent for evaluation. This ensures that there will be no duplicate effects.
+   * All program events present in the payload are evaluated.
+   */
   @Override
   @Transactional(readOnly = true)
   public void calculateRuleEffects(TrackerBundle bundle, TrackerPreheat preheat) {
@@ -110,7 +119,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
                       getAttributes(e.getEnrollment(), e.getTrackedEntity(), bundle, preheat))
                   .stream();
             })
-        .collect(Collectors.toList());
+        .toList();
   }
 
   private List<RuleEffects> calculateTrackerEventRuleEffects(
@@ -135,7 +144,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
                             bundle,
                             preheat))
                     .stream())
-        .collect(Collectors.toList());
+        .toList();
   }
 
   private List<RuleEffects> calculateProgramEventRuleEffects(
@@ -155,7 +164,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
                   .evaluateProgramEvents(new HashSet<>(events), entry.getKey())
                   .stream();
             })
-        .collect(Collectors.toList());
+        .toList();
   }
 
   // Get all the attributes linked to enrollment from the payload and the DB,
@@ -181,14 +190,12 @@ class DefaultProgramRuleService implements ProgramRuleService {
 
     if (trackedEntity != null) {
       List<String> payloadAttributeValuesIds =
-          payloadAttributeValues.stream()
-              .map(av -> av.getAttribute().getUid())
-              .collect(Collectors.toList());
+          payloadAttributeValues.stream().map(av -> av.getAttribute().getUid()).toList();
 
       attributeValues.addAll(
           trackedEntity.getTrackedEntityAttributeValues().stream()
               .filter(av -> !payloadAttributeValuesIds.contains(av.getAttribute().getUid()))
-              .collect(Collectors.toList()));
+              .toList());
     }
 
     return attributeValues;

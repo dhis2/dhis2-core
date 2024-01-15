@@ -66,7 +66,7 @@ public class ProgramRuleConfig {
         constantService,
         notificationImplementableRuleService,
         supplementaryDataProvider,
-        RuleEngine.Companion.getInstance());
+        RuleEngine.getInstance());
   }
 
   /**
@@ -81,6 +81,6 @@ public class ProgramRuleConfig {
         constantService,
         serverSideImplementableRuleService,
         supplementaryDataProvider,
-        RuleEngine.Companion.getInstance());
+        RuleEngine.getInstance());
   }
 }

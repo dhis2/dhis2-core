@@ -38,6 +38,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Async
 @RequiredArgsConstructor
 @Component("org.hisp.dhis.programrule.engine.ProgramRuleEngineListener")
+@Deprecated
 public class ProgramRuleEngineListener {
   private final ProgramRuleEngineService programRuleEngineService;
 

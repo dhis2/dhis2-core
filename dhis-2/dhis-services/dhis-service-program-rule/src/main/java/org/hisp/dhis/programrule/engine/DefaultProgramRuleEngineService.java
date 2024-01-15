@@ -91,7 +91,7 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
     }
 
     List<RuleEffect> ruleEffects =
-        programRuleEngine.evaluate(enrollment, enrollment.getEvents(), programRules);
+        programRuleEngine.evaluateEvent(enrollment, enrollment.getEvents(), programRules);
 
     for (RuleEffect effect : ruleEffects) {
       ruleActionImplementers.stream()
@@ -154,7 +154,7 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
       Enrollment enrollment = enrollmentService.getEnrollment(event.getEnrollment().getId());
 
       ruleEffects =
-          programRuleEngine.evaluate(enrollment, event, enrollment.getEvents(), programRules);
+          programRuleEngine.evaluateEvent(enrollment, event, enrollment.getEvents(), programRules);
     }
 
     for (RuleEffect effect : ruleEffects) {
