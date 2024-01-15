@@ -66,10 +66,13 @@ public class DataGenerator {
   public static JsonElement generateRandomValueMatchingSchema(SchemaProperty property) {
     JsonElement jsonElement;
     switch (property.getPropertyType()) {
-      case STRING -> jsonElement =
-          new JsonPrimitive(
-              generateStringByFieldName(
-                  property.getName(), property.getMin().intValue(), property.getMax().intValue()));
+      case STRING ->
+          jsonElement =
+              new JsonPrimitive(
+                  generateStringByFieldName(
+                      property.getName(),
+                      property.getMin().intValue(),
+                      property.getMax().intValue()));
       case DATE -> {
         Date date = faker.date().past(1000, TimeUnit.DAYS);
         jsonElement =
@@ -83,11 +86,12 @@ public class DataGenerator {
         jsonElement = new JsonPrimitive(String.valueOf(faker.bool().bool()));
       }
       case CONSTANT -> jsonElement = generateConstantValue(property);
-      case NUMBER -> jsonElement =
-          new JsonPrimitive(
-              faker
-                  .number()
-                  .numberBetween(property.getMin().intValue(), property.getMax().intValue()));
+      case NUMBER ->
+          jsonElement =
+              new JsonPrimitive(
+                  faker
+                      .number()
+                      .numberBetween(property.getMin().intValue(), property.getMax().intValue()));
       default -> jsonElement = new JsonPrimitive("Conversion not defined.");
     }
 
