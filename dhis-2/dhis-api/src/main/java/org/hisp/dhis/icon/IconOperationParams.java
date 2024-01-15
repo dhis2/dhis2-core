@@ -46,4 +46,16 @@ public class IconOperationParams {
   private List<String> keywords = new ArrayList<>();
   private Date created;
   private Date lastUpdated;
+
+  public boolean hasLastUpdated() {
+    return lastUpdated != null;
+  }
+
+  public boolean hasCreated() {
+    return created != null;
+  }
+
+  public boolean hasKeywords() {
+    return !keywords.isEmpty();
+  }
 }

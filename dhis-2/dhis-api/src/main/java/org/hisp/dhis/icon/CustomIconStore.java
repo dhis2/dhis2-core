@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.icon;
 
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.hisp.dhis.fileresource.FileResource;
@@ -48,7 +47,7 @@ public interface CustomIconStore {
    * @param keywords the icon needs to contain
    * @return the list of custom icons that contain all the keywords
    */
-  Stream<CustomIcon> getIconsByKeywords(List<String> keywords);
+  Stream<CustomIcon> getIcons(IconOperationParams iconOperationParams);
 
   /**
    * Returns a list with all the custom icon keywords

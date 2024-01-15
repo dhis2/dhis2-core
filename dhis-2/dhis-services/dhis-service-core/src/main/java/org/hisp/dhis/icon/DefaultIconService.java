@@ -82,9 +82,7 @@ public class DefaultIconService implements IconService {
     }
 
     if (IconTypeFilter.CUSTOM == iconOperationParams.getIconTypeFilter()) {
-      return customIconStore
-          .getIconsByKeywords(iconOperationParams.getKeywords())
-          .collect(Collectors.toList());
+      return customIconStore.getIcons(iconOperationParams).collect(Collectors.toList());
     }
 
     return Stream.concat(
@@ -94,7 +92,7 @@ public class DefaultIconService implements IconService {
                         Set.of(icon.getKeywords()).containsAll(iconOperationParams.getKeywords()))
                 .toList()
                 .stream(),
-            customIconStore.getIconsByKeywords(iconOperationParams.getKeywords()))
+            customIconStore.getIcons(iconOperationParams))
         .collect(Collectors.toList());
   }
 

@@ -27,14 +27,19 @@
  */
 package org.hisp.dhis.icon.jdbc;
 
+import static org.hisp.dhis.util.DateUtils.getLongDateString;
+
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.icon.CustomIcon;
 import org.hisp.dhis.icon.CustomIconStore;
+import org.hisp.dhis.icon.IconOperationParams;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -78,7 +83,8 @@ public class JdbcCustomIconStore implements CustomIconStore {
   }
 
   @Override
-  public Stream<CustomIcon> getIconsByKeywords(List<String> keywords) {
+  public Stream<CustomIcon> getIcons(IconOperationParams iconOperationParams) {
+
     String sql =
         """
                   select c.key as iconkey, c.description as icondescription, c.keywords as keywords, c.created as created, c.lastupdated as lastupdated,
@@ -87,13 +93,9 @@ public class JdbcCustomIconStore implements CustomIconStore {
                   join userinfo u on u.userinfoid = c.createdby
                   """;
 
-    if (keywords.isEmpty()) {
-      return jdbcTemplate.query(sql, customIconRowMapper).stream();
-    }
+    sql = buildIconQuery(iconOperationParams, sql);
 
-    sql = sql + " where keywords @> string_to_array(?,',') ";
-
-    return jdbcTemplate.query(sql, customIconRowMapper, String.join(",", keywords)).stream();
+    return jdbcTemplate.query(sql, customIconRowMapper).stream();
   }
 
   @Override
@@ -129,5 +131,36 @@ public class JdbcCustomIconStore implements CustomIconStore {
         customIcon.getKeywords(),
         customIcon.getLastUpdated(),
         customIcon.getKey());
+  }
+
+  private String buildIconQuery(IconOperationParams iconOperationParams, String sql) {
+    SqlHelper hlp = new SqlHelper(true);
+
+    if (iconOperationParams.hasLastUpdated()) {
+      sql +=
+          hlp.whereAnd()
+              + " c.lastupdated >= '"
+              + getLongDateString(iconOperationParams.getLastUpdated())
+              + "'";
+    }
+
+    if (iconOperationParams.hasCreated()) {
+      sql +=
+          hlp.whereAnd()
+              + " c.created >= '"
+              + getLongDateString(iconOperationParams.getCreated())
+              + "'";
+    }
+    if (iconOperationParams.hasKeywords()) {
+
+      sql +=
+          hlp.whereAnd()
+              + " c.keywords @> array["
+              + iconOperationParams.getKeywords().stream()
+                  .collect(Collectors.joining("','", "'", "'"))
+              + "]";
+    }
+
+    return sql;
   }
 }
