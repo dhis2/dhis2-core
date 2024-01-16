@@ -34,6 +34,7 @@ import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -65,6 +66,7 @@ class IndicatorControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
+  @DisplayName("Invalid merge with source and target missing")
   void testInvalidMerge() {
     JsonMixed mergeResponse =
         POST(
@@ -87,12 +89,13 @@ class IndicatorControllerTest extends DhisControllerConvenienceTest {
     JsonObject error1 = errors.getObject(0);
     JsonObject error2 = errors.getObject(1);
     assertEquals(
-        "Source indicator does not exist: `Uid00000010`", error1.getString("message").string());
+        "SOURCE indicator does not exist: `Uid00000010`", error1.getString("message").string());
     assertEquals(
-        "Target indicator does not exist: `Uid00000012`", error2.getString("message").string());
+        "TARGET indicator does not exist: `Uid00000012`", error2.getString("message").string());
   }
 
   @Test
+  @DisplayName("invalid merge, missing required auth")
   void testMergeNoAuth() {
     switchToNewUser("noAuth", "NoAuth");
     JsonMixed mergeResponse =

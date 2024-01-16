@@ -147,7 +147,7 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
     assertTrue(mergeReport.hasErrorMessages());
     assertMatchesErrorCodes(mergeReport, Set.of(ErrorCode.E1533));
     assertMatchesErrorMessages(
-        mergeReport, Set.of("Source indicator type does not exist: `IntY123abgX`"));
+        mergeReport, Set.of("SOURCE indicator type does not exist: `IntY123abgX`"));
   }
 
   @Test
@@ -168,7 +168,7 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
     assertTrue(mergeReport.hasErrorMessages());
     assertMatchesErrorCodes(mergeReport, Set.of(ErrorCode.E1533));
     assertMatchesErrorMessages(
-        mergeReport, Set.of("Target indicator type does not exist: `IntY123abgX`"));
+        mergeReport, Set.of("TARGET indicator type does not exist: `IntY123abgX`"));
   }
 
   @Test

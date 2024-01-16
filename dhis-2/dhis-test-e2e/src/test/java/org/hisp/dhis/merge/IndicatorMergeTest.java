@@ -90,7 +90,8 @@ class IndicatorMergeTest extends ApiTest {
   }
 
   @Test
-  @DisplayName("Valid Indicator merge completes successfully")
+  @DisplayName(
+      "Valid Indicator merge completes successfully with all indicator associations updated")
   void testValidIndicatorMerge() {
     // given some indicators exist and have references with many other metadata types
     setupIndicatorData();

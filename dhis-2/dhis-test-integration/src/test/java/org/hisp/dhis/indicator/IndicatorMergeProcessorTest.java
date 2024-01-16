@@ -130,7 +130,7 @@ class IndicatorMergeProcessorTest extends IntegrationTestBase {
     List<String> list =
         mergeReport.getMergeErrors().stream().map(ErrorMessage::getMessage).toList();
     assertEquals(1, list.size());
-    assertTrue(list.contains("Target indicator does not exist: `Uid00000011`"));
+    assertTrue(list.contains("TARGET indicator does not exist: `Uid00000011`"));
   }
 
   @Test
@@ -159,7 +159,7 @@ class IndicatorMergeProcessorTest extends IntegrationTestBase {
     List<String> list =
         mergeReport.getMergeErrors().stream().map(ErrorMessage::getMessage).toList();
     assertEquals(1, list.size());
-    assertTrue(list.contains("Source indicator does not exist: `Uid00000011`"));
+    assertTrue(list.contains("SOURCE indicator does not exist: `Uid00000011`"));
   }
 
   @Test

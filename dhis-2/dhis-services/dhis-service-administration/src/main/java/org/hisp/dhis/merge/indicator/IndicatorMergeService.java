@@ -30,21 +30,18 @@ package org.hisp.dhis.merge.indicator;
 import com.google.common.collect.ImmutableList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.commons.collection.CollectionUtils;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeRequest;
 import org.hisp.dhis.merge.MergeService;
+import org.hisp.dhis.merge.MergeValidator;
 import org.hisp.dhis.merge.indicator.handler.MetadataIndicatorMergeHandler;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,29 +57,19 @@ public class IndicatorMergeService implements MergeService {
 
   private final IndicatorService indicatorService;
   private final MetadataIndicatorMergeHandler metadataIndicatorMergeHandler;
+  private final MergeValidator validator;
   private ImmutableList<IndicatorMergeHandler> handlers;
 
   @Override
   public MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport) {
     // sources
     Set<UID> sources = new HashSet<>();
-    Optional.ofNullable(params.getSources())
-        .filter(CollectionUtils::isNotEmpty)
-        .ifPresentOrElse(
-            ids -> getSourcesAndVerify(ids, mergeReport, sources),
-            () -> mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1540)));
+    validator.verifySources(params.getSources(), sources, mergeReport, Indicator.class);
 
     // target
-    Optional<UID> target = Optional.ofNullable(params.getTarget());
-    checkIsTargetInSources(sources, target, mergeReport);
+    validator.checkIsTargetInSources(sources, params.getTarget(), mergeReport, Indicator.class);
 
-    return target
-        .map(t -> getTargetAndVerify(t, mergeReport, sources, params))
-        .orElseGet(
-            () -> {
-              mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1541));
-              return MergeRequest.empty();
-            });
+    return validator.verifyTarget(mergeReport, sources, params, Indicator.class);
   }
 
   @Override
@@ -106,49 +93,6 @@ public class IndicatorMergeService implements MergeService {
       mergeReport.addDeletedSource(source.getUid());
       indicatorService.deleteIndicator(source);
     }
-  }
-
-  private void checkIsTargetInSources(
-      Set<UID> sources, Optional<UID> target, MergeReport mergeReport) {
-    target.ifPresent(
-        t -> {
-          if (sources.contains(t)) mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1542));
-        });
-  }
-
-  /**
-   * Retrieves the {@link Indicator} with the given identifier. If a valid {@link Indicator} is not
-   * found then an empty {@link Optional} is returned and an error is added to the report.
-   *
-   * @param uid the indicator identifier
-   * @return {@link Optional<UID>}
-   */
-  private Optional<UID> getAndVerifyIndicator(
-      UID uid, MergeReport mergeReport, String mergeObjectType) {
-    return Optional.ofNullable(indicatorService.getIndicator(uid.getValue()))
-        .map(i -> UID.of(i.getUid()))
-        .or(
-            () -> {
-              mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1543, mergeObjectType, uid));
-              return Optional.empty();
-            });
-  }
-
-  private void getSourcesAndVerify(Set<UID> uids, MergeReport report, Set<UID> indicators) {
-    uids.forEach(uid -> getAndVerifyIndicator(uid, report, "Source").ifPresent(indicators::add));
-  }
-
-  private MergeRequest getTargetAndVerify(
-      UID target, MergeReport report, Set<UID> sources, MergeParams params) {
-    return getAndVerifyIndicator(target, report, "Target")
-        .map(
-            t ->
-                MergeRequest.builder()
-                    .sources(sources)
-                    .target(t)
-                    .deleteSources(params.isDeleteSources())
-                    .build())
-        .orElse(MergeRequest.empty());
   }
 
   @PostConstruct
