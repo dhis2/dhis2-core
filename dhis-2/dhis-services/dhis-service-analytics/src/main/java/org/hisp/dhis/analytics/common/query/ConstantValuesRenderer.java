@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.common.query;
 import static java.util.Collections.singleton;
 import static java.util.function.Predicate.isEqual;
 import static java.util.function.Predicate.not;
-import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.QueryKey.NV;
 
@@ -82,7 +81,7 @@ public class ConstantValuesRenderer extends BaseRenderable {
             .map(Object::toString)
             .filter(not(isEqual(NV)))
             .map(argumentTransformer)
-            .collect(toList());
+            .toList();
 
     if (valuesAsStringList.isEmpty()) {
       return EMPTY;
@@ -96,8 +95,8 @@ public class ConstantValuesRenderer extends BaseRenderable {
   }
 
   public static boolean hasNullValue(Renderable renderableValues) {
-    if (renderableValues instanceof ConstantValuesRenderer) {
-      Object values = ((ConstantValuesRenderer) renderableValues).getValues();
+    if (renderableValues instanceof ConstantValuesRenderer constantValuesRenderer) {
+      Object values = constantValuesRenderer.getValues();
       if (values instanceof Collection) {
         return ((Collection<?>) values).stream().anyMatch(isEqual(NV));
       }
@@ -107,9 +106,9 @@ public class ConstantValuesRenderer extends BaseRenderable {
   }
 
   public static boolean hasMultipleValues(Renderable renderableValues) {
-    return renderableValues instanceof ConstantValuesRenderer
-        && ((ConstantValuesRenderer) renderableValues).getValues() instanceof Collection
-        && ((Collection<?>) ((ConstantValuesRenderer) renderableValues).getValues()).size() > 1;
+    return renderableValues instanceof ConstantValuesRenderer constantValuesRenderer
+        && constantValuesRenderer.getValues() instanceof Collection
+        && ((Collection<?>) constantValuesRenderer.getValues()).size() > 1;
   }
 
   public ConstantValuesRenderer withArgumentTransformer(UnaryOperator<String> valueTransformer) {

@@ -28,7 +28,7 @@
 package org.hisp.dhis.analytics.outlier.service;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.hisp.dhis.analytics.OutlierDetectionAlgorithm.MOD_Z_SCORE;
+import static org.hisp.dhis.analytics.OutlierDetectionAlgorithm.MODIFIED_Z_SCORE;
 import static org.hisp.dhis.analytics.outlier.Order.MEAN_ABS_DEV;
 import static org.hisp.dhis.analytics.outlier.data.OutlierSqlParams.DATA_ELEMENT_IDS;
 import static org.hisp.dhis.analytics.outlier.data.OutlierSqlParams.END_DATE;
@@ -51,8 +51,8 @@ import org.springframework.stereotype.Component;
  * analytics tables are used for it.
  *
  * <p>This both implements the {@link OutlierDetectionAlgorithm#Z_SCORE} and {@link
- * OutlierDetectionAlgorithm#MOD_Z_SCORE}. Usual z-score uses the mean as middle value whereas the
- * modified z-score uses the median as middle value or more mathematically correct as the
+ * OutlierDetectionAlgorithm#MODIFIED_Z_SCORE}. Usual z-score uses the mean as middle value whereas
+ * the modified z-score uses the median as middle value or more mathematically correct as the
  * <em>measure of central tendency</em>.
  */
 @Component
@@ -138,7 +138,7 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
 
     String ouPathClause = OutlierHelper.getOrgUnitPathClause(request.getOrgUnits(), "ax");
 
-    boolean modifiedZ = request.getAlgorithm() == MOD_Z_SCORE;
+    boolean modifiedZ = request.getAlgorithm() == MODIFIED_Z_SCORE;
 
     String middleValue = modifiedZ ? " ax.percentile_middle_value" : " ax.avg_middle_value";
 
