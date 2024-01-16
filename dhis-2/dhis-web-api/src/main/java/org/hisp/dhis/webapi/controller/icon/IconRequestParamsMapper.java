@@ -29,7 +29,9 @@ package org.hisp.dhis.webapi.controller.icon;
 
 import java.util.ArrayList;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.icon.IconOperationParams;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
 /**
@@ -39,8 +41,9 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class IconRequestParamsMapper {
 
-  public IconOperationParams map(IconRequestParams iconRequestParams) {
+  public IconOperationParams map(IconRequestParams iconRequestParams) throws BadRequestException {
 
+    validate(iconRequestParams);
     IconOperationParams operationParams = new IconOperationParams();
     operationParams.setKeywords(
         iconRequestParams.getKeywords() != null
@@ -51,5 +54,22 @@ public class IconRequestParamsMapper {
     operationParams.setLastUpdated(iconRequestParams.getLastUpdated());
 
     return operationParams;
+  }
+
+  private void validate(IconRequestParams iconRequestParams) throws BadRequestException {
+
+    if (iconRequestParams.hasCreated()
+        && !DateUtils.dateIsValid(DateUtils.getMediumDateString(iconRequestParams.getCreated()))) {
+      throw new BadRequestException(
+          String.format("created date %s is not valid", iconRequestParams.getCreated().toString()));
+    }
+
+    if (iconRequestParams.hasLastUpdated()
+        && !DateUtils.dateIsValid(
+            DateUtils.getMediumDateString(iconRequestParams.getLastUpdated()))) {
+      throw new BadRequestException(
+          String.format(
+              "lastupdated date %s is not valid", iconRequestParams.getLastUpdated().toString()));
+    }
   }
 }

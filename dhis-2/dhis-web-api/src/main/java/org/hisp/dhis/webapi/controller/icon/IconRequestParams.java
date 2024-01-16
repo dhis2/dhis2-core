@@ -43,7 +43,8 @@ import org.hisp.dhis.icon.IconTypeFilter;
 @NoArgsConstructor
 public class IconRequestParams {
 
-  static final String DEFAULT_FIELDS_PARAM = "key,keywords,fileResourceUid,createdByUserUid,href";
+  static final String DEFAULT_FIELDS_PARAM =
+      "key,keywords,description,fileResourceUid,createdByUserUid,href";
 
   private List<String> keywords = new ArrayList<>();
   private IconTypeFilter type = IconTypeFilter.ALL;
@@ -51,4 +52,12 @@ public class IconRequestParams {
   private Date lastUpdated;
 
   private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
+
+  public boolean hasCreated() {
+    return created != null;
+  }
+
+  public boolean hasLastUpdated() {
+    return lastUpdated != null;
+  }
 }

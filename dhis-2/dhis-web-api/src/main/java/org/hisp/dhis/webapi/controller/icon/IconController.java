@@ -130,7 +130,8 @@ public class IconController {
   }
 
   @GetMapping
-  public @ResponseBody List<ObjectNode> getAllIcons(IconRequestParams iconRequestParams) {
+  public @ResponseBody List<ObjectNode> getAllIcons(IconRequestParams iconRequestParams)
+      throws BadRequestException {
 
     IconOperationParams iconOperationParams = iconRequestParamsMapper.map(iconRequestParams);
 
