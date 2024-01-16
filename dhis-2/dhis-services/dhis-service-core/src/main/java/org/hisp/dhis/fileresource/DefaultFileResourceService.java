@@ -142,27 +142,33 @@ public class DefaultFileResourceService implements FileResourceService {
     String uid = fr.getUid();
     return switch (fr.getDomain()) {
       case PUSH_ANALYSIS -> List.of();
-      case ORG_UNIT -> fileResourceStore.findOrganisationUnitsByImageFileResource(uid).stream()
-          .map(id -> new FileResourceOwner(FileResourceDomain.ORG_UNIT, id))
-          .toList();
-      case DOCUMENT -> fileResourceStore.findDocumentsByFileResource(uid).stream()
-          .map(id -> new FileResourceOwner(FileResourceDomain.DOCUMENT, id))
-          .toList();
-      case MESSAGE_ATTACHMENT -> fileResourceStore.findMessagesByFileResource(uid).stream()
-          .map(id -> new FileResourceOwner(FileResourceDomain.MESSAGE_ATTACHMENT, id))
-          .toList();
-      case USER_AVATAR -> fileResourceStore.findUsersByAvatarFileResource(uid).stream()
-          .map(id -> new FileResourceOwner(FileResourceDomain.USER_AVATAR, id))
-          .toList();
-      case DATA_VALUE -> fileResourceStore.findDataValuesByFileResourceValue(uid).stream()
-          .map(
-              dv ->
-                  new FileResourceOwner(
-                      dv.de(), dv.ou(), periodService.getPeriod(dv.pe()).getIsoDate(), dv.co()))
-          .toList();
-      case CUSTOM_ICON -> fileResourceStore.findCustomIconByFileResource(uid).stream()
-          .map(key -> new FileResourceOwner(FileResourceDomain.CUSTOM_ICON, key))
-          .toList();
+      case ORG_UNIT ->
+          fileResourceStore.findOrganisationUnitsByImageFileResource(uid).stream()
+              .map(id -> new FileResourceOwner(FileResourceDomain.ORG_UNIT, id))
+              .toList();
+      case DOCUMENT ->
+          fileResourceStore.findDocumentsByFileResource(uid).stream()
+              .map(id -> new FileResourceOwner(FileResourceDomain.DOCUMENT, id))
+              .toList();
+      case MESSAGE_ATTACHMENT ->
+          fileResourceStore.findMessagesByFileResource(uid).stream()
+              .map(id -> new FileResourceOwner(FileResourceDomain.MESSAGE_ATTACHMENT, id))
+              .toList();
+      case USER_AVATAR ->
+          fileResourceStore.findUsersByAvatarFileResource(uid).stream()
+              .map(id -> new FileResourceOwner(FileResourceDomain.USER_AVATAR, id))
+              .toList();
+      case DATA_VALUE ->
+          fileResourceStore.findDataValuesByFileResourceValue(uid).stream()
+              .map(
+                  dv ->
+                      new FileResourceOwner(
+                          dv.de(), dv.ou(), periodService.getPeriod(dv.pe()).getIsoDate(), dv.co()))
+              .toList();
+      case CUSTOM_ICON ->
+          fileResourceStore.findCustomIconByFileResource(uid).stream()
+              .map(key -> new FileResourceOwner(FileResourceDomain.CUSTOM_ICON, key))
+              .toList();
       case JOB_DATA -> List.of(new FileResourceOwner(FileResourceDomain.JOB_DATA, uid));
     };
   }

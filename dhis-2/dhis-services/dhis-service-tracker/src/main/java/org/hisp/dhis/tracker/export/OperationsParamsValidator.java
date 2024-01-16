@@ -77,8 +77,8 @@ public class OperationsParamsValidator {
       throws BadRequestException {
     switch (orgUnitMode) {
       case ALL -> validateUserCanSearchOrgUnitModeALL(user);
-      case SELECTED, ACCESSIBLE, DESCENDANTS, CHILDREN -> validateUserScope(
-          user, program, orgUnitMode);
+      case SELECTED, ACCESSIBLE, DESCENDANTS, CHILDREN ->
+          validateUserScope(user, program, orgUnitMode);
       case CAPTURE -> validateCaptureScope(user);
     }
   }

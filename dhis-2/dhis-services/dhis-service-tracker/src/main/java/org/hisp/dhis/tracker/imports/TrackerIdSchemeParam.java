@@ -79,11 +79,12 @@ public class TrackerIdSchemeParam implements Serializable {
       case UID -> object.getUid();
       case CODE -> object.getCode();
       case NAME -> object.getName();
-      case ATTRIBUTE -> object.getAttributeValues().stream()
-          .filter(av -> av.getAttribute().getUid().equals(attributeUid))
-          .map(AttributeValue::getValue)
-          .findFirst()
-          .orElse(null);
+      case ATTRIBUTE ->
+          object.getAttributeValues().stream()
+              .filter(av -> av.getAttribute().getUid().equals(attributeUid))
+              .map(AttributeValue::getValue)
+              .findFirst()
+              .orElse(null);
     };
   }
 

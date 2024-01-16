@@ -251,8 +251,9 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
 
     return switch (program.getAccessLevel()) {
       case OPEN, AUDITED -> organisationUnitService.isInUserSearchHierarchyCached(user, ou);
-      case PROTECTED -> organisationUnitService.isInUserHierarchyCached(user, ou)
-          || hasTemporaryAccess(entityInstance, program, user);
+      case PROTECTED ->
+          organisationUnitService.isInUserHierarchyCached(user, ou)
+              || hasTemporaryAccess(entityInstance, program, user);
       case CLOSED -> organisationUnitService.isInUserHierarchyCached(user, ou);
     };
   }
@@ -266,10 +267,11 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     }
 
     return switch (program.getAccessLevel()) {
-      case OPEN, AUDITED -> organisationUnitService.isInUserSearchHierarchyCached(
-          user, owningOrgUnit);
-      case PROTECTED -> organisationUnitService.isInUserHierarchyCached(user, owningOrgUnit)
-          || hasTemporaryAccessWithUid(entityInstance, program, user);
+      case OPEN, AUDITED ->
+          organisationUnitService.isInUserSearchHierarchyCached(user, owningOrgUnit);
+      case PROTECTED ->
+          organisationUnitService.isInUserHierarchyCached(user, owningOrgUnit)
+              || hasTemporaryAccessWithUid(entityInstance, program, user);
       case CLOSED -> organisationUnitService.isInUserHierarchyCached(user, owningOrgUnit);
     };
   }

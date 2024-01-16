@@ -89,10 +89,12 @@ public class MetadataImportJob implements Job {
       String contentType = data.getContentType();
       ImportReport report =
           switch (contentType) {
-            case "application/json" -> metadataImportService.importMetadata(
-                params, jsonToMetadataObjects(input), progress);
-            case "application/csv" -> metadataImportService.importMetadata(
-                params, csvToMetadataObjects(params, input), progress);
+            case "application/json" ->
+                metadataImportService.importMetadata(
+                    params, jsonToMetadataObjects(input), progress);
+            case "application/csv" ->
+                metadataImportService.importMetadata(
+                    params, csvToMetadataObjects(params, input), progress);
             case "application/xml" -> gmlImportService.importGml(input, params, progress);
             default -> null;
           };

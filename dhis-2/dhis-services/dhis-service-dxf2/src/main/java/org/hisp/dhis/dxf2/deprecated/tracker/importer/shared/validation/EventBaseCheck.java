@@ -37,6 +37,7 @@ import static org.hisp.dhis.util.DateUtils.removeTimeStamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.Checker;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.context.WorkContext;
@@ -75,7 +76,10 @@ public class EventBaseCheck implements Checker {
   }
 
   private void validateDates(ImmutableEvent event, List<String> errors) {
-    if (event.getDueDate() != null && !dateIsValid(event.getDueDate())) {
+    if (!StringUtils.isEmpty(
+            event.getDueDate()) // The due date is not mandatory and can be an empty string in the
+        // CSV import.
+        && !dateIsValid(event.getDueDate())) {
       errors.add("Invalid event due date: " + event.getDueDate());
     }
 

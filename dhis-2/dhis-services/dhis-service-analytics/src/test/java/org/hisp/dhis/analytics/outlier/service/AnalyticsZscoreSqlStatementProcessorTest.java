@@ -30,7 +30,7 @@ package org.hisp.dhis.analytics.outlier.service;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
-import static org.hisp.dhis.analytics.OutlierDetectionAlgorithm.MOD_Z_SCORE;
+import static org.hisp.dhis.analytics.OutlierDetectionAlgorithm.MODIFIED_Z_SCORE;
 import static org.hisp.dhis.analytics.OutlierDetectionAlgorithm.Z_SCORE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -102,7 +102,7 @@ class AnalyticsZscoreSqlStatementProcessorTest {
         .startDate(getDate(2020, 1, 1))
         .endDate(getDate(2020, 3, 1))
         .orgUnits(Lists.newArrayList(ouA, ouB))
-        .algorithm(MOD_Z_SCORE)
+        .algorithm(MODIFIED_Z_SCORE)
         .build();
     String sql = subject.getSqlStatement(builder.build());
     assertTrue(sql.contains("percentile_middle_value"));
