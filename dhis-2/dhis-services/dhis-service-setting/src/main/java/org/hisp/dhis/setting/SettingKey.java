@@ -284,7 +284,9 @@ public enum SettingKey {
   DEPRECATED_TRACKED_ENTITY_MAX_LIMIT("KeyTrackedEntityInstanceMaxLimit", 50000, Integer.class),
 
   /** Max tracked entity records that can be retrieved from database. */
-  TRACKED_ENTITY_MAX_LIMIT("KeyTrackedEntityMaxLimit", 50000, Integer.class);
+  TRACKED_ENTITY_MAX_LIMIT("KeyTrackedEntityMaxLimit", 50000, Integer.class),
+
+  LOGIN_POPUP("loginPopup", String.class);
 
   private final String name;
 

@@ -68,7 +68,8 @@ public class LoginConfigController {
     CUSTOM_LOGIN_PAGE_LOGO("loginPageLogo", "/api/staticContent/logo_front.png"),
     CUSTOM_TOP_MENU_LOGO("topMenuLogo", "/external-static/logo_banner.png"),
     STYLE("style"),
-    SELF_REGISTRATION_NO_RECAPTCHA("selfRegistrationNoRecaptcha");
+    SELF_REGISTRATION_NO_RECAPTCHA("selfRegistrationNoRecaptcha"),
+    LOGIN_POPUP("loginPopup");
 
     private final String keyName;
     private final String defaultValue;
@@ -120,6 +121,8 @@ public class LoginConfigController {
             : null);
 
     builder.style(manager.getStringSetting(SettingKey.valueOf(KEYS.STYLE.name())));
+
+    builder.loginPopup(manager.getStringSetting(SettingKey.valueOf(KEYS.LOGIN_POPUP.name())));
 
     builder.emailConfigured(manager.emailConfigured());
 

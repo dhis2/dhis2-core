@@ -37,9 +37,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class LoginControllerTest extends DhisControllerIntegrationTest {
-
-  private static final String iconKey = "iconKey";
+class LoginConfigControllerTest extends DhisControllerIntegrationTest {
 
   @Test
   void shouldGetLoginConfig() throws IOException {
