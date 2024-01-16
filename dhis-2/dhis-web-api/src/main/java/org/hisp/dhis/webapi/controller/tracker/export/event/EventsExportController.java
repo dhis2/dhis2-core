@@ -120,7 +120,6 @@ class EventsExportController {
   Page<ObjectNode> getEvents(EventRequestParams requestParams)
       throws BadRequestException, ForbiddenException {
     validatePaginationParameters(requestParams);
-
     EventOperationParams eventOperationParams = eventParamsMapper.map(requestParams);
 
     if (requestParams.isPaged()) {
