@@ -96,6 +96,7 @@ import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.schema.descriptors.UserSchemaDescriptor;
 import org.hisp.dhis.security.RestoreOptions;
 import org.hisp.dhis.security.SecurityService;
+import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.PasswordValidationResult;
@@ -448,6 +449,10 @@ public class UserController extends AbstractCrudController<User> {
 
     if (auth == null || username == null) {
       return conflict("Username must be specified");
+    }
+
+    if (!ValidationUtils.usernameIsValid(username, false)) {
+      return conflict("Username is not valid");
     }
 
     if (userService.getUserByUsername(username) != null) {
