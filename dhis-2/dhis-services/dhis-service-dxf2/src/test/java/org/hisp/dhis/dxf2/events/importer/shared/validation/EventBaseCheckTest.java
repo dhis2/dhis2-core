@@ -69,7 +69,8 @@ class EventBaseCheckTest extends BaseValidationTest {
 
   @Test
   void shouldReportNoErrorsWhenDueDateIsEmpty() {
-    when(workContext.getProgramInstanceMap()).thenReturn(Map.of(event.getUid(), new Enrollment()));
+    when(workContext.getProgramInstanceMap())
+        .thenReturn(Map.of(event.getUid(), new ProgramInstance()));
     event.setDueDate("");
     ImportSummary importSummary = rule.check(new ImmutableEvent(event), workContext);
     assertNoError(importSummary);
@@ -77,7 +78,8 @@ class EventBaseCheckTest extends BaseValidationTest {
 
   @Test
   void shouldReportNoErrorsWhenDueDateIsNull() {
-    when(workContext.getProgramInstanceMap()).thenReturn(Map.of(event.getUid(), new Enrollment()));
+    when(workContext.getProgramInstanceMap())
+        .thenReturn(Map.of(event.getUid(), new ProgramInstance()));
     event.setDueDate(null);
     ImportSummary importSummary = rule.check(new ImmutableEvent(event), workContext);
     assertNoError(importSummary);
