@@ -31,71 +31,46 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeService;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.security.SecurityContextRunnable;
+import org.hisp.dhis.system.notification.Notifier;
 
 /**
  * @author Halvdan Hoem Grelland
  */
 @Slf4j
+@RequiredArgsConstructor
 public class ImportCompleteDataSetRegistrationsTask extends SecurityContextRunnable {
+
   public static final String FORMAT_JSON = "json", FORMAT_XML = "xml";
 
-  private String format;
-
-  private InputStream input;
-
-  private Path tmpFile;
-
-  private ImportOptions importOptions;
-
-  private JobConfiguration id;
-
-  private SessionFactory sessionFactory;
-
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
-
-  private CompleteDataSetRegistrationExchangeService registrationService;
-
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
-
-  public ImportCompleteDataSetRegistrationsTask(
-      CompleteDataSetRegistrationExchangeService registrationService,
-      SessionFactory sessionFactory,
-      InputStream input,
-      Path tmpFile,
-      ImportOptions importOptions,
-      String format,
-      JobConfiguration id) {
-    this.registrationService = registrationService;
-    this.sessionFactory = sessionFactory;
-    this.input = input;
-    this.tmpFile = tmpFile;
-    this.importOptions = importOptions;
-    this.format = format;
-    this.id = id;
-  }
-
-  // -------------------------------------------------------------------------
-  // SecurityContextRunnable implementation
-  // -------------------------------------------------------------------------
+  private final CompleteDataSetRegistrationExchangeService registrationService;
+  private final SessionFactory sessionFactory;
+  private final InputStream input;
+  private final Path tmpFile;
+  private final ImportOptions importOptions;
+  private final String format;
+  private final JobConfiguration id;
+  private final Notifier notifier;
 
   @Override
   public void call() {
     try {
+      ImportSummary summary = null;
       if (FORMAT_XML.equals(format)) {
-        registrationService.saveCompleteDataSetRegistrationsXml(input, importOptions, id);
+        summary = registrationService.saveCompleteDataSetRegistrationsXml(input, importOptions);
       } else if (FORMAT_JSON.equals(format)) {
-        registrationService.saveCompleteDataSetRegistrationsJson(input, importOptions, id);
+        summary = registrationService.saveCompleteDataSetRegistrationsJson(input, importOptions);
+      }
+      if (summary != null) {
+        notifier.addJobSummary(id, summary, ImportSummary.class);
       }
     } finally {
       cleanUpTmpFile(tmpFile);

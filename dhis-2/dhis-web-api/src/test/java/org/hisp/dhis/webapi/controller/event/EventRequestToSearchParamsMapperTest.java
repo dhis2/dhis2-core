@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.common.AccessLevel.CLOSED;
 import static org.hisp.dhis.common.AccessLevel.OPEN;
 import static org.hisp.dhis.common.AccessLevel.PROTECTED;
@@ -41,7 +42,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -103,6 +107,8 @@ class EventRequestToSearchParamsMapperTest {
   @Mock private SchemaService schemaService;
 
   @InjectMocks private EventRequestToSearchParamsMapper mapper;
+
+  private final Map<String, User> userMap = new HashMap<>();
 
   private OrganisationUnit orgUnit;
 
@@ -416,6 +422,20 @@ class EventRequestToSearchParamsMapperTest {
     assertEquals(
         "User needs to be assigned either search or data capture org units",
         exception.getMessage());
+  }
+
+  @Test
+  void shouldNotManipulateDates() {
+    when(currentUserService.getCurrentUser()).thenReturn(userMap.get("admin"));
+    Date startDate = getDate(2019, 1, 1);
+    Date endDate = getDate(2019, 2, 1);
+
+    EventCriteria eventSearchParams = new EventCriteria();
+    eventSearchParams.setStartDate(startDate);
+    eventSearchParams.setEndDate(endDate);
+
+    assertEquals(startDate, eventSearchParams.getStartDate());
+    assertEquals(endDate, eventSearchParams.getEndDate());
   }
 
   private OrganisationUnit createOrgUnit(String name, String uid) {

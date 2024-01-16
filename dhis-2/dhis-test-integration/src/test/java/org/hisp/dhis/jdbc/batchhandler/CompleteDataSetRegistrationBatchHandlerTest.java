@@ -92,11 +92,11 @@ class CompleteDataSetRegistrationBatchHandlerTest extends IntegrationTestBase {
 
   private CompleteDataSetRegistration regD;
 
-  private Date now = new Date();
+  private final Date now = new Date();
 
-  private String storedBy = "johndoe";
+  private final String storedBy = "johndoe";
 
-  private String lastUpdatedBy = "johndoe";
+  private final String lastUpdatedBy = "johndoe";
 
   // -------------------------------------------------------------------------
   // Fixture
@@ -165,9 +165,7 @@ class CompleteDataSetRegistrationBatchHandlerTest extends IntegrationTestBase {
   }
 
   @Override
-  public void tearDownTest() {
-    batchHandler.flush();
-  }
+  public void tearDownTest() {}
 
   // -------------------------------------------------------------------------
   // Tests

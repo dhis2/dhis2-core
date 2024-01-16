@@ -29,15 +29,20 @@ package org.hisp.dhis.dataintegrity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.networknt.schema.JsonSchema;
+import com.networknt.schema.ValidationMessage;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.function.BinaryOperator;
-import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.jsonschema.JsonSchemaValidator;
+import org.springframework.core.io.AbstractFileResolvingResource;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.UrlResource;
 
 /**
  * Reads {@link DataIntegrityCheck}s from YAML files.
@@ -62,6 +67,9 @@ class DataIntegrityYamlReader {
 
     @JsonProperty String section;
 
+    @JsonProperty("section_order")
+    int sectionOrder;
+
     @JsonProperty("summary_sql")
     String summarySql;
 
@@ -71,6 +79,9 @@ class DataIntegrityYamlReader {
     @JsonProperty("details_id_type")
     String detailsIdType;
 
+    @JsonProperty("is_slow")
+    boolean isSlow;
+
     @JsonProperty String introduction;
 
     @JsonProperty String recommendation;
@@ -79,49 +90,151 @@ class DataIntegrityYamlReader {
   }
 
   public static void readDataIntegrityYaml(
-      String listFile,
-      Consumer<DataIntegrityCheck> adder,
-      BinaryOperator<String> info,
-      Function<String, Function<DataIntegrityCheck, DataIntegritySummary>> sqlToSummary,
-      Function<String, Function<DataIntegrityCheck, DataIntegrityDetails>> sqlToDetails) {
-
+      DefaultDataIntegrityService.DataIntegrityRecord dataIntegrityRecord) {
     ObjectMapper yaml = new ObjectMapper(new YAMLFactory());
     ListYamlFile file;
-    try {
-      file = yaml.readValue(new ClassPathResource(listFile).getInputStream(), ListYamlFile.class);
-    } catch (Exception ex) {
-      log.warn("Failed to load data integrity checks from YAML", ex);
+
+    AbstractFileResolvingResource resource =
+        getResourceFromType(
+            dataIntegrityRecord.resourceLocation(), dataIntegrityRecord.yamlFileChecks());
+
+    if (resource == null) {
+      log.warn(
+          "Failed to get resource from location `{}` and with file`{}`",
+          dataIntegrityRecord.resourceLocation(),
+          dataIntegrityRecord.yamlFileChecks());
       return;
     }
-    for (String checkFile : file.checks) {
-      try {
-        String path =
-            Path.of(listFile)
-                .resolve("..")
-                .resolve("data-integrity-checks")
-                .resolve(checkFile)
-                .toString();
-        CheckYamlFile e =
-            yaml.readValue(new ClassPathResource(path).getInputStream(), CheckYamlFile.class);
 
-        String name = e.name.trim();
-        adder.accept(
+    try (InputStream is = resource.getInputStream()) {
+      file = yaml.readValue(is, ListYamlFile.class);
+    } catch (Exception ex) {
+      log.warn(
+          "Failed to load data integrity check from YAML. Error message `{}`", ex.getMessage());
+      return;
+    }
+
+    file.checks.forEach(
+        dataIntegrityCheckFile -> processFile(dataIntegrityCheckFile, yaml, dataIntegrityRecord));
+  }
+
+  /**
+   * This method processes a {@link DataIntegrityCheck} file by:
+   *
+   * <ol>
+   *   <li>resolving the file path
+   *   <li>converting file to {@link JsonNode}
+   *   <li>validate JsonNode against {@link JsonSchema}
+   *   <li>Then either
+   *       <ol>
+   *         <li>add {@link DataIntegrityCheck} to map if no validation errors or
+   *         <li>log a warning if any validation errors and do not add {@link DataIntegrityCheck} to
+   *             map
+   *       </ol>
+   * </ol>
+   *
+   * @param dataIntegrityCheckFile the yaml file version of a {@link DataIntegrityCheck}
+   * @param yaml object mapper
+   * @param dataIntegrityRecord record used for storing {@link DataIntegrityCheck} details used for
+   *     processing
+   */
+  private static void processFile(
+      String dataIntegrityCheckFile,
+      ObjectMapper yaml,
+      DefaultDataIntegrityService.DataIntegrityRecord dataIntegrityRecord) {
+
+    try {
+      String path =
+          Path.of(dataIntegrityRecord.yamlFileChecks())
+              .resolve("..")
+              .resolve(dataIntegrityRecord.checksDir())
+              .resolve(dataIntegrityCheckFile)
+              .toString();
+
+      AbstractFileResolvingResource resource =
+          getResourceFromType(dataIntegrityRecord.resourceLocation(), path);
+
+      if (resource == null) {
+        log.warn(
+            "Failed to get resource from location `{}` and with file`{}`",
+            dataIntegrityRecord.resourceLocation(),
+            path);
+        return;
+      }
+
+      try (InputStream is = resource.getInputStream()) {
+
+        JsonNode jsonNode = yaml.readValue(is, JsonNode.class);
+        Set<ValidationMessage> validationMessages =
+            JsonSchemaValidator.validateDataIntegrityCheck(jsonNode);
+
+        if (validationMessages.isEmpty()) {
+          CheckYamlFile yamlFile = yaml.convertValue(jsonNode, CheckYamlFile.class);
+          acceptDataIntegrityCheck(dataIntegrityRecord, yamlFile);
+        } else {
+          log.warn(
+              "JsonSchema validation errors found for Data Integrity Check `{}`. Errors: {}",
+              dataIntegrityCheckFile,
+              validationMessages);
+        }
+      }
+    } catch (Exception ex) {
+      log.error(
+          "Failed to load data integrity check `{}` with error message {}",
+          dataIntegrityCheckFile,
+          ex.getMessage());
+    }
+  }
+
+  private static void acceptDataIntegrityCheck(
+      DefaultDataIntegrityService.DataIntegrityRecord dataIntegrityRecord, CheckYamlFile yamlFile) {
+    String name = yamlFile.name.trim();
+    dataIntegrityRecord
+        .adder()
+        .accept(
             DataIntegrityCheck.builder()
                 .name(name)
-                .displayName(info.apply(name + ".name", name.replace('_', ' ')))
-                .description(info.apply(name + ".description", trim(e.description)))
-                .introduction(info.apply(name + ".introduction", trim(e.introduction)))
-                .recommendation(info.apply(name + ".recommendation", trim(e.recommendation)))
-                .issuesIdType(trim(e.detailsIdType))
-                .section(trim(e.section))
-                .severity(e.severity)
-                .runSummaryCheck(sqlToSummary.apply(sanitiseSQL(e.summarySql)))
-                .runDetailsCheck(sqlToDetails.apply(sanitiseSQL(e.detailsSql)))
+                .displayName(
+                    dataIntegrityRecord.info().apply(name + ".name", name.replace('_', ' ')))
+                .description(
+                    dataIntegrityRecord
+                        .info()
+                        .apply(name + ".description", trim(yamlFile.description)))
+                .introduction(
+                    dataIntegrityRecord
+                        .info()
+                        .apply(name + ".introduction", trim(yamlFile.introduction)))
+                .recommendation(
+                    dataIntegrityRecord
+                        .info()
+                        .apply(name + ".recommendation", trim(yamlFile.recommendation)))
+                .issuesIdType(trim(yamlFile.detailsIdType))
+                .section(trim(yamlFile.section))
+                .sectionOrder(yamlFile.sectionOrder)
+                .severity(yamlFile.severity)
+                .isSlow(yamlFile.isSlow)
+                .runSummaryCheck(
+                    dataIntegrityRecord.sqlToSummary().apply(sanitiseSQL(yamlFile.summarySql)))
+                .runDetailsCheck(
+                    dataIntegrityRecord.sqlToDetails().apply(sanitiseSQL(yamlFile.detailsSql)))
                 .build());
-      } catch (Exception ex) {
-        log.error("Failed to load data integrity check " + checkFile, ex);
-      }
+  }
+
+  private static AbstractFileResolvingResource getResourceFromType(
+      ResourceLocation resourceLocation, String filePath) {
+    AbstractFileResolvingResource resource = null;
+    try {
+      resource =
+          resourceLocation == ResourceLocation.CLASS_PATH
+              ? new ClassPathResource(filePath)
+              : new UrlResource("file://" + filePath);
+    } catch (Exception ex) {
+      log.warn(
+          "Failed to load data integrity checks from YAML file path `{}`. Error message: {}",
+          filePath,
+          ex.getMessage());
     }
+    return resource;
   }
 
   private static String trim(String str) {
@@ -139,5 +252,10 @@ class DataIntegrityYamlReader {
             .replaceAll("'[^']+' as description", "")
             .replace("::varchar", "")
             .replace("|| '%'", ""));
+  }
+
+  enum ResourceLocation {
+    CLASS_PATH,
+    FILE_SYSTEM
   }
 }

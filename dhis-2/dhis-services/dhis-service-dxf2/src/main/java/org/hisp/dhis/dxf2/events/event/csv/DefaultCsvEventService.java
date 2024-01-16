@@ -76,6 +76,7 @@ public class DefaultCsvEventService implements CsvEventService<Event> {
       templateDataValue.setProgramStage(event.getProgramStage());
       templateDataValue.setEnrollment(event.getEnrollment());
       templateDataValue.setOrgUnit(event.getOrgUnit());
+      templateDataValue.setAttributeOptionCombo(event.getAttributeOptionCombo());
       templateDataValue.setEventDate(event.getEventDate());
       templateDataValue.setDueDate(event.getDueDate());
       templateDataValue.setStoredBy(event.getStoredBy());
@@ -106,6 +107,19 @@ public class DefaultCsvEventService implements CsvEventService<Event> {
     }
 
     writer.writeValue(outputStream, dataValues);
+  }
+
+  @Override
+  public void writeZip(
+      OutputStream outputStream, List<Event> toCompress, boolean withHeader, String file)
+      throws IOException {
+    // in use only in the new tracker endpoints
+  }
+
+  @Override
+  public void writeGzip(OutputStream outputStream, List<Event> toCompress, boolean withHeader)
+      throws IOException {
+    // in use only in the new tracker endpoints
   }
 
   @Override

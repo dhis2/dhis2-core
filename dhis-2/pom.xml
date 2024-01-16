@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.hisp.dhis</groupId>
   <artifactId>dhis</artifactId>
-  <version>2.39.4-SNAPSHOT</version>
+  <version>2.39.5-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>DHIS 2</name>
 
@@ -89,7 +89,7 @@
     <dhis2-rule-engine.version>2.1.8.0</dhis2-rule-engine.version>
 
     <!-- HISP Quick and Staxwax -->
-    <dhis-hisp-quick.version>1.4.1</dhis-hisp-quick.version>
+    <dhis-hisp-quick.version>1.4.3</dhis-hisp-quick.version>
     <dhis-hisp-staxwax.version>2.0.0</dhis-hisp-staxwax.version>
     <dhis-json-tree.version>0.5.0</dhis-json-tree.version>
 
@@ -129,7 +129,7 @@
     <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
 
     <!-- Struts -->
-    <struts.version>2.5.30</struts.version>
+    <struts.version>2.5.33</struts.version>
     <velocity.version>1.7</velocity.version>
     <velocity-tools.version>2.0</velocity-tools.version>
 

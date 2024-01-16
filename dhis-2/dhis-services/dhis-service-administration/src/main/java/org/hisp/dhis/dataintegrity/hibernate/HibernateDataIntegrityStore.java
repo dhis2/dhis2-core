@@ -31,7 +31,7 @@ import static java.util.stream.Collectors.toUnmodifiableList;
 
 import java.util.Date;
 import java.util.List;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.dataintegrity.DataIntegrityCheck;
 import org.hisp.dhis.dataintegrity.DataIntegrityDetails;
@@ -48,25 +48,28 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Jan Bernitt
  */
 @Repository
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class HibernateDataIntegrityStore implements DataIntegrityStore {
   private final SessionFactory sessionFactory;
 
   @Override
   @Transactional(readOnly = true)
   public DataIntegritySummary querySummary(DataIntegrityCheck check, String sql) {
+    Date startTime = new Date();
     Object summary = sessionFactory.getCurrentSession().createNativeQuery(sql).getSingleResult();
     return new DataIntegritySummary(
-        check, new Date(), null, parseCount(summary), parsePercentage(summary));
+        check, startTime, new Date(), null, parseCount(summary), parsePercentage(summary));
   }
 
   @Override
   @Transactional(readOnly = true)
   public DataIntegrityDetails queryDetails(DataIntegrityCheck check, String sql) {
+    Date startTime = new Date();
     @SuppressWarnings("unchecked")
     List<Object[]> rows = sessionFactory.getCurrentSession().createNativeQuery(sql).getResultList();
     return new DataIntegrityDetails(
         check,
+        startTime,
         new Date(),
         null,
         rows.stream()

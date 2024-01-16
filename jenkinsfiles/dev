@@ -20,9 +20,6 @@ pipeline {
 
     environment {
         MAVEN_OPTS = '-Xms1024m -Xmx4096m -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125'
-        AWX_TEMPLATE = 37
-        HOST = 'play.dhis2.org'
-        INSTANCE_NAME = "${env.GIT_BRANCH == 'master' ? 'dev' : env.GIT_BRANCH + 'dev'}"
         DHIS2_VERSION = readMavenPom(file: 'dhis-2/pom.xml').getVersion()
         DOCKER_IMAGE_NAME = "${DOCKER_HUB_OWNER}/core-dev"
         DOCKER_IMAGE_TAG = "${env.GIT_BRANCH}"
@@ -170,25 +167,7 @@ pipeline {
             }
         }
 
-        stage ('Update Play Instance') {
-            steps {
-                implementIoBuildStarted(buildEnvironment: "TEST", buildName: "${STAGE_NAME}")
-                echo 'Updating Play Instance ...'
-                script {
-                    withCredentials([usernameColonPassword(credentialsId: 'awx-bot-user-credentials', variable: 'AWX_CREDENTIALS')]) {
-                        awx.resetWarIfInstanceExists("$AWX_CREDENTIALS", "$HOST", "$INSTANCE_NAME", "$AWX_TEMPLATE", ['flyway_repair': 'YES'])
-                    }
-                }
-            }
-
-            post {
-                always {
-                    implementIoBuildEnded(buildName: "${STAGE_NAME}")
-                }
-            }
-        }
-
-        stage('Update IM Play dev instance') {
+        stage('Update IM Play instance') {
             environment {
                 HTTP = "http --check-status"
                 IM_REPO_URL = "https://github.com/dhis2-sre/im-manager"
@@ -232,7 +211,7 @@ pipeline {
                             dir('scripts/instances') {
                                 sh "(./findByName.sh play dev${branch} && ./restart.sh play dev${branch}) || ./deploy-dhis2.sh play dev${branch}"
                                 timeout(5) {
-                                    waitFor.statusOk("${env.INSTANCE_URL}")
+                                    waitFor.statusOk("${env.INSTANCE_URL}${branch}")
                                 }
                             }
                         }

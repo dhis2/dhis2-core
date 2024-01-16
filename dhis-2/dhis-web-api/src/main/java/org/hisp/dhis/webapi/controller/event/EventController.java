@@ -643,7 +643,7 @@ public class EventController {
 
     if (fields.isEmpty()) {
       fields.add(
-          "event,uid,program,programStage,programType,status,assignedUser,orgUnit,orgUnitName,eventDate,orgUnit,orgUnitName,created,lastUpdated,followup,deleted,dataValues");
+          "event,uid,program,programStage,programType,status,assignedUser,orgUnit,orgUnitName,attributeOptionCombo,eventDate,created,lastUpdated,followup,deleted,dataValues");
     }
 
     EventQueryParams params = requestToSearchParamsMapper.map(eventCriteria);
@@ -1146,7 +1146,7 @@ public class EventController {
     Event updatedEvent = renderService.fromJson(inputStream, Event.class);
     updatedEvent.setEvent(uid);
 
-    return updateEvent(updatedEvent, true, null);
+    return importSummary(eventService.updateEventDataValues(updatedEvent));
   }
 
   @PutMapping(value = "/{uid}/eventDate", consumes = APPLICATION_JSON_VALUE)

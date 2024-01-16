@@ -1,0 +1,6 @@
+checks:
+  - check_with_all_required_fields.yaml
+  - check_without_10_required_fields.yaml
+  - check_without_description.yaml
+  - check_without_name.yaml
+  - invalid_yaml_format.yaml

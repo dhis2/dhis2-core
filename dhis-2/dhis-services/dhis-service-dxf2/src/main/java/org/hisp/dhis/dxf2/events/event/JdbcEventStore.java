@@ -71,7 +71,6 @@ import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery.COL
 import static org.hisp.dhis.system.util.SqlUtils.castToNumber;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
-import static org.hisp.dhis.util.DateUtils.addDays;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -199,6 +198,16 @@ public class JdbcEventStore implements EventStore {
   private static final String EQUALS = " = ";
 
   private static final String AND = " AND ";
+
+  private static final String COLUMN_USER_UID = "u_uid";
+
+  private static final String COLUMN_ORG_UNIT_PATH = "ou_path";
+
+  private static final String USER_SCOPE_ORG_UNIT_PATH_LIKE_MATCH_QUERY =
+      " ou.path like CONCAT(orgunit.path, '%') ";
+
+  private static final String CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY =
+      " ou.path like CONCAT(:" + COLUMN_ORG_UNIT_PATH + ", '%' ) ";
 
   private static final Map<String, String> QUERY_PARAM_COL_MAP =
       ImmutableMap.<String, String>builder()
@@ -333,12 +342,6 @@ public class JdbcEventStore implements EventStore {
                 .collect(Collectors.joining(","))
             + " where uid = :uid;";
   }
-
-  private static final String COLUMN_USER_UID = "u_uid";
-
-  private static final String COLUMN_ORG_UNIT_PATH = "ou_path";
-
-  private static final String PERCENTAGE_SIGN = ", '%' ";
 
   // -------------------------------------------------------------------------
   // Dependencies
@@ -942,12 +945,12 @@ public class JdbcEventStore implements EventStore {
    * Generates a single INNER JOIN for each attribute we are searching on. We can search by a range
    * of operators. All searching is using lower() since attribute values are case-insensitive.
    *
-   * @param attributes
-   * @param filterItems
+   * @param params
    */
-  private void joinAttributeValueWithoutQueryParameter(
-      StringBuilder attributes, List<QueryItem> filterItems) {
-    for (QueryItem queryItem : filterItems) {
+  private String joinAttributeValue(EventQueryParams params) {
+    StringBuilder attributes = new StringBuilder();
+
+    for (QueryItem queryItem : params.getFilterAttributes()) {
       String teaValueCol = statementBuilder.columnQuote(queryItem.getItemId());
       String teaCol = statementBuilder.columnQuote(queryItem.getItemId() + "ATT");
 
@@ -970,6 +973,36 @@ public class JdbcEventStore implements EventStore {
 
       attributes.append(getAttributeFilterQuery(queryItem, teaCol, teaValueCol));
     }
+    return attributes.toString();
+  }
+
+  /**
+   * Generates the LEFT JOINs used for attributes we are ordering by (If any). We use LEFT JOIN to
+   * avoid removing any rows if there is no value for a given attribute and te. The result of this
+   * LEFT JOIN is used in the sub-query projection, and ordering in the sub-query and main query.
+   *
+   * @return a SQL LEFT JOIN for attributes used for ordering, or empty string if no attributes is
+   *     used in order.
+   */
+  private String getFromSubQueryJoinOrderByAttributes(EventQueryParams params) {
+    StringBuilder joinOrderAttributes = new StringBuilder();
+
+    for (QueryItem orderAttribute : params.leftJoinAttributes()) {
+
+      joinOrderAttributes
+          .append(" LEFT JOIN trackedentityattributevalue AS ")
+          .append(statementBuilder.columnQuote(orderAttribute.getItem().getUid()))
+          .append(" ON ")
+          .append(statementBuilder.columnQuote(orderAttribute.getItem().getUid()))
+          .append(".trackedentityinstanceid = TEI.trackedentityinstanceid ")
+          .append("AND ")
+          .append(statementBuilder.columnQuote(orderAttribute.getItem().getUid()))
+          .append(".trackedentityattributeid = ")
+          .append(orderAttribute.getItem().getId())
+          .append(SPACE);
+    }
+
+    return joinOrderAttributes.toString();
   }
 
   private String getAttributeFilterQuery(QueryItem queryItem, String teaCol, String teaValueCol) {
@@ -1122,9 +1155,11 @@ public class JdbcEventStore implements EventStore {
             "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) ")
         .append("left join userinfo au on (psi.assigneduserid=au.userinfoid) ");
 
-    if (!params.getFilterAttributes().isEmpty()) {
-      joinAttributeValueWithoutQueryParameter(fromBuilder, params.getFilterAttributes());
-    }
+    // JOIN attributes we need to filter on.
+    fromBuilder.append(joinAttributeValue(params));
+
+    // LEFT JOIN not filterable attributes we need to sort on.
+    fromBuilder.append(getFromSubQueryJoinOrderByAttributes(params));
 
     fromBuilder.append(getCategoryOptionComboQuery(user));
 
@@ -1261,7 +1296,7 @@ public class JdbcEventStore implements EventStore {
     }
 
     if (params.getEndDate() != null) {
-      mapSqlParameterSource.addValue("endDate", addDays(params.getEndDate(), 1), Types.DATE);
+      mapSqlParameterSource.addValue("endDate", params.getEndDate(), Types.TIMESTAMP);
 
       fromBuilder
           .append(hlp.whereAnd())
@@ -1371,13 +1406,7 @@ public class JdbcEventStore implements EventStore {
     }
 
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
-    return " EXISTS(SELECT ss.organisationunitid "
-        + " FROM userteisearchorgunits ss "
-        + " JOIN organisationunit orgunit ON orgunit.organisationunitid = ss.organisationunitid "
-        + " JOIN userinfo u ON u.userinfoid = ss.userinfoid "
-        + " WHERE u.uid = :"
-        + COLUMN_USER_UID
-        + " AND ou.path like CONCAT(orgunit.path, '%')) ";
+    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(USER_SCOPE_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
   }
 
   private String createDescendantsSql(
@@ -1386,58 +1415,79 @@ public class JdbcEventStore implements EventStore {
 
     if (isProgramRestricted(params.getProgram())) {
       return createCaptureScopeQuery(
-          user,
-          mapSqlParameterSource,
-          " AND ou.path like CONCAT(:" + COLUMN_ORG_UNIT_PATH + PERCENTAGE_SIGN + ")");
+          user, mapSqlParameterSource, AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
     }
 
-    return " ou.path like CONCAT(:" + COLUMN_ORG_UNIT_PATH + PERCENTAGE_SIGN + ") ";
+    mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
+    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
   }
 
   private String createChildrenSql(
       User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getPath());
 
-    if (isProgramRestricted(params.getProgram())) {
-      String childrenSqlClause =
-          " AND ou.path like CONCAT(:"
-              + COLUMN_ORG_UNIT_PATH
-              + PERCENTAGE_SIGN
-              + ") "
-              + " AND (ou.hierarchylevel = "
-              + params.getOrgUnit().getHierarchyLevel()
-              + " OR ou.hierarchylevel = "
-              + (params.getOrgUnit().getHierarchyLevel() + 1)
-              + " )";
+    String customChildrenQuery =
+        " AND (ou.hierarchylevel = "
+            + params.getOrgUnit().getHierarchyLevel()
+            + " OR ou.hierarchylevel = "
+            + (params.getOrgUnit().getHierarchyLevel() + 1)
+            + " ) ";
 
-      return createCaptureScopeQuery(user, mapSqlParameterSource, childrenSqlClause);
+    if (isProgramRestricted(params.getProgram())) {
+      return createCaptureScopeQuery(
+          user,
+          mapSqlParameterSource,
+          AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
     }
 
-    return " ou.path like CONCAT(:"
-        + COLUMN_ORG_UNIT_PATH
-        + PERCENTAGE_SIGN
-        + ") "
-        + " AND (ou.hierarchylevel = "
-        + params.getOrgUnit().getHierarchyLevel()
-        + " OR ou.hierarchylevel = "
-        + (params.getOrgUnit().getHierarchyLevel() + 1)
-        + " ) ";
+    mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
+    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(
+        CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
   }
 
   private String createSelectedSql(
       User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getPath());
 
+    String orgUnitPathEqualsMatchQuery =
+        " ou.path = :"
+            + COLUMN_ORG_UNIT_PATH
+            + " "
+            + AND
+            + USER_SCOPE_ORG_UNIT_PATH_LIKE_MATCH_QUERY;
+
     if (isProgramRestricted(params.getProgram())) {
       String customSelectedClause = " AND ou.path = :" + COLUMN_ORG_UNIT_PATH + " ";
       return createCaptureScopeQuery(user, mapSqlParameterSource, customSelectedClause);
     }
 
-    return " ou.path = :" + COLUMN_ORG_UNIT_PATH + " ";
+    mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
+    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(orgUnitPathEqualsMatchQuery);
   }
 
   private boolean isProgramRestricted(Program program) {
     return program != null && (program.isProtected() || program.isClosed());
+  }
+
+  private static String getSearchAndCaptureScopeOrgUnitPathMatchQuery(String orgUnitMatcher) {
+    return " (EXISTS(SELECT ss.organisationunitid "
+        + " FROM userteisearchorgunits ss "
+        + " JOIN userinfo u ON u.userinfoid = ss.userinfoid "
+        + " JOIN organisationunit orgunit ON orgunit.organisationunitid = ss.organisationunitid "
+        + " WHERE u.uid = :"
+        + COLUMN_USER_UID
+        + AND
+        + orgUnitMatcher
+        + " AND p.accesslevel in ('OPEN', 'AUDITED')) "
+        + " OR EXISTS(SELECT cs.organisationunitid "
+        + " FROM usermembership cs "
+        + " JOIN userinfo u ON u.userinfoid = cs.userinfoid "
+        + " JOIN organisationunit orgunit ON orgunit.organisationunitid = cs.organisationunitid "
+        + " WHERE u.uid = :"
+        + COLUMN_USER_UID
+        + AND
+        + orgUnitMatcher
+        + " )) ";
   }
 
   private boolean isUserSearchScopeNotSet(User user) {
@@ -1667,7 +1717,7 @@ public class JdbcEventStore implements EventStore {
     }
 
     if (params.getEndDate() != null) {
-      mapSqlParameterSource.addValue("endDate", addDays(params.getEndDate(), 1), Types.DATE);
+      mapSqlParameterSource.addValue("endDate", params.getEndDate(), Types.TIMESTAMP);
 
       sqlBuilder
           .append(hlp.whereAnd())
@@ -1816,7 +1866,7 @@ public class JdbcEventStore implements EventStore {
       if (params.hasLastUpdatedEndDate()) {
         if (useDateAfterEndDate) {
           mapSqlParameterSource.addValue(
-              "lastUpdatedEnd", addDays(params.getLastUpdatedEndDate(), 1), Types.TIMESTAMP);
+              "lastUpdatedEnd", params.getLastUpdatedEndDate(), Types.TIMESTAMP);
 
           sqlBuilder
               .append(hlp.whereAnd())
@@ -1861,11 +1911,12 @@ public class JdbcEventStore implements EventStore {
   private String getCategoryOptionComboQuery(User user) {
     String joinCondition =
         "inner join categoryoptioncombo coc on coc.categoryoptioncomboid = psi.attributeoptioncomboid "
-            + " inner join (select coc.categoryoptioncomboid as id,"
+            + " inner join lateral (select coc.categoryoptioncomboid as id,"
             + " string_agg(co.uid, ';') as co_uids, count(co.categoryoptionid) as co_count"
             + " from categoryoptioncombo coc "
             + " inner join categoryoptioncombos_categoryoptions cocco on coc.categoryoptioncomboid = cocco.categoryoptioncomboid"
             + " inner join dataelementcategoryoption co on cocco.categoryoptionid = co.categoryoptionid"
+            + " where psi.attributeoptioncomboid = coc.categoryoptioncomboid"
             + " group by coc.categoryoptioncomboid ";
 
     if (!isSuper(user)) {

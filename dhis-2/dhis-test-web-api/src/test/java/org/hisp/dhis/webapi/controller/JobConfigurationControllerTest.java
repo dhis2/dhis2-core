@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.lang.String.format;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -37,6 +38,7 @@ import java.util.List;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -209,6 +211,34 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest {
             "OWNERSHIP",
             "VALIDATION_RESULT"),
         param.getArray("constants").stringValues());
+  }
+
+  @Test
+  void testEnableIsReadOnly_Update() {
+    String json = "{'name':'%s','jobType':'DATA_INTEGRITY','cronExpression':'0 0 11 ? * MON-FRI'}";
+    String jobId =
+        assertStatus(HttpStatus.CREATED, POST("/jobConfigurations", format(json, "init_name")));
+    JsonIdentifiableObject config = getJsonJobConfiguration(jobId);
+    assertTrue(
+        config.getBoolean("enabled").booleanValue(), "newly created config should be enabled");
+    assertStatus(HttpStatus.NO_CONTENT, POST("/jobConfigurations/" + jobId + "/disable"));
+    config = getJsonJobConfiguration(jobId);
+    assertFalse(config.getBoolean("enabled").booleanValue());
+    assertStatus(HttpStatus.OK, PUT("/jobConfigurations/" + jobId, format(json, "new_name")));
+    config = getJsonJobConfiguration(jobId);
+    assertEquals("new_name", config.getName());
+    assertFalse(config.getBoolean("enabled").booleanValue(), "updating should not affect enabled");
+    assertStatus(HttpStatus.NO_CONTENT, POST("/jobConfigurations/" + jobId + "/enable"));
+    config = getJsonJobConfiguration(jobId);
+    assertTrue(config.getBoolean("enabled").booleanValue());
+    assertStatus(HttpStatus.OK, PUT("/jobConfigurations/" + jobId, format(json, "new_name2")));
+    config = getJsonJobConfiguration(jobId);
+    assertEquals("new_name2", config.getName());
+    assertTrue(config.getBoolean("enabled").booleanValue(), "updating should not affect enabled");
+  }
+
+  private JsonIdentifiableObject getJsonJobConfiguration(String jobId) {
+    return GET("/jobConfigurations/{id}", jobId).content().as(JsonIdentifiableObject.class);
   }
 
   private JsonObject assertJobConfigurationExists(String jobId, String expectedJobType) {

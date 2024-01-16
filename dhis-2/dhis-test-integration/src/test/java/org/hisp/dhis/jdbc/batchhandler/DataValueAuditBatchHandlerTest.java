@@ -72,8 +72,6 @@ class DataValueAuditBatchHandlerTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private CategoryService categoryService;
 
-  private BatchHandler<DataValueAudit> batchHandler;
-
   private DataElement dataElementA;
 
   private CategoryOptionCombo categoryOptionComboA;
@@ -107,7 +105,7 @@ class DataValueAuditBatchHandlerTest extends SingleSetupIntegrationTestBase {
   // -------------------------------------------------------------------------
   @Override
   public void setUpTest() {
-    batchHandler = batchHandlerFactory.createBatchHandler(DataValueAuditBatchHandler.class);
+
     dataElementA = createDataElement('A');
     dataElementService.addDataElement(dataElementA);
     categoryOptionComboA = categoryService.getDefaultCategoryOptionCombo();
@@ -132,19 +130,18 @@ class DataValueAuditBatchHandlerTest extends SingleSetupIntegrationTestBase {
     auditB = new DataValueAudit(dataValueA, "12", storedBy, AuditType.UPDATE);
     auditC = new DataValueAudit(dataValueB, "21", storedBy, AuditType.UPDATE);
     auditD = new DataValueAudit(dataValueB, "22", storedBy, AuditType.UPDATE);
-    batchHandler.init();
   }
 
   @Override
-  public void tearDownTest() {
-    batchHandler.flush();
-  }
+  public void tearDownTest() {}
 
   // -------------------------------------------------------------------------
   // Tests
   // -------------------------------------------------------------------------
   @Test
   void testAddObject() {
+    BatchHandler<DataValueAudit> batchHandler;
+    batchHandler = batchHandlerFactory.createBatchHandler(DataValueAuditBatchHandler.class).init();
     batchHandler.addObject(auditA);
     batchHandler.addObject(auditB);
     batchHandler.addObject(auditC);
@@ -161,6 +158,8 @@ class DataValueAuditBatchHandlerTest extends SingleSetupIntegrationTestBase {
   /** DataValueAudit can never equal another. */
   @Test
   void testObjectExists() {
+    BatchHandler<DataValueAudit> batchHandler;
+    batchHandler = batchHandlerFactory.createBatchHandler(DataValueAuditBatchHandler.class).init();
     auditService.addDataValueAudit(auditA);
     auditService.addDataValueAudit(auditB);
     assertFalse(batchHandler.objectExists(auditA));
@@ -171,6 +170,8 @@ class DataValueAuditBatchHandlerTest extends SingleSetupIntegrationTestBase {
 
   @Test
   void testUpdateObject() {
+    BatchHandler<DataValueAudit> batchHandler;
+    batchHandler = batchHandlerFactory.createBatchHandler(DataValueAuditBatchHandler.class).init();
     auditService.addDataValueAudit(auditA);
     auditA.setModifiedBy("bill");
     batchHandler.updateObject(auditA);

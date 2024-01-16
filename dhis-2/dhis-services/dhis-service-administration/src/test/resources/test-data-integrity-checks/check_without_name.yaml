@@ -1,0 +1,14 @@
+---
+description: test_name_missing
+section: test
+section_order: 1
+summary_sql: >-
+  SQL here
+details_sql: >-
+  SQL here
+details_id_type: test
+severity: CRITICAL
+introduction: >
+  Intro here
+recommendation: >
+  Recommendation here
