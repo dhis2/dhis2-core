@@ -52,7 +52,6 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.joda.time.DateTime;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -381,26 +380,6 @@ class ProgramInstanceServiceTest extends TransactionalIntegrationTest {
         ProgramStatus.CANCELLED, programInstanceService.getProgramInstance(idA).getStatus());
     assertEquals(
         ProgramStatus.CANCELLED, programInstanceService.getProgramInstance(idD).getStatus());
-  }
-
-  @Test
-  @Disabled("Enable after working on TECH-1675")
-  void shouldOrderByEnrollmentIdDescWhenNoOrderAttributePresent() {
-    User user = new User();
-    user.setOrganisationUnits(Set.of(organisationUnitA));
-    programInstanceService.addProgramInstance(programInstanceA);
-    programInstanceService.addProgramInstance(programInstanceB);
-    programInstanceService.addProgramInstance(programInstanceC);
-    programInstanceService.addProgramInstance(programInstanceD);
-    programInstanceService.addProgramInstance(programInstanceE);
-
-    ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
-    params.setOrganisationUnits(Set.of(organisationUnitA));
-    params.setUser(user);
-
-    List<ProgramInstance> programInstances = programInstanceService.getProgramInstances(params);
-
-    assertEquals(List.of(programInstanceE, programInstanceC, programInstanceA), programInstances);
   }
 
   @Test
