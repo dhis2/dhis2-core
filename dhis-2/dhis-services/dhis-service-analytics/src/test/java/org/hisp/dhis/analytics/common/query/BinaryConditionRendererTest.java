@@ -31,6 +31,7 @@ import static org.hisp.dhis.analytics.common.query.Field.of;
 import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.GE;
 import static org.hisp.dhis.common.QueryOperator.GT;
+import static org.hisp.dhis.common.QueryOperator.IEQ;
 import static org.hisp.dhis.common.QueryOperator.ILIKE;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.QueryOperator.LE;
@@ -118,12 +119,32 @@ class BinaryConditionRendererTest {
   }
 
   @Test
+  void testIEqWithSingleValueProduceCorrectSql() {
+    genericTestExecutor(
+        IEQ,
+        List.of("vAlUe"),
+        ValueTypeMapping.STRING,
+        "lower(\"field\") = :1",
+        List.of(getQueryContextAssertEqualsConsumer("value")));
+  }
+
+  @Test
   void testEqWithNVProduceCorrectSql() {
     genericTestExecutor(
         EQ,
         List.of("NV"),
         ValueTypeMapping.STRING,
         "\"field\" is null",
+        List.of(getQueryContextAssertEmptyConsumer()));
+  }
+
+  @Test
+  void testIEqWithNVProduceCorrectSql() {
+    genericTestExecutor(
+        IEQ,
+        List.of("NV"),
+        ValueTypeMapping.STRING,
+        "lower(\"field\") is null",
         List.of(getQueryContextAssertEmptyConsumer()));
   }
 
@@ -138,12 +159,34 @@ class BinaryConditionRendererTest {
   }
 
   @Test
+  void testIEqWithMultipleValueProduceCorrectSql() {
+    genericTestExecutor(
+        IEQ,
+        List.of("V1", "V2"),
+        ValueTypeMapping.STRING,
+        "lower(\"field\") in (:1)",
+        List.of(getQueryContextAssertEqualsConsumer(List.of("v1", "v2"))));
+  }
+
+  @Test
   void testEqWithNVMultipleValueProduceCorrectSql() {
     genericTestExecutor(
         EQ,
         List.of("v1", "NV"),
         ValueTypeMapping.STRING,
         "(\"field\" is null or \"field\" in (:1))",
+        List.of(
+            getQueryContextAssertEqualsConsumer("v1"),
+            queryContext -> assertEquals(1, queryContext.getParametersPlaceHolder().size())));
+  }
+
+  @Test
+  void testIEqWithNVMultipleValueProduceCorrectSql() {
+    genericTestExecutor(
+        IEQ,
+        List.of("V1", "NV"),
+        ValueTypeMapping.STRING,
+        "(lower(\"field\") is null or lower(\"field\") in (:1))",
         List.of(
             getQueryContextAssertEqualsConsumer("v1"),
             queryContext -> assertEquals(1, queryContext.getParametersPlaceHolder().size())));
