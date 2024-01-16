@@ -141,6 +141,7 @@ public enum ErrorCode {
   E2042("Min value must be specified"),
   E2043("Max value must be specified"),
   E2044("Max value must be greater than min value"),
+  E2045("Case insensitive operators can only be used with constant values"),
 
   /* Outlier detection */
   E2200("At least one data element must be specified"),
