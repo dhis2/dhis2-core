@@ -200,11 +200,12 @@ public class MetadataIdentifier implements Serializable {
       case UID -> metadata.getUid();
       case CODE -> metadata.getCode();
       case NAME -> metadata.getName();
-      case ATTRIBUTE -> metadata.getAttributeValues().stream()
-          .filter(av -> av.getAttribute().getUid().equals(this.identifier))
-          .map(AttributeValue::getValue)
-          .findFirst()
-          .orElse(null);
+      case ATTRIBUTE ->
+          metadata.getAttributeValues().stream()
+              .filter(av -> av.getAttribute().getUid().equals(this.identifier))
+              .map(AttributeValue::getValue)
+              .findFirst()
+              .orElse(null);
     };
   }
 

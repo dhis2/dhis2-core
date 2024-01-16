@@ -73,16 +73,20 @@ public class DataValueSetImportJob implements Job {
       progress.startingStage("Importing data...");
       ImportSummary summary =
           switch (contentType) {
-            case "application/json" -> progress.runStage(
-                () -> dataValueSetService.importDataValueSetJson(input, options, jobId));
-            case "application/csv" -> progress.runStage(
-                () -> dataValueSetService.importDataValueSetCsv(input, options, jobId));
-            case "application/pdf" -> progress.runStage(
-                () -> dataValueSetService.importDataValueSetPdf(input, options, jobId));
-            case "application/adx+xml" -> progress.runStage(
-                () -> adxDataService.saveDataValueSet(input, options, jobId));
-            case "application/xml" -> progress.runStage(
-                () -> dataValueSetService.importDataValueSetXml(input, options, jobId));
+            case "application/json" ->
+                progress.runStage(
+                    () -> dataValueSetService.importDataValueSetJson(input, options, jobId));
+            case "application/csv" ->
+                progress.runStage(
+                    () -> dataValueSetService.importDataValueSetCsv(input, options, jobId));
+            case "application/pdf" ->
+                progress.runStage(
+                    () -> dataValueSetService.importDataValueSetPdf(input, options, jobId));
+            case "application/adx+xml" ->
+                progress.runStage(() -> adxDataService.saveDataValueSet(input, options, jobId));
+            case "application/xml" ->
+                progress.runStage(
+                    () -> dataValueSetService.importDataValueSetXml(input, options, jobId));
             default -> {
               progress.failedStage("Unknown format: " + contentType);
               yield null;

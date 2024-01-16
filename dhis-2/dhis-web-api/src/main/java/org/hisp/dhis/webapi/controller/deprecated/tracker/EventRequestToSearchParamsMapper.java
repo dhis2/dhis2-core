@@ -456,8 +456,8 @@ class EventRequestToSearchParamsMapper {
 
     switch (selectedOuMode) {
       case ALL -> validateUserCanSearchOrgUnitModeALL(user);
-      case SELECTED, ACCESSIBLE, DESCENDANTS, CHILDREN -> validateUserScope(
-          user, program, selectedOuMode, orgUnit);
+      case SELECTED, ACCESSIBLE, DESCENDANTS, CHILDREN ->
+          validateUserScope(user, program, selectedOuMode, orgUnit);
       case CAPTURE -> validateCaptureScope(user, orgUnit);
     }
   }
