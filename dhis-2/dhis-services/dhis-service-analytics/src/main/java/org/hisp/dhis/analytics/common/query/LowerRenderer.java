@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,15 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.analytics.common.query;
 
-/**
- * Algorithm for outlier value detection.
- *
- * @author Lars Helge Overland
- */
-public enum OutlierDetectionAlgorithm {
-  Z_SCORE,
-  MIN_MAX,
-  MODIFIED_Z_SCORE;
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor(staticName = "of")
+public class LowerRenderer extends BaseRenderable {
+
+  private final Renderable renderable;
+
+  @Override
+  public String render() {
+    return "lower(" + renderable.render() + ")";
+  }
 }

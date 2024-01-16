@@ -69,7 +69,7 @@ public enum ColumnHeader {
   MEDIAN_ABS_DEVIATION("medianabsdeviation", "Median absolute deviation"),
   STANDARD_DEVIATION("stddev", "Standard deviation"),
   ABSOLUTE_DEVIATION("absdev", "Absolute deviation"),
-  MODIFIED_ZSCORE("modifiedzscore", "Modified zScore"),
+  MODIFIED_Z_SCORE("modifiedzscore", "Modified zScore"),
   ZSCORE("zscore", "zScore"),
   LOWER_BOUNDARY("lowerbound", "Lower boundary"),
   UPPER_BOUNDARY("upperbound", "Upper boundary");

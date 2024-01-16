@@ -46,7 +46,7 @@ import org.hisp.dhis.analytics.common.ColumnHeader;
 @RequiredArgsConstructor
 public enum Order {
   Z_SCORE(ZSCORE.getItem(), "z_score"),
-  MODIFIED_ZSCORE(ColumnHeader.MODIFIED_ZSCORE.getItem(), "z_score"),
+  MODIFIED_Z_SCORE(ColumnHeader.MODIFIED_Z_SCORE.getItem(), "z_score"),
   VALUE("value", "value"),
   MEDIAN(ColumnHeader.MEDIAN.getItem(), "middle_value"),
   MEAN(ColumnHeader.MEAN.getItem(), "middle_value"),
