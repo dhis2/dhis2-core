@@ -442,6 +442,8 @@ public class DhisWebApiWebSecurityConfig {
           .permitAll()
           .antMatchers(apiContextPath + "/authentication/login")
           .permitAll()
+          .antMatchers(apiContextPath + "/account/password")
+          .permitAll()
           .antMatchers(apiContextPath + "/account/recovery")
           .permitAll()
           .antMatchers(apiContextPath + "/account/restore")
