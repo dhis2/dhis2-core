@@ -48,51 +48,24 @@ import org.hisp.dhis.reservedvalue.SequentialNumberCounterStore;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 class HibernateSequentialNumberCounterStoreTest extends TransactionalIntegrationTest {
 
-  @Autowired private DummyService dummyService;
+  @Autowired private SequentialNumberCounterStore sequentialNumberCounterStore;
 
   @Test
   void getNextValues() {
-    List<Integer> result = dummyService.getNextValues("ABC", "ABC-#", 3);
+    List<Integer> result = getNextValues("ABC", "ABC-#", 3);
     assertEquals(3, result.size());
     assertTrue(result.contains(1));
     assertTrue(result.contains(2));
     assertTrue(result.contains(3));
-    result = dummyService.getNextValues("ABC", "ABC-#", 50);
+    result = getNextValues("ABC", "ABC-#", 50);
     assertEquals(50, result.size());
     assertTrue(result.contains(4));
     assertTrue(result.contains(5));
     assertTrue(result.contains(52));
     assertTrue(result.contains(53));
-  }
-
-  private void test(final int threadCount) throws InterruptedException, ExecutionException {
-    final String uid = RandomStringUtils.randomAlphabetic(3).toUpperCase();
-    Callable<List<Integer>> task = () -> dummyService.getNextValues(uid, uid + "-#", 50);
-    List<Callable<List<Integer>>> tasks = Collections.nCopies(threadCount, task);
-    ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
-    List<Future<List<Integer>>> futures = executorService.invokeAll(tasks);
-    List<List<Integer>> resultList = new ArrayList<>(futures.size());
-    // Check for exceptions
-    for (Future<List<Integer>> future : futures) {
-      // Throws an exception if an exception was thrown by the task.
-      resultList.add(future.get());
-    }
-    assertEquals(threadCount, futures.size());
-    Set<Integer> allIds = new HashSet<>();
-    List<Integer> allIdList = new ArrayList<>();
-    for (List<Integer> integers : resultList) {
-      allIds.addAll(integers);
-      allIdList.addAll(integers);
-    }
-    assertThat(allIds, hasSize(threadCount * 50));
-    Collections.sort(allIdList);
-    assertThat(allIdList.get(0), is(1));
-    assertThat(allIdList.get(allIdList.size() - 1), is(50 * threadCount));
   }
 
   @Test
@@ -122,25 +95,47 @@ class HibernateSequentialNumberCounterStoreTest extends TransactionalIntegration
 
   @Test
   void deleteCounter() {
-    assertTrue(dummyService.getNextValues("ABC", "ABC-#", 3).contains(1));
-    dummyService.deleteCounter("ABC");
-    assertTrue(dummyService.getNextValues("ABC", "ABC-#", 3).contains(1));
-    assertTrue(dummyService.getNextValues("ABC", "ABC-##", 3).contains(1));
-    assertTrue(dummyService.getNextValues("ABC", "ABC-###", 3).contains(1));
-    dummyService.deleteCounter("ABC");
-    assertTrue(dummyService.getNextValues("ABC", "ABC-#", 3).contains(1));
-    assertTrue(dummyService.getNextValues("ABC", "ABC-##", 3).contains(1));
-    assertTrue(dummyService.getNextValues("ABC", "ABC-###", 3).contains(1));
+    assertTrue(getNextValues("ABC", "ABC-#", 3).contains(1));
+    deleteCounter("ABC");
+    assertTrue(getNextValues("ABC", "ABC-#", 3).contains(1));
+    assertTrue(getNextValues("ABC", "ABC-##", 3).contains(1));
+    assertTrue(getNextValues("ABC", "ABC-###", 3).contains(1));
+    deleteCounter("ABC");
+    assertTrue(getNextValues("ABC", "ABC-#", 3).contains(1));
+    assertTrue(getNextValues("ABC", "ABC-##", 3).contains(1));
+    assertTrue(getNextValues("ABC", "ABC-###", 3).contains(1));
   }
 
-  @Configuration
-  static class TestConfig {
-
-    @Autowired private SequentialNumberCounterStore sequentialNumberCounterStore;
-
-    @Bean
-    public DummyService dummyService() {
-      return new DummyService(sequentialNumberCounterStore);
+  private void test(final int threadCount) throws InterruptedException, ExecutionException {
+    final String uid = RandomStringUtils.randomAlphabetic(3).toUpperCase();
+    Callable<List<Integer>> task = () -> getNextValues(uid, uid + "-#", 50);
+    List<Callable<List<Integer>>> tasks = Collections.nCopies(threadCount, task);
+    ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+    List<Future<List<Integer>>> futures = executorService.invokeAll(tasks);
+    List<List<Integer>> resultList = new ArrayList<>(futures.size());
+    // Check for exceptions
+    for (Future<List<Integer>> future : futures) {
+      // Throws an exception if an exception was thrown by the task.
+      resultList.add(future.get());
     }
+    assertEquals(threadCount, futures.size());
+    Set<Integer> allIds = new HashSet<>();
+    List<Integer> allIdList = new ArrayList<>();
+    for (List<Integer> integers : resultList) {
+      allIds.addAll(integers);
+      allIdList.addAll(integers);
+    }
+    assertThat(allIds, hasSize(threadCount * 50));
+    Collections.sort(allIdList);
+    assertThat(allIdList.get(0), is(1));
+    assertThat(allIdList.get(allIdList.size() - 1), is(50 * threadCount));
+  }
+
+  public List<Integer> getNextValues(String uid, String key, int length) {
+    return sequentialNumberCounterStore.getNextValues(uid, key, length);
+  }
+
+  public void deleteCounter(String uid) {
+    sequentialNumberCounterStore.deleteCounter(uid);
   }
 }
