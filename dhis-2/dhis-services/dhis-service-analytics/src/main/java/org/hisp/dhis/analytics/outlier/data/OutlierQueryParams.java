@@ -70,6 +70,8 @@ public class OutlierQueryParams {
 
   private Date dataEndDate;
 
+  private Date relativePeriodDate;
+
   private Order orderBy;
 
   private SortOrder sortOrder;
@@ -89,6 +91,7 @@ public class OutlierQueryParams {
     key.add(dataEndDate);
     key.add(startDate);
     key.add(endDate);
+    key.add(relativePeriodDate);
     key.add(pe);
     key.add(maxResults);
     key.add(algorithm);
