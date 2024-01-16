@@ -29,6 +29,7 @@ package org.hisp.dhis.merge;
 
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -56,12 +57,6 @@ public class DefaultMergeValidator implements MergeValidator {
   private static final String INDICATOR = "Indicator";
   private static final String MERGE_ERROR = "Unexpected value retrieving merge error code: ";
 
-  /**
-   * @param paramSources {@link UID}s
-   * @param verifiedSources set to add verified source {@link UID}s
-   * @param mergeReport to update if any error
-   * @param clazz {@link IdentifiableObject} type
-   */
   @Override
   public <T extends IdentifiableObject> void verifySources(
       Set<UID> paramSources, Set<UID> verifiedSources, MergeReport mergeReport, Class<T> clazz) {
@@ -74,12 +69,6 @@ public class DefaultMergeValidator implements MergeValidator {
                     new ErrorMessage(missingSourceErrorCode(clazz.getSimpleName()))));
   }
 
-  /**
-   * @param sources to check
-   * @param target to check if in sources
-   * @param mergeReport to update if any error
-   * @param clazz {@link IdentifiableObject} type
-   */
   @Override
   public <T extends IdentifiableObject> void checkIsTargetInSources(
       Set<UID> sources, UID target, MergeReport mergeReport, Class<T> clazz) {
@@ -88,18 +77,6 @@ public class DefaultMergeValidator implements MergeValidator {
           new ErrorMessage(targetNotSourceErrorCode(clazz.getSimpleName())));
   }
 
-  /**
-   * Verifies whether the target {@link UID} maps to a valid {@link IdentifiableObject}. <br>
-   * - If it's valid then a fully populated {@link MergeRequest} is returned. <br>
-   * - If it's not valid then an empty {@link MergeRequest} is returned and the {@link MergeReport}
-   * is updated with an error.
-   *
-   * @param mergeReport to update if any error
-   * @param sources to return in merge request
-   * @param params merge params with target to verify
-   * @param clazz {@link IdentifiableObject} type
-   * @return merge request
-   */
   @Override
   public <T extends IdentifiableObject> MergeRequest verifyTarget(
       MergeReport mergeReport, Set<UID> sources, MergeParams params, Class<T> clazz) {
@@ -133,13 +110,7 @@ public class DefaultMergeValidator implements MergeValidator {
     if (uid != null) {
       return Optional.ofNullable(manager.get(clazz, uid.getValue()))
           .map(i -> UID.of(i.getUid()))
-          .or(
-              () -> {
-                mergeReport.addErrorMessage(
-                    new ErrorMessage(
-                        doesNotExistErrorCode(clazz.getSimpleName()), mergeObjectType, uid));
-                return Optional.empty();
-              });
+          .or(reportError(uid, mergeReport, mergeObjectType, clazz));
     } else {
       mergeReport.addErrorMessage(
           new ErrorMessage(noTargetErrorCode(clazz.getSimpleName()), mergeObjectType, uid));
@@ -163,6 +134,15 @@ public class DefaultMergeValidator implements MergeValidator {
         uid ->
             getAndVerify(uid, report, MergeObjectType.SOURCE.name(), clazz)
                 .ifPresent(verifiedSources::add));
+  }
+
+  private <T extends IdentifiableObject> Supplier<Optional<UID>> reportError(
+      UID uid, MergeReport mergeReport, String mergeObjectType, Class<T> clazz) {
+    return () -> {
+      mergeReport.addErrorMessage(
+          new ErrorMessage(doesNotExistErrorCode(clazz.getSimpleName()), mergeObjectType, uid));
+      return Optional.empty();
+    };
   }
 
   /**

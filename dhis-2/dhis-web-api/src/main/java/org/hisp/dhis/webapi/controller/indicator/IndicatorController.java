@@ -104,8 +104,9 @@ public class IndicatorController extends AbstractCrudController<Indicator> {
   public @ResponseBody WebMessage mergeIndicators(@RequestBody MergeParams params)
       throws ConflictException {
     log.info("Indicator merge received");
+    params.setMergeType(MergeType.INDICATOR);
 
-    MergeReport report = indicatorMergeProcessor.processMerge(params, MergeType.INDICATOR);
+    MergeReport report = indicatorMergeProcessor.processMerge(params);
 
     log.info("Indicator merge processed with report: {}", report);
     return WebMessageUtils.mergeReport(report);

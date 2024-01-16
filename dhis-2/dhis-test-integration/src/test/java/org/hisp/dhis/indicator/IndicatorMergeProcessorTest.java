@@ -91,12 +91,11 @@ class IndicatorMergeProcessorTest extends IntegrationTestBase {
     MergeParams params = new MergeParams();
     params.setSources(Set.of());
     params.setTarget(UID.of(validTarget.getUid()));
+    params.setMergeType(MergeType.INDICATOR);
 
     // when a merge request is processed
     ConflictException conflictException =
-        assertThrows(
-            ConflictException.class,
-            () -> indicatorMergeProcessor.processMerge(params, MergeType.INDICATOR));
+        assertThrows(ConflictException.class, () -> indicatorMergeProcessor.processMerge(params));
 
     // then the merge report has the correct error info
     MergeReport mergeReport = conflictException.getMergeReport();
@@ -118,12 +117,11 @@ class IndicatorMergeProcessorTest extends IntegrationTestBase {
     MergeParams params = new MergeParams();
     params.setSources(Set.of(UID.of(validSource1.getUid())));
     params.setTarget(UID.of("Uid00000011"));
+    params.setMergeType(MergeType.INDICATOR);
 
     // when a merge request is processed
     ConflictException conflictException =
-        assertThrows(
-            ConflictException.class,
-            () -> indicatorMergeProcessor.processMerge(params, MergeType.INDICATOR));
+        assertThrows(ConflictException.class, () -> indicatorMergeProcessor.processMerge(params));
 
     // then the merge report has the correct error info
     MergeReport mergeReport = conflictException.getMergeReport();
@@ -147,12 +145,11 @@ class IndicatorMergeProcessorTest extends IntegrationTestBase {
     MergeParams params = new MergeParams();
     params.setSources(Set.of(UID.of(validSource1.getUid()), UID.of("Uid00000011")));
     params.setTarget(UID.of(validTarget.getUid()));
+    params.setMergeType(MergeType.INDICATOR);
 
     // when a merge request is processed
     ConflictException conflictException =
-        assertThrows(
-            ConflictException.class,
-            () -> indicatorMergeProcessor.processMerge(params, MergeType.INDICATOR));
+        assertThrows(ConflictException.class, () -> indicatorMergeProcessor.processMerge(params));
 
     // then the merge report has the correct error info
     MergeReport mergeReport = conflictException.getMergeReport();
@@ -174,12 +171,11 @@ class IndicatorMergeProcessorTest extends IntegrationTestBase {
     MergeParams params = new MergeParams();
     params.setSources(Set.of(UID.of(validTarget.getUid())));
     params.setTarget(UID.of(validTarget.getUid()));
+    params.setMergeType(MergeType.INDICATOR);
 
     // when a merge request is processed
     ConflictException conflictException =
-        assertThrows(
-            ConflictException.class,
-            () -> indicatorMergeProcessor.processMerge(params, MergeType.INDICATOR));
+        assertThrows(ConflictException.class, () -> indicatorMergeProcessor.processMerge(params));
 
     // then the merge report has the correct error info
     MergeReport mergeReport = conflictException.getMergeReport();
@@ -202,12 +198,11 @@ class IndicatorMergeProcessorTest extends IntegrationTestBase {
     MergeParams params = new MergeParams();
     params.setSources(Set.of(UID.of(validTarget.getUid())));
     params.setTarget(null);
+    params.setMergeType(MergeType.INDICATOR);
 
     // when a merge request is processed
     ConflictException conflictException =
-        assertThrows(
-            ConflictException.class,
-            () -> indicatorMergeProcessor.processMerge(params, MergeType.INDICATOR));
+        assertThrows(ConflictException.class, () -> indicatorMergeProcessor.processMerge(params));
 
     // then the merge report has the correct error info
     MergeReport mergeReport = conflictException.getMergeReport();
@@ -227,9 +222,10 @@ class IndicatorMergeProcessorTest extends IntegrationTestBase {
     params.setSources(Set.of(UID.of(validSource1.getUid()), UID.of(validSource2.getUid())));
     params.setTarget(UID.of(validTarget.getUid()));
     params.setDeleteSources(true);
+    params.setMergeType(MergeType.INDICATOR);
 
     // when a merge request is processed
-    MergeReport report = indicatorMergeProcessor.processMerge(params, MergeType.INDICATOR);
+    MergeReport report = indicatorMergeProcessor.processMerge(params);
 
     // then the merge report has the correct error info
     assertFalse(report.hasErrorMessages());

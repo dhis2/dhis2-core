@@ -35,12 +35,13 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
-import org.hisp.dhis.dataset.SectionService;
+import org.hisp.dhis.dataset.SectionStore;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorService;
@@ -55,9 +56,9 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @RequiredArgsConstructor
-public class MetadataIndicatorMergeHandler {
+public class IndicatorMergeHandler {
 
-  private final SectionService sectionService;
+  private final SectionStore sectionStore;
   private final IndicatorService indicatorService;
   private final DataEntryFormService dataEntryFormService;
   private final DimensionService dimensionService;
@@ -145,7 +146,7 @@ public class MetadataIndicatorMergeHandler {
    * @param target to add
    */
   public void handleSections(List<Indicator> sources, Indicator target) {
-    List<Section> sections = sectionService.getSectionsByIndicators(sources);
+    List<Section> sections = sectionStore.getSectionsByIndicators(sources);
     sections.forEach(
         s -> {
           s.removeIndicators(sources);
@@ -163,7 +164,7 @@ public class MetadataIndicatorMergeHandler {
     for (Indicator source : sources) {
       // numerators
       List<Indicator> numeratorIndicators =
-          indicatorService.getIndicatorsWithNumeratorContaining(source.getUid());
+          indicatorService.getIndicatorsWithNumeratorContaining(UID.of(source.getUid()));
 
       numeratorIndicators.forEach(
           i -> {
@@ -173,7 +174,7 @@ public class MetadataIndicatorMergeHandler {
 
       // denominators
       List<Indicator> denominatorIndicators =
-          indicatorService.getIndicatorsWithDenominatorContaining(source.getUid());
+          indicatorService.getIndicatorsWithDenominatorContaining(UID.of(source.getUid()));
 
       denominatorIndicators.forEach(
           i -> {

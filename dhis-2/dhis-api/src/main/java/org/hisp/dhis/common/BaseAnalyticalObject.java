@@ -58,7 +58,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -488,11 +487,10 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
    */
   @JsonIgnore
   public Set<Indicator> getIndicators() {
-    return ImmutableSet.copyOf(
-        dataDimensionItems.stream()
-            .map(DataDimensionItem::getIndicator)
-            .filter(Objects::nonNull)
-            .collect(Collectors.toSet()));
+    return dataDimensionItems.stream()
+        .map(DataDimensionItem::getIndicator)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toUnmodifiableSet());
   }
 
   /**

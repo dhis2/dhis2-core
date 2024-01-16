@@ -30,6 +30,7 @@ package org.hisp.dhis.indicator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.UID;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -125,14 +126,14 @@ public class DefaultIndicatorService implements IndicatorService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<Indicator> getIndicatorsWithNumeratorContaining(String uid) {
-    return indicatorStore.getIndicatorsWithNumeratorContaining(uid);
+  public List<Indicator> getIndicatorsWithNumeratorContaining(UID uid) {
+    return indicatorStore.getIndicatorsWithNumeratorContaining(uid.getValue());
   }
 
   @Override
   @Transactional(readOnly = true)
-  public List<Indicator> getIndicatorsWithDenominatorContaining(String uid) {
-    return indicatorStore.getIndicatorsWithDenominatorContaining(uid);
+  public List<Indicator> getIndicatorsWithDenominatorContaining(UID uid) {
+    return indicatorStore.getIndicatorsWithDenominatorContaining(uid.getValue());
   }
 
   // -------------------------------------------------------------------------

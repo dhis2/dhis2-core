@@ -40,6 +40,11 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class IndicatorMergeProcessor implements MergeProcessor {
+
+  /**
+   * Spring injects the correct service based on the variable name (when there are multiple
+   * implementations to choose from). So The {@link IndicatorMergeService} gets injected here.
+   */
   private final MergeService indicatorMergeService;
 
   @Override

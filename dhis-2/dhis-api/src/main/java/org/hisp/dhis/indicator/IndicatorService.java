@@ -28,6 +28,7 @@
 package org.hisp.dhis.indicator;
 
 import java.util.List;
+import org.hisp.dhis.common.UID;
 
 /**
  * @author Lars Helge Overland
@@ -65,7 +66,7 @@ public interface IndicatorService {
    * @param uid to search
    * @return matching {@link Indicator}s
    */
-  List<Indicator> getIndicatorsWithNumeratorContaining(String uid);
+  List<Indicator> getIndicatorsWithNumeratorContaining(UID uid);
 
   /**
    * Get all {@link Indicator}s that have the uid contained in its denominator
@@ -73,7 +74,7 @@ public interface IndicatorService {
    * @param uid to search
    * @return matching {@link Indicator}s
    */
-  List<Indicator> getIndicatorsWithDenominatorContaining(String uid);
+  List<Indicator> getIndicatorsWithDenominatorContaining(UID uid);
 
   // -------------------------------------------------------------------------
   // IndicatorType

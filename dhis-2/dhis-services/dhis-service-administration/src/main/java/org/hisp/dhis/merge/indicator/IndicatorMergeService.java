@@ -42,7 +42,7 @@ import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeRequest;
 import org.hisp.dhis.merge.MergeService;
 import org.hisp.dhis.merge.MergeValidator;
-import org.hisp.dhis.merge.indicator.handler.MetadataIndicatorMergeHandler;
+import org.hisp.dhis.merge.indicator.handler.IndicatorMergeHandler;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,9 +56,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class IndicatorMergeService implements MergeService {
 
   private final IndicatorService indicatorService;
-  private final MetadataIndicatorMergeHandler metadataIndicatorMergeHandler;
+  private final IndicatorMergeHandler indicatorMergeHandler;
   private final MergeValidator validator;
-  private ImmutableList<IndicatorMergeHandler> handlers;
+  private ImmutableList<org.hisp.dhis.merge.indicator.IndicatorMergeHandler> handlers;
 
   @Override
   public MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport) {
@@ -98,14 +98,14 @@ public class IndicatorMergeService implements MergeService {
   @PostConstruct
   private void initMergeHandlers() {
     handlers =
-        ImmutableList.<IndicatorMergeHandler>builder()
-            .add(metadataIndicatorMergeHandler::handleDataSets)
-            .add(metadataIndicatorMergeHandler::handleIndicatorGroups)
-            .add(metadataIndicatorMergeHandler::handleSections)
-            .add(metadataIndicatorMergeHandler::handleIndicatorRefsInIndicator)
-            .add(metadataIndicatorMergeHandler::handleIndicatorRefsInCustomForms)
-            .add(metadataIndicatorMergeHandler::handleDataDimensionItems)
-            .add(metadataIndicatorMergeHandler::handleVisualizations)
+        ImmutableList.<org.hisp.dhis.merge.indicator.IndicatorMergeHandler>builder()
+            .add(indicatorMergeHandler::handleDataSets)
+            .add(indicatorMergeHandler::handleIndicatorGroups)
+            .add(indicatorMergeHandler::handleSections)
+            .add(indicatorMergeHandler::handleIndicatorRefsInIndicator)
+            .add(indicatorMergeHandler::handleIndicatorRefsInCustomForms)
+            .add(indicatorMergeHandler::handleDataDimensionItems)
+            .add(indicatorMergeHandler::handleVisualizations)
             .build();
   }
 }
