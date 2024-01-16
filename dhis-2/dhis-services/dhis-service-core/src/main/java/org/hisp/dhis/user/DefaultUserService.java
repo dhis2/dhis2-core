@@ -76,8 +76,6 @@ import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.jboss.aerogear.security.otp.api.Base32;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.security.core.session.SessionInformation;
-import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -107,8 +105,6 @@ public class DefaultUserService implements UserService {
 
   private final PasswordManager passwordManager;
 
-  private final SessionRegistry sessionRegistry;
-
   private final SecurityService securityService;
 
   private final Cache<String> userDisplayNameCache;
@@ -123,7 +119,6 @@ public class DefaultUserService implements UserService {
       SystemSettingManager systemSettingManager,
       CacheProvider cacheProvider,
       @Lazy PasswordManager passwordManager,
-      @Lazy SessionRegistry sessionRegistry,
       @Lazy SecurityService securityService,
       AclService aclService) {
     checkNotNull(userStore);
@@ -131,7 +126,6 @@ public class DefaultUserService implements UserService {
     checkNotNull(userRoleStore);
     checkNotNull(systemSettingManager);
     checkNotNull(passwordManager);
-    checkNotNull(sessionRegistry);
     checkNotNull(securityService);
     checkNotNull(aclService);
 
@@ -141,7 +135,6 @@ public class DefaultUserService implements UserService {
     this.currentUserService = currentUserService;
     this.systemSettingManager = systemSettingManager;
     this.passwordManager = passwordManager;
-    this.sessionRegistry = sessionRegistry;
     this.securityService = securityService;
     this.userDisplayNameCache = cacheProvider.createUserDisplayNameCache();
     this.aclService = aclService;
@@ -742,9 +735,7 @@ public class DefaultUserService implements UserService {
 
   @Override
   public void expireActiveSessions(User user) {
-    List<SessionInformation> sessions = sessionRegistry.getAllSessions(user, false);
-
-    sessions.forEach(SessionInformation::expireNow);
+    currentUserService.invalidateUserSessions(user.getUid());
   }
 
   @Override

@@ -32,6 +32,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
 
 /**
@@ -43,7 +44,7 @@ import org.springframework.security.core.session.SessionRegistryImpl;
 @Configuration
 public class DebeziumSpringConfiguration {
   @Bean
-  public static SessionRegistryImpl sessionRegistry() {
+  public static SessionRegistry sessionRegistry() {
     return new SessionRegistryImpl();
   }
 
