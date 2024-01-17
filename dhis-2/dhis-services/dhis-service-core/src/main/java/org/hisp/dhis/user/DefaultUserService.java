@@ -643,7 +643,8 @@ public class DefaultUserService implements UserService {
   private void checkIsInOrgUnitHierarchy(
       Set<OrganisationUnit> organisationUnits, User currentUser, List<ErrorReport> errors) {
     for (OrganisationUnit orgUnit : organisationUnits) {
-      if (!orgUnit.isDescendant(currentUser.getOrganisationUnits())) {
+      boolean inUserHierarchy = organisationUnitService.isInUserHierarchy(currentUser, orgUnit);
+      if (!inUserHierarchy) {
         errors.add(
             new ErrorReport(
                 OrganisationUnit.class,
@@ -653,6 +654,20 @@ public class DefaultUserService implements UserService {
       }
     }
   }
+
+  //  private void checkIsInOrgUnitHierarchy(
+  //      Set<OrganisationUnit> organisationUnits, User currentUser, List<ErrorReport> errors) {
+  //    for (OrganisationUnit orgUnit : organisationUnits) {
+  //      if (!orgUnit.isDescendant(currentUser.getOrganisationUnits())) {
+  //        errors.add(
+  //            new ErrorReport(
+  //                OrganisationUnit.class,
+  //                ErrorCode.E7617,
+  //                orgUnit.getUid(),
+  //                currentUser.getUsername()));
+  //      }
+  //    }
+  //  }
 
   private void checkHasAccessToUserGroups(User user, User currentUser, List<ErrorReport> errors) {
 
