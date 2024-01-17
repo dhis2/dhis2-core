@@ -36,7 +36,7 @@ import lombok.ToString;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Shared.Pattern;
 
-// TODO(tracker): revisit if we can create a Page class used by all products when we removed the
+// TODO(tracker): revisit if we can create a Page class used by all products when we remove the
 // deprecated fields
 /**
  * Translates {@link org.hisp.dhis.tracker.export.Page} to its JSON representation. Future changes
