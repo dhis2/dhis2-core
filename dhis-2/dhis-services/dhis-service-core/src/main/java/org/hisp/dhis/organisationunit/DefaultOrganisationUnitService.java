@@ -401,18 +401,12 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
 
   @Override
   @Transactional(readOnly = true)
-  public boolean isInUserHierarchy(User user, OrganisationUnit organisationUnit) {
-    if (user == null || isEmpty(user.getOrganisationUnits())) {
+  public boolean isInUserHierarchy(User user, OrganisationUnit orgUnit) {
+    if (user == null || isEmpty(user.getOrganisationUnits()) || orgUnit == null) {
       return false;
     }
 
-    OrganisationUnit unit = organisationUnitStore.getByUid(organisationUnit.getUid());
-
-    if (unit == null) {
-      return false;
-    }
-
-    return unit.isDescendant(user.getOrganisationUnits());
+    return orgUnit.isDescendant(user.getOrganisationUnits());
   }
 
   @Override
