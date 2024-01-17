@@ -308,7 +308,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
 
   @Test
   void testGetDescription() {
-    RuleValidationResult result = new RuleValidationResult(true, null, null, null);
+    RuleValidationResult result = new RuleValidationResult(true);
     when(programRuleService.getProgramRule(anyString())).thenReturn(programRuleA);
     when(programRuleEngine.getDescription(programRuleA.getCondition(), program)).thenReturn(result);
 

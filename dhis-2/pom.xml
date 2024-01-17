@@ -81,7 +81,8 @@
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine -->
-    <dhis2-rule-engine.version>3.0.0-20240117.101639-6</dhis2-rule-engine.version>
+    <dhis2-rule-engine.version>3.0.0-20240117.135426-7</dhis2-rule-engine.version>
+    <kotlinx-datetime.version>0.4.0</kotlinx-datetime.version>
 
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.3</dhis-hisp-quick.version>
@@ -414,7 +415,7 @@
       <dependency>
         <groupId>org.jetbrains.kotlinx</groupId>
         <artifactId>kotlinx-datetime-jvm</artifactId>
-        <version>0.4.0</version>
+        <version>${kotlinx-datetime.version}</version>
       </dependency>
       <dependency>
         <groupId>org.hisp.dhis.rules</groupId>

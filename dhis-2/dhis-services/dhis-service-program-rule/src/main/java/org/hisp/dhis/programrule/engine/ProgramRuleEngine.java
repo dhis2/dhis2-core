@@ -72,7 +72,7 @@ public class ProgramRuleEngine {
 
   private final RuleEngine ruleEngine;
 
-  @Deprecated
+  @Deprecated(forRemoval = true, since = "2.41")
   public List<RuleEffect> evaluateEvent(
       Enrollment enrollment, Set<Event> events, List<ProgramRule> rules) {
     return evaluateProgramRules(
@@ -84,7 +84,7 @@ public class ProgramRuleEngine {
         rules);
   }
 
-  @Deprecated
+  @Deprecated(forRemoval = true, since = "2.41")
   public List<RuleEffect> evaluateEvent(
       Enrollment enrollment, Event event, Set<Event> events, List<ProgramRule> rules) {
     return evaluateProgramRules(
@@ -96,7 +96,7 @@ public class ProgramRuleEngine {
         rules);
   }
 
-  @Deprecated
+  @Deprecated(forRemoval = true, since = "2.41")
   public List<RuleEffect> evaluateProgramEvent(
       Event event, Program program, List<ProgramRule> rules) {
     return evaluateProgramRules(
@@ -184,7 +184,7 @@ public class ProgramRuleEngine {
   public RuleValidationResult getDescription(String condition, Program program) {
     if (program == null) {
       log.error(ERROR);
-      return new RuleValidationResult(false, ERROR, null, null);
+      return new RuleValidationResult(false, ERROR);
     }
 
     return ruleEngine.validate(
@@ -203,7 +203,7 @@ public class ProgramRuleEngine {
   public RuleValidationResult getDataExpressionDescription(String dataExpression, Program program) {
     if (program == null) {
       log.error(ERROR);
-      return new RuleValidationResult(false, ERROR, null, null);
+      return new RuleValidationResult(false, ERROR);
     }
 
     return ruleEngine.validateDataFieldExpression(
