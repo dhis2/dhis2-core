@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,56 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security;
+package org.hisp.dhis.merge.indicator;
 
-import java.util.Arrays;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.List;
+import org.hisp.dhis.indicator.Indicator;
 
 /**
- * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ * Functional interface representing an indicator merge operation.
+ *
+ * @author david mackessy
  */
-public enum Authorities {
-  ALL,
-  F_VIEW_EVENT_ANALYTICS,
-  F_METADATA_EXPORT,
-  F_METADATA_IMPORT,
-  F_EXPORT_DATA,
-  F_SKIP_DATA_IMPORT_AUDIT,
-  F_APPROVE_DATA,
-  F_APPROVE_DATA_LOWER_LEVELS,
-  F_ACCEPT_DATA_LOWER_LEVELS,
-  F_PERFORM_MAINTENANCE,
-  F_PERFORM_ANALYTICS_EXPLAIN,
-  F_LOCALE_ADD,
-  F_GENERATE_MIN_MAX_VALUES,
-  F_RUN_VALIDATION,
-  F_PREDICTOR_RUN,
-  F_SEND_EMAIL,
-  F_ORGANISATIONUNIT_MOVE,
-  F_ORGANISATION_UNIT_SPLIT,
-  F_ORGANISATION_UNIT_MERGE,
-  F_INDICATOR_TYPE_MERGE,
-  F_INDICATOR_MERGE,
-  F_INSERT_CUSTOM_JS_CSS,
-  F_VIEW_UNAPPROVED_DATA,
-  F_USER_VIEW,
-  F_REPLICATE_USER,
-  F_USER_GROUPS_READ_ONLY_ADD_MEMBERS,
-  F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS,
-  F_TEI_CASCADE_DELETE,
-  F_ENROLLMENT_CASCADE_DELETE,
-  F_UNCOMPLETE_EVENT,
-  F_EDIT_EXPIRED,
-  F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION,
-  F_VIEW_SERVER_INFO,
-  F_ORG_UNIT_PROFILE_ADD,
-  F_TRACKED_ENTITY_MERGE,
-  F_DATAVALUE_ADD,
-  F_IMPERSONATE_USER,
-  F_SYSTEM_SETTING;
-
-  public static Set<String> getAllAuthorities() {
-    return Arrays.stream(Authorities.values()).map(Authorities::name).collect(Collectors.toSet());
-  }
+@FunctionalInterface
+public interface IndicatorMergeHandler {
+  void merge(List<Indicator> sources, Indicator target);
 }

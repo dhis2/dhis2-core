@@ -34,6 +34,7 @@ import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.SectionStore;
+import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -76,6 +77,22 @@ public class HibernateSectionStore extends HibernateIdentifiableObjectStore<Sect
     return getSession()
         .createNativeQuery(hql, Section.class)
         .setParameter("dataElementId", dataElementUid)
+        .list();
+  }
+
+  @Override
+  public List<Section> getSectionsByIndicators(List<Indicator> indicators) {
+    // language=sql
+    String sql =
+        """
+            select s.* from section s
+            join sectionindicators si on s.sectionid = si.sectionid
+            where si.indicatorid in :indicators
+            group by s.sectionid
+          """;
+    return getSession()
+        .createNativeQuery(sql, Section.class)
+        .setParameter("indicators", indicators)
         .list();
   }
 }

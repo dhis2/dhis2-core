@@ -48,4 +48,6 @@ public class MergeParams {
   @JsonProperty private UID target;
 
   @JsonProperty private boolean deleteSources;
+
+  private MergeType mergeType;
 }

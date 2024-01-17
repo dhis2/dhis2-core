@@ -72,6 +72,8 @@ public interface AnalyticalObjectStore<T extends AnalyticalObject>
 
   List<T> getAnalyticalObjects(LegendSet legendSet);
 
+  List<T> getVisualizationsBySortingIndicator(List<String> indicators);
+
   long countAnalyticalObjects(Indicator indicator);
 
   long countAnalyticalObjects(DataElement dataElement);

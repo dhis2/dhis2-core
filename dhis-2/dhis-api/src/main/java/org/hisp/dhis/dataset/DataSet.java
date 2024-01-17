@@ -40,6 +40,7 @@ import com.google.common.collect.Sets;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.category.Category;
@@ -331,6 +332,10 @@ public class DataSet extends BaseDimensionalItemObject
   public boolean removeIndicator(Indicator indicator) {
     indicators.remove(indicator);
     return indicator.getDataSets().remove(this);
+  }
+
+  public void removeIndicators(List<Indicator> indicators) {
+    indicators.forEach(this::removeIndicator);
   }
 
   public void addCompulsoryDataElementOperand(DataElementOperand dataElementOperand) {
