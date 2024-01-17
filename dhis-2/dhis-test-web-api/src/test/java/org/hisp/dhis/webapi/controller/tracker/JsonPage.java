@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,15 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.webapi.controller.tracker;
 
-/**
- * Algorithm for outlier value detection.
- *
- * @author Lars Helge Overland
- */
-public enum OutlierDetectionAlgorithm {
-  Z_SCORE,
-  MIN_MAX,
-  MODIFIED_Z_SCORE;
+import org.hisp.dhis.jsontree.JsonObject;
+
+/** Representation of {@link org.hisp.dhis.webapi.controller.tracker.view.Page}. */
+public interface JsonPage extends JsonObject {
+  default JsonPager getPager() {
+    return get("pager").as(JsonPager.class);
+  }
+
+  default Integer getPage() {
+    return getNumber("page").integer();
+  }
+
+  default Integer getPageSize() {
+    return getNumber("pageSize").integer();
+  }
+
+  default Integer getTotal() {
+    return getNumber("total").integer();
+  }
+
+  default Integer getPageCount() {
+    return getNumber("pageCount").integer();
+  }
+
+  interface JsonPager extends JsonObject {
+    default Integer getPage() {
+      return getNumber("page").integer();
+    }
+
+    default Integer getPageSize() {
+      return getNumber("pageSize").integer();
+    }
+
+    default Integer getTotal() {
+      return getNumber("total").integer();
+    }
+
+    default Integer getPageCount() {
+      return getNumber("pageCount").integer();
+    }
+  }
 }

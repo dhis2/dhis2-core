@@ -363,6 +363,8 @@ public class DhisWebApiWebSecurityConfig {
                       new AntPathRequestMatcher(apiContextPath + "/authentication/login"))
                   .permitAll()
                   // Needs to be here because this overrides the previous one
+                  .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/account/password"))
+                  .permitAll()
                   .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/account/recovery"))
                   .permitAll()
                   .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/account/restore"))

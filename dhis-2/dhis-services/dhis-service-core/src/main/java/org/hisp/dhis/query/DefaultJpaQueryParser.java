@@ -129,13 +129,13 @@ public class DefaultJpaQueryParser implements QueryParser {
       case "!like$" -> Restrictions.notLike(path, parseValue(valueType, arg), MatchMode.END);
       case "ilike" -> Restrictions.ilike(path, parseValue(valueType, arg), MatchMode.ANYWHERE);
       case "!ilike" -> Restrictions.notIlike(path, parseValue(valueType, arg), MatchMode.ANYWHERE);
-      case "startsWith", "$ilike" -> Restrictions.ilike(
-          path, parseValue(valueType, arg), MatchMode.START);
+      case "startsWith", "$ilike" ->
+          Restrictions.ilike(path, parseValue(valueType, arg), MatchMode.START);
       case "!$ilike" -> Restrictions.notIlike(path, parseValue(valueType, arg), MatchMode.START);
       case "token" -> Restrictions.token(path, parseValue(valueType, arg), MatchMode.START);
       case "!token" -> Restrictions.notToken(path, parseValue(valueType, arg), MatchMode.START);
-      case "endsWith", "ilike$" -> Restrictions.ilike(
-          path, parseValue(valueType, arg), MatchMode.END);
+      case "endsWith", "ilike$" ->
+          Restrictions.ilike(path, parseValue(valueType, arg), MatchMode.END);
       case "!ilike$" -> Restrictions.notIlike(path, parseValue(valueType, arg), MatchMode.END);
       case "in" -> {
         Collection values = null;

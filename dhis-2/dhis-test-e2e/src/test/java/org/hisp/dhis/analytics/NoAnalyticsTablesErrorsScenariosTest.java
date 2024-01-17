@@ -151,7 +151,7 @@ public class NoAnalyticsTablesErrorsScenariosTest {
             .add("ou=O6uvpzGd5pu,fdc6uOvgoji")
             .add("maxResults=100")
             .add("startDate=2020-10-01")
-            .add("algorithm=MOD_Z_SCORE");
+            .add("algorithm=MODIFIED_Z_SCORE");
 
     // When
     ApiResponse response = analyticsOutlierActions.query().get("", JSON, JSON, params);

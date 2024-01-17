@@ -114,7 +114,7 @@ public class DefaultRelationshipService implements RelationshipService {
         relationshipPage.getItems().stream()
             .filter(r -> trackerAccessManager.canRead(currentUser, r).isEmpty())
             .toList();
-    return Page.of(map(relationships), relationshipPage.getPager());
+    return Page.of(map(relationships), relationshipPage.getPager(), relationshipPage.isPageTotal());
   }
 
   public List<Relationship> getRelationshipsByEnrollment(
@@ -136,7 +136,7 @@ public class DefaultRelationshipService implements RelationshipService {
         relationshipPage.getItems().stream()
             .filter(r -> trackerAccessManager.canRead(currentUser, r).isEmpty())
             .toList();
-    return Page.of(map(relationships), relationshipPage.getPager());
+    return Page.of(map(relationships), relationshipPage.getPager(), relationshipPage.isPageTotal());
   }
 
   public List<Relationship> getRelationshipsByEvent(
@@ -158,7 +158,7 @@ public class DefaultRelationshipService implements RelationshipService {
         relationshipPage.getItems().stream()
             .filter(r -> trackerAccessManager.canRead(currentUser, r).isEmpty())
             .toList();
-    return Page.of(map(relationships), relationshipPage.getPager());
+    return Page.of(map(relationships), relationshipPage.getPager(), relationshipPage.isPageTotal());
   }
 
   private List<Relationship> getRelationships(RelationshipQueryParams queryParams) {

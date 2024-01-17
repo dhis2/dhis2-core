@@ -40,6 +40,7 @@ import static org.hisp.dhis.common.QueryOperator.NLIKE;
 import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
 import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 import static org.hisp.dhis.feedback.ErrorCode.E2035;
+import static org.hisp.dhis.feedback.ErrorCode.E2045;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -107,8 +108,18 @@ public class BinaryConditionRenderer extends BaseRenderable {
       return InOrEqConditionRenderer.of(left, right);
     }
 
+    // IEQ
+    if (QueryOperator.IEQ == queryOperator) {
+      if (right instanceof ConstantValuesRenderer constantValuesRenderer) {
+        return InOrEqConditionRenderer.of(
+            LowerRenderer.of(left),
+            constantValuesRenderer.withArgumentTransformer(String::toLowerCase));
+      }
+      throw new IllegalQueryException(E2045);
+    }
+
     // NE / NEQ
-    if (NEQ == queryOperator) {
+    if (NEQ == queryOperator || QueryOperator.NE == queryOperator) {
       if (hasNullValue(right)) {
         return IsNullConditionRenderer.of(left, false);
       }

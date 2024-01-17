@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,29 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.analytics.common.query;
 
-import java.util.List;
-import lombok.Value;
-import org.hisp.dhis.common.OpenApi;
+import lombok.RequiredArgsConstructor;
 
-/** OpenAPI specifications used across tracker export endpoints. */
-public class OpenApiExport {
-  private OpenApiExport() {
-    throw new IllegalStateException("Utility class");
-  }
+@RequiredArgsConstructor(staticName = "of")
+public class LowerRenderer extends BaseRenderable {
 
-  @Value
-  @OpenApi.Property
-  @OpenApi.Shared(value = false)
-  public static class ListResponse {
-    Integer page = 1;
+  private final Renderable renderable;
 
-    Integer pageSize = org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
-
-    Long total;
-
-    @OpenApi.Property(value = OpenApi.EntityType[].class)
-    List<Object> instances;
+  @Override
+  public String render() {
+    return "lower(" + renderable.render() + ")";
   }
 }
