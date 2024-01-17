@@ -27,8 +27,12 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.view;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -48,8 +52,9 @@ import org.hisp.dhis.common.OpenApi.Shared.Pattern;
 @EqualsAndHashCode
 public class Page<T> {
   @OpenApi.Property(value = OpenApi.EntityType[].class)
-  @JsonProperty
-  private final List<T> instances;
+  @JsonIgnore
+  @JsonAnyGetter
+  private final Map<String, List<T>> items = new LinkedHashMap<>();
 
   @JsonProperty private final Pager pager;
 
@@ -81,8 +86,9 @@ public class Page<T> {
   @JsonProperty
   private final Integer pageCount;
 
-  private Page(List<T> instances, org.hisp.dhis.common.Pager pager, boolean showPageTotal) {
-    this.instances = instances;
+  private Page(
+      String key, List<T> values, org.hisp.dhis.common.Pager pager, boolean showPageTotal) {
+    this.items.put(key, values);
     if (pager == null) {
       this.pager = null;
       this.page = null;
@@ -107,21 +113,21 @@ public class Page<T> {
   }
 
   /**
-   * Returns a page which will serialize the items into {@link #instances}. Pagination details will
-   * be serialized as well including totals only if {@link
+   * Returns a page which will serialize the items into {@link #items}. Pagination details will be
+   * serialized as well including totals only if {@link
    * org.hisp.dhis.tracker.export.Page#isPageTotal()} is true.
    */
   public static <T, U> Page<T> withPager(
       List<T> items, org.hisp.dhis.tracker.export.Page<U> pager) {
-    return new Page<>(items, pager.getPager(), pager.isPageTotal());
+    return new Page<>("instances", items, pager.getPager(), pager.isPageTotal());
   }
 
   /**
-   * Returns a page which will only serialize the items into {@link #instances}. All other fields
-   * will be omitted from the JSON.
+   * Returns a page which will only serialize the items into {@link #items}. All other fields will
+   * be omitted from the JSON.
    */
   public static <T> Page<T> withoutPager(List<T> items) {
-    return new Page<>(items, null, false);
+    return new Page<>("instances", items, null, false);
   }
 
   @OpenApi.Shared(pattern = Pattern.TRACKER)
