@@ -25,29 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.webapi.controller.tracker;
 
-import java.util.List;
-import lombok.Value;
-import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.jsontree.JsonObject;
 
-/** OpenAPI specifications used across tracker export endpoints. */
-public class OpenApiExport {
-  private OpenApiExport() {
-    throw new IllegalStateException("Utility class");
+/** Representation of {@link org.hisp.dhis.webapi.controller.tracker.view.Page}. */
+public interface JsonPage extends JsonObject {
+  default JsonPager getPager() {
+    return get("pager").as(JsonPager.class);
   }
 
-  @Value
-  @OpenApi.Property
-  @OpenApi.Shared(value = false)
-  public static class ListResponse {
-    Integer page = 1;
+  default Integer getPage() {
+    return getNumber("page").integer();
+  }
 
-    Integer pageSize = org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
+  default Integer getPageSize() {
+    return getNumber("pageSize").integer();
+  }
 
-    Long total;
+  default Integer getTotal() {
+    return getNumber("total").integer();
+  }
 
-    @OpenApi.Property(value = OpenApi.EntityType[].class)
-    List<Object> instances;
+  default Integer getPageCount() {
+    return getNumber("pageCount").integer();
+  }
+
+  interface JsonPager extends JsonObject {
+    default Integer getPage() {
+      return getNumber("page").integer();
+    }
+
+    default Integer getPageSize() {
+      return getNumber("pageSize").integer();
+    }
+
+    default Integer getTotal() {
+      return getNumber("total").integer();
+    }
+
+    default Integer getPageCount() {
+      return getNumber("pageCount").integer();
+    }
   }
 }

@@ -41,4 +41,11 @@ import org.hisp.dhis.common.Pager;
 public class Page<T> {
   private final List<T> items;
   private final Pager pager;
+
+  /**
+   * Indicates if the {@link #pager} contains the total number of items. The current {@link #pager}
+   * does not reveal that information as it was meant for metadata that does not allow disabling the
+   * return of totals.
+   */
+  private final boolean pageTotal;
 }
