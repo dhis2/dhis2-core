@@ -40,10 +40,13 @@ import static org.hisp.dhis.feedback.ErrorCode.E2209;
 import static org.hisp.dhis.feedback.ErrorCode.E2210;
 import static org.hisp.dhis.feedback.ErrorCode.E2211;
 import static org.hisp.dhis.feedback.ErrorCode.E2212;
+import static org.hisp.dhis.feedback.ErrorCode.E2213;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_LIMIT;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.analytics.OutlierDetectionAlgorithm;
+import org.hisp.dhis.analytics.outlier.Order;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -128,6 +131,12 @@ public class OutlierRequestValidator {
       error = new ErrorMessage(E2205);
     } else if (request.getMaxResults() > maxLimit) {
       error = new ErrorMessage(E2206, maxLimit);
+    } else if (request.getAlgorithm() == OutlierDetectionAlgorithm.MODIFIED_Z_SCORE
+        && (request.getOrderBy() == Order.MEAN || request.getOrderBy() == Order.STD_DEV)) {
+      error = new ErrorMessage(E2213);
+    } else if (request.getAlgorithm() == OutlierDetectionAlgorithm.Z_SCORE
+        && (request.getOrderBy() == Order.MEDIAN || request.getOrderBy() == Order.MEDIAN_ABS_DEV)) {
+      error = new ErrorMessage(E2213);
     }
 
     return error;

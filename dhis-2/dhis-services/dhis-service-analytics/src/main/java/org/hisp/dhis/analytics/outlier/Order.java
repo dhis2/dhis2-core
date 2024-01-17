@@ -51,8 +51,8 @@ public enum Order {
   MEDIAN(ColumnHeader.MEDIAN.getItem(), "middle_value"),
   MEAN(ColumnHeader.MEAN.getItem(), "middle_value"),
   STD_DEV(STANDARD_DEVIATION.getName(), "std_dev"),
-  MEDIAN_ABS_DEV(MEDIAN_ABS_DEVIATION.getItem(), "middle_value_abs_dev"),
-  MEAN_ABS_DEV(ABSOLUTE_DEVIATION.getItem(), "middle_value_abs_dev"),
+  MEDIAN_ABS_DEV(MEDIAN_ABS_DEVIATION.getItem(), "mad"),
+  ABS_DEV(ABSOLUTE_DEVIATION.getItem(), "middle_value_abs_dev"),
   LOWER_BOUND(LOWER_BOUNDARY.getItem(), "lower_bound"),
   UPPER_BOUND(UPPER_BOUNDARY.getItem(), "upper_bound");
 

@@ -29,7 +29,7 @@ package org.hisp.dhis.analytics.outlier.service;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.OutlierDetectionAlgorithm.MODIFIED_Z_SCORE;
-import static org.hisp.dhis.analytics.outlier.Order.MEAN_ABS_DEV;
+import static org.hisp.dhis.analytics.outlier.Order.ABS_DEV;
 import static org.hisp.dhis.analytics.outlier.data.OutlierSqlParams.DATA_ELEMENT_IDS;
 import static org.hisp.dhis.analytics.outlier.data.OutlierSqlParams.END_DATE;
 import static org.hisp.dhis.analytics.outlier.data.OutlierSqlParams.MAX_RESULTS;
@@ -143,7 +143,7 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
     String middleValue = modifiedZ ? " ax.percentile_middle_value" : " ax.avg_middle_value";
 
     String order =
-        request.getOrderBy() == MEAN_ABS_DEV
+        request.getOrderBy() == ABS_DEV
             ? "middle_value_abs_dev"
             : request.getOrderBy().getColumnName();
 
