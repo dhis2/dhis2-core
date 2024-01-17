@@ -347,101 +347,119 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
 
   private RuleAction toRuleAction(ProgramRuleAction pra) {
     return switch (pra.getProgramRuleActionType()) {
-      case DISPLAYTEXT -> new RuleAction(
-          pra.getData(),
-          DISPLAYTEXT.name(),
-          createValues(CONTENT, pra.getContent(), LOCATION, pra.getLocation()));
-      case DISPLAYKEYVALUEPAIR -> new RuleAction(
-          pra.getData(),
-          DISPLAYKEYVALUEPAIR.name(),
-          createValues(CONTENT, pra.getContent(), LOCATION, pra.getLocation()));
-      case HIDEFIELD -> new RuleAction(
-          null,
-          HIDEFIELD.name(),
-          createValues(
-              CONTENT,
-              pra.getContent(),
-              FIELD,
-              getAssignedParameter(pra),
-              ATTRIBUTE_TYPE,
-              getAttributeType(pra).name()));
-      case HIDESECTION -> new RuleAction(
-          null,
-          HIDESECTION.name(),
-          createValues(PROGRAM_STAGE_SECTION, pra.getProgramStageSection().getUid()));
-      case HIDEPROGRAMSTAGE -> new RuleAction(
-          null,
-          HIDEPROGRAMSTAGE.name(),
-          createValues(PROGRAM_STAGE, pra.getProgramStage().getUid()));
-      case ASSIGN -> new RuleAction(
-          pra.getData(),
-          ASSIGN.name(),
-          createValues(
-              CONTENT,
-              pra.getContent(),
-              FIELD,
-              getAssignedParameter(pra),
-              ATTRIBUTE_TYPE,
-              getAttributeType(pra).name()));
-      case SHOWWARNING -> new RuleAction(
-          pra.getData(),
-          SHOWWARNING.name(),
-          createValues(
-              CONTENT,
-              pra.getContent(),
-              FIELD,
-              getAssignedParameter(pra),
-              ATTRIBUTE_TYPE,
-              getAttributeType(pra).name()));
-      case WARNINGONCOMPLETE -> new RuleAction(
-          pra.getData(),
-          WARNINGONCOMPLETE.name(),
-          createValues(
-              CONTENT,
-              pra.getContent(),
-              FIELD,
-              getAssignedParameter(pra),
-              ATTRIBUTE_TYPE,
-              getAttributeType(pra).name()));
-      case SHOWERROR -> new RuleAction(
-          pra.getData(),
-          SHOWERROR.name(),
-          createValues(
-              CONTENT,
-              pra.getContent(),
-              FIELD,
-              getAssignedParameter(pra),
-              ATTRIBUTE_TYPE,
-              getAttributeType(pra).name()));
-      case ERRORONCOMPLETE -> new RuleAction(
-          pra.getData(),
-          ERRORONCOMPLETE.name(),
-          createValues(
-              CONTENT,
-              pra.getContent(),
-              FIELD,
-              getAssignedParameter(pra),
-              ATTRIBUTE_TYPE,
-              getAttributeType(pra).name()));
-      case CREATEEVENT -> new RuleAction(
-          pra.getData(),
-          CREATEEVENT.name(),
-          createValues(CONTENT, pra.getContent(), LOCATION, pra.getLocation()));
-      case SETMANDATORYFIELD -> new RuleAction(
-          null,
-          SETMANDATORYFIELD.name(),
-          createValues(
-              FIELD, getAssignedParameter(pra), ATTRIBUTE_TYPE, getAttributeType(pra).name()));
-      case SENDMESSAGE -> new RuleAction(
-          pra.getData(), SENDMESSAGE.name(), createValues(NOTIFICATION, pra.getTemplateUid()));
-      case SCHEDULEMESSAGE -> new RuleAction(
-          pra.getData(), SCHEDULEMESSAGE.name(), createValues(NOTIFICATION, pra.getTemplateUid()));
-      case HIDEOPTION -> new RuleAction(
-          null, HIDEOPTION.name(), createValues(FIELD, getAssignedParameter(pra)));
-      case SHOWOPTIONGROUP -> new RuleAction(
-          null, SHOWOPTIONGROUP.name(), createValues(FIELD, getAssignedParameter(pra)));
-      case HIDEOPTIONGROUP -> new RuleAction(
-          null, HIDEOPTIONGROUP.name(), createValues(FIELD, getAssignedParameter(pra)));
+      case DISPLAYTEXT ->
+          new RuleAction(
+              pra.getData(),
+              DISPLAYTEXT.name(),
+              createValues(CONTENT, pra.getContent(), LOCATION, pra.getLocation()));
+      case DISPLAYKEYVALUEPAIR ->
+          new RuleAction(
+              pra.getData(),
+              DISPLAYKEYVALUEPAIR.name(),
+              createValues(CONTENT, pra.getContent(), LOCATION, pra.getLocation()));
+      case HIDEFIELD ->
+          new RuleAction(
+              null,
+              HIDEFIELD.name(),
+              createValues(
+                  CONTENT,
+                  pra.getContent(),
+                  FIELD,
+                  getAssignedParameter(pra),
+                  ATTRIBUTE_TYPE,
+                  getAttributeType(pra).name()));
+      case HIDESECTION ->
+          new RuleAction(
+              null,
+              HIDESECTION.name(),
+              createValues(PROGRAM_STAGE_SECTION, pra.getProgramStageSection().getUid()));
+      case HIDEPROGRAMSTAGE ->
+          new RuleAction(
+              null,
+              HIDEPROGRAMSTAGE.name(),
+              createValues(PROGRAM_STAGE, pra.getProgramStage().getUid()));
+      case ASSIGN ->
+          new RuleAction(
+              pra.getData(),
+              ASSIGN.name(),
+              createValues(
+                  CONTENT,
+                  pra.getContent(),
+                  FIELD,
+                  getAssignedParameter(pra),
+                  ATTRIBUTE_TYPE,
+                  getAttributeType(pra).name()));
+      case SHOWWARNING ->
+          new RuleAction(
+              pra.getData(),
+              SHOWWARNING.name(),
+              createValues(
+                  CONTENT,
+                  pra.getContent(),
+                  FIELD,
+                  getAssignedParameter(pra),
+                  ATTRIBUTE_TYPE,
+                  getAttributeType(pra).name()));
+      case WARNINGONCOMPLETE ->
+          new RuleAction(
+              pra.getData(),
+              WARNINGONCOMPLETE.name(),
+              createValues(
+                  CONTENT,
+                  pra.getContent(),
+                  FIELD,
+                  getAssignedParameter(pra),
+                  ATTRIBUTE_TYPE,
+                  getAttributeType(pra).name()));
+      case SHOWERROR ->
+          new RuleAction(
+              pra.getData(),
+              SHOWERROR.name(),
+              createValues(
+                  CONTENT,
+                  pra.getContent(),
+                  FIELD,
+                  getAssignedParameter(pra),
+                  ATTRIBUTE_TYPE,
+                  getAttributeType(pra).name()));
+      case ERRORONCOMPLETE ->
+          new RuleAction(
+              pra.getData(),
+              ERRORONCOMPLETE.name(),
+              createValues(
+                  CONTENT,
+                  pra.getContent(),
+                  FIELD,
+                  getAssignedParameter(pra),
+                  ATTRIBUTE_TYPE,
+                  getAttributeType(pra).name()));
+      case CREATEEVENT ->
+          new RuleAction(
+              pra.getData(),
+              CREATEEVENT.name(),
+              createValues(CONTENT, pra.getContent(), LOCATION, pra.getLocation()));
+      case SETMANDATORYFIELD ->
+          new RuleAction(
+              null,
+              SETMANDATORYFIELD.name(),
+              createValues(
+                  FIELD, getAssignedParameter(pra), ATTRIBUTE_TYPE, getAttributeType(pra).name()));
+      case SENDMESSAGE ->
+          new RuleAction(
+              pra.getData(), SENDMESSAGE.name(), createValues(NOTIFICATION, pra.getTemplateUid()));
+      case SCHEDULEMESSAGE ->
+          new RuleAction(
+              pra.getData(),
+              SCHEDULEMESSAGE.name(),
+              createValues(NOTIFICATION, pra.getTemplateUid()));
+      case HIDEOPTION ->
+          new RuleAction(null, HIDEOPTION.name(), createValues(FIELD, getAssignedParameter(pra)));
+      case SHOWOPTIONGROUP ->
+          new RuleAction(
+              null, SHOWOPTIONGROUP.name(), createValues(FIELD, getAssignedParameter(pra)));
+      case HIDEOPTIONGROUP ->
+          new RuleAction(
+              null, HIDEOPTIONGROUP.name(), createValues(FIELD, getAssignedParameter(pra)));
     };
   }
 
@@ -487,43 +505,49 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
 
   private RuleVariable toRuleVariable(ProgramRuleVariable prv) {
     return switch (prv.getSourceType()) {
-      case DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE -> new RuleVariableNewestStageEvent(
-          prv.getName(),
-          prv.getUseCodeForOptionSet(),
-          getOptions(prv),
-          prv.getDataElement().getUid(),
-          toMappedValueType(prv),
-          prv.getProgramStage().getUid());
-      case DATAELEMENT_NEWEST_EVENT_PROGRAM -> new RuleVariableNewestEvent(
-          prv.getName(),
-          prv.getUseCodeForOptionSet(),
-          getOptions(prv),
-          prv.getDataElement().getUid(),
-          toMappedValueType(prv));
-      case DATAELEMENT_CURRENT_EVENT -> new RuleVariableCurrentEvent(
-          prv.getName(),
-          prv.getUseCodeForOptionSet(),
-          getOptions(prv),
-          prv.getDataElement().getUid(),
-          toMappedValueType(prv));
-      case DATAELEMENT_PREVIOUS_EVENT -> new RuleVariablePreviousEvent(
-          prv.getName(),
-          prv.getUseCodeForOptionSet(),
-          getOptions(prv),
-          prv.getDataElement().getUid(),
-          toMappedValueType(prv));
-      case CALCULATED_VALUE -> new RuleVariableCalculatedValue(
-          prv.getName(),
-          prv.getUseCodeForOptionSet(),
-          List.of(),
-          prv.getUid(),
-          toMappedValueType(prv));
-      case TEI_ATTRIBUTE -> new RuleVariableAttribute(
-          prv.getName(),
-          prv.getUseCodeForOptionSet(),
-          getOptions(prv),
-          prv.getAttribute().getUid(),
-          toMappedValueType(prv));
+      case DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE ->
+          new RuleVariableNewestStageEvent(
+              prv.getName(),
+              prv.getUseCodeForOptionSet(),
+              getOptions(prv),
+              prv.getDataElement().getUid(),
+              toMappedValueType(prv),
+              prv.getProgramStage().getUid());
+      case DATAELEMENT_NEWEST_EVENT_PROGRAM ->
+          new RuleVariableNewestEvent(
+              prv.getName(),
+              prv.getUseCodeForOptionSet(),
+              getOptions(prv),
+              prv.getDataElement().getUid(),
+              toMappedValueType(prv));
+      case DATAELEMENT_CURRENT_EVENT ->
+          new RuleVariableCurrentEvent(
+              prv.getName(),
+              prv.getUseCodeForOptionSet(),
+              getOptions(prv),
+              prv.getDataElement().getUid(),
+              toMappedValueType(prv));
+      case DATAELEMENT_PREVIOUS_EVENT ->
+          new RuleVariablePreviousEvent(
+              prv.getName(),
+              prv.getUseCodeForOptionSet(),
+              getOptions(prv),
+              prv.getDataElement().getUid(),
+              toMappedValueType(prv));
+      case CALCULATED_VALUE ->
+          new RuleVariableCalculatedValue(
+              prv.getName(),
+              prv.getUseCodeForOptionSet(),
+              List.of(),
+              prv.getUid(),
+              toMappedValueType(prv));
+      case TEI_ATTRIBUTE ->
+          new RuleVariableAttribute(
+              prv.getName(),
+              prv.getUseCodeForOptionSet(),
+              getOptions(prv),
+              prv.getAttribute().getUid(),
+              toMappedValueType(prv));
     };
   }
 
@@ -531,9 +555,10 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     ValueType valueType =
         switch (programRuleVariable.getSourceType()) {
           case DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE,
-              DATAELEMENT_PREVIOUS_EVENT,
-              DATAELEMENT_NEWEST_EVENT_PROGRAM,
-              DATAELEMENT_CURRENT_EVENT -> programRuleVariable.getDataElement().getValueType();
+                  DATAELEMENT_PREVIOUS_EVENT,
+                  DATAELEMENT_NEWEST_EVENT_PROGRAM,
+                  DATAELEMENT_CURRENT_EVENT ->
+              programRuleVariable.getDataElement().getValueType();
           case CALCULATED_VALUE -> programRuleVariable.getValueType();
           case TEI_ATTRIBUTE -> programRuleVariable.getAttribute().getValueType();
         };
@@ -568,18 +593,21 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
   private DataItem getDescription(ProgramRuleVariable prv) {
     return switch (prv.getSourceType()) {
       case DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE,
-          DATAELEMENT_PREVIOUS_EVENT,
-          DATAELEMENT_NEWEST_EVENT_PROGRAM,
-          DATAELEMENT_CURRENT_EVENT -> this.getDisplayName(prv);
-      case CALCULATED_VALUE -> new DataItem(
-          ObjectUtils.firstNonNull(prv.getDisplayName(), prv.getName()),
-          getItemValueType(prv.getValueType()));
-      case TEI_ATTRIBUTE -> new DataItem(
-          ObjectUtils.firstNonNull(
-              prv.getAttribute().getDisplayName(),
-              prv.getAttribute().getDisplayFormName(),
-              prv.getAttribute().getName()),
-          getItemValueType(prv.getAttribute().getValueType()));
+              DATAELEMENT_PREVIOUS_EVENT,
+              DATAELEMENT_NEWEST_EVENT_PROGRAM,
+              DATAELEMENT_CURRENT_EVENT ->
+          this.getDisplayName(prv);
+      case CALCULATED_VALUE ->
+          new DataItem(
+              ObjectUtils.firstNonNull(prv.getDisplayName(), prv.getName()),
+              getItemValueType(prv.getValueType()));
+      case TEI_ATTRIBUTE ->
+          new DataItem(
+              ObjectUtils.firstNonNull(
+                  prv.getAttribute().getDisplayName(),
+                  prv.getAttribute().getDisplayFormName(),
+                  prv.getAttribute().getName()),
+              getItemValueType(prv.getAttribute().getValueType()));
     };
   }
 
