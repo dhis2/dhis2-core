@@ -169,6 +169,12 @@ public class OutlierQueryParser {
         .toList();
   }
 
+  /**
+   * The method retrieves the enumerator item related to the column for order by statement.
+   *
+   * @param orderBy is the order by field. It has to be the same as header item name.
+   * @return the {@link Order}.
+   */
   private Order getOrderBy(String orderBy) {
     if (orderBy.equalsIgnoreCase(Order.UPPER_BOUND.getHeaderName())) {
       return Order.UPPER_BOUND;
