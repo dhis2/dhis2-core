@@ -58,6 +58,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.tei.query.context.TeiHeaderProvider;
 import org.hisp.dhis.analytics.tei.query.context.TeiStaticField;
 import org.hisp.dhis.common.DimensionalObject;
@@ -237,30 +238,34 @@ public class DimensionParam implements UidObject {
 
   @RequiredArgsConstructor
   public enum StaticDimension implements TeiHeaderProvider {
-    TRACKEDENTITYINSTANCEUID(TEXT, STATIC, TRACKED_ENTITY_INSTANCE),
+    TRACKEDENTITYINSTANCEUID("Tracked entity instance UID", TEXT, STATIC, TRACKED_ENTITY_INSTANCE),
     GEOMETRY(GEOJSON, STATIC, TeiStaticField.GEOMETRY),
     LONGITUDE(COORDINATE, STATIC, TeiStaticField.LONGITUDE),
     LATITUDE(COORDINATE, STATIC, TeiStaticField.LATITUDE),
-    OUNAME(TEXT, ORGANISATION_UNIT, ORG_UNIT_NAME),
-    OUCODE(TEXT, ORGANISATION_UNIT, ORG_UNIT_CODE),
-    OUNAMEHIERARCHY(TEXT, ORGANISATION_UNIT, ORG_UNIT_NAME_HIERARCHY),
-    ENROLLMENTDATE(DATETIME, DimensionParamObjectType.PERIOD),
-    ENDDATE(DATETIME, DimensionParamObjectType.PERIOD),
-    INCIDENTDATE(DATETIME, DimensionParamObjectType.PERIOD),
-    EXECUTIONDATE(DATETIME, DimensionParamObjectType.PERIOD),
+    OUNAME("Organisation Unit Name", TEXT, ORGANISATION_UNIT, ORG_UNIT_NAME),
+    OUCODE("Organisation Unit Code", TEXT, ORGANISATION_UNIT, ORG_UNIT_CODE),
+    OUNAMEHIERARCHY(
+        "Organisation Unit Name Hierarchy", TEXT, ORGANISATION_UNIT, ORG_UNIT_NAME_HIERARCHY),
+    ENROLLMENTDATE("Enrollment Date", DATETIME, DimensionParamObjectType.PERIOD),
+    ENDDATE("End Date", DATETIME, DimensionParamObjectType.PERIOD),
+    INCIDENTDATE("Incident Date", DATETIME, DimensionParamObjectType.PERIOD),
+    EXECUTIONDATE("Execution Date", DATETIME, DimensionParamObjectType.PERIOD),
     LASTUPDATED(DATETIME, DimensionParamObjectType.PERIOD, TeiStaticField.LAST_UPDATED),
-    LASTUPDATEDBYDISPLAYNAME(TEXT, STATIC),
-    CREATED(DATETIME, DimensionParamObjectType.PERIOD),
-    CREATEDBYDISPLAYNAME(TEXT, STATIC),
-    STOREDBY(TEXT, STATIC),
-    ENROLLMENT_STATUS(TEXT, STATIC, null, "enrollmentstatus"),
+    LASTUPDATEDBYDISPLAYNAME("Last Updated By", TEXT, STATIC),
+    CREATED("Created", DATETIME, DimensionParamObjectType.PERIOD),
+    CREATEDBYDISPLAYNAME("Created By", TEXT, STATIC),
+    STOREDBY("Stored By", TEXT, STATIC),
+    ENROLLMENT_STATUS("Enrollment Status", TEXT, STATIC, null, "enrollmentstatus"),
     PROGRAM_STATUS(
+        "Program Status",
         TEXT,
         STATIC,
         null,
         "enrollmentstatus",
         "programstatus"), /* this enum is an alias for ENROLLMENT_STATUS */
-    EVENT_STATUS(TEXT, STATIC, null, "status", "eventstatus");
+    EVENT_STATUS("Event Status", TEXT, STATIC, null, "status", "eventstatus");
+
+    private final String headerColumnName;
 
     private final ValueType valueType;
 
@@ -272,14 +277,20 @@ public class DimensionParam implements UidObject {
 
     @Getter private final String headerName;
 
-    StaticDimension(ValueType valueType, DimensionParamObjectType dimensionParamObjectType) {
-      this(valueType, dimensionParamObjectType, null);
+    StaticDimension(
+        String headerColumnName,
+        ValueType valueType,
+        DimensionParamObjectType dimensionParamObjectType) {
+      this(headerColumnName, valueType, dimensionParamObjectType, null);
     }
 
     StaticDimension(
+        String headerColumnName,
         ValueType valueType,
         DimensionParamObjectType dimensionParamObjectType,
         TeiStaticField teiStaticField) {
+      this.headerColumnName = headerColumnName;
+
       this.valueType = valueType;
 
       // By default, columnName is its own "name" in lowercase.
@@ -293,24 +304,46 @@ public class DimensionParam implements UidObject {
     }
 
     StaticDimension(
+        String headerColumnName,
         ValueType valueType,
         DimensionParamObjectType dimensionParamObjectType,
         TeiStaticField teiStaticField,
         String columnName) {
-      this(valueType, dimensionParamObjectType, teiStaticField, columnName, columnName);
+      this(
+          headerColumnName,
+          valueType,
+          dimensionParamObjectType,
+          teiStaticField,
+          columnName,
+          columnName);
     }
 
     StaticDimension(
+        String headerColumnName,
         ValueType valueType,
         DimensionParamObjectType dimensionParamObjectType,
         TeiStaticField teiStaticField,
         String columnName,
         String headerName) {
+      this.headerColumnName = headerColumnName;
       this.valueType = valueType;
       this.dimensionParamObjectType = dimensionParamObjectType;
       this.teiStaticField = teiStaticField;
       this.columnName = columnName;
       this.headerName = headerName;
+    }
+
+    StaticDimension(
+        ValueType valueType,
+        DimensionParamObjectType dimensionParamObjectType,
+        TeiStaticField teiStaticField) {
+      this("", valueType, dimensionParamObjectType, teiStaticField);
+    }
+
+    public String getHeaderColumnName() {
+      return Optional.ofNullable(headerColumnName)
+          .filter(StringUtils::isNotBlank)
+          .orElseGet(this::getFullName);
     }
 
     public String normalizedName() {

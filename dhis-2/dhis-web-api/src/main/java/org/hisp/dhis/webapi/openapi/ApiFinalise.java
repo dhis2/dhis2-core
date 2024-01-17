@@ -439,7 +439,8 @@ public class ApiFinalise {
                                     format("*.parameter.%s.description", parameter.getFullName()),
                                     format(
                                         "*.parameter.%s.description",
-                                        getSharedNameForDeclaringType(parameter)))
+                                        getSharedNameForDeclaringType(parameter)),
+                                    format("*.parameter.*.%s.description", parameter.getName()))
                                 : List.of(
                                     format(
                                         "%s.parameter.%s.description", name, parameter.getName()),
