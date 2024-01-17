@@ -365,14 +365,26 @@ class UserControllerTest extends DhisControllerConvenienceTest {
         PATCH(
                 "/users/" + user.getUid(),
                 "[{'op':'add','path':'/organisationUnits','value':[{'id':'"
+                    + orgC.getUid()
+                    + "'},{'id':'"
                     + orgA.getUid()
+                    + "'},{'id':'"
+                    + orgB.getUid()
                     + "'}]},"
-                    + ("{'op':'add','path':'/dataViewOrganisationUnits','value':[{'id':'"
-                        + orgA.getUid()
-                        + "'}]},"
-                        + "{'op':'add','path':'/teiSearchOrganisationUnits','value':[{'id':'"
-                        + orgA.getUid()
-                        + "'}]}]"))
+                    + "{'op':'add','path':'/dataViewOrganisationUnits','value':[{'id':'"
+                    + orgC.getUid()
+                    + "'},{'id':'"
+                    + orgA.getUid()
+                    + "'},{'id':'"
+                    + orgB.getUid()
+                    + "'}]},"
+                    + "{'op':'add','path':'/teiSearchOrganisationUnits','value':[{'id':'"
+                    + orgC.getUid()
+                    + "'},{'id':'"
+                    + orgA.getUid()
+                    + "'},{'id':'"
+                    + orgB.getUid()
+                    + "'}]}]")
             .content(HttpStatus.CONFLICT)
             .get("response")
             .as(JsonImportSummary.class);
@@ -380,7 +392,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
     JsonList<JsonErrorReport> errorReports =
         response.getList("errorReports", JsonErrorReport.class);
 
-    assertEquals(3, errorReports.size());
+    assertEquals(6, errorReports.size());
 
     assertEquals(
         "Organisation unit: `ouabcdefghA` not in hierarchy of current user: `someone`",

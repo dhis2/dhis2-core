@@ -643,8 +643,7 @@ public class DefaultUserService implements UserService {
   private void checkIsInOrgUnitHierarchy(
       Set<OrganisationUnit> organisationUnits, User currentUser, List<ErrorReport> errors) {
     for (OrganisationUnit orgUnit : organisationUnits) {
-      boolean inUserHierarchy = organisationUnitService.isInUserHierarchy(currentUser, orgUnit);
-      if (!inUserHierarchy) {
+      if (!orgUnit.isDescendant(currentUser.getOrganisationUnits())) {
         errors.add(
             new ErrorReport(
                 OrganisationUnit.class,
