@@ -292,6 +292,7 @@ public class EmailMessageSender implements MessageSender {
       String hostName, int port, String username, String password, boolean tls, String sender)
       throws EmailException {
     HtmlEmail email = new HtmlEmail();
+    email.setCharset(StandardCharsets.UTF_8.toString());
     email.setHostName(hostName);
     email.setFrom(sender, getEmailName());
     email.setSmtpPort(port);
