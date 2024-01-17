@@ -67,7 +67,6 @@ import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserDetails;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
@@ -365,9 +364,15 @@ class UserControllerTest extends DhisControllerConvenienceTest {
     JsonImportSummary response =
         PATCH(
                 "/users/" + user.getUid(),
-                "[{'op':'add','path':'/organisationUnits','value':[{'id':'" + orgA.getUid() + "'}]},"
-                    + ("{'op':'add','path':'/dataViewOrganisationUnits','value':[{'id':'" + orgA.getUid() + "'}]},"
-                    + "{'op':'add','path':'/teiSearchOrganisationUnits','value':[{'id':'" + orgA.getUid() + "'}]}]"))
+                "[{'op':'add','path':'/organisationUnits','value':[{'id':'"
+                    + orgA.getUid()
+                    + "'}]},"
+                    + ("{'op':'add','path':'/dataViewOrganisationUnits','value':[{'id':'"
+                        + orgA.getUid()
+                        + "'}]},"
+                        + "{'op':'add','path':'/teiSearchOrganisationUnits','value':[{'id':'"
+                        + orgA.getUid()
+                        + "'}]}]"))
             .content(HttpStatus.CONFLICT)
             .get("response")
             .as(JsonImportSummary.class);
