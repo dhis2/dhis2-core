@@ -210,7 +210,9 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
         .content(HttpStatus.OK);
 
     JsonIdentifiableObject organisationUnit =
-        GET("/organisationUnits/{id}", "rXnqqH2Pu6N").content().asA(JsonIdentifiableObject.class);
+        GET("/organisationUnits/{id}", "rXnqqH2Pu6N")
+            .content()
+            .asObject(JsonIdentifiableObject.class);
 
     assertEquals(1, organisationUnit.getAttributeValues().size());
     JsonAttributeValue attributeValue = organisationUnit.getAttributeValues().get(0);
@@ -427,6 +429,55 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
+  @DisplayName("Should not insert duplicate translation records when updating object")
+  void testUpdateObjectWithTranslation() {
+    POST(
+            "/metadata",
+            "{\"optionSets\":\n"
+                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\", \"translations\":[{\n"
+                + "      \"locale\": \"en_GB\",\n"
+                + "      \"property\": \"NAME\",\n"
+                + "      \"value\": \"Device category 1\"\n"
+                + "    }]}]}")
+        .content(HttpStatus.OK);
+
+    POST(
+            "/metadata",
+            "{\"optionSets\":\n"
+                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\", \"translations\":[{\n"
+                + "      \"locale\": \"en_GB\",\n"
+                + "      \"property\": \"NAME\",\n"
+                + "      \"value\": \"Device category 2\"\n"
+                + "    }]}]}")
+        .content(HttpStatus.OK);
+
+    JsonObject response = GET("/optionSets/{uid}", "RHqFlB1Wm4d").content();
+
+    assertEquals(1, response.getArray("translations").size());
+    assertEquals(
+        "Device category 2",
+        response.getArray("translations").getObject(0).getString("value").string());
+  }
+
+  @Test
+  @DisplayName("Should throw exception when import with MergeMode=Merge")
+  void testImportWithMergeMode() {
+    JsonMixed report =
+        POST(
+                "/metadata?mergeMode=MERGE",
+                "{\"optionSets\":\n"
+                    + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\", \"translations\":[{\n"
+                    + "      \"locale\": \"en_GB\",\n"
+                    + "      \"property\": \"NAME\",\n"
+                    + "      \"value\": \"Device category 1\"\n"
+                    + "    }]}]}")
+            .content(HttpStatus.CONFLICT);
+    assertEquals(
+        "Merge mode MERGE is no longer supported, only merge mode REPLACE is available.",
+        report.getString("message").string());
+  }
+
+  @Test
   @DisplayName("Export user metadata with skipSharing option returns expected fields")
   void exportUserWithSkipSharing() {
     // when users are exported including the skipSharing option
@@ -479,18 +530,18 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
     POST(
             "/metadata",
             """
-             {'optionSets':
-                 [{'name': 'Device category','id': 'RHqFlB1Wm4d','version': 2,'valueType': 'TEXT'}]
-             ,'dataElements':
-             [{'name':'test DataElement with OptionSet', 'shortName':'test DataElement', 'aggregationType':'SUM','domainType':'AGGREGATE','categoryCombo':{'id':'bjDvmb4bfuf'},'valueType':'NUMBER','optionSet':{'id':'RHqFlB1Wm4d'}
-             }]}""")
+         {'optionSets':
+             [{'name': 'Device category','id': 'RHqFlB1Wm4d','version': 2,'valueType': 'TEXT'}]
+         ,'dataElements':
+         [{'name':'test DataElement with OptionSet', 'shortName':'test DataElement', 'aggregationType':'SUM','domainType':'AGGREGATE','categoryCombo':{'id':'bjDvmb4bfuf'},'valueType':'NUMBER','optionSet':{'id':'RHqFlB1Wm4d'}
+         }]}""")
         .content(HttpStatus.OK);
     JsonImportSummary report =
         POST(
                 "/metadata?importStrategy=DELETE",
                 """
-                {'optionSets':
-                [{'name': 'Device category','id': 'RHqFlB1Wm4d','version': 2,'valueType': 'TEXT'}]}""")
+            {'optionSets':
+            [{'name': 'Device category','id': 'RHqFlB1Wm4d','version': 2,'valueType': 'TEXT'}]}""")
             .content(HttpStatus.CONFLICT)
             .get("response")
             .as(JsonImportSummary.class);

@@ -184,6 +184,11 @@ public class DefaultMetadataImportService implements MetadataImportService {
     params.setFirstRowIsHeader(getBooleanWithDefault(parameters, "firstRowIsHeader", true));
     params.setAsync(getBooleanWithDefault(parameters, "async", false));
 
+    if (params.getMergeMode() == MergeMode.MERGE) {
+      throw new MetadataImportException(
+          "Merge mode MERGE is no longer supported, only merge mode REPLACE is available.");
+    }
+
     if (params.getUserOverrideMode() == UserOverrideMode.SELECTED) {
       UID overrideUser = null;
 
