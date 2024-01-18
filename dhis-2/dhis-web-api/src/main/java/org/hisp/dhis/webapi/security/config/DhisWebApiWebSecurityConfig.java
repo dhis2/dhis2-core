@@ -70,6 +70,7 @@ import org.springframework.security.authentication.DefaultAuthenticationEventPub
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
@@ -157,6 +158,12 @@ public class DhisWebApiWebSecurityConfig {
     providerManager.setAuthenticationEventPublisher(authenticationEventPublisher);
 
     return providerManager;
+  }
+
+  @Bean
+  public WebSecurityCustomizer webSecurityCustomizer() {
+    return web ->
+        web.ignoring().requestMatchers(new AntPathRequestMatcher(apiContextPath + "/ping"));
   }
 
   @Bean
