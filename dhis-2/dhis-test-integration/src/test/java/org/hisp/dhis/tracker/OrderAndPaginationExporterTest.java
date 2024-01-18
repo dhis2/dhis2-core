@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2024, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.tracker;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
@@ -179,7 +206,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   @Test
   void
-  shouldReturnPaginatedEventsWithMultipleCategoryOptionsGivenNonDefaultPageSizeAndTotalPages() {
+      shouldReturnPaginatedEventsWithMultipleCategoryOptionsGivenNonDefaultPageSizeAndTotalPages() {
     OrganisationUnit orgUnit = get(OrganisationUnit.class, "DiszpKrYNg8");
     Program program = get(Program.class, "iS7eutanDry");
 
@@ -449,25 +476,24 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   private static Stream<Arguments> orderByFieldInDescendingOrderWhenModeSelected() {
     return Stream.of(
-        Arguments.of( "enrollment", "pTzf9KYMk72", "D9PbzJY8bJM"),
-        Arguments.of( "occurredAt", "D9PbzJY8bJM", "pTzf9KYMk72"),
-        Arguments.of( "enrollmentStatus", "D9PbzJY8bJM", "pTzf9KYMk72"),
-        Arguments.of( "event", "pTzf9KYMk72", "D9PbzJY8bJM")
-    );
+        Arguments.of("enrollment", "pTzf9KYMk72", "D9PbzJY8bJM"),
+        Arguments.of("occurredAt", "D9PbzJY8bJM", "pTzf9KYMk72"),
+        Arguments.of("enrollmentStatus", "D9PbzJY8bJM", "pTzf9KYMk72"),
+        Arguments.of("event", "pTzf9KYMk72", "D9PbzJY8bJM"));
   }
 
   private static Stream<Arguments> orderByFieldInAscendingOrderWhenModeSelected() {
     return Stream.of(
-        Arguments.of( "enrollment", "D9PbzJY8bJM", "pTzf9KYMk72"),
-        Arguments.of( "occurredAt", "pTzf9KYMk72", "D9PbzJY8bJM"),
-        Arguments.of( "enrollmentStatus", "pTzf9KYMk72", "D9PbzJY8bJM"),
-        Arguments.of( "event", "D9PbzJY8bJM", "pTzf9KYMk72")
-    );
+        Arguments.of("enrollment", "D9PbzJY8bJM", "pTzf9KYMk72"),
+        Arguments.of("occurredAt", "pTzf9KYMk72", "D9PbzJY8bJM"),
+        Arguments.of("enrollmentStatus", "pTzf9KYMk72", "D9PbzJY8bJM"),
+        Arguments.of("event", "D9PbzJY8bJM", "pTzf9KYMk72"));
   }
 
   @ParameterizedTest
   @MethodSource("orderByFieldInDescendingOrderWhenModeSelected")
-  void shouldOrderByFieldInDescendingOrderWhenModeSelected(String field, String firstEvent, String secondEvent) {
+  void shouldOrderByFieldInDescendingOrderWhenModeSelected(
+      String field, String firstEvent, String secondEvent) {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(SELECTED);
     params.setOrgUnit(orgUnit);
@@ -480,7 +506,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   @ParameterizedTest
   @MethodSource("orderByFieldInAscendingOrderWhenModeSelected")
-  void shouldOrderByFieldInAscendingOrderWhenModeSelected(String field, String firstEvent, String secondEvent) {
+  void shouldOrderByFieldInAscendingOrderWhenModeSelected(
+      String field, String firstEvent, String secondEvent) {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(SELECTED);
     params.setOrgUnit(orgUnit);
@@ -493,30 +520,28 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   private static Stream<Arguments> orderByFieldInDescendingOrderWhenModeDescendants() {
     return Stream.of(
-        Arguments.of( "orgUnit", "gvULMgNiAfM", "SbUJzkxKYAG"),
-        Arguments.of( "program", "SbUJzkxKYAG", "gvULMgNiAfM"),
-        Arguments.of( "programStage", "SbUJzkxKYAG", "gvULMgNiAfM"),
-        Arguments.of( "dueDate", "gvULMgNiAfM", "SbUJzkxKYAG"),
-        Arguments.of( "status", "gvULMgNiAfM", "SbUJzkxKYAG"),
-        Arguments.of( "storedBy", "SbUJzkxKYAG", "gvULMgNiAfM")
-
-    );
+        Arguments.of("orgUnit", "gvULMgNiAfM", "SbUJzkxKYAG"),
+        Arguments.of("program", "SbUJzkxKYAG", "gvULMgNiAfM"),
+        Arguments.of("programStage", "SbUJzkxKYAG", "gvULMgNiAfM"),
+        Arguments.of("dueDate", "gvULMgNiAfM", "SbUJzkxKYAG"),
+        Arguments.of("status", "gvULMgNiAfM", "SbUJzkxKYAG"),
+        Arguments.of("storedBy", "SbUJzkxKYAG", "gvULMgNiAfM"));
   }
 
   private static Stream<Arguments> orderByFieldInAscendingOrderWhenModeDescendants() {
     return Stream.of(
-        Arguments.of( "orgUnit", "SbUJzkxKYAG", "gvULMgNiAfM"),
-        Arguments.of( "program", "gvULMgNiAfM", "SbUJzkxKYAG"),
-        Arguments.of( "programStage", "gvULMgNiAfM", "SbUJzkxKYAG"),
-        Arguments.of( "dueDate", "SbUJzkxKYAG", "gvULMgNiAfM"),
-        Arguments.of( "status", "SbUJzkxKYAG", "gvULMgNiAfM"),
-        Arguments.of( "storedBy", "gvULMgNiAfM", "SbUJzkxKYAG")
-    );
+        Arguments.of("orgUnit", "SbUJzkxKYAG", "gvULMgNiAfM"),
+        Arguments.of("program", "gvULMgNiAfM", "SbUJzkxKYAG"),
+        Arguments.of("programStage", "gvULMgNiAfM", "SbUJzkxKYAG"),
+        Arguments.of("dueDate", "SbUJzkxKYAG", "gvULMgNiAfM"),
+        Arguments.of("status", "SbUJzkxKYAG", "gvULMgNiAfM"),
+        Arguments.of("storedBy", "gvULMgNiAfM", "SbUJzkxKYAG"));
   }
 
   @ParameterizedTest
   @MethodSource("orderByFieldInDescendingOrderWhenModeDescendants")
-  void shouldOrderByFieldInDescendingOrderWhenModeDescendants(String field, String firstEvent, String secondEvent) {
+  void shouldOrderByFieldInDescendingOrderWhenModeDescendants(
+      String field, String firstEvent, String secondEvent) {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(DESCENDANTS);
     params.setOrgUnit(get(OrganisationUnit.class, "RojfDTBhoGC"));
@@ -528,7 +553,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   @ParameterizedTest
   @MethodSource("orderByFieldInAscendingOrderWhenModeDescendants")
-  void shouldOrderByFieldInAscendingOrderWhenModeDescendants(String field, String firstEvent, String secondEvent) {
+  void shouldOrderByFieldInAscendingOrderWhenModeDescendants(
+      String field, String firstEvent, String secondEvent) {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(DESCENDANTS);
     params.setOrgUnit(get(OrganisationUnit.class, "RojfDTBhoGC"));
@@ -540,7 +566,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldOrderEventsByCompletedDateInDescendingOrderWhenCompletedDateDescSupplied () {
+  void shouldOrderEventsByCompletedDateInDescendingOrderWhenCompletedDateDescSupplied() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(SELECTED);
     params.setOrgUnit(orgUnit);
@@ -548,7 +574,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
     Events events = eventService.getEvents(params);
 
-    boolean isSameCompletedDate = pTzf9KYMk72.getCompletedDate().equals(D9PbzJY8bJM.getCompletedDate());
+    boolean isSameCompletedDate =
+        pTzf9KYMk72.getCompletedDate().equals(D9PbzJY8bJM.getCompletedDate());
     if (isSameCompletedDate) {
       // the order is non-deterministic if the completed date is the same. we can then only assert
       // the correct events are in the result. otherwise the test is flaky
@@ -561,7 +588,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldOrderEventsByCompletedDateInAscendingOrderWhenCompletedDateAscSupplied () {
+  void shouldOrderEventsByCompletedDateInAscendingOrderWhenCompletedDateAscSupplied() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(SELECTED);
     params.setOrgUnit(orgUnit);
@@ -569,7 +596,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
     Events events = eventService.getEvents(params);
 
-    boolean isSameCompletedDate = pTzf9KYMk72.getCompletedDate().equals(D9PbzJY8bJM.getCompletedDate());
+    boolean isSameCompletedDate =
+        pTzf9KYMk72.getCompletedDate().equals(D9PbzJY8bJM.getCompletedDate());
     if (isSameCompletedDate) {
       // the order is non-deterministic if the completed date is the same. we can then only assert
       // the correct events are in the result. otherwise the test is flaky
@@ -582,7 +610,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldOrderEventsByCreatedInAscendingOrderWhenCreatedAscSupplied () {
+  void shouldOrderEventsByCreatedInAscendingOrderWhenCreatedAscSupplied() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(SELECTED);
     params.setOrgUnit(orgUnit);
@@ -603,7 +631,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldOrderEventsByCreatedInDescendingOrderWhenCreatedDescSupplied () {
+  void shouldOrderEventsByCreatedInDescendingOrderWhenCreatedDescSupplied() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(SELECTED);
     params.setOrgUnit(orgUnit);
@@ -624,7 +652,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldOrderEventsByLastUpdatedInDescendingOrderWhenLastUpdatedDescSupplied () {
+  void shouldOrderEventsByLastUpdatedInDescendingOrderWhenLastUpdatedDescSupplied() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(SELECTED);
     params.setOrgUnit(orgUnit);
@@ -645,7 +673,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldOrderEventsByLastUpdatedInAscendingOrderWhenLastUpdatedAscSupplied () {
+  void shouldOrderEventsByLastUpdatedInAscendingOrderWhenLastUpdatedAscSupplied() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(SELECTED);
     params.setOrgUnit(orgUnit);
@@ -727,19 +755,22 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @NotNull
-  private static List<String> reverseSortEventsByDate(ProgramStageInstance pTzf9KYMk72,
-      ProgramStageInstance D9PbzJY8bJM, Function<ProgramStageInstance, Date> eventDate) {
+  private static List<String> reverseSortEventsByDate(
+      ProgramStageInstance pTzf9KYMk72,
+      ProgramStageInstance D9PbzJY8bJM,
+      Function<ProgramStageInstance, Date> eventDate) {
 
     return Stream.of(pTzf9KYMk72, D9PbzJY8bJM)
-        .sorted(Comparator.comparing(eventDate)
-            .reversed()) // reversed = desc
+        .sorted(Comparator.comparing(eventDate).reversed()) // reversed = desc
         .map(ProgramStageInstance::getUid)
         .collect(Collectors.toList());
   }
 
   @NotNull
-  private static List<String> sortEventsByDate(ProgramStageInstance pTzf9KYMk72,
-      ProgramStageInstance D9PbzJY8bJM, Function<ProgramStageInstance, Date> eventDate) {
+  private static List<String> sortEventsByDate(
+      ProgramStageInstance pTzf9KYMk72,
+      ProgramStageInstance D9PbzJY8bJM,
+      Function<ProgramStageInstance, Date> eventDate) {
 
     return Stream.of(pTzf9KYMk72, D9PbzJY8bJM)
         .sorted(Comparator.comparing(eventDate))
