@@ -58,16 +58,6 @@ public abstract class AbstractStatementBuilder implements StatementBuilder {
   protected static final String SINGLE_QUOTE = "'";
 
   @Override
-  public String getAutoIncrementValue() {
-    return "null";
-  }
-
-  @Override
-  public String getLongVarBinaryType() {
-    return "VARBINARY(1000000)";
-  }
-
-  @Override
   public String concatenate(String... s) {
     return "CONCAT(" + StringUtils.join(s, ", ") + ")";
   }

@@ -40,36 +40,6 @@ public class PostgreSQLStatementBuilder extends AbstractStatementBuilder {
   }
 
   @Override
-  public String getLongVarBinaryType() {
-    return "BYTEA";
-  }
-
-  @Override
-  public String getAnalyze(String table) {
-    return "analyze " + table + ";";
-  }
-
-  @Override
-  public String getAutoIncrementValue() {
-    return "nextval('hibernate_sequence')";
-  }
-
-  @Override
-  public String getTableOptions(boolean autoVacuum) {
-    String sql = "";
-
-    if (!autoVacuum) {
-      sql += "autovacuum_enabled = false";
-    }
-
-    if (!sql.isEmpty()) {
-      sql = "with (" + sql + ")";
-    }
-
-    return sql;
-  }
-
-  @Override
   public String getRegexpMatch() {
     return "~*";
   }
@@ -82,21 +52,6 @@ public class PostgreSQLStatementBuilder extends AbstractStatementBuilder {
   @Override
   public String getRegexpWordEnd() {
     return "\\M";
-  }
-
-  @Override
-  public String getRandom(int n) {
-    return "cast(floor(" + n + "*random()) as int)";
-  }
-
-  @Override
-  public String getCharAt(String str, String n) {
-    return "substring(" + str + " from " + n + " for 1)";
-  }
-
-  @Override
-  public String getAddDate(String dateField, int days) {
-    return "(" + dateField + "+" + days + ")";
   }
 
   @Override
