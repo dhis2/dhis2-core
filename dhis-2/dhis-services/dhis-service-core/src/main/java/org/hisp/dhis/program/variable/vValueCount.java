@@ -30,6 +30,7 @@ package org.hisp.dhis.program.variable;
 import java.util.Set;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.system.util.SqlUtils;
 
 /**
  * Program indicator variable: value count
@@ -50,7 +51,7 @@ public class vValueCount extends ProgramDoubleVariable {
     for (String uid : uids) {
       sql +=
           "case when "
-              + visitor.getStatementBuilder().columnQuote(uid)
+              + SqlUtils.quote(uid)
               + " is not null then 1 else 0 end + ";
     }
 

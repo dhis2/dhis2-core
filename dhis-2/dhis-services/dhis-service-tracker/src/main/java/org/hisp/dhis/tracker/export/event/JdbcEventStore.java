@@ -32,15 +32,6 @@ import static org.hisp.dhis.common.ValueType.NUMERIC_TYPES;
 import static org.hisp.dhis.system.util.SqlUtils.castToNumber;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.google.common.base.Strings;
-import com.google.common.collect.LinkedListMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
-import com.google.gson.Gson;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -57,8 +48,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.IntSupplier;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -110,6 +99,16 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.google.common.base.Strings;
+import com.google.common.collect.LinkedListMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
+import com.google.gson.Gson;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -609,8 +608,8 @@ class JdbcEventStore implements EventStore {
 
       TrackedEntityAttribute tea = queryItem.getKey();
       String teaUid = tea.getUid();
-      String teaValueCol = statementBuilder.columnQuote(teaUid);
-      String teaCol = statementBuilder.columnQuote(teaUid + "ATT");
+      String teaValueCol = quote(teaUid);
+      String teaCol = quote(teaUid + "ATT");
 
       sql.append(" inner join trackedentityattributevalue ")
           .append(teaValueCol)
@@ -704,12 +703,12 @@ class JdbcEventStore implements EventStore {
 
       joinOrderAttributes
           .append(" left join trackedentityattributevalue as ")
-          .append(statementBuilder.columnQuote(orderAttribute.getUid()))
+          .append(quote(orderAttribute.getUid()))
           .append(" on ")
-          .append(statementBuilder.columnQuote(orderAttribute.getUid()))
+          .append(quote(orderAttribute.getUid()))
           .append(".trackedentityid = TE.trackedentityid ")
           .append("and ")
-          .append(statementBuilder.columnQuote(orderAttribute.getUid()))
+          .append(quote(orderAttribute.getUid()))
           .append(".trackedentityattributeid = ")
           .append(orderAttribute.getId())
           .append(SPACE);

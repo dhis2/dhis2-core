@@ -54,10 +54,11 @@ import org.springframework.util.Assert;
 public abstract class AbstractStatementBuilder implements StatementBuilder {
   protected static final String AZaz = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-  protected static final String AZaz09 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  
+  protected static final String AZaz09 =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
   protected static final String QUOTE = "'";
-  
+
   protected static final String AZaz_QUOTED = QUOTE + AZaz + QUOTE;
 
   protected static final String AZaz09_QUOTED = QUOTE + AZaz09 + QUOTE;
@@ -74,15 +75,6 @@ public abstract class AbstractStatementBuilder implements StatementBuilder {
     }
 
     return quote ? (QUOTE + value + QUOTE) : value;
-  }
-
-  @Override
-  public String columnQuote(String column) {
-    String qte = getColumnQuote();
-
-    column = column.replaceAll(qte, (qte + qte));
-
-    return qte + column + qte;
   }
 
   @Override
@@ -518,6 +510,14 @@ public abstract class AbstractStatementBuilder implements StatementBuilder {
         + " cast( '"
         + format.format(boundary.getBoundaryDate(reportingStartDate, reportingEndDate))
         + "' as date )";
+  }
+
+  protected String columnQuote(String column) {
+    String qte = getColumnQuote();
+
+    column = column.replaceAll(qte, (qte + qte));
+
+    return qte + column + qte;
   }
 
   /**

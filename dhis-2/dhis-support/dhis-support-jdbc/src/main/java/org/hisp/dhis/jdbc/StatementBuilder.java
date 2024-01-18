@@ -63,14 +63,6 @@ public interface StatementBuilder {
   String getColumnQuote();
 
   /**
-   * Wraps the given column or table in quotes.
-   *
-   * @param column the column or table name.
-   * @return the column or table name wrapped in quotes.
-   */
-  String columnQuote(String column);
-
-  /**
    * Returns a limit and offset clause.
    *
    * @param offset the offset / start position for the records to return.

@@ -28,6 +28,7 @@
 package org.hisp.dhis.jdbc.statementbuilder;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.quick.StatementDialect;
 import org.springframework.beans.factory.FactoryBean;

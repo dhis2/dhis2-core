@@ -32,9 +32,9 @@ import static java.util.Map.entry;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -437,9 +437,9 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
         }
       } else if (order.getField() instanceof TrackedEntityAttribute tea) {
         columns.add(
-            statementBuilder.columnQuote(tea.getUid())
+            quote(tea.getUid())
                 + ".value AS "
-                + statementBuilder.columnQuote(tea.getUid()));
+                + quote(tea.getUid()));
       } else {
         throw new IllegalArgumentException(
             String.format(
@@ -531,7 +531,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
     for (Map.Entry<TrackedEntityAttribute, List<QueryFilter>> filters :
         params.getFilters().entrySet()) {
-      String col = statementBuilder.columnQuote(filters.getKey().getUid());
+      String col = quote(filters.getKey().getUid());
       String teaId = col + ".trackedentityattributeid";
       String teav = "lower(" + col + ".value)";
       String ted = col + ".trackedentityid";
@@ -577,12 +577,12 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
       joinOrderAttributes
           .append(" LEFT JOIN trackedentityattributevalue AS ")
-          .append(statementBuilder.columnQuote(orderAttribute.getUid()))
+          .append(quote(orderAttribute.getUid()))
           .append(" ON ")
-          .append(statementBuilder.columnQuote(orderAttribute.getUid()))
+          .append(quote(orderAttribute.getUid()))
           .append(".trackedentityid = TE.trackedentityid ")
           .append("AND ")
-          .append(statementBuilder.columnQuote(orderAttribute.getUid()))
+          .append(quote(orderAttribute.getUid()))
           .append(".trackedentityattributeid = ")
           .append(orderAttribute.getId())
           .append(SPACE);
@@ -960,8 +960,8 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       } else if (order.getField() instanceof TrackedEntityAttribute tea) {
         String orderField =
             innerOrder
-                ? statementBuilder.columnQuote(tea.getUid()) + ".value "
-                : MAIN_QUERY_ALIAS + "." + statementBuilder.columnQuote(tea.getUid());
+                ? quote(tea.getUid()) + ".value "
+                : MAIN_QUERY_ALIAS + "." + quote(tea.getUid());
 
         orderFields.add(orderField + SPACE + order.getDirection());
       } else {

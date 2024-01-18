@@ -118,6 +118,7 @@ import org.hisp.dhis.program.function.D2YearsBetween;
 import org.hisp.dhis.program.function.D2Zing;
 import org.hisp.dhis.program.function.D2Zpvc;
 import org.hisp.dhis.program.variable.ProgramVariableItem;
+import org.hisp.dhis.system.util.SqlUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -457,7 +458,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
       String sql = StringUtils.EMPTY;
 
       for (String uid : uids) {
-        sql += statementBuilder.columnQuote(uid) + " is not null or ";
+        sql += SqlUtils.quote(uid) + " is not null or ";
       }
 
       return TextUtils.removeLastOr(sql).trim();

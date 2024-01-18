@@ -33,6 +33,7 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getTokens;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.CREATED_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.DELETED;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.INACTIVE_ID;
@@ -40,16 +41,14 @@ import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.LAST_UPDATED_
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.MAIN_QUERY_ALIAS;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.ORG_UNIT_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.ORG_UNIT_NAME;
-import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.OrderColumn.ENROLLED_AT;
-import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.OrderColumn.findColumn;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.POTENTIAL_DUPLICATE;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.PROGRAM_INSTANCE_ALIAS;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.TRACKED_ENTITY_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.TRACKED_ENTITY_TYPE_ID;
+import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.OrderColumn.ENROLLED_AT;
+import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.OrderColumn.findColumn;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
-
-import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -65,7 +64,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
@@ -96,6 +94,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
+import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Abyot Asalefew Gizaw
@@ -547,9 +547,9 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
         if (sortableAttributesAndFilters(params).stream()
             .anyMatch(i -> i.getItem().getUid().equals(orderParam.getField()))) {
           columns.add(
-              statementBuilder.columnQuote(orderParam.getField())
+              quote(orderParam.getField())
                   + ".value AS "
-                  + statementBuilder.columnQuote(orderParam.getField()));
+                  + quote(orderParam.getField()));
         }
       }
     }
@@ -732,7 +732,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
             .collect(Collectors.toList());
 
     for (QueryItem queryItem : filterItems) {
-      String col = statementBuilder.columnQuote(queryItem.getItemId());
+      String col = quote(queryItem.getItemId());
       String teaId = col + ".trackedentityattributeid";
       String teav = "lower(" + col + ".value)";
       String ted = col + ".trackedentityid";
@@ -782,12 +782,12 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
 
       joinOrderAttributes
           .append(" LEFT JOIN trackedentityattributevalue AS ")
-          .append(statementBuilder.columnQuote(orderAttribute.getItemId()))
+          .append(quote(orderAttribute.getItemId()))
           .append(" ON ")
-          .append(statementBuilder.columnQuote(orderAttribute.getItemId()))
+          .append(quote(orderAttribute.getItemId()))
           .append(".trackedentityid = TE.trackedentityid ")
           .append("AND ")
-          .append(statementBuilder.columnQuote(orderAttribute.getItemId()))
+          .append(quote(orderAttribute.getItemId()))
           .append(".trackedentityattributeid = ")
           .append(orderAttribute.getItem().getId())
           .append(SPACE);
@@ -1174,7 +1174,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
     for (QueryItem queryItem : sortableAttributesAndFilters(params)) {
       groupBy
           .append(", TE.")
-          .append(statementBuilder.columnQuote(queryItem.getItemId()))
+          .append(quote(queryItem.getItemId()))
           .append(SPACE);
     }
 
@@ -1216,8 +1216,8 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
             .anyMatch(i -> i.getItem().getUid().equals(order.getField()))) {
           String orderField =
               innerOrder
-                  ? statementBuilder.columnQuote(order.getField()) + ".value "
-                  : MAIN_QUERY_ALIAS + "." + statementBuilder.columnQuote(order.getField());
+                  ? quote(order.getField()) + ".value "
+                  : MAIN_QUERY_ALIAS + "." + quote(order.getField());
 
           orderFields.add(orderField + SPACE + order.getDirection());
         }
