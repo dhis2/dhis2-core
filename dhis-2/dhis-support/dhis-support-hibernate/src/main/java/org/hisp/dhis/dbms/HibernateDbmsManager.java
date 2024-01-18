@@ -351,6 +351,7 @@ public class HibernateDbmsManager implements DbmsManager {
 
     emptyTable("audit");
     emptyTable("eventhook");
+    emptyTable("dataentryform");
 
     log.debug("Cleared database contents");
 
