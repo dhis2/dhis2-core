@@ -39,6 +39,7 @@ import org.hisp.dhis.util.DateUtils;
 public class vAnalyticsPeriodEnd extends ProgramDateVariable {
   @Override
   public Object getSql(CommonExpressionVisitor visitor) {
-    return SqlUtils.encode(DateUtils.getSqlDateString(visitor.getProgParams().getReportingEndDate()));
+    return SqlUtils.encode(
+        DateUtils.getSqlDateString(visitor.getProgParams().getReportingEndDate()));
   }
 }

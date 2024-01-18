@@ -51,6 +51,7 @@ import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.springframework.util.Assert.notNull;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;

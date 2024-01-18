@@ -28,6 +28,7 @@
 package org.hisp.dhis.trackedentity.hibernate;
 
 import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;

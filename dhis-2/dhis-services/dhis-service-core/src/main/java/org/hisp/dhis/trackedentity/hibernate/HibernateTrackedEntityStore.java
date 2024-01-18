@@ -42,14 +42,16 @@ import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.LAST_UPDATED_
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.MAIN_QUERY_ALIAS;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.ORG_UNIT_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.ORG_UNIT_NAME;
+import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.OrderColumn.ENROLLED_AT;
+import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.OrderColumn.findColumn;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.POTENTIAL_DUPLICATE;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.PROGRAM_INSTANCE_ALIAS;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.TRACKED_ENTITY_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.TRACKED_ENTITY_TYPE_ID;
-import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.OrderColumn.ENROLLED_AT;
-import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.OrderColumn.findColumn;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
+
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -65,6 +67,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
@@ -95,8 +98,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
-import com.google.common.collect.Lists;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Abyot Asalefew Gizaw
@@ -209,9 +210,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
 
   private String encodeAndQuote(Collection<String> elements) {
     return getQuotedCommaDelimitedString(
-        elements.stream()
-            .map(element -> encode(element, false))
-            .collect(Collectors.toList()));
+        elements.stream().map(element -> encode(element, false)).collect(Collectors.toList()));
   }
 
   @Override
@@ -547,10 +546,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
       } else {
         if (sortableAttributesAndFilters(params).stream()
             .anyMatch(i -> i.getItem().getUid().equals(orderParam.getField()))) {
-          columns.add(
-              quote(orderParam.getField())
-                  + ".value AS "
-                  + quote(orderParam.getField()));
+          columns.add(quote(orderParam.getField()) + ".value AS " + quote(orderParam.getField()));
         }
       }
     }
@@ -1173,10 +1169,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
             .append(params.isIncludeDeleted() ? ", TE.deleted " : "");
 
     for (QueryItem queryItem : sortableAttributesAndFilters(params)) {
-      groupBy
-          .append(", TE.")
-          .append(quote(queryItem.getItemId()))
-          .append(SPACE);
+      groupBy.append(", TE.").append(quote(queryItem.getItemId())).append(SPACE);
     }
 
     return groupBy.toString();

@@ -29,7 +29,9 @@ package org.hisp.dhis.sqlview.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
+
 import javax.persistence.EntityManager;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
@@ -45,7 +47,6 @@ import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Dang Duy Hieu

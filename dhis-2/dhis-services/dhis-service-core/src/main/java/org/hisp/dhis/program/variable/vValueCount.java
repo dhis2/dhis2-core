@@ -49,10 +49,7 @@ public class vValueCount extends ProgramDoubleVariable {
     String sql = "nullif(cast((";
 
     for (String uid : uids) {
-      sql +=
-          "case when "
-              + SqlUtils.quote(uid)
-              + " is not null then 1 else 0 end + ";
+      sql += "case when " + SqlUtils.quote(uid) + " is not null then 1 else 0 end + ";
     }
 
     return TextUtils.removeLast(sql, "+").trim()

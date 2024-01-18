@@ -64,6 +64,9 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.STDDEV;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.SUM;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.VARIANCE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.V_BRACE;
+
+import com.google.common.base.Suppliers;
+import com.google.common.collect.ImmutableMap;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -122,8 +125,6 @@ import org.hisp.dhis.system.util.SqlUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.google.common.base.Suppliers;
-import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Chau Thu Tran

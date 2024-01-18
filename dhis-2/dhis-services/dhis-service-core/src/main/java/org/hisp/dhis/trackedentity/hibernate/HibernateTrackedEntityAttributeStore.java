@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.trackedentity.hibernate;
 
+import com.google.common.collect.Sets;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -55,7 +56,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import com.google.common.collect.Sets;
 
 /**
  * @author Abyot Asalefew Gizaw
@@ -122,8 +122,7 @@ public class HibernateTrackedEntityAttributeStore
     for (QueryItem item : params.getAttributes()) {
       for (QueryFilter filter : item.getFilters()) {
         final String encodedFilter =
-            filter.getSqlFilter(
-                SqlUtils.encode(StringUtils.lowerCase(filter.getFilter()), false));
+            filter.getSqlFilter(SqlUtils.encode(StringUtils.lowerCase(filter.getFilter()), false));
 
         hql +=
             hlp.whereAnd()

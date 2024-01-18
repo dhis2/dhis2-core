@@ -49,10 +49,7 @@ public class vZeroPosValueCount extends ProgramDoubleVariable {
     String sql = "nullif(cast((";
 
     for (String uid : uids) {
-      sql +=
-          "case when "
-              + SqlUtils.quote(uid)
-              + " >= 0 then 1 else 0 end + ";
+      sql += "case when " + SqlUtils.quote(uid) + " >= 0 then 1 else 0 end + ";
     }
 
     return TextUtils.removeLast(sql, "+").trim()

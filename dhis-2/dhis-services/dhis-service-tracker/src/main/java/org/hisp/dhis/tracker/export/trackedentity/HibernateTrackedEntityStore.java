@@ -36,6 +36,7 @@ import static org.hisp.dhis.system.util.SqlUtils.encode;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -197,9 +198,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
   private String encodeAndQuote(Collection<String> elements) {
     return getQuotedCommaDelimitedString(
-        elements.stream()
-            .map(element -> encode(element, false))
-            .collect(Collectors.toList()));
+        elements.stream().map(element -> encode(element, false)).collect(Collectors.toList()));
   }
 
   private void checkMaxTrackedEntityCountReached(
@@ -431,10 +430,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
           columns.add(ENROLLMENT_ALIAS + ".enrollmentdate as " + ENROLLMENT_DATE_ALIAS);
         }
       } else if (order.getField() instanceof TrackedEntityAttribute tea) {
-        columns.add(
-            quote(tea.getUid())
-                + ".value AS "
-                + quote(tea.getUid()));
+        columns.add(quote(tea.getUid()) + ".value AS " + quote(tea.getUid()));
       } else {
         throw new IllegalArgumentException(
             String.format(

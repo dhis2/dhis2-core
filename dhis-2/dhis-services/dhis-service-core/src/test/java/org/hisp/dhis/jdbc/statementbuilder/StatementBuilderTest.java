@@ -28,6 +28,7 @@
 package org.hisp.dhis.jdbc.statementbuilder;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.junit.jupiter.api.Test;
 

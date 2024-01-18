@@ -28,6 +28,7 @@
 package org.hisp.dhis.system.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.junit.jupiter.api.Test;
 
 /**
@@ -53,16 +54,19 @@ class SqlUtilsTest {
     assertEquals("'Some ''special'' value'", SqlUtils.singleQuote("Some 'special' value"));
     assertEquals("'Another \"strange\" value'", SqlUtils.singleQuote("Another \"strange\" value"));
   }
-  
+
   @Test
   void testEncode() {
     assertEquals("\"John White\"", SqlUtils.encode("John White"));
-    assertEquals("\"Main Street 1\\\\nSmallwille\\\\n\"", SqlUtils.encode("Main Street 1\\nSmallwille\\n"));
+    assertEquals(
+        "\"Main Street 1\\\\nSmallwille\\\\n\"", SqlUtils.encode("Main Street 1\\nSmallwille\\n"));
   }
 
   @Test
   void testEncodeWithoutQuote() {
     assertEquals("John White", SqlUtils.encode("John White", false));
-    assertEquals("Main Street 1\\\\nSmallwille\\\\n", SqlUtils.encode("Main Street 1\\nSmallwille\\n", false));
+    assertEquals(
+        "Main Street 1\\\\nSmallwille\\\\n",
+        SqlUtils.encode("Main Street 1\\nSmallwille\\n", false));
   }
 }
