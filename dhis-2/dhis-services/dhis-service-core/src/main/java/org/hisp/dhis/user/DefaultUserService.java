@@ -57,8 +57,11 @@ import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.PasswordManager;
+import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.filter.UserRoleCanIssueFilter;
@@ -98,9 +101,13 @@ public class DefaultUserService implements UserService {
 
   private final PasswordManager passwordManager;
 
+  private final SecurityService securityService;
+
   private final SessionRegistry sessionRegistry;
 
   private final Cache<String> userDisplayNameCache;
+
+  private final OrganisationUnitService organisationUnitService;
 
   public DefaultUserService(
       UserStore userStore,
@@ -109,14 +116,17 @@ public class DefaultUserService implements UserService {
       CurrentUserService currentUserService,
       SystemSettingManager systemSettingManager,
       CacheProvider cacheProvider,
+      SessionRegistry sessionRegistry,
       @Lazy PasswordManager passwordManager,
-      @Lazy SessionRegistry sessionRegistry) {
+      @Lazy SecurityService securityService,
+      @Lazy OrganisationUnitService organisationUnitService) {
     checkNotNull(userStore);
     checkNotNull(userGroupService);
     checkNotNull(userRoleStore);
     checkNotNull(systemSettingManager);
     checkNotNull(passwordManager);
     checkNotNull(sessionRegistry);
+    checkNotNull(organisationUnitService);
 
     this.userStore = userStore;
     this.userGroupService = userGroupService;
@@ -124,17 +134,11 @@ public class DefaultUserService implements UserService {
     this.currentUserService = currentUserService;
     this.systemSettingManager = systemSettingManager;
     this.passwordManager = passwordManager;
+    this.securityService = securityService;
+    this.organisationUnitService = organisationUnitService;
     this.sessionRegistry = sessionRegistry;
-    userDisplayNameCache = cacheProvider.createUserDisplayNameCache();
+    this.userDisplayNameCache = cacheProvider.createUserDisplayNameCache();
   }
-
-  // -------------------------------------------------------------------------
-  // UserService implementation
-  // -------------------------------------------------------------------------
-
-  // -------------------------------------------------------------------------
-  // User
-  // -------------------------------------------------------------------------
 
   @Override
   @Transactional
@@ -613,26 +617,45 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<ErrorReport> validateUserCreateOrUpdate(User user, User currentUser) {
+  public List<ErrorReport> validateUserCreateOrUpdateAccess(User user, User currentUser) {
 
     List<ErrorReport> errors = new ArrayList<>();
 
-    if (currentUser == null || user == null) {
+    if (currentUser == null || user == null || currentUser.isSuper()) {
       return errors;
     }
 
     User userToChange = userStore.get(user.getId());
-    if (!currentUser.isSuper() && userToChange != null && userToChange.isSuper()) {
+    if (userToChange != null && userToChange.isSuper()) {
       errors.add(new ErrorReport(User.class, ErrorCode.E3041, currentUser.getUsername()));
     }
 
-    validateUserRoles(user, currentUser, errors);
-    validateUserGroups(user, currentUser, errors);
+    checkHasAccessToUserRoles(user, currentUser, errors);
+    checkHasAccessToUserGroups(user, currentUser, errors);
+
+    checkIsInOrgUnitHierarchy(user.getOrganisationUnits(), currentUser, errors);
+    checkIsInOrgUnitHierarchy(user.getDataViewOrganisationUnits(), currentUser, errors);
+    checkIsInOrgUnitHierarchy(user.getTeiSearchOrganisationUnits(), currentUser, errors);
 
     return errors;
   }
 
-  private void validateUserGroups(User user, User currentUser, List<ErrorReport> errors) {
+  private void checkIsInOrgUnitHierarchy(
+      Set<OrganisationUnit> organisationUnits, User currentUser, List<ErrorReport> errors) {
+    for (OrganisationUnit orgUnit : organisationUnits) {
+      boolean inUserHierarchy = organisationUnitService.isInUserHierarchy(currentUser, orgUnit);
+      if (!inUserHierarchy) {
+        errors.add(
+            new ErrorReport(
+                OrganisationUnit.class,
+                ErrorCode.E7617,
+                orgUnit.getUid(),
+                currentUser.getUsername()));
+      }
+    }
+  }
+
+  private void checkHasAccessToUserGroups(User user, User currentUser, List<ErrorReport> errors) {
 
     boolean canAdd = currentUser.isAuthorized(UserGroup.AUTH_USER_ADD);
     if (canAdd) {
@@ -655,7 +678,7 @@ public class DefaultUserService implements UserService {
             });
   }
 
-  private void validateUserRoles(User user, User currentUser, List<ErrorReport> errors) {
+  private void checkHasAccessToUserRoles(User user, User currentUser, List<ErrorReport> errors) {
     Set<UserRole> userRoles = user.getUserRoles();
 
     boolean canGrantOwnUserRoles =
