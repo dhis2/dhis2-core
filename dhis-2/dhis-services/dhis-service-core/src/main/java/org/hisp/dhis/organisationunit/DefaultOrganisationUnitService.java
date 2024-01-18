@@ -66,6 +66,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -106,7 +107,7 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
       OrganisationUnitLevelStore organisationUnitLevelStore,
       CurrentUserService currentUserService,
       ConfigurationService configurationService,
-      UserSettingService userSettingService,
+      @Lazy UserSettingService userSettingService,
       CacheProvider cacheProvider) {
     checkNotNull(organisationUnitStore);
     checkNotNull(idObjectManager);
