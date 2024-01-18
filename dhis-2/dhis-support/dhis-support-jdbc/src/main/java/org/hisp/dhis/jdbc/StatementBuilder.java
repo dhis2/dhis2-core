@@ -69,9 +69,6 @@ public interface StatementBuilder {
    */
   String position(String substring, String string);
 
-  /** Returns the number of columns part of the primary key for the given table. */
-  String getNumberOfColumnsInPrimaryKey(String table);
-
   /**
    * Returns a cast to timestamp statement for the given column.
    *
