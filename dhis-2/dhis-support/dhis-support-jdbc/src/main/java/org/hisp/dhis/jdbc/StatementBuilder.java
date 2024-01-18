@@ -38,28 +38,6 @@ import org.hisp.dhis.program.ProgramIndicator;
  */
 public interface StatementBuilder {
 
-  /** Returns the name of a double column type. */
-  String getDoubleColumnType();
-
-  /**
-   * Returns the value used to match a column to a regular expression. Matching is case insensitive.
-   */
-  String getRegexpMatch();
-
-  /** Returns the regular expression marker for end of a word. */
-  String getRegexpWordStart();
-
-  /** Returns the regular expression marker for start of a word. */
-  String getRegexpWordEnd();
-
-  /**
-   * Returns an expression to concatenate strings
-   *
-   * @param s the array of strings to concatenate
-   * @return the strings, concatenated
-   */
-  String concatenate(String... s);
-
   /**
    * Returns the position of substring in string, or 0 if not there.
    *

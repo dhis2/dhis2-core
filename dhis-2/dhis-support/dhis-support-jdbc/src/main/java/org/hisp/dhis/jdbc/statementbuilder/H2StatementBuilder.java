@@ -32,27 +32,6 @@ package org.hisp.dhis.jdbc.statementbuilder;
  */
 public class H2StatementBuilder extends AbstractStatementBuilder {
   @Override
-  public String getDoubleColumnType() {
-    return "double";
-  }
-
-  @Override
-  public String getRegexpMatch() {
-    return "regexp";
-  }
-
-  @Override
-  public String getRegexpWordStart() // TODO test
-      {
-    return "[[:<:]]";
-  }
-
-  @Override
-  public String getRegexpWordEnd() {
-    return "[[:>:]]";
-  }
-
-  @Override
   public String position(String substring, String string) {
     return ("POSITION(" + substring + ", " + string + ")");
   }

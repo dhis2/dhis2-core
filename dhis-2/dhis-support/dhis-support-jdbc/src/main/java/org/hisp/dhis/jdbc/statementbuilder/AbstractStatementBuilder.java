@@ -33,14 +33,12 @@ import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_ENROLLMENT_DATE;
 import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_EVENT_DATE;
 import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_INCIDENT_DATE;
 import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_SCHEDULED_DATE;
-
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsConstants;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.period.Period;
@@ -58,11 +56,6 @@ public abstract class AbstractStatementBuilder implements StatementBuilder {
   protected static final String SINGLE_QUOTE = "'";
 
   @Override
-  public String concatenate(String... s) {
-    return "CONCAT(" + StringUtils.join(s, ", ") + ")";
-  }
-
-  @Override
   public String position(String substring, String string) {
     return ("POSITION(" + substring + " in " + string + ")");
   }
@@ -70,11 +63,6 @@ public abstract class AbstractStatementBuilder implements StatementBuilder {
   @Override
   public String getCastToDate(String column) {
     return "cast(" + column + " as date)";
-  }
-
-  @Override
-  public String getDaysBetweenDates(String fromColumn, String toColumn) {
-    return "datediff(" + toColumn + ", " + fromColumn + ")";
   }
 
   @Override

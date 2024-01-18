@@ -34,25 +34,6 @@ import java.util.List;
  * @author Lars Helge Overland
  */
 public class PostgreSQLStatementBuilder extends AbstractStatementBuilder {
-  @Override
-  public String getDoubleColumnType() {
-    return "double precision";
-  }
-
-  @Override
-  public String getRegexpMatch() {
-    return "~*";
-  }
-
-  @Override
-  public String getRegexpWordStart() {
-    return "\\m";
-  }
-
-  @Override
-  public String getRegexpWordEnd() {
-    return "\\M";
-  }
 
   @Override
   public String getDaysBetweenDates(String fromColumn, String toColumn) {
