@@ -124,48 +124,6 @@ public abstract class AbstractStatementBuilder implements StatementBuilder {
         .toString();
   }
 
-  /**
-   * Generates a derived table containing literals in two columns: long and long.
-   *
-   * @param long1Values (non-empty) 1st long column values for the table
-   * @param long2Values (same size) 2nd long column values for the table
-   * @param table the desired table name alias
-   * @param long1Column the desired 1st long column name
-   * @param long2Column the desired 2nd long column name
-   * @return the derived literal table
-   *     <p>The generic implementation, which works in all supported database types, returns a
-   *     subquery in the following form: <code>
-   *     (values (i1_1, i2_1),(i1_2, i2_2),(i1_3, i2_3)) table (int1Column, int2Column)
-   * </code>
-   */
-  @Override
-  public String literalLongLongTable(
-      List<Long> long1Values,
-      List<Long> long2Values,
-      String table,
-      String long1Column,
-      String long2Column) {
-    StringBuilder sb = new StringBuilder("(values ");
-
-    for (int i = 0; i < long1Values.size(); i++) {
-      sb.append("(")
-          .append(long1Values.get(i))
-          .append(", ")
-          .append(long2Values.get(i))
-          .append("),");
-    }
-
-    return sb.deleteCharAt(sb.length() - 1) // Remove the final ','.
-        .append(") ")
-        .append(table)
-        .append(" (")
-        .append(long1Column)
-        .append(", ")
-        .append(long2Column)
-        .append(")")
-        .toString();
-  }
-
   @Override
   public String getProgramIndicatorDataValueSelectSql(
       String programStageUid,

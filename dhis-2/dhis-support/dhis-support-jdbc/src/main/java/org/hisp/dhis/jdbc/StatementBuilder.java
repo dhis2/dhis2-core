@@ -66,23 +66,6 @@ public interface StatementBuilder {
       String strColumn);
 
   /**
-   * Generates a derived table containing literals in two columns: integer and integer.
-   *
-   * @param long1Values (non-empty) 1st integer column values for the table
-   * @param long2Values (same size) 2nd integer column values for the table
-   * @param table the desired table name alias
-   * @param long1Column the desired 1st integer column name
-   * @param long2Column the desired 2nd integer column name
-   * @return the derived literal table
-   */
-  String literalLongLongTable(
-      List<Long> long1Values,
-      List<Long> long2Values,
-      String table,
-      String long1Column,
-      String long2Column);
-
-  /**
    * Get SQL where-condition for a single analyticsPeriodBoundary in a program indicator.
    *
    * @param boundary the boundary to get where-condition for
