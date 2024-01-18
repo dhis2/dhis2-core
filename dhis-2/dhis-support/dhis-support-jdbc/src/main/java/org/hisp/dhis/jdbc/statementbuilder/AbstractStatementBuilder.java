@@ -35,9 +35,7 @@ import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_INCIDENT_DATE;
 import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_SCHEDULED_DATE;
 
 import java.text.SimpleDateFormat;
-import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import org.hisp.dhis.analytics.AnalyticsConstants;
@@ -55,74 +53,6 @@ public abstract class AbstractStatementBuilder implements StatementBuilder {
   protected static final String QUOTE = "\"";
 
   protected static final String SINGLE_QUOTE = "'";
-
-  /**
-   * Generates a derived table containing one column of literal strings.
-   *
-   * <p>The PostgreSQL implementation returns the following form: <code>
-   *     (values ('s1'),('s2'),('s3')) table (column)
-   * </code>
-   *
-   * @param values (non-empty) String values for the derived table
-   * @param table the desired table name alias
-   * @param column the desired column name
-   * @return the derived literal table
-   */
-  @Override
-  public String literalStringTable(Collection<String> values, String table, String column) {
-    StringBuilder sb = new StringBuilder("(values ");
-
-    for (String value : values) {
-      sb.append("('").append(value).append("'),");
-    }
-
-    return sb.deleteCharAt(sb.length() - 1) // Remove the final ','.
-        .append(") ")
-        .append(table)
-        .append(" (")
-        .append(column)
-        .append(")")
-        .toString();
-  }
-
-  /**
-   * Generates a derived table containing literals in two columns: long and string.
-   *
-   * <p>The generic implementation, which works in all supported database types, returns a subquery
-   * in the following form: <code>
-   *     (values (i1, 's1'),(i2, 's2'),(i3, 's3')) table (intColumn, strColumn)
-   * </code>
-   *
-   * @param longValues (non-empty) long values for the derived table
-   * @param strValues (same size) String values for the derived table
-   * @param table the desired table name alias
-   * @param longColumn the desired long column name
-   * @param strColumn the desired string column name
-   * @return the derived literal table
-   */
-  @Override
-  public String literalLongStringTable(
-      List<Long> longValues,
-      List<String> strValues,
-      String table,
-      String longColumn,
-      String strColumn) {
-    StringBuilder sb = new StringBuilder("(values ");
-
-    for (int i = 0; i < longValues.size(); i++) {
-      sb.append("(").append(longValues.get(i)).append(", '").append(strValues.get(i)).append("'),");
-    }
-
-    return sb.deleteCharAt(sb.length() - 1) // Remove the final ','.
-        .append(") ")
-        .append(table)
-        .append(" (")
-        .append(longColumn)
-        .append(", ")
-        .append(strColumn)
-        .append(")")
-        .toString();
-  }
 
   @Override
   public String getProgramIndicatorDataValueSelectSql(
