@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.common;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -36,10 +34,12 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.calendar.Calendar;
@@ -54,6 +54,9 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.util.Assert;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 
 /**
  * @author Lars Helge Overland
@@ -228,7 +231,36 @@ public class IdentifiableObjectUtils {
 
     return periodType.createPeriod(date, calendar);
   }
+  
+  /**
+   * Filters the given list of IdentifiableObjects based on the given key.
+   *
+   * @param identifiableObjects the list of IdentifiableObjects.
+   * @param key the key.
+   * @param ignoreCase indicates whether to ignore case when filtering.
+   * @return a filtered list of IdentifiableObjects.
+   */
+  public static <T extends IdentifiableObject> List<T> filterNameByKey(
+      List<T> identifiableObjects, String key, boolean ignoreCase) {
+    List<T> objects = new ArrayList<>();
+    ListIterator<T> iterator = identifiableObjects.listIterator();
 
+    if (ignoreCase) {
+      key = key.toLowerCase();
+    }
+
+    while (iterator.hasNext()) {
+      T object = iterator.next();
+      String name = ignoreCase ? object.getDisplayName().toLowerCase() : object.getDisplayName();
+
+      if (name.indexOf(key) != -1) {
+        objects.add(object);
+      }
+    }
+
+    return objects;
+  }
+  
   /**
    * Removes duplicates from the given list while maintaining the order.
    *
