@@ -52,8 +52,8 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.MathUtils;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
@@ -84,8 +84,6 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
   private final FileResourceService fileResourceService;
 
   private final UserService userService;
-
-  private final CurrentUserService currentUserService;
 
   private final AclService aclService;
 
@@ -290,29 +288,30 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
   @Override
   @Transactional(readOnly = true)
   public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes() {
-    return getAllUserReadableTrackedEntityAttributes(currentUserService.getCurrentUser());
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes(User user) {
-    List<Program> programs = programService.getAllPrograms();
-    List<TrackedEntityType> trackedEntityTypes = trackedEntityTypeService.getAllTrackedEntityType();
-
-    return getAllUserReadableTrackedEntityAttributes(user, programs, trackedEntityTypes);
+    return getAllUserReadableTrackedEntityAttributes(CurrentUserUtil.getCurrentUserDetails());
   }
 
   @Override
   @Transactional(readOnly = true)
   public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes(
-      User user, List<Program> programs, List<TrackedEntityType> trackedEntityTypes) {
+      UserDetails userDetails) {
+    List<Program> programs = programService.getAllPrograms();
+    List<TrackedEntityType> trackedEntityTypes = trackedEntityTypeService.getAllTrackedEntityType();
+
+    return getAllUserReadableTrackedEntityAttributes(userDetails, programs, trackedEntityTypes);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes(
+      UserDetails userDetails, List<Program> programs, List<TrackedEntityType> trackedEntityTypes) {
     Set<TrackedEntityAttribute> attributes = new HashSet<>();
 
     if (programs != null && !programs.isEmpty()) {
       attributes.addAll(
           programAttributeStore.getAttributes(
               programs.stream()
-                  .filter(program -> aclService.canDataRead(user, program))
+                  .filter(program -> aclService.canDataRead(userDetails, program))
                   .collect(Collectors.toList())));
     }
 
@@ -320,7 +319,8 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
       attributes.addAll(
           entityTypeAttributeStore.getAttributes(
               trackedEntityTypes.stream()
-                  .filter(trackedEntityType -> aclService.canDataRead(user, trackedEntityType))
+                  .filter(
+                      trackedEntityType -> aclService.canDataRead(userDetails, trackedEntityType))
                   .collect(Collectors.toList())));
     }
 

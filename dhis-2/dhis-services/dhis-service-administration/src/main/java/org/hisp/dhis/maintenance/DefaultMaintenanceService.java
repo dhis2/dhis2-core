@@ -41,8 +41,8 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.datavalue.DataValueAuditService;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
@@ -66,8 +66,6 @@ public class DefaultMaintenanceService implements MaintenanceService {
 
   private final UserService userService;
 
-  private final CurrentUserService currentUserService;
-
   private final DataValueService dataValueService;
 
   private final DataValueAuditService dataValueAuditService;
@@ -80,7 +78,7 @@ public class DefaultMaintenanceService implements MaintenanceService {
 
   private final ApplicationEventPublisher eventPublisher;
 
-  private final TrackedEntityDataValueAuditService trackedEntityDataValueAuditService;
+  private final TrackedEntityDataValueChangeLogService trackedEntityDataValueAuditService;
 
   // -------------------------------------------------------------------------
   // MaintenanceService implementation
@@ -149,9 +147,8 @@ public class DefaultMaintenanceService implements MaintenanceService {
   @Override
   @Transactional
   public boolean pruneData(OrganisationUnit organisationUnit) {
-    User user = currentUserService.getCurrentUser();
-
-    if (user == null || !user.isSuper()) {
+    if (CurrentUserUtil.getCurrentUsername() == null
+        || !CurrentUserUtil.getCurrentUserDetails().isSuper()) {
       return false;
     }
 
@@ -169,13 +166,12 @@ public class DefaultMaintenanceService implements MaintenanceService {
   @Override
   @Transactional
   public boolean pruneData(DataElement dataElement) {
-    User user = currentUserService.getCurrentUser();
-
-    if (user == null || !user.isSuper()) {
+    if (CurrentUserUtil.getCurrentUsername() == null
+        || !CurrentUserUtil.getCurrentUserDetails().isSuper()) {
       return false;
     }
 
-    trackedEntityDataValueAuditService.deleteTrackedEntityDataValueAudit(dataElement);
+    trackedEntityDataValueAuditService.deleteTrackedEntityDataValueChangeLog(dataElement);
     dataValueAuditService.deleteDataValueAudits(dataElement);
     dataValueService.deleteDataValues(dataElement);
 

@@ -30,26 +30,23 @@ package org.hisp.dhis.cache;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.BaseSpringTest;
 import org.hisp.dhis.IntegrationTest;
+import org.hisp.dhis.config.IntegrationBaseConfig;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {HibernateCacheTestConfig.class})
+@ContextConfiguration(classes = {IntegrationBaseConfig.class, HibernateCacheTestConfig.class})
 @ActiveProfiles("test-postgres")
 @IntegrationTest
 @Slf4j
 public class HibernateCacheBaseTest extends BaseSpringTest {
-  @BeforeEach
-  public final void before() throws Exception {
-    integrationTestBefore();
-  }
 
   @AfterEach
   public final void after() throws Exception {
+
     clearSecurityContext();
 
     tearDownTest();

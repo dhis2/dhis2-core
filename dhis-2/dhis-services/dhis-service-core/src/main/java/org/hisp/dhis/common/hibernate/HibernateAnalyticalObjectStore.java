@@ -45,7 +45,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.visualization.Visualization;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -60,10 +59,9 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       Class<T> clazz,
-      CurrentUserService currentUserService,
       AclService aclService,
       boolean cacheable) {
-    super(entityManager, jdbcTemplate, publisher, clazz, currentUserService, aclService, cacheable);
+    super(entityManager, jdbcTemplate, publisher, clazz, aclService, cacheable);
   }
 
   @Override
@@ -186,6 +184,25 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     String hql =
         "from " + clazz.getName() + " c where c." + embeddedObject + "legendSet = :legendSet";
     return getQuery(hql).setParameter("legendSet", legendSet).list();
+  }
+
+  /**
+   * Method that gets all {@link Visualization}s where its {@link org.hisp.dhis.analytics.Sorting}'
+   * column (jsonb) contains any of the supplied {@link Indicator} references.
+   *
+   * @param indicators references to search for
+   * @return matching {@link Visualization}s
+   */
+  @Override
+  public List<T> getVisualizationsBySortingIndicator(List<String> indicators) {
+    // language=sql
+    String sql =
+        """
+    select * from visualization, jsonb_array_elements(sorting) as sort
+    where sort->>'dimension' in :indicators
+    """;
+
+    return getSession().createNativeQuery(sql, clazz).setParameter("indicators", indicators).list();
   }
 
   @Override

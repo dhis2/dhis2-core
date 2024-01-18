@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
+import static org.hisp.dhis.DhisConvenienceTest.injectSecurityContext;
 import static org.hisp.dhis.common.AccessLevel.CLOSED;
 import static org.hisp.dhis.common.AccessLevel.OPEN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
@@ -47,6 +48,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
@@ -61,6 +63,7 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -77,10 +80,10 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
-import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -111,7 +114,7 @@ class EventOperationParamsMapperTest {
 
   @Mock private CategoryOptionComboService categoryOptionComboService;
 
-  @Mock private CurrentUserService currentUserService;
+  @Mock private UserService userService;
 
   @Mock private TrackedEntityAttributeService trackedEntityAttributeService;
 
@@ -138,10 +141,14 @@ class EventOperationParamsMapperTest {
             createOrgUnit("searchScopeChild", "searchScopeChildUid")));
 
     user = new User();
+    user.setUsername("test");
     user.setOrganisationUnits(Set.of(orgUnit));
-    when(currentUserService.getCurrentUser()).thenReturn(user);
 
-    // By default set to ACCESSIBLE for tests that don't set an orgUnit. The orgUnitMode needs to be
+    injectSecurityContext(UserDetails.fromUser(user));
+    when(userService.getUserByUsername(anyString())).thenReturn(user);
+
+    // By default, set to ACCESSIBLE for tests that don't set an orgUnit. The orgUnitMode needs to
+    // be
     // set because its validation is in the EventRequestParamsMapper.
     eventBuilder = eventBuilder.orgUnitMode(ACCESSIBLE).eventParams(EventParams.FALSE);
 
@@ -423,10 +430,13 @@ class EventOperationParamsMapperTest {
     searchScopeChildOrgUnit.setParent(searchScopeOrgUnit);
 
     User user = new User();
+    user.setUsername("testB");
     user.setOrganisationUnits(Set.of(createOrgUnit("captureScopeOrgUnit", "uid")));
     user.setTeiSearchOrganisationUnits(Set.of(searchScopeOrgUnit));
 
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+    injectSecurityContext(UserDetails.fromUser(user));
+    when(userService.getUserByUsername(anyString())).thenReturn(user);
+
     when(organisationUnitService.getOrganisationUnit(searchScopeChildOrgUnit.getUid()))
         .thenReturn(searchScopeChildOrgUnit);
     when(organisationUnitService.isInUserHierarchy(
@@ -456,13 +466,16 @@ class EventOperationParamsMapperTest {
     searchScopeChildOrgUnit.setParent(searchScopeOrgUnit);
 
     User user = new User();
+    user.setUsername("testB");
     user.setOrganisationUnits(Set.of(createOrgUnit("captureScopeOrgUnit", "uid")));
     user.setTeiSearchOrganisationUnits(Set.of(searchScopeOrgUnit));
     UserRole userRole = new UserRole();
     userRole.setAuthorities(Set.of(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()));
     user.setUserRoles(Set.of(userRole));
 
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+    injectSecurityContext(UserDetails.fromUser(user));
+    when(userService.getUserByUsername(anyString())).thenReturn(user);
+
     when(organisationUnitService.getOrganisationUnit(searchScopeChildOrgUnit.getUid()))
         .thenReturn(searchScopeChildOrgUnit);
     when(organisationUnitService.isInUserHierarchy(
@@ -504,7 +517,12 @@ class EventOperationParamsMapperTest {
   @ValueSource(strings = {"admin", "superuser"})
   void shouldMapOrgUnitAndModeWhenModeAllAndUserIsAuthorized(String userName)
       throws ForbiddenException, BadRequestException {
-    when(currentUserService.getCurrentUser()).thenReturn(userMap.get(userName));
+
+    User mappedUser = userMap.get(userName);
+    mappedUser.setUsername(userName);
+
+    injectSecurityContext(UserDetails.fromUser(mappedUser));
+    when(userService.getUserByUsername(anyString())).thenReturn(mappedUser);
 
     EventOperationParams operationParams = eventBuilder.orgUnitMode(ALL).build();
 
@@ -516,7 +534,11 @@ class EventOperationParamsMapperTest {
   @Test
   void shouldIncludeRelationshipsWhenFieldPathIncludeRelationships()
       throws BadRequestException, ForbiddenException {
-    when(currentUserService.getCurrentUser()).thenReturn(userMap.get("admin"));
+    User mappedUser = userMap.get("admin");
+    mappedUser.setUsername("admin");
+
+    injectSecurityContext(UserDetails.fromUser(mappedUser));
+    when(userService.getUserByUsername(anyString())).thenReturn(mappedUser);
 
     EventOperationParams operationParams =
         eventBuilder.orgUnitMode(ALL).eventParams(EventParams.TRUE).build();
@@ -527,7 +549,11 @@ class EventOperationParamsMapperTest {
   @Test
   void shouldNotIncludeRelationshipsWhenFieldPathDoNotIncludeRelationships()
       throws BadRequestException, ForbiddenException {
-    when(currentUserService.getCurrentUser()).thenReturn(userMap.get("admin"));
+    User mappedUser = userMap.get("admin");
+    mappedUser.setUsername("admin");
+
+    injectSecurityContext(UserDetails.fromUser(mappedUser));
+    when(userService.getUserByUsername(anyString())).thenReturn(mappedUser);
 
     EventOperationParams operationParams =
         eventBuilder.orgUnitMode(ALL).eventParams(EventParams.FALSE).build();

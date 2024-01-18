@@ -32,25 +32,54 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.TypedQuery;
+import org.hibernate.FlushMode;
 import org.hibernate.SessionFactory;
 import org.hibernate.jpa.QueryHints;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.orm.jpa.EntityManagerHolder;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 class HibernateQueryCacheTest extends HibernateCacheBaseTest {
 
   private @Autowired EntityManagerFactory entityManagerFactory;
+  private @Autowired UserService _userService;
+
+  private SessionFactory sessionFactory;
+
+  @BeforeEach
+  public final void before() throws Exception {
+    this.entityManager = entityManagerFactory.createEntityManager();
+    this.sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
+
+    this.entityManager.setProperty(org.hibernate.annotations.QueryHints.FLUSH_MODE, FlushMode.AUTO);
+    TransactionSynchronizationManager.bindResource(
+        entityManagerFactory, new EntityManagerHolder(entityManager));
+
+    userService = _userService;
+    User adminUser = preCreateInjectAdminUser();
+    injectSecurityContextUser(adminUser);
+    integrationTestBeforeEach();
+
+    this.sessionFactory.getStatistics().setStatisticsEnabled(true);
+  }
+
+  @AfterEach
+  public final void afterEach() throws Exception {
+    unbindSession();
+    entityManager.close();
+  }
 
   @Test
   @DisplayName("Hibernate Query cache should be used")
   void testQueryCache() {
-    EntityManager entityManager = entityManagerFactory.createEntityManager();
-    SessionFactory sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
-    sessionFactory.getStatistics().setStatisticsEnabled(true);
-
     OptionSet optionSet = new OptionSet();
     optionSet.setAutoFields();
     optionSet.setName("OptionSetA");

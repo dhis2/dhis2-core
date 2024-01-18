@@ -56,7 +56,7 @@ import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jsonpatch.JsonPatchManager;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
@@ -67,8 +67,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DefaultMetadataWorkflowService implements MetadataWorkflowService {
   private final MetadataProposalStore store;
-
-  private final CurrentUserService currentUserService;
 
   private final UserService userService;
 
@@ -100,10 +98,11 @@ public class DefaultMetadataWorkflowService implements MetadataWorkflowService {
   @Override
   @Transactional
   public MetadataProposal propose(MetadataProposeParams params) {
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     validateConsistency(params.getType(), params.getTargetId(), params.getChange());
     MetadataProposal proposal =
         MetadataProposal.builder()
-            .createdBy(currentUserService.getCurrentUser())
+            .createdBy(currentUser)
             .type(params.getType())
             .target(params.getTarget())
             .targetId(params.getTargetId())
@@ -136,9 +135,10 @@ public class DefaultMetadataWorkflowService implements MetadataWorkflowService {
   @Override
   @Transactional
   public ImportReport accept(MetadataProposal proposal) {
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     checkHasStatus(proposal, MetadataProposalStatus.PROPOSED);
     ImportReport report = accept(proposal, ObjectBundleMode.COMMIT);
-    proposal.setFinalisedBy(currentUserService.getCurrentUser());
+    proposal.setFinalisedBy(currentUser);
     proposal.setFinalised(new Date());
     boolean failed = report.getStatus() != Status.OK || report.hasErrorReports();
     proposal.setStatus(
@@ -180,11 +180,12 @@ public class DefaultMetadataWorkflowService implements MetadataWorkflowService {
   @Override
   @Transactional
   public void reject(MetadataProposal proposal, String reason) {
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     checkHasStatus(proposal, MetadataProposalStatus.PROPOSED);
     proposal.setStatus(MetadataProposalStatus.REJECTED);
     proposal.setReason(reason);
     proposal.setFinalised(new Date());
-    proposal.setFinalisedBy(currentUserService.getCurrentUser());
+    proposal.setFinalisedBy(currentUser);
     store.update(proposal);
   }
 
@@ -230,6 +231,7 @@ public class DefaultMetadataWorkflowService implements MetadataWorkflowService {
   }
 
   private MetadataImportParams createImportParams(ObjectBundleMode mode, ImportStrategy strategy) {
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     return new MetadataImportParams()
         .setImportStrategy(strategy)
         .setImportMode(mode)
@@ -237,7 +239,7 @@ public class DefaultMetadataWorkflowService implements MetadataWorkflowService {
             UID.of(
                 mode == ObjectBundleMode.VALIDATE
                     ? userService.getUserByUsername("system")
-                    : currentUserService.getCurrentUser()));
+                    : currentUser));
   }
 
   private void checkHasStatus(MetadataProposal proposal, MetadataProposalStatus expected) {
@@ -304,7 +306,7 @@ public class DefaultMetadataWorkflowService implements MetadataWorkflowService {
   }
 
   private void validateSameUser(MetadataProposal proposal) {
-    User currentUser = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     if (currentUser != null
         && !currentUser.isSuper()
         && currentUser.getUid().equals(proposal.getCreatedBy().getUid())) {

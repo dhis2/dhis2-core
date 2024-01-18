@@ -85,7 +85,7 @@ class MetadataExportServiceTest extends TransactionalIntegrationTest {
     MetadataExportParams params = new MetadataExportParams();
     Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadata =
         metadataExportService.getMetadata(params);
-    assertEquals(1, metadata.get(User.class).size());
+    assertEquals(2, metadata.get(User.class).size());
     assertEquals(1, metadata.get(DataElementGroup.class).size());
     assertEquals(3, metadata.get(DataElement.class).size());
   }

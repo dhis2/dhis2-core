@@ -42,9 +42,11 @@ import lombok.With;
 import org.hisp.dhis.analytics.OutlierDetectionAlgorithm;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.outlier.Order;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.OrganisationUnitDescendants;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
 
 /**
  * Encapsulation of an outlier detection request.
@@ -55,6 +57,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 @Builder
 @With
 public class OutlierRequest {
+  private List<Period> periods;
 
   private Date startDate;
 
@@ -82,6 +85,8 @@ public class OutlierRequest {
 
   @Default private double threshold = 3.0d;
 
+  @Default private IdScheme outputIdScheme = IdScheme.UID;
+
   private boolean analyzeOnly;
 
   private String explainOrderId;
@@ -92,5 +97,13 @@ public class OutlierRequest {
 
   public boolean hasDataStartEndDate() {
     return dataStartDate != null && dataEndDate != null;
+  }
+
+  public boolean hasStartEndDate() {
+    return startDate != null && endDate != null;
+  }
+
+  public boolean hasPeriods() {
+    return periods != null && !periods.isEmpty();
   }
 }

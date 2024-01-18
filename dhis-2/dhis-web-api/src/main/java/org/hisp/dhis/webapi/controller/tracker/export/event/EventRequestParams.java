@@ -142,6 +142,8 @@ public class EventRequestParams implements PageRequestParams {
 
   private EventStatus status;
 
+  private String attachment;
+
   /**
    * @deprecated use {@link #attributeCategoryCombo}
    */

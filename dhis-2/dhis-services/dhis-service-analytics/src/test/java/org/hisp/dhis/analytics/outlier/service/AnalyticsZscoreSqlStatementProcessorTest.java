@@ -30,12 +30,13 @@ package org.hisp.dhis.analytics.outlier.service;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
-import static org.hisp.dhis.analytics.OutlierDetectionAlgorithm.MOD_Z_SCORE;
+import static org.hisp.dhis.analytics.OutlierDetectionAlgorithm.MODIFIED_Z_SCORE;
 import static org.hisp.dhis.analytics.OutlierDetectionAlgorithm.Z_SCORE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
+import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.outlier.OutlierSqlStatementProcessor;
@@ -43,6 +44,10 @@ import org.hisp.dhis.analytics.outlier.data.OutlierRequest;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
+import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -76,21 +81,6 @@ class AnalyticsZscoreSqlStatementProcessorTest {
   }
 
   @Test
-  void testGetSqlStatement() {
-    OutlierRequest.OutlierRequestBuilder builder = OutlierRequest.builder();
-    builder
-        .dataElements(Lists.newArrayList(deA, deB, deC))
-        .startDate(getDate(2020, 1, 1))
-        .endDate(getDate(2020, 3, 1))
-        .orgUnits(Lists.newArrayList(ouA, ouB))
-        .build();
-    String sql = subject.getSqlStatement(builder.build());
-    String expected =
-        "select * from (select ax.dx as de_uid, ax.ou as ou_uid, ax.co as coc_uid, ax.ao as aoc_uid, ax.de_name, ax.ou_name, ax.coc_name, ax.aoc_name, ax.value, ax.pestartdate as pe_start_date, ax.petype as pt_name,  ax.avg_middle_value as middle_value, ax.std_dev, ax.mad, abs(ax.value::double precision -  ax.avg_middle_value) as middle_value_abs_dev, (case when ax.std_dev = 0 then 0       else abs(ax.value::double precision -  ax.avg_middle_value ) / ax.std_dev        end) as z_score,  ax.avg_middle_value - (ax.std_dev * :threshold) as lower_bound,  ax.avg_middle_value + (ax.std_dev * :threshold) as upper_bound from analytics ax where dataelementid in  (:data_element_ids) and (ax.\"path\" like '/ouabcdefghA%' or ax.\"path\" like '/ouabcdefghB%') and ax.pestartdate >= :start_date and ax.peenddate <= :end_date) t1 where t1.z_score > :threshold order by middle_value_abs_dev desc limit :max_results ";
-    assertEquals(expected, sql);
-  }
-
-  @Test
   void testGetSqlStatementWithZScore() {
     OutlierRequest.OutlierRequestBuilder builder = OutlierRequest.builder();
     builder
@@ -112,7 +102,7 @@ class AnalyticsZscoreSqlStatementProcessorTest {
         .startDate(getDate(2020, 1, 1))
         .endDate(getDate(2020, 3, 1))
         .orgUnits(Lists.newArrayList(ouA, ouB))
-        .algorithm(MOD_Z_SCORE)
+        .algorithm(MODIFIED_Z_SCORE)
         .build();
     String sql = subject.getSqlStatement(builder.build());
     assertTrue(sql.contains("percentile_middle_value"));
@@ -121,5 +111,39 @@ class AnalyticsZscoreSqlStatementProcessorTest {
   @Test
   void testGetSqlStatementWithNullRequest() {
     assertEquals(StringUtils.EMPTY, subject.getSqlStatement(null));
+  }
+
+  @Test
+  void testGetSqlStatementWithRelativePeriod() {
+    Period period = new Period();
+    period.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    period.setStartDate(DateUtils.parseDate("2023-01-01"));
+    period.setEndDate(DateUtils.parseDate("2023-12-31"));
+    List<Period> periods = List.of(period);
+    OutlierRequest.OutlierRequestBuilder builder = OutlierRequest.builder();
+    builder
+        .dataElements(Lists.newArrayList(deA, deB, deC))
+        .periods(periods)
+        .orgUnits(Lists.newArrayList(ouA, ouB))
+        .build();
+    String sql = subject.getSqlStatement(builder.build());
+    String expected =
+        "select * from (select ax.dx as de_uid, ax.ou as ou_uid, ax.co as coc_uid, ax.ao as aoc_uid, ax.value, ax.pestartdate as pe_start_date, ax.petype as pt_name,  ax.avg_middle_value as middle_value, ax.std_dev, ax.mad, abs(ax.value::double precision -  ax.avg_middle_value) as middle_value_abs_dev, (case when ax.std_dev = 0 then 0       else abs(ax.value::double precision -  ax.avg_middle_value ) / ax.std_dev        end) as z_score,  ax.avg_middle_value - (ax.std_dev * :threshold) as lower_bound,  ax.avg_middle_value + (ax.std_dev * :threshold) as upper_bound from analytics ax where dataelementid in  (:data_element_ids) and (ax.\"path\" like '/ouabcdefghA%' or ax.\"path\" like '/ouabcdefghB%') and ( ax.pestartdate >= :start_date0 and ax.peenddate <= :end_date0 )) t1 where t1.z_score > :threshold order by middle_value_abs_dev desc limit :max_results ";
+    assertEquals(expected, sql);
+  }
+
+  @Test
+  void testGetSqlStatementWithStartEndDate() {
+    OutlierRequest.OutlierRequestBuilder builder = OutlierRequest.builder();
+    builder
+        .dataElements(Lists.newArrayList(deA, deB, deC))
+        .startDate(getDate(2020, 1, 1))
+        .endDate(getDate(2020, 3, 1))
+        .orgUnits(Lists.newArrayList(ouA, ouB))
+        .build();
+    String sql = subject.getSqlStatement(builder.build());
+    String expected =
+        "select * from (select ax.dx as de_uid, ax.ou as ou_uid, ax.co as coc_uid, ax.ao as aoc_uid, ax.value, ax.pestartdate as pe_start_date, ax.petype as pt_name,  ax.avg_middle_value as middle_value, ax.std_dev, ax.mad, abs(ax.value::double precision -  ax.avg_middle_value) as middle_value_abs_dev, (case when ax.std_dev = 0 then 0       else abs(ax.value::double precision -  ax.avg_middle_value ) / ax.std_dev        end) as z_score,  ax.avg_middle_value - (ax.std_dev * :threshold) as lower_bound,  ax.avg_middle_value + (ax.std_dev * :threshold) as upper_bound from analytics ax where dataelementid in  (:data_element_ids) and (ax.\"path\" like '/ouabcdefghA%' or ax.\"path\" like '/ouabcdefghB%') and ax.pestartdate >= :start_date and ax.peenddate <= :end_date) t1 where t1.z_score > :threshold order by middle_value_abs_dev desc limit :max_results ";
+    assertEquals(expected, sql);
   }
 }

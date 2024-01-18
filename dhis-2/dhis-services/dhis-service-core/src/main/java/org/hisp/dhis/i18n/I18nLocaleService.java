@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import org.hisp.dhis.i18n.locale.I18nLocale;
+import org.hisp.dhis.user.UserDetails;
 
 public interface I18nLocaleService {
   /** Returns available languages in a mapping between code and name. */
@@ -42,6 +43,8 @@ public interface I18nLocaleService {
   I18nLocale addI18nLocale(String language, String country);
 
   void saveI18nLocale(I18nLocale locale);
+
+  void saveI18nLocale(I18nLocale locale, UserDetails actingUser);
 
   I18nLocale getI18nLocale(int id);
 

@@ -70,9 +70,10 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -94,8 +95,7 @@ import org.mockito.quality.Strictness;
 @ExtendWith(MockitoExtension.class)
 class EventRequestToSearchParamsMapperTest {
 
-  @Mock private CurrentUserService currentUserService;
-
+  @Mock private UserService userService;
   @Mock private ProgramService programService;
 
   @Mock private OrganisationUnitService organisationUnitService;
@@ -128,7 +128,7 @@ class EventRequestToSearchParamsMapperTest {
   public void setUp() {
     requestToSearchParamsMapper =
         new EventRequestToSearchParamsMapper(
-            currentUserService,
+            userService,
             programService,
             organisationUnitService,
             programStageService,
@@ -145,11 +145,12 @@ class EventRequestToSearchParamsMapperTest {
     TrackedEntity tei = new TrackedEntity();
     DataElement de = new DataElement();
 
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
+    //    when(getCurrentUser()).thenReturn(user);
     when(programService.getProgram(any())).thenReturn(program);
     // when(organisationUnitService.getOrganisationUnit(any())).thenReturn(ou);
 
-    when(organisationUnitService.isInUserHierarchy(ou)).thenReturn(true);
+    when(organisationUnitService.isInUserHierarchy(user, ou)).thenReturn(true);
     when(aclService.canDataRead(user, program)).thenReturn(true);
     when(entityInstanceService.getTrackedEntity(any())).thenReturn(tei);
     when(dataElementService.getDataElement(any())).thenReturn(de);
@@ -212,7 +213,8 @@ class EventRequestToSearchParamsMapperTest {
   void shouldFailWhenOuModeRequiresUserScopeOrgUnitAndUserHasNoOrgUnitsAssigned(
       OrganisationUnitSelectionMode orgUnitMode) {
     User user = new User();
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+    user.setUsername("anyUser");
+    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
 
     EventCriteria eventCriteria = new EventCriteria();
     eventCriteria.setOuMode(orgUnitMode);
@@ -237,7 +239,10 @@ class EventRequestToSearchParamsMapperTest {
 
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
     when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+
+    user.setUsername("anyUser");
+    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
+    //    when(getCurrentUser()).thenReturn(user.);
     when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
     when(trackerAccessManager.canAccess(user, program, orgUnit)).thenReturn(true);
     when(organisationUnitService.isInUserHierarchy(
@@ -262,7 +267,9 @@ class EventRequestToSearchParamsMapperTest {
     User user = new User();
     user.setOrganisationUnits(Set.of(searchScopeOrgUnit));
 
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+    //    when(getCurrentUser()).thenReturn(user);
+    user.setUsername("anyUser");
+    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
     when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
 
     EventCriteria eventCriteria = new EventCriteria();
@@ -286,7 +293,10 @@ class EventRequestToSearchParamsMapperTest {
     User user = new User();
     user.setOrganisationUnits(Set.of(orgUnit));
 
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+    //    when(getCurrentUser()).thenReturn(user);
+    user.setUsername("anyUser");
+    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
+
     when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
     when(organisationUnitService.isInUserHierarchy(
             orgUnit.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
@@ -308,7 +318,10 @@ class EventRequestToSearchParamsMapperTest {
     User user = new User();
     user.setOrganisationUnits(Set.of(orgUnit));
 
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+    //    when(getCurrentUser()).thenReturn(user);
+    user.setUsername("anyUser");
+    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
+
     when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
     when(organisationUnitService.isInUserHierarchy(
             orgUnit.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
@@ -349,7 +362,10 @@ class EventRequestToSearchParamsMapperTest {
     user.setOrganisationUnits(Set.of(createOrgUnit("captureScopeOrgUnit", "uid")));
     user.setTeiSearchOrganisationUnits(Set.of(searchScopeOrgUnit));
 
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+    //    when(getCurrentUser()).thenReturn(user);
+    user.setUsername("anyUser");
+    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
+
     when(organisationUnitService.getOrganisationUnit(searchScopeChildOrgUnit.getUid()))
         .thenReturn(searchScopeChildOrgUnit);
     when(organisationUnitService.isInUserHierarchy(
@@ -384,7 +400,10 @@ class EventRequestToSearchParamsMapperTest {
     user.setOrganisationUnits(Set.of(createOrgUnit("captureScopeOrgUnit", "uid")));
     user.setTeiSearchOrganisationUnits(Set.of(searchScopeOrgUnit));
 
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+    //    when(getCurrentUser()).thenReturn(user);
+    user.setUsername("anyUser");
+    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
+
     when(organisationUnitService.getOrganisationUnit(searchScopeChildOrgUnit.getUid()))
         .thenReturn(searchScopeChildOrgUnit);
     when(organisationUnitService.isInUserHierarchy(
@@ -413,7 +432,10 @@ class EventRequestToSearchParamsMapperTest {
     userRole.setAuthorities(Set.of(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()));
     user.setUserRoles(Set.of(userRole));
 
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+    //    when(getCurrentUser()).thenReturn(user);
+    user.setUsername("anyUser");
+    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
+
     when(organisationUnitService.getOrganisationUnit(searchScopeChildOrgUnit.getUid()))
         .thenReturn(searchScopeChildOrgUnit);
     when(organisationUnitService.isInUserHierarchy(
@@ -434,7 +456,9 @@ class EventRequestToSearchParamsMapperTest {
     userRole.setAuthorities(Set.of(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()));
     user.setUserRoles(Set.of(userRole));
 
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+    //    when(getCurrentUser()).thenReturn(user);
+    user.setUsername("anyUser");
+    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
 
     EventSearchParams eventSearchParams = map(ALL);
     assertNull(eventSearchParams.getOrgUnit());
@@ -449,8 +473,9 @@ class EventRequestToSearchParamsMapperTest {
     UserRole userRole = new UserRole();
     userRole.setAuthorities(Set.of(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()));
     user.setUserRoles(Set.of(userRole));
+    user.setUsername("anyUser");
+    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
 
-    when(currentUserService.getCurrentUser()).thenReturn(user);
     when(aclService.canDataRead(user, program)).thenReturn(false);
 
     Exception illegalQueryException =
@@ -476,7 +501,10 @@ class EventRequestToSearchParamsMapperTest {
   @ParameterizedTest
   @ValueSource(strings = {"admin", "superuser"})
   void shouldMapOrgUnitAndModeWhenModeAllAndUserIsAuthorized(String userName) {
-    when(currentUserService.getCurrentUser()).thenReturn(userMap.get(userName));
+    //    when(getCurrentUser()).thenReturn(userMap.get(userName));
+
+    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername()))
+        .thenReturn(userMap.get(userName));
 
     EventSearchParams eventSearchParams = map(ALL);
 
@@ -486,7 +514,8 @@ class EventRequestToSearchParamsMapperTest {
 
   @Test
   void shouldNotManipulateDates() {
-    when(currentUserService.getCurrentUser()).thenReturn(userMap.get("admin"));
+    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername()))
+        .thenReturn(userMap.get("admin"));
 
     EventSearchParams eventSearchParams = map(ALL);
 

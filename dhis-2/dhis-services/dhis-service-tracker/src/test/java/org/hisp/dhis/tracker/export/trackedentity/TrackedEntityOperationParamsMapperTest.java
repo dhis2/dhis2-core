@@ -57,6 +57,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -74,9 +75,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -103,8 +102,6 @@ class TrackedEntityOperationParamsMapperTest {
   private static final String PROGRAM_STAGE_UID = "RpCr2u2pFqw";
 
   private static final String TRACKED_ENTITY_TYPE_UID = "Dp8baZYrLtr";
-
-  @Mock private CurrentUserService currentUserService;
 
   @Mock private OrganisationUnitService organisationUnitService;
 
@@ -143,7 +140,7 @@ class TrackedEntityOperationParamsMapperTest {
     user = new User();
     user.setOrganisationUnits(Set.of(orgUnit1, orgUnit2));
 
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+    //    when(getCurrentUser()).thenReturn(user);
 
     when(organisationUnitService.getOrganisationUnit(orgUnit1.getUid())).thenReturn(orgUnit1);
     when(organisationUnitService.isInUserHierarchy(
@@ -535,7 +532,7 @@ class TrackedEntityOperationParamsMapperTest {
       throws ForbiddenException, BadRequestException {
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit1, orgUnit2));
     user.setOrganisationUnits(emptySet());
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+
     when(aclService.canDataRead(user, program)).thenReturn(true);
     when(paramsValidator.validateProgram(program.getUid(), user)).thenReturn(program);
 
@@ -559,7 +556,7 @@ class TrackedEntityOperationParamsMapperTest {
       throws ForbiddenException, BadRequestException {
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit1, orgUnit2));
     user.setOrganisationUnits(emptySet());
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+
     when(aclService.canDataRead(user, program)).thenReturn(true);
     program.setMinAttributesRequiredToSearch(0);
     program.setMaxTeiCountToReturn(1);
@@ -585,7 +582,6 @@ class TrackedEntityOperationParamsMapperTest {
   void shouldFailWhenUserHasNoAccessToAnyTrackedEntityType() {
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit1, orgUnit2));
     user.setOrganisationUnits(emptySet());
-    when(currentUserService.getCurrentUser()).thenReturn(user);
     when(aclService.canDataRead(user, program)).thenReturn(true);
     program.setMinAttributesRequiredToSearch(0);
     program.setMaxTeiCountToReturn(1);

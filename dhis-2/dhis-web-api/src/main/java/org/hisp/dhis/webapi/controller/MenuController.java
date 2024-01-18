@@ -34,7 +34,7 @@ import java.util.List;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -52,8 +52,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class MenuController {
   public static final String RESOURCE_PATH = "/menu";
 
-  @Autowired private CurrentUserService currentUserService;
-
   @Autowired private UserService userService;
 
   @Autowired private RenderService renderService;
@@ -64,13 +62,13 @@ public class MenuController {
   public void saveMenuOrder(InputStream input) throws Exception {
     List<String> apps = renderService.fromJson(input, List.class);
 
-    User user = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    if (apps != null && !apps.isEmpty() && user != null) {
-      user.getApps().clear();
-      user.getApps().addAll(apps);
+    if (apps != null && !apps.isEmpty() && currentUser != null) {
+      currentUser.getApps().clear();
+      currentUser.getApps().addAll(apps);
 
-      userService.updateUser(user);
+      userService.updateUser(currentUser);
     }
   }
 }

@@ -51,6 +51,7 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -67,7 +68,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.DhisWebSpringTest;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
-import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -136,7 +136,7 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest {
     User user = createUserWithAuth("testUser");
     user.setTeiSearchOrganisationUnits(Sets.newHashSet(organisationUnit));
 
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
   }
 
   @Test
@@ -274,9 +274,10 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest {
   @Test
   void shouldThrowExceptionWhenProgramIsProtectedAndUserNotInCaptureScope() {
     clearSecurityContext();
+    reLoginAdminUser();
     User mockUser = createUserWithAuth("testUser2");
     mockUser.setOrganisationUnits(Set.of(organisationUnit));
-    injectSecurityContext(mockUser);
+    injectSecurityContextUser(mockUser);
     TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
     programA.setAccessLevel(AccessLevel.PROTECTED);
     criteria.setProgram(programA.getUid());
@@ -293,9 +294,10 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest {
   @Test
   void shouldThrowExceptionWhenProgramIsOpenAndUserNotInSearchScope() {
     clearSecurityContext();
+    reLoginAdminUser();
     User mockUser = createUserWithAuth("testUser2");
     mockUser.setTeiSearchOrganisationUnits(Set.of(organisationUnit));
-    injectSecurityContext(mockUser);
+    injectSecurityContextUser(mockUser);
     TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
     programA.setAccessLevel(AccessLevel.OPEN);
     criteria.setProgram(programA.getUid());

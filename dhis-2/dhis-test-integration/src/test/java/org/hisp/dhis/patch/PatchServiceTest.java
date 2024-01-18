@@ -44,11 +44,13 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -66,9 +68,14 @@ class PatchServiceTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private ObjectMapper jsonMapper;
 
-  @Override
-  protected void setUpTest() throws Exception {
+  @BeforeEach
+  protected void setup() throws Exception {
     userService = _userService;
+    preCreateInjectAdminUser();
+
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
+    User currentUser = userService.getUserByUsername(currentUsername);
+    injectSecurityContextUser(currentUser);
   }
 
   @Test
@@ -253,6 +260,11 @@ class PatchServiceTest extends SingleSetupIntegrationTestBase {
     User adminUser = createAndInjectAdminUser();
     UserGroup userGroup = createUserGroup('A', Sets.newHashSet(adminUser));
     manager.save(userGroup);
+
+    manager.flush();
+    manager.clear();
+    injectSecurityContextUser(adminUser);
+
     DataElement deA = createDataElement('A');
     DataElement deB = createDataElement('B');
     deA.getSharing().addUserGroupAccess(new UserGroupAccess(userGroup, "rw------"));
@@ -283,6 +295,11 @@ class PatchServiceTest extends SingleSetupIntegrationTestBase {
     User adminUser = createAndInjectAdminUser();
     UserGroup userGroup = createUserGroup('A', Sets.newHashSet(adminUser));
     manager.save(userGroup);
+
+    manager.flush();
+    manager.clear();
+    injectSecurityContextUser(adminUser);
+
     DataElement deA = createDataElement('A');
     DataElement deB = createDataElement('B');
     deA.getAggregationLevels().add(1);

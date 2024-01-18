@@ -30,19 +30,23 @@ package org.hisp.dhis.webapi.controller.tracker.export.event;
 import static org.hisp.dhis.common.OpenApi.Response.Status;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
+import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeGzip;
+import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeZip;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
 import static org.hisp.dhis.webapi.controller.tracker.export.event.EventRequestParams.DEFAULT_FIELDS_PARAM;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_GZIP;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_ZIP;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON_GZIP;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON_ZIP;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_TEXT_CSV;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
-import java.util.zip.GZIPOutputStream;
-import javax.servlet.http.HttpServletRequest;
+import java.util.Objects;
 import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
@@ -52,17 +56,13 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper.Pager;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper.Pager.PagerBuilder;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
-import org.hisp.dhis.webapi.controller.tracker.export.OpenApiExport;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
+import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.mapstruct.factory.Mappers;
@@ -95,91 +95,179 @@ class EventsExportController {
 
   private final EventFieldsParamMapper eventsMapper;
 
+  private final ObjectMapper objectMapper;
+
   public EventsExportController(
       EventService eventService,
       EventRequestParamsMapper eventParamsMapper,
       CsvService<Event> csvEventService,
       FieldFilterService fieldFilterService,
-      EventFieldsParamMapper eventsMapper) {
+      EventFieldsParamMapper eventsMapper,
+      ObjectMapper objectMapper) {
     this.eventService = eventService;
     this.eventParamsMapper = eventParamsMapper;
     this.csvEventService = csvEventService;
     this.fieldFilterService = fieldFilterService;
     this.eventsMapper = eventsMapper;
+    this.objectMapper = objectMapper;
 
     assertUserOrderableFieldsAreSupported(
         "event", EventMapper.ORDERABLE_FIELDS, eventService.getOrderableFields());
   }
 
-  @OpenApi.Response(status = Status.OK, value = OpenApiExport.ListResponse.class)
-  @GetMapping(produces = APPLICATION_JSON_VALUE)
-  PagingWrapper<ObjectNode> getEvents(EventRequestParams eventRequestParams)
+  @OpenApi.Response(status = Status.OK, value = Page.class)
+  @GetMapping(produces = "application/json")
+  Page<ObjectNode> getEvents(EventRequestParams requestParams)
       throws BadRequestException, ForbiddenException {
-    validatePaginationParameters(eventRequestParams);
+    validatePaginationParameters(requestParams);
 
-    EventOperationParams eventOperationParams = eventParamsMapper.map(eventRequestParams);
+    EventOperationParams eventOperationParams = eventParamsMapper.map(requestParams);
 
-    if (eventRequestParams.isPaged()) {
+    if (requestParams.isPaged()) {
       PageParams pageParams =
           new PageParams(
-              eventRequestParams.getPage(),
-              eventRequestParams.getPageSize(),
-              eventRequestParams.getTotalPages());
+              requestParams.getPage(), requestParams.getPageSize(), requestParams.getTotalPages());
 
-      Page<org.hisp.dhis.program.Event> events =
+      org.hisp.dhis.tracker.export.Page<org.hisp.dhis.program.Event> eventsPage =
           eventService.getEvents(eventOperationParams, pageParams);
-
-      PagerBuilder pagerBuilder =
-          Pager.builder()
-              .page(events.getPager().getPage())
-              .pageSize(events.getPager().getPageSize());
-
-      if (eventRequestParams.isPageTotal()) {
-        pagerBuilder
-            .pageCount(events.getPager().getPageCount())
-            .total(events.getPager().getTotal());
-      }
-
-      PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
-      pagingWrapper = pagingWrapper.withPager(pagerBuilder.build());
       List<ObjectNode> objectNodes =
           fieldFilterService.toObjectNodes(
-              EVENTS_MAPPER.fromCollection(events.getItems()), eventRequestParams.getFields());
-      return pagingWrapper.withInstances(objectNodes);
+              EVENTS_MAPPER.fromCollection(eventsPage.getItems()), requestParams.getFields());
+
+      return Page.withPager(objectNodes, eventsPage);
     }
 
     List<org.hisp.dhis.program.Event> events = eventService.getEvents(eventOperationParams);
     List<ObjectNode> objectNodes =
         fieldFilterService.toObjectNodes(
-            EVENTS_MAPPER.fromCollection(events), eventRequestParams.getFields());
+            EVENTS_MAPPER.fromCollection(events), requestParams.getFields());
 
-    PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
-    return pagingWrapper.withInstances(objectNodes);
+    return Page.withoutPager(objectNodes);
   }
 
-  @GetMapping(produces = {CONTENT_TYPE_CSV, CONTENT_TYPE_CSV_GZIP, CONTENT_TYPE_TEXT_CSV})
+  @GetMapping(produces = CONTENT_TYPE_JSON_GZIP)
+  void getEventsAsJsonGzip(EventRequestParams eventRequestParams, HttpServletResponse response)
+      throws BadRequestException, IOException, ForbiddenException {
+    validatePaginationParameters(eventRequestParams);
+
+    EventOperationParams eventOperationParams = eventParamsMapper.map(eventRequestParams);
+
+    List<org.hisp.dhis.program.Event> events = eventService.getEvents(eventOperationParams);
+
+    String attachment = getAttachmentOrDefault(eventRequestParams.getAttachment(), "json", "gz");
+
+    response.addHeader(
+        ContextUtils.HEADER_CONTENT_DISPOSITION, getContentDispositionHeaderValue(attachment));
+    response.addHeader(
+        ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING,
+        ContextUtils.BINARY_HEADER_CONTENT_TRANSFER_ENCODING);
+    response.setContentType(CONTENT_TYPE_JSON_GZIP);
+
+    writeGzip(
+        response.getOutputStream(), EVENTS_MAPPER.fromCollection(events), objectMapper.writer());
+  }
+
+  @GetMapping(produces = CONTENT_TYPE_JSON_ZIP)
+  void getEventsAsJsonZip(EventRequestParams eventRequestParams, HttpServletResponse response)
+      throws BadRequestException, ForbiddenException, IOException {
+    validatePaginationParameters(eventRequestParams);
+
+    EventOperationParams eventOperationParams = eventParamsMapper.map(eventRequestParams);
+
+    List<org.hisp.dhis.program.Event> events = eventService.getEvents(eventOperationParams);
+
+    String attachment = getAttachmentOrDefault(eventRequestParams.getAttachment(), "json", "zip");
+
+    response.addHeader(
+        ContextUtils.HEADER_CONTENT_DISPOSITION, getContentDispositionHeaderValue(attachment));
+    response.addHeader(
+        ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING,
+        ContextUtils.BINARY_HEADER_CONTENT_TRANSFER_ENCODING);
+    response.setContentType(CONTENT_TYPE_JSON_ZIP);
+
+    writeZip(
+        response.getOutputStream(),
+        EVENTS_MAPPER.fromCollection(events),
+        objectMapper.writer(),
+        attachment);
+  }
+
+  @GetMapping(produces = {CONTENT_TYPE_CSV, CONTENT_TYPE_TEXT_CSV})
   void getEventsAsCsv(
       EventRequestParams eventRequestParams,
       HttpServletResponse response,
-      @RequestParam(required = false, defaultValue = "false") boolean skipHeader,
-      HttpServletRequest request)
+      @RequestParam(required = false, defaultValue = "false") boolean skipHeader)
       throws IOException, BadRequestException, ForbiddenException {
     EventOperationParams eventOperationParams = eventParamsMapper.map(eventRequestParams);
 
     List<org.hisp.dhis.program.Event> events = eventService.getEvents(eventOperationParams);
 
+    String attachment = getAttachmentOrDefault(eventRequestParams.getAttachment(), "csv");
+
     OutputStream outputStream = response.getOutputStream();
     response.setContentType(CONTENT_TYPE_CSV);
-    response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"events.csv\"");
-
-    if (ContextUtils.isAcceptCsvGzip(request)) {
-      response.addHeader(ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary");
-      outputStream = new GZIPOutputStream(outputStream);
-      response.setContentType(CONTENT_TYPE_CSV_GZIP);
-      response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"events.csv.gz\"");
-    }
+    response.setHeader(
+        HttpHeaders.CONTENT_DISPOSITION, getContentDispositionHeaderValue(attachment));
 
     csvEventService.write(outputStream, EVENTS_MAPPER.fromCollection(events), !skipHeader);
+  }
+
+  @GetMapping(produces = {CONTENT_TYPE_CSV_GZIP})
+  void getEventsAsCsvGZip(
+      EventRequestParams eventRequestParams,
+      HttpServletResponse response,
+      @RequestParam(required = false, defaultValue = "false") boolean skipHeader)
+      throws IOException, BadRequestException, ForbiddenException {
+    EventOperationParams eventOperationParams = eventParamsMapper.map(eventRequestParams);
+
+    List<org.hisp.dhis.program.Event> events = eventService.getEvents(eventOperationParams);
+
+    String attachment = getAttachmentOrDefault(eventRequestParams.getAttachment(), "csv", "gz");
+
+    response.addHeader(
+        ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING,
+        ContextUtils.BINARY_HEADER_CONTENT_TRANSFER_ENCODING);
+    response.setContentType(CONTENT_TYPE_CSV_GZIP);
+    response.addHeader(
+        ContextUtils.HEADER_CONTENT_DISPOSITION, getContentDispositionHeaderValue(attachment));
+
+    csvEventService.writeGzip(
+        response.getOutputStream(), EVENTS_MAPPER.fromCollection(events), !skipHeader);
+  }
+
+  @GetMapping(produces = {CONTENT_TYPE_CSV_ZIP})
+  void getEventsAsCsvZip(
+      EventRequestParams eventRequestParams,
+      HttpServletResponse response,
+      @RequestParam(required = false, defaultValue = "false") boolean skipHeader)
+      throws IOException, BadRequestException, ForbiddenException {
+    EventOperationParams eventOperationParams = eventParamsMapper.map(eventRequestParams);
+
+    List<org.hisp.dhis.program.Event> events = eventService.getEvents(eventOperationParams);
+
+    String attachment = getAttachmentOrDefault(eventRequestParams.getAttachment(), "csv", "zip");
+
+    response.addHeader(
+        ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING,
+        ContextUtils.BINARY_HEADER_CONTENT_TRANSFER_ENCODING);
+    response.setContentType(CONTENT_TYPE_CSV_ZIP);
+    response.addHeader(
+        ContextUtils.HEADER_CONTENT_DISPOSITION, getContentDispositionHeaderValue(attachment));
+
+    csvEventService.writeZip(
+        response.getOutputStream(), EVENTS_MAPPER.fromCollection(events), !skipHeader, attachment);
+  }
+
+  private String getAttachmentOrDefault(String filename, String type, String compression) {
+    return Objects.toString(filename, String.join(".", EVENTS, type, compression));
+  }
+
+  private String getAttachmentOrDefault(String filename, String type) {
+    return Objects.toString(filename, String.join(".", EVENTS, type));
+  }
+
+  public String getContentDispositionHeaderValue(String filename) {
+    return "attachment; filename=" + filename;
   }
 
   @OpenApi.Response(OpenApi.EntityType.class)

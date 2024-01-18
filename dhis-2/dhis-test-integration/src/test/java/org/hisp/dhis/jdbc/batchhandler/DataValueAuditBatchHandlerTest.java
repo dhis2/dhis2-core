@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.util.List;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.datavalue.DataValue;
@@ -126,10 +126,10 @@ class DataValueAuditBatchHandlerTest extends SingleSetupIntegrationTestBase {
             dataElementA, periodA, unitB, categoryOptionComboA, categoryOptionComboA, "10");
     dataValueService.addDataValue(dataValueA);
     dataValueService.addDataValue(dataValueB);
-    auditA = new DataValueAudit(dataValueA, "11", storedBy, AuditType.UPDATE);
-    auditB = new DataValueAudit(dataValueA, "12", storedBy, AuditType.UPDATE);
-    auditC = new DataValueAudit(dataValueB, "21", storedBy, AuditType.UPDATE);
-    auditD = new DataValueAudit(dataValueB, "22", storedBy, AuditType.UPDATE);
+    auditA = new DataValueAudit(dataValueA, "11", storedBy, ChangeLogType.UPDATE);
+    auditB = new DataValueAudit(dataValueA, "12", storedBy, ChangeLogType.UPDATE);
+    auditC = new DataValueAudit(dataValueB, "21", storedBy, ChangeLogType.UPDATE);
+    auditD = new DataValueAudit(dataValueB, "22", storedBy, ChangeLogType.UPDATE);
   }
 
   @Override

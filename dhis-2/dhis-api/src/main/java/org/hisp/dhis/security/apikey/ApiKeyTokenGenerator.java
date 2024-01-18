@@ -147,8 +147,8 @@ public class ApiKeyTokenGenerator {
     return switch (tokenChecksumType) {
       case "CRC32" -> validateCrc32Checksum(plaintextToken);
       case "CRC32_B62" -> validateCrc32B62Checksum(plaintextToken);
-      default -> throw new IllegalArgumentException(
-          "Unsupported checksum type: " + tokenChecksumType);
+      default ->
+          throw new IllegalArgumentException("Unsupported checksum type: " + tokenChecksumType);
     };
   }
 

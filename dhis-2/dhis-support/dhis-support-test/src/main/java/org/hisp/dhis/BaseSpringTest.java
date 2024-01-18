@@ -62,6 +62,8 @@ public abstract class BaseSpringTest extends DhisConvenienceTest
 
   protected ApplicationContext applicationContext;
 
+  public EntityManager entityManager;
+
   @Autowired protected DbmsManager dbmsManager;
 
   @Autowired protected TransactionTemplate transactionTemplate;
@@ -105,7 +107,7 @@ public abstract class BaseSpringTest extends DhisConvenienceTest
         });
   }
 
-  protected void integrationTestBefore() throws Exception {
+  protected void integrationTestBeforeEach() throws Exception {
     TestUtils.executeStartupRoutines(applicationContext);
     boolean enableQueryLogging =
         dhisConfigurationProvider.isEnabled(ConfigurationKey.ENABLE_QUERY_LOGGING);
@@ -122,6 +124,7 @@ public abstract class BaseSpringTest extends DhisConvenienceTest
     EntityManagerFactory entityManagerFactory =
         (EntityManagerFactory) applicationContext.getBean("entityManagerFactory");
     EntityManager entityManager = entityManagerFactory.createEntityManager();
+    this.entityManager = entityManager;
     entityManager.setProperty(QueryHints.FLUSH_MODE, FlushMode.AUTO);
     TransactionSynchronizationManager.bindResource(
         entityManagerFactory, new EntityManagerHolder(entityManager));

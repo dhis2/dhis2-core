@@ -44,6 +44,7 @@ import org.hisp.dhis.audit.AuditQuery;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditService;
 import org.hisp.dhis.audit.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -72,8 +73,8 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -89,7 +90,7 @@ class MaintenanceServiceTest extends IntegrationTestBase {
 
   @Autowired private TrackedEntityService entityInstanceService;
 
-  @Autowired private TrackedEntityDataValueAuditService trackedEntityDataValueAuditService;
+  @Autowired private TrackedEntityDataValueChangeLogService trackedEntityDataValueAuditService;
 
   @Autowired private DataElementService dataElementService;
 
@@ -314,15 +315,11 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     eventA.setScheduledDate(enrollmentDate);
     eventA.setUid("UID-A");
     eventService.addEvent(eventA);
-    TrackedEntityDataValueAudit trackedEntityDataValueAudit =
-        new TrackedEntityDataValueAudit(
-            dataElement,
-            eventA,
-            "value",
-            "modifiedBy",
-            false,
-            org.hisp.dhis.common.AuditType.UPDATE);
-    trackedEntityDataValueAuditService.addTrackedEntityDataValueAudit(trackedEntityDataValueAudit);
+    TrackedEntityDataValueChangeLog trackedEntityDataValueChangeLog =
+        new TrackedEntityDataValueChangeLog(
+            dataElement, eventA, "value", "modifiedBy", false, ChangeLogType.UPDATE);
+    trackedEntityDataValueAuditService.addTrackedEntityDataValueChangeLog(
+        trackedEntityDataValueChangeLog);
     long idA = enrollmentService.addEnrollment(enrollment);
     assertNotNull(enrollmentService.getEnrollment(idA));
     enrollmentService.deleteEnrollment(enrollment);

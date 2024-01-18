@@ -57,7 +57,8 @@ public enum ColumnHeader {
   EVENT_STATUS("eventstatus", "Event status"),
   DIMENSION("dx", "Data"),
   DIMENSION_NAME("dxname", "Data name"),
-  PERIOD("pe", "Event status"),
+  PERIOD("pe", "Period"),
+  PERIOD_NAME("pename", "Period name"),
   CATEGORY_OPTION_COMBO("coc", "Category option combo"),
   CATEGORY_OPTION_COMBO_NAME("cocname", "Category option combo name"),
   ATTRIBUTE_OPTION_COMBO("aoc", "Attribute option combo"),
@@ -68,7 +69,7 @@ public enum ColumnHeader {
   MEDIAN_ABS_DEVIATION("medianabsdeviation", "Median absolute deviation"),
   STANDARD_DEVIATION("stddev", "Standard deviation"),
   ABSOLUTE_DEVIATION("absdev", "Absolute deviation"),
-  MODIFIED_ZSCORE("modifiedzscore", "Modified zScore"),
+  MODIFIED_Z_SCORE("modifiedzscore", "Modified zScore"),
   ZSCORE("zscore", "zScore"),
   LOWER_BOUNDARY("lowerbound", "Lower boundary"),
   UPPER_BOUNDARY("upperbound", "Upper boundary");

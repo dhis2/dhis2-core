@@ -69,7 +69,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -136,19 +135,11 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService,
       StatementBuilder statementBuilder,
       OrganisationUnitStore organisationUnitStore,
       SystemSettingManager systemSettingManager) {
-    super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        TrackedEntity.class,
-        currentUserService,
-        aclService,
-        false);
+    super(entityManager, jdbcTemplate, publisher, TrackedEntity.class, aclService, false);
 
     checkNotNull(statementBuilder);
     checkNotNull(organisationUnitStore);
@@ -196,12 +187,12 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     if (pageParams.isPageTotal()) {
       Pager pager =
           new Pager(pageParams.getPage(), enrollmentCount.getAsInt(), pageParams.getPageSize());
-      return Page.of(teIds, pager);
+      return Page.of(teIds, pager, pageParams.isPageTotal());
     }
 
     Pager pager = new Pager(pageParams.getPage(), 0, pageParams.getPageSize());
     pager.force(pageParams.getPage(), pageParams.getPageSize());
-    return Page.of(teIds, pager);
+    return Page.of(teIds, pager, pageParams.isPageTotal());
   }
 
   @Override

@@ -31,7 +31,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.tracker.imports.preheat.mappers.FullUserMapper;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,7 +44,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Service
 public class TrackerUserService {
-  private final CurrentUserService currentUserService;
 
   private final IdentifiableObjectManager manager;
 
@@ -62,7 +61,7 @@ public class TrackerUserService {
       user = manager.get(User.class, userUid);
     }
     if (user == null) {
-      user = currentUserService.getCurrentUser();
+      user = manager.get(User.class, CurrentUserUtil.getCurrentUserDetails().getUid());
     }
     // Make a copy of the user object, retaining only the properties
     // required for

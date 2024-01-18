@@ -83,22 +83,15 @@ public class TrackerIdSchemeParams implements Serializable {
   private TrackerIdSchemeParam categoryOptionIdScheme = TrackerIdSchemeParam.UID;
 
   public TrackerIdSchemeParam getByClass(Class<?> klazz) {
-    switch (klazz.getSimpleName()) {
-      case "CategoryOptionCombo":
-        return categoryOptionComboIdScheme;
-      case "OrganisationUnit":
-        return orgUnitIdScheme;
-      case "CategoryOption":
-        return categoryOptionIdScheme;
-      case "DataElement":
-        return dataElementIdScheme;
-      case "Program":
-        return programIdScheme;
-      case "ProgramStage":
-        return programStageIdScheme;
-      default:
-        return idScheme;
-    }
+    return switch (klazz.getSimpleName()) {
+      case "CategoryOptionCombo" -> categoryOptionComboIdScheme;
+      case "OrganisationUnit" -> orgUnitIdScheme;
+      case "CategoryOption" -> categoryOptionIdScheme;
+      case "DataElement" -> dataElementIdScheme;
+      case "Program" -> programIdScheme;
+      case "ProgramStage" -> programStageIdScheme;
+      default -> idScheme;
+    };
   }
 
   /**

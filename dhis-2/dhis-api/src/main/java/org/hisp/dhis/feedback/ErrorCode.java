@@ -94,6 +94,12 @@ public enum ErrorCode {
   E1532("Target indicator type cannot be a source indicator type"),
   E1533("{0} indicator type does not exist: `{1}`"),
 
+  /* Indicator merge */
+  E1540("At least one source indicator must be specified"),
+  E1541("Target indicator must be specified"),
+  E1542("Target indicator cannot be a source indicator"),
+  E1543("{0} indicator does not exist: `{1}`"),
+
   /* Data */
   E2000("Query parameters cannot be null"),
   E2001("At least one data element, data set or data element group must be specified"),
@@ -141,10 +147,11 @@ public enum ErrorCode {
   E2042("Min value must be specified"),
   E2043("Max value must be specified"),
   E2044("Max value must be greater than min value"),
+  E2045("Case insensitive operators can only be used with constant values"),
 
   /* Outlier detection */
   E2200("At least one data element must be specified"),
-  E2201("Start date and end date must be specified"),
+  E2201("Start date and end date or relative period must be specified"),
   E2202("Start date must be before end date"),
   E2203(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),
   E2204("Threshold must be a positive number"),
@@ -155,6 +162,7 @@ public enum ErrorCode {
   E2209("Data start date not allowed"),
   E2210("Data end date not allowed"),
   E2211("Algorithm min-max values not allowed"),
+  E2212("Specifying both a start date/end date and a relative period is not allowed"),
 
   /* Followup analysis */
   E2300("At least one data element or data set must be specified"),

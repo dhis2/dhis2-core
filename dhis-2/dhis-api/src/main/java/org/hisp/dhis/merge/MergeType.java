@@ -35,5 +35,6 @@ package org.hisp.dhis.merge;
 public enum MergeType {
   ORG_UNIT,
 
-  INDICATOR_TYPE
+  INDICATOR_TYPE,
+  INDICATOR
 }

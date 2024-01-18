@@ -51,8 +51,10 @@ import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,7 +69,7 @@ class DefaultEnrollmentService
 
   private final TrackedEntityAttributeService trackedEntityAttributeService;
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   private final TrackerAccessManager trackerAccessManager;
 
@@ -82,19 +84,22 @@ class DefaultEnrollmentService
       throw new NotFoundException(Enrollment.class, uid);
     }
 
-    User user = currentUserService.getCurrentUser();
-    List<String> errors = trackerAccessManager.canRead(user, enrollment, false);
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    List<String> errors = trackerAccessManager.canRead(currentUser, enrollment, false);
 
     if (!errors.isEmpty()) {
       throw new ForbiddenException(errors.toString());
     }
 
-    return getEnrollment(enrollment, params, includeDeleted, user);
+    return getEnrollment(enrollment, params, includeDeleted, currentUser);
   }
 
   @Override
   public Enrollment getEnrollment(
-      @Nonnull Enrollment enrollment, EnrollmentParams params, boolean includeDeleted, User user) {
+      @Nonnull Enrollment enrollment,
+      EnrollmentParams params,
+      boolean includeDeleted,
+      User currentUser) {
 
     Enrollment result = new Enrollment();
     result.setId(enrollment.getId());
@@ -124,15 +129,16 @@ class DefaultEnrollmentService
     result.setDeleted(enrollment.isDeleted());
     result.setNotes(enrollment.getNotes());
     if (params.isIncludeEvents()) {
-      result.setEvents(getEvents(user, enrollment, includeDeleted));
+      result.setEvents(getEvents(currentUser, enrollment, includeDeleted));
     }
     if (params.isIncludeRelationships()) {
-      result.setRelationshipItems(getRelationshipItems(user, enrollment, includeDeleted));
+      result.setRelationshipItems(getRelationshipItems(currentUser, enrollment, includeDeleted));
     }
     if (params.isIncludeAttributes()) {
       result
           .getTrackedEntity()
-          .setTrackedEntityAttributeValues(getTrackedEntityAttributeValues(user, enrollment));
+          .setTrackedEntityAttributeValues(
+              getTrackedEntityAttributeValues(UserDetails.fromUser(currentUser), enrollment));
     }
 
     return result;
@@ -166,10 +172,10 @@ class DefaultEnrollmentService
   }
 
   private Set<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(
-      User user, Enrollment enrollment) {
+      UserDetails userDetails, Enrollment enrollment) {
     Set<TrackedEntityAttribute> readableAttributes =
         trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes(
-            user, List.of(enrollment.getProgram()), null);
+            userDetails, List.of(enrollment.getProgram()), null);
     Set<TrackedEntityAttributeValue> attributeValues = new LinkedHashSet<>();
 
     for (TrackedEntityAttributeValue trackedEntityAttributeValue :
@@ -207,7 +213,7 @@ class DefaultEnrollmentService
             params.isIncludeDeleted(),
             queryParams.getOrganisationUnitMode());
 
-    return Page.of(enrollments, enrollmentsPage.getPager());
+    return Page.of(enrollments, enrollmentsPage.getPager(), enrollmentsPage.isPageTotal());
   }
 
   private List<Enrollment> getEnrollments(
@@ -216,15 +222,15 @@ class DefaultEnrollmentService
       boolean includeDeleted,
       OrganisationUnitSelectionMode orgUnitMode) {
     List<Enrollment> enrollmentList = new ArrayList<>();
-    User user = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     for (Enrollment enrollment : enrollments) {
       if (enrollment != null
           && (orgUnitMode == ALL
               || trackerOwnershipAccessManager.hasAccess(
-                  user, enrollment.getTrackedEntity(), enrollment.getProgram()))
-          && trackerAccessManager.canRead(user, enrollment, orgUnitMode == ALL).isEmpty()) {
-        enrollmentList.add(getEnrollment(enrollment, params, includeDeleted, user));
+                  currentUser, enrollment.getTrackedEntity(), enrollment.getProgram()))
+          && trackerAccessManager.canRead(currentUser, enrollment, orgUnitMode == ALL).isEmpty()) {
+        enrollmentList.add(getEnrollment(enrollment, params, includeDeleted, currentUser));
       }
     }
 

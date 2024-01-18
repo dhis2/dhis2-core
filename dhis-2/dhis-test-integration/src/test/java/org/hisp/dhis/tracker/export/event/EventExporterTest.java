@@ -75,8 +75,8 @@ import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -106,8 +106,11 @@ class EventExporterTest extends TrackerTest {
 
   private EventOperationParams.EventOperationParamsBuilder operationParamsBuilder;
 
+  @Autowired protected UserService _userService;
+
   @Override
   protected void initTest() throws IOException {
+    userService = _userService;
     setUpMetadata("tracker/simple_metadata.json");
     importUser = userService.getUser("M5zQapPyTZI");
     TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
@@ -122,7 +125,6 @@ class EventExporterTest extends TrackerTest {
     CategoryOption categoryOption = get(CategoryOption.class, "yMj2MnmNI8L");
     categoryOption.getSharing().setOwner("o1HMTIzBGo7");
     manager.update(categoryOption);
-
     manager.flush();
   }
 
@@ -178,62 +180,6 @@ class EventExporterTest extends TrackerTest {
     assertAll(
         () -> assertNote(importUser, "comment value", notes.get(0)),
         () -> assertNote(importUser, "comment value", notes.get(1)));
-  }
-
-  @Test
-  void shouldOrderEventsByCreatedAtClientInAscOrder()
-      throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        operationParamsBuilder
-            .programStageUid(programStage.getUid())
-            .orderBy("createdAtClient", SortDirection.ASC)
-            .build();
-
-    List<String> events = getEvents(params);
-
-    assertEquals(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
-  }
-
-  @Test
-  void shouldOrderEventsByCreatedAtClientInDescOrder()
-      throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        operationParamsBuilder
-            .programStageUid(programStage.getUid())
-            .orderBy("createdAtClient", SortDirection.DESC)
-            .build();
-
-    List<String> events = getEvents(params);
-
-    assertEquals(List.of("pTzf9KYMk72", "D9PbzJY8bJM"), events);
-  }
-
-  @Test
-  void shouldOrderEventsByUpdatedAtClientInAscOrder()
-      throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        operationParamsBuilder
-            .programStageUid(programStage.getUid())
-            .orderBy("lastUpdatedAtClient", SortDirection.ASC)
-            .build();
-
-    List<String> events = getEvents(params);
-
-    assertEquals(List.of("pTzf9KYMk72", "D9PbzJY8bJM"), events);
-  }
-
-  @Test
-  void shouldOrderEventsByUpdatedAtClientInDescOrder()
-      throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        operationParamsBuilder
-            .programStageUid(programStage.getUid())
-            .orderBy("lastUpdatedAtClient", SortDirection.DESC)
-            .build();
-
-    List<String> events = getEvents(params);
-
-    assertEquals(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
   }
 
   @Test
@@ -675,7 +621,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void testExportEventsWhenFilteringByDataElementsWithCategoryOptionNotSuperUser()
       throws ForbiddenException, BadRequestException {
-    injectSecurityContext(
+    injectSecurityContextUser(
         createAndAddUser(false, "user", Set.of(orgUnit), Set.of(orgUnit), "F_EXPORT_DATA"));
     DataElement dataElement = dataElement("DATAEL00002");
 

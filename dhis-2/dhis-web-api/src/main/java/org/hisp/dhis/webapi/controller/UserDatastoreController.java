@@ -48,7 +48,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.userdatastore.UserDatastoreEntry;
@@ -76,7 +76,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class UserDatastoreController extends AbstractDatastoreController {
 
   private final UserDatastoreService userDatastoreService;
-  private final CurrentUserService currentUserService;
   private final UserService userService;
 
   /**
@@ -271,14 +270,17 @@ public class UserDatastoreController extends AbstractDatastoreController {
 
   @Nonnull
   private User getUser(String username) {
-    User currentUser = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
     if (username == null || username.isBlank()) {
       return currentUser;
     }
+
     if (!currentUser.isSuper()) {
       throw new IllegalQueryException(
           "Only superusers can read or write other users data using the `username` parameter.");
     }
+
     User user = userService.getUserByUsername(username);
     if (user == null) {
       throw new IllegalQueryException("No user with username " + username + " exists.");

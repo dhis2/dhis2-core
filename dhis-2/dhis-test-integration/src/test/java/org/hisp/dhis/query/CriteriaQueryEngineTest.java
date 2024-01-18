@@ -48,6 +48,7 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.jfree.data.time.Year;
 import org.junit.jupiter.api.BeforeEach;
@@ -86,8 +87,11 @@ class CriteriaQueryEngineTest extends TransactionalIntegrationTest {
     DataElementGroup dataElementGroupB = createDataElementGroup('B');
     dataElementGroupB.addDataElement(dataElementE);
     dataElementGroupB.addDataElement(dataElementF);
-    identifiableObjectManager.save(dataElementGroupA);
-    identifiableObjectManager.save(dataElementGroupB);
+    identifiableObjectManager.save(dataElementGroupA, false);
+    identifiableObjectManager.save(dataElementGroupB, false);
+
+    //    DataElement de = identifiableObjectManager.get(DataElement.class, "deabcdefghA");
+    //    de.setCategoryCombo(null);
   }
 
   private DataElement addDataElement(char uniqueCharacter, ValueType type, String yearCreated) {
@@ -100,7 +104,8 @@ class CriteriaQueryEngineTest extends TransactionalIntegrationTest {
     de.setValueType(type);
     de.setName(name);
     de.setCreated(Year.parseYear(yearCreated).getStart());
-    identifiableObjectManager.save(de);
+    de.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    identifiableObjectManager.save(de, false);
     return de;
   }
 
@@ -544,8 +549,8 @@ class CriteriaQueryEngineTest extends TransactionalIntegrationTest {
     assertEquals(userB.getUid(), de.getSharing().getOwner());
     Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
     query.add(Restrictions.eq("id", de.getUid()));
-    query.setUser(userA);
-    injectSecurityContext(userA);
+    query.setCurrentUserDetails(UserDetails.fromUser(userA));
+    injectSecurityContextUser(userA);
     List<? extends IdentifiableObject> objects = queryEngine.query(query);
     assertEquals(0, objects.size());
   }
@@ -560,19 +565,19 @@ class CriteriaQueryEngineTest extends TransactionalIntegrationTest {
     de.setCreatedBy(userB);
     identifiableObjectManager.save(de, false);
     de = identifiableObjectManager.get(DataElement.class, "deabcdefghA");
-    assertEquals(AccessStringHelper.DEFAULT, de.getSharing().getPublicAccess());
     assertEquals(userB.getUid(), de.getSharing().getOwner());
+    assertEquals(AccessStringHelper.DEFAULT, de.getSharing().getPublicAccess());
     Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
-    query.setUser(userB);
-    injectSecurityContext(userB);
+    query.setCurrentUserDetails(UserDetails.fromUser(userB));
+    injectSecurityContextUser(userB);
     List<? extends IdentifiableObject> objects = queryEngine.query(query);
     // UserB is the owner so DEA is in the result list
     Optional<? extends IdentifiableObject> notPublicDe =
         objects.stream().filter(d -> d.getUid().equalsIgnoreCase("deabcdefghA")).findFirst();
     assertTrue(notPublicDe.isPresent());
     query = Query.from(schemaService.getDynamicSchema(DataElement.class));
-    query.setUser(userA);
-    injectSecurityContext(userA);
+    query.setCurrentUserDetails(UserDetails.fromUser(userA));
+    injectSecurityContextUser(userA);
     objects = queryEngine.query(query);
     // UserA isn't the owner and DEA is not public so it doesn't present in
     // result list

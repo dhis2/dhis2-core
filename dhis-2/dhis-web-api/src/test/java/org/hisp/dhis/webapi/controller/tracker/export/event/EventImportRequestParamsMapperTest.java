@@ -52,6 +52,7 @@ import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -72,9 +73,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventParams;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -101,7 +102,7 @@ class EventImportRequestParamsMapperTest {
 
   private static final String PROGRAM_UID = "PlZSBEN7iZd";
 
-  @Mock private CurrentUserService currentUserService;
+  @Mock private UserService userService;
 
   @Mock private ProgramService programService;
 
@@ -128,7 +129,8 @@ class EventImportRequestParamsMapperTest {
   @BeforeEach
   public void setUp() {
     User user = new User();
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+
+    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
 
     program = new Program();
     program.setUid(PROGRAM_UID);
@@ -142,7 +144,7 @@ class EventImportRequestParamsMapperTest {
 
     orgUnit = new OrganisationUnit();
     when(organisationUnitService.getOrganisationUnit(any())).thenReturn(orgUnit);
-    when(organisationUnitService.isInUserHierarchy(orgUnit)).thenReturn(true);
+    when(organisationUnitService.isInUserHierarchy(user, orgUnit)).thenReturn(true);
 
     TrackedEntity trackedEntity = new TrackedEntity();
     when(entityInstanceService.getTrackedEntity("qnR1RK4cTIZ")).thenReturn(trackedEntity);

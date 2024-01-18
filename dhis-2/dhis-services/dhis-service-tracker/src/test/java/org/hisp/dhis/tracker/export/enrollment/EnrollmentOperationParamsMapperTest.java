@@ -27,17 +27,20 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
+import static org.hisp.dhis.DhisConvenienceTest.injectSecurityContext;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -52,9 +55,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -78,7 +81,7 @@ class EnrollmentOperationParamsMapperTest {
 
   private static final String TRACKED_ENTITY_UID = "DGbr8GHG4li";
 
-  @Mock private CurrentUserService currentUserService;
+  @Mock private UserService userService;
 
   @Mock private OrganisationUnitService organisationUnitService;
 
@@ -105,7 +108,10 @@ class EnrollmentOperationParamsMapperTest {
   @BeforeEach
   void setUp() {
     user = new User();
-    when(currentUserService.getCurrentUser()).thenReturn(user);
+    user.setUsername("admin");
+
+    injectSecurityContext(UserDetails.fromUser(user));
+    when(userService.getUserByUsername(anyString())).thenReturn(user);
 
     orgUnit1 = new OrganisationUnit("orgUnit1");
     orgUnit1.setUid(ORG_UNIT_1_UID);
