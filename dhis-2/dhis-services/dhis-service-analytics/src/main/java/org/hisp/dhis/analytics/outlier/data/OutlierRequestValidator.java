@@ -132,11 +132,15 @@ public class OutlierRequestValidator {
     } else if (request.getMaxResults() > maxLimit) {
       error = new ErrorMessage(E2206, maxLimit);
     } else if (request.getAlgorithm() == OutlierDetectionAlgorithm.MODIFIED_Z_SCORE
-        && (request.getOrderBy() == Order.MEAN || request.getOrderBy() == Order.STD_DEV)) {
-      error = new ErrorMessage(E2213);
+        && (request.getOrderBy() == Order.Z_SCORE
+            || request.getOrderBy() == Order.MEAN
+            || request.getOrderBy() == Order.STD_DEV)) {
+      error = new ErrorMessage(E2213, request.getAlgorithm());
     } else if (request.getAlgorithm() == OutlierDetectionAlgorithm.Z_SCORE
-        && (request.getOrderBy() == Order.MEDIAN || request.getOrderBy() == Order.MEDIAN_ABS_DEV)) {
-      error = new ErrorMessage(E2213);
+        && (request.getOrderBy() == Order.MODIFIED_Z_SCORE
+            || request.getOrderBy() == Order.MEDIAN
+            || request.getOrderBy() == Order.MEDIAN_ABS_DEV)) {
+      error = new ErrorMessage(E2213, request.getAlgorithm());
     }
 
     return error;

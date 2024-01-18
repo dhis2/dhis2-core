@@ -157,7 +157,7 @@ public enum ErrorCode {
   E2210("Data end date not allowed"),
   E2211("Algorithm min-max values not allowed"),
   E2212("Specifying both a start date/end date and a relative period is not allowed"),
-  E2213("Order by value is not compatible with algorithm"),
+  E2213("Value of param orderBy is not compatible with algorithm `{0}`"),
   /* Followup analysis */
   E2300("At least one data element or data set must be specified"),
   E2301("Start date and end date must be specified directly or indirectly by specifying a period"),
@@ -444,7 +444,7 @@ public enum ErrorCode {
 
   E7180(
       "The analytics outliers data does not exist. Please ensure analytics job was run and did not skip the outliers"),
-  E7181("Order by param `{0}` does not exist"),
+  E7181("Column `{0}` specified, in orderBy, is not eligible for orderBy or does not exist"),
 
   /* Event analytics */
   E7200(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),

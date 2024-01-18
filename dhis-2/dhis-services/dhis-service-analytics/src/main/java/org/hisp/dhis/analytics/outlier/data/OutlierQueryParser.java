@@ -28,7 +28,7 @@
 package org.hisp.dhis.analytics.outlier.data;
 
 import static java.util.stream.Collectors.toList;
-import static org.hisp.dhis.feedback.ErrorCode.E7181;
+import static org.hisp.dhis.analytics.outlier.Order.getOrderBy;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,15 +38,12 @@ import java.util.Set;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.analytics.data.DimensionalObjectProducer;
-import org.hisp.dhis.analytics.outlier.Order;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.RelativePeriodEnum;
@@ -167,55 +164,5 @@ public class OutlierQueryParser {
         .stream()
         .map(pe -> (Period) pe)
         .toList();
-  }
-
-  /**
-   * The method retrieves the enumerator item related to the column for order by statement.
-   *
-   * @param orderBy is the order by field. It has to be the same as header item name.
-   * @return the {@link Order}.
-   */
-  private Order getOrderBy(String orderBy) {
-    if (orderBy.equalsIgnoreCase(Order.UPPER_BOUND.getHeaderName())) {
-      return Order.UPPER_BOUND;
-    }
-
-    if (orderBy.equalsIgnoreCase(Order.LOWER_BOUND.getHeaderName())) {
-      return Order.LOWER_BOUND;
-    }
-
-    if (orderBy.equalsIgnoreCase(Order.MODIFIED_Z_SCORE.getHeaderName())) {
-      return Order.MODIFIED_Z_SCORE;
-    }
-
-    if (orderBy.equalsIgnoreCase(Order.Z_SCORE.getHeaderName())) {
-      return Order.Z_SCORE;
-    }
-
-    if (orderBy.equalsIgnoreCase(Order.MEDIAN.getHeaderName())) {
-      return Order.MEDIAN;
-    }
-
-    if (orderBy.equalsIgnoreCase(Order.MEAN.getHeaderName())) {
-      return Order.MEAN;
-    }
-
-    if (orderBy.equalsIgnoreCase(Order.STD_DEV.getHeaderName())) {
-      return Order.STD_DEV;
-    }
-
-    if (orderBy.equalsIgnoreCase(Order.ABS_DEV.getHeaderName())) {
-      return Order.ABS_DEV;
-    }
-
-    if (orderBy.equalsIgnoreCase(Order.MEDIAN_ABS_DEV.getHeaderName())) {
-      return Order.MEDIAN_ABS_DEV;
-    }
-
-    if (orderBy.equalsIgnoreCase(Order.VALUE.getHeaderName())) {
-      return Order.VALUE;
-    }
-
-    throw new IllegalQueryException(new ErrorMessage(E7181, orderBy));
   }
 }

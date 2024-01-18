@@ -33,10 +33,14 @@ import static org.hisp.dhis.analytics.common.ColumnHeader.MEDIAN_ABS_DEVIATION;
 import static org.hisp.dhis.analytics.common.ColumnHeader.STANDARD_DEVIATION;
 import static org.hisp.dhis.analytics.common.ColumnHeader.UPPER_BOUNDARY;
 import static org.hisp.dhis.analytics.common.ColumnHeader.ZSCORE;
+import static org.hisp.dhis.feedback.ErrorCode.E7181;
 
+import java.util.Arrays;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.common.ColumnHeader;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.feedback.ErrorMessage;
 
 /**
  * Candidate on which to order an outlier detection result set.
@@ -58,4 +62,17 @@ public enum Order {
 
   @Getter private final String headerName;
   @Getter private final String columnName;
+
+  /**
+   * The method retrieves the enumerator item related to the column for order by statement.
+   *
+   * @param headerName is the order by field. It has to be the same as header item name.
+   * @return the {@link Order}.
+   */
+  public static Order getOrderBy(String headerName) {
+    return Arrays.stream(values())
+        .filter(o -> o.getHeaderName().equalsIgnoreCase(headerName))
+        .findFirst()
+        .orElseThrow(() -> new IllegalQueryException(new ErrorMessage(E7181, headerName)));
+  }
 }
