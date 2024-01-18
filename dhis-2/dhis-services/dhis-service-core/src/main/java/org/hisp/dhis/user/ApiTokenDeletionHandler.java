@@ -25,32 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.apikey;
+package org.hisp.dhis.user;
 
-import java.util.List;
-import org.hisp.dhis.user.User;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.security.apikey.ApiTokenService;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author Morten Svanaes
  */
-public interface ApiTokenService {
-  List<ApiToken> getAll();
+@Component
+@RequiredArgsConstructor
+public class ApiTokenDeletionHandler extends DeletionHandler {
+  private final ApiTokenService apiTokenService;
 
-  List<ApiToken> getAllOwning(User user);
+  @Override
+  protected void register() {
+    whenDeleting(User.class, this::deleteUser);
+  }
 
-  ApiToken getWithKey(String key, User user);
-
-  ApiToken getWithKey(String key);
-
-  void save(ApiToken apiToken);
-
-  void update(ApiToken apiToken);
-
-  void delete(ApiToken apiToken);
-
-  ApiToken getWithUid(String uid);
-
-  ApiToken initToken(ApiToken entity);
-
-  String hashKey(String key);
+  private void deleteUser(User user) {
+    apiTokenService.getAllOwning(user).forEach(apiTokenService::delete);
+  }
 }

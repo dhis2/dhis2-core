@@ -58,22 +58,25 @@ public class ApiTokenServiceImpl implements ApiTokenService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public List<ApiToken> getAll() {
     return this.apiTokenStore.getAll();
   }
 
   @Override
-  public List<ApiToken> getAllOwning(User currentUser) {
-    return apiTokenStore.getAllOwning(currentUser);
+  @Transactional(readOnly = true)
+  public List<ApiToken> getAllOwning(User user) {
+    return apiTokenStore.getAllOwning(user);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public ApiToken getWithKey(String key, User currentUser) {
-    return apiTokenStore.getByKey(key, currentUser);
+  public ApiToken getWithKey(String key, User user) {
+    return apiTokenStore.getByKey(key, user);
   }
 
   @Override
+  @Transactional(readOnly = true)
   public ApiToken getWithKey(String key) {
     return apiTokenStore.getByKey(key);
   }

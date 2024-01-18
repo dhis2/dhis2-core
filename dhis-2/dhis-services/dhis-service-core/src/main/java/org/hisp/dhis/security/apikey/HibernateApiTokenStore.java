@@ -66,7 +66,7 @@ public class HibernateApiTokenStore extends HibernateIdentifiableObjectStore<Api
     return getList(
         builder,
         newJpaParameters()
-            .addPredicate(root -> builder.equal(root.get("currentUser"), currentUser))
+            .addPredicate(root -> builder.equal(root.get("createdBy"), currentUser))
             .addOrder(root -> builder.asc(root.get("created"))));
   }
 
