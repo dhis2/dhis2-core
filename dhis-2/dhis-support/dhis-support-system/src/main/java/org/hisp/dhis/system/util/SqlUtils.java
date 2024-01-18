@@ -90,6 +90,7 @@ public class SqlUtils {
     return SINGLE_QUOTE + rel + SINGLE_QUOTE;
   }
 
+
   /**
    * Encodes and quotes a value to make it suitable to insert in a SQL statement.
    * 
@@ -97,13 +98,24 @@ public class SqlUtils {
    * @return the encoded value.
    */
   public static String encode(String value) {
+    return encode(value, true);
+  }
+  
+  /**
+   * Encodes a value to make it suitable to insert in a SQL statement.
+   * 
+   * @param value the value to encode.
+   * @param quote whether to quote the value.
+   * @return the encoded value.
+   */
+  public static String encode(String value, boolean quote) {
     if (value != null) {
       value = value
           .replace("\\", "\\\\")
           .replace(QUOTE, (QUOTE + QUOTE));
     }
 
-    return QUOTE + value + QUOTE;
+    return quote ? (QUOTE + value + QUOTE) : value;
   }
 
   /**

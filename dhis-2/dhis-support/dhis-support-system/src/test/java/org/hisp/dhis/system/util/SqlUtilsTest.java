@@ -59,4 +59,10 @@ class SqlUtilsTest {
     assertEquals("\"John White\"", SqlUtils.encode("John White"));
     assertEquals("\"Main Street 1\\\\nSmallwille\\\\n\"", SqlUtils.encode("Main Street 1\\nSmallwille\\n"));
   }
+
+  @Test
+  void testEncodeWithoutQuote() {
+    assertEquals("John White", SqlUtils.encode("John White", false));
+    assertEquals("Main Street 1\\\\nSmallwille\\\\n", SqlUtils.encode("Main Street 1\\nSmallwille\\n", false));
+  }
 }
