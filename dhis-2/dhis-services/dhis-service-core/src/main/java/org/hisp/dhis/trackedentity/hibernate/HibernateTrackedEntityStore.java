@@ -82,7 +82,6 @@ import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.security.acl.AclService;
@@ -140,8 +139,6 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
 
   private final OrganisationUnitStore organisationUnitStore;
 
-  private final StatementBuilder statementBuilder;
-
   private final SystemSettingManager systemSettingManager;
 
   // TODO too many arguments in constructor. This needs to be refactored.
@@ -150,16 +147,13 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       AclService aclService,
-      StatementBuilder statementBuilder,
       OrganisationUnitStore organisationUnitStore,
       SystemSettingManager systemSettingManager) {
     super(entityManager, jdbcTemplate, publisher, TrackedEntity.class, aclService, false);
 
-    checkNotNull(statementBuilder);
     checkNotNull(organisationUnitStore);
     checkNotNull(systemSettingManager);
 
-    this.statementBuilder = statementBuilder;
     this.organisationUnitStore = organisationUnitStore;
     this.systemSettingManager = systemSettingManager;
   }
@@ -676,9 +670,9 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
   private String joinAttributeValueWithQueryParameter(TrackedEntityQueryParams params) {
     StringBuilder attributes = new StringBuilder();
 
-    final String regexp = statementBuilder.getRegexpMatch();
-    final String wordStart = statementBuilder.getRegexpWordStart();
-    final String wordEnd = statementBuilder.getRegexpWordEnd();
+    final String regexp = "~*";
+    final String wordStart = "\\m";
+    final String wordEnd = "\\M";
     final String anyChar = "\\.*?";
     final String start = params.getQuery().isOperator(QueryOperator.LIKE) ? anyChar : wordStart;
     final String end = params.getQuery().isOperator(QueryOperator.LIKE) ? anyChar : wordEnd;

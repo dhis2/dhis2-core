@@ -30,40 +30,4 @@ package org.hisp.dhis.jdbc.statementbuilder;
 /**
  * @author Lars Helge Overland
  */
-public class H2StatementBuilder extends AbstractStatementBuilder {
-  @Override
-  public String getDoubleColumnType() {
-    return "double";
-  }
-
-  @Override
-  public String getRegexpMatch() {
-    return "regexp";
-  }
-
-  @Override
-  public String getRegexpWordStart() // TODO test
-      {
-    return "[[:<:]]";
-  }
-
-  @Override
-  public String getRegexpWordEnd() {
-    return "[[:>:]]";
-  }
-
-  @Override
-  public String position(String substring, String string) {
-    return ("POSITION(" + substring + ", " + string + ")");
-  }
-
-  @Override
-  public String getDaysBetweenDates(String fromColumn, String toColumn) {
-    return ("DATEDIFF('DAY', " + toColumn + ", " + fromColumn + ")");
-  }
-
-  @Override
-  public String getNumberOfColumnsInPrimaryKey(String table) {
-    return "select 0 as c"; // TODO fix
-  }
-}
+public class H2StatementBuilder extends AbstractStatementBuilder {}

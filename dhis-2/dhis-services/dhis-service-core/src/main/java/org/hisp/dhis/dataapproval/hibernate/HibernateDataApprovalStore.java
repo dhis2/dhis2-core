@@ -62,7 +62,6 @@ import org.hisp.dhis.dataapproval.DataApprovalStore;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
@@ -109,8 +108,6 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
 
   private final SystemSettingManager systemSettingManager;
 
-  private final StatementBuilder statementBuilder;
-
   public HibernateDataApprovalStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
@@ -120,7 +117,6 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
       PeriodStore periodStore,
       CategoryService categoryService,
       SystemSettingManager systemSettingManager,
-      StatementBuilder statementBuilder,
       UserService userService) {
     super(entityManager, jdbcTemplate, publisher, DataApproval.class, false);
 
@@ -130,14 +126,12 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
     checkNotNull(userService);
     checkNotNull(categoryService);
     checkNotNull(systemSettingManager);
-    checkNotNull(statementBuilder);
 
     this.periodService = periodService;
     this.periodStore = periodStore;
     this.userService = userService;
     this.categoryService = categoryService;
     this.systemSettingManager = systemSettingManager;
-    this.statementBuilder = statementBuilder;
     this.isApprovedCache = cacheProvider.createIsDataApprovedCache();
   }
 
@@ -452,7 +446,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
       for (OrganisationUnit ou : userOrgUnits) {
         userOrgUnitRestrictions +=
             (userOrgUnitRestrictions.length() == 0 ? " and ( " : " or ")
-                + statementBuilder.position("'" + ou.getUid() + "'", "o.path")
+                + position("'" + ou.getUid() + "'", "o.path")
                 + " <> 0";
       }
       userOrgUnitRestrictions += " )";
@@ -470,7 +464,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
       highestApprovedOrgUnitJoin =
           "join organisationunit dao on dao.organisationunitid = da.organisationunitid ";
 
-      highestApprovedOrgUnitCompare = statementBuilder.position("dao.uid", "o.path") + " <> 0 ";
+      highestApprovedOrgUnitCompare = position("dao.uid", "o.path") + " <> 0 ";
     }
 
     if (orgUnitFilter != null) {
@@ -505,7 +499,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
               + "join period p on p.periodid = da.periodid "
               + "join organisationunit dao on dao.organisationunitid = da.organisationunitid "
               + "where "
-              + statementBuilder.position("dao.uid", "o.path")
+              + position("dao.uid", "o.path")
               + " = "
               + pathPositionAtLevel(approvedAboveLevel)
               + " "
@@ -536,7 +530,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
               // Lower Data Approval OrgUnit (DAO) where approval is required
               "from organisationunit dao "
               + "where "
-              + statementBuilder.position("o.uid", "dao.path")
+              + position("o.uid", "dao.path")
               + " = "
               + pathPositionAtLevel(orgUnitLevel)
               + " "
@@ -547,7 +541,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
               + // Data for this workflow is collected somewhere at or below DAO
               "select 1 from organisationunit child "
               + "where "
-              + statementBuilder.position("dao.uid", "child.path")
+              + position("dao.uid", "child.path")
               + " <> 0 "
               + "and child.organisationunitid in ( "
               + "select distinct sourceid "
@@ -578,7 +572,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
                       + "join organisationunit o1 on o1.organisationunitid = co1.organisationunitid "
                       + "where co1.categoryoptionid = cc1.categoryoptionid "
                       + "and "
-                      + statementBuilder.position("o1.uid", "dao.path")
+                      + position("o1.uid", "dao.path")
                       + " between 2 and "
                       + pathPositionAtLevel(approvalLevelBelowOrgUnit)
                       + " "
@@ -610,7 +604,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
     final String sql =
         "select coc.uid as cocuid, o.uid as ouuid, o.name as ouname, "
             + "(select min("
-            + statementBuilder.concatenate(
+            + concatenate(
                 MAX_APPROVAL_LEVEL + " + dal.level",
                 SQL_CAT,
                 "da.accepted",
@@ -676,9 +670,9 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
             + "join organisationunit o2 on o2.organisationunitid = coo.organisationunitid "
             + "where coo.categoryoptionid = co.categoryoptionid "
             + "and ( "
-            + statementBuilder.position("o.uid", "o2.path")
+            + position("o.uid", "o2.path")
             + " <> 0  or "
-            + statementBuilder.position("o2.uid", "o.path")
+            + position("o2.uid", "o.path")
             + " <> 0 "
             + ") "
             + ") "
@@ -839,6 +833,14 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
     }
 
     return 0;
+  }
+
+  private String position(String substring, String string) {
+    return ("POSITION(" + substring + " in " + string + ")");
+  }
+
+  private String concatenate(String... s) {
+    return "CONCAT(" + StringUtils.join(s, ", ") + ")";
   }
 
   // TODO: Should we move these two methods to static methods in

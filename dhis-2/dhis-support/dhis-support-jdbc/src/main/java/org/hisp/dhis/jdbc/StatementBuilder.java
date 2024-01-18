@@ -38,64 +38,6 @@ import org.hisp.dhis.program.ProgramIndicator;
  */
 public interface StatementBuilder {
 
-  /** Returns the name of a double column type. */
-  String getDoubleColumnType();
-
-  /**
-   * Returns the value used to match a column to a regular expression. Matching is case insensitive.
-   */
-  String getRegexpMatch();
-
-  /** Returns the regular expression marker for end of a word. */
-  String getRegexpWordStart();
-
-  /** Returns the regular expression marker for start of a word. */
-  String getRegexpWordEnd();
-
-  /**
-   * Returns an expression to concatenate strings
-   *
-   * @param s the array of strings to concatenate
-   * @return the strings, concatenated
-   */
-  String concatenate(String... s);
-
-  /**
-   * Returns the position of substring in string, or 0 if not there.
-   *
-   * @param substring string to search for
-   * @param string string in which to search
-   * @return position, or 0 if not found
-   */
-  String position(String substring, String string);
-
-  /** Returns the number of columns part of the primary key for the given table. */
-  String getNumberOfColumnsInPrimaryKey(String table);
-
-  /**
-   * Returns a cast to timestamp statement for the given column.
-   *
-   * @param column the column name.
-   * @return a cast to timestamp statement for the given column.
-   */
-  String getCastToDate(String column);
-
-  /**
-   * Returns a statement which calculates the number of days between the two given dates or columns
-   * of type date.
-   *
-   * @param fromColumn the from date column.
-   * @param toColumn the to date column.
-   * @return statement which calculates the number of days between the given dates.
-   */
-  String getDaysBetweenDates(String fromColumn, String toColumn);
-
-  String getDropPrimaryKey(String table);
-
-  String getAddPrimaryKeyToExistingTable(String table, String column);
-
-  String getDropNotNullConstraint(String table, String column, String type);
-
   /**
    * Generates a derived table containing one column of literal strings.
    *
@@ -139,14 +81,6 @@ public interface StatementBuilder {
       String table,
       String long1Column,
       String long2Column);
-
-  /**
-   * Indicates whether the DBMS supports partial indexes (index statements with {@code where}
-   * clauses).
-   *
-   * @return true if partial indexes aer supported.
-   */
-  boolean supportsPartialIndexes();
 
   /**
    * Get SQL where-condition for a single analyticsPeriodBoundary in a program indicator.

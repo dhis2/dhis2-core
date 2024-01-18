@@ -267,8 +267,6 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
     getDataValuesQueryParameters(params, query, periods, organisationUnits);
 
-    // TODO last updated duration support
-
     return query.list();
   }
 
