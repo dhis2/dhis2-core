@@ -29,8 +29,6 @@ package org.hisp.dhis.resourcetable.jdbc;
 
 import java.util.List;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePhase;
@@ -40,6 +38,8 @@ import org.hisp.dhis.resourcetable.ResourceTableStore;
 import org.hisp.dhis.system.util.Clock;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -72,7 +72,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
     final Optional<List<Object[]>> populateTableContent =
         resourceTable.getPopulateTempTableContent();
     final List<String> createIndexSql = resourceTable.getCreateIndexStatements();
-    final String analyzeTableSql = String.format("analyze table %s;", resourceTable.getTableName());
+    final String analyzeTableSql = String.format("analyze %s;", resourceTable.getTableName());
 
     // ---------------------------------------------------------------------
     // Drop temporary table if it exists
