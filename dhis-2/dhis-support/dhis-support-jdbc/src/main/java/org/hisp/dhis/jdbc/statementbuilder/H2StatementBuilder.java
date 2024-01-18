@@ -37,11 +37,6 @@ public class H2StatementBuilder extends AbstractStatementBuilder {
   }
 
   @Override
-  public String getAnalyze(String table) {
-    return null;
-  }
-
-  @Override
   public String getTableOptions(boolean autoVacuum) {
     return "";
   }

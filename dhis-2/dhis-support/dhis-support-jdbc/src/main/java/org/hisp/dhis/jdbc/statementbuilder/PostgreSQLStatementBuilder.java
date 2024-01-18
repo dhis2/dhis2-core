@@ -45,16 +45,6 @@ public class PostgreSQLStatementBuilder extends AbstractStatementBuilder {
   }
 
   @Override
-  public String getAnalyze(String table) {
-    return "analyze " + table + ";";
-  }
-
-  @Override
-  public String getAutoIncrementValue() {
-    return "nextval('hibernate_sequence')";
-  }
-
-  @Override
   public String getTableOptions(boolean autoVacuum) {
     String sql = "";
 

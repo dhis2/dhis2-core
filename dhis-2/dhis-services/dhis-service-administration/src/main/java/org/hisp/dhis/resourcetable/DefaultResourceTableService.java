@@ -33,13 +33,9 @@ import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
-
-import com.google.common.collect.Lists;
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -52,7 +48,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -77,6 +72,9 @@ import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.google.common.collect.Lists;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -98,8 +96,6 @@ public class DefaultResourceTableService implements ResourceTableService {
   private final DataApprovalLevelService dataApprovalLevelService;
 
   private final CategoryService categoryService;
-
-  private final StatementBuilder statementBuilder;
 
   private final AnalyticsExportSettings analyticsExportSettings;
 
@@ -159,7 +155,6 @@ public class DefaultResourceTableService implements ResourceTableService {
     resourceTableStore.generateResourceTable(
         new OrganisationUnitGroupSetResourceTable(
             idObjectManager.getDataDimensionsNoAcl(OrganisationUnitGroupSet.class),
-            statementBuilder.supportsPartialIndexes(),
             organisationUnitService.getNumberOfOrganisationalLevels(),
             analyticsExportSettings.getTableType()));
   }

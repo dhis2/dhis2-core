@@ -29,32 +29,26 @@ package org.hisp.dhis.resourcetable.table;
 
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
-
-import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Optional;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
  */
 public class OrganisationUnitGroupSetResourceTable extends ResourceTable<OrganisationUnitGroupSet> {
-  private final boolean supportsPartialIndexes;
-
   private final int organisationUnitLevels;
 
   private final String tableType;
 
   public OrganisationUnitGroupSetResourceTable(
       List<OrganisationUnitGroupSet> objects,
-      boolean supportsPartialIndexes,
       int organisationUnitLevels,
       String tableType) {
     super(objects);
-    this.supportsPartialIndexes = supportsPartialIndexes;
     this.organisationUnitLevels = organisationUnitLevels;
     this.tableType = tableType;
   }
@@ -192,14 +186,14 @@ public class OrganisationUnitGroupSetResourceTable extends ResourceTable<Organis
             + " on "
             + getTempTableName()
             + "(organisationunitid, startdate) "
-            + TextUtils.emptyIfFalse("where startdate is not null", supportsPartialIndexes);
+            + "where startdate is not null";
     String indexB =
         "create index "
             + nameB
             + " on "
             + getTempTableName()
             + "(organisationunitid, startdate) "
-            + TextUtils.emptyIfFalse("where startdate is null", supportsPartialIndexes);
+            + "where startdate is null";
 
     return Lists.newArrayList(indexA, indexB);
   }

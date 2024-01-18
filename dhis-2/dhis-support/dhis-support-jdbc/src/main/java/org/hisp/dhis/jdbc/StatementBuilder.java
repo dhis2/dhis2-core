@@ -39,22 +39,6 @@ import org.hisp.dhis.program.ProgramIndicator;
 public interface StatementBuilder {
 
   /**
-   * Returns the value to use in insert statements for auto-increment columns.
-   *
-   * @return value to use in insert statements for auto-increment columns.
-   */
-  String getAutoIncrementValue();
-
-  /**
-   * Returns statement for analytics operation for a table. Returns null if such statement is not
-   * relevant.
-   *
-   * @param table the table to analyze.
-   * @return statement for analytics operation for a table.
-   */
-  String getAnalyze(String table);
-
-  /**
    * Returns an SQL statement to include in create table statements with applies options to the
    * table. Returns an empty string if all options are set to the default value.
    *
