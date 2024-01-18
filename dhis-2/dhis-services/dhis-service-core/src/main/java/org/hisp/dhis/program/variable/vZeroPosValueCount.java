@@ -53,8 +53,6 @@ public class vZeroPosValueCount extends ProgramDoubleVariable {
     }
 
     return TextUtils.removeLast(sql, "+").trim()
-        + ") as "
-        + visitor.getStatementBuilder().getDoubleColumnType()
-        + "),0)";
+        + ") as double precision),0)";
   }
 }
