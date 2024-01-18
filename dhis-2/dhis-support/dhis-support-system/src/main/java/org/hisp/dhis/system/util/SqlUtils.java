@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.system.util;
 
-import com.google.common.collect.Sets;
 import java.sql.Array;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.Assert;
+import com.google.common.collect.Sets;
 
 /**
  * Utilities for SQL operations, compatible with PostgreSQL and H2 database platforms.
@@ -88,6 +88,22 @@ public class SqlUtils {
     String rel = relation.replaceAll(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE));
 
     return SINGLE_QUOTE + rel + SINGLE_QUOTE;
+  }
+
+  /**
+   * Encodes and quotes a value to make it suitable to insert in a SQL statement.
+   * 
+   * @param value the value to encode.
+   * @return the encoded value.
+   */
+  public static String encode(String value) {
+    if (value != null) {
+      value = value
+          .replace("\\", "\\\\")
+          .replace(QUOTE, (QUOTE + QUOTE));
+    }
+
+    return QUOTE + value + QUOTE;
   }
 
   /**
