@@ -45,7 +45,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -754,7 +753,6 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     return events.getEvents().stream().map(Event::getEvent).collect(Collectors.toList());
   }
 
-  @Nonnull
   private static List<String> reverseSortEventsByDate(
       ProgramStageInstance pTzf9KYMk72,
       ProgramStageInstance D9PbzJY8bJM,
@@ -766,7 +764,6 @@ class OrderAndPaginationExporterTest extends TrackerTest {
         .collect(Collectors.toList());
   }
 
-  @Nonnull
   private static List<String> sortEventsByDate(
       ProgramStageInstance pTzf9KYMk72,
       ProgramStageInstance D9PbzJY8bJM,
