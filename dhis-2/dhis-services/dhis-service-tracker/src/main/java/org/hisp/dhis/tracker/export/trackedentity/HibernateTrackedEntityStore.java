@@ -59,7 +59,6 @@ import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.security.acl.AclService;
@@ -128,8 +127,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
   private final OrganisationUnitStore organisationUnitStore;
 
-  private final StatementBuilder statementBuilder;
-
   private final SystemSettingManager systemSettingManager;
 
   public HibernateTrackedEntityStore(
@@ -137,16 +134,13 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       AclService aclService,
-      StatementBuilder statementBuilder,
       OrganisationUnitStore organisationUnitStore,
       SystemSettingManager systemSettingManager) {
     super(entityManager, jdbcTemplate, publisher, TrackedEntity.class, aclService, false);
 
-    checkNotNull(statementBuilder);
     checkNotNull(organisationUnitStore);
     checkNotNull(systemSettingManager);
 
-    this.statementBuilder = statementBuilder;
     this.organisationUnitStore = organisationUnitStore;
     this.systemSettingManager = systemSettingManager;
   }
