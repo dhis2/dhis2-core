@@ -29,6 +29,8 @@ package org.hisp.dhis.dataapproval;
 
 import static com.google.common.collect.Sets.newHashSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import com.google.common.collect.Sets;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -61,7 +63,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
-import com.google.common.collect.Sets;
 
 /**
  * DataApprovalStore tests that no longer work in the H2 database but must be done in the PostgreSQL
