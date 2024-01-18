@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-import java.util.function.Predicate;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
@@ -131,14 +130,10 @@ class DataEntryFormServiceTest extends SingleSetupIntegrationTestBase {
     dataEntryFormService.addDataEntryForm(dataEntryFormA);
     dataEntryFormService.addDataEntryForm(dataEntryFormB);
     List<DataEntryForm> dataEntryForms = dataEntryFormService.getAllDataEntryForms();
-    List<DataEntryForm> matches = dataEntryForms.stream().filter(equalsNames).toList();
-    assertEquals(2, matches.size());
+    assertEquals(dataEntryForms.size(), 2);
     assertTrue(dataEntryForms.contains(dataEntryFormA));
     assertTrue(dataEntryForms.contains(dataEntryFormB));
   }
-
-  private final Predicate<DataEntryForm> equalsNames =
-      form -> form.getName().equals("DataEntryFormA") || form.getName().equals("DataEntryFormB");
 
   @Test
   void testPrepareForSave() {
