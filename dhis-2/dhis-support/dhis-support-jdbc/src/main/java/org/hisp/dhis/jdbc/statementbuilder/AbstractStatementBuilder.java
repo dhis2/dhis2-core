@@ -33,7 +33,6 @@ import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_ENROLLMENT_DATE;
 import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_EVENT_DATE;
 import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_INCIDENT_DATE;
 import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_SCHEDULED_DATE;
-
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
@@ -58,6 +57,8 @@ public abstract class AbstractStatementBuilder implements StatementBuilder {
   protected static final String AZaz09 =
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
+  protected static final String QUOTE = "\"";
+  
   protected static final String SINGLE_QUOTE = "'";
 
   protected static final String AZaz_QUOTED = SINGLE_QUOTE + AZaz + SINGLE_QUOTE;
@@ -500,11 +501,9 @@ public abstract class AbstractStatementBuilder implements StatementBuilder {
   }
 
   protected String columnQuote(String column) {
-    String qte = getColumnQuote();
+    column = column.replaceAll(QUOTE, (QUOTE + QUOTE));
 
-    column = column.replaceAll(qte, (qte + qte));
-
-    return qte + column + qte;
+    return QUOTE + column + QUOTE;
   }
 
   /**

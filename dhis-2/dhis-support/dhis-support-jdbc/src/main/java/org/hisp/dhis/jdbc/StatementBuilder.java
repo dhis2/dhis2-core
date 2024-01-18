@@ -39,13 +39,6 @@ import org.hisp.dhis.program.ProgramIndicator;
 public interface StatementBuilder {
 
   /**
-   * Returns the character used to quote database table and column names.
-   *
-   * @return a quote character.
-   */
-  String getColumnQuote();
-
-  /**
    * Returns a limit and offset clause.
    *
    * @param offset the offset / start position for the records to return.
