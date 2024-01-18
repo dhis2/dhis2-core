@@ -28,7 +28,6 @@
 package org.hisp.dhis.trackedentity.hibernate;
 
 import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
@@ -40,7 +39,6 @@ import javax.persistence.criteria.Root;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityChangeLog;
 import org.hisp.dhis.trackedentity.TrackedEntityChangeLogQueryParams;
@@ -59,8 +57,7 @@ public class HibernateTrackedEntityChangeLogStore
   public HibernateTrackedEntityChangeLogStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      StatementBuilder statementBuilder) {
+      ApplicationEventPublisher publisher) {
     super(entityManager, jdbcTemplate, publisher, TrackedEntityChangeLog.class, false);
   }
 
