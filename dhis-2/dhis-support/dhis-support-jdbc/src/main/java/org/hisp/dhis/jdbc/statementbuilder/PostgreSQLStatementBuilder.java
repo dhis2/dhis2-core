@@ -65,32 +65,6 @@ public class PostgreSQLStatementBuilder extends AbstractStatementBuilder {
   }
 
   @Override
-  public String getAddPrimaryKeyToExistingTable(String table, String column) {
-    return "alter table "
-        + table
-        + " add column "
-        + column
-        + " bigint;"
-        + "update "
-        + table
-        + " set "
-        + column
-        + " = nextval('hibernate_sequence') where "
-        + column
-        + " is null;"
-        + "alter table "
-        + table
-        + " alter column "
-        + column
-        + " set not null;"
-        + "alter table "
-        + table
-        + " add primary key("
-        + column
-        + ");";
-  }
-
-  @Override
   public String getDropNotNullConstraint(String table, String column, String type) {
     return "alter table " + table + " alter column " + column + " drop not null;";
   }
@@ -203,10 +177,5 @@ public class PostgreSQLStatementBuilder extends AbstractStatementBuilder {
         .append(long2Column)
         .append(")")
         .toString();
-  }
-
-  @Override
-  public boolean supportsPartialIndexes() {
-    return true;
   }
 }

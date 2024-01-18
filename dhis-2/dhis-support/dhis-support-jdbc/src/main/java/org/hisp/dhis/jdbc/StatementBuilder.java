@@ -92,8 +92,6 @@ public interface StatementBuilder {
 
   String getDropPrimaryKey(String table);
 
-  String getAddPrimaryKeyToExistingTable(String table, String column);
-
   String getDropNotNullConstraint(String table, String column, String type);
 
   /**
@@ -139,14 +137,6 @@ public interface StatementBuilder {
       String table,
       String long1Column,
       String long2Column);
-
-  /**
-   * Indicates whether the DBMS supports partial indexes (index statements with {@code where}
-   * clauses).
-   *
-   * @return true if partial indexes aer supported.
-   */
-  boolean supportsPartialIndexes();
 
   /**
    * Get SQL where-condition for a single analyticsPeriodBoundary in a program indicator.

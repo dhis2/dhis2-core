@@ -33,7 +33,6 @@ import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_ENROLLMENT_DATE;
 import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_EVENT_DATE;
 import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_INCIDENT_DATE;
 import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_SCHEDULED_DATE;
-
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
@@ -95,15 +94,6 @@ public abstract class AbstractStatementBuilder implements StatementBuilder {
   @Override
   public String getDropPrimaryKey(String table) {
     return "alter table " + table + " drop primary key;";
-  }
-
-  @Override
-  public String getAddPrimaryKeyToExistingTable(String table, String column) {
-    return "alter table "
-        + table
-        + " add column "
-        + column
-        + " integer auto_increment primary key not null;";
   }
 
   @Override
@@ -228,11 +218,6 @@ public abstract class AbstractStatementBuilder implements StatementBuilder {
     }
 
     return sb.append(") ").append(table).toString();
-  }
-
-  @Override
-  public boolean supportsPartialIndexes() {
-    return false;
   }
 
   @Override
