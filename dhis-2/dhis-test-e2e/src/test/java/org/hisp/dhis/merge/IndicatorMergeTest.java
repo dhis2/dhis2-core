@@ -257,7 +257,7 @@ class IndicatorMergeTest extends ApiTest {
         .statusCode(200)
         .body("sorting", hasItem(allOf(hasEntry("dimension", targetUid))))
         .body("sorting", not(hasItem(allOf(hasEntry("dimension", sourceUid1)))))
-        .body("sorting", not(hasItem(allOf(hasEntry("dimension", sectionWithoutSources)))));
+        .body("sorting", not(hasItem(allOf(hasEntry("dimension", sourceUid2)))));
   }
 
   private void setupIndicatorData() {

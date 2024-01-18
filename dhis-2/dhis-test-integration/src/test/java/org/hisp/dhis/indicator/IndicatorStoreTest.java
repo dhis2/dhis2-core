@@ -28,6 +28,7 @@
 package org.hisp.dhis.indicator;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -36,6 +37,7 @@ import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -253,5 +255,89 @@ class IndicatorStoreTest extends SingleSetupIntegrationTestBase {
     List<Indicator> indicators = indicatorStore.getIndicatorsWithoutGroups();
     assertEquals(1, indicators.size());
     assertTrue(indicators.contains(indicatorC));
+  }
+
+  @Test
+  @DisplayName("get all indicators with an indicator reference in its numerator")
+  void getIndicatorsWithNumeratorRef() {
+    // given 6 indicators exist, 3 of which has an indicator ref as its numerator
+    IndicatorType indicatorType = createIndicatorType('t');
+    idObjectManager.save(indicatorType);
+
+    Indicator indicator1 = createIndicator('a', indicatorType);
+    Indicator indicator2 = createIndicator('b', indicatorType);
+    Indicator indicator3 = createIndicator('c', indicatorType);
+    Indicator indicatorNumerator1 = createIndicator('d', indicatorType);
+    Indicator indicatorNumerator2 = createIndicator('e', indicatorType);
+
+    indicator1.setNumerator(indicatorNumerator1.getUid());
+    indicator2.setNumerator(indicatorNumerator1.getUid());
+    indicator3.setNumerator(indicatorNumerator2.getUid());
+
+    idObjectManager.save(indicator1);
+    idObjectManager.save(indicator2);
+    idObjectManager.save(indicator3);
+    idObjectManager.save(indicatorNumerator1);
+    idObjectManager.save(indicatorNumerator2);
+
+    // when searching for indicators with specific indicator refs in their numerators
+    List<Indicator> matchedIndicators1 =
+        indicatorStore.getIndicatorsWithNumeratorContaining(indicatorNumerator1.getUid());
+
+    List<Indicator> matchedIndicators2 =
+        indicatorStore.getIndicatorsWithNumeratorContaining(indicatorNumerator2.getUid());
+
+    // then only the matching indicators are retrieved
+    assertEquals(2, matchedIndicators1.size());
+    assertTrue(matchedIndicators1.contains(indicator1));
+    assertTrue(matchedIndicators1.contains(indicator2));
+    assertFalse(matchedIndicators1.contains(indicator3));
+
+    assertEquals(1, matchedIndicators2.size());
+    assertTrue(matchedIndicators2.contains(indicator3));
+    assertFalse(matchedIndicators2.contains(indicator1));
+    assertFalse(matchedIndicators2.contains(indicator2));
+  }
+
+  @Test
+  @DisplayName("get all indicators with an indicator reference in its denominator")
+  void getIndicatorsWithDenominatorRef() {
+    // given 6 indicators exist, 3 of which has an indicator ref as its denominator
+    IndicatorType indicatorType = createIndicatorType('t');
+    idObjectManager.save(indicatorType);
+
+    Indicator indicator1 = createIndicator('a', indicatorType);
+    Indicator indicator2 = createIndicator('b', indicatorType);
+    Indicator indicator3 = createIndicator('c', indicatorType);
+    Indicator indicatorDenominator1 = createIndicator('d', indicatorType);
+    Indicator indicatorDenominator2 = createIndicator('e', indicatorType);
+
+    indicator1.setDenominator(indicatorDenominator1.getUid());
+    indicator2.setDenominator(indicatorDenominator1.getUid());
+    indicator3.setDenominator(indicatorDenominator2.getUid());
+
+    idObjectManager.save(indicator1);
+    idObjectManager.save(indicator2);
+    idObjectManager.save(indicator3);
+    idObjectManager.save(indicatorDenominator1);
+    idObjectManager.save(indicatorDenominator2);
+
+    // when searching for indicators with specific indicator refs in their denominators
+    List<Indicator> matchedIndicators1 =
+        indicatorStore.getIndicatorsWithDenominatorContaining(indicatorDenominator1.getUid());
+
+    List<Indicator> matchedIndicators2 =
+        indicatorStore.getIndicatorsWithDenominatorContaining(indicatorDenominator2.getUid());
+
+    // then only the matching indicators are retrieved
+    assertEquals(2, matchedIndicators1.size());
+    assertTrue(matchedIndicators1.contains(indicator1));
+    assertTrue(matchedIndicators1.contains(indicator2));
+    assertFalse(matchedIndicators1.contains(indicator3));
+
+    assertEquals(1, matchedIndicators2.size());
+    assertTrue(matchedIndicators2.contains(indicator3));
+    assertFalse(matchedIndicators2.contains(indicator1));
+    assertFalse(matchedIndicators2.contains(indicator2));
   }
 }

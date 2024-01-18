@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,75 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataset;
+package org.hisp.dhis.datadimensionitem;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-import java.util.Set;
+import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/**
- * Tests the {@link SectionStore} additional methods.
- *
- * @author Jan Bernitt
- */
-class SectionStoreTest extends SingleSetupIntegrationTestBase {
-  @Autowired private SectionStore sectionStore;
-
-  @Autowired private DataElementService dataElementService;
-
-  @Autowired private DataSetService dataSetService;
+class DataDimensionItemStoreTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
 
-  private DataElement de;
-
-  private DataSet ds;
-
-  @BeforeEach
-  void setUp() {
-    de = createDataElement('A');
-    dataElementService.addDataElement(de);
-
-    ds = createDataSet('A');
-    dataSetService.addDataSet(ds);
-  }
+  @Autowired private DataDimensionItemStore store;
 
   @Test
-  void testGetSectionsByDataElement_SectionOfDataElement() {
-    Section s = new Section("test", ds, List.of(de), Set.of());
-    assertDoesNotThrow(() -> sectionStore.save(s));
-
-    assertEquals(1, sectionStore.getSectionsByDataElement(de.getUid()).size());
-  }
-
-  @Test
-  void testGetSectionsByDataElement_SectionOfDataElementOperand() {
-    DataElementOperand deo = new DataElementOperand(de);
-    Section s = new Section("test", ds, List.of(), Set.of(deo));
-    assertDoesNotThrow(() -> sectionStore.save(s));
-
-    assertEquals(1, sectionStore.getSectionsByDataElement(de.getUid()).size());
-  }
-
-  @Test
-  @DisplayName("get sections with indicator references")
-  void getSectionsWithIndicators() {
-    // given 3 sections exist, each of which has an indicator
+  @DisplayName("Get data dimension items with indicator refs")
+  void getDataDimensionItemsWithIndicators() {
+    // given 4 data dimension items exist
     IndicatorType indicatorType = createIndicatorType('t');
     manager.save(indicatorType);
 
@@ -105,26 +63,37 @@ class SectionStoreTest extends SingleSetupIntegrationTestBase {
     manager.save(indicator2);
     manager.save(indicator3);
 
-    Section s1 = new Section("s1", ds, List.of(), Set.of());
-    s1.setIndicators(List.of(indicator1));
-    Section s2 = new Section("s2", ds, List.of(), Set.of());
-    s2.setIndicators(List.of(indicator2));
-    Section s3 = new Section("s3", ds, List.of(), Set.of());
-    s3.setIndicators(List.of(indicator3));
+    DataElement element = createDataElement('a');
+    manager.save(element);
 
-    sectionStore.save(s1);
-    sectionStore.save(s2);
-    sectionStore.save(s3);
+    // 3 of which have indicators
+    DataDimensionItem item1 = DataDimensionItem.create(indicator1);
+    DataDimensionItem item2 = DataDimensionItem.create(indicator2);
+    DataDimensionItem item3 = DataDimensionItem.create(indicator3);
 
-    // when searching for sections with specific indicators
-    List<Section> matchedSections =
-        sectionStore.getSectionsByIndicators(List.of(indicator1, indicator2));
+    // 1 of which has no indicator
+    DataDimensionItem item4 = DataDimensionItem.create(element);
 
-    // then only the 2 sections with matching indicators are retrieved
-    assertTrue(matchedSections.contains(s1));
-    assertTrue(matchedSections.contains(s2));
+    store.save(item1);
+    store.save(item2);
+    store.save(item3);
+    store.save(item4);
 
-    // and the section with no matching indicator is not retrieved
-    assertFalse(matchedSections.contains(s3));
+    // assert all 4 items exist before further checks
+    List<DataDimensionItem> all = store.getAll();
+    assertEquals(4, all.size());
+
+    // when searching for data dimension items with specific indicator refs
+    List<DataDimensionItem> matchedItems =
+        store.getIndicatorDataDimensionItems(List.of(indicator1, indicator2));
+
+    // then 2 data dimension items with matching indicators are retrieved
+    assertEquals(2, matchedItems.size());
+    assertTrue(matchedItems.contains(item1));
+    assertTrue(matchedItems.contains(item2));
+
+    // and the other 2 data dimension items with non-matching indicator refs are not retrieved
+    assertFalse(matchedItems.contains(item3));
+    assertFalse(matchedItems.contains(item4));
   }
 }
