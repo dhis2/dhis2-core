@@ -54,6 +54,7 @@ import static org.hisp.dhis.dxf2.deprecated.tracker.event.EventUtils.eventDataVa
 import static org.hisp.dhis.dxf2.deprecated.tracker.event.EventUtils.jsonToUserInfo;
 import static org.hisp.dhis.dxf2.deprecated.tracker.event.EventUtils.userInfoToJson;
 import static org.hisp.dhis.system.util.SqlUtils.castToNumber;
+import static org.hisp.dhis.system.util.SqlUtils.encode;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import java.io.IOException;
@@ -99,7 +100,6 @@ import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType;
 import org.hisp.dhis.hibernate.jsonb.type.JsonEventDataValueSetBinaryType;
 import org.hisp.dhis.jdbc.BatchPreparedStatementSetterWithKeyHolder;
 import org.hisp.dhis.jdbc.JdbcUtils;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -341,8 +341,6 @@ public class JdbcEventStore implements EventStore {
   // DHIS2-6102
   private static final ObjectReader eventDataValueJsonReader =
       JsonBinaryType.MAPPER.readerFor(new TypeReference<Map<String, EventDataValue>>() {});
-
-  private final StatementBuilder statementBuilder;
 
   private final NamedParameterJdbcTemplate jdbcTemplate;
 
@@ -952,7 +950,7 @@ public class JdbcEventStore implements EventStore {
           .append(AND)
           .append(teaCol + ".UID")
           .append(EQUALS)
-          .append(statementBuilder.encode(queryItem.getItem().getUid(), true));
+          .append(encode(queryItem.getItem().getUid(), true));
 
       attributes.append(getAttributeFilterQuery(queryItem, teaCol, teaValueCol));
     }

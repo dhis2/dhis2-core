@@ -32,6 +32,7 @@ import static java.util.Map.entry;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.system.util.SqlUtils.encode;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
@@ -203,7 +204,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   private String encodeAndQuote(Collection<String> elements) {
     return getQuotedCommaDelimitedString(
         elements.stream()
-            .map(element -> statementBuilder.encode(element, false))
+            .map(element -> encode(element, false))
             .collect(Collectors.toList()));
   }
 
@@ -548,7 +549,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
           .append(" = TE.trackedentityid ");
 
       for (QueryFilter filter : filters.getValue()) {
-        String encodedFilter = statementBuilder.encode(filter.getFilter(), false);
+        String encodedFilter = encode(filter.getFilter(), false);
         attributes
             .append("AND ")
             .append(teav)

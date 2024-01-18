@@ -33,6 +33,7 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getTokens;
+import static org.hisp.dhis.system.util.SqlUtils.encode;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.CREATED_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.DELETED;
@@ -209,7 +210,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
   private String encodeAndQuote(Collection<String> elements) {
     return getQuotedCommaDelimitedString(
         elements.stream()
-            .map(element -> statementBuilder.encode(element, false))
+            .map(element -> encode(element, false))
             .collect(Collectors.toList()));
   }
 
@@ -701,7 +702,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
         .append(") AND (");
 
     for (String queryToken : getTokens(params.getQuery().getFilter())) {
-      final String query = statementBuilder.encode(queryToken, false);
+      final String query = encode(queryToken, false);
 
       attributes
           .append(orHlp.or())
@@ -749,7 +750,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
           .append(" = TE.trackedentityid ");
 
       for (QueryFilter filter : queryItem.getFilters()) {
-        String encodedFilter = statementBuilder.encode(filter.getFilter(), false);
+        String encodedFilter = encode(filter.getFilter(), false);
         attributes
             .append("AND ")
             .append(teav)

@@ -37,8 +37,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -49,7 +47,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.deprecated.tracker.report.EventRow;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.store.EventStore;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
@@ -68,6 +65,7 @@ import org.mockito.quality.Strictness;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Luciano Fiandesio
@@ -105,7 +103,6 @@ class JdbcEventStoreTest {
     ObjectMapper objectMapper = new ObjectMapper();
     subject =
         new JdbcEventStore(
-            new PostgreSQLStatementBuilder(),
             namedParameterJdbcTemplate,
             objectMapper,
             manager,

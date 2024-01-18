@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.trackedentity.hibernate;
 
-import com.google.common.collect.Sets;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -49,6 +48,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
 import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
@@ -56,6 +56,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import com.google.common.collect.Sets;
 
 /**
  * @author Abyot Asalefew Gizaw
@@ -126,7 +127,7 @@ public class HibernateTrackedEntityAttributeStore
       for (QueryFilter filter : item.getFilters()) {
         final String encodedFilter =
             filter.getSqlFilter(
-                statementBuilder.encode(StringUtils.lowerCase(filter.getFilter()), false));
+                SqlUtils.encode(StringUtils.lowerCase(filter.getFilter()), false));
 
         hql +=
             hlp.whereAnd()

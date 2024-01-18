@@ -37,14 +37,6 @@ import org.hisp.dhis.program.ProgramIndicator;
  * @author Lars Helge Overland
  */
 public interface StatementBuilder {
-  /**
-   * Encodes the provided SQL value.
-   *
-   * @param value the value.
-   * @param quote whether to wrap the resulting value in quotes.
-   * @return the SQL encoded value.
-   */
-  String encode(String value, boolean quote);
 
   /**
    * Returns the character used to quote database table and column names.

@@ -64,15 +64,6 @@ public abstract class AbstractStatementBuilder implements StatementBuilder {
   protected static final String AZaz09_QUOTED = QUOTE + AZaz09 + QUOTE;
 
   @Override
-  public String encode(String value, boolean quote) {
-    if (value != null) {
-      value = value.replace("\\", "\\\\").replace(QUOTE, QUOTE + QUOTE);
-    }
-
-    return quote ? (QUOTE + value + QUOTE) : value;
-  }
-
-  @Override
   public String limitRecord(int offset, int limit) {
     return " limit " + limit + " offset " + offset;
   }
