@@ -35,11 +35,6 @@ import java.util.List;
  */
 public class PostgreSQLStatementBuilder extends AbstractStatementBuilder {
 
-  @Override
-  public String getDropPrimaryKey(String table) {
-    return "alter table " + table + " drop constraint " + table + "_pkey;";
-  }
-
   /**
    * Generates a derived table containing one column of literal strings.
    *

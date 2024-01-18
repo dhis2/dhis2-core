@@ -46,8 +46,6 @@ public interface StatementBuilder {
    */
   String getCastToDate(String column);
 
-  String getDropPrimaryKey(String table);
-
   /**
    * Generates a derived table containing one column of literal strings.
    *

@@ -33,7 +33,6 @@ import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_ENROLLMENT_DATE;
 import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_EVENT_DATE;
 import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_INCIDENT_DATE;
 import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_SCHEDULED_DATE;
-
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
@@ -59,11 +58,6 @@ public abstract class AbstractStatementBuilder implements StatementBuilder {
   @Override
   public String getCastToDate(String column) {
     return "cast(" + column + " as date)";
-  }
-
-  @Override
-  public String getDropPrimaryKey(String table) {
-    return "alter table " + table + " drop primary key;";
   }
 
   /**
