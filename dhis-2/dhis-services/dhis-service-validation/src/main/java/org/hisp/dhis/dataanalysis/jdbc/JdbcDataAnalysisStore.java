@@ -29,14 +29,11 @@ package org.hisp.dhis.dataanalysis.jdbc;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.commons.collection.PaginatedList;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -44,7 +41,6 @@ import org.hisp.dhis.dataanalysis.DataAnalysisMeasures;
 import org.hisp.dhis.dataanalysis.DataAnalysisStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.objectmapper.DeflatedDataValueNameMinMaxRowMapper;
@@ -54,6 +50,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -63,8 +61,7 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 @Repository("org.hisp.dhis.dataanalysis.DataAnalysisStore")
 public class JdbcDataAnalysisStore implements DataAnalysisStore {
-  private final StatementBuilder statementBuilder;
-
+  
   @Qualifier("readOnlyJdbcTemplate")
   private final JdbcTemplate jdbcTemplate;
 
@@ -91,12 +88,8 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore {
 
     String sql =
         "select dv.sourceid, dv.categoryoptioncomboid, "
-            + "avg(cast(dv.value as "
-            + statementBuilder.getDoubleColumnType()
-            + ")) as average, "
-            + "stddev_pop(cast(dv.value as "
-            + statementBuilder.getDoubleColumnType()
-            + ")) as standarddeviation "
+            + "avg(cast(dv.value as double precision)) as average, "
+            + "stddev_pop(cast(dv.value as double precision)) as standarddeviation "
             + "from datavalue dv "
             + "inner join organisationunit ou on ou.organisationunitid = dv.sourceid "
             + "inner join period pe on dv.periodid = pe.periodid "
@@ -172,12 +165,8 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore {
             + periodIds
             + ") "
             + "and ("
-            + "cast(dv.value as "
-            + statementBuilder.getDoubleColumnType()
-            + ") < mm.minimumvalue "
-            + "or cast(dv.value as "
-            + statementBuilder.getDoubleColumnType()
-            + ") > mm.maximumvalue) "
+            + "cast(dv.value as double precision) < mm.minimumvalue "
+            + "or cast(dv.value as double precision) > mm.maximumvalue) "
             + "and (";
 
     for (OrganisationUnit parent : parents) {
@@ -187,7 +176,7 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore {
     sql = TextUtils.removeLastOr(sql) + ") ";
     sql += "and dv.deleted is false ";
 
-    sql += statementBuilder.limitRecord(0, limit);
+    sql += "limit " + limit;
 
     return jdbcTemplate.query(sql, new DeflatedDataValueNameMinMaxRowMapper(null, null));
   }
@@ -253,14 +242,10 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore {
           "(dv.sourceid = "
               + orgUnitUid
               + " "
-              + "and (cast( dv.value as "
-              + statementBuilder.getDoubleColumnType()
-              + " ) < "
+              + "and (cast( dv.value as double precision) < "
               + lowerBoundMap.get(orgUnitUid)
               + " "
-              + "or cast(dv.value as "
-              + statementBuilder.getDoubleColumnType()
-              + ") > "
+              + "or cast(dv.value as double precision) > "
               + upperBoundMap.get(orgUnitUid)
               + ")) or ";
     }
@@ -328,7 +313,7 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore {
     sql = TextUtils.removeLastOr(sql) + ") ";
     sql += "and dv.followup = true and dv.deleted is false ";
 
-    sql += statementBuilder.limitRecord(0, limit);
+    sql += "limit " + limit;
 
     return jdbcTemplate.query(sql, new DeflatedDataValueNameMinMaxRowMapper(null, null));
   }

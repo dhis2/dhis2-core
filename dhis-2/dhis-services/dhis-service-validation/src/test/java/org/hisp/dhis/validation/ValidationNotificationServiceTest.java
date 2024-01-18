@@ -33,8 +33,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
-
-import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -43,7 +41,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -70,6 +67,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import com.google.common.collect.Sets;
 
 /**
  * Tests for the business logic implemented in ValidationNotificationService.
@@ -338,8 +336,8 @@ class ValidationNotificationServiceTest extends DhisConvenienceTest {
             period,
             ou,
             catOptCombo,
-            RandomUtils.nextDouble(10, 1000),
-            RandomUtils.nextDouble(10, 1000),
+            10d,
+            20d,
             periodService.getDayInPeriod(period, new Date()));
     vr.setId(idCounter++);
     return vr;
@@ -353,8 +351,8 @@ class ValidationNotificationServiceTest extends DhisConvenienceTest {
             period,
             orgUnitA,
             catOptCombo,
-            RandomUtils.nextDouble(10, 1000),
-            RandomUtils.nextDouble(10, 1000),
+            10d,
+            20d,
             periodService.getDayInPeriod(period, new Date()));
     vr.setId(idCounter++);
     return vr;
