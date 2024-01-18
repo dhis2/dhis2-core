@@ -35,6 +35,7 @@ import static org.hisp.dhis.dataapproval.DataApprovalState.UNAPPROVABLE;
 import static org.hisp.dhis.dataapproval.DataApprovalState.UNAPPROVED_ABOVE;
 import static org.hisp.dhis.dataapproval.DataApprovalState.UNAPPROVED_READY;
 import static org.hisp.dhis.dataapproval.DataApprovalState.UNAPPROVED_WAITING;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -43,6 +44,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
@@ -76,7 +78,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Jim Grace
@@ -833,15 +834,15 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
 
     return 0;
   }
-  
+
   private String position(String substring, String string) {
     return ("POSITION(" + substring + " in " + string + ")");
   }
-  
+
   private String concatenate(String... s) {
     return "CONCAT(" + StringUtils.join(s, ", ") + ")";
   }
-  
+
   // TODO: Should we move these two methods to static methods in
   // OrganisationUnit?
   /**
