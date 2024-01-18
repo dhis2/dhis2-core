@@ -64,11 +64,6 @@ public abstract class AbstractStatementBuilder implements StatementBuilder {
   protected static final String AZaz09_QUOTED = QUOTE + AZaz09 + QUOTE;
 
   @Override
-  public String encode(String value) {
-    return encode(value, true);
-  }
-
-  @Override
   public String encode(String value, boolean quote) {
     if (value != null) {
       value = value.replace("\\", "\\\\").replace(QUOTE, QUOTE + QUOTE);

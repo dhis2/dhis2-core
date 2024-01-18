@@ -27,10 +27,7 @@
  */
 package org.hisp.dhis.jdbc.statementbuilder;
 
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import org.hamcrest.CoreMatchers;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.junit.jupiter.api.Test;
 
@@ -44,12 +41,5 @@ class StatementBuilderTest {
     StatementBuilder builder = new PostgreSQLStatementBuilder();
     String autoIncrement = builder.getAutoIncrementValue();
     assertEquals("nextval('hibernate_sequence')", autoIncrement);
-  }
-
-  @Test
-  void encodeTest() {
-    StatementBuilder builder = new PostgreSQLStatementBuilder();
-    String encoded = builder.encode("contains'character");
-    assertThat(encoded, CoreMatchers.containsString("''"));
   }
 }
