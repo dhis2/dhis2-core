@@ -131,6 +131,7 @@ class TrackedEntitiesExportController {
       throws BadRequestException, ForbiddenException, NotFoundException {
     validatePaginationParameters(requestParams);
     TrackedEntityOperationParams operationParams = paramsMapper.map(requestParams, currentUser);
+
     if (requestParams.isPaged()) {
       PageParams pageParams =
           new PageParams(

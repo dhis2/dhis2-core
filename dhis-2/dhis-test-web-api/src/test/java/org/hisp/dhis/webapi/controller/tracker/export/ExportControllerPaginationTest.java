@@ -144,6 +144,35 @@ class ExportControllerPaginationTest extends DhisControllerConvenienceTest {
   }
 
   @Test
+  void shouldGetPaginatedItemsWithPagingSetToTrue() {
+    TrackedEntity to = trackedEntity();
+    Event from1 = event(enrollment(to));
+    Event from2 = event(enrollment(to));
+    Relationship r1 = relationship(from1, to);
+    Relationship r2 = relationship(from2, to);
+
+    JsonPage page =
+        GET("/tracker/relationships?trackedEntity={uid}&paging=true", to.getUid())
+            .content(HttpStatus.OK)
+            .asObject(JsonPage.class);
+
+    assertContainsOnly(
+        List.of(r1.getUid(), r2.getUid()),
+        page.getList("instances", JsonRelationship.class)
+            .toList(JsonRelationship::getRelationship));
+    assertEquals(1, page.getPager().getPage());
+    assertEquals(50, page.getPager().getPageSize());
+    assertHasNoMember(page.getPager(), "total");
+    assertHasNoMember(page.getPager(), "pageCount");
+
+    // assert deprecated fields
+    assertEquals(1, page.getPage());
+    assertEquals(50, page.getPageSize());
+    assertHasNoMember(page, "total");
+    assertHasNoMember(page, "pageCount");
+  }
+
+  @Test
   void shouldGetPaginatedItemsWithDefaultsAndTotals() {
     TrackedEntity to = trackedEntity();
     Event from1 = event(enrollment(to));
@@ -244,6 +273,32 @@ class ExportControllerPaginationTest extends DhisControllerConvenienceTest {
 
     JsonPage page =
         GET("/tracker/relationships?trackedEntity={uid}&skipPaging=true", to.getUid())
+            .content(HttpStatus.OK)
+            .asObject(JsonPage.class);
+
+    assertContainsOnly(
+        List.of(r1.getUid(), r2.getUid()),
+        page.getList("instances", JsonRelationship.class)
+            .toList(JsonRelationship::getRelationship));
+    assertHasNoMember(page, "pager");
+
+    // assert deprecated fields
+    assertHasNoMember(page, "page");
+    assertHasNoMember(page, "pageSize");
+    assertHasNoMember(page, "total");
+    assertHasNoMember(page, "pageCount");
+  }
+
+  @Test
+  void shouldGetNonPaginatedItemsWithPagingSetToFalse() {
+    TrackedEntity to = trackedEntity();
+    Event from1 = event(enrollment(to));
+    Event from2 = event(enrollment(to));
+    Relationship r1 = relationship(from1, to);
+    Relationship r2 = relationship(from2, to);
+
+    JsonPage page =
+        GET("/tracker/relationships?trackedEntity={uid}&paging=false", to.getUid())
             .content(HttpStatus.OK)
             .asObject(JsonPage.class);
 
