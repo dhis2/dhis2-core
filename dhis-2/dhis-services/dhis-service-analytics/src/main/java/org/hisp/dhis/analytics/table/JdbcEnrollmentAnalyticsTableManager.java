@@ -56,7 +56,6 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
@@ -81,7 +80,6 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
       DataApprovalLevelService dataApprovalLevelService,
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
-      StatementBuilder statementBuilder,
       PartitionManager partitionManager,
       DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
@@ -95,7 +93,6 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
         dataApprovalLevelService,
         resourceTableService,
         tableHookService,
-        statementBuilder,
         partitionManager,
         databaseInfoProvider,
         jdbcTemplate,

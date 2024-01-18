@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.AnalyticsConstants;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
@@ -52,41 +53,9 @@ import org.springframework.util.Assert;
  * @author Lars Helge Overland
  */
 public abstract class AbstractStatementBuilder implements StatementBuilder {
-  static final String AZaz = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+  protected static final String QUOTE = "\"";
 
-  static final String AZaz09 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
-  static final String AZaz_QUOTED = QUOTE + AZaz + QUOTE;
-
-  static final String AZaz09_QUOTED = QUOTE + AZaz09 + QUOTE;
-
-  @Override
-  public String encode(String value) {
-    return encode(value, true);
-  }
-
-  @Override
-  public String encode(String value, boolean quote) {
-    if (value != null) {
-      value = value.replace("\\", "\\\\").replace(QUOTE, QUOTE + QUOTE);
-    }
-
-    return quote ? (QUOTE + value + QUOTE) : value;
-  }
-
-  @Override
-  public String columnQuote(String column) {
-    String qte = getColumnQuote();
-
-    column = column.replaceAll(qte, (qte + qte));
-
-    return qte + column + qte;
-  }
-
-  @Override
-  public String limitRecord(int offset, int limit) {
-    return " limit " + limit + " offset " + offset;
-  }
+  protected static final String SINGLE_QUOTE = "'";
 
   @Override
   public String getAutoIncrementValue() {
@@ -106,22 +75,6 @@ public abstract class AbstractStatementBuilder implements StatementBuilder {
   @Override
   public String position(String substring, String string) {
     return ("POSITION(" + substring + " in " + string + ")");
-  }
-
-  @Override
-  public String getUid() {
-    return concatenate(
-        getCharAt(AZaz_QUOTED, "1 + " + getRandom(AZaz.length())),
-        getCharAt(AZaz09_QUOTED, "1 + " + getRandom(AZaz09.length())),
-        getCharAt(AZaz09_QUOTED, "1 + " + getRandom(AZaz09.length())),
-        getCharAt(AZaz09_QUOTED, "1 + " + getRandom(AZaz09.length())),
-        getCharAt(AZaz09_QUOTED, "1 + " + getRandom(AZaz09.length())),
-        getCharAt(AZaz09_QUOTED, "1 + " + getRandom(AZaz09.length())),
-        getCharAt(AZaz09_QUOTED, "1 + " + getRandom(AZaz09.length())),
-        getCharAt(AZaz09_QUOTED, "1 + " + getRandom(AZaz09.length())),
-        getCharAt(AZaz09_QUOTED, "1 + " + getRandom(AZaz09.length())),
-        getCharAt(AZaz09_QUOTED, "1 + " + getRandom(AZaz09.length())),
-        getCharAt(AZaz09_QUOTED, "1 + " + getRandom(AZaz09.length())));
   }
 
   @Override
@@ -379,7 +332,7 @@ public abstract class AbstractStatementBuilder implements StatementBuilder {
         + " where "
         + eventTableName
         + ".pi = "
-        + ANALYTICS_TBL_ALIAS
+        + AnalyticsConstants.ANALYTICS_TBL_ALIAS
         + ".pi and "
         + columnName
         + " is not null "
@@ -516,6 +469,12 @@ public abstract class AbstractStatementBuilder implements StatementBuilder {
         + " cast( '"
         + format.format(boundary.getBoundaryDate(reportingStartDate, reportingEndDate))
         + "' as date )";
+  }
+
+  protected String columnQuote(String column) {
+    column = column.replaceAll(QUOTE, (QUOTE + QUOTE));
+
+    return QUOTE + column + QUOTE;
   }
 
   /**

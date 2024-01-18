@@ -28,10 +28,10 @@
 package org.hisp.dhis.program;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castClass;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
 import static org.hisp.dhis.expression.ExpressionParams.DEFAULT_EXPRESSION_PARAMS;
-import static org.hisp.dhis.jdbc.StatementBuilder.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_DESCRIPTIONS;
 import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_SQL;
 import static org.hisp.dhis.parser.expression.ParserUtils.COMMON_EXPRESSION_ITEMS;
@@ -121,6 +121,7 @@ import org.hisp.dhis.program.function.D2YearsBetween;
 import org.hisp.dhis.program.function.D2Zing;
 import org.hisp.dhis.program.function.D2Zpvc;
 import org.hisp.dhis.program.variable.ProgramVariableItem;
+import org.hisp.dhis.system.util.SqlUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -372,7 +373,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
     return analyticsSqlCache.get(
         cacheKey,
         k ->
-            _getAnalyticsSql(
+            getAnalyticsSqlInternal(
                 expression, dataType, programIndicator, startDate, endDate, tableAlias));
   }
 
@@ -407,7 +408,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
         .orElse(StringUtils.EMPTY);
   }
 
-  private String _getAnalyticsSql(
+  private String getAnalyticsSqlInternal(
       String expression,
       DataType dataType,
       ProgramIndicator programIndicator,
@@ -458,7 +459,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
       String sql = StringUtils.EMPTY;
 
       for (String uid : uids) {
-        sql += statementBuilder.columnQuote(uid) + " is not null or ";
+        sql += SqlUtils.quote(uid) + " is not null or ";
       }
 
       return TextUtils.removeLastOr(sql).trim();

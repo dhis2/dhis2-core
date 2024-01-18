@@ -70,7 +70,6 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
@@ -109,8 +108,6 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
   @Mock private ResourceTableService resourceTableService;
 
   @Mock private AnalyticsTableHookService tableHookService;
-
-  @Mock private StatementBuilder statementBuilder;
 
   @Mock private PartitionManager partitionManager;
 
@@ -155,7 +152,6 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
             dataApprovalLevelService,
             resourceTableService,
             tableHookService,
-            statementBuilder,
             partitionManager,
             databaseInfoProvider,
             jdbcTemplate,

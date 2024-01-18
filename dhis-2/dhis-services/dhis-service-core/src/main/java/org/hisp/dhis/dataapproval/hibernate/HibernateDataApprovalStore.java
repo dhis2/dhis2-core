@@ -70,6 +70,7 @@ import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -90,8 +91,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
 
   private static final String SQL_CONCAT = "-";
 
-  private static final String SQL_CAT =
-      StatementBuilder.QUOTE + SQL_CONCAT + StatementBuilder.QUOTE;
+  private static final String SQL_CAT = SqlUtils.SINGLE_QUOTE + SQL_CONCAT + SqlUtils.SINGLE_QUOTE;
 
   private final Cache<Boolean> isApprovedCache;
 

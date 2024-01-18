@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,65 +25,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.jdbc.statementbuilder;
+package org.hisp.dhis.analytics;
 
-/**
- * @author Lars Helge Overland
- */
-public class HsqlStatementBuilder extends AbstractStatementBuilder {
-  @Override
-  public String getDoubleColumnType() {
-    return "double";
-  }
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
-  @Override
-  public String getColumnQuote() {
-    return "\"";
-  }
-
-  @Override
-  public String getVacuum(String table) {
-    return null;
-  }
-
-  @Override
-  public String getAnalyze(String table) {
-    return null;
-  }
-
-  @Override
-  public String getTableOptions(boolean autoVacuum) {
-    return "";
-  }
-
-  @Override
-  public String getRegexpMatch() {
-    return "regexp";
-  }
-
-  @Override
-  public String getRegexpWordStart() // TODO test
-      {
-    return "[[:<:]]";
-  }
-
-  @Override
-  public String getRegexpWordEnd() {
-    return "[[:>:]]";
-  }
-
-  @Override
-  public String getRandom(int n) {
-    return "cast(floor(" + n + "*rand()) as integer)";
-  }
-
-  @Override
-  public String getCharAt(String str, String n) {
-    return "substring(" + str + "," + n + ",1)";
-  }
-
-  @Override
-  public String getAddDate(String dateField, int days) {
-    return "DATEADD('DAY'," + days + "," + dateField + ")";
-  }
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class AnalyticsConstants {
+  public static final String ANALYTICS_TBL_ALIAS = "ax";
 }

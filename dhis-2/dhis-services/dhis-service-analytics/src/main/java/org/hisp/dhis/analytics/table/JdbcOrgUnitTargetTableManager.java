@@ -50,7 +50,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
@@ -75,7 +74,6 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
       DataApprovalLevelService dataApprovalLevelService,
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
-      StatementBuilder statementBuilder,
       PartitionManager partitionManager,
       DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
@@ -89,7 +87,6 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
         dataApprovalLevelService,
         resourceTableService,
         tableHookService,
-        statementBuilder,
         partitionManager,
         databaseInfoProvider,
         jdbcTemplate,

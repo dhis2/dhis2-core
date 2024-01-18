@@ -37,54 +37,6 @@ import org.hisp.dhis.program.ProgramIndicator;
  * @author Lars Helge Overland
  */
 public interface StatementBuilder {
-  String QUOTE = "'";
-
-  String ANALYTICS_TBL_ALIAS = "ax";
-
-  // --------------------------------------------------------------------------
-  // General
-  // --------------------------------------------------------------------------
-
-  /**
-   * Encodes the provided SQL value. Value will be wrapped in quotes.
-   *
-   * @param value the value.
-   * @return the SQL encoded value.
-   */
-  String encode(String value);
-
-  /**
-   * Encodes the provided SQL value.
-   *
-   * @param value the value.
-   * @param quote whether to wrap the resulting value in quotes.
-   * @return the SQL encoded value.
-   */
-  String encode(String value, boolean quote);
-
-  /**
-   * Returns the character used to quote database table and column names.
-   *
-   * @return a quote character.
-   */
-  String getColumnQuote();
-
-  /**
-   * Wraps the given column or table in quotes.
-   *
-   * @param column the column or table name.
-   * @return the column or table name wrapped in quotes.
-   */
-  String columnQuote(String column);
-
-  /**
-   * Returns a limit and offset clause.
-   *
-   * @param offset the offset / start position for the records to return.
-   * @param limit the limit on max number of records to return.
-   * @return a limit and offset clause.
-   */
-  String limitRecord(int offset, int limit);
 
   /**
    * Returns the value to use in insert statements for auto-increment columns.
@@ -92,15 +44,6 @@ public interface StatementBuilder {
    * @return value to use in insert statements for auto-increment columns.
    */
   String getAutoIncrementValue();
-
-  /**
-   * Returns statement for vacuum operation for a table. Returns null if such statement is not
-   * relevant.
-   *
-   * @param table the table to vacuum.
-   * @return vacuum and analyze operations for a table.
-   */
-  String getVacuum(String table);
 
   /**
    * Returns statement for analytics operation for a table. Returns null if such statement is not
@@ -170,14 +113,6 @@ public interface StatementBuilder {
    * @return the function to return the character
    */
   String getCharAt(String str, String n);
-
-  /**
-   * Generates a random 11-character UID where the first character is an upper/lower case letter and
-   * the remaining 10 characters are a digit or an upper/lower case letter.
-   *
-   * @return randomly-generated UID.
-   */
-  String getUid();
 
   /** Returns the number of columns part of the primary key for the given table. */
   String getNumberOfColumnsInPrimaryKey(String table);

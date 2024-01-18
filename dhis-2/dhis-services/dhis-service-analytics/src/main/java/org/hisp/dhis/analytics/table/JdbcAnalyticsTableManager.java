@@ -69,7 +69,6 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -127,7 +126,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
       DataApprovalLevelService dataApprovalLevelService,
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
-      StatementBuilder statementBuilder,
       PartitionManager partitionManager,
       DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
@@ -141,7 +139,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         dataApprovalLevelService,
         resourceTableService,
         tableHookService,
-        statementBuilder,
         partitionManager,
         databaseInfoProvider,
         jdbcTemplate,
@@ -252,7 +249,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   @Override
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
-    String dbl = statementBuilder.getDoubleColumnType();
     boolean skipDataTypeValidation =
         systemSettingManager.getBoolSetting(
             SettingKey.SKIP_DATA_TYPE_VALIDATION_IN_ANALYTICS_TABLE_EXPORT);
@@ -262,11 +258,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     String numericClause =
         skipDataTypeValidation
             ? ""
-            : ("and dv.value "
-                + statementBuilder.getRegexpMatch()
-                + " '"
-                + MathUtils.NUMERIC_LENIENT_REGEXP
-                + "' ");
+            : ("and dv.value ~* '" + MathUtils.NUMERIC_LENIENT_REGEXP + "' ");
     String zeroValueCondition = includeZeroValues ? " or de.zeroissignificant = true" : "";
     String zeroValueClause =
         "(dv.value != '0' or de.aggregationtype in ('"
@@ -281,7 +273,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     populateTable(
         params,
         partition,
-        "cast(dv.value as " + dbl + ")",
+        "cast(dv.value as double precision)",
         "null",
         ValueType.NUMERIC_TYPES,
         intClause);
@@ -633,7 +625,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
 
   @Override
   public void vacuumTables(AnalyticsTablePartition partition) {
-    String sql = statementBuilder.getVacuum(partition.getTempTableName());
+    String sql = "vacuum " + partition.getTempTableName();
 
     log.debug("Vacuum SQL: " + sql);
 

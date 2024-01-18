@@ -37,16 +37,6 @@ public class H2StatementBuilder extends AbstractStatementBuilder {
   }
 
   @Override
-  public String getColumnQuote() {
-    return "\"";
-  }
-
-  @Override
-  public String getVacuum(String table) {
-    return null;
-  }
-
-  @Override
   public String getAnalyze(String table) {
     return null;
   }
