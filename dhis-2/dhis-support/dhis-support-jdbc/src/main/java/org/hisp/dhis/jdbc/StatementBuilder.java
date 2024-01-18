@@ -38,15 +38,6 @@ import org.hisp.dhis.program.ProgramIndicator;
  */
 public interface StatementBuilder {
 
-  /**
-   * Returns an SQL statement to include in create table statements with applies options to the
-   * table. Returns an empty string if all options are set to the default value.
-   *
-   * @param autoVacuum whether to enable automatic vacuum, default is true.
-   * @return statement part with applies options to the table.
-   */
-  String getTableOptions(boolean autoVacuum);
-
   /** Returns the name of a double column type. */
   String getDoubleColumnType();
 
@@ -81,23 +72,6 @@ public interface StatementBuilder {
    */
   String position(String substring, String string);
 
-  /**
-   * Returns a function to get a random integer between 0 and n
-   *
-   * @param n the maximum random value
-   * @return the function to return the random integer
-   */
-  String getRandom(int n);
-
-  /**
-   * Returns a function to return 1 character from a string at position n
-   *
-   * @param str the string to return the character from
-   * @param n the position to find the character at
-   * @return the function to return the character
-   */
-  String getCharAt(String str, String n);
-
   /** Returns the number of columns part of the primary key for the given table. */
   String getNumberOfColumnsInPrimaryKey(String table);
 
@@ -118,8 +92,6 @@ public interface StatementBuilder {
    * @return statement which calculates the number of days between the given dates.
    */
   String getDaysBetweenDates(String fromColumn, String toColumn);
-
-  String getAddDate(String dateField, int days);
 
   String getDropPrimaryKey(String table);
 
