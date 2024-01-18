@@ -39,14 +39,6 @@ import org.hisp.dhis.program.ProgramIndicator;
 public interface StatementBuilder {
 
   /**
-   * Returns a cast to timestamp statement for the given column.
-   *
-   * @param column the column name.
-   * @return a cast to timestamp statement for the given column.
-   */
-  String getCastToDate(String column);
-
-  /**
    * Generates a derived table containing one column of literal strings.
    *
    * @param values (non-empty) String values for the derived table

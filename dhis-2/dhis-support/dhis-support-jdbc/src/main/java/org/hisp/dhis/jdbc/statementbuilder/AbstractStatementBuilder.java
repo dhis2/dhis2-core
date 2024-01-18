@@ -33,7 +33,6 @@ import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_ENROLLMENT_DATE;
 import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_EVENT_DATE;
 import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_INCIDENT_DATE;
 import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_SCHEDULED_DATE;
-
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
@@ -55,11 +54,6 @@ public abstract class AbstractStatementBuilder implements StatementBuilder {
   protected static final String QUOTE = "\"";
 
   protected static final String SINGLE_QUOTE = "'";
-
-  @Override
-  public String getCastToDate(String column) {
-    return "cast(" + column + " as date)";
-  }
 
   /**
    * Generates a derived table containing one column of literal strings.
@@ -465,5 +459,9 @@ public abstract class AbstractStatementBuilder implements StatementBuilder {
     }
 
     return DB_SCHEDULED_DATE;
+  }
+
+  private String getCastToDate(String column) {
+    return "cast(" + column + " as date)";
   }
 }
