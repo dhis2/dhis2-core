@@ -28,7 +28,6 @@
 package org.hisp.dhis.system.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import org.junit.jupiter.api.Test;
 
 /**
@@ -57,16 +56,16 @@ class SqlUtilsTest {
 
   @Test
   void testEncode() {
-    assertEquals("\"John White\"", SqlUtils.encode("John White"));
-    assertEquals(
-        "\"Main Street 1\\\\nSmallwille\\\\n\"", SqlUtils.encode("Main Street 1\\nSmallwille\\n"));
+    assertEquals("'John White'", SqlUtils.encode("John White"));
+    assertEquals("'Main St 1\\\\nSmallwille\\\\n'", SqlUtils.encode("Main St 1\\nSmallwille\\n"));
+    assertEquals("'Provided ''Rx01'' to patient'", SqlUtils.encode("Provided 'Rx01' to patient"));
   }
 
   @Test
   void testEncodeWithoutQuote() {
     assertEquals("John White", SqlUtils.encode("John White", false));
-    assertEquals(
-        "Main Street 1\\\\nSmallwille\\\\n",
-        SqlUtils.encode("Main Street 1\\nSmallwille\\n", false));
+    assertEquals("Main St 1\\\\nSmallwille\\\\n", 
+        SqlUtils.encode("Main St 1\\nSmallwille\\n", false));
+    assertEquals("Provided ''Rx01'' to patient", SqlUtils.encode("Provided 'Rx01' to patient", false));
   }
 }

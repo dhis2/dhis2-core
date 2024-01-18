@@ -58,11 +58,11 @@ public abstract class AbstractStatementBuilder implements StatementBuilder {
   protected static final String AZaz09 =
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
-  protected static final String QUOTE = "'";
+  protected static final String SINGLE_QUOTE = "'";
 
-  protected static final String AZaz_QUOTED = QUOTE + AZaz + QUOTE;
+  protected static final String AZaz_QUOTED = SINGLE_QUOTE + AZaz + SINGLE_QUOTE;
 
-  protected static final String AZaz09_QUOTED = QUOTE + AZaz09 + QUOTE;
+  protected static final String AZaz09_QUOTED = SINGLE_QUOTE + AZaz09 + SINGLE_QUOTE;
 
   @Override
   public String limitRecord(int offset, int limit) {
