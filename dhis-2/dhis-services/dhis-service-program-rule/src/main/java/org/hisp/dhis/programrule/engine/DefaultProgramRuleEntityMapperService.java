@@ -62,7 +62,6 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.ConstantService;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
@@ -596,7 +595,12 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
               DATAELEMENT_PREVIOUS_EVENT,
               DATAELEMENT_NEWEST_EVENT_PROGRAM,
               DATAELEMENT_CURRENT_EVENT ->
-          this.getDisplayName(prv);
+          new DataItem(
+              ObjectUtils.firstNonNull(
+                  prv.getDataElement().getDisplayFormName(),
+                  prv.getDataElement().getFormName(),
+                  prv.getDataElement().getName()),
+              getItemValueType(prv.getDataElement().getValueType()));
       case CALCULATED_VALUE ->
           new DataItem(
               ObjectUtils.firstNonNull(prv.getDisplayName(), prv.getName()),
@@ -662,15 +666,6 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
 
     // default
     return ItemValueType.TEXT;
-  }
-
-  private DataItem getDisplayName(ProgramRuleVariable prv) {
-    DataElement dataElement = prv.getDataElement();
-
-    return new DataItem(
-        ObjectUtils.firstNonNull(
-            dataElement.getDisplayFormName(), dataElement.getFormName(), dataElement.getName()),
-        getItemValueType(dataElement.getValueType()));
   }
 
   private List<Option> getOptions(ProgramRuleVariable prv) {
