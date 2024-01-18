@@ -35,7 +35,9 @@ import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_INCIDENT_DATE;
 import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_SCHEDULED_DATE;
 
 import java.text.SimpleDateFormat;
+import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import org.hisp.dhis.analytics.AnalyticsConstants;
@@ -53,6 +55,116 @@ public abstract class AbstractStatementBuilder implements StatementBuilder {
   protected static final String QUOTE = "\"";
 
   protected static final String SINGLE_QUOTE = "'";
+
+  /**
+   * Generates a derived table containing one column of literal strings.
+   *
+   * <p>The PostgreSQL implementation returns the following form: <code>
+   *     (values ('s1'),('s2'),('s3')) table (column)
+   * </code>
+   *
+   * @param values (non-empty) String values for the derived table
+   * @param table the desired table name alias
+   * @param column the desired column name
+   * @return the derived literal table
+   */
+  @Override
+  public String literalStringTable(Collection<String> values, String table, String column) {
+    StringBuilder sb = new StringBuilder("(values ");
+
+    for (String value : values) {
+      sb.append("('").append(value).append("'),");
+    }
+
+    return sb.deleteCharAt(sb.length() - 1) // Remove the final ','.
+        .append(") ")
+        .append(table)
+        .append(" (")
+        .append(column)
+        .append(")")
+        .toString();
+  }
+
+  /**
+   * Generates a derived table containing literals in two columns: long and string.
+   *
+   * <p>The generic implementation, which works in all supported database types, returns a subquery
+   * in the following form: <code>
+   *     (values (i1, 's1'),(i2, 's2'),(i3, 's3')) table (intColumn, strColumn)
+   * </code>
+   *
+   * @param longValues (non-empty) long values for the derived table
+   * @param strValues (same size) String values for the derived table
+   * @param table the desired table name alias
+   * @param longColumn the desired long column name
+   * @param strColumn the desired string column name
+   * @return the derived literal table
+   */
+  @Override
+  public String literalLongStringTable(
+      List<Long> longValues,
+      List<String> strValues,
+      String table,
+      String longColumn,
+      String strColumn) {
+    StringBuilder sb = new StringBuilder("(values ");
+
+    for (int i = 0; i < longValues.size(); i++) {
+      sb.append("(").append(longValues.get(i)).append(", '").append(strValues.get(i)).append("'),");
+    }
+
+    return sb.deleteCharAt(sb.length() - 1) // Remove the final ','.
+        .append(") ")
+        .append(table)
+        .append(" (")
+        .append(longColumn)
+        .append(", ")
+        .append(strColumn)
+        .append(")")
+        .toString();
+  }
+
+  /**
+   * Generates a derived table containing literals in two columns: long and long.
+   *
+   * @param long1Values (non-empty) 1st long column values for the table
+   * @param long2Values (same size) 2nd long column values for the table
+   * @param table the desired table name alias
+   * @param long1Column the desired 1st long column name
+   * @param long2Column the desired 2nd long column name
+   * @return the derived literal table
+   *     <p>The generic implementation, which works in all supported database types, returns a
+   *     subquery in the following form: <code>
+   *     (values (i1_1, i2_1),(i1_2, i2_2),(i1_3, i2_3)) table (int1Column, int2Column)
+   * </code>
+   */
+  @Override
+  public String literalLongLongTable(
+      List<Long> long1Values,
+      List<Long> long2Values,
+      String table,
+      String long1Column,
+      String long2Column) {
+    StringBuilder sb = new StringBuilder("(values ");
+
+    for (int i = 0; i < long1Values.size(); i++) {
+      sb.append("(")
+          .append(long1Values.get(i))
+          .append(", ")
+          .append(long2Values.get(i))
+          .append("),");
+    }
+
+    return sb.deleteCharAt(sb.length() - 1) // Remove the final ','.
+        .append(") ")
+        .append(table)
+        .append(" (")
+        .append(long1Column)
+        .append(", ")
+        .append(long2Column)
+        .append(")")
+        .toString();
+  }
 
   @Override
   public String getProgramIndicatorDataValueSelectSql(
