@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis;
 
+import static org.hamcrest.Matchers.*;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.hisp.dhis.actions.LoginActions;
@@ -51,11 +53,15 @@ public class LoginTests extends ApiTest {
 
   private UaaActions uaaActions;
 
-  private final String oauthClientId = "demo" + DataGenerator.randomString();
+  private UserActions userActions;
+
+  private String oauthClientId = "demo" + DataGenerator.randomString();
 
   private String secret = "1e6db50c-0fee-11e5-98d0-3c15c2c6caf6";
 
   private String userName = ("LoginTestsUser" + DataGenerator.randomString()).toLowerCase();
+
+  private String password = Constants.USER_PASSWORD;
 
   @BeforeAll
   public void preconditions() {
