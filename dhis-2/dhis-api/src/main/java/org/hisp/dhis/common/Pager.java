@@ -40,7 +40,7 @@ public class Pager {
 
   private int page = 1;
 
-  private long total = 0;
+  private Long total;
 
   private int pageSize = Pager.DEFAULT_PAGE_SIZE;
 
@@ -120,7 +120,9 @@ public class Pager {
    */
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public int getPageCount() {
+  public Integer getPageCount() {
+    if (total == null) return null;
+
     return (int) Math.ceil(total / (double) pageSize);
   }
 
