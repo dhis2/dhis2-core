@@ -39,29 +39,11 @@ import org.hisp.dhis.program.ProgramIndicator;
 public interface StatementBuilder {
 
   /**
-   * Returns a limit and offset clause.
-   *
-   * @param offset the offset / start position for the records to return.
-   * @param limit the limit on max number of records to return.
-   * @return a limit and offset clause.
-   */
-  String limitRecord(int offset, int limit);
-
-  /**
    * Returns the value to use in insert statements for auto-increment columns.
    *
    * @return value to use in insert statements for auto-increment columns.
    */
   String getAutoIncrementValue();
-
-  /**
-   * Returns statement for vacuum operation for a table. Returns null if such statement is not
-   * relevant.
-   *
-   * @param table the table to vacuum.
-   * @return vacuum and analyze operations for a table.
-   */
-  String getVacuum(String table);
 
   /**
    * Returns statement for analytics operation for a table. Returns null if such statement is not

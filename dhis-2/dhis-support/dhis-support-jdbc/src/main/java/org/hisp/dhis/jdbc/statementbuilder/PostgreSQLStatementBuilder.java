@@ -45,11 +45,6 @@ public class PostgreSQLStatementBuilder extends AbstractStatementBuilder {
   }
 
   @Override
-  public String getVacuum(String table) {
-    return "vacuum " + table + ";";
-  }
-
-  @Override
   public String getAnalyze(String table) {
     return "analyze " + table + ";";
   }

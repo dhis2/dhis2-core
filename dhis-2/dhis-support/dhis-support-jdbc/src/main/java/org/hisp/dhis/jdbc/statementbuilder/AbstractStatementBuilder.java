@@ -66,11 +66,6 @@ public abstract class AbstractStatementBuilder implements StatementBuilder {
   protected static final String AZaz09_QUOTED = SINGLE_QUOTE + AZaz09 + SINGLE_QUOTE;
 
   @Override
-  public String limitRecord(int offset, int limit) {
-    return " limit " + limit + " offset " + offset;
-  }
-
-  @Override
   public String getAutoIncrementValue() {
     return "null";
   }
