@@ -43,7 +43,6 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -65,16 +64,13 @@ import com.google.common.collect.Sets;
 public class HibernateTrackedEntityAttributeStore
     extends HibernateIdentifiableObjectStore<TrackedEntityAttribute>
     implements TrackedEntityAttributeStore {
-  private final StatementBuilder statementBuilder;
 
   public HibernateTrackedEntityAttributeStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      AclService aclService,
-      StatementBuilder statementBuilder) {
+      AclService aclService) {
     super(entityManager, jdbcTemplate, publisher, TrackedEntityAttribute.class, aclService, true);
-    this.statementBuilder = statementBuilder;
   }
 
   // -------------------------------------------------------------------------
