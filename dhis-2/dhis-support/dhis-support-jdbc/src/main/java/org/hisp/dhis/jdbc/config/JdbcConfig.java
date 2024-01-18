@@ -32,7 +32,6 @@ import javax.sql.DataSource;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.jdbc.dialect.StatementDialectFactoryBean;
-import org.hisp.dhis.jdbc.statementbuilder.StatementBuilderFactoryBean;
 import org.hisp.quick.StatementDialect;
 import org.hisp.quick.StatementInterceptor;
 import org.hisp.quick.configuration.JdbcConfigurationFactoryBean;
@@ -72,11 +71,6 @@ public class JdbcConfig {
     jdbcConf.setDataSource(dataSource);
 
     return jdbcConf;
-  }
-
-  @Bean(initMethod = "init")
-  public StatementBuilderFactoryBean statementBuilder() {
-    return new StatementBuilderFactoryBean(statementDialect().getObject());
   }
 
   @Bean

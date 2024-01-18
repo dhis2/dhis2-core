@@ -87,7 +87,6 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
 import org.hisp.dhis.parser.expression.ExpressionItemMethod;
@@ -139,8 +138,6 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
 
   private final IdentifiableObjectManager idObjectManager;
 
-  private final StatementBuilder statementBuilder;
-
   private final ExpressionService expressionService;
 
   private final DimensionService dimensionService;
@@ -155,7 +152,6 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
           IdentifiableObjectStore<ProgramIndicatorGroup> programIndicatorGroupStore,
       ProgramStageService programStageService,
       IdentifiableObjectManager idObjectManager,
-      StatementBuilder statementBuilder,
       ExpressionService expressionService,
       DimensionService dimensionService,
       I18nManager i18nManager,
@@ -164,7 +160,6 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
     checkNotNull(programIndicatorGroupStore);
     checkNotNull(programStageService);
     checkNotNull(idObjectManager);
-    checkNotNull(statementBuilder);
     checkNotNull(expressionService);
     checkNotNull(dimensionService);
     checkNotNull(i18nManager);
@@ -174,7 +169,6 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
     this.programIndicatorGroupStore = programIndicatorGroupStore;
     this.programStageService = programStageService;
     this.idObjectManager = idObjectManager;
-    this.statementBuilder = statementBuilder;
     this.expressionService = expressionService;
     this.dimensionService = dimensionService;
     this.i18nManager = i18nManager;
@@ -522,7 +516,6 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
         .dimensionService(dimensionService)
         .programIndicatorService(this)
         .programStageService(programStageService)
-        .statementBuilder(statementBuilder)
         .i18nSupplier(Suppliers.memoize(i18nManager::getI18n))
         .constantMap(expressionService.getConstantMap())
         .itemMap(PROGRAM_INDICATOR_ITEMS)

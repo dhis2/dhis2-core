@@ -38,6 +38,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Optional;
 import java.util.regex.Matcher;
+import lombok.NoArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsConstants;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.period.Period;
@@ -49,7 +50,8 @@ import org.springframework.util.Assert;
 /**
  * @author Lars Helge Overland
  */
-public abstract class AbstractStatementBuilder implements StatementBuilder {
+@NoArgsConstructor
+public class PostgreSqlStatementBuilder implements StatementBuilder {
   protected static final String QUOTE = "\"";
 
   protected static final String SINGLE_QUOTE = "'";

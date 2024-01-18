@@ -130,7 +130,6 @@ import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
@@ -177,8 +176,6 @@ public class DefaultExpressionService implements ExpressionService {
   private final DimensionService dimensionService;
 
   private final IdentifiableObjectManager idObjectManager;
-
-  private final StatementBuilder statementBuilder;
 
   private final I18nManager i18nManager;
 
@@ -281,14 +278,12 @@ public class DefaultExpressionService implements ExpressionService {
       ConstantService constantService,
       DimensionService dimensionService,
       IdentifiableObjectManager idObjectManager,
-      StatementBuilder statementBuilder,
       I18nManager i18nManager,
       CacheProvider cacheProvider) {
     checkNotNull(expressionStore);
     checkNotNull(constantService);
     checkNotNull(dimensionService);
     checkNotNull(idObjectManager);
-    checkNotNull(statementBuilder);
     checkNotNull(i18nManager);
     checkNotNull(cacheProvider);
 
@@ -296,7 +291,6 @@ public class DefaultExpressionService implements ExpressionService {
     this.constantService = constantService;
     this.dimensionService = dimensionService;
     this.idObjectManager = idObjectManager;
-    this.statementBuilder = statementBuilder;
     this.i18nManager = i18nManager;
     this.constantMapCache = cacheProvider.createAllConstantsCache();
   }
@@ -722,7 +716,6 @@ public class DefaultExpressionService implements ExpressionService {
     return CommonExpressionVisitor.builder()
         .idObjectManager(idObjectManager)
         .dimensionService(dimensionService)
-        .statementBuilder(statementBuilder)
         .i18nSupplier(Suppliers.memoize(i18nManager::getI18n))
         .constantMap(getConstantMap())
         .itemMap(PARSE_TYPE_EXPRESSION_ITEMS.get(params.getParseType()))
