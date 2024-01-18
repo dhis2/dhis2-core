@@ -40,11 +40,6 @@ public class PostgreSQLStatementBuilder extends AbstractStatementBuilder {
   }
 
   @Override
-  public String getLongVarBinaryType() {
-    return "BYTEA";
-  }
-
-  @Override
   public String getRegexpMatch() {
     return "~*";
   }
