@@ -67,8 +67,6 @@ public interface StatementBuilder {
 
   String getDropPrimaryKey(String table);
 
-  String getDropNotNullConstraint(String table, String column, String type);
-
   /**
    * Generates a derived table containing one column of literal strings.
    *

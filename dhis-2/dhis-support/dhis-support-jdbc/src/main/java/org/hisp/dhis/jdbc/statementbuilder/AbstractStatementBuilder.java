@@ -70,11 +70,6 @@ public abstract class AbstractStatementBuilder implements StatementBuilder {
     return "alter table " + table + " drop primary key;";
   }
 
-  @Override
-  public String getDropNotNullConstraint(String table, String column, String type) {
-    return "alter table " + table + " modify column " + column + " " + type + " null;";
-  }
-
   /**
    * Generates a derived table containing one column of literal strings.
    *

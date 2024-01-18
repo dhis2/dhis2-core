@@ -45,11 +45,6 @@ public class PostgreSQLStatementBuilder extends AbstractStatementBuilder {
     return "alter table " + table + " drop constraint " + table + "_pkey;";
   }
 
-  @Override
-  public String getDropNotNullConstraint(String table, String column, String type) {
-    return "alter table " + table + " alter column " + column + " drop not null;";
-  }
-
   /**
    * Generates a derived table containing one column of literal strings.
    *
