@@ -52,7 +52,6 @@ public class vValueCount extends ProgramDoubleVariable {
       sql += "case when " + SqlUtils.quote(uid) + " is not null then 1 else 0 end + ";
     }
 
-    return TextUtils.removeLast(sql, "+").trim()
-        + ") as double precision),0)";
+    return TextUtils.removeLast(sql, "+").trim() + ") as double precision),0)";
   }
 }
