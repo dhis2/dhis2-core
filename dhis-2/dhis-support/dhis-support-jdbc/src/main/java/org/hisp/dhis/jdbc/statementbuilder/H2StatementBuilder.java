@@ -31,13 +31,4 @@ package org.hisp.dhis.jdbc.statementbuilder;
  * @author Lars Helge Overland
  */
 public class H2StatementBuilder extends AbstractStatementBuilder {
-  @Override
-  public String position(String substring, String string) {
-    return ("POSITION(" + substring + ", " + string + ")");
-  }
-
-  @Override
-  public String getDaysBetweenDates(String fromColumn, String toColumn) {
-    return ("DATEDIFF('DAY', " + toColumn + ", " + fromColumn + ")");
-  }
 }

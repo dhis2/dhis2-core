@@ -56,11 +56,6 @@ public abstract class AbstractStatementBuilder implements StatementBuilder {
   protected static final String SINGLE_QUOTE = "'";
 
   @Override
-  public String position(String substring, String string) {
-    return ("POSITION(" + substring + " in " + string + ")");
-  }
-
-  @Override
   public String getCastToDate(String column) {
     return "cast(" + column + " as date)";
   }

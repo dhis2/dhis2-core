@@ -39,31 +39,12 @@ import org.hisp.dhis.program.ProgramIndicator;
 public interface StatementBuilder {
 
   /**
-   * Returns the position of substring in string, or 0 if not there.
-   *
-   * @param substring string to search for
-   * @param string string in which to search
-   * @return position, or 0 if not found
-   */
-  String position(String substring, String string);
-
-  /**
    * Returns a cast to timestamp statement for the given column.
    *
    * @param column the column name.
    * @return a cast to timestamp statement for the given column.
    */
   String getCastToDate(String column);
-
-  /**
-   * Returns a statement which calculates the number of days between the two given dates or columns
-   * of type date.
-   *
-   * @param fromColumn the from date column.
-   * @param toColumn the to date column.
-   * @return statement which calculates the number of days between the given dates.
-   */
-  String getDaysBetweenDates(String fromColumn, String toColumn);
 
   String getDropPrimaryKey(String table);
 

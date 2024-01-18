@@ -36,11 +36,6 @@ import java.util.List;
 public class PostgreSQLStatementBuilder extends AbstractStatementBuilder {
 
   @Override
-  public String getDaysBetweenDates(String fromColumn, String toColumn) {
-    return toColumn + " - " + fromColumn;
-  }
-
-  @Override
   public String getDropPrimaryKey(String table) {
     return "alter table " + table + " drop constraint " + table + "_pkey;";
   }
