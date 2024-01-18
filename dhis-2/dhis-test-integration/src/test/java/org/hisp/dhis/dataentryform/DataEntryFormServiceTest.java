@@ -131,8 +131,7 @@ class DataEntryFormServiceTest extends SingleSetupIntegrationTestBase {
     dataEntryFormService.addDataEntryForm(dataEntryFormA);
     dataEntryFormService.addDataEntryForm(dataEntryFormB);
     List<DataEntryForm> dataEntryForms = dataEntryFormService.getAllDataEntryForms();
-    List<DataEntryForm> matches =
-        dataEntryForms.stream().filter(equalsNames).toList();
+    List<DataEntryForm> matches = dataEntryForms.stream().filter(equalsNames).toList();
     assertEquals(2, matches.size());
     assertTrue(dataEntryForms.contains(dataEntryFormA));
     assertTrue(dataEntryForms.contains(dataEntryFormB));
