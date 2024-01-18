@@ -40,7 +40,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsConstants;
 import org.hisp.dhis.jdbc.StatementBuilder;
@@ -55,9 +54,9 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractStatementBuilder implements StatementBuilder {
   protected static final String QUOTE = "\"";
-  
+
   protected static final String SINGLE_QUOTE = "'";
-  
+
   @Override
   public String getAutoIncrementValue() {
     return "null";

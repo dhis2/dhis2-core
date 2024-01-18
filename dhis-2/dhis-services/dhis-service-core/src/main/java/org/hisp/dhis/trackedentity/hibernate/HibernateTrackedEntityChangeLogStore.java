@@ -28,6 +28,7 @@
 package org.hisp.dhis.trackedentity.hibernate;
 
 import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
@@ -55,9 +56,7 @@ public class HibernateTrackedEntityChangeLogStore
     extends HibernateGenericStore<TrackedEntityChangeLog> implements TrackedEntityChangeLogStore {
 
   public HibernateTrackedEntityChangeLogStore(
-      EntityManager entityManager,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher) {
+      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
     super(entityManager, jdbcTemplate, publisher, TrackedEntityChangeLog.class, false);
   }
 
