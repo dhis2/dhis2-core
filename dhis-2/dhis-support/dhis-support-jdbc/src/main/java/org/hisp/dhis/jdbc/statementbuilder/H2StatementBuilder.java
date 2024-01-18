@@ -30,5 +30,4 @@ package org.hisp.dhis.jdbc.statementbuilder;
 /**
  * @author Lars Helge Overland
  */
-public class H2StatementBuilder extends AbstractStatementBuilder {
-}
+public class H2StatementBuilder extends AbstractStatementBuilder {}
