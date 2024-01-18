@@ -28,7 +28,6 @@
 package org.hisp.dhis.trackedentity.hibernate;
 
 import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
@@ -41,6 +40,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityChangeLog;
 import org.hisp.dhis.trackedentity.TrackedEntityChangeLogQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityChangeLogStore;
@@ -55,15 +55,12 @@ import org.springframework.stereotype.Repository;
 public class HibernateTrackedEntityChangeLogStore
     extends HibernateGenericStore<TrackedEntityChangeLog> implements TrackedEntityChangeLogStore {
 
-  private final StatementBuilder statementBuilder;
-
   public HibernateTrackedEntityChangeLogStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       StatementBuilder statementBuilder) {
     super(entityManager, jdbcTemplate, publisher, TrackedEntityChangeLog.class, false);
-    this.statementBuilder = statementBuilder;
   }
 
   // -------------------------------------------------------------------------
@@ -97,7 +94,7 @@ public class HibernateTrackedEntityChangeLogStore
           sb.append(singleQuote(audit.getAuditType().name())).append(",");
           sb.append(
               StringUtils.isNotEmpty(audit.getComment())
-                  ? statementBuilder.encode(audit.getComment())
+                  ? SqlUtils.encode(audit.getComment())
                   : "''");
           sb.append(")");
           return sb.toString();
