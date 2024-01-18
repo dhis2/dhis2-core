@@ -30,6 +30,7 @@ package org.hisp.dhis.jdbc;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.ProgramIndicator;
 
@@ -113,14 +114,6 @@ public interface StatementBuilder {
    * @return the function to return the character
    */
   String getCharAt(String str, String n);
-
-  /**
-   * Generates a random 11-character UID where the first character is an upper/lower case letter and
-   * the remaining 10 characters are a digit or an upper/lower case letter.
-   *
-   * @return randomly-generated UID.
-   */
-  String getUid();
 
   /** Returns the number of columns part of the primary key for the given table. */
   String getNumberOfColumnsInPrimaryKey(String table);

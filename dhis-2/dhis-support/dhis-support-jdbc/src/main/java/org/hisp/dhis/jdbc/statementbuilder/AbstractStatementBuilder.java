@@ -33,12 +33,14 @@ import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_ENROLLMENT_DATE;
 import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_EVENT_DATE;
 import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_INCIDENT_DATE;
 import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_SCHEDULED_DATE;
+
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsConstants;
 import org.hisp.dhis.jdbc.StatementBuilder;
@@ -52,19 +54,10 @@ import org.springframework.util.Assert;
  * @author Lars Helge Overland
  */
 public abstract class AbstractStatementBuilder implements StatementBuilder {
-  protected static final String AZaz = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-
-  protected static final String AZaz09 =
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
   protected static final String QUOTE = "\"";
   
   protected static final String SINGLE_QUOTE = "'";
-
-  protected static final String AZaz_QUOTED = SINGLE_QUOTE + AZaz + SINGLE_QUOTE;
-
-  protected static final String AZaz09_QUOTED = SINGLE_QUOTE + AZaz09 + SINGLE_QUOTE;
-
+  
   @Override
   public String getAutoIncrementValue() {
     return "null";
@@ -83,22 +76,6 @@ public abstract class AbstractStatementBuilder implements StatementBuilder {
   @Override
   public String position(String substring, String string) {
     return ("POSITION(" + substring + " in " + string + ")");
-  }
-
-  @Override
-  public String getUid() {
-    return concatenate(
-        getCharAt(AZaz_QUOTED, "1 + " + getRandom(AZaz.length())),
-        getCharAt(AZaz09_QUOTED, "1 + " + getRandom(AZaz09.length())),
-        getCharAt(AZaz09_QUOTED, "1 + " + getRandom(AZaz09.length())),
-        getCharAt(AZaz09_QUOTED, "1 + " + getRandom(AZaz09.length())),
-        getCharAt(AZaz09_QUOTED, "1 + " + getRandom(AZaz09.length())),
-        getCharAt(AZaz09_QUOTED, "1 + " + getRandom(AZaz09.length())),
-        getCharAt(AZaz09_QUOTED, "1 + " + getRandom(AZaz09.length())),
-        getCharAt(AZaz09_QUOTED, "1 + " + getRandom(AZaz09.length())),
-        getCharAt(AZaz09_QUOTED, "1 + " + getRandom(AZaz09.length())),
-        getCharAt(AZaz09_QUOTED, "1 + " + getRandom(AZaz09.length())),
-        getCharAt(AZaz09_QUOTED, "1 + " + getRandom(AZaz09.length())));
   }
 
   @Override
