@@ -33,7 +33,6 @@ import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_ENROLLMENT_DATE;
 import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_EVENT_DATE;
 import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_INCIDENT_DATE;
 import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_SCHEDULED_DATE;
-
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
@@ -41,6 +40,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.AnalyticsConstants;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
@@ -52,13 +52,15 @@ import org.springframework.util.Assert;
  * @author Lars Helge Overland
  */
 public abstract class AbstractStatementBuilder implements StatementBuilder {
-  static final String AZaz = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+  protected static final String AZaz = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-  static final String AZaz09 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  protected static final String AZaz09 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  
+  protected static final String QUOTE = "'";
+  
+  protected static final String AZaz_QUOTED = QUOTE + AZaz + QUOTE;
 
-  static final String AZaz_QUOTED = QUOTE + AZaz + QUOTE;
-
-  static final String AZaz09_QUOTED = QUOTE + AZaz09 + QUOTE;
+  protected static final String AZaz09_QUOTED = QUOTE + AZaz09 + QUOTE;
 
   @Override
   public String encode(String value) {
@@ -379,7 +381,7 @@ public abstract class AbstractStatementBuilder implements StatementBuilder {
         + " where "
         + eventTableName
         + ".pi = "
-        + ANALYTICS_TBL_ALIAS
+        + AnalyticsConstants.ANALYTICS_TBL_ALIAS
         + ".pi and "
         + columnName
         + " is not null "

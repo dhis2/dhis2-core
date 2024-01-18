@@ -37,13 +37,6 @@ import org.hisp.dhis.program.ProgramIndicator;
  * @author Lars Helge Overland
  */
 public interface StatementBuilder {
-  String QUOTE = "'";
-
-  String ANALYTICS_TBL_ALIAS = "ax";
-
-  // --------------------------------------------------------------------------
-  // General
-  // --------------------------------------------------------------------------
 
   /**
    * Encodes the provided SQL value. Value will be wrapped in quotes.

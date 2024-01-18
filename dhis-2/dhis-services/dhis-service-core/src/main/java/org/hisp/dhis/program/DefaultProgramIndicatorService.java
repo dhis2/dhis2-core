@@ -28,10 +28,10 @@
 package org.hisp.dhis.program;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castClass;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
 import static org.hisp.dhis.expression.ExpressionParams.DEFAULT_EXPRESSION_PARAMS;
-import static org.hisp.dhis.jdbc.StatementBuilder.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_DESCRIPTIONS;
 import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_SQL;
 import static org.hisp.dhis.parser.expression.ParserUtils.COMMON_EXPRESSION_ITEMS;
@@ -64,9 +64,6 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.STDDEV;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.SUM;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.VARIANCE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.V_BRACE;
-
-import com.google.common.base.Suppliers;
-import com.google.common.collect.ImmutableMap;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -124,6 +121,8 @@ import org.hisp.dhis.program.variable.ProgramVariableItem;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.google.common.base.Suppliers;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Chau Thu Tran
@@ -372,7 +371,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
     return analyticsSqlCache.get(
         cacheKey,
         k ->
-            _getAnalyticsSql(
+            getAnalyticsSqlInternal(
                 expression, dataType, programIndicator, startDate, endDate, tableAlias));
   }
 
@@ -407,7 +406,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
         .orElse(StringUtils.EMPTY);
   }
 
-  private String _getAnalyticsSql(
+  private String getAnalyticsSqlInternal(
       String expression,
       DataType dataType,
       ProgramIndicator programIndicator,
