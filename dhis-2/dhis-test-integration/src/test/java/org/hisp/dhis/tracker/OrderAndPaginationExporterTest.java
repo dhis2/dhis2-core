@@ -45,6 +45,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -64,7 +65,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -754,7 +754,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     return events.getEvents().stream().map(Event::getEvent).collect(Collectors.toList());
   }
 
-  @NotNull
+  @Nonnull
   private static List<String> reverseSortEventsByDate(
       ProgramStageInstance pTzf9KYMk72,
       ProgramStageInstance D9PbzJY8bJM,
@@ -766,7 +766,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
         .collect(Collectors.toList());
   }
 
-  @NotNull
+  @Nonnull
   private static List<String> sortEventsByDate(
       ProgramStageInstance pTzf9KYMk72,
       ProgramStageInstance D9PbzJY8bJM,
