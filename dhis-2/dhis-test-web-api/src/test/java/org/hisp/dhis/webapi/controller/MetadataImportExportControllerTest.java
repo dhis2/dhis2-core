@@ -503,4 +503,53 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
                 JsonErrorReport.class, errorReport -> errorReport.getErrorCode() == ErrorCode.E4030)
             .getMessage());
   }
+
+  @Test
+  @DisplayName("Should not insert duplicate translation records when updating object")
+  void testUpdateObjectWithTranslation() {
+    POST(
+            "/metadata",
+            "{\"optionSets\":\n"
+                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\", \"translations\":[{\n"
+                + "      \"locale\": \"en_GB\",\n"
+                + "      \"property\": \"NAME\",\n"
+                + "      \"value\": \"Device category 1\"\n"
+                + "    }]}]}")
+        .content(HttpStatus.OK);
+
+    POST(
+            "/metadata",
+            "{\"optionSets\":\n"
+                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\", \"translations\":[{\n"
+                + "      \"locale\": \"en_GB\",\n"
+                + "      \"property\": \"NAME\",\n"
+                + "      \"value\": \"Device category 2\"\n"
+                + "    }]}]}")
+        .content(HttpStatus.OK);
+
+    JsonObject response = GET("/optionSets/{uid}", "RHqFlB1Wm4d").content();
+
+    assertEquals(1, response.getArray("translations").size());
+    assertEquals(
+        "Device category 2",
+        response.getArray("translations").getObject(0).getString("value").string());
+  }
+
+  @Test
+  @DisplayName("Should throw exception when import with MergeMode=Merge")
+  void testImportWithMergeMode() {
+    JsonMixed report =
+        POST(
+                "/metadata?mergeMode=MERGE",
+                "{\"optionSets\":\n"
+                    + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\", \"translations\":[{\n"
+                    + "      \"locale\": \"en_GB\",\n"
+                    + "      \"property\": \"NAME\",\n"
+                    + "      \"value\": \"Device category 1\"\n"
+                    + "    }]}]}")
+            .content(HttpStatus.CONFLICT);
+    assertEquals(
+        "Merge mode MERGE is no longer supported, only merge mode REPLACE is available.",
+        report.getString("message").string());
+  }
 }
