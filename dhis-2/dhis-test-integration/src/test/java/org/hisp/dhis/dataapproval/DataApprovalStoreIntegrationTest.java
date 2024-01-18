@@ -29,8 +29,6 @@ package org.hisp.dhis.dataapproval;
 
 import static com.google.common.collect.Sets.newHashSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import com.google.common.collect.Sets;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -43,7 +41,6 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataapproval.hibernate.HibernateDataApprovalStore;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -64,6 +61,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
+import com.google.common.collect.Sets;
 
 /**
  * DataApprovalStore tests that no longer work in the H2 database but must be done in the PostgreSQL
@@ -161,7 +159,6 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
             periodStore,
             categoryService,
             systemSettingManager,
-            new PostgreSQLStatementBuilder(),
             _userService);
 
     // ---------------------------------------------------------------------
