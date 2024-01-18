@@ -701,7 +701,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
           .append("),");
     }
 
-    return sb.deleteCharAt(sb.length() - 1) // Remove the final ','.
+    return sb.deleteCharAt(sb.length() - 1)
         .append(") ")
         .append(table)
         .append(" (")
