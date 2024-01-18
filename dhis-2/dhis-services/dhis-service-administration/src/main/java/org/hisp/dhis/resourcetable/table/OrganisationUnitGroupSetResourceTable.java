@@ -29,12 +29,13 @@ package org.hisp.dhis.resourcetable.table;
 
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
+
+import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Optional;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
-import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -45,9 +46,7 @@ public class OrganisationUnitGroupSetResourceTable extends ResourceTable<Organis
   private final String tableType;
 
   public OrganisationUnitGroupSetResourceTable(
-      List<OrganisationUnitGroupSet> objects,
-      int organisationUnitLevels,
-      String tableType) {
+      List<OrganisationUnitGroupSet> objects, int organisationUnitLevels, String tableType) {
     super(objects);
     this.organisationUnitLevels = organisationUnitLevels;
     this.tableType = tableType;
