@@ -480,14 +480,17 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
             .collect(Collectors.toList()));
   }
 
-  /** Returns all indicators in the data dimensions. The returned list is immutable. */
+  /**
+   * Returns all indicators in the data dimensions. The returned set is immutable. Return as
+   * distinct set instead of list as there can be many data dimension items referencing the same
+   * indicator
+   */
   @JsonIgnore
-  public List<Indicator> getIndicators() {
-    return ImmutableList.copyOf(
-        dataDimensionItems.stream()
-            .filter(i -> i.getIndicator() != null)
-            .map(DataDimensionItem::getIndicator)
-            .collect(Collectors.toList()));
+  public Set<Indicator> getIndicators() {
+    return dataDimensionItems.stream()
+        .map(DataDimensionItem::getIndicator)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toUnmodifiableSet());
   }
 
   /**

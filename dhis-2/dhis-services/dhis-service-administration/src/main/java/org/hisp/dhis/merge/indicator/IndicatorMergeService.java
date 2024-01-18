@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,78 +27,85 @@
  */
 package org.hisp.dhis.merge.indicator;
 
+import com.google.common.collect.ImmutableList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
+import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorService;
-import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeRequest;
 import org.hisp.dhis.merge.MergeService;
 import org.hisp.dhis.merge.MergeValidator;
+import org.hisp.dhis.merge.indicator.handler.IndicatorMergeHandler;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Main class for indicator type merge.
+ * Main class for indicator merge.
  *
  * @author david mackessy
  */
 @Service
 @RequiredArgsConstructor
-public class IndicatorTypeMergeService implements MergeService {
+public class IndicatorMergeService implements MergeService {
 
   private final IndicatorService indicatorService;
-  private final IdentifiableObjectManager idObjectManager;
+  private final IndicatorMergeHandler indicatorMergeHandler;
   private final MergeValidator validator;
+  private ImmutableList<org.hisp.dhis.merge.indicator.IndicatorMergeHandler> handlers;
 
   @Override
   public MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport) {
     // sources
     Set<UID> sources = new HashSet<>();
-    validator.verifySources(params.getSources(), sources, mergeReport, IndicatorType.class);
+    validator.verifySources(params.getSources(), sources, mergeReport, Indicator.class);
 
     // target
-    validator.checkIsTargetInSources(sources, params.getTarget(), mergeReport, IndicatorType.class);
+    validator.checkIsTargetInSources(sources, params.getTarget(), mergeReport, Indicator.class);
 
-    return validator.verifyTarget(mergeReport, sources, params, IndicatorType.class);
+    return validator.verifyTarget(mergeReport, sources, params, Indicator.class);
   }
 
   @Override
   @Transactional
   public MergeReport merge(@Nonnull MergeRequest request, @Nonnull MergeReport mergeReport) {
-    List<IndicatorType> sources =
-        indicatorService.getIndicatorTypesByUid(UID.toValueList(request.getSources()));
-    IndicatorType target = indicatorService.getIndicatorType(request.getTarget().getValue());
-    reassignIndicatorAssociations(target, sources);
+    List<Indicator> sources =
+        indicatorService.getIndicatorsByUid(UID.toValueList(request.getSources()));
+    Indicator target = indicatorService.getIndicator(request.getTarget().getValue());
 
+    // merge metadata
+    handlers.forEach(h -> h.merge(sources, target));
+
+    // handle deletes
     if (request.isDeleteSources()) handleDeleteSources(sources, mergeReport);
 
     return mergeReport;
   }
 
-  private void handleDeleteSources(List<IndicatorType> sources, MergeReport mergeReport) {
-    for (IndicatorType source : sources) {
+  private void handleDeleteSources(List<Indicator> sources, MergeReport mergeReport) {
+    for (Indicator source : sources) {
       mergeReport.addDeletedSource(source.getUid());
-      idObjectManager.delete(source);
+      indicatorService.deleteIndicator(source);
     }
   }
 
-  /**
-   * All {@link Indicator} associations with source {@link IndicatorType}s are reassigned to the
-   * target {@link IndicatorType}
-   *
-   * @param target {@link IndicatorType} for reassignments
-   * @param sources List of {@link IndicatorType} used to retrieve related {@link Indicator}s
-   */
-  private void reassignIndicatorAssociations(IndicatorType target, List<IndicatorType> sources) {
-    List<Indicator> associatedIndicators = indicatorService.getAssociatedIndicators(sources);
-    associatedIndicators.forEach(ind -> ind.setIndicatorType(target));
+  @PostConstruct
+  private void initMergeHandlers() {
+    handlers =
+        ImmutableList.<org.hisp.dhis.merge.indicator.IndicatorMergeHandler>builder()
+            .add(indicatorMergeHandler::handleDataSets)
+            .add(indicatorMergeHandler::handleIndicatorGroups)
+            .add(indicatorMergeHandler::handleSections)
+            .add(indicatorMergeHandler::handleIndicatorRefsInIndicator)
+            .add(indicatorMergeHandler::handleIndicatorRefsInCustomForms)
+            .add(indicatorMergeHandler::handleDataDimensionItems)
+            .add(indicatorMergeHandler::handleVisualizations)
+            .build();
   }
 }

@@ -69,8 +69,9 @@ public class IndicatorTypeController extends AbstractCrudController<IndicatorTyp
   public @ResponseBody WebMessage mergeIndicatorTypes(@RequestBody MergeParams params)
       throws ConflictException {
     log.info("Indicator type merge received");
+    params.setMergeType(MergeType.INDICATOR_TYPE);
 
-    MergeReport report = indicatorTypeMergeProcessor.processMerge(params, MergeType.INDICATOR_TYPE);
+    MergeReport report = indicatorTypeMergeProcessor.processMerge(params);
 
     log.info("Indicator type merge processed with report: {}", report);
     return WebMessageUtils.mergeReport(report);
