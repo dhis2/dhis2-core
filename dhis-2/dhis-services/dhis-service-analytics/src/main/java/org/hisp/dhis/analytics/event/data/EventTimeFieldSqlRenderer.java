@@ -49,15 +49,12 @@ import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.period.Period;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
 class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
-  private final StatementBuilder statementBuilder;
-
   @Getter private final Set<TimeField> allowedTimeFields = Set.of(LAST_UPDATED, SCHEDULED_DATE);
 
   @Override
