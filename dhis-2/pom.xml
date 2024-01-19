@@ -81,7 +81,7 @@
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine -->
-    <dhis2-rule-engine.version>3.0.0-20240117.135426-7</dhis2-rule-engine.version>
+    <dhis2-rule-engine.version>3.0.0-20240119.134348-12</dhis2-rule-engine.version>
     <kotlinx-datetime.version>0.4.0</kotlinx-datetime.version>
 
     <!-- HISP Quick and Staxwax -->

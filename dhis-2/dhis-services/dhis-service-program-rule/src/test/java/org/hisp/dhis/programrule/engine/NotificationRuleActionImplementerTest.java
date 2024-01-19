@@ -299,7 +299,7 @@ class NotificationRuleActionImplementerTest extends DhisConvenienceTest {
         new RuleAction(
             "", ProgramRuleActionType.SENDMESSAGE.name(), Map.of("notification", NOTIFICATION_UID));
 
-    ruleEffectWithActionSendMessage = new RuleEffect("", ruleActionSendMessage, "");
+    ruleEffectWithActionSendMessage = new RuleEffect("ruleId", ruleActionSendMessage, "");
 
     setMandatoryFieldFalse =
         new RuleAction(

@@ -76,14 +76,16 @@ class DefaultProgramRuleService implements ProgramRuleService {
 
   private final RuleActionEventMapper ruleActionEventMapper;
 
-  /* This is calculating the rule effects for all the enrollments and events present in the payload.
-   * Enrollments present in the payload and related events (also the ones not present in the payload)
-   * are evaluated.
-   * Events present in the payload and related enrollment (also if it is not present in the payload)
-   * are evaluated.
-   * `calculateTrackerEventRuleEffects` method makes sure that only events that were not already evaluated
-   * are sent for evaluation. This ensures that there will be no duplicate effects.
-   * All program events present in the payload are evaluated.
+  /**
+   * This is calculating the rule effects for all the enrollments and events present in the payload.
+   * First, this method is iterating over the enrollments present in the payload and related events
+   * (also the ones not present in the payload) and it is calculating rule effects for those. The,
+   * this method is iterating over events present in the payload and related enrollment (also if it
+   * is not present in the payload) and it is calculating rule effects for those. {@link
+   * #calculateTrackerEventRuleEffects(TrackerBundle, TrackerPreheat)} method makes sure that rule
+   * effects are calculated only once for every event. This ensures that there will be no duplicate
+   * effects. Finally, this method is iterating over all program events present in the payload, and
+   * it is calculating rule effects for those.
    */
   @Override
   @Transactional(readOnly = true)

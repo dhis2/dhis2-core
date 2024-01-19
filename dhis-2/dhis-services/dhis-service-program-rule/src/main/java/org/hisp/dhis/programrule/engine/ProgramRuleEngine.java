@@ -203,7 +203,7 @@ public class ProgramRuleEngine {
   public RuleValidationResult getDataExpressionDescription(String dataExpression, Program program) {
     if (program == null) {
       log.error(ERROR);
-      return new RuleValidationResult(false, ERROR);
+      return RuleValidationResult.invalid(ERROR);
     }
 
     return ruleEngine.validateDataFieldExpression(

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,37 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common.hibernate;
+package org.hisp.dhis.programrule.engine;
 
-import java.util.Date;
-import javax.annotation.Nonnull;
-import javax.persistence.EntityManager;
-import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
-import org.hisp.dhis.common.SoftDeletableObject;
-import org.hisp.dhis.security.acl.AclService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-
-/**
- * @author Enrico Colasante
- */
-public class SoftDeleteHibernateObjectStore<T extends SoftDeletableObject>
-    extends HibernateIdentifiableObjectStore<T> {
-  public SoftDeleteHibernateObjectStore(
-      EntityManager entityManager,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      Class<T> clazz,
-      AclService aclService,
-      boolean cacheable) {
-    super(entityManager, jdbcTemplate, publisher, clazz, aclService, cacheable);
-  }
-
-  @Override
-  public void delete(@Nonnull SoftDeletableObject object) {
-    publisher.publishEvent(new ObjectDeletionRequestedEvent(object));
-    object.setDeleted(true);
-    object.setLastUpdated(new Date());
-    getSession().update(object);
-  }
+public class RuleActionKeys {
+  public static final String CONTENT = "content";
+  public static final String FIELD = "field";
+  public static final String ATTRIBUTE_TYPE = "attributeType";
+  public static final String LOCATION = "location";
+  public static final String NOTIFICATION = "notification";
+  public static final String PROGRAM_STAGE = "programStage";
+  public static final String PROGRAM_STAGE_SECTION = "programStageSection";
 }

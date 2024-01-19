@@ -28,6 +28,7 @@
 package org.hisp.dhis.programrule.engine;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.SYSTEM_PROGRAM_RULE_SERVER_EXECUTION;
+import static org.hisp.dhis.programrule.engine.RuleActionKeys.NOTIFICATION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -159,7 +160,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
     List<RuleEffect> effects = new ArrayList<>();
     effects.add(
         new RuleEffect(
-            "",
+            "ruleId",
             new RuleAction(
                 "",
                 ProgramRuleActionType.SENDMESSAGE.name(),
@@ -180,7 +181,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
 
     RuleAction action = ruleEffects.get(0).getRuleAction();
     if (action.getType().equals(ProgramRuleActionType.SENDMESSAGE.name())) {
-      assertEquals(NOTIFICATION_UID, action.getValues().get("notification"));
+      assertEquals(NOTIFICATION_UID, action.getValues().get(NOTIFICATION));
     }
 
     verify(programRuleEngine, times(1)).evaluateEvent(argumentCaptor.capture(), any(), any());
@@ -208,7 +209,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
     List<RuleEffect> effects = new ArrayList<>();
     effects.add(
         new RuleEffect(
-            "",
+            "ruleId",
             new RuleAction(
                 "",
                 ProgramRuleActionType.SENDMESSAGE.name(),
@@ -252,7 +253,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
     List<RuleEffect> effects = new ArrayList<>();
     effects.add(
         new RuleEffect(
-            "",
+            "ruleId",
             new RuleAction(
                 "",
                 ProgramRuleActionType.SENDMESSAGE.name(),
@@ -308,12 +309,13 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
 
   @Test
   void testGetDescription() {
-    RuleValidationResult result = new RuleValidationResult(true);
+    RuleValidationResult result = RuleValidationResult.valid("Description");
     when(programRuleService.getProgramRule(anyString())).thenReturn(programRuleA);
     when(programRuleEngine.getDescription(programRuleA.getCondition(), program)).thenReturn(result);
 
     assertNotNull(result);
     assertTrue(result.getValid());
+    assertEquals("Description", result.getDescription());
   }
 
   // -------------------------------------------------------------------------

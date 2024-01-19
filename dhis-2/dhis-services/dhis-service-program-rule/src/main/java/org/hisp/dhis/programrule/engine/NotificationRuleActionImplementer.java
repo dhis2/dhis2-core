@@ -28,6 +28,7 @@
 package org.hisp.dhis.programrule.engine;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.programrule.engine.RuleActionKeys.NOTIFICATION;
 
 import java.util.Date;
 import lombok.RequiredArgsConstructor;
@@ -77,7 +78,7 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
 
   @Transactional(readOnly = true)
   public ProgramNotificationTemplate getNotificationTemplate(RuleAction action) {
-    String uid = action.getValues().get("notification");
+    String uid = action.getValues().get(NOTIFICATION);
     return programNotificationTemplateService.getByUid(uid);
   }
 

@@ -44,6 +44,13 @@ import static org.hisp.dhis.programrule.ProgramRuleActionType.SHOWERROR;
 import static org.hisp.dhis.programrule.ProgramRuleActionType.SHOWOPTIONGROUP;
 import static org.hisp.dhis.programrule.ProgramRuleActionType.SHOWWARNING;
 import static org.hisp.dhis.programrule.ProgramRuleActionType.WARNINGONCOMPLETE;
+import static org.hisp.dhis.programrule.engine.RuleActionKeys.ATTRIBUTE_TYPE;
+import static org.hisp.dhis.programrule.engine.RuleActionKeys.CONTENT;
+import static org.hisp.dhis.programrule.engine.RuleActionKeys.FIELD;
+import static org.hisp.dhis.programrule.engine.RuleActionKeys.LOCATION;
+import static org.hisp.dhis.programrule.engine.RuleActionKeys.NOTIFICATION;
+import static org.hisp.dhis.programrule.engine.RuleActionKeys.PROGRAM_STAGE;
+import static org.hisp.dhis.programrule.engine.RuleActionKeys.PROGRAM_STAGE_SECTION;
 import static org.hisp.dhis.rules.models.AttributeType.DATA_ELEMENT;
 import static org.hisp.dhis.rules.models.AttributeType.TRACKED_ENTITY_ATTRIBUTE;
 
@@ -102,13 +109,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 @Service("org.hisp.dhis.programrule.engine.ProgramRuleEntityMapperService")
 public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityMapperService {
-  private static final String CONTENT = "content";
-  private static final String FIELD = "field";
-  private static final String ATTRIBUTE_TYPE = "attributeType";
-  private static final String LOCATION = "location";
-  private static final String NOTIFICATION = "notification";
-  private static final String PROGRAM_STAGE = "programStage";
-  private static final String PROGRAM_STAGE_SECTION = "programStageSection";
 
   private final ProgramRuleService programRuleService;
 
