@@ -149,7 +149,7 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
     String sql = "insert into " + tableName + " (";
 
     List<AnalyticsTableColumn> dimensions = partition.getMasterTable().getDimensionColumns();
-    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAllColumns();
+    List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
 
     validateDimensionColumns(dimensions);
 

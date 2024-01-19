@@ -210,7 +210,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     List<AnalyticsTableColumn> dimensions = partition.getMasterTable().getDimensionColumns();
-    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAllColumns();
+    List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
 
     validateDimensionColumns(dimensions);
 

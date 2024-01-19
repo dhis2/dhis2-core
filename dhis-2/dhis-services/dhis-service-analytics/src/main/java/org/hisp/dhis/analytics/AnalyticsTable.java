@@ -103,7 +103,7 @@ public class AnalyticsTable {
    *
    * @return a list of {@link AnalyticsTableColumn}.
    */
-  public List<AnalyticsTableColumn> getAllColumns() {
+  public List<AnalyticsTableColumn> getColumns() {
     return ListUtils.union(getDimensionColumns(), getValueColumns());
   }
 
@@ -113,7 +113,7 @@ public class AnalyticsTable {
    * @return the count of all columns.
    */
   public int getColumnCount() {
-    return getAllColumns().size();
+    return getColumns().size();
   }
 
   /**

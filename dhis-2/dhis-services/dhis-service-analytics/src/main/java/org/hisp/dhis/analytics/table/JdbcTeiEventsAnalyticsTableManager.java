@@ -289,7 +289,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     List<AnalyticsTableColumn> dimensions = partition.getMasterTable().getDimensionColumns();
-    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAllColumns();
+    List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
 
     String start = getLongDateString(partition.getStartDate());
     String end = getLongDateString(partition.getEndDate());
