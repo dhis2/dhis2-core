@@ -27,9 +27,14 @@
  */
 package org.hisp.dhis.resourcetable;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 /**
  * @author Lars Helge Overland
  */
+@Getter
+@RequiredArgsConstructor
 public enum ResourceTableType {
   ORG_UNIT_STRUCTURE("_orgunitstructure"),
   DATA_SET_ORG_UNIT_CATEGORY("_datasetorganisationunitcategory"),
@@ -45,13 +50,5 @@ public enum ResourceTableType {
   DATA_APPROVAL_REMAP_LEVEL("_dataapprovalremaplevel"),
   DATA_APPROVAL_MIN_LEVEL("_dataapprovalminlevel");
 
-  private String tableName;
-
-  ResourceTableType(String tableName) {
-    this.tableName = tableName;
-  }
-
-  public String getTableName() {
-    return tableName;
-  }
+  private final String tableName;
 }

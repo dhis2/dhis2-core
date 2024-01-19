@@ -30,6 +30,7 @@ package org.hisp.dhis.programrule;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Sets;
 import java.util.Set;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DxfNamespaces;
 
 /**
@@ -38,15 +39,12 @@ import org.hisp.dhis.common.DxfNamespaces;
 @JacksonXmlRootElement(
     localName = "programRuleEvaluationEnvironment",
     namespace = DxfNamespaces.DXF_2_0)
+@RequiredArgsConstructor
 public enum ProgramRuleActionEvaluationEnvironment {
   WEB("web"),
   ANDROID("android");
 
   private final String value;
-
-  ProgramRuleActionEvaluationEnvironment(String value) {
-    this.value = value;
-  }
 
   public static ProgramRuleActionEvaluationEnvironment fromValue(String value) {
     for (ProgramRuleActionEvaluationEnvironment type :

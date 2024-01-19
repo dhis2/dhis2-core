@@ -30,6 +30,7 @@ package org.hisp.dhis.programrule;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableSet;
 import java.util.Set;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DxfNamespaces;
 
 /**
@@ -38,6 +39,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 @JacksonXmlRootElement(
     localName = "programRuleVariableSourceType",
     namespace = DxfNamespaces.DXF_2_0)
+@RequiredArgsConstructor
 public enum ProgramRuleVariableSourceType {
   DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE("dataelement_newest_event_program_stage"),
   DATAELEMENT_NEWEST_EVENT_PROGRAM("dataelement_newest_event_program"),
@@ -59,10 +61,6 @@ public enum ProgramRuleVariableSourceType {
 
   private static final Set<ProgramRuleVariableSourceType> ATTRIBUTE_TYPES =
       new ImmutableSet.Builder<ProgramRuleVariableSourceType>().add(TEI_ATTRIBUTE).build();
-
-  ProgramRuleVariableSourceType(String value) {
-    this.value = value;
-  }
 
   public static ProgramRuleVariableSourceType fromValue(String value) {
     for (ProgramRuleVariableSourceType type : ProgramRuleVariableSourceType.values()) {
