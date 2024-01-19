@@ -25,13 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.webdomain.user;
+package org.hisp.dhis.user;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Set;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hisp.dhis.user.User;
 
 /**
  * DTO for a minimal and non-sensitive representation of a user.
@@ -51,6 +51,10 @@ public class UserLookup {
   @JsonProperty private String surname;
 
   @JsonProperty private String displayName;
+
+  @JsonProperty private Set<String> roles;
+
+  @JsonProperty private Set<String> groups;
 
   public static UserLookup fromUser(User user) {
     String displayName = String.format("%s %s", user.getFirstName(), user.getSurname());

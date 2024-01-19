@@ -36,9 +36,7 @@ import static org.hisp.dhis.system.util.ValidationUtils.usernameIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.uuidIsValid;
 
 import com.google.common.collect.Lists;
-import java.time.Instant;
 import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -955,24 +953,27 @@ public class DefaultUserService implements UserService {
   @Override
   @Nonnull
   @Transactional(readOnly = true)
-  public List<User> getLinkedUserAccounts(@Nonnull User actingUser) {
-    return userStore.getLinkedUserAccounts(actingUser);
-  }
+  public List<UserLookup> getLinkedUserAccounts(@Nonnull User actingUser) {
+    List<User> linkedUserAccounts = userStore.getLinkedUserAccounts(actingUser);
 
-  @Override
-  @Transactional
-  public void setActiveLinkedAccounts(@Nonnull User actingUser, @Nonnull String activeUsername) {
-    Instant oneHourAgo = Instant.now().minus(1, ChronoUnit.HOURS);
-    Instant oneHourInTheFuture = Instant.now().plus(1, ChronoUnit.HOURS);
+    List<UserLookup> userLookups =
+        linkedUserAccounts.stream().map(UserLookup::fromUser).collect(Collectors.toList());
 
-    List<User> linkedUserAccounts = getLinkedUserAccounts(actingUser);
-    for (User user : linkedUserAccounts) {
-      user.setLastLogin(
-          user.getUsername().equals(activeUsername)
-              ? Date.from(oneHourInTheFuture)
-              : Date.from(oneHourAgo));
-
-      updateUser(user);
+    for (int i = 0; i < linkedUserAccounts.size(); i++) {
+      userLookups
+          .get(i)
+          .setRoles(
+              linkedUserAccounts.get(i).getUserRoles().stream()
+                  .map(UserRole::getUid)
+                  .collect(Collectors.toSet()));
+      userLookups
+          .get(i)
+          .setGroups(
+              linkedUserAccounts.get(i).getGroups().stream()
+                  .map(UserGroup::getUid)
+                  .collect(Collectors.toSet()));
     }
+
+    return userLookups;
   }
 }
