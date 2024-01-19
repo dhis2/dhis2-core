@@ -27,9 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.security;
 
-import java.util.EnumSet;
 import java.util.Locale;
-import java.util.Optional;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -42,7 +40,6 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -68,15 +65,22 @@ public class LoginConfigController {
     APPLICATION_RIGHT_FOOTER("applicationRightSideFooter"),
     FLAG_IMAGE("countryFlag"),
     UI_LOCALE("uiLocale"),
-    CUSTOM_LOGIN_PAGE_LOGO("loginPageLogo"),
-    CUSTOM_TOP_MENU_LOGO("topMenuLogo"),
+    CUSTOM_LOGIN_PAGE_LOGO("loginPageLogo", "/api/staticContent/logo_front"),
+    CUSTOM_TOP_MENU_LOGO("topMenuLogo", "/external-static/logo_banner.png"),
     STYLE("style"),
     SELF_REGISTRATION_NO_RECAPTCHA("selfRegistrationNoRecaptcha");
 
     private final String keyName;
+    private final String defaultValue;
 
     KEYS(String keyName) {
       this.keyName = keyName;
+      this.defaultValue = null;
+    }
+
+    KEYS(String keyName, String defaultValue) {
+      this.keyName = keyName;
+      this.defaultValue = defaultValue;
     }
   }
 
@@ -105,9 +109,15 @@ public class LoginConfigController {
             .getSystemSetting(SettingKey.valueOf(KEYS.UI_LOCALE.name()), Locale.class)
             .getLanguage());
 
-    builder.loginPageLogo("logo.png");
+    builder.loginPageLogo(
+        manager.getBoolSetting(SettingKey.valueOf(KEYS.CUSTOM_LOGIN_PAGE_LOGO.name()))
+            ? KEYS.CUSTOM_LOGIN_PAGE_LOGO.defaultValue
+            : null);
 
-    builder.topMenuLogo("toppagelogo.png");
+    builder.topMenuLogo(
+        manager.getBoolSetting(SettingKey.valueOf(KEYS.CUSTOM_TOP_MENU_LOGO.name()))
+            ? KEYS.CUSTOM_LOGIN_PAGE_LOGO.defaultValue
+            : null);
 
     builder.style(manager.getStringSetting(SettingKey.valueOf(KEYS.STYLE.name())));
 
@@ -120,19 +130,5 @@ public class LoginConfigController {
         manager.getBoolSetting(SettingKey.valueOf(KEYS.SELF_REGISTRATION_NO_RECAPTCHA.name())));
 
     return builder.build();
-  }
-
-  @GetMapping("/{configKey}")
-  public @ResponseBody String getConfigKey(@PathVariable String configKey) {
-    Optional<KEYS> validKey =
-        EnumSet.allOf(KEYS.class).stream()
-            .filter((e -> e.getKeyName().equals(configKey)))
-            .findFirst();
-
-    if (validKey.isPresent()) {
-      return manager.getStringSetting(SettingKey.valueOf(validKey.get().name()));
-    }
-
-    throw new IllegalArgumentException("Not a valid login config key");
   }
 }

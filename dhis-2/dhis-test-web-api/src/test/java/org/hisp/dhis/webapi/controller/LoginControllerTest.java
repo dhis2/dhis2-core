@@ -47,16 +47,4 @@ class LoginControllerTest extends DhisControllerIntegrationTest {
     assertEquals("DHIS 2", response.getString("applicationTitle").string());
     assertEquals("en", response.getString("uiLocale").string());
   }
-
-  @Test
-  void shouldNotGetValidLoginConfigKey() throws IOException {
-    JsonObject response = GET(String.format("/loginConfig/%s", "applicationTitle")).content();
-    assertEquals(iconKey, response.getString("key").string());
-  }
-
-  @Test
-  void shouldNotGetInvalidLoginConfigKey() throws IOException {
-    JsonObject response = GET(String.format("/loginConfig/%s", "not_a_valid_key")).content();
-    assertEquals(iconKey, response.getString("key").string());
-  }
 }
