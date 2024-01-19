@@ -27,9 +27,12 @@
  */
 package org.hisp.dhis.analytics;
 
+import lombok.Getter;
+
 /**
  * @author Lars Helge Overland
  */
+@Getter
 public enum ColumnDataType {
   CHARACTER_11("character(11)"),
   CHARACTER_32("character(32)"),
@@ -47,13 +50,9 @@ public enum ColumnDataType {
   GEOMETRY_POINT("geometry(Point, 4326)"),
   JSONB("jsonb");
 
-  String value;
+  final String value;
 
   ColumnDataType(String value) {
     this.value = value;
-  }
-
-  public String getValue() {
-    return value;
   }
 }
