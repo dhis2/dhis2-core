@@ -43,7 +43,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -69,7 +68,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
-import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -92,8 +90,6 @@ class GridAdaptorTest extends DhisConvenienceTest {
 
   private SchemeIdResponseMapper schemeIdResponseMapper;
 
-  private User user;
-
   @BeforeEach
   void setUp() {
     headerParamsHandler = new HeaderParamsHandler();
@@ -101,7 +97,6 @@ class GridAdaptorTest extends DhisConvenienceTest {
     schemeIdResponseMapper = new SchemeIdResponseMapper();
     gridAdaptor =
         new GridAdaptor(headerParamsHandler, metadataDetailsHandler, schemeIdResponseMapper);
-    user = makeUser(ADMIN_USER_UID);
   }
 
   @Test

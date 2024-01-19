@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.analytics.tei;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
 import java.util.Set;
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.analytics.common.QueryRequest;
@@ -58,6 +58,7 @@ class TeiQueryRequestMapperTest {
   private CommonQueryRequestMapper commonQueryRequestMapper;
 
   @BeforeEach
+  @SuppressWarnings("unchecked")
   public void setUp() {
     commonQueryRequestMapper = mock(CommonQueryRequestMapper.class);
     teiQueryRequestMapper =
@@ -126,7 +127,7 @@ class TeiQueryRequestMapperTest {
 
     when(commonQueryRequestMapper.map(any())).thenReturn(CommonParams.builder().build());
 
-    TeiQueryParams mapped = teiQueryRequestMapper.map(queryRequest);
+    assertDoesNotThrow(() -> teiQueryRequestMapper.map(queryRequest));
   }
 
   @Test
@@ -148,7 +149,7 @@ class TeiQueryRequestMapperTest {
 
     when(commonQueryRequestMapper.map(any())).thenReturn(CommonParams.builder().build());
 
-    TeiQueryParams mapped = teiQueryRequestMapper.map(queryRequest);
+    assertDoesNotThrow(() -> teiQueryRequestMapper.map(queryRequest));
   }
 
   private Program stubProgram(String uid, String tetUid) {
