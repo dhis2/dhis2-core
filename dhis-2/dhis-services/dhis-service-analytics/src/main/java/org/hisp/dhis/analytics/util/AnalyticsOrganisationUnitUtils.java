@@ -36,13 +36,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.user.User;
 
-/** Utilities for organisation unit criteria of outcoming analytics response. */
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+/** Utilities for organisation unit criteria of analytics response. */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class AnalyticsOrganisationUnitUtils {
   /**

@@ -30,14 +30,15 @@ package org.hisp.dhis.analytics.tei.query.context.sql;
 import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.ANALYTICS_TEI;
 
 import java.util.concurrent.atomic.AtomicInteger;
+
+import org.hisp.dhis.analytics.tei.TeiQueryParams;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Delegate;
-import org.hisp.dhis.analytics.tei.TeiQueryParams;
 
 /**
- * This class is used to hold the context of the query and the parameters that are used to build the
- * query.
+ * This class is used to hold the context of the query and the parameters that are used to build it.
  */
 @Getter
 @RequiredArgsConstructor(staticName = "of")

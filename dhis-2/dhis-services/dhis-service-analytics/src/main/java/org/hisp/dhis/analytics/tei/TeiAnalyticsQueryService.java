@@ -34,9 +34,9 @@ import static org.springframework.util.Assert.notNull;
 
 import java.util.List;
 import java.util.Optional;
+
 import javax.annotation.Nonnull;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.GridAdaptor;
 import org.hisp.dhis.analytics.common.QueryExecutor;
@@ -54,6 +54,8 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 
+import lombok.RequiredArgsConstructor;
+
 /**
  * Service responsible exclusively for querying. Methods present on this class must not change any
  * state.
@@ -61,7 +63,6 @@ import org.springframework.stereotype.Service;
  * @author maikel arabori
  */
 @Service
-@Slf4j
 @RequiredArgsConstructor
 public class TeiAnalyticsQueryService {
   private final QueryExecutor<SqlQuery, SqlQueryResult> queryExecutor;

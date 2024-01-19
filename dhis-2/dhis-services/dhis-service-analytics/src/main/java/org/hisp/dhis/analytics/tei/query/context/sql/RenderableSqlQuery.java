@@ -36,9 +36,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import lombok.Builder;
-import lombok.Data;
-import lombok.Singular;
+
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.From;
 import org.hisp.dhis.analytics.common.query.GroupableCondition;
@@ -53,8 +51,12 @@ import org.hisp.dhis.analytics.common.query.Select;
 import org.hisp.dhis.analytics.common.query.Table;
 import org.hisp.dhis.analytics.common.query.Where;
 
+import lombok.Builder;
+import lombok.Data;
+import lombok.Singular;
+
 /**
- * This class is responsible for rendering the SQL query. each instance of this class will only
+ * This class is responsible for rendering a SQL query. Each instance of this class will only
  * render each "part" once, and then cache the result. This way we can reuse the same instance of
  * this class for rendering the count query, without affecting the parameters of the original query.
  */

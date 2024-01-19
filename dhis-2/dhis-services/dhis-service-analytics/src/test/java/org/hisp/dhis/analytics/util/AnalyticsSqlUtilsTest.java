@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.common.FallbackCoordinateFieldType;
@@ -44,6 +43,7 @@ class AnalyticsSqlUtilsTest {
   void testQuote() {
     assertEquals(
         "\"Some \"\"special\"\" value\"", AnalyticsSqlUtils.quote("Some \"special\" value"));
+    assertEquals("\"Prescribed drug \"\"rx01\"\" to 'John White'\"", "Prescribed drug \"rx01\" to 'John White'");
     assertEquals("\"Data element\"", AnalyticsSqlUtils.quote("Data element"));
   }
 
