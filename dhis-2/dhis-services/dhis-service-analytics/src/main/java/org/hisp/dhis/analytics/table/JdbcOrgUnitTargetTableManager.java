@@ -138,7 +138,7 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
     String sql = "insert into " + partition.getTempTableName() + " (";
 
     List<AnalyticsTableColumn> dimensions = partition.getMasterTable().getDimensionColumns();
-    List<AnalyticsTableColumn> columns = partition.getMasterTable().getValueColumns();
+    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAllColumns();
 
     validateDimensionColumns(dimensions);
 
