@@ -46,7 +46,7 @@ class AnalyticsSqlUtilsTest {
         "\"Some \"\"special\"\" value\"", AnalyticsSqlUtils.quote("Some \"special\" value"));
     assertEquals(
         "\"Prescribed drug \"\"rx01\"\" to 'John White'\"",
-        "Prescribed drug \"rx01\" to 'John White'");
+        AnalyticsSqlUtils.quote("Prescribed drug \"rx01\" to 'John White'"));
     assertEquals("\"Data element\"", AnalyticsSqlUtils.quote("Data element"));
   }
 
