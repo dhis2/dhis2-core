@@ -56,17 +56,17 @@ public class AnalyticsTableColumn {
   /** The column collation. */
   private Collation collation;
 
-  /** Date of creation of the underlying data dimension. */
-  private Date created;
+  /** Explicit index type, defaults to database default type {@link IndexType#BTREE}. */
+  private IndexType indexType = IndexType.BTREE;
 
   /** Whether to skip building an index for this column. */
   private boolean skipIndex = false;
 
+  /** Date of creation of the underlying data dimension. */
+  private Date created;
+
   /** Whether to skip column and just build an index based on column name. */
   private boolean virtual = false;
-
-  /** Explicit index type, defaults to database default type {@link IndexType#BTREE}. */
-  private IndexType indexType = IndexType.BTREE;
 
   /** Explicit index column names, defaults to column name. */
   private List<String> indexColumns = new ArrayList<>();
@@ -118,27 +118,22 @@ public class AnalyticsTableColumn {
     this.notNull = notNull;
   }
 
-  /**
-   * Constructor
-   *
-   * @param name
-   * @param dataType
-   * @param virtual
-   */
-  public AnalyticsTableColumn(String name, ColumnDataType dataType, boolean virtual) {
-    this.name = name;
-    this.dataType = dataType;
-    this.virtual = virtual;
-    this.alias = "";
-  }
-
   // -------------------------------------------------------------------------
   // Logic
   // -------------------------------------------------------------------------
 
-  /** Indicates whether explicit index columns have been specified, defaults to this column name. */
+  /** Indicates whether explicit index columns are specified, defaults to this column name. */
   public boolean hasIndexColumns() {
     return !indexColumns.isEmpty();
+  }
+
+  /**
+   * Indicates whether a collation is specified.
+   *
+   * @return
+   */
+  public boolean hasCollation() {
+    return collation != null;
   }
 
   // -------------------------------------------------------------------------
@@ -156,12 +151,12 @@ public class AnalyticsTableColumn {
   }
 
   /**
-   * Sets the index columns.
+   * Sets the index type.
    *
-   * @param indexColumns columns to index, defaults to this column name.
+   * @param indexType the index type.
    */
-  public AnalyticsTableColumn withIndexColumns(List<String> indexColumns) {
-    this.indexColumns = indexColumns;
+  public AnalyticsTableColumn withIndexType(IndexType indexType) {
+    this.indexType = indexType;
     return this;
   }
 
@@ -176,20 +171,12 @@ public class AnalyticsTableColumn {
   }
 
   /**
-   * Sets the index type.
+   * Sets the index columns.
    *
-   * @param indexType the index type.
+   * @param indexColumns columns to index, defaults to this column name.
    */
-  public AnalyticsTableColumn withIndexType(IndexType indexType) {
-    this.indexType = indexType;
+  public AnalyticsTableColumn withIndexColumns(List<String> indexColumns) {
+    this.indexColumns = indexColumns;
     return this;
-  }
-
-  // -------------------------------------------------------------------------
-  // Get and set methods
-  // -------------------------------------------------------------------------
-
-  public boolean hasCollation() {
-    return collation != null;
   }
 }
