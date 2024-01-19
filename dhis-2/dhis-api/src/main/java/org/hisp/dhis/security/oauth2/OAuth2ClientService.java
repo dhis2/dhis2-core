@@ -25,80 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.jdbc.statementbuilder;
+package org.hisp.dhis.security.oauth2;
+
+import java.util.Collection;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class H2StatementBuilder extends AbstractStatementBuilder {
-  @Override
-  public String getDoubleColumnType() {
-    return "double";
-  }
+public interface OAuth2ClientService {
+  void saveOAuth2Client(OAuth2Client oAuth2Client);
 
-  @Override
-  public String getColumnQuote() {
-    return "\"";
-  }
+  void updateOAuth2Client(OAuth2Client oAuth2Client);
 
-  @Override
-  public String getVacuum(String table) {
-    return null;
-  }
+  void deleteOAuth2Client(OAuth2Client oAuth2Client);
 
-  @Override
-  public String getAnalyze(String table) {
-    return null;
-  }
+  OAuth2Client getOAuth2Client(int id);
 
-  @Override
-  public String getTableOptions(boolean autoVacuum) {
-    return "";
-  }
+  OAuth2Client getOAuth2Client(String uid);
 
-  @Override
-  public String getRegexpMatch() {
-    return "regexp";
-  }
+  OAuth2Client getOAuth2ClientByClientId(String cid);
 
-  @Override
-  public String getRegexpWordStart() // TODO test
-      {
-    return "[[:<:]]";
-  }
-
-  @Override
-  public String getRegexpWordEnd() {
-    return "[[:>:]]";
-  }
-
-  @Override
-  public String position(String substring, String string) {
-    return ("POSITION(" + substring + ", " + string + ")");
-  }
-
-  @Override
-  public String getRandom(int n) {
-    return "cast(trunc(" + n + "*random(),0) as int)";
-  }
-
-  @Override
-  public String getCharAt(String str, String n) {
-    return "substring(" + str + "," + n + ",1)";
-  }
-
-  @Override
-  public String getAddDate(String dateField, int days) {
-    return "DATEADD('DAY'," + days + "," + dateField + ")";
-  }
-
-  @Override
-  public String getDaysBetweenDates(String fromColumn, String toColumn) {
-    return ("DATEDIFF('DAY', " + toColumn + ", " + fromColumn + ")");
-  }
-
-  @Override
-  public String getNumberOfColumnsInPrimaryKey(String table) {
-    return "select 0 as c"; // TODO fix
-  }
+  Collection<OAuth2Client> getOAuth2Clients();
 }

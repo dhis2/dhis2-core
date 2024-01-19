@@ -57,7 +57,7 @@ public class SqlUtils {
    * @return the quoted relation.
    */
   public static String quote(String relation) {
-    String rel = relation.replaceAll(QUOTE, (QUOTE + QUOTE));
+    String rel = relation.replace(QUOTE, (QUOTE + QUOTE));
 
     return QUOTE + rel + QUOTE;
   }
@@ -88,6 +88,31 @@ public class SqlUtils {
     String rel = relation.replaceAll(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE));
 
     return SINGLE_QUOTE + rel + SINGLE_QUOTE;
+  }
+
+  /**
+   * Encodes and quotes a value with single quotes to make it suitable in a SQL statement.
+   *
+   * @param value the value to encode.
+   * @return the encoded value.
+   */
+  public static String encode(String value) {
+    return encode(value, true);
+  }
+
+  /**
+   * Encodes a value to make it suitable in a SQL statement.
+   *
+   * @param value the value to encode.
+   * @param quote whether to quote the value with single quotes.
+   * @return the encoded value.
+   */
+  public static String encode(String value, boolean quote) {
+    if (value != null) {
+      value = value.replace("\\", "\\\\").replace(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE));
+    }
+
+    return quote ? (SINGLE_QUOTE + value + SINGLE_QUOTE) : value;
   }
 
   /**

@@ -35,7 +35,6 @@ import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePhase;
 import org.hisp.dhis.dbms.DbmsManager;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableStore;
 import org.hisp.dhis.system.util.Clock;
@@ -57,8 +56,6 @@ public class JdbcResourceTableStore implements ResourceTableStore {
 
   private final DbmsManager dbmsManager;
 
-  private final StatementBuilder statementBuilder;
-
   private final JdbcTemplate jdbcTemplate;
 
   // -------------------------------------------------------------------------
@@ -75,7 +72,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
     final Optional<List<Object[]>> populateTableContent =
         resourceTable.getPopulateTempTableContent();
     final List<String> createIndexSql = resourceTable.getCreateIndexStatements();
-    final String analyzeTableSql = statementBuilder.getAnalyze(resourceTable.getTableName());
+    final String analyzeTableSql = String.format("analyze %s;", resourceTable.getTableName());
 
     // ---------------------------------------------------------------------
     // Drop temporary table if it exists
@@ -153,11 +150,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
     // Analyze
     // ---------------------------------------------------------------------
 
-    if (analyzeTableSql != null) {
-      log.debug("Analyze table SQL: " + analyzeTableSql);
-
-      jdbcTemplate.execute(analyzeTableSql);
-    }
+    jdbcTemplate.execute(analyzeTableSql);
 
     log.debug(String.format("Analyzed resource table: '%s'", resourceTable.getTableName()));
 

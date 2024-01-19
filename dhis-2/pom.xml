@@ -91,7 +91,7 @@
 
     <!-- Security -->
     <spring-security.version>5.8.9</spring-security.version>
-
+    <spring-security-oauth2.version>2.5.2.RELEASE</spring-security-oauth2.version>
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
@@ -214,7 +214,7 @@
     <testcontainers.version>1.19.3</testcontainers.version>
     <jsonassert.version>1.5.1</jsonassert.version>
     <awaitility.version>4.2.0</awaitility.version>
-    <swagger.version>2.1.19</swagger.version>
+    <swagger.version>2.1.20</swagger.version>
     <easy-random.version>5.0.0</easy-random.version>
     <tree.version>0.2.5</tree.version>
     <h2.version>2.2.224</h2.version>
@@ -592,6 +592,11 @@
       </dependency>
 
       <!-- OAuth 2.0 -->
+      <dependency>
+        <groupId>org.springframework.security.oauth</groupId>
+        <artifactId>spring-security-oauth2</artifactId>
+        <version>${spring-security-oauth2.version}</version>
+      </dependency>
       <dependency>
         <groupId>org.springframework.security</groupId>
         <artifactId>spring-security-oauth2-core</artifactId>
@@ -2211,8 +2216,8 @@ jasperreports.version=${jasperreports.version}
         </executions>
       </plugin>
     </plugins>
-    <!-- <build><sourceDirectory> cannot be set in a profile, so it needs 
-      a custom property for overwriting it, see 
+    <!-- <build><sourceDirectory> cannot be set in a profile, so it needs
+      a custom property for overwriting it, see
       https://github.com/awhitford/lombok.maven/issues/17#issuecomment-136606104 -->
     <sourceDirectory>${sourceDir}</sourceDirectory>
   </build>
@@ -2269,7 +2274,7 @@ jasperreports.version=${jasperreports.version}
       </build>
     </profile>
 
-    <!-- Integration test profile, runs all integrations tests, not unit 
+    <!-- Integration test profile, runs all integrations tests, not unit
       tests -->
     <profile>
       <id>integration</id>
@@ -2295,7 +2300,7 @@ jasperreports.version=${jasperreports.version}
       </build>
     </profile>
 
-    <!-- IntegrationH2 test profile, runs all integrations tests with H2, 
+    <!-- IntegrationH2 test profile, runs all integrations tests with H2,
       not unit tests -->
     <profile>
       <id>integrationH2</id>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,39 +25,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.objectmapper;
+package org.hisp.dhis.analytics;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import org.hisp.dhis.datavalue.DeflatedDataValue;
-import org.hisp.quick.mapper.RowMapper;
-
-/**
- * @author Lars Helge Overland
- * @version $Id$
- */
-public class DeflatedDataValueRowMapper
-    implements RowMapper<DeflatedDataValue>,
-        org.springframework.jdbc.core.RowMapper<DeflatedDataValue> {
-  @Override
-  public DeflatedDataValue mapRow(ResultSet resultSet) throws SQLException {
-    final DeflatedDataValue value = new DeflatedDataValue();
-
-    value.setDataElementId(resultSet.getLong("dataelementid"));
-    value.setPeriodId(resultSet.getLong("periodid"));
-    value.setSourceId(resultSet.getLong("sourceid"));
-    value.setCategoryOptionComboId(resultSet.getLong("categoryoptioncomboid"));
-    value.setValue(resultSet.getString("value"));
-    value.setStoredBy(resultSet.getString("storedby"));
-    value.setCreated(resultSet.getTimestamp("created"));
-    value.setLastUpdated(resultSet.getTimestamp("lastupdated"));
-    value.setComment(resultSet.getString("comment"));
-
-    return value;
-  }
-
-  @Override
-  public DeflatedDataValue mapRow(ResultSet resultSet, int rowNum) throws SQLException {
-    return mapRow(resultSet);
-  }
+public enum Collation {
+  C;
 }

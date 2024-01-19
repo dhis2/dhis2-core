@@ -27,11 +27,16 @@
  */
 package org.hisp.dhis.analytics;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 /**
  * Index type.
  *
  * @author Lars Helge Overland
  */
+@Getter
+@RequiredArgsConstructor
 public enum IndexType {
   BTREE("btree"),
   GIST("gist"),
@@ -39,13 +44,5 @@ public enum IndexType {
   BLOOM("bloom"),
   GIN("gin");
 
-  private String keyword;
-
-  IndexType(String keyword) {
-    this.keyword = keyword;
-  }
-
-  public String keyword() {
-    return keyword;
-  }
+  final String keyword;
 }

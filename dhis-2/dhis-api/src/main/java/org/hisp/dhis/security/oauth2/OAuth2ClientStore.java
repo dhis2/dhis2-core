@@ -25,27 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.collection;
+package org.hisp.dhis.security.oauth2;
 
-import java.util.HashMap;
-import java.util.Map;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class JobLocalMap<T, V> {
-  private final Map<JobConfiguration, Map<T, V>> internalMap;
+public interface OAuth2ClientStore extends IdentifiableObjectStore<OAuth2Client> {
+  String ID = OAuth2ClientStore.class.getName();
 
-  public JobLocalMap() {
-    this.internalMap = new HashMap<>();
-  }
-
-  public Map<T, V> get(JobConfiguration id) {
-    return internalMap.computeIfAbsent(id, k -> new HashMap<>());
-  }
-
-  public boolean clear(JobConfiguration id) {
-    return internalMap.remove(id) != null;
-  }
+  /**
+   * Get OAuth2 client by cid.
+   *
+   * @param cid ClientID
+   * @return Matched OAuth2Client or null if not found
+   */
+  OAuth2Client getByClientId(String cid);
 }

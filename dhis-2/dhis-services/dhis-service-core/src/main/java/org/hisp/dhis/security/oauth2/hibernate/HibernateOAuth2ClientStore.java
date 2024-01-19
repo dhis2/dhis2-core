@@ -25,17 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.filter;
+package org.hisp.dhis.security.oauth2.hibernate;
 
-import org.hisp.dhis.commons.filter.Filter;
-import org.hisp.dhis.indicator.IndicatorGroup;
+import javax.persistence.EntityManager;
+import javax.persistence.criteria.CriteriaBuilder;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.security.oauth2.OAuth2Client;
+import org.hisp.dhis.security.oauth2.OAuth2ClientStore;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class IndicatorGroupWithoutGroupSetFilter implements Filter<IndicatorGroup> {
+@Repository("org.hisp.dhis.security.oauth2.OAuth2ClientStore")
+public class HibernateOAuth2ClientStore extends HibernateIdentifiableObjectStore<OAuth2Client>
+    implements OAuth2ClientStore {
+  public HibernateOAuth2ClientStore(
+      EntityManager entityManager,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      AclService aclService) {
+    super(entityManager, jdbcTemplate, publisher, OAuth2Client.class, aclService, true);
+  }
+
   @Override
-  public boolean retain(IndicatorGroup object) {
-    return object == null || object.getGroupSets().isEmpty();
+  public OAuth2Client getByClientId(String cid) {
+    CriteriaBuilder builder = getCriteriaBuilder();
+
+    return getSingleResult(
+        builder, newJpaParameters().addPredicate(root -> builder.equal(root.get("cid"), cid)));
   }
 }

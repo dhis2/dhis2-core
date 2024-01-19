@@ -44,22 +44,27 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class AnalyticsExportSettings {
+public class AnalyticsTableExportSettings {
   private final DhisConfigurationProvider dhisConfigurationProvider;
 
   private final SystemSettingManager systemSettingManager;
 
-  private static final String UNLOGGED = "unlogged";
+  private static final String PARAM_UNLOGGED = "unlogged";
 
   /**
-   * Returns the respective string that represents the table type to be exported. Two types are
-   * supported: UNLOGGED and DEFAULT. See {@link AnalyticsTableType}
+   * Returns a string with the table parameters. The supported parameters are:
+   *
+   * <ul>
+   *   <li>unlogged
+   * </ul>
+   *
+   * .
    *
    * @return the string representation of {@link AnalyticsTableType}.
    */
-  public String getTableType() {
+  public String getTableParameters() {
     if (dhisConfigurationProvider.isEnabled(ANALYTICS_TABLE_UNLOGGED)) {
-      return UNLOGGED;
+      return PARAM_UNLOGGED;
     }
 
     return EMPTY;

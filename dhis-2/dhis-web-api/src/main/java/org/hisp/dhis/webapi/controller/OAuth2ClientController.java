@@ -25,65 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.jdbc.statementbuilder;
+package org.hisp.dhis.webapi.controller;
+
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.schema.descriptors.OAuth2ClientSchemaDescriptor;
+import org.hisp.dhis.security.oauth2.OAuth2Client;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class HsqlStatementBuilder extends AbstractStatementBuilder {
-  @Override
-  public String getDoubleColumnType() {
-    return "double";
-  }
-
-  @Override
-  public String getColumnQuote() {
-    return "\"";
-  }
-
-  @Override
-  public String getVacuum(String table) {
-    return null;
-  }
-
-  @Override
-  public String getAnalyze(String table) {
-    return null;
-  }
-
-  @Override
-  public String getTableOptions(boolean autoVacuum) {
-    return "";
-  }
-
-  @Override
-  public String getRegexpMatch() {
-    return "regexp";
-  }
-
-  @Override
-  public String getRegexpWordStart() // TODO test
-      {
-    return "[[:<:]]";
-  }
-
-  @Override
-  public String getRegexpWordEnd() {
-    return "[[:>:]]";
-  }
-
-  @Override
-  public String getRandom(int n) {
-    return "cast(floor(" + n + "*rand()) as integer)";
-  }
-
-  @Override
-  public String getCharAt(String str, String n) {
-    return "substring(" + str + "," + n + ",1)";
-  }
-
-  @Override
-  public String getAddDate(String dateField, int days) {
-    return "DATEADD('DAY'," + days + "," + dateField + ")";
-  }
-}
+@OpenApi.Tags({"user", "login"})
+@Controller
+@RequestMapping(value = OAuth2ClientSchemaDescriptor.API_ENDPOINT)
+public class OAuth2ClientController extends AbstractCrudController<OAuth2Client> {}

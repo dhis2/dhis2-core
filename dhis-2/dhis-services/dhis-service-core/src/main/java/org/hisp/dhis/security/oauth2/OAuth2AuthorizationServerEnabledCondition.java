@@ -25,33 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.collection;
+package org.hisp.dhis.security.oauth2;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class JobLocalList<T> {
-  private final Map<JobConfiguration, List<T>> internalMap;
+public class OAuth2AuthorizationServerEnabledCondition
+    extends PropertiesAwareConfigurationCondition {
+  @Override
+  public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+    if (isTestRun(context)) {
+      return false;
+    }
 
-  public JobLocalList() {
-    this.internalMap = new HashMap<>();
+    return getConfiguration().isEnabled(ConfigurationKey.ENABLE_OAUTH2_AUTHORIZATION_SERVER);
   }
 
-  public List<T> get(JobConfiguration id) {
-    return internalMap.computeIfAbsent(id, k -> new ArrayList<>());
-  }
-
-  public Map<JobConfiguration, List<T>> getInternalMap() {
-    return internalMap;
-  }
-
-  public boolean clear(JobConfiguration id) {
-    return internalMap.remove(id) != null;
+  @Override
+  public ConfigurationPhase getConfigurationPhase() {
+    return ConfigurationPhase.PARSE_CONFIGURATION;
   }
 }

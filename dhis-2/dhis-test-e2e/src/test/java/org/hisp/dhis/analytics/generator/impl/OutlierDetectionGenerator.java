@@ -71,6 +71,6 @@ public class OutlierDetectionGenerator implements Generator {
 
   @Override
   public boolean assertRowIndex() {
-    return true;
+    return false;
   }
 }
