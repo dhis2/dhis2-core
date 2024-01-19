@@ -42,7 +42,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -73,12 +72,11 @@ import org.hisp.dhis.user.RestoreOptions;
 import org.hisp.dhis.user.RestoreType;
 import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserLookup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.webdomain.user.UserLookup;
 import org.hisp.dhis.webapi.webdomain.user.UserLookups;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -507,26 +505,8 @@ public class AccountController {
 
   @GetMapping("/linkedAccounts")
   public @ResponseBody UserLookups getLinkedAccounts(@CurrentUser User currentUser) {
-    List<User> linkedUserAccounts = userService.getLinkedUserAccounts(currentUser);
-    List<UserLookup> userLookups =
-        linkedUserAccounts.stream().map(UserLookup::fromUser).collect(Collectors.toList());
-
-    for (int i = 0; i < linkedUserAccounts.size(); i++) {
-      userLookups
-          .get(i)
-          .setRoles(
-              linkedUserAccounts.get(i).getUserRoles().stream()
-                  .map(UserRole::getUid)
-                  .collect(Collectors.toSet()));
-      userLookups
-          .get(i)
-          .setGroups(
-              linkedUserAccounts.get(i).getGroups().stream()
-                  .map(UserGroup::getUid)
-                  .collect(Collectors.toSet()));
-    }
-
-    return new UserLookups(userLookups);
+    List<UserLookup> linkedUserAccounts = userService.getLinkedUserAccounts(currentUser);
+    return new UserLookups(linkedUserAccounts);
   }
 
   @GetMapping("/username")
