@@ -156,4 +156,30 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
             .error(HttpStatus.BAD_REQUEST)
             .getMessage());
   }
+
+  @Test
+  void shouldFailWhenSkipPagingAndPagingAreFalse() {
+    String message =
+        GET(
+                "/programNotificationInstances?enrollment={uid}&paging=false&skipPaging=false",
+                enrollmentA.getUid())
+            .content(HttpStatus.BAD_REQUEST)
+            .getString("message")
+            .string();
+
+    assertStartsWith("Paging can either be enabled or disabled", message);
+  }
+
+  @Test
+  void shouldFailWhenSkipPagingAndPagingAreTrue() {
+    String message =
+        GET(
+                "/programNotificationInstances?enrollment={uid}&paging=true&skipPaging=true",
+                enrollmentA.getUid())
+            .content(HttpStatus.BAD_REQUEST)
+            .getString("message")
+            .string();
+
+    assertStartsWith("Paging can either be enabled or disabled", message);
+  }
 }
