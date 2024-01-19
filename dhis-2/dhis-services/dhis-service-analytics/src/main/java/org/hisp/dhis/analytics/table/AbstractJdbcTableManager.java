@@ -36,15 +36,11 @@ import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexName;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getCollate;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
-
-import com.google.common.base.Preconditions;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsIndex;
 import org.hisp.dhis.analytics.AnalyticsTable;
@@ -56,6 +52,7 @@ import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTablePhase;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
+import org.hisp.dhis.analytics.Collation;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -79,6 +76,9 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
+import com.google.common.base.Preconditions;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -346,7 +346,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
           .append(col.getName())
           .append(SPACE)
           .append(col.getDataType().getValue())
-          .append(col.hasCollate() ? getCollate(col.getCollate().name()) : EMPTY)
+          .append(col.hasCollation() ? getCollate(col.getCollation().name()) : EMPTY)
           .append(notNull)
           .append(",");
     }
@@ -584,7 +584,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
                 .collect(Collectors.joining(","))
             + ") as ounamehierarchy";
     return new AnalyticsTableColumn(
-        "ounamehierarchy", TEXT, columnAlias, AnalyticsTableColumn.Collate.C);
+        "ounamehierarchy", TEXT, columnAlias, Collation.C);
   }
 
   /**

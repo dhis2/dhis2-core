@@ -31,18 +31,16 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 /**
  * Class representing an analytics database table column.
  *
  * @author Lars Helge Overland
  */
+@Getter
 @EqualsAndHashCode
 public class AnalyticsTableColumn {
-  public enum Collate {
-    C
-  }
-
   /** The column name. */
   private final String name;
 
@@ -55,8 +53,8 @@ public class AnalyticsTableColumn {
   /** The column SQL alias. */
   private final String alias;
 
-  /** Sets a custom collate for the column if one is defined. */
-  private Collate collate;
+  /** The column collation. */
+  private Collation collation;
 
   /** Date of creation of the underlying data dimension. */
   private Date created;
@@ -97,12 +95,12 @@ public class AnalyticsTableColumn {
    * @param dataType analytics table column data type.
    * @param alias source table column alias and name.
    */
-  public AnalyticsTableColumn(String name, ColumnDataType dataType, String alias, Collate collate) {
+  public AnalyticsTableColumn(String name, ColumnDataType dataType, String alias, Collation collation) {
     this.name = name;
     this.dataType = dataType;
     this.notNull = ColumnNotNullConstraint.NULL;
     this.alias = alias;
-    this.collate = collate;
+    this.collation = collation;
   }
 
   /**
@@ -190,47 +188,7 @@ public class AnalyticsTableColumn {
   // Get and set methods
   // -------------------------------------------------------------------------
 
-  public String getName() {
-    return name;
-  }
-
-  public ColumnDataType getDataType() {
-    return dataType;
-  }
-
-  public String getAlias() {
-    return alias;
-  }
-
-  public Collate getCollate() {
-    return collate;
-  }
-
-  public boolean hasCollate() {
-    return collate != null;
-  }
-
-  public ColumnNotNullConstraint getNotNull() {
-    return notNull;
-  }
-
-  public Date getCreated() {
-    return created;
-  }
-
-  public boolean isSkipIndex() {
-    return skipIndex;
-  }
-
-  public IndexType getIndexType() {
-    return indexType;
-  }
-
-  public List<String> getIndexColumns() {
-    return indexColumns;
-  }
-
-  public boolean isVirtual() {
-    return virtual;
+  public boolean hasCollation() {
+    return collation != null;
   }
 }
