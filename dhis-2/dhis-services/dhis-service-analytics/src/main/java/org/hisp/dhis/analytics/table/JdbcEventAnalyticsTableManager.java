@@ -74,7 +74,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.period.PeriodType;
@@ -111,7 +110,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       DataApprovalLevelService dataApprovalLevelService,
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
-      StatementBuilder statementBuilder,
       PartitionManager partitionManager,
       DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
@@ -125,7 +123,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         dataApprovalLevelService,
         resourceTableService,
         tableHookService,
-        statementBuilder,
         partitionManager,
         databaseInfoProvider,
         jdbcTemplate,
@@ -789,9 +786,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   private String getDataClause(String uid, ValueType valueType) {
     if (valueType.isNumeric() || valueType.isDate()) {
       String regex = valueType.isNumeric() ? NUMERIC_LENIENT_REGEXP : DATE_REGEXP;
-      String regexMatch = statementBuilder.getRegexpMatch();
 
-      return " and eventdatavalues #>> '{" + uid + ",value}' " + regexMatch + " '" + regex + "'";
+      return " and eventdatavalues #>> '{" + uid + ",value}' ~* '" + regex + "'";
     }
 
     return "";

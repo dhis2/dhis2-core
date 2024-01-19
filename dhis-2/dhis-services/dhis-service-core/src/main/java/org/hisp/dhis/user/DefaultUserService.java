@@ -214,8 +214,7 @@ public class DefaultUserService implements UserService {
   public void updateUser(User user, UserDetails actingUser) {
     userStore.update(user, actingUser);
 
-    AuditLogUtil.infoWrapper(
-        log, CurrentUserUtil.getCurrentUsername(), user, AuditLogUtil.ACTION_UPDATE);
+    AuditLogUtil.infoWrapper(log, actingUser.getUsername(), user, AuditLogUtil.ACTION_UPDATE);
   }
 
   @Override

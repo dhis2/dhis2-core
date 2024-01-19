@@ -57,7 +57,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
 
-  @Autowired private MergeService service;
+  @Autowired private MergeService indicatorTypeMergeService;
 
   @Autowired private IdentifiableObjectManager idObjectManager;
 
@@ -96,7 +96,7 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
 
     // when
-    MergeRequest request = service.validate(params, mergeReport);
+    MergeRequest request = indicatorTypeMergeService.validate(params, mergeReport);
 
     // then
     assertEquals(2, request.getSources().size());
@@ -115,7 +115,7 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
 
     // when
-    MergeRequest request = service.validate(params, mergeReport);
+    MergeRequest request = indicatorTypeMergeService.validate(params, mergeReport);
 
     // then
     assertRequestIsEmpty(request);
@@ -139,7 +139,7 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
 
     // when
-    MergeRequest request = service.validate(params, mergeReport);
+    MergeRequest request = indicatorTypeMergeService.validate(params, mergeReport);
 
     // then
     assertEquals(1, request.getSources().size());
@@ -147,7 +147,7 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
     assertTrue(mergeReport.hasErrorMessages());
     assertMatchesErrorCodes(mergeReport, Set.of(ErrorCode.E1533));
     assertMatchesErrorMessages(
-        mergeReport, Set.of("Source indicator type does not exist: `IntY123abgX`"));
+        mergeReport, Set.of("SOURCE indicator type does not exist: `IntY123abgX`"));
   }
 
   @Test
@@ -161,14 +161,14 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
 
     // when
-    MergeRequest request = service.validate(params, mergeReport);
+    MergeRequest request = indicatorTypeMergeService.validate(params, mergeReport);
 
     // then
     assertRequestIsEmpty(request);
     assertTrue(mergeReport.hasErrorMessages());
     assertMatchesErrorCodes(mergeReport, Set.of(ErrorCode.E1533));
     assertMatchesErrorMessages(
-        mergeReport, Set.of("Target indicator type does not exist: `IntY123abgX`"));
+        mergeReport, Set.of("TARGET indicator type does not exist: `IntY123abgX`"));
   }
 
   @Test
@@ -195,7 +195,7 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
 
     // when an indicator merge request is validated
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
-    service.validate(params, mergeReport);
+    indicatorTypeMergeService.validate(params, mergeReport);
 
     // then
     // source indicator types exist
@@ -224,7 +224,7 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
 
     // when an indicator merge request is validated
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
-    MergeRequest validatedRequest = service.validate(params, mergeReport);
+    MergeRequest validatedRequest = indicatorTypeMergeService.validate(params, mergeReport);
 
     // then
     // and the target indicator exists
@@ -260,7 +260,7 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
 
     // when an indicator merge request is validated
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
-    MergeRequest validatedRequest = service.validate(params, mergeReport);
+    MergeRequest validatedRequest = indicatorTypeMergeService.validate(params, mergeReport);
 
     // then
     // and the source indicators exists
@@ -296,7 +296,7 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
 
     // when an indicator merge request is merged
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
-    MergeReport completeReport = service.merge(request, mergeReport);
+    MergeReport completeReport = indicatorTypeMergeService.merge(request, mergeReport);
 
     // then
     // source indicator types are deleted
@@ -343,7 +343,7 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
 
     // when an indicator merge request is merged
     MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
-    MergeReport completeReport = service.merge(request, mergeReport);
+    MergeReport completeReport = indicatorTypeMergeService.merge(request, mergeReport);
 
     // then
     // source indicator types are deleted

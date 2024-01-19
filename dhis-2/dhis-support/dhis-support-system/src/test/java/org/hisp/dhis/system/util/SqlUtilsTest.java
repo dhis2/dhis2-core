@@ -54,4 +54,20 @@ class SqlUtilsTest {
     assertEquals("'Some ''special'' value'", SqlUtils.singleQuote("Some 'special' value"));
     assertEquals("'Another \"strange\" value'", SqlUtils.singleQuote("Another \"strange\" value"));
   }
+
+  @Test
+  void testEncode() {
+    assertEquals("'John White'", SqlUtils.encode("John White"));
+    assertEquals("'Main St 1\\\\nSmallwille\\\\n'", SqlUtils.encode("Main St 1\\nSmallwille\\n"));
+    assertEquals("'Provided ''Rx01'' to patient'", SqlUtils.encode("Provided 'Rx01' to patient"));
+  }
+
+  @Test
+  void testEncodeWithoutQuote() {
+    assertEquals("John White", SqlUtils.encode("John White", false));
+    assertEquals(
+        "Main St 1\\\\nSmallwille\\\\n", SqlUtils.encode("Main St 1\\nSmallwille\\n", false));
+    assertEquals(
+        "Provided ''Rx01'' to patient", SqlUtils.encode("Provided 'Rx01' to patient", false));
+  }
 }

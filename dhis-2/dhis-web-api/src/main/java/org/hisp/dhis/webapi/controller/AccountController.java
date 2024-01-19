@@ -70,6 +70,7 @@ import org.hisp.dhis.user.PasswordValidationService;
 import org.hisp.dhis.user.RecaptchaResponse;
 import org.hisp.dhis.user.RestoreOptions;
 import org.hisp.dhis.user.RestoreType;
+import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
@@ -438,22 +439,15 @@ public class AccountController {
   public ResponseEntity<Map<String, String>> updatePassword(
       @RequestParam String oldPassword,
       @RequestParam String password,
-      @CurrentUser User user,
+      @RequestParam String username,
       HttpServletRequest request) {
     Map<String, String> result = new HashMap<>();
-
-    String username = null;
-    if (user != null) {
-      username = user.getUsername();
-    }
 
     if (username == null) {
       username = (String) request.getSession().getAttribute("username");
     }
 
-    if (user == null) {
-      user = userService.getUserByUsername(username);
-    }
+    User user = userService.getUserByUsername(username);
 
     if (username == null) {
       result.put("status", "NON_EXPIRED");
@@ -497,7 +491,7 @@ public class AccountController {
     }
 
     userService.encodeAndSetPassword(user, password);
-    userService.updateUser(user);
+    userService.updateUser(user, new SystemUser());
 
     authenticate(username, password, getAuthorities(user.getUserRoles()), request);
 

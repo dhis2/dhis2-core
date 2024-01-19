@@ -37,7 +37,6 @@ import lombok.Data;
 import org.hisp.dhis.analytics.OutlierDetectionAlgorithm;
 import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.analytics.SortOrder;
-import org.hisp.dhis.analytics.outlier.Order;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.period.RelativePeriodEnum;
 
@@ -72,7 +71,7 @@ public class OutlierQueryParams {
 
   private Date relativePeriodDate;
 
-  private Order orderBy;
+  private String orderBy;
 
   private SortOrder sortOrder;
 

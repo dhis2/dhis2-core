@@ -28,7 +28,7 @@
 package org.hisp.dhis.analytics.outlier.data;
 
 import static org.hisp.dhis.analytics.OutlierDetectionAlgorithm.Z_SCORE;
-import static org.hisp.dhis.analytics.outlier.Order.MEAN_ABS_DEV;
+import static org.hisp.dhis.analytics.outlier.Order.ABS_DEV;
 import static org.hisp.dhis.analytics.outlier.data.OutlierRequestValidator.DEFAULT_LIMIT;
 import static org.hisp.dhis.common.OrganisationUnitDescendants.DESCENDANTS;
 
@@ -73,7 +73,7 @@ public class OutlierRequest {
 
   @Default private List<OrganisationUnit> orgUnits = new ArrayList<>();
 
-  @Default private Order orderBy = MEAN_ABS_DEV;
+  @Default private Order orderBy = ABS_DEV;
 
   @Default private SortOrder sortOrder = SortOrder.DESC;
 

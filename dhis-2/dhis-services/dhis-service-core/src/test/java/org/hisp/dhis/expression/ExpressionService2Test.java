@@ -94,7 +94,6 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.indicator.IndicatorValue;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.Period;
@@ -121,8 +120,6 @@ class ExpressionService2Test extends DhisConvenienceTest {
   @Mock private DimensionService dimensionService;
 
   @Mock private IdentifiableObjectManager idObjectManager;
-
-  @Mock private StatementBuilder statementBuilder;
 
   @Mock private I18nManager i18nManager;
 
@@ -251,7 +248,6 @@ class ExpressionService2Test extends DhisConvenienceTest {
             constantService,
             dimensionService,
             idObjectManager,
-            statementBuilder,
             i18nManager,
             cacheProvider);
 

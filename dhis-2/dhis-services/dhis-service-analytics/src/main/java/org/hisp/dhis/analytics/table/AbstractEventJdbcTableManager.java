@@ -46,7 +46,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
@@ -68,7 +67,6 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
       DataApprovalLevelService dataApprovalLevelService,
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
-      StatementBuilder statementBuilder,
       PartitionManager partitionManager,
       DatabaseInfoProvider databaseInfoProvider,
       JdbcTemplate jdbcTemplate,
@@ -82,7 +80,6 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
         dataApprovalLevelService,
         resourceTableService,
         tableHookService,
-        statementBuilder,
         partitionManager,
         databaseInfoProvider,
         jdbcTemplate,
@@ -91,11 +88,11 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
   }
 
   protected final String getNumericClause() {
-    return " and value " + statementBuilder.getRegexpMatch() + " '" + NUMERIC_LENIENT_REGEXP + "'";
+    return " and value ~* '" + NUMERIC_LENIENT_REGEXP + "'";
   }
 
   protected final String getDateClause() {
-    return " and value " + statementBuilder.getRegexpMatch() + " '" + DATE_REGEXP + "'";
+    return " and value ~* '" + DATE_REGEXP + "'";
   }
 
   protected final boolean skipIndex(ValueType valueType, boolean hasOptionSet) {
@@ -109,7 +106,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    */
   protected String getSelectClause(ValueType valueType, String columnName) {
     if (valueType.isDecimal()) {
-      return "cast(" + columnName + " as " + statementBuilder.getDoubleColumnType() + ")";
+      return "cast(" + columnName + " as double precision)";
     } else if (valueType.isInteger()) {
       return "cast(" + columnName + " as bigint)";
     } else if (valueType.isBoolean()) {

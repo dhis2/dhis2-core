@@ -54,16 +54,14 @@ import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
-import org.hisp.dhis.webapi.controller.tracker.export.OpenApiExport;
+import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -126,52 +124,37 @@ class TrackedEntitiesExportController {
         trackedEntityService.getOrderableFields());
   }
 
-  @OpenApi.Response(status = Status.OK, value = OpenApiExport.ListResponse.class)
+  @OpenApi.Response(status = Status.OK, value = Page.class)
   @GetMapping(produces = APPLICATION_JSON_VALUE)
-  PagingWrapper<ObjectNode> getTrackedEntities(
-      TrackedEntityRequestParams trackedEntityRequestParams, @CurrentUser User currentUser)
+  Page<ObjectNode> getTrackedEntities(
+      TrackedEntityRequestParams requestParams, @CurrentUser User currentUser)
       throws BadRequestException, ForbiddenException, NotFoundException {
-    validatePaginationParameters(trackedEntityRequestParams);
-    TrackedEntityOperationParams operationParams =
-        paramsMapper.map(trackedEntityRequestParams, currentUser);
-    if (trackedEntityRequestParams.isPaged()) {
+    validatePaginationParameters(requestParams);
+    TrackedEntityOperationParams operationParams = paramsMapper.map(requestParams, currentUser);
+
+    if (requestParams.isPaged()) {
       PageParams pageParams =
           new PageParams(
-              trackedEntityRequestParams.getPage(),
-              trackedEntityRequestParams.getPageSize(),
-              trackedEntityRequestParams.getTotalPages());
+              requestParams.getPage(), requestParams.getPageSize(), requestParams.getTotalPages());
 
-      Page<org.hisp.dhis.trackedentity.TrackedEntity> trackedEntityPage =
-          trackedEntityService.getTrackedEntities(operationParams, pageParams);
-
-      PagingWrapper.Pager.PagerBuilder pagerBuilder =
-          PagingWrapper.Pager.builder()
-              .page(trackedEntityPage.getPager().getPage())
-              .pageSize(trackedEntityPage.getPager().getPageSize());
-
-      if (trackedEntityRequestParams.isPageTotal()) {
-        pagerBuilder
-            .pageCount(trackedEntityPage.getPager().getPageCount())
-            .total(trackedEntityPage.getPager().getTotal());
-      }
-
-      PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
-      pagingWrapper = pagingWrapper.withPager(pagerBuilder.build());
+      org.hisp.dhis.tracker.export.Page<org.hisp.dhis.trackedentity.TrackedEntity>
+          trackedEntitiesPage =
+              trackedEntityService.getTrackedEntities(operationParams, pageParams);
       List<ObjectNode> objectNodes =
           fieldFilterService.toObjectNodes(
-              TRACKED_ENTITY_MAPPER.fromCollection(trackedEntityPage.getItems()),
-              trackedEntityRequestParams.getFields());
-      return pagingWrapper.withInstances(objectNodes);
+              TRACKED_ENTITY_MAPPER.fromCollection(trackedEntitiesPage.getItems()),
+              requestParams.getFields());
+
+      return Page.withPager(objectNodes, trackedEntitiesPage);
     }
 
     List<org.hisp.dhis.trackedentity.TrackedEntity> trackedEntities =
         trackedEntityService.getTrackedEntities(operationParams);
     List<ObjectNode> objectNodes =
         fieldFilterService.toObjectNodes(
-            TRACKED_ENTITY_MAPPER.fromCollection(trackedEntities),
-            trackedEntityRequestParams.getFields());
-    PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
-    return pagingWrapper.withInstances(objectNodes);
+            TRACKED_ENTITY_MAPPER.fromCollection(trackedEntities), requestParams.getFields());
+
+    return Page.withoutPager(objectNodes);
   }
 
   @GetMapping(produces = {CONTENT_TYPE_CSV, CONTENT_TYPE_TEXT_CSV})

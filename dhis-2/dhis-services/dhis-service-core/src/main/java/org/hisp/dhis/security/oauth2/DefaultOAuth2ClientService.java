@@ -25,29 +25,64 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.reservedvalue.hibernate;
+package org.hisp.dhis.security.oauth2;
 
-import java.util.List;
-import org.hisp.dhis.reservedvalue.SequentialNumberCounterStore;
+import java.util.Collection;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * @author Luciano Fiandesio
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class DummyService {
-  private SequentialNumberCounterStore sequentialNumberCounterStore;
+@RequiredArgsConstructor
+@Service("oAuth2ClientService")
+public class DefaultOAuth2ClientService implements OAuth2ClientService {
+  private final OAuth2ClientStore oAuth2ClientStore;
 
-  public DummyService(SequentialNumberCounterStore hibernateSequentialNumberCounterStore) {
-    this.sequentialNumberCounterStore = hibernateSequentialNumberCounterStore;
+  // -------------------------------------------------------------------------
+  // OAuth2ClientService
+  // -------------------------------------------------------------------------
+
+  @Override
+  @Transactional
+  public void saveOAuth2Client(OAuth2Client oAuth2Client) {
+    oAuth2ClientStore.save(oAuth2Client);
   }
 
+  @Override
   @Transactional
-  public List<Integer> getNextValues(String uid, String key, int length) {
-    return sequentialNumberCounterStore.getNextValues(uid, key, length);
+  public void updateOAuth2Client(OAuth2Client oAuth2Client) {
+    oAuth2ClientStore.update(oAuth2Client);
   }
 
+  @Override
   @Transactional
-  public void deleteCounter(String uid) {
-    sequentialNumberCounterStore.deleteCounter(uid);
+  public void deleteOAuth2Client(OAuth2Client oAuth2Client) {
+    oAuth2ClientStore.delete(oAuth2Client);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public OAuth2Client getOAuth2Client(int id) {
+    return oAuth2ClientStore.get(id);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public OAuth2Client getOAuth2Client(String uid) {
+    return oAuth2ClientStore.getByUid(uid);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public OAuth2Client getOAuth2ClientByClientId(String cid) {
+    return oAuth2ClientStore.getByClientId(cid);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Collection<OAuth2Client> getOAuth2Clients() {
+    return oAuth2ClientStore.getAll();
   }
 }

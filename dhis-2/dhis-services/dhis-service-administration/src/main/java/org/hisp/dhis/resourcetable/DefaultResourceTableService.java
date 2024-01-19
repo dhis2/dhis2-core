@@ -52,7 +52,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -98,8 +97,6 @@ public class DefaultResourceTableService implements ResourceTableService {
   private final DataApprovalLevelService dataApprovalLevelService;
 
   private final CategoryService categoryService;
-
-  private final StatementBuilder statementBuilder;
 
   private final AnalyticsExportSettings analyticsExportSettings;
 
@@ -159,7 +156,6 @@ public class DefaultResourceTableService implements ResourceTableService {
     resourceTableStore.generateResourceTable(
         new OrganisationUnitGroupSetResourceTable(
             idObjectManager.getDataDimensionsNoAcl(OrganisationUnitGroupSet.class),
-            statementBuilder.supportsPartialIndexes(),
             organisationUnitService.getNumberOfOrganisationalLevels(),
             analyticsExportSettings.getTableType()));
   }

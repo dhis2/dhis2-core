@@ -54,12 +54,10 @@ public interface MergeProcessor {
    * Processes a merge in full, using the implemented {@link MergeService} retrieved.
    *
    * @param mergeParams {@link MergeParams} to process
-   * @param mergeType {@link MergeType}
    * @return updated {@link MergeReport} with any errors
    */
-  default MergeReport processMerge(@Nonnull MergeParams mergeParams, @Nonnull MergeType mergeType)
-      throws ConflictException {
-    MergeReport mergeReport = new MergeReport(mergeType);
+  default MergeReport processMerge(@Nonnull MergeParams mergeParams) throws ConflictException {
+    MergeReport mergeReport = new MergeReport(mergeParams.getMergeType());
 
     MergeRequest mergeRequest = getMergeService().validate(mergeParams, mergeReport);
     if (mergeReport.hasErrorMessages())

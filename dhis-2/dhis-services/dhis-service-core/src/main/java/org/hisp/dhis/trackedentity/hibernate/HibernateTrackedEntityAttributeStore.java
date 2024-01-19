@@ -44,11 +44,11 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
 import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
@@ -64,16 +64,13 @@ import org.springframework.stereotype.Repository;
 public class HibernateTrackedEntityAttributeStore
     extends HibernateIdentifiableObjectStore<TrackedEntityAttribute>
     implements TrackedEntityAttributeStore {
-  private final StatementBuilder statementBuilder;
 
   public HibernateTrackedEntityAttributeStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      AclService aclService,
-      StatementBuilder statementBuilder) {
+      AclService aclService) {
     super(entityManager, jdbcTemplate, publisher, TrackedEntityAttribute.class, aclService, true);
-    this.statementBuilder = statementBuilder;
   }
 
   // -------------------------------------------------------------------------
@@ -125,8 +122,7 @@ public class HibernateTrackedEntityAttributeStore
     for (QueryItem item : params.getAttributes()) {
       for (QueryFilter filter : item.getFilters()) {
         final String encodedFilter =
-            filter.getSqlFilter(
-                statementBuilder.encode(StringUtils.lowerCase(filter.getFilter()), false));
+            filter.getSqlFilter(SqlUtils.encode(StringUtils.lowerCase(filter.getFilter()), false));
 
         hql +=
             hlp.whereAnd()

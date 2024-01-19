@@ -25,65 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.jdbc.statementbuilder;
+package org.hisp.dhis.schema.descriptors;
+
+import com.google.common.collect.Lists;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.security.Authority;
+import org.hisp.dhis.security.AuthorityType;
+import org.hisp.dhis.security.oauth2.OAuth2Client;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class HsqlStatementBuilder extends AbstractStatementBuilder {
-  @Override
-  public String getDoubleColumnType() {
-    return "double";
-  }
+public class OAuth2ClientSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "oAuth2Client";
+
+  public static final String PLURAL = "oAuth2Clients";
+
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
   @Override
-  public String getColumnQuote() {
-    return "\"";
-  }
+  public Schema getSchema() {
+    Schema schema = new Schema(OAuth2Client.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
+    schema.setOrder(1030);
 
-  @Override
-  public String getVacuum(String table) {
-    return null;
-  }
+    schema.add(new Authority(AuthorityType.READ, Lists.newArrayList("F_OAUTH2_CLIENT_MANAGE")));
+    schema.add(new Authority(AuthorityType.CREATE, Lists.newArrayList("F_OAUTH2_CLIENT_MANAGE")));
+    schema.add(new Authority(AuthorityType.DELETE, Lists.newArrayList("F_OAUTH2_CLIENT_MANAGE")));
 
-  @Override
-  public String getAnalyze(String table) {
-    return null;
-  }
-
-  @Override
-  public String getTableOptions(boolean autoVacuum) {
-    return "";
-  }
-
-  @Override
-  public String getRegexpMatch() {
-    return "regexp";
-  }
-
-  @Override
-  public String getRegexpWordStart() // TODO test
-      {
-    return "[[:<:]]";
-  }
-
-  @Override
-  public String getRegexpWordEnd() {
-    return "[[:>:]]";
-  }
-
-  @Override
-  public String getRandom(int n) {
-    return "cast(floor(" + n + "*rand()) as integer)";
-  }
-
-  @Override
-  public String getCharAt(String str, String n) {
-    return "substring(" + str + "," + n + ",1)";
-  }
-
-  @Override
-  public String getAddDate(String dateField, int days) {
-    return "DATEADD('DAY'," + days + "," + dateField + ")";
+    return schema;
   }
 }

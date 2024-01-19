@@ -25,31 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.jdbc.statementbuilder;
+package org.hisp.dhis.security.oauth2;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import org.hamcrest.CoreMatchers;
-import org.hisp.dhis.jdbc.StatementBuilder;
-import org.junit.jupiter.api.Test;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class StatementBuilderTest {
+public interface OAuth2ClientStore extends IdentifiableObjectStore<OAuth2Client> {
+  String ID = OAuth2ClientStore.class.getName();
 
-  @Test
-  void testStatementBuilder() {
-    StatementBuilder builder = new PostgreSQLStatementBuilder();
-    String autoIncrement = builder.getAutoIncrementValue();
-    assertEquals("nextval('hibernate_sequence')", autoIncrement);
-  }
-
-  @Test
-  void encodeTest() {
-    StatementBuilder builder = new PostgreSQLStatementBuilder();
-    String encoded = builder.encode("contains'character");
-    assertThat(encoded, CoreMatchers.containsString("''"));
-  }
+  /**
+   * Get OAuth2 client by cid.
+   *
+   * @param cid ClientID
+   * @return Matched OAuth2Client or null if not found
+   */
+  OAuth2Client getByClientId(String cid);
 }

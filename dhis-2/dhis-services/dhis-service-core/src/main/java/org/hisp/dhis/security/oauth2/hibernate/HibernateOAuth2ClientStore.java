@@ -25,80 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.jdbc.statementbuilder;
+package org.hisp.dhis.security.oauth2.hibernate;
+
+import javax.persistence.EntityManager;
+import javax.persistence.criteria.CriteriaBuilder;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.security.oauth2.OAuth2Client;
+import org.hisp.dhis.security.oauth2.OAuth2ClientStore;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class H2StatementBuilder extends AbstractStatementBuilder {
-  @Override
-  public String getDoubleColumnType() {
-    return "double";
+@Repository("org.hisp.dhis.security.oauth2.OAuth2ClientStore")
+public class HibernateOAuth2ClientStore extends HibernateIdentifiableObjectStore<OAuth2Client>
+    implements OAuth2ClientStore {
+  public HibernateOAuth2ClientStore(
+      EntityManager entityManager,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      AclService aclService) {
+    super(entityManager, jdbcTemplate, publisher, OAuth2Client.class, aclService, true);
   }
 
   @Override
-  public String getColumnQuote() {
-    return "\"";
-  }
+  public OAuth2Client getByClientId(String cid) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-  @Override
-  public String getVacuum(String table) {
-    return null;
-  }
-
-  @Override
-  public String getAnalyze(String table) {
-    return null;
-  }
-
-  @Override
-  public String getTableOptions(boolean autoVacuum) {
-    return "";
-  }
-
-  @Override
-  public String getRegexpMatch() {
-    return "regexp";
-  }
-
-  @Override
-  public String getRegexpWordStart() // TODO test
-      {
-    return "[[:<:]]";
-  }
-
-  @Override
-  public String getRegexpWordEnd() {
-    return "[[:>:]]";
-  }
-
-  @Override
-  public String position(String substring, String string) {
-    return ("POSITION(" + substring + ", " + string + ")");
-  }
-
-  @Override
-  public String getRandom(int n) {
-    return "cast(trunc(" + n + "*random(),0) as int)";
-  }
-
-  @Override
-  public String getCharAt(String str, String n) {
-    return "substring(" + str + "," + n + ",1)";
-  }
-
-  @Override
-  public String getAddDate(String dateField, int days) {
-    return "DATEADD('DAY'," + days + "," + dateField + ")";
-  }
-
-  @Override
-  public String getDaysBetweenDates(String fromColumn, String toColumn) {
-    return ("DATEDIFF('DAY', " + toColumn + ", " + fromColumn + ")");
-  }
-
-  @Override
-  public String getNumberOfColumnsInPrimaryKey(String table) {
-    return "select 0 as c"; // TODO fix
+    return getSingleResult(
+        builder, newJpaParameters().addPredicate(root -> builder.equal(root.get("cid"), cid)));
   }
 }
