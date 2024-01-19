@@ -65,9 +65,6 @@ public class AnalyticsTableColumn {
   /** Date of creation of the underlying data dimension. */
   private Date created;
 
-  /** Whether to skip column and just build an index based on column name. */
-  private boolean virtual = false;
-
   /** Explicit index column names, defaults to column name. */
   private List<String> indexColumns = new ArrayList<>();
 

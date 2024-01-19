@@ -51,7 +51,6 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
@@ -149,18 +148,18 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
 
     String sql = "insert into " + tableName + " (";
 
-    List<AnalyticsTableColumn> columns = partition.getMasterTable().getDimensionColumns();
-    List<AnalyticsTableColumn> values = partition.getMasterTable().getValueColumns();
+    List<AnalyticsTableColumn> dimensions = partition.getMasterTable().getDimensionColumns();
+    List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
 
-    validateDimensionColumns(columns);
+    validateDimensionColumns(dimensions);
 
-    for (AnalyticsTableColumn col : ListUtils.union(columns, values)) {
+    for (AnalyticsTableColumn col : columns) {
       sql += col.getName() + ",";
     }
 
     sql = TextUtils.removeLastComma(sql) + ") select ";
 
-    for (AnalyticsTableColumn col : columns) {
+    for (AnalyticsTableColumn col : dimensions) {
       sql += col.getAlias() + ",";
     }
 
