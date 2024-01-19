@@ -216,7 +216,7 @@ class JobConfigurationObjectBundleHookTest {
     jobConfiguration.setUid(jobConfigUid);
     jobConfiguration.setJobType(JobType.CONTINUOUS_ANALYTICS_TABLE);
     jobConfiguration.setSchedulingType(SchedulingType.FIXED_DELAY);
-    jobConfiguration.setJobParameters(new ContinuousAnalyticsJobParameters(1, null, null));
+    jobConfiguration.setJobParameters(new ContinuousAnalyticsJobParameters(1, null, null, true));
 
     List<ErrorReport> errorReports = hook.validate(jobConfiguration, null);
     assertEquals(1, errorReports.size());

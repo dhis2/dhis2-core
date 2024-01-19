@@ -210,7 +210,7 @@ public class FileResourceUtils {
       throw new WebMessageException(
           conflict(ErrorCode.E1119, FileResource.class.getSimpleName(), uid));
     }
-    fileResourceService.saveFileResource(fileResource, tmpFile);
+    fileResourceService.asyncSaveFileResource(fileResource, tmpFile);
     return fileResource;
   }
 

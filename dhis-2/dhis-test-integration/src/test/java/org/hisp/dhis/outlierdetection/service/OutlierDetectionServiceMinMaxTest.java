@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import com.google.common.collect.Lists;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -47,8 +48,8 @@ import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionQuery;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutlierDetectionResponse;
-import org.hisp.dhis.outlierdetection.OutlierDetectionService;
 import org.hisp.dhis.outlierdetection.OutlierValue;
+import org.hisp.dhis.outlierdetection.parser.OutlierDetectionQueryParser;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
@@ -71,7 +72,9 @@ class OutlierDetectionServiceMinMaxTest extends IntegrationTestBase {
 
   @Autowired private DataValueService dataValueService;
 
-  @Autowired private OutlierDetectionService subject;
+  @Autowired private DefaultOutlierDetectionService subject;
+
+  @Autowired private OutlierDetectionQueryParser parser;
 
   private DataElement deA;
 
@@ -115,13 +118,13 @@ class OutlierDetectionServiceMinMaxTest extends IntegrationTestBase {
   @Test
   void testGetFromQuery() {
     OutlierDetectionQuery query = new OutlierDetectionQuery();
-    query.setDe(Lists.newArrayList("deabcdefghA", "deabcdefghB"));
+    query.setDx(Set.of("deabcdefghA", "deabcdefghB"));
     query.setStartDate(getDate(2020, 1, 1));
     query.setEndDate(getDate(2020, 6, 1));
-    query.setOu(Lists.newArrayList("ouabcdefghA", "ouabcdefghB"));
+    query.setOu(Set.of("ouabcdefghA", "ouabcdefghB"));
     query.setAlgorithm(OutlierDetectionAlgorithm.MIN_MAX);
     query.setMaxResults(200);
-    OutlierDetectionRequest request = subject.getFromQuery(query);
+    OutlierDetectionRequest request = parser.getFromQuery(query);
     assertEquals(2, request.getDataElements().size());
     assertEquals(2, request.getOrgUnits().size());
     assertEquals(getDate(2020, 1, 1), request.getStartDate());

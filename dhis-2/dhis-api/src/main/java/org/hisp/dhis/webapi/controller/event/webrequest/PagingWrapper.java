@@ -84,17 +84,5 @@ public class PagingWrapper<T> {
     @JsonProperty private String nextPage;
 
     @JsonProperty private String prevPage;
-
-    public static Pager fromLegacy(
-        PagingCriteria pagingCriteria, org.hisp.dhis.common.Pager pager) {
-      return Pager.builder()
-          .prevPage(pager.getPrevPage())
-          .page(pager.getPage())
-          .pageSize(pager.getPageSize())
-          .pageCount(pagingCriteria.isTotalPages() ? pager.getPageCount() : null)
-          .total(pagingCriteria.isTotalPages() ? pager.getTotal() : null)
-          .nextPage(pager.getNextPage())
-          .build();
-    }
   }
 }

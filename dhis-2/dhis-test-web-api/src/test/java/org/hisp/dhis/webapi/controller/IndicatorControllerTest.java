@@ -27,8 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -57,5 +63,53 @@ class IndicatorControllerTest extends DhisControllerConvenienceTest {
         "ERROR",
         "Expression is not well-formed",
         POST("/indicators/expression/description", "illegal").content(HttpStatus.OK));
+  }
+
+  @Test
+  @DisplayName("Invalid merge with source and target missing")
+  void testInvalidMerge() {
+    JsonMixed mergeResponse =
+        POST(
+                "/indicators/merge",
+                """
+                {
+                    "sources": ["Uid00000010"],
+                    "target": "Uid00000012",
+                    "deleteSources": true
+                }""")
+            .content(HttpStatus.CONFLICT);
+    assertEquals("Conflict", mergeResponse.getString("httpStatus").string());
+    assertEquals("WARNING", mergeResponse.getString("status").string());
+    assertEquals(
+        "One or more errors occurred, please see full details in merge report.",
+        mergeResponse.getString("message").string());
+
+    JsonArray errors =
+        mergeResponse.getObject("response").getObject("mergeReport").getArray("mergeErrors");
+    JsonObject error1 = errors.getObject(0);
+    JsonObject error2 = errors.getObject(1);
+    assertEquals(
+        "SOURCE indicator does not exist: `Uid00000010`", error1.getString("message").string());
+    assertEquals(
+        "TARGET indicator does not exist: `Uid00000012`", error2.getString("message").string());
+  }
+
+  @Test
+  @DisplayName("invalid merge, missing required auth")
+  void testMergeNoAuth() {
+    switchToNewUser("noAuth", "NoAuth");
+    JsonMixed mergeResponse =
+        POST(
+                "/indicators/merge",
+                """
+            {
+                "sources": ["Uid00000010"],
+                "target": "Uid00000012",
+                "deleteSources": true
+            }""")
+            .content(HttpStatus.FORBIDDEN);
+    assertEquals("Forbidden", mergeResponse.getString("httpStatus").string());
+    assertEquals("ERROR", mergeResponse.getString("status").string());
+    assertEquals("Access is denied", mergeResponse.getString("message").string());
   }
 }

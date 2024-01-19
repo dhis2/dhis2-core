@@ -29,7 +29,11 @@ package org.hisp.dhis.tracker.imports.report;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.hisp.dhis.common.OpenApi;
 
@@ -37,43 +41,24 @@ import org.hisp.dhis.common.OpenApi;
 @Builder
 @OpenApi.Shared(name = "TrackerImportError")
 public class Error {
-  private final String errorMessage;
 
-  private final String errorCode;
-
-  private final String trackerType;
-
-  private final String uid;
+  @Nonnull @JsonProperty String message;
+  @Nonnull @JsonProperty String errorCode;
+  @Nonnull @JsonProperty String trackerType;
+  @Nonnull @JsonProperty String uid;
+  @EqualsAndHashCode.Exclude @Nonnull @JsonProperty List<String> args;
 
   @JsonCreator
   public Error(
-      @JsonProperty("message") String errorMessage,
-      @JsonProperty("errorCode") String errorCode,
-      @JsonProperty("trackerType") String trackerType,
-      @JsonProperty("uid") String uid) {
-    this.errorMessage = errorMessage;
+      @Nonnull @JsonProperty("message") String message,
+      @Nonnull @JsonProperty("errorCode") String errorCode,
+      @Nonnull @JsonProperty("trackerType") String trackerType,
+      @Nonnull @JsonProperty("uid") String uid,
+      @CheckForNull @JsonProperty("args") List<String> args) {
+    this.message = message;
     this.errorCode = errorCode;
     this.trackerType = trackerType;
     this.uid = uid;
-  }
-
-  @JsonProperty
-  public String getErrorCode() {
-    return errorCode;
-  }
-
-  @JsonProperty
-  public String getMessage() {
-    return errorMessage;
-  }
-
-  @JsonProperty
-  public String getTrackerType() {
-    return trackerType;
-  }
-
-  @JsonProperty
-  public String getUid() {
-    return uid;
+    this.args = args == null ? List.of() : args;
   }
 }

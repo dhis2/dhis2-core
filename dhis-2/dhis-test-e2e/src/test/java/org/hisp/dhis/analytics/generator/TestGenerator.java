@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.analytics.generator;
 
-import org.hisp.dhis.analytics.generator.impl.TeiQueryGenerator;
+import org.hisp.dhis.analytics.generator.impl.OutlierDetectionGenerator;
 
 /** This class simply hold the generator implementation to be used during the code generation. */
 public class TestGenerator {
   static Generator get() {
-    return new TeiQueryGenerator();
+    return new OutlierDetectionGenerator();
   }
 }

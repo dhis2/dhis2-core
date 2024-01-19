@@ -45,53 +45,62 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams.RelationshipOperationParamsBuilder;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
-import org.hisp.dhis.webapi.controller.tracker.export.enrollment.EnrollmentMapper;
 import org.springframework.stereotype.Component;
 
 /**
  * Maps operation parameters from {@link RelationshipsExportController} stored in {@link
- * RequestParams} to {@link RelationshipOperationParams} which is used to fetch relationships from
- * the service.
+ * RelationshipRequestParams} to {@link RelationshipOperationParams} which is used to fetch
+ * relationships from the service.
  */
 @Component
 @RequiredArgsConstructor
 class RelationshipRequestParamsMapper {
-  private static final int DEFAULT_PAGE = 1;
-  private static final int DEFAULT_PAGE_SIZE = 50;
 
   private static final Set<String> ORDERABLE_FIELD_NAMES =
       RelationshipMapper.ORDERABLE_FIELDS.keySet();
 
-  public RelationshipOperationParams map(RequestParams requestParams) throws BadRequestException {
+  public RelationshipOperationParams map(RelationshipRequestParams relationshipRequestParams)
+      throws BadRequestException {
     UID trackedEntity =
         validateDeprecatedParameter(
-            "tei", requestParams.getTei(), "trackedEntity", requestParams.getTrackedEntity());
+            "tei",
+            relationshipRequestParams.getTei(),
+            "trackedEntity",
+            relationshipRequestParams.getTrackedEntity());
 
     if (ObjectUtils.allNull(
-        trackedEntity, requestParams.getEnrollment(), requestParams.getEvent())) {
+        trackedEntity,
+        relationshipRequestParams.getEnrollment(),
+        relationshipRequestParams.getEvent())) {
       throw new BadRequestException(
           "Missing required parameter 'trackedEntity', 'enrollment' or 'event'.");
     }
 
     if (hasMoreThanOneNotNull(
-        trackedEntity, requestParams.getEnrollment(), requestParams.getEvent())) {
+        trackedEntity,
+        relationshipRequestParams.getEnrollment(),
+        relationshipRequestParams.getEvent())) {
       throw new BadRequestException(
           "Only one of parameters 'trackedEntity', 'enrollment' or 'event' is allowed.");
     }
 
-    validateOrderParams(requestParams.getOrder(), ORDERABLE_FIELD_NAMES);
+    validateOrderParams(relationshipRequestParams.getOrder(), ORDERABLE_FIELD_NAMES);
 
     RelationshipOperationParamsBuilder builder =
         RelationshipOperationParams.builder()
             .type(
                 getTrackerType(
-                    trackedEntity, requestParams.getEnrollment(), requestParams.getEvent()))
+                    trackedEntity,
+                    relationshipRequestParams.getEnrollment(),
+                    relationshipRequestParams.getEvent()))
             .identifier(
                 ObjectUtils.firstNonNull(
-                        trackedEntity, requestParams.getEnrollment(), requestParams.getEvent())
+                        trackedEntity,
+                        relationshipRequestParams.getEnrollment(),
+                        relationshipRequestParams.getEvent())
                     .getValue());
 
-    mapOrderParam(builder, requestParams.getOrder());
+    mapOrderParam(builder, relationshipRequestParams.getOrder());
 
     return builder.build();
   }
@@ -118,9 +127,9 @@ class RelationshipRequestParamsMapper {
     }
 
     for (OrderCriteria order : orders) {
-      if (EnrollmentMapper.ORDERABLE_FIELDS.containsKey(order.getField())) {
+      if (RelationshipMapper.ORDERABLE_FIELDS.containsKey(order.getField())) {
         builder.orderBy(
-            EnrollmentMapper.ORDERABLE_FIELDS.get(order.getField()), order.getDirection());
+            RelationshipMapper.ORDERABLE_FIELDS.get(order.getField()), order.getDirection());
       }
     }
   }

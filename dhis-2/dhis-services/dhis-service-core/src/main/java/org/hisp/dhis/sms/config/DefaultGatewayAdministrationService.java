@@ -91,11 +91,6 @@ public class DefaultGatewayAdministrationService implements GatewayAdministratio
     if (config == null) {
       return false;
     }
-    SmsGatewayConfig persisted = smsConfigurationManager.checkInstanceOfGateway(config.getClass());
-
-    if (persisted != null) {
-      return true;
-    }
 
     config.setUid(CodeGenerator.generateCode(10));
 

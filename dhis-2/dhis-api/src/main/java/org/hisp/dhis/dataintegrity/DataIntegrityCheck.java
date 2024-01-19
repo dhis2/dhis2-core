@@ -27,10 +27,13 @@
  */
 package org.hisp.dhis.dataintegrity;
 
+import static java.util.Comparator.comparingLong;
 import static java.util.stream.Collectors.joining;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
+import java.util.Comparator;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
@@ -54,25 +57,35 @@ import lombok.Getter;
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public final class DataIntegrityCheck implements Serializable {
+
+  public static final Comparator<DataIntegrityCheck> FAST_TO_SLOW =
+      comparingLong(DataIntegrityCheck::getExecutionTimeIndicator);
+
   @JsonProperty private final String name;
-
   @JsonProperty private final String displayName;
-
   @JsonProperty private final String section;
-
   @JsonProperty private final int sectionOrder;
-
   @JsonProperty private final DataIntegritySeverity severity;
-
   @JsonProperty private final String description;
-
   @JsonProperty private final String introduction;
-
   @JsonProperty private final String recommendation;
-
   @JsonProperty private final String issuesIdType;
-
   @JsonProperty private final boolean isSlow;
+  @JsonProperty private final boolean isProgrammatic;
+
+  private long executionTime;
+  private int executionCount;
+
+  public @JsonProperty Long getAverageExecutionTime() {
+    return executionTime <= 0L ? null : executionTime / executionCount;
+  }
+
+  @JsonIgnore
+  long getExecutionTimeIndicator() {
+    Long time = getAverageExecutionTime();
+    if (time != null) return time;
+    return isSlow ? Long.MAX_VALUE : 1000;
+  }
 
   @JsonProperty
   public String getCode() {
@@ -82,6 +95,12 @@ public final class DataIntegrityCheck implements Serializable {
   private final transient Function<DataIntegrityCheck, DataIntegritySummary> runSummaryCheck;
 
   private final transient Function<DataIntegrityCheck, DataIntegrityDetails> runDetailsCheck;
+
+  public DataIntegrityCheck addExecution(long time) {
+    executionCount++;
+    executionTime += time;
+    return this;
+  }
 
   /**
    * Method that takes in a name of a {@link DataIntegrityCheck} and converts it to an acronym of

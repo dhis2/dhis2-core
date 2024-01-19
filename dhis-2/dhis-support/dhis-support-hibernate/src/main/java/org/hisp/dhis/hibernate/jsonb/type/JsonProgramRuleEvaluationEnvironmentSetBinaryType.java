@@ -29,7 +29,8 @@ package org.hisp.dhis.hibernate.jsonb.type;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.Set;
 import org.hibernate.HibernateException;
 import org.hisp.dhis.programrule.ProgramRuleActionEvaluationEnvironment;
 

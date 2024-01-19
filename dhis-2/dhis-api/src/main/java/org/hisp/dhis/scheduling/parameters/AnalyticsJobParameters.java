@@ -55,15 +55,18 @@ public class AnalyticsJobParameters implements JobParameters {
   private Set<String> skipPrograms = new HashSet<>();
 
   @JsonProperty private boolean skipResourceTables = false;
+  @JsonProperty private boolean skipOutliers = false;
 
   public AnalyticsJobParameters(
       Integer lastYears,
       Set<AnalyticsTableType> skipTableTypes,
       Set<String> skipPrograms,
-      boolean skipResourceTables) {
+      boolean skipResourceTables,
+      boolean skipOutliers) {
     this.lastYears = lastYears;
     this.skipTableTypes = skipTableTypes;
     this.skipPrograms = skipPrograms;
     this.skipResourceTables = skipResourceTables;
+    this.skipOutliers = skipOutliers;
   }
 }

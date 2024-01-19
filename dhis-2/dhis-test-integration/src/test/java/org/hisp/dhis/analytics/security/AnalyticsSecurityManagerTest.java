@@ -138,7 +138,7 @@ class AnalyticsSecurityManagerTest extends TransactionalIntegrationTest {
     user.setDataViewMaxOrganisationUnitLevel(3);
     user.setCatDimensionConstraints(catDimensionConstraints);
     userService.addUser(user);
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
   }
 
   @Test

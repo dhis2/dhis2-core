@@ -49,7 +49,9 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import javax.annotation.Nonnull;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.IdentifiableObject;
 
 /**
  * Utility methods for operations on various collections.
@@ -256,6 +258,16 @@ public class CollectionUtils {
   }
 
   /**
+   * Indicates whether the given collection is not empty.
+   *
+   * @param collection the collection, may be null.
+   * @return true if the given collection is not empty, false otherwise.
+   */
+  public static boolean isNotEmpty(Collection<?> collection) {
+    return !isEmpty(collection);
+  }
+
+  /**
    * Adds the given object to the given collection if the object is not null.
    *
    * @param <T>
@@ -318,5 +330,13 @@ public class CollectionUtils {
     }
 
     return duplicates;
+  }
+
+  public static <T extends IdentifiableObject> boolean containsUid(
+      List<T> elements, @Nonnull T element) {
+    if (CollectionUtils.isNotEmpty(elements)) {
+      return elements.stream().anyMatch(el -> el.getUid().equals(element.getUid()));
+    }
+    return false;
   }
 }

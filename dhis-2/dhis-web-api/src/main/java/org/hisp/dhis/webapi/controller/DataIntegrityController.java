@@ -34,6 +34,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationRepo
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
@@ -48,12 +49,14 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.parameters.DataIntegrityDetailsJobParameters;
 import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters;
 import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters.DataIntegrityReportType;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -85,7 +88,7 @@ public class DataIntegrityController {
   public WebMessage runDataIntegrity(
       @CheckForNull @RequestParam(required = false) Set<String> checks,
       @CheckForNull @RequestBody(required = false) Set<String> checksBody,
-      @CurrentUser User currentUser)
+      @CurrentUser UserDetails currentUser)
       throws ConflictException, @OpenApi.Ignore NotFoundException {
     Set<String> names = getCheckNames(checksBody, checks);
     return runDataIntegrityAsync(names, currentUser, DataIntegrityReportType.REPORT)
@@ -93,11 +96,19 @@ public class DataIntegrityController {
   }
 
   private WebMessage runDataIntegrityAsync(
-      @Nonnull Set<String> checks, User currentUser, DataIntegrityReportType type)
+      @Nonnull Set<String> checks, UserDetails currentUser, DataIntegrityReportType type)
       throws ConflictException, NotFoundException {
-    JobConfiguration config = new JobConfiguration(JobType.DATA_INTEGRITY);
+    JobType jobType =
+        type == DataIntegrityReportType.DETAILS
+            ? JobType.DATA_INTEGRITY_DETAILS
+            : JobType.DATA_INTEGRITY;
+    JobConfiguration config = new JobConfiguration(jobType);
     config.setExecutedBy(currentUser.getUid());
-    config.setJobParameters(new DataIntegrityJobParameters(type, checks));
+    JobParameters parameters =
+        type == DataIntegrityReportType.DETAILS
+            ? new DataIntegrityDetailsJobParameters(checks)
+            : new DataIntegrityJobParameters(type, checks);
+    config.setJobParameters(parameters);
 
     jobSchedulerService.executeNow(jobConfigurationService.create(config));
 
@@ -108,12 +119,16 @@ public class DataIntegrityController {
   @ResponseBody
   public Collection<DataIntegrityCheck> getAvailableChecks(
       @CheckForNull @RequestParam(required = false) Set<String> checks,
-      @CheckForNull @RequestParam(required = false) String section) {
+      @CheckForNull @RequestParam(required = false) String section,
+      @CheckForNull @RequestParam(required = false) Boolean slow,
+      @CheckForNull @RequestParam(required = false) Boolean programmatic) {
     Collection<DataIntegrityCheck> matches =
         dataIntegrityService.getDataIntegrityChecks(getCheckNames(checks));
-    return section == null || section.isBlank()
-        ? matches
-        : matches.stream().filter(check -> section.equals(check.getSection())).collect(toList());
+    Predicate<DataIntegrityCheck> filter = check -> true;
+    if (section != null && !section.isBlank()) filter = check -> section.equals(check.getSection());
+    if (slow != null) filter = filter.and(check -> check.isSlow() == slow);
+    if (programmatic != null) filter = filter.and(check -> check.isProgrammatic() == programmatic);
+    return matches.stream().filter(filter).collect(toList());
   }
 
   @GetMapping("/summary/running")
@@ -143,7 +158,7 @@ public class DataIntegrityController {
   public WebMessage runSummariesCheck(
       @CheckForNull @RequestParam(required = false) Set<String> checks,
       @CheckForNull @RequestBody(required = false) Set<String> checksBody,
-      @CurrentUser User currentUser)
+      @CurrentUser UserDetails currentUser)
       throws ConflictException, @OpenApi.Ignore NotFoundException {
     Set<String> names = getCheckNames(checksBody, checks);
     return runDataIntegrityAsync(names, currentUser, DataIntegrityReportType.SUMMARY)
@@ -177,7 +192,7 @@ public class DataIntegrityController {
   public WebMessage runDetailsCheck(
       @CheckForNull @RequestParam(required = false) Set<String> checks,
       @RequestBody(required = false) Set<String> checksBody,
-      @CurrentUser User currentUser)
+      @CurrentUser UserDetails currentUser)
       throws ConflictException, @OpenApi.Ignore NotFoundException {
     Set<String> names = getCheckNames(checksBody, checks);
     return runDataIntegrityAsync(names, currentUser, DataIntegrityReportType.DETAILS)

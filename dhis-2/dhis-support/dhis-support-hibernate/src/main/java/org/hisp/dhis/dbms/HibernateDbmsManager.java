@@ -199,6 +199,7 @@ public class HibernateDbmsManager implements DbmsManager {
 
     emptyTable("sectiongreyedfields");
     emptyTable("sectiondataelements");
+    emptyTable("sectionindicators");
     emptyTable("section");
 
     emptyTable("datasetsource");
@@ -285,6 +286,7 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("deletedobject");
     emptyTable("period");
 
+    emptyTable("configuration");
     emptyTable("indicatorgroupsetmembers");
     emptyTable("indicatorgroupset");
 
@@ -326,6 +328,8 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("previouspasswords");
     emptyTable("usersetting");
     emptyTable("fileresource");
+    emptyTable("jobconfiguration");
+    // userinfo should be last, since many tables has a foreign key to it
     emptyTable("userinfo");
     emptyTable("route");
 
@@ -347,6 +351,7 @@ public class HibernateDbmsManager implements DbmsManager {
 
     emptyTable("audit");
     emptyTable("eventhook");
+    emptyTable("dataentryform");
 
     log.debug("Cleared database contents");
 

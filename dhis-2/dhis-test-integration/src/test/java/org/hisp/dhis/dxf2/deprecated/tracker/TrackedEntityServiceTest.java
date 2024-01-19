@@ -162,7 +162,7 @@ class TrackedEntityServiceTest extends TransactionalIntegrationTest {
   protected void setUpTest() throws Exception {
 
     fileResource = createFileResource('F', "fileResource".getBytes());
-    fileResourceService.saveFileResource(fileResource, "fileResource".getBytes());
+    fileResourceService.asyncSaveFileResource(fileResource, "fileResource".getBytes());
 
     userService = _userService;
     user = createAndAddAdminUser(AUTHORITY_ALL);

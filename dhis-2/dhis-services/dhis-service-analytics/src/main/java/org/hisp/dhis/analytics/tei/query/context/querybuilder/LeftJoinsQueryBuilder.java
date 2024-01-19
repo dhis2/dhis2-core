@@ -34,8 +34,8 @@ import static org.hisp.dhis.analytics.common.query.BinaryConditionRenderer.field
 import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.PI_UID;
 import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.TEI_UID;
-import static org.hisp.dhis.analytics.tei.query.context.querybuilder.ContextUtils.enrollmentSelect;
-import static org.hisp.dhis.analytics.tei.query.context.querybuilder.ContextUtils.eventSelect;
+import static org.hisp.dhis.analytics.tei.query.context.querybuilder.SqlQueryHelper.enrollmentSelect;
+import static org.hisp.dhis.analytics.tei.query.context.querybuilder.SqlQueryHelper.eventSelect;
 import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.isOfType;
 import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
@@ -43,7 +43,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
@@ -64,6 +63,7 @@ import org.springframework.stereotype.Service;
 /** This class is responsible for building the SQL statement for the main TEI table. */
 @Service
 public class LeftJoinsQueryBuilder implements SqlQueryBuilder {
+
   @Nonnull
   @Override
   public List<Predicate<DimensionIdentifier<DimensionParam>>> getDimensionFilters() {
@@ -86,14 +86,13 @@ public class LeftJoinsQueryBuilder implements SqlQueryBuilder {
   @Override
   public RenderableSqlQuery buildSqlQuery(
       QueryContext queryContext,
+      List<DimensionIdentifier<DimensionParam>> headerIdentifiers,
       List<DimensionIdentifier<DimensionParam>> dimensionIdentifiers,
       List<AnalyticsSortingParams> analyticsSortingParams) {
     RenderableSqlQueryBuilder renderableSqlQuery = RenderableSqlQuery.builder();
 
     List<DimensionIdentifier<DimensionParam>> allDimensions =
-        Stream.concat(
-                dimensionIdentifiers.stream(),
-                analyticsSortingParams.stream().map(AnalyticsSortingParams::getOrderBy))
+        streamDimensions(headerIdentifiers, dimensionIdentifiers, analyticsSortingParams)
             .filter(dimensionIdentifier -> !isOfType(dimensionIdentifier, PROGRAM_ATTRIBUTE))
             .collect(Collectors.toList());
 

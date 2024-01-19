@@ -28,7 +28,15 @@
 package org.hisp.dhis.aggregate;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -45,8 +53,9 @@ import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.ImportSummary;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.JsonFileReader;
-import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
@@ -54,10 +63,8 @@ import org.junit.jupiter.api.Test;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 @Tag("category:aggregate")
-public class DataImportTest extends ApiTest {
+class DataImportTest extends ApiTest {
   private DataValueSetActions dataValueSetActions;
-
-  private MetadataActions metadataActions;
 
   private DataValueActions dataValueActions;
 
@@ -66,7 +73,7 @@ public class DataImportTest extends ApiTest {
   @BeforeAll
   public void before() {
     dataValueSetActions = new DataValueSetActions();
-    metadataActions = new MetadataActions();
+    MetadataActions metadataActions = new MetadataActions();
     dataValueActions = new DataValueActions();
     systemActions = new SystemActions();
 
@@ -78,7 +85,7 @@ public class DataImportTest extends ApiTest {
   }
 
   @Test
-  public void dataValuesCanBeImportedInBulk() {
+  void dataValuesCanBeImportedInBulk() {
     ApiResponse response =
         dataValueSetActions.postFile(
             new File("src/test/resources/aggregate/dataValues_bulk.json"),
@@ -103,7 +110,7 @@ public class DataImportTest extends ApiTest {
   }
 
   @Test
-  public void dataValuesCanBeImportedAsync() {
+  void dataValuesCanBeImportedAsync() {
     ApiResponse response =
         dataValueSetActions
             .postFile(
@@ -141,7 +148,89 @@ public class DataImportTest extends ApiTest {
   }
 
   @Test
-  public void dataValuesCanBeImportedForSingleDataSet() throws IOException {
+  @DisplayName(
+      "When an empty json file is async-imported then a task summary should be available with an error message")
+  void asyncImportEmptyJsonFileSummaryAvailable() {
+    // given an empty json file is async imported
+    ApiResponse response =
+        dataValueSetActions
+            .postFile(
+                new File("src/test/resources/aggregate/empty_file.json"),
+                new QueryParamsBuilder().addAll("reportMode=DEBUG", "async=true", "format=json"))
+            .validateStatus(200);
+
+    String taskId = response.extractString("response.id");
+
+    // when the task is completed
+    systemActions
+        .waitUntilTaskCompleted("DATAVALUE_IMPORT", taskId)
+        .validate()
+        .body(
+            "message",
+            hasItem(
+                containsString(
+                    "Import complete with status ERROR, 0 created, 0 updated, 0 deleted, 0 ignored")))
+        .body("message", hasItem(containsString("No content to map due to end-of-input")));
+
+    // then a task summary should be available with an error message
+    ApiResponse taskSummariesResponse =
+        systemActions.waitForTaskSummaries("DATAVALUE_IMPORT", taskId);
+
+    taskSummariesResponse
+        .validate()
+        .statusCode(200)
+        .body("status", equalTo("ERROR"))
+        .body("description", containsString("No content to map due to end-of-input"))
+        .rootPath("importCount")
+        .body("imported", equalTo(0))
+        .body("updated", equalTo(0))
+        .body("deleted", equalTo(0))
+        .body("ignored", equalTo(0));
+  }
+
+  @Test
+  @DisplayName(
+      "When an empty xml file is async-imported for adx then a task summary should be available with an error message")
+  void asyncImportEmptyXmlFileSummaryAvailable() {
+    // given an empty xml file is async imported for adx
+    ApiResponse response =
+        dataValueSetActions
+            .postFile(
+                new File("src/test/resources/aggregate/empty_file.xml"),
+                new QueryParamsBuilder().addAll("reportMode=DEBUG", "async=true", "format=adx"),
+                "application/adx+xml")
+            .validateStatus(200);
+
+    String taskId = response.extractString("response.id");
+
+    // when the task is completed
+    systemActions
+        .waitUntilTaskCompleted("DATAVALUE_IMPORT", taskId)
+        .validate()
+        .body(
+            "message",
+            hasItem(
+                containsString(
+                    "Import complete with status ERROR, 0 created, 0 updated, 0 deleted, 0 ignored")));
+
+    // then a task summary should be available with an error message
+    ApiResponse taskSummariesResponse =
+        systemActions.waitForTaskSummaries("DATAVALUE_IMPORT", taskId);
+
+    taskSummariesResponse
+        .validate()
+        .statusCode(200)
+        .body("status", equalTo("ERROR"))
+        .body("description", containsString("Data set import failed"))
+        .rootPath("importCount")
+        .body("imported", equalTo(0))
+        .body("updated", equalTo(0))
+        .body("deleted", equalTo(0))
+        .body("ignored", equalTo(0));
+  }
+
+  @Test
+  void dataValuesCanBeImportedForSingleDataSet() throws IOException {
     String orgUnit = "O6uvpzGd5pu";
     String period = "201911";
     String dataSet = "VEM58nY22sO";
@@ -199,7 +288,7 @@ public class DataImportTest extends ApiTest {
     }
   }
 
-  @AfterAll
+  @AfterEach
   public void cleanUp() {
     QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
     queryParamsBuilder.addAll("importReportMode=FULL", "importStrategy=DELETE");

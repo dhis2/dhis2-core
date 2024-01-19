@@ -32,7 +32,7 @@ import static org.hisp.dhis.utils.JavaToJson.singleToDoubleQuotes;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.hisp.dhis.web.WebClientUtils.failOnException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.user.User;
@@ -64,7 +64,7 @@ public class DhisControllerTestBase extends DhisMockMvcControllerTest {
     return superUser.getUid();
   }
 
-  protected final User getCurrentUser() {
+  public final User getCurrentUser() {
     return currentUser;
   }
 
@@ -95,7 +95,7 @@ public class DhisControllerTestBase extends DhisMockMvcControllerTest {
   }
 
   protected void switchContextToUser(User user) {
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     session = new MockHttpSession();
     session.setAttribute(

@@ -63,6 +63,11 @@ public class CategoryOptionGroup extends BaseDimensionalItemObject implements Me
     this.name = name;
   }
 
+  public CategoryOptionGroup(String name, DataDimensionType dataDimensionType) {
+    this(name);
+    this.dataDimensionType = dataDimensionType;
+  }
+
   // -------------------------------------------------------------------------
   // DimensionalItemObject
   // -------------------------------------------------------------------------

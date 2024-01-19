@@ -101,6 +101,13 @@ public interface DataEntryFormService {
   List<DataEntryForm> getAllDataEntryForms();
 
   /**
+   * Get all {@link DataEntryForm}s whose html contain the string passed in.
+   *
+   * @return A collection containing all matching {@link DataEntryForm}s.
+   */
+  List<DataEntryForm> getDataEntryFormsWithHtmlContaining(String searchString);
+
+  /**
    * Prepare DataEntryForm code for save by reversing the effects of prepareDataEntryFormForEdit().
    *
    * @return data entry form content as HTML/CSS.

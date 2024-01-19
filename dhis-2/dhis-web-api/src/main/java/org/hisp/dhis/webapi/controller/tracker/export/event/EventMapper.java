@@ -64,6 +64,7 @@ public interface EventMapper
           entry("completedAt", "completedDate"),
           entry("completedBy", "completedBy"),
           entry("createdAt", "created"),
+          entry("createdAtClient", "createdAtClient"),
           entry("createdBy", "createdBy"),
           entry("deleted", "deleted"),
           entry("enrolledAt", "enrollment.enrollmentDate"),
@@ -71,7 +72,10 @@ public interface EventMapper
           entry("enrollmentStatus", "enrollment.status"),
           entry("event", "uid"),
           entry("followUp", "enrollment.followUp"),
-          entry("followup", "enrollment.followUp"), // Deprecated 2.41
+          entry(
+              "followup",
+              "enrollment.followUp"), // TODO(tracker): Deprecated 2.41, making it a TODO so we
+          // tracker remember to remove this.
           entry("occurredAt", "occurredDate"),
           entry("orgUnit", "organisationUnit.uid"),
           entry("program", "enrollment.program.uid"),
@@ -81,6 +85,7 @@ public interface EventMapper
           entry("storedBy", "storedBy"),
           entry("trackedEntity", "enrollment.trackedEntity.uid"),
           entry("updatedAt", "lastUpdated"),
+          entry("updatedAtClient", "lastUpdatedAtClient"),
           entry("updatedBy", "lastUpdatedBy"));
 
   @Mapping(target = "event", source = "uid")
@@ -91,7 +96,11 @@ public interface EventMapper
   @Mapping(target = "orgUnit", source = "organisationUnit.uid")
   @Mapping(target = "occurredAt", source = "occurredDate")
   @Mapping(target = "scheduledAt", source = "scheduledDate")
-  @Mapping(target = "legacyFollowUp", source = "enrollment.followup") // Deprecated 2.41
+  @Mapping(
+      target = "legacyFollowUp",
+      source =
+          "enrollment.followup") // TODO(tracker): Deprecated 2.41, making it a TODO so we tracker
+  // remember to remove this.
   @Mapping(target = "followUp", source = "enrollment.followup")
   @Mapping(target = "createdAt", source = "created")
   @Mapping(target = "createdAtClient", source = "createdAtClient")

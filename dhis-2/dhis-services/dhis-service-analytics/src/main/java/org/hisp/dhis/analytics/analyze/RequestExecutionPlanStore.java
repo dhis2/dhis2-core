@@ -94,7 +94,6 @@ public class RequestExecutionPlanStore implements ExecutionPlanStore {
   @Override
   public void addExecutionPlan(String key, String sql) {
     SqlRowSet rowSet = jdbcTemplate.queryForRowSet(EXPLAIN_QUERY.value() + sql);
-
     JsonNode root = getJsonFromRowSet(rowSet);
 
     ExecutionPlan executionPlan = getExecutionPlan(sql, root);

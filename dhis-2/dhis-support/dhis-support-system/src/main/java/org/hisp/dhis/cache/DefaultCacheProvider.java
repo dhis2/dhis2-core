@@ -176,6 +176,15 @@ public class DefaultCacheProvider implements CacheProvider {
             .withMaximumSize(orZeroInTestRun(getActualSize(SIZE_10K))));
   }
 
+  @Override
+  public <V> Cache<V> createOutliersCache() {
+    return registerCache(
+        this.<V>newBuilder()
+            .forRegion(Region.analyticsResponse.name())
+            .expireAfterWrite(12, TimeUnit.HOURS)
+            .withMaximumSize(orZeroInTestRun(getActualSize(SIZE_10K))));
+  }
+
   /**
    * Cache for default objects such as default category combination and default category option
    * combination which are permanent and will never change.

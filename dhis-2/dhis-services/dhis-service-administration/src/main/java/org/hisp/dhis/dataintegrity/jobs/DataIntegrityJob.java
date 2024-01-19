@@ -43,7 +43,8 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.stereotype.Component;
 
 /**
- * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
+ * @author Halvdan Hoem Grelland <halvdanhg@gmail.com> (original)
+ * @author Jan Bernitt (refactored)
  */
 @Component
 @AllArgsConstructor

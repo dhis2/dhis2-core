@@ -72,8 +72,9 @@ import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.DefaultContextService;
@@ -109,9 +110,11 @@ class DataElementOperandControllerTest {
 
   @Mock private CategoryService dataElementCategoryService;
 
+  @Mock private SystemSettingManager systemSettingManager;
+
   private QueryService queryService;
 
-  @Mock private CurrentUserService currentUserService;
+  @Mock private UserService userService;
 
   private static final String ENDPOINT = "/dataElementOperands";
 
@@ -124,9 +127,9 @@ class DataElementOperandControllerTest {
     QueryService _queryService =
         new DefaultQueryService(
             new DefaultJpaQueryParser(schemaService),
-            new DefaultQueryPlanner(schemaService),
+            new DefaultQueryPlanner(schemaService, systemSettingManager),
             mock(JpaCriteriaQueryEngine.class),
-            new InMemoryQueryEngine<>(schemaService, mock(AclService.class), currentUserService));
+            new InMemoryQueryEngine<>(schemaService, mock(AclService.class)));
     // Use "spy" on queryService, because we want a partial mock: we only
     // want to
     // mock the method "count"
@@ -160,7 +163,8 @@ class DataElementOperandControllerTest {
     when(schemaService.getDynamicSchema(DataElementOperand.class))
         .thenReturn(new Schema(DataElementOperand.class, "", ""));
 
-    when(currentUserService.getCurrentUser()).thenReturn(rnd.nextObject(User.class));
+    User user = rnd.nextObject(User.class);
+    when(userService.getUserByUsername(user.getUsername())).thenReturn(user);
   }
 
   @Test

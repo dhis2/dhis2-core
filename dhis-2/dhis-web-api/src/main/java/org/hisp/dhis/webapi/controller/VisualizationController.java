@@ -29,7 +29,12 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
+import static org.hisp.dhis.feedback.ErrorCode.E4002;
+import static org.hisp.dhis.feedback.ErrorCode.E7237;
+import static org.hisp.dhis.feedback.ErrorCode.E7238;
 import static org.hisp.dhis.schema.descriptors.VisualizationSchemaDescriptor.API_ENDPOINT;
+import static org.hisp.dhis.visualization.OutlierAnalysis.MAX_RESULTS_MAX_VALUE;
+import static org.hisp.dhis.visualization.OutlierAnalysis.MAX_RESULTS_MIN_VALUE;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,18 +43,24 @@ import java.util.Map;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.collections4.CollectionUtils;
+import org.hisp.dhis.analytics.Sorting;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dxf2.expressiondimensionitem.ExpressionDimensionItemService;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.legend.LegendSetService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.stereotype.Controller;
@@ -82,9 +93,60 @@ public class VisualizationController extends AbstractCrudController<Visualizatio
   protected Visualization deserializeJsonEntity(HttpServletRequest request) throws IOException {
     Visualization visualization = super.deserializeJsonEntity(request);
 
+    validate(visualization);
     addDimensionsInto(visualization);
 
     return visualization;
+  }
+
+  @Override
+  protected void preCreateEntity(Visualization visualization) throws ConflictException {
+
+    validateSorting(visualization);
+  }
+
+  @Override
+  protected void preUpdateEntity(Visualization visualization, Visualization newVisualization)
+      throws ConflictException {
+
+    validateSorting(newVisualization);
+  }
+
+  @Override
+  protected void prePatchEntity(Visualization visualization, Visualization newVisualization)
+      throws ConflictException {
+
+    validateSorting(newVisualization);
+  }
+
+  private void validate(Visualization visualization) {
+    if (visualization != null
+        && visualization.getOutlierAnalysis() != null
+        && !visualization.getOutlierAnalysis().isValid()) {
+      throw new IllegalQueryException(
+          E4002,
+          "maxResults",
+          MAX_RESULTS_MIN_VALUE,
+          MAX_RESULTS_MAX_VALUE,
+          visualization.getOutlierAnalysis().getMaxResults());
+    }
+  }
+
+  /**
+   * Simply validates the state of the {@link Sorting} attribute in the given {@link Visualization}
+   * object.
+   *
+   * @param visualization the {@link Visualization}.
+   * @throws ConflictException if the {@link Sorting} attribute is not valid.
+   */
+  private void validateSorting(Visualization visualization) throws ConflictException {
+    try {
+      visualization.validateSortingState();
+    } catch (IllegalArgumentException e) {
+      throw new ConflictException(new ErrorMessage(E7237));
+    } catch (IllegalStateException e) {
+      throw new ConflictException(new ErrorMessage(E7238, e.getMessage()));
+    }
   }
 
   private void addDimensionsInto(Visualization visualization) {
@@ -124,8 +186,10 @@ public class VisualizationController extends AbstractCrudController<Visualizatio
   public void postProcessResponseEntities(
       List<Visualization> entityList, WebOptions options, Map<String, String> parameters) {
     if (CollectionUtils.isEmpty(entityList)) return;
+
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     Set<OrganisationUnit> organisationUnits =
-        currentUserService.getCurrentUser().getDataViewOrganisationUnitsWithFallback();
+        currentUser.getDataViewOrganisationUnitsWithFallback();
     I18nFormat i18nFormat = i18nManager.getI18nFormat();
     entityList.forEach(
         visualization -> {
@@ -153,8 +217,9 @@ public class VisualizationController extends AbstractCrudController<Visualizatio
     if (visualization != null) {
       visualization.populateAnalyticalProperties();
 
+      User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
       Set<OrganisationUnit> organisationUnits =
-          currentUserService.getCurrentUser().getDataViewOrganisationUnitsWithFallback();
+          currentUser.getDataViewOrganisationUnitsWithFallback();
 
       for (OrganisationUnit organisationUnit : visualization.getOrganisationUnits()) {
         visualization

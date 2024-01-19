@@ -58,7 +58,7 @@ import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.system.util.SmsUtils;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.transaction.annotation.Transactional;
@@ -86,14 +86,11 @@ public abstract class CommandSMSListener extends BaseSMSListener {
 
   protected final UserService userService;
 
-  protected final CurrentUserService currentUserService;
-
   public CommandSMSListener(
       EnrollmentService enrollmentService,
       CategoryService dataElementCategoryService,
       EventService eventService,
       UserService userService,
-      CurrentUserService currentUserService,
       IncomingSmsService incomingSmsService,
       MessageSender smsSender) {
     super(incomingSmsService, smsSender);
@@ -102,13 +99,11 @@ public abstract class CommandSMSListener extends BaseSMSListener {
     checkNotNull(dataElementCategoryService);
     checkNotNull(eventService);
     checkNotNull(userService);
-    checkNotNull(currentUserService);
 
     this.enrollmentService = enrollmentService;
     this.dataElementCategoryService = dataElementCategoryService;
     this.eventService = eventService;
     this.userService = userService;
-    this.currentUserService = currentUserService;
   }
 
   @Override
@@ -242,7 +237,8 @@ public abstract class CommandSMSListener extends BaseSMSListener {
 
     Enrollment enrollment = enrollments.get(0);
 
-    UserInfoSnapshot currentUserInfo = UserInfoSnapshot.from(currentUserService.getCurrentUser());
+    UserInfoSnapshot currentUserInfo =
+        UserInfoSnapshot.from(CurrentUserUtil.getCurrentUserDetails());
 
     Event event = new Event();
     event.setOrganisationUnit(ous.iterator().next());

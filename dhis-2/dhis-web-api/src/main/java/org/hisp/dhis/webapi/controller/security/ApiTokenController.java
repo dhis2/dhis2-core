@@ -54,7 +54,7 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.schema.descriptors.ApiTokenSchemaDescriptor;
 import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator;
 import org.hisp.dhis.security.apikey.ApiToken;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
@@ -86,9 +86,8 @@ public class ApiTokenController extends AbstractCrudController<ApiToken> {
   @ResponseBody
   public WebMessage postJsonObject(HttpServletRequest request)
       throws ForbiddenException, IOException, ConflictException {
-    User currentUser = currentUserService.getCurrentUser();
 
-    if (!aclService.canCreate(currentUser, getEntityClass())) {
+    if (!aclService.canCreate(CurrentUserUtil.getCurrentUserDetails(), getEntityClass())) {
       throw new ForbiddenException("You don't have the proper permissions to create this object.");
     }
 
@@ -108,7 +107,7 @@ public class ApiTokenController extends AbstractCrudController<ApiToken> {
         importService
             .getParamsFromMap(contextService.getParameterValuesMap())
             .setImportReportMode(ImportReportMode.FULL)
-            .setUser(UID.of(currentUser))
+            .setUser(UID.of(CurrentUserUtil.getCurrentUserDetails()))
             .setImportStrategy(ImportStrategy.CREATE);
 
     ObjectReport report =

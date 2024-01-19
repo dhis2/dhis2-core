@@ -35,8 +35,8 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
-import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 
 /**
  * This class is used as a container for order parameters and is deserialized from web requests
@@ -68,10 +68,10 @@ public class OrderCriteria {
         .collect(Collectors.toList());
   }
 
-  private static OrderCriteria toOrderCriteria(String s1) {
+  public static OrderCriteria toOrderCriteria(String s1) {
     String[] props = s1.split(":");
     if (props.length == 2) {
-      return OrderCriteria.of(props[0], SortDirection.of(props[1]));
+      return OrderCriteria.of(props[0], SortDirection.of(props[1].trim()));
     }
     if (props.length == 1) {
       return OrderCriteria.of(props[0], SortDirection.ASC);

@@ -79,4 +79,6 @@ public class JsonbFunctions {
    * to search $2 Regular expression for matching
    */
   public static final String REGEXP_SEARCH = "regexp_search";
+
+  public static final String SEARCH_TRANSLATION_TOKEN = "jsonb_search_translated_token";
 }

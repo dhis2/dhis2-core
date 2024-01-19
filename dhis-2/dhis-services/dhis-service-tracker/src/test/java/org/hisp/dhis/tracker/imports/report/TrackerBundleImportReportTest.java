@@ -71,7 +71,7 @@ class TrackerBundleImportReportTest {
 
   @InjectMocks private DefaultTrackerImportService trackerImportService;
 
-  private ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
+  private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
   @Test
   void testImportReportErrors() {
@@ -135,7 +135,8 @@ class TrackerBundleImportReportTest {
                 "Could not find OrganisationUnit: ``, linked to Tracked Entity.",
                 ValidationCode.E1049.name(),
                 TRACKED_ENTITY.name(),
-                "BltTZV9HvEZ")));
+                "BltTZV9HvEZ",
+                List.of("BltTZV9HvEZ"))));
     tvr.addWarnings(
         List.of(
             new Warning(
@@ -198,8 +199,8 @@ class TrackerBundleImportReportTest {
         deserializedReportTrackerTypeReport.getStats());
     // Verify Validation Report - Error Reports
     assertEquals(
-        toSerializeReport.getValidationReport().getErrors().get(0).getErrorMessage(),
-        deserializedReport.getValidationReport().getErrors().get(0).getErrorMessage());
+        toSerializeReport.getValidationReport().getErrors().get(0).getMessage(),
+        deserializedReport.getValidationReport().getErrors().get(0).getMessage());
     assertEquals(
         toSerializeReport.getValidationReport().getErrors().get(0).getErrorCode(),
         deserializedReport.getValidationReport().getErrors().get(0).getErrorCode());
@@ -245,7 +246,8 @@ class TrackerBundleImportReportTest {
                 "Could not find OrganisationUnit: ``, linked to Tracked Entity.",
                 ValidationCode.E1049.name(),
                 TRACKED_ENTITY.name(),
-                "BltTZV9HvEZ")),
+                "BltTZV9HvEZ",
+                List.of("BltTZV9HvEZ"))),
         List.of(
             new Warning(
                 "ProgramStage `l8oDIfJJhtg` does not allow user assignment",

@@ -243,7 +243,8 @@ class SeqTest {
    * tracker type, uid or error code.
    */
   private static void addError(Reporter reporter, String message) {
-    reporter.addError(new Error(message, ValidationCode.E9999, TrackerType.TRACKED_ENTITY, "uid"));
+    reporter.addError(
+        new Error(message, ValidationCode.E9999, TrackerType.TRACKED_ENTITY, "uid", List.of()));
   }
 
   /**

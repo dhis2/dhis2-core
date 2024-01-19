@@ -46,13 +46,12 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.database.DatabaseInfo;
+import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -68,9 +67,8 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
       DataApprovalLevelService dataApprovalLevelService,
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
-      StatementBuilder statementBuilder,
       PartitionManager partitionManager,
-      DatabaseInfo databaseInfo,
+      DatabaseInfoProvider databaseInfoProvider,
       JdbcTemplate jdbcTemplate,
       AnalyticsExportSettings analyticsExportSettings,
       PeriodDataProvider periodDataProvider) {
@@ -82,20 +80,19 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
         dataApprovalLevelService,
         resourceTableService,
         tableHookService,
-        statementBuilder,
         partitionManager,
-        databaseInfo,
+        databaseInfoProvider,
         jdbcTemplate,
         analyticsExportSettings,
         periodDataProvider);
   }
 
   protected final String getNumericClause() {
-    return " and value " + statementBuilder.getRegexpMatch() + " '" + NUMERIC_LENIENT_REGEXP + "'";
+    return " and value ~* '" + NUMERIC_LENIENT_REGEXP + "'";
   }
 
   protected final String getDateClause() {
-    return " and value " + statementBuilder.getRegexpMatch() + " '" + DATE_REGEXP + "'";
+    return " and value ~* '" + DATE_REGEXP + "'";
   }
 
   protected final boolean skipIndex(ValueType valueType, boolean hasOptionSet) {
@@ -109,7 +106,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    */
   protected String getSelectClause(ValueType valueType, String columnName) {
     if (valueType.isDecimal()) {
-      return "cast(" + columnName + " as " + statementBuilder.getDoubleColumnType() + ")";
+      return "cast(" + columnName + " as double precision)";
     } else if (valueType.isInteger()) {
       return "cast(" + columnName + " as bigint)";
     } else if (valueType.isBoolean()) {
@@ -120,7 +117,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
           + " = 'false' then 0 else null end";
     } else if (valueType.isDate()) {
       return "cast(" + columnName + " as timestamp)";
-    } else if (valueType.isGeo() && databaseInfo.isSpatialSupport()) {
+    } else if (valueType.isGeo() && isSpatialSupport()) {
       return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || ("
           + columnName
           + ") || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
@@ -188,8 +185,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     for (TrackedEntityAttribute attribute : program.getNonConfidentialTrackedEntityAttributes()) {
-      ColumnDataType dataType =
-          getColumnType(attribute.getValueType(), databaseInfo.isSpatialSupport());
+      ColumnDataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
       String dataClause =
           attribute.isNumericType()
               ? getNumericClause()

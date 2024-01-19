@@ -75,6 +75,7 @@ import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -105,8 +106,11 @@ class EventExporterTest extends TrackerTest {
 
   private EventOperationParams.EventOperationParamsBuilder operationParamsBuilder;
 
+  @Autowired protected UserService _userService;
+
   @Override
   protected void initTest() throws IOException {
+    userService = _userService;
     setUpMetadata("tracker/simple_metadata.json");
     importUser = userService.getUser("M5zQapPyTZI");
     TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
@@ -121,7 +125,6 @@ class EventExporterTest extends TrackerTest {
     CategoryOption categoryOption = get(CategoryOption.class, "yMj2MnmNI8L");
     categoryOption.getSharing().setOwner("o1HMTIzBGo7");
     manager.update(categoryOption);
-
     manager.flush();
   }
 
@@ -226,6 +229,52 @@ class EventExporterTest extends TrackerTest {
             .enrollments(Set.of("TvctPPhpD8z"))
             .programStageUid(programStage.getUid())
             .updatedWithin("1d")
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void shouldReturnEventsIfItOccurredBetweenPassedDateAndTime()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .enrollments(Set.of("TvctPPhpD8z"))
+            .programStageUid(programStage.getUid())
+            .occurredBefore(Date.from(getDate(2020, 1, 28).toInstant().plus(1, ChronoUnit.HOURS)))
+            .occurredAfter(Date.from(getDate(2020, 1, 28).toInstant().minus(1, ChronoUnit.HOURS)))
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void shouldReturnEventsIfItOccurredAtTheSameDateAndTimeOfOccurredBeforePassed()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .enrollments(Set.of("TvctPPhpD8z"))
+            .programStageUid(programStage.getUid())
+            .occurredBefore(getDate(2020, 1, 28))
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void shouldReturnEventsIfItOccurredAtTheSameDateAndTimeOfOccurredAfterPassed()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .enrollments(Set.of("TvctPPhpD8z"))
+            .programStageUid(programStage.getUid())
+            .occurredAfter(getDate(2020, 1, 28))
             .build();
 
     List<String> events = getEvents(params);
@@ -572,7 +621,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void testExportEventsWhenFilteringByDataElementsWithCategoryOptionNotSuperUser()
       throws ForbiddenException, BadRequestException {
-    injectSecurityContext(
+    injectSecurityContextUser(
         createAndAddUser(false, "user", Set.of(orgUnit), Set.of(orgUnit), "F_EXPORT_DATA"));
     DataElement dataElement = dataElement("DATAEL00002");
 

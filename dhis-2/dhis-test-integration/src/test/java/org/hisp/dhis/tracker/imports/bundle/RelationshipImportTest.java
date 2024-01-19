@@ -41,6 +41,7 @@ import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -52,11 +53,12 @@ class RelationshipImportTest extends TrackerTest {
   @Autowired private TrackerImportService trackerImportService;
 
   @Autowired private IdentifiableObjectManager manager;
-
+  @Autowired protected UserService _userService;
   private User userA;
 
   @Override
   protected void initTest() throws IOException {
+    userService = _userService;
     setUpMetadata("tracker/simple_metadata.json");
     userA = userService.getUser("M5zQapPyTZI");
     TrackerImportParams params = TrackerImportParams.builder().userId(userA.getUid()).build();
@@ -70,16 +72,18 @@ class RelationshipImportTest extends TrackerTest {
 
   @Test
   void successImportingRelationships() throws IOException {
+    userA = userService.getUser("M5zQapPyTZI");
+    TrackerImportParams params = TrackerImportParams.builder().userId(userA.getUid()).build();
     ImportReport importReport =
-        trackerImportService.importTracker(
-            new TrackerImportParams(), fromJson("tracker/relationships.json"));
+        trackerImportService.importTracker(params, fromJson("tracker/relationships.json"));
     assertThat(importReport.getStatus(), is(Status.OK));
     assertThat(importReport.getStats().getCreated(), is(2));
   }
 
   @Test
   void successUpdateRelationships() throws IOException {
-    TrackerImportParams trackerImportParams = new TrackerImportParams();
+    TrackerImportParams trackerImportParams =
+        TrackerImportParams.builder().userId(userA.getUid()).build();
     TrackerObjects trackerObjects = fromJson("tracker/relationships.json");
     trackerImportService.importTracker(trackerImportParams, trackerObjects);
     trackerObjects = fromJson("tracker/relationshipToUpdate.json");

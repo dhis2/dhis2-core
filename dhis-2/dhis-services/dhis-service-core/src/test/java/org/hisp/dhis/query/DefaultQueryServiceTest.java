@@ -42,6 +42,7 @@ import org.hisp.dhis.query.planner.DefaultQueryPlanner;
 import org.hisp.dhis.query.planner.QueryPlanner;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.schema.descriptors.OrganisationUnitSchemaDescriptor;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -65,9 +66,11 @@ class DefaultQueryServiceTest {
 
   @Mock private SchemaService schemaService;
 
+  @Mock private SystemSettingManager systemSettingManager;
+
   @BeforeEach
   public void setUp() {
-    QueryPlanner queryPlanner = new DefaultQueryPlanner(schemaService);
+    QueryPlanner queryPlanner = new DefaultQueryPlanner(schemaService, systemSettingManager);
     subject =
         new DefaultQueryService(
             queryParser, queryPlanner, criteriaQueryEngine, inMemoryQueryEngine);

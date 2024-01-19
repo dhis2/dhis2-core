@@ -35,7 +35,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -57,7 +57,6 @@ import org.springframework.stereotype.Service;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service
-@Slf4j
 @RequiredArgsConstructor
 public class DefaultTrackerImportService implements TrackerImportService {
   @Nonnull private final TrackerBundleService trackerBundleService;
@@ -68,10 +67,16 @@ public class DefaultTrackerImportService implements TrackerImportService {
 
   @Nonnull private final TrackerUserService trackerUserService;
 
-  /* Import is not meant to be annotated with @Transactional.
-   * PreHeat and Commit phases are separated transactions, other
-   * phases do not need to be in a transaction. */
+  private PersistenceReport commit(TrackerImportParams params, TrackerBundle trackerBundle) {
+    if (TrackerImportStrategy.DELETE == params.getImportStrategy()) {
+      return deleteBundle(trackerBundle);
+    } else {
+      return commitBundle(trackerBundle);
+    }
+  }
+
   @Override
+  @IndirectTransactional
   public ImportReport importTracker(
       TrackerImportParams params, TrackerObjects trackerObjects, JobProgress jobProgress) {
     User user = trackerUserService.getUser(params.getUserId());
@@ -120,14 +125,6 @@ public class DefaultTrackerImportService implements TrackerImportService {
 
     return ImportReport.withImportCompleted(
         Status.OK, persistenceReport, validationReport, bundleSize);
-  }
-
-  private PersistenceReport commit(TrackerImportParams params, TrackerBundle trackerBundle) {
-    if (TrackerImportStrategy.DELETE == params.getImportStrategy()) {
-      return deleteBundle(trackerBundle);
-    } else {
-      return commitBundle(trackerBundle);
-    }
   }
 
   protected ValidationResult validateBundle(TrackerBundle bundle) {

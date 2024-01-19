@@ -34,10 +34,10 @@ import java.lang.annotation.Target;
 
 /**
  * Can be used to annotate controller parameters of type {@link User}, if the current user as
- * returned by the {@link CurrentUserService} should be injected.
+ * returned by the {@link CurrentUserUtil} should be injected.
  *
  * <p>If the annotation is used with a {@link String} parameter the {@link
- * CurrentUserService#getCurrentUsername()} is injected.
+ * CurrentUserUtil#getCurrentUsername()} is injected.
  *
  * @author Jan Bernitt
  */

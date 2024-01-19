@@ -86,8 +86,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.jdbc.StatementBuilder;
-import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -101,6 +99,7 @@ import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
+import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
@@ -125,11 +124,9 @@ class JdbcEventAnalyticsTableManagerTest {
 
   @Mock private CategoryService categoryService;
 
-  private StatementBuilder statementBuilder;
-
   @Mock private SystemSettingManager systemSettingManager;
 
-  @Mock private DatabaseInfo databaseInfo;
+  @Mock private DatabaseInfoProvider databaseInfoProvider;
 
   @Mock private JdbcTemplate jdbcTemplate;
 
@@ -164,10 +161,9 @@ class JdbcEventAnalyticsTableManagerTest {
 
   @BeforeEach
   public void setUp() {
-    statementBuilder = new PostgreSQLStatementBuilder();
-
     today = Date.from(LocalDate.of(2019, 7, 6).atStartOfDay(ZoneId.systemDefault()).toInstant());
 
+    when(databaseInfoProvider.getDatabaseInfo()).thenReturn(DatabaseInfo.builder().build());
     subject =
         new JdbcEventAnalyticsTableManager(
             idObjectManager,
@@ -177,16 +173,11 @@ class JdbcEventAnalyticsTableManagerTest {
             mock(DataApprovalLevelService.class),
             resourceTableService,
             mock(AnalyticsTableHookService.class),
-            statementBuilder,
             mock(PartitionManager.class),
-            databaseInfo,
+            databaseInfoProvider,
             jdbcTemplate,
             analyticsExportSettings,
             periodDataProvider);
-  }
-
-  @Test
-  void verifyTableType() {
     assertThat(subject.getAnalyticsTableType(), is(AnalyticsTableType.EVENT));
   }
 
@@ -365,7 +356,8 @@ class JdbcEventAnalyticsTableManagerTest {
 
   @Test
   void verifyGetTableWithDataElements() {
-    when(databaseInfo.isSpatialSupport()).thenReturn(true);
+    when(databaseInfoProvider.getDatabaseInfo())
+        .thenReturn(DatabaseInfo.builder().spatialSupport(true).build());
     Program program = createProgram('A');
 
     DataElement d1 = createDataElement('Z', ValueType.TEXT, AggregationType.SUM);
@@ -384,13 +376,9 @@ class JdbcEventAnalyticsTableManagerTest {
 
     String aliasD1 = "(select eventdatavalues #>> '{%s, value}' " + FROM_CLAUSE + " ) as \"%s\"";
     String aliasD2 =
-        "(select cast(eventdatavalues #>> '{%s, value}' as "
-            + statementBuilder.getDoubleColumnType()
-            + ") "
+        "(select cast(eventdatavalues #>> '{%s, value}' as double precision) "
             + FROM_CLAUSE
-            + "  and eventdatavalues #>> '{%s,value}' "
-            + statementBuilder.getRegexpMatch()
-            + " '^(-?[0-9]+)(\\.[0-9]+)?$') as \"%s\"";
+            + "  and eventdatavalues #>> '{%s,value}' ~* '^(-?[0-9]+)(\\.[0-9]+)?$') as \"%s\"";
     String aliasD3 =
         "(select case when eventdatavalues #>> '{%s, value}' = 'true' then 1 when eventdatavalues #>> '{%s, value}' = 'false' then 0 else null end "
             + FROM_CLAUSE
@@ -398,9 +386,7 @@ class JdbcEventAnalyticsTableManagerTest {
     String aliasD4 =
         "(select cast(eventdatavalues #>> '{%s, value}' as timestamp) "
             + FROM_CLAUSE
-            + "  and eventdatavalues #>> '{%s,value}' "
-            + statementBuilder.getRegexpMatch()
-            + " '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$') as \"%s\"";
+            + "  and eventdatavalues #>> '{%s,value}' ~* '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$') as \"%s\"";
     String aliasD5 =
         "(select ou.uid from organisationunit ou where ou.uid = "
             + "(select eventdatavalues #>> '{"
@@ -413,9 +399,7 @@ class JdbcEventAnalyticsTableManagerTest {
     String aliasD6 =
         "(select cast(eventdatavalues #>> '{%s, value}' as bigint) "
             + FROM_CLAUSE
-            + "  and eventdatavalues #>> '{%s,value}' "
-            + statementBuilder.getRegexpMatch()
-            + " '^(-?[0-9]+)(\\.[0-9]+)?$') as \"%s\"";
+            + "  and eventdatavalues #>> '{%s,value}' ~* '^(-?[0-9]+)(\\.[0-9]+)?$') as \"%s\"";
     String aliasD7 =
         "(select ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || (eventdatavalues #>> '{%s, value}') || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}') from event where eventid=psi.eventid ) as \"%s\"";
     String aliasD5_geo =
@@ -480,7 +464,8 @@ class JdbcEventAnalyticsTableManagerTest {
 
   @Test
   void verifyGetTableWithTrackedEntityAttribute() {
-    when(databaseInfo.isSpatialSupport()).thenReturn(true);
+    when(databaseInfoProvider.getDatabaseInfo())
+        .thenReturn(DatabaseInfo.builder().spatialSupport(true).build());
     Program program = createProgram('A');
 
     TrackedEntityAttribute tea1 = rnd.nextObject(TrackedEntityAttribute.class);
@@ -550,7 +535,8 @@ class JdbcEventAnalyticsTableManagerTest {
   @Test
   void verifyDataElementTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable() {
     ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
-    when(databaseInfo.isSpatialSupport()).thenReturn(true);
+    when(databaseInfoProvider.getDatabaseInfo())
+        .thenReturn(DatabaseInfo.builder().spatialSupport(true).build());
     Program programA = createProgram('A');
 
     DataElement d5 = createDataElement('G', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
@@ -598,7 +584,8 @@ class JdbcEventAnalyticsTableManagerTest {
   @Test
   void verifyTeiTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable() {
     ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
-    when(databaseInfo.isSpatialSupport()).thenReturn(true);
+    when(databaseInfoProvider.getDatabaseInfo())
+        .thenReturn(DatabaseInfo.builder().spatialSupport(true).build());
     Program programA = createProgram('A');
 
     TrackedEntityAttribute tea = createTrackedEntityAttribute('a', ValueType.ORGANISATION_UNIT);
@@ -646,7 +633,8 @@ class JdbcEventAnalyticsTableManagerTest {
   void verifyOrgUnitOwnershipJoinsWhenPopulatingEventAnalyticsTable() {
     // Given fixtures/expectations
     ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
-    when(databaseInfo.isSpatialSupport()).thenReturn(true);
+    when(databaseInfoProvider.getDatabaseInfo())
+        .thenReturn(DatabaseInfo.builder().spatialSupport(true).build());
     Program programA = createProgram('A');
 
     TrackedEntityAttribute tea = createTrackedEntityAttribute('a', ValueType.ORGANISATION_UNIT);
@@ -871,7 +859,8 @@ class JdbcEventAnalyticsTableManagerTest {
   @Test
   void verifyTeaTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable() {
     ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
-    when(databaseInfo.isSpatialSupport()).thenReturn(true);
+    when(databaseInfoProvider.getDatabaseInfo())
+        .thenReturn(DatabaseInfo.builder().spatialSupport(true).build());
     Program programA = createProgram('A');
 
     TrackedEntityAttribute tea = createTrackedEntityAttribute('a', ValueType.ORGANISATION_UNIT);

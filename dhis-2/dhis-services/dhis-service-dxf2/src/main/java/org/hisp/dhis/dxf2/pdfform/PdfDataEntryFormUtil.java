@@ -37,7 +37,7 @@ import com.lowagie.text.Rectangle;
 import com.lowagie.text.pdf.AcroFields;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfReader;
-import java.awt.*;
+import java.awt.Color;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;

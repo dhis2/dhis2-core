@@ -43,7 +43,6 @@ import org.hisp.dhis.datasource.DatabasePoolUtils;
 import org.hisp.dhis.datasource.ReadOnlyDataSourceManager;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -67,8 +66,7 @@ public class AnalyticsDataSourceConfig {
 
   @Bean("analyticsActualDataSource")
   public DataSource jdbcActualDataSource(
-      @Qualifier("actualDataSource") DataSource actualDataSource,
-      HibernateConfigurationProvider hibernateConfigurationProvider) {
+      @Qualifier("actualDataSource") DataSource actualDataSource) {
 
     String jdbcUrl = dhisConfig.getProperty(ANALYTICS_CONNECTION_URL);
 

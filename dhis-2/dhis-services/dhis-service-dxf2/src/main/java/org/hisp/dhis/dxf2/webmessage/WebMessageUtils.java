@@ -27,9 +27,10 @@
  */
 package org.hisp.dhis.dxf2.webmessage;
 
+import static org.hisp.dhis.util.SqlExceptionUtils.relationDoesNotExist;
+
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Supplier;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -39,12 +40,14 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.scheduling.JobConfigurationWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.ErrorReportsWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.ImportReportWebMessageResponse;
+import org.hisp.dhis.dxf2.webmessage.responses.MergeWebResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.ObjectReportWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.TypeReportWebMessageResponse;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
@@ -214,6 +217,15 @@ public final class WebMessageUtils {
         .setResponse(new ObjectReportWebMessageResponse(objectReport));
   }
 
+  public static WebMessage mergeReport(MergeReport mergeReport) {
+    if (!mergeReport.hasErrorMessages()) {
+      return ok().setResponse(new MergeWebResponse(mergeReport));
+    }
+    return new WebMessage(Status.WARNING, HttpStatus.CONFLICT)
+        .setMessage("One or more errors occurred, please see full details in merge report.")
+        .setResponse(new MergeWebResponse(mergeReport));
+  }
+
   public static WebMessage jobConfigurationReport(JobConfiguration config) {
     return ok("Initiated " + config.getName())
         .setResponse(new JobConfigurationWebMessageResponse(config))
@@ -272,20 +284,5 @@ public final class WebMessageUtils {
       return ErrorCode.E7144;
     }
     return ErrorCode.E7145;
-  }
-
-  /**
-   * Utility method to detect if the {@link SQLException} refers to a missing relation in the
-   * database.
-   *
-   * @param ex a {@link SQLException} to analyze
-   * @return true if the error is a missing relation error, false otherwise
-   */
-  public static boolean relationDoesNotExist(SQLException ex) {
-    if (ex != null) {
-      return Optional.of(ex).map(SQLException::getSQLState).filter("42P01"::equals).isPresent();
-    }
-
-    return false;
   }
 }

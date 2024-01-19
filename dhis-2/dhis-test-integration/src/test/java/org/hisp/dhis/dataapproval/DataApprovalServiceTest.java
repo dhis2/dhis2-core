@@ -50,6 +50,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeApprovedException;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
@@ -61,7 +62,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
@@ -90,8 +90,6 @@ class DataApprovalServiceTest extends IntegrationTestBase {
   @Autowired private OrganisationUnitService organisationUnitService;
 
   @Autowired protected UserService _userService;
-
-  @Autowired protected CurrentUserService currentUserService;
 
   @Autowired protected DataSetService dataSetService;
 
@@ -559,8 +557,8 @@ class DataApprovalServiceTest extends IntegrationTestBase {
     categoryService.saveCategoryOptionGroup(groupCD);
     categoryService.saveCategoryOptionGroup(groupEF);
     categoryService.saveCategoryOptionGroup(groupGH);
-    groupSetABCD = new CategoryOptionGroupSet("GroupSetABCD");
-    groupSetEFGH = new CategoryOptionGroupSet("GroupSetEFGH");
+    groupSetABCD = new CategoryOptionGroupSet("GroupSetABCD", DataDimensionType.DISAGGREGATION);
+    groupSetEFGH = new CategoryOptionGroupSet("GroupSetEFGH", DataDimensionType.DISAGGREGATION);
     categoryService.saveCategoryOptionGroupSet(groupSetABCD);
     categoryService.saveCategoryOptionGroupSet(groupSetEFGH);
     groupSetABCD.addCategoryOptionGroup(groupAB);
@@ -634,7 +632,7 @@ class DataApprovalServiceTest extends IntegrationTestBase {
             "approveB", DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS);
     approveUserB.setOrganisationUnits(singleton(organisationUnitA));
     userService.updateUser(approveUserB);
-    injectSecurityContext(approveUserA);
+    injectSecurityContextUser(approveUserA);
     Date now = new Date();
     DataApproval da =
         new DataApproval(
@@ -651,7 +649,7 @@ class DataApprovalServiceTest extends IntegrationTestBase {
     assertEquals(da.getLastUpdatedBy(), approveUserA);
     assertFalse(da.getLastUpdated().before(now));
     dataApprovalService.unapproveData(singletonList(da));
-    injectSecurityContext(approveUserB);
+    injectSecurityContextUser(approveUserB);
     Date later = new Date();
     dataApprovalService.approveData(singletonList(da));
     da = dataApprovalService.getDataApproval(da);

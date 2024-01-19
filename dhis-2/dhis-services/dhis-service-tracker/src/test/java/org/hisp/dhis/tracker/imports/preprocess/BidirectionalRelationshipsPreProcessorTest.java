@@ -50,7 +50,7 @@ class BidirectionalRelationshipsPreProcessorTest extends DhisConvenienceTest {
   private static final String BIDIRECTIONAL_RELATIONSHIP_TYPE_UID =
       "BIDIRECTIONAL_RELATIONSHIP_TYPE";
 
-  private BidirectionalRelationshipsPreProcessor preProcessorToTest =
+  private final BidirectionalRelationshipsPreProcessor preProcessorToTest =
       new BidirectionalRelationshipsPreProcessor();
 
   @Test

@@ -32,6 +32,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.createWebMessage;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.forbidden;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.mergeReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
@@ -77,7 +78,9 @@ import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.SchemaPathException;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.util.DateUtils;
+import org.hisp.dhis.webapi.common.OrderCriteriaParamEditor;
 import org.hisp.dhis.webapi.common.UIDParamEditor;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.exception.MetadataImportConflictException;
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
 import org.hisp.dhis.webapi.controller.exception.MetadataVersionException;
@@ -88,6 +91,7 @@ import org.hisp.dhis.webapi.security.apikey.ApiTokenError;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -145,6 +149,7 @@ public class CrudControllerAdvice {
         IdentifiableProperty.class, new FromTextPropertyEditor(String::toUpperCase));
     this.enumClasses.forEach(c -> binder.registerCustomEditor(c, new ConvertEnum(c)));
     binder.registerCustomEditor(TrackerIdSchemeParam.class, new IdSchemeParamEditor());
+    binder.registerCustomEditor(OrderCriteria.class, new OrderCriteriaParamEditor());
     binder.registerCustomEditor(UID.class, new UIDParamEditor());
   }
 
@@ -172,6 +177,10 @@ public class CrudControllerAdvice {
   public WebMessage conflictException(org.hisp.dhis.feedback.ConflictException ex) {
     if (ex.getObjectReport() != null) {
       return objectReport(ex.getObjectReport());
+    }
+
+    if (ex.getMergeReport() != null) {
+      return mergeReport(ex.getMergeReport());
     }
     return conflict(ex.getMessage(), ex.getCode()).setDevMessage(ex.getDevMessage());
   }
@@ -523,6 +532,32 @@ public class CrudControllerAdvice {
   public WebMessage defaultExceptionHandler(Exception ex) {
     ex.printStackTrace();
     return error(getExceptionMessage(ex));
+  }
+
+  /**
+   * Exception handler handling {@link UID} instantiation errors (from {@link String} to {@link
+   * UID}) received in web requests. The error message is checked to see if it contains 'UID' & ';'
+   * so it can be formatted more nicely for client consumption, otherwise too much extraneous
+   * exception info is included. See e2e {@link IndicatorTypeMergeTest#testInvalidSourceUid} for
+   * example response expected.
+   *
+   * @param ex exception
+   * @return web message
+   */
+  @ResponseBody
+  @ExceptionHandler(HttpMessageNotReadableException.class)
+  public WebMessage handleHttpMessageNotReadableExceptionHandler(
+      HttpMessageNotReadableException ex) {
+    String message = "HttpMessageNotReadableException exception has no message";
+    String exMessage = ex.getMessage();
+    if (exMessage != null) {
+      message = exMessage;
+    }
+
+    if (message.contains("UID") && message.contains(";")) {
+      message = message.substring(0, message.indexOf(';'));
+    }
+    return badRequest(message);
   }
 
   private String getExceptionMessage(Exception ex) {

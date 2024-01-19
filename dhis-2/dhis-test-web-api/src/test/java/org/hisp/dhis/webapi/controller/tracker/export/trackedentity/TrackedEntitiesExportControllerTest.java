@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.web.WebClient.Accept;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContainsAll;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertFirstRelationship;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
@@ -36,6 +37,7 @@ import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasOn
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
@@ -167,6 +169,8 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
     trackedEntityType.setTrackedEntityTypeAttributes(List.of(trackedEntityTypeAttribute));
     manager.save(trackedEntityType, false);
+    program.setTrackedEntityType(trackedEntityType);
+    manager.save(program, false);
 
     softDeletedTrackedEntity = createTrackedEntity(orgUnit);
     softDeletedTrackedEntity.setDeleted(true);
@@ -175,11 +179,11 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
   @Test
   void getTrackedEntitiesNeedsProgramOrType() {
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     assertEquals(
-        "Either Program or Tracked entity type should be specified",
-        GET("/tracker/trackedEntities").error(HttpStatus.CONFLICT).getMessage());
+        "Either `program`, `trackedEntityType` or `trackedEntities` should be specified",
+        GET("/tracker/trackedEntities").error(HttpStatus.BAD_REQUEST).getMessage());
   }
 
   @Test
@@ -187,9 +191,9 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
     this.switchContextToUser(user);
 
     assertEquals(
-        "Either Program or Tracked entity type should be specified",
+        "Either `program`, `trackedEntityType` or `trackedEntities` should be specified",
         GET("/tracker/trackedEntities?orgUnit={ou}", orgUnit.getUid())
-            .error(HttpStatus.CONFLICT)
+            .error(HttpStatus.BAD_REQUEST)
             .getMessage());
   }
 
@@ -408,7 +412,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
   @Test
   void getTrackedEntityReturnsCsvFormat() {
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     WebClient.HttpResponse response =
         GET(
@@ -422,16 +426,49 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
         () -> assertTrue(response.header("content-type").contains(ContextUtils.CONTENT_TYPE_CSV)),
         () ->
             assertTrue(
-                response
-                    .header("content-disposition")
-                    .contains("filename=\"trackedEntities.csv\"")),
+                response.header("content-disposition").contains("filename=trackedEntities.csv")),
         () ->
             assertTrue(response.content().toString().contains("trackedEntity,trackedEntityType")));
   }
 
   @Test
+  void getTrackedEntityCsvById() {
+    TrackedEntity te = trackedEntity();
+    this.switchContextToUser(user);
+
+    WebClient.HttpResponse response =
+        GET("/tracker/trackedEntities/{id}", te.getUid(), Accept(ContextUtils.CONTENT_TYPE_CSV));
+
+    String csvResponse = response.content(ContextUtils.CONTENT_TYPE_CSV);
+
+    assertTrue(response.header("content-type").contains(ContextUtils.CONTENT_TYPE_CSV));
+    assertTrue(response.header("content-disposition").contains("filename=trackedEntity.csv"));
+    assertEquals(trackedEntityToCsv(te), csvResponse);
+  }
+
+  String trackedEntityToCsv(TrackedEntity te) {
+    return """
+       trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtClient,orgUnit,inactive,deleted,potentialDuplicate,geometry,latitude,longitude,storedBy,createdBy,updatedBy,attrCreatedAt,attrUpdatedAt,attribute,displayName,value,valueType
+       """
+        .concat(
+            String.join(
+                ",",
+                te.getUid(),
+                te.getTrackedEntityType().getUid(),
+                DateUtils.instantFromDate(te.getCreated()).toString(),
+                DateUtils.instantFromDate(te.getCreatedAtClient()).toString(),
+                DateUtils.instantFromDate(te.getLastUpdated()).toString(),
+                DateUtils.instantFromDate(te.getLastUpdatedAtClient()).toString(),
+                te.getOrganisationUnit().getUid(),
+                Boolean.toString(te.isInactive()),
+                Boolean.toString(te.isDeleted()),
+                Boolean.toString(te.isPotentialDuplicate()),
+                ",,,,,,,,,,," + "\n"));
+  }
+
+  @Test
   void getTrackedEntityReturnsCsvZipFormat() {
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     WebClient.HttpResponse response =
         GET(
@@ -448,12 +485,13 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
             assertTrue(
                 response
                     .header("content-disposition")
-                    .contains("filename=\"trackedEntities.csv.zip\"")));
+                    .contains("filename=trackedEntities.csv.zip")),
+        () -> assertNotNull(response.content(ContextUtils.CONTENT_TYPE_CSV_ZIP)));
   }
 
   @Test
   void getTrackedEntityReturnsCsvGZipFormat() {
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     WebClient.HttpResponse response =
         GET(
@@ -469,9 +507,8 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
                 response.header("content-type").contains(ContextUtils.CONTENT_TYPE_CSV_GZIP)),
         () ->
             assertTrue(
-                response
-                    .header("content-disposition")
-                    .contains("filename=\"trackedEntities.csv.gz\"")));
+                response.header("content-disposition").contains("filename=trackedEntities.csv.gz")),
+        () -> assertNotNull(response.content(ContextUtils.CONTENT_TYPE_CSV_GZIP)));
   }
 
   @Test

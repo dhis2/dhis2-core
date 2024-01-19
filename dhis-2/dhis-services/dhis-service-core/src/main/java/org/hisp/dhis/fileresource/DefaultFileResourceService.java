@@ -27,10 +27,6 @@
  */
 package org.hisp.dhis.fileresource;
 
-import static java.lang.System.currentTimeMillis;
-import static java.time.Duration.ofMillis;
-import static java.time.Duration.ofSeconds;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -146,34 +142,40 @@ public class DefaultFileResourceService implements FileResourceService {
     String uid = fr.getUid();
     return switch (fr.getDomain()) {
       case PUSH_ANALYSIS -> List.of();
-      case ORG_UNIT -> fileResourceStore.findOrganisationUnitsByImageFileResource(uid).stream()
-          .map(id -> new FileResourceOwner(FileResourceDomain.ORG_UNIT, id))
-          .toList();
-      case DOCUMENT -> fileResourceStore.findDocumentsByFileResource(uid).stream()
-          .map(id -> new FileResourceOwner(FileResourceDomain.DOCUMENT, id))
-          .toList();
-      case MESSAGE_ATTACHMENT -> fileResourceStore.findMessagesByFileResource(uid).stream()
-          .map(id -> new FileResourceOwner(FileResourceDomain.MESSAGE_ATTACHMENT, id))
-          .toList();
-      case USER_AVATAR -> fileResourceStore.findUsersByAvatarFileResource(uid).stream()
-          .map(id -> new FileResourceOwner(FileResourceDomain.USER_AVATAR, id))
-          .toList();
-      case DATA_VALUE -> fileResourceStore.findDataValuesByFileResourceValue(uid).stream()
-          .map(
-              dv ->
-                  new FileResourceOwner(
-                      dv.de(), dv.ou(), periodService.getPeriod(dv.pe()).getIsoDate(), dv.co()))
-          .toList();
-      case CUSTOM_ICON -> fileResourceStore.findCustomIconByFileResource(uid).stream()
-          .map(key -> new FileResourceOwner(FileResourceDomain.CUSTOM_ICON, key))
-          .toList();
+      case ORG_UNIT ->
+          fileResourceStore.findOrganisationUnitsByImageFileResource(uid).stream()
+              .map(id -> new FileResourceOwner(FileResourceDomain.ORG_UNIT, id))
+              .toList();
+      case DOCUMENT ->
+          fileResourceStore.findDocumentsByFileResource(uid).stream()
+              .map(id -> new FileResourceOwner(FileResourceDomain.DOCUMENT, id))
+              .toList();
+      case MESSAGE_ATTACHMENT ->
+          fileResourceStore.findMessagesByFileResource(uid).stream()
+              .map(id -> new FileResourceOwner(FileResourceDomain.MESSAGE_ATTACHMENT, id))
+              .toList();
+      case USER_AVATAR ->
+          fileResourceStore.findUsersByAvatarFileResource(uid).stream()
+              .map(id -> new FileResourceOwner(FileResourceDomain.USER_AVATAR, id))
+              .toList();
+      case DATA_VALUE ->
+          fileResourceStore.findDataValuesByFileResourceValue(uid).stream()
+              .map(
+                  dv ->
+                      new FileResourceOwner(
+                          dv.de(), dv.ou(), periodService.getPeriod(dv.pe()).getIsoDate(), dv.co()))
+              .toList();
+      case CUSTOM_ICON ->
+          fileResourceStore.findCustomIconByFileResource(uid).stream()
+              .map(key -> new FileResourceOwner(FileResourceDomain.CUSTOM_ICON, key))
+              .toList();
       case JOB_DATA -> List.of(new FileResourceOwner(FileResourceDomain.JOB_DATA, uid));
     };
   }
 
   @Override
   @Transactional
-  public void saveFileResource(FileResource fileResource, File file) {
+  public void asyncSaveFileResource(FileResource fileResource, File file) {
     validateFileResource(fileResource);
 
     fileResource.setStorageStatus(FileResourceStorageStatus.PENDING);
@@ -194,7 +196,7 @@ public class DefaultFileResourceService implements FileResourceService {
 
   @Override
   @Transactional
-  public String saveFileResource(FileResource fileResource, byte[] bytes) {
+  public String asyncSaveFileResource(FileResource fileResource, byte[] bytes) {
     fileResource.setStorageStatus(FileResourceStorageStatus.PENDING);
     fileResourceStore.save(fileResource);
     entityManager.flush();
@@ -202,6 +204,22 @@ public class DefaultFileResourceService implements FileResourceService {
     final String uid = fileResource.getUid();
 
     fileEventPublisher.publishEvent(new BinaryFileSavedEvent(fileResource.getUid(), bytes));
+
+    return uid;
+  }
+
+  @Override
+  @Transactional
+  public String syncSaveFileResource(FileResource fileResource, byte[] bytes)
+      throws ConflictException {
+    fileResource.setStorageStatus(FileResourceStorageStatus.PENDING);
+    fileResourceStore.save(fileResource);
+    entityManager.flush();
+
+    final String uid = fileResource.getUid();
+
+    String storageId = fileResourceContentStore.saveFileResourceContent(fileResource, bytes);
+    if (storageId == null) throw new ConflictException(ErrorCode.E6102);
 
     return uid;
   }
@@ -245,26 +263,9 @@ public class DefaultFileResourceService implements FileResourceService {
   @Override
   @Nonnull
   public InputStream getFileResourceContent(FileResource fileResource) throws ConflictException {
-    return getFileResourceContent(fileResource, ofSeconds(10));
-  }
-
-  @Nonnull
-  @Override
-  public InputStream getFileResourceContent(FileResource fileResource, java.time.Duration timeout)
-      throws ConflictException {
     String key = fileResource.getStorageKey();
     InputStream content = fileResourceContentStore.getFileResourceContent(key);
-    long since = currentTimeMillis();
-    while (content == null && !timeout.minus(ofMillis(currentTimeMillis() - since)).isNegative()) {
-      try {
-        Thread.sleep(50);
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-      }
-      content = fileResourceContentStore.getFileResourceContent(key);
-    }
-    if (content == null)
-      throw new ConflictException("File resource exists but content input stream was null");
+    if (content == null) throw new ConflictException(ErrorCode.E6103);
     return content;
   }
 

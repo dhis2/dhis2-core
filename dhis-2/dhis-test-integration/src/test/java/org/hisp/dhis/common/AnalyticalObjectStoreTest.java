@@ -28,10 +28,12 @@
 package org.hisp.dhis.common;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.Sorting;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.mapping.MapView;
@@ -41,6 +43,8 @@ import org.hisp.dhis.mapping.ThematicMapType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.visualization.Visualization;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -71,6 +75,8 @@ class AnalyticalObjectStoreTest extends TransactionalIntegrationTest {
   @Autowired
   @Qualifier("org.hisp.dhis.mapping.MapViewStore")
   private MapViewStore mapViewStore;
+
+  @Autowired private AnalyticalObjectStore<Visualization> visualizationStore;
 
   @Override
   public void setUpTest() {
@@ -134,5 +140,44 @@ class AnalyticalObjectStoreTest extends TransactionalIntegrationTest {
   void testSaveOrganisationUnitCoordinateField() {
     MapView mapView = mapViewStore.getByUid(mvA.getUid());
     assertEquals("OU_Coordinate_Field", mapView.getOrgUnitField());
+  }
+
+  @Test
+  @DisplayName(
+      "Get all visualizations that have a specific indicator as a dimension in its sorting column")
+  void getVisualizationsWithIndicatorSortingTest() {
+    // given 3 visualization exist, 2 of which have specific indicator sorting dimensions
+    Visualization vizWith2IndicatorInSorting = createVisualization('z');
+    Visualization vizWith1IndicatorInSorting = createVisualization('w');
+    Visualization vizWithNoIndicatorSorting = createVisualization('x');
+    Indicator indicatorDimension1 = createIndicator('z', itA);
+    Indicator indicatorDimension2 = createIndicator('y', itA);
+    Sorting sorting1 = new Sorting();
+    sorting1.setDimension(indicatorDimension1.getUid());
+    Sorting sorting2 = new Sorting();
+    sorting2.setDimension(indicatorDimension2.getUid());
+
+    // set 2 visualizations to have indicator sorting dimensions
+    vizWith2IndicatorInSorting.setSorting(List.of(sorting1, sorting2));
+    vizWith1IndicatorInSorting.setSorting(List.of(sorting2));
+
+    idObjectManager.save(indicatorDimension1);
+    idObjectManager.save(indicatorDimension2);
+    idObjectManager.save(vizWith2IndicatorInSorting);
+    idObjectManager.save(vizWith1IndicatorInSorting);
+    idObjectManager.save(vizWithNoIndicatorSorting);
+
+    // when looking for specific visualizations with indicator refs
+    List<Visualization> matchedVisualizations =
+        visualizationStore.getVisualizationsBySortingIndicator(
+            List.of(indicatorDimension1.getUid(), indicatorDimension2.getUid()));
+
+    // then only the 2 matching visualizations should be retrieved
+    assertEquals(2, matchedVisualizations.size());
+    assertTrue(matchedVisualizations.contains(vizWith1IndicatorInSorting));
+    assertTrue(matchedVisualizations.contains(vizWith2IndicatorInSorting));
+
+    // and the visualization with no indicator ref should not be retrieved
+    assertFalse(matchedVisualizations.contains(vizWithNoIndicatorSorting));
   }
 }

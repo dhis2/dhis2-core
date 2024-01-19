@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.external.config;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.*;
+import static org.hisp.dhis.external.conf.ConfigurationKey.META_DATA_SYNC_RETRY;
+import static org.hisp.dhis.external.conf.ConfigurationKey.META_DATA_SYNC_RETRY_TIME_FREQUENCY_MILLISEC;
+import static org.hisp.dhis.external.conf.ConfigurationKey.SYSTEM_SESSION_TIMEOUT;
 
 import org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean;
 import org.hisp.dhis.external.location.DefaultLocationManager;

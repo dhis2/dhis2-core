@@ -37,7 +37,7 @@ import org.springframework.jdbc.core.RowCallbackHandler;
  * @author Luciano Fiandesio
  */
 public abstract class AbstractMapper<T> implements RowCallbackHandler {
-  Multimap<String, T> items;
+  final Multimap<String, T> items;
 
   protected AbstractMapper() {
     this.items = ArrayListMultimap.create();

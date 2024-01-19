@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.eventhook.targets.auth;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.common.auth.ApiTokenAuth;
 import org.junit.jupiter.api.Test;

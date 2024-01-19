@@ -46,7 +46,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.eventhook.EventHookPublisher;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
@@ -54,6 +53,7 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.AuthenticationService;
+import org.hisp.dhis.user.UserDetails;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -87,12 +87,12 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
 
   @Override
   @Transactional
-  public void createHousekeepingJob() {
+  public void createHousekeepingJob(UserDetails actingUser) {
     JobType.Defaults defaults = JobType.HOUSEKEEPING.getDefaults();
     if (defaults == null) return;
     JobConfiguration config = jobConfigurationStore.getByUid(defaults.uid());
     if (config == null) {
-      jobConfigurationService.createDefaultJob(JobType.HOUSEKEEPING);
+      jobConfigurationService.createDefaultJob(JobType.HOUSEKEEPING, actingUser);
     } else if (config.getJobStatus() != JobStatus.SCHEDULED) {
       finishRunCancel(config.getUid());
     }
@@ -284,8 +284,7 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
     if (job == null) return;
     try {
       JobProgress.Progress progress = job.getProgress();
-      String errorCodes =
-          progress.getErrorCodes().stream().map(ErrorCode::name).sorted().collect(joining(" "));
+      String errorCodes = progress.getErrorCodes().stream().sorted().collect(joining(" "));
       jobConfigurationStore.updateProgress(
           jobId, jsonMapper.writeValueAsString(progress), errorCodes);
     } catch (JsonProcessingException ex) {

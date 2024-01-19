@@ -487,7 +487,7 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void testGetAnalyticsSQl2() {
-    String expected = "((cast(incidentdate as date) - cast(enrollmentdate as date))) / 7.0";
+    String expected = "((cast(occurreddate as date) - cast(enrollmentdate as date))) / 7.0";
     assertEquals(
         expected,
         programIndicatorService.getAnalyticsSql(

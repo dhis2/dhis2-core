@@ -44,6 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.LinkedList;
 import org.hisp.dhis.common.CodeGenerator;
@@ -61,6 +62,7 @@ import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.tracker.imports.report.ValidationReport;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
 import org.hisp.dhis.webapi.controller.tracker.ControllerSupport;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
@@ -93,6 +95,7 @@ class TrackerImportControllerTest {
   @Mock private JobSchedulerService jobSchedulerService;
 
   @Mock private JobConfigurationService jobConfigurationService;
+  @Mock private UserService userService;
 
   private RenderService renderService;
 
@@ -111,7 +114,9 @@ class TrackerImportControllerTest {
             csvEventService,
             notifier,
             jobSchedulerService,
-            jobConfigurationService);
+            jobConfigurationService,
+            new ObjectMapper(),
+            userService);
 
     mockMvc =
         MockMvcBuilders.standaloneSetup(controller)

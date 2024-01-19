@@ -96,8 +96,7 @@ public class DefaultMonitoringService implements MonitoringService {
       return;
     }
 
-    SystemInfo systemInfo = systemService.getSystemInfo();
-    systemInfo.clearSensitiveInfo();
+    SystemInfo systemInfo = systemService.getSystemInfo().withoutSensitiveInfo();
 
     if (StringUtils.isBlank(systemInfo.getSystemId())) {
       log.warn("System ID not available, aborting monitoring request");

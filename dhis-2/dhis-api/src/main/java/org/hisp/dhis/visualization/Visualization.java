@@ -30,7 +30,10 @@ package org.hisp.dhis.visualization;
 import static com.fasterxml.jackson.annotation.JsonProperty.Access.READ_ONLY;
 import static com.google.common.base.Verify.verify;
 import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.apache.commons.lang3.StringUtils.containsAny;
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.join;
@@ -64,6 +67,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import org.hisp.dhis.analytics.NumberType;
+import org.hisp.dhis.analytics.Sorting;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.CombinationGenerator;
@@ -142,6 +146,9 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
 
   /** The number type. */
   private NumberType numberType;
+
+  /** Stores the sorting state in the current object. */
+  private List<Sorting> sorting = new ArrayList<>();
 
   /**
    * List of {@link Series}. Refers to the dimension items in the first dimension of the "columns"
@@ -395,6 +402,19 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
 
   public void setIcons(Set<Icon> icons) {
     this.icons = icons;
+  }
+
+  @JsonProperty("sorting")
+  @JacksonXmlElementWrapper(localName = "sorting", namespace = DXF_2_0)
+  @JacksonXmlProperty(localName = "sortingItem", namespace = DXF_2_0)
+  public List<Sorting> getSorting() {
+    return sorting;
+  }
+
+  public void setSorting(List<Sorting> sorting) {
+    if (sorting != null) {
+      this.sorting = sorting.stream().distinct().collect(toList());
+    }
   }
 
   @JsonProperty
@@ -807,6 +827,29 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
     return object != null ? object.getItems() : null;
   }
 
+  /** Validates the state of the current list of {@link Sorting} objects (if one is defined). */
+  public void validateSortingState() {
+    List<String> columns = defaultIfNull(getColumnDimensions(), List.of());
+    List<Sorting> sortingList = getSorting();
+    List<DimensionalItemObject> items =
+        getColumns().stream()
+            .filter(c -> c.hasItems())
+            .flatMap(c -> c.getItems().stream())
+            .toList();
+
+    sortingList.forEach(
+        s -> {
+          if (isBlank(s.getDimension()) || s.getDirection() == null) {
+            throw new IllegalArgumentException("Sorting is not valid");
+          } else if (columns.stream().noneMatch(c -> containsAny(s.getDimension(), c.split("\\.")))
+              && items.stream()
+                  .noneMatch(
+                      c -> containsAny(s.getDimension(), c.getDimensionItem().split("\\.")))) {
+            throw new IllegalStateException(s.getDimension());
+          }
+        });
+  }
+
   /**
    * Based on the given arguments, this method will populate the current "gridColumns" and
    * "gridRows" objects. It also sets the title of the grid ("gridTitle").
@@ -975,8 +1018,8 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
     addHeadersForRows(grid);
     addHeadersForReport(grid, reportParamColumns);
 
-    final int startColumnIndex = grid.getHeaders().size();
-    final int numberOfColumns = getGridColumns().size();
+    int startColumnIndex = grid.getHeaders().size();
+    int numberOfColumns = getGridColumns().size();
 
     addHeadersForColumns(grid, displayProperty);
 

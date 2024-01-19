@@ -89,10 +89,12 @@ public class MetadataImportJob implements Job {
       String contentType = data.getContentType();
       ImportReport report =
           switch (contentType) {
-            case "application/json" -> metadataImportService.importMetadata(
-                params, jsonToMetadataObjects(input), progress);
-            case "application/csv" -> metadataImportService.importMetadata(
-                params, csvToMetadataObjects(params, input), progress);
+            case "application/json" ->
+                metadataImportService.importMetadata(
+                    params, jsonToMetadataObjects(input), progress);
+            case "application/csv" ->
+                metadataImportService.importMetadata(
+                    params, csvToMetadataObjects(params, input), progress);
             case "application/xml" -> gmlImportService.importGml(input, params, progress);
             default -> null;
           };
@@ -103,12 +105,12 @@ public class MetadataImportJob implements Job {
 
       if (report.hasErrorReports()) {
         report.forEachErrorReport(
-            r ->
+            e ->
                 progress.addError(
-                    r.getErrorCode(),
-                    r.getMainId(),
-                    r.getMainKlass().getSimpleName(),
-                    r.getArgs()));
+                    e.getErrorCode(),
+                    e.getMainId(),
+                    e.getMainKlass().getSimpleName(),
+                    e.getArgs()));
       }
 
       notifier.addJobSummary(config, report, ImportReport.class);

@@ -28,7 +28,9 @@
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.Instant;
@@ -36,6 +38,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import org.geotools.geojson.geom.GeometryJSON;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
@@ -144,6 +149,84 @@ class CsvTrackedEntityServiceTest {
             + instant
             + ",,,,\"Test org unit\",false,false,false,,,,,,,,,\"attribute 2\",,\"Text test\",TEXT\n",
         out.toString());
+  }
+
+  @Test
+  void zipFileAndMatchCsvTeWhenCreateZipFileFromTrackedEntityList() throws IOException {
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+    List<TrackedEntity> trackedEntities = new ArrayList<>();
+
+    trackedEntities.add(getTrackedEntityToCompress());
+
+    service.writeZip(outputStream, trackedEntities, false, "file.json.zip");
+
+    ZipInputStream zipInputStream =
+        new ZipInputStream(new ByteArrayInputStream(outputStream.toByteArray()));
+    var buff = new byte[1024];
+
+    ZipEntry zipEntry = zipInputStream.getNextEntry();
+
+    assertNotNull(zipEntry, "Events Zip file has no entry");
+    assertEquals("file.json.zip", zipEntry.getName(), "Events Zip file has a wrong name");
+
+    var csvStream = new ByteArrayOutputStream();
+    int l;
+    while ((l = zipInputStream.read(buff)) > 0) {
+      csvStream.write(buff, 0, l);
+    }
+
+    assertEquals(
+        """
+"Test tracked entity",,2022-09-29T15:15:30Z,,,,"Test org unit",false,false,false,"POINT (40 5)",5.0,40.0,,,,,,"attribute 1",,"Age test",AGE
+"Test tracked entity",,2022-09-29T15:15:30Z,,,,"Test org unit",false,false,false,"POINT (40 5)",5.0,40.0,,,,,,"attribute 2",,"Text test",TEXT
+""",
+        csvStream.toString(),
+        "The tracked entity does not match or not exists in the Zip File.");
+  }
+
+  @Test
+  void gzipFileAndMatchCsvTeWhenCreateGZipFileFromTrackedEntityList() throws IOException {
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+    List<TrackedEntity> trackedEntities = new ArrayList<>();
+
+    trackedEntities.add(getTrackedEntityToCompress());
+
+    service.writeGzip(outputStream, trackedEntities, false);
+
+    GZIPInputStream gzipInputStream =
+        new GZIPInputStream(new ByteArrayInputStream(outputStream.toByteArray()));
+    var buff = new byte[1024];
+
+    var csvStream = new ByteArrayOutputStream();
+    int l;
+    while ((l = gzipInputStream.read(buff)) > 0) {
+      csvStream.write(buff, 0, l);
+    }
+
+    assertEquals(
+        """
+"Test tracked entity",,2022-09-29T15:15:30Z,,,,"Test org unit",false,false,false,"POINT (40 5)",5.0,40.0,,,,,,"attribute 1",,"Age test",AGE
+"Test tracked entity",,2022-09-29T15:15:30Z,,,,"Test org unit",false,false,false,"POINT (40 5)",5.0,40.0,,,,,,"attribute 2",,"Text test",TEXT
+""",
+        csvStream.toString(),
+        "The tracked entity does not match or not exists in the Zip File.");
+  }
+
+  private TrackedEntity getTrackedEntityToCompress() throws IOException {
+    TrackedEntity trackedEntity = createTrackedEntity();
+
+    GeometryJSON geometryJSON = new GeometryJSON();
+    String pointCoordinates = "[40,5]";
+    Geometry geometry =
+        geometryJSON.read("{\"type\":\"Point\", \"coordinates\": " + pointCoordinates + " }");
+    trackedEntity.setGeometry(geometry);
+
+    Attribute attribute1 = createAttribute("attribute 1", ValueType.AGE, "Age test");
+    Attribute attribute2 = createAttribute("attribute 2", ValueType.TEXT, "Text test");
+    trackedEntity.setAttributes(Arrays.asList(attribute1, attribute2));
+    return trackedEntity;
   }
 
   private Attribute createAttribute(String attr, ValueType valueType, String value) {

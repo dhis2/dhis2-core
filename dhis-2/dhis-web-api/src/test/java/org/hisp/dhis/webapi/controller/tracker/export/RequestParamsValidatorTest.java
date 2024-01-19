@@ -56,7 +56,6 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -290,12 +289,6 @@ class RequestParamsValidatorTest {
         filters);
   }
 
-  private TrackedEntityAttribute trackedEntityAttribute(String uid) {
-    TrackedEntityAttribute tea = new TrackedEntityAttribute();
-    tea.setUid(uid);
-    return tea;
-  }
-
   @ParameterizedTest
   @EnumSource(
       value = OrganisationUnitSelectionMode.class,
@@ -382,27 +375,29 @@ class RequestParamsValidatorTest {
     private Integer pageSize;
     private Boolean totalPages;
     private Boolean skipPaging;
+    private Boolean paging;
   }
 
   private static Stream<Arguments> mutuallyExclusivePaginationParameters() {
     return Stream.of(
-        arguments(null, 1, null, true),
-        arguments(null, 1, false, true),
-        arguments(null, 1, false, true),
-        arguments(1, 1, false, true),
-        arguments(1, 1, true, true),
-        arguments(null, null, true, true));
+        arguments(null, 1, null, true, false),
+        arguments(null, 1, false, true, false),
+        arguments(null, 1, false, true, false),
+        arguments(1, 1, false, true, false),
+        arguments(1, 1, true, true, false),
+        arguments(null, null, true, true, false));
   }
 
   @MethodSource("mutuallyExclusivePaginationParameters")
   @ParameterizedTest
   void shouldFailWhenGivenMutuallyExclusivePaginationParameters(
-      Integer page, Integer pageSize, Boolean totalPages, Boolean skipPaging) {
+      Integer page, Integer pageSize, Boolean totalPages, Boolean skipPaging, Boolean paging) {
     PaginationParameters paginationParameters = new PaginationParameters();
     paginationParameters.setPage(page);
     paginationParameters.setPageSize(pageSize);
     paginationParameters.setTotalPages(totalPages);
     paginationParameters.setSkipPaging(skipPaging);
+    paginationParameters.setPaging(paging);
 
     Exception exception =
         assertThrows(
@@ -411,31 +406,54 @@ class RequestParamsValidatorTest {
     assertStartsWith("Paging cannot be skipped with", exception.getMessage());
   }
 
+  private static Stream<Arguments> mutuallyExclusiveSkipPaginationParameters() {
+    return Stream.of(arguments(1, 1, false, false, false), arguments(1, 1, false, true, true));
+  }
+
+  @MethodSource("mutuallyExclusiveSkipPaginationParameters")
+  @ParameterizedTest
+  void shouldFailWhenGivenMutuallyExclusiveSkipPaginationParameters(
+      Integer page, Integer pageSize, Boolean totalPages, Boolean skipPaging, Boolean paging) {
+    PaginationParameters paginationParameters = new PaginationParameters();
+    paginationParameters.setPage(page);
+    paginationParameters.setPageSize(pageSize);
+    paginationParameters.setTotalPages(totalPages);
+    paginationParameters.setSkipPaging(skipPaging);
+    paginationParameters.setPaging(paging);
+
+    Exception exception =
+        assertThrows(
+            BadRequestException.class, () -> validatePaginationParameters(paginationParameters));
+
+    assertStartsWith("Paging can either be enabled or disabled", exception.getMessage());
+  }
+
   private static Stream<Arguments> validPaginationParameters() {
     return Stream.of(
-        arguments(null, null, null, null),
-        arguments(null, null, null, false),
-        arguments(null, 1, true, null),
-        arguments(null, 1, false, null),
-        arguments(null, 1, false, false),
-        arguments(null, null, true, false),
-        arguments(1, 1, false, false),
-        arguments(null, null, true, null),
-        arguments(null, 1, true, false),
-        arguments(null, null, null, true),
-        arguments(null, null, false, true));
+        arguments(null, null, null, null, null),
+        arguments(null, null, null, false, true),
+        arguments(null, 1, true, null, null),
+        arguments(null, 1, false, null, null),
+        arguments(null, 1, false, false, true),
+        arguments(null, null, true, false, true),
+        arguments(1, 1, false, false, true),
+        arguments(null, null, true, null, null),
+        arguments(null, 1, true, false, true),
+        arguments(null, null, null, true, false),
+        arguments(null, null, false, true, false));
   }
 
   @MethodSource("validPaginationParameters")
   @ParameterizedTest
   void shouldPassWhenGivenValidPaginationParameters(
-      Integer page, Integer pageSize, Boolean totalPages, Boolean skipPaging)
+      Integer page, Integer pageSize, Boolean totalPages, Boolean skipPaging, Boolean paging)
       throws BadRequestException {
     PaginationParameters paginationParameters = new PaginationParameters();
     paginationParameters.setPage(page);
     paginationParameters.setPage(pageSize);
     paginationParameters.setTotalPages(totalPages);
     paginationParameters.setSkipPaging(skipPaging);
+    paginationParameters.setPaging(paging);
 
     validatePaginationParameters(paginationParameters);
   }

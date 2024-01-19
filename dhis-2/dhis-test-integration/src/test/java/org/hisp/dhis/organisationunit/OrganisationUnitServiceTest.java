@@ -532,12 +532,12 @@ class OrganisationUnitServiceTest extends SingleSetupIntegrationTestBase {
     organisationUnitService.addOrganisationUnit(unit3);
     OrganisationUnit unit4 = createOrganisationUnit('4');
     organisationUnitService.addOrganisationUnit(unit4);
-    assertTrue(organisationUnitService.isDescendant(unit1, Sets.newHashSet(unit1)));
-    assertTrue(organisationUnitService.isDescendant(unit2, Sets.newHashSet(unit1)));
-    assertTrue(organisationUnitService.isDescendant(unit3, Sets.newHashSet(unit1)));
-    assertTrue(organisationUnitService.isDescendant(unit2, Sets.newHashSet(unit1, unit3)));
-    assertFalse(organisationUnitService.isDescendant(unit2, Sets.newHashSet(unit3)));
-    assertFalse(organisationUnitService.isDescendant(unit4, Sets.newHashSet(unit1)));
+    assertTrue(unit1.isDescendant(Sets.newHashSet(unit1)));
+    assertTrue(unit2.isDescendant(Sets.newHashSet(unit1)));
+    assertTrue(unit3.isDescendant(Sets.newHashSet(unit1)));
+    assertTrue(unit2.isDescendant(Sets.newHashSet(unit1, unit3)));
+    assertFalse(unit2.isDescendant(Sets.newHashSet(unit3)));
+    assertFalse(unit4.isDescendant(Sets.newHashSet(unit1)));
   }
 
   @Test
@@ -572,11 +572,15 @@ class OrganisationUnitServiceTest extends SingleSetupIntegrationTestBase {
     organisationUnitService.addOrganisationUnit(unit3);
     OrganisationUnit unit4 = createOrganisationUnit('4');
     organisationUnitService.addOrganisationUnit(unit4);
-    assertTrue(organisationUnitService.isDescendant(unit1, unit1));
-    assertTrue(organisationUnitService.isDescendant(unit2, unit1));
-    assertTrue(organisationUnitService.isDescendant(unit3, unit1));
-    assertFalse(organisationUnitService.isDescendant(unit2, unit3));
-    assertFalse(organisationUnitService.isDescendant(unit4, unit1));
+    assertTrue(unit1.isDescendant(unit1));
+    assertTrue(unit2.isDescendant(unit1));
+    assertTrue(unit3.isDescendant(unit1));
+    assertTrue(unit3.isDescendant(unit2));
+    assertFalse(unit2.isDescendant(unit3));
+    assertFalse(unit1.isDescendant(unit2));
+    assertFalse(unit1.isDescendant(unit3));
+    assertFalse(unit4.isDescendant(unit1));
+    assertFalse(unit1.isDescendant(unit4));
   }
 
   @Test
@@ -1016,7 +1020,7 @@ class OrganisationUnitServiceTest extends SingleSetupIntegrationTestBase {
     fileResource.setAssigned(false);
     fileResource.setCreated(new Date());
     fileResource.setAutoFields();
-    fileResourceService.saveFileResource(fileResource, content);
+    fileResourceService.asyncSaveFileResource(fileResource, content);
     OrganisationUnit orgUnit = createOrganisationUnit('A');
     orgUnit.setImage(fileResource);
     organisationUnitService.addOrganisationUnit(orgUnit);

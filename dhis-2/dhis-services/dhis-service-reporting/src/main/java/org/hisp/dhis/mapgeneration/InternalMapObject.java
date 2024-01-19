@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.mapgeneration;
 
-import java.awt.*;
+import java.awt.Color;
 import org.geotools.data.DataUtilities;
 import org.geotools.feature.SchemaException;
 import org.geotools.styling.SLD;

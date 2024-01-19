@@ -60,13 +60,15 @@ class DataIntegrityGroupSizeCategoryOptionGroupsControllerTest
             HttpStatus.CREATED,
             POST(
                 "/categoryOptionGroups",
-                "{ 'name': 'Taste', 'shortName': 'Taste', 'categoryOptions' : [{'id' : '"
+                "{ 'name': 'Taste', 'shortName': 'Taste', 'dataDimensionType':'DISAGGREGATION', 'categoryOptions' : [{'id' : '"
                     + categoryOptionSweet
                     + "'}]}"));
     String categoryOptionGroupNil =
         assertStatus(
             HttpStatus.CREATED,
-            POST("/categoryOptionGroups", "{ 'name': 'Nil', 'shortName': 'Nil' }"));
+            POST(
+                "/categoryOptionGroups",
+                "{ 'name': 'Nil', 'shortName': 'Nil', 'dataDimensionType':'DISAGGREGATION' }"));
 
     assertHasDataIntegrityIssues(
         detailsIdType,
@@ -106,7 +108,7 @@ class DataIntegrityGroupSizeCategoryOptionGroupsControllerTest
         HttpStatus.CREATED,
         POST(
             "/categoryOptionGroups",
-            "{ 'name': 'Color', 'shortName': 'Color', 'categoryOptions' : [{'id' : '"
+            "{ 'name': 'Color', 'shortName': 'Color', 'dataDimensionType':'DISAGGREGATION', 'categoryOptions' : [{'id' : '"
                 + categoryOptionRed
                 + "'}, {'id': '"
                 + categoryOptionBlue

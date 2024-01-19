@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.dxf2.deprecated.tracker.importer.shared.validation;
 
-import static org.hisp.dhis.DhisConvenienceTest.*;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
+import static org.hisp.dhis.DhisConvenienceTest.createTrackedEntity;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Lists;

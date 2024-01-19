@@ -48,13 +48,13 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.system.util.SqlUtils;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -76,13 +76,9 @@ public class DefaultSqlViewService implements SqlViewService {
 
   private final SqlViewStore sqlViewStore;
 
-  private final StatementBuilder statementBuilder;
-
   private final DhisConfigurationProvider config;
 
   private final AclService aclService;
-
-  private final CurrentUserService currentUserService;
 
   // -------------------------------------------------------------------------
   // CRUD methods
@@ -203,8 +199,7 @@ public class DefaultSqlViewService implements SqlViewService {
   }
 
   private void canAccess(SqlView sqlView) {
-    User currentUser = currentUserService.getCurrentUser();
-    if (!aclService.canDataRead(currentUser, sqlView)) {
+    if (!aclService.canDataRead(CurrentUserUtil.getCurrentUserDetails(), sqlView)) {
       throw new IllegalQueryException(new ErrorMessage(ErrorCode.E4312, sqlView.getUid()));
     }
   }
@@ -278,15 +273,14 @@ public class DefaultSqlViewService implements SqlViewService {
   private String substituteQueryVariables(SqlView sqlView, Map<String, String> variables) {
     String sql = SqlViewUtils.substituteSqlVariables(sqlView.getSqlQuery(), variables);
 
-    User currentUser = currentUserService.getCurrentUser();
-
-    if (currentUser != null) {
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    if (currentUserDetails != null) {
       sql =
           SqlViewUtils.substituteSqlVariable(
-              sql, CURRENT_USER_ID_VARIABLE, Long.toString(currentUser.getId()));
+              sql, CURRENT_USER_ID_VARIABLE, Long.toString(currentUserDetails.getId()));
       sql =
           SqlViewUtils.substituteSqlVariable(
-              sql, CURRENT_USERNAME_VARIABLE, currentUser.getUsername());
+              sql, CURRENT_USERNAME_VARIABLE, currentUserDetails.getUsername());
     }
 
     return sql;
@@ -298,7 +292,7 @@ public class DefaultSqlViewService implements SqlViewService {
         "select "
             + QueryUtils.parseSelectFields(fields)
             + " from "
-            + statementBuilder.columnQuote(sqlView.getViewName())
+            + SqlUtils.quote(sqlView.getViewName())
             + " ";
 
     boolean hasCriteria = criteria != null && !criteria.isEmpty();
@@ -330,7 +324,7 @@ public class DefaultSqlViewService implements SqlViewService {
         sql +=
             sqlHelper.whereAnd()
                 + " "
-                + statementBuilder.columnQuote(filter)
+                + SqlUtils.quote(filter)
                 + "='"
                 + criteria.get(filter)
                 + "' ";

@@ -37,4 +37,8 @@ public class PostgresDhisConfigurationProvider extends TestConfigurationProvider
   public PostgresDhisConfigurationProvider() {
     this.properties = getPropertiesFromFile(DEFAULT_CONFIGURATION_FILE_NAME);
   }
+
+  public PostgresDhisConfigurationProvider(String fileName) {
+    this.properties = getPropertiesFromFile(fileName);
+  }
 }

@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
-import static org.hisp.dhis.webapi.controller.tracker.export.enrollment.RequestParams.DEFAULT_FIELDS_PARAM;
+import static org.hisp.dhis.webapi.controller.tracker.export.enrollment.EnrollmentRequestParams.DEFAULT_FIELDS_PARAM;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -45,14 +45,12 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
-import org.hisp.dhis.webapi.controller.tracker.export.OpenApiExport;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
+import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.ResponseEntity;
@@ -95,10 +93,10 @@ class EnrollmentsExportController {
         "enrollment", EnrollmentMapper.ORDERABLE_FIELDS, enrollmentService.getOrderableFields());
   }
 
-  @OpenApi.Response(status = Status.OK, value = OpenApiExport.ListResponse.class)
+  @OpenApi.Response(status = Status.OK, value = Page.class)
   @GetMapping(produces = APPLICATION_JSON_VALUE)
-  PagingWrapper<ObjectNode> getEnrollments(RequestParams requestParams)
-      throws BadRequestException, ForbiddenException, NotFoundException {
+  Page<ObjectNode> getEnrollments(EnrollmentRequestParams requestParams)
+      throws BadRequestException, ForbiddenException {
     validatePaginationParameters(requestParams);
     EnrollmentOperationParams operationParams = paramsMapper.map(requestParams);
 
@@ -107,27 +105,14 @@ class EnrollmentsExportController {
           new PageParams(
               requestParams.getPage(), requestParams.getPageSize(), requestParams.getTotalPages());
 
-      Page<org.hisp.dhis.program.Enrollment> enrollmentPage =
+      org.hisp.dhis.tracker.export.Page<org.hisp.dhis.program.Enrollment> enrollmentsPage =
           enrollmentService.getEnrollments(operationParams, pageParams);
-
-      PagingWrapper.Pager.PagerBuilder pagerBuilder =
-          PagingWrapper.Pager.builder()
-              .page(enrollmentPage.getPager().getPage())
-              .pageSize(enrollmentPage.getPager().getPageSize());
-
-      if (requestParams.isPageTotal()) {
-        pagerBuilder
-            .pageCount(enrollmentPage.getPager().getPageCount())
-            .total(enrollmentPage.getPager().getTotal());
-      }
-
-      PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
-      pagingWrapper = pagingWrapper.withPager(pagerBuilder.build());
       List<ObjectNode> objectNodes =
           fieldFilterService.toObjectNodes(
-              ENROLLMENT_MAPPER.fromCollection(enrollmentPage.getItems()),
+              ENROLLMENT_MAPPER.fromCollection(enrollmentsPage.getItems()),
               requestParams.getFields());
-      return pagingWrapper.withInstances(objectNodes);
+
+      return Page.withPager(objectNodes, enrollmentsPage);
     }
 
     Collection<org.hisp.dhis.program.Enrollment> enrollments =
@@ -135,8 +120,8 @@ class EnrollmentsExportController {
     List<ObjectNode> objectNodes =
         fieldFilterService.toObjectNodes(
             ENROLLMENT_MAPPER.fromCollection(enrollments), requestParams.getFields());
-    PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
-    return pagingWrapper.withInstances(objectNodes);
+
+    return Page.withoutPager(objectNodes);
   }
 
   @OpenApi.Response(OpenApi.EntityType.class)

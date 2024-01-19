@@ -211,9 +211,7 @@ class FileResourceSupplierTest extends DhisConvenienceTest {
 
   private List<Attribute> attributes(Attribute[] attributes) {
     List<Attribute> attrs = new ArrayList<>();
-    for (Attribute at : attributes) {
-      attrs.add(at);
-    }
+    Collections.addAll(attrs, attributes);
     return attrs;
   }
 
@@ -237,9 +235,7 @@ class FileResourceSupplierTest extends DhisConvenienceTest {
 
   private Set<DataValue> dataValues(DataValue[] dataValues) {
     Set<DataValue> dvs = new HashSet<>();
-    for (DataValue dv : dataValues) {
-      dvs.add(dv);
-    }
+    Collections.addAll(dvs, dataValues);
     return dvs;
   }
 

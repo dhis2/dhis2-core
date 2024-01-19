@@ -29,7 +29,7 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static java.util.Collections.singletonMap;
+import static org.hisp.dhis.common.CodeGenerator.generateUid;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.hisp.dhis.web.WebClientUtils.objectReference;
@@ -38,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Map;
 import org.hisp.dhis.jsontree.JsonNodeType;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
@@ -95,7 +96,7 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
   @Test
   void testPeriodsDuplicatesOnly() {
     JsonDataIntegrityReport report =
-        getDataIntegrityReport("/dataIntegrity?checks=PERIODS_DUPLICATES");
+        getDataIntegrityReport("/dataIntegrity?checks=periods_same_start_date_period_type");
     assertEquals(1, report.size());
     assertTrue(report.getArray("duplicatePeriods").exists());
   }
@@ -118,9 +119,9 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
     String ouId = addOrganisationUnit("noGroupSet");
     // should not match:
     addOrganisationUnitGroup("group", addOrganisationUnit("hasGroupSet"));
-    assertEquals(
-        singletonList("noGroupSet:" + ouId),
-        getDataIntegrityReport().getOrganisationUnitsWithoutGroups().toList(JsonString::string));
+    List<String> results =
+        getDataIntegrityReport().getOrganisationUnitsWithoutGroups().toList(JsonString::string);
+    assertEquals(singletonList("noGroupSet:" + ouId), results);
   }
 
   @Test
@@ -152,10 +153,70 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
     addOrganisationUnitGroupSet("K", groupA0Id);
     addOrganisationUnitGroupSet("X", groupB1Id, groupB2Id);
     assertEquals(
-        singletonMap("B:" + ouIdB, asList("B1:" + groupB1Id, "B2:" + groupB2Id)),
+        Map.of("B", asList("B1:" + groupB1Id, "B2:" + groupB2Id)),
         getDataIntegrityReport()
             .getOrganisationUnitsViolatingExclusiveGroupSets()
             .toMap(JsonString::string, String::compareTo));
+  }
+
+  @Test
+  void testDataElementsInDatasetsWithDifferentFrequencies() {
+    String defaultCatCombo = getDefaultCatCombo();
+
+    String dataElementA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElements",
+                "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER',"
+                    + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
+
+    String dataset1_uid = generateUid();
+
+    String dataset1 =
+        "{ 'id':'"
+            + dataset1_uid
+            + "', 'name': 'Test Monthly', 'shortName': 'Test Monthly', 'periodType' : 'Monthly',"
+            + "'categoryCombo' : {'id': '"
+            + defaultCatCombo
+            + "'}, "
+            + "'dataSetElements' : [{'dataSet' : {'id':'"
+            + dataset1_uid
+            + "'}, 'id':'"
+            + generateUid()
+            + "', 'dataElement': {'id' : '"
+            + dataElementA
+            + "'}}]}";
+
+    assertStatus(HttpStatus.CREATED, POST("/dataSets", dataset1));
+
+    String dataset2_uid = generateUid();
+    String dataset2 =
+        "{ 'id':'"
+            + dataset2_uid
+            + "', 'name': 'Test Quarterly', 'shortName': 'Test Quarterly', 'periodType' : 'Quarterly',"
+            + "'categoryCombo' : {'id': '"
+            + defaultCatCombo
+            + "'}, "
+            + "'dataSetElements' : [{'dataSet' : {'id':'"
+            + dataset2_uid
+            + "'}, 'id':'"
+            + generateUid()
+            + "', 'dataElement': {'id' : '"
+            + dataElementA
+            + "'}}]}";
+
+    assertStatus(HttpStatus.CREATED, POST("/dataSets", dataset2));
+
+    Map<String, List<String>> expected =
+        Map.of("ANC1", List.of(dataset1_uid, dataset2_uid).stream().sorted().toList());
+
+    Map<String, List<String>> actual =
+        getDataIntegrityReport()
+            .getDataElementsAssignedToDataSetsWithDifferentPeriodTypes()
+            .toMap(JsonString::string, String::compareTo);
+
+    assertEquals(expected, actual);
   }
 
   private String addOrganisationUnit(String name) {
@@ -207,6 +268,362 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
                 + "', 'compulsory': true, 'organisationUnitGroups': "
                 + objectReferences(groupIds)
                 + "}"));
+  }
+
+  @Test
+  void testDataElementsNoGroups() {
+
+    String dataElementA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElements",
+                "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER',"
+                    + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
+
+    String dataElementB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElements",
+                "{ 'name': 'ANC2', 'shortName': 'ANC2', 'valueType' : 'NUMBER',"
+                    + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
+
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/dataElementGroups",
+            "{ 'name': 'ANC', 'shortName': 'ANC' , 'dataElements' : [{'id' : '"
+                + dataElementA
+                + "'}]}"));
+    List<String> results =
+        getDataIntegrityReport().getDataElementsWithoutGroups().toList(JsonString::string);
+    assertEquals(singletonList("ANC2" + ":" + dataElementB), results);
+  }
+
+  @Test
+  void testDataElementsNoDatasets() {
+
+    String defaultCatCombo = getDefaultCatCombo();
+    String dataSetA = generateUid();
+
+    String dataElementA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElements",
+                "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER',"
+                    + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
+    String dataElementB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElements",
+                "{ 'name': 'ANC2', 'shortName': 'ANC2', 'valueType' : 'NUMBER',"
+                    + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
+    String datasetMetadata =
+        "{ 'id':'"
+            + dataSetA
+            + "', 'name': 'Test Monthly', 'shortName': 'Test Monthly', 'periodType' : 'Monthly',"
+            + "'categoryCombo' : {'id': '"
+            + defaultCatCombo
+            + "'}, "
+            + "'dataSetElements' : [{'dataSet' : {'id':'"
+            + dataSetA
+            + "'}, 'id':'"
+            + generateUid()
+            + "', 'dataElement': {'id' : '"
+            + dataElementA
+            + "'}}]}";
+
+    assertStatus(HttpStatus.CREATED, POST("/dataSets", datasetMetadata));
+
+    List<String> results =
+        getDataIntegrityReport().getDataElementsWithoutDataSet().toList(JsonString::string);
+    assertEquals(List.of("ANC2" + ":" + dataElementB), results);
+  }
+
+  @Test
+  void testDatasetsNotAssignedToOrgUnits() {
+    String defaultCatCombo = getDefaultCatCombo();
+    String dataSetUID = generateUid();
+    String dataElementA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElements",
+                "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER',"
+                    + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
+
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/dataSets",
+            "{ 'id' : '"
+                + dataSetUID
+                + "', 'name': 'Test', 'shortName': 'Test', 'periodType' : 'Monthly', 'categoryCombo' : {'id': '"
+                + defaultCatCombo
+                + "'}, "
+                + " 'dataSetElements': [{ 'dataSet': { 'id': '"
+                + dataSetUID
+                + "'}, 'dataElement': { 'id': '"
+                + dataElementA
+                + "'}}]}"));
+    List<String> results =
+        getDataIntegrityReport()
+            .getDataSetsNotAssignedToOrganisationUnits()
+            .toList(JsonString::string);
+    assertEquals(List.of("Test"), results);
+  }
+
+  @Test
+  void testInvalidCategoryCombos() {
+    String categoryTaste =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categories",
+                "{ 'name': 'Taste', 'shortName': 'Taste', 'dataDimensionType': 'DISAGGREGATION' }"));
+
+    String testCatCombo =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categoryCombos",
+                "{ 'name' : 'Tasteless', "
+                    + "'dataDimensionType' : 'DISAGGREGATION', 'categories' : ["
+                    + " {'id' : '"
+                    + categoryTaste
+                    + "'}]} "));
+    List<String> results =
+        getDataIntegrityReport().getInvalidCategoryCombos().toList(JsonString::string);
+    assertEquals(List.of("Tasteless" + ":" + testCatCombo), results);
+  }
+
+  @Test
+  void testIndicatorsNotInAnyGroups() {
+    String indicatorTypeA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/indicatorTypes", "{ 'name': 'Per cent', 'factor' : 100, 'number' : false }"));
+
+    String indicatorA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicators",
+                "{ 'name': 'Indicator A', 'shortName': 'Indicator A',  'indicatorType' : {'id' : '"
+                    + indicatorTypeA
+                    + "'},"
+                    + " 'numerator' : 'abc123', 'numeratorDescription' : 'One', 'denominator' : 'abc123', "
+                    + "'denominatorDescription' : 'Zero'} }"));
+
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/indicators",
+            "{ 'name': 'Indicator B', 'shortName': 'Indicator B', 'indicatorType' : {'id' : '"
+                + indicatorTypeA
+                + "'},"
+                + " 'numerator' : 'abc123', 'numeratorDescription' : 'One', 'denominator' : 'abc123', "
+                + "'denominatorDescription' : 'Zero'}"));
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/indicatorGroups",
+            "{ 'name' : 'An indicator group', 'indicators' : [{'id' : '" + indicatorA + "'}]}"));
+
+    List<String> results =
+        getDataIntegrityReport().getIndicatorsWithoutGroups().toList(JsonString::string);
+    assertEquals(List.of("Indicator B"), results);
+  }
+
+  @Test
+  void testIndicatorsViolateExclusiveGroups() {
+    String indicatorTypeA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorTypes",
+                """
+                        {
+                          "name": "Per cent",
+                          "factor": 100,
+                          "number": false
+                        }
+                        """
+                    .formatted()));
+
+    String indicatorA = createSimpleIndicator("Indicator A", indicatorTypeA);
+    String indicatorB = createSimpleIndicator("Indicator B", indicatorTypeA);
+    String indicatorGroupA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorGroups",
+                // language=JSON
+                """
+                            {
+                            "name": "Group A",
+                             "shortName" : "Group A",
+                            "indicators": [
+                                {
+                                "id": "%s"
+                                },
+                                {
+                                "id": "%s"
+                                }
+                            ]
+                            }
+                            """
+                    .formatted(indicatorA, indicatorB)));
+
+    String indicatorGroupB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorGroups",
+                // language=JSON
+                """
+                            {
+                            "name": "Group B",
+                             "shortName" : "Group B",
+                            "indicators": [
+                                {
+                                "id": "%s"
+                                }
+                            ]
+                            }
+                            """
+                    .formatted(indicatorB)));
+
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/indicatorGroupSets",
+            // language=JSON
+            """
+                    {
+                    "name": "Indicator Group Set",
+                    "shortName": "Indicator Group Set",
+                    "indicatorGroups": [
+                        {
+                        "id": "%s"
+                        },
+                        {
+                        "id": "%s"
+                        }
+                    ]
+                    }
+                    """
+                .formatted(indicatorGroupA, indicatorGroupB)));
+    final Map<String, List<String>> expectedResults =
+        Map.of("Indicator B", List.of("Group A:" + indicatorGroupA, "Group B:" + indicatorGroupB));
+    // Test for program rules with no condition
+    Map<String, List<String>> results =
+        getDataIntegrityReport()
+            .getIndicatorsViolatingExclusiveGroupSets()
+            .toMap(JsonString::string, String::compareTo);
+    assertEquals(expectedResults, results);
+  }
+
+  @Test
+  void testValidationRulesWithoutGroups() {
+    String validationRule1 =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/validationRules",
+                "{'importance':'MEDIUM','operator':'not_equal_to','leftSide':{'missingValueStrategy':'NEVER_SKIP', "
+                    + ""
+                    + "'description':'Test','expression':'#{FTRrcoaog83.qk6n4eMAdtK}'},"
+                    + "'rightSide':{'missingValueStrategy': 'NEVER_SKIP', 'description':'Test1',"
+                    + "'expression':'#{FTRrcoaog83.sqGRzCziswD}'},'periodType':'Monthly','name':'Test rule 1'}"));
+
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/validationRules",
+            "{'importance':'MEDIUM','operator':'not_equal_to','leftSide':{'missingValueStrategy':'NEVER_SKIP', "
+                + ""
+                + "'description':'Test','expression':'#{FTRrcoaog83.qk6n4eMAdtK}'},"
+                + "'rightSide':{'missingValueStrategy': 'NEVER_SKIP', 'description':'Test2',"
+                + "'expression':'#{FTRrcoaog83.sqGRzCziswD}'},'periodType':'Monthly','name':'Test rule 2'}"));
+
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/validationRuleGroups",
+            "{'name':'Test group', 'description':'Test group', 'validationRules': [{'id': '"
+                + validationRule1
+                + "'}]}"));
+
+    List<String> results =
+        getDataIntegrityReport().getValidationRulesWithoutGroups().toList(JsonString::string);
+    assertEquals(List.of("Test rule 2"), results);
+  }
+
+  @Test
+  void testProgramRulesWithoutCondition() {
+    String program =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programs",
+                "{'name':'Test program', 'shortName': 'Test program', 'programType': 'WITHOUT_REGISTRATION'}"));
+
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/programRules",
+            "{'name':'Test rule 1', 'description':'Test rule 1', 'program': {'id': '"
+                + program
+                + "'}}"));
+
+    final Map<String, List<String>> expectedResults =
+        Map.of("Test rule 1", List.of("Test program:" + program));
+    // Test for program rules with no condition
+    Map<String, List<String>> results =
+        getDataIntegrityReport()
+            .getProgramRulesWithNoCondition()
+            .toMap(JsonString::string, String::compareTo);
+    assertEquals(expectedResults, results);
+
+    // Test for program rules with no action
+    Map<String, List<String>> results2 =
+        getDataIntegrityReport()
+            .getProgramRulesWithNoAction()
+            .toMap(JsonString::string, String::compareTo);
+    assertEquals(expectedResults, results2);
+
+    // Test for program rules with no priority
+    Map<String, List<String>> results3 =
+        getDataIntegrityReport()
+            .getProgramRulesWithNoPriority()
+            .toMap(JsonString::string, String::compareTo);
+    assertEquals(expectedResults, results3);
+  }
+
+  @Test
+  void testProgramIndicatorsWithoutExpression() {
+    String program =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programs",
+                "{'name':'Test program', 'shortName': 'Test program', 'programType': 'WITHOUT_REGISTRATION'}"));
+
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/programIndicators",
+            "{'name':'Test program indicator A', 'shortName': 'Test program indicator A', 'program': {'id': '"
+                + program
+                + "'}}"));
+    // Test for program of indicators with no expression
+    List<String> results =
+        getDataIntegrityReport().getProgramIndicatorsWithNoExpression().toList(JsonString::string);
+    assertEquals(List.of("Test program indicator A"), results);
   }
 
   private JsonDataIntegrityReport getDataIntegrityReport() {

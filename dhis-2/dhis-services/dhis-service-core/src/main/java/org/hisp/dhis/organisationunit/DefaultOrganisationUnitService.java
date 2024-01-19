@@ -41,7 +41,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
@@ -49,7 +48,6 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.SortProperty;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.filter.FilterUtils;
@@ -62,11 +60,9 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.system.filter.OrganisationUnitPolygonCoveringCoordinateFilter;
 import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -76,43 +72,25 @@ import org.springframework.transaction.annotation.Transactional;
 @Service("org.hisp.dhis.organisationunit.OrganisationUnitService")
 public class DefaultOrganisationUnitService implements OrganisationUnitService {
   private static final String LEVEL_PREFIX = "Level ";
-
-  private final Cache<Boolean> inUserOrgUnitHierarchyCache;
-
-  private final Cache<Boolean> inUserOrgUnitViewHierarchyCache;
-
-  private final Cache<Boolean> inUserOrgUnitSearchHierarchyCache;
-
-  private final Cache<Boolean> userCaptureOrgCountThresholdCache;
-
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
-
   private final OrganisationUnitStore organisationUnitStore;
-
   private final IdentifiableObjectManager idObjectManager;
-
   private final OrganisationUnitLevelStore organisationUnitLevelStore;
-
-  private final CurrentUserService currentUserService;
-
   private final ConfigurationService configurationService;
-
   private final UserSettingService userSettingService;
+  private final Cache<Boolean> inUserOrgUnitHierarchyCache;
+  private final Cache<Boolean> inUserOrgUnitSearchHierarchyCache;
 
   public DefaultOrganisationUnitService(
       OrganisationUnitStore organisationUnitStore,
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitLevelStore organisationUnitLevelStore,
-      CurrentUserService currentUserService,
       ConfigurationService configurationService,
-      @Lazy UserSettingService userSettingService,
+      UserSettingService userSettingService,
       CacheProvider cacheProvider) {
+
     checkNotNull(organisationUnitStore);
     checkNotNull(idObjectManager);
     checkNotNull(organisationUnitLevelStore);
-    checkNotNull(currentUserService);
     checkNotNull(configurationService);
     checkNotNull(userSettingService);
     checkNotNull(cacheProvider);
@@ -120,15 +98,12 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
     this.organisationUnitStore = organisationUnitStore;
     this.idObjectManager = idObjectManager;
     this.organisationUnitLevelStore = organisationUnitLevelStore;
-    this.currentUserService = currentUserService;
     this.configurationService = configurationService;
     this.userSettingService = userSettingService;
 
     this.inUserOrgUnitHierarchyCache = cacheProvider.createInUserOrgUnitHierarchyCache();
     this.inUserOrgUnitSearchHierarchyCache =
         cacheProvider.createInUserSearchOrgUnitHierarchyCache();
-    this.userCaptureOrgCountThresholdCache = cacheProvider.createUserCaptureOrgUnitThresholdCache();
-    this.inUserOrgUnitViewHierarchyCache = cacheProvider.createInUserViewOrgUnitHierarchyCache();
   }
 
   // -------------------------------------------------------------------------
@@ -139,13 +114,7 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
   @Transactional
   public long addOrganisationUnit(OrganisationUnit organisationUnit) {
     organisationUnitStore.save(organisationUnit);
-    User user = currentUserService.getCurrentUser();
-
-    if (organisationUnit.getParent() == null && user != null) {
-      // Adding a new root node, add this node to the current user
-      user.getOrganisationUnits().add(organisationUnit);
-    }
-
+    // TODO: MAS: This is only used in tests and should be moved to a test util class
     return organisationUnit.getId();
   }
 
@@ -396,9 +365,7 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
 
   @Override
   @Transactional(readOnly = true)
-  public OrganisationUnitDataSetAssociationSet getOrganisationUnitDataSetAssociationSet(
-      Integer maxLevels) {
-    User user = currentUserService.getCurrentUser();
+  public OrganisationUnitDataSetAssociationSet getOrganisationUnitDataSetAssociationSet(User user) {
 
     Set<OrganisationUnit> organisationUnits = user != null ? user.getOrganisationUnits() : null;
     List<DataSet> dataSets = idObjectManager.getDataWriteAll(DataSet.class);
@@ -426,23 +393,8 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
 
   @Override
   @Transactional(readOnly = true)
-  public boolean isInUserHierarchy(OrganisationUnit organisationUnit) {
-    User currentUser = currentUserService.getCurrentUser();
-    return isInUserHierarchy(currentUser, organisationUnit);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean isInUserHierarchyCached(OrganisationUnit organisationUnit) {
-    User currentUser = currentUserService.getCurrentUser();
-    return isInUserHierarchyCached(currentUser, organisationUnit);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public boolean isInUserHierarchyCached(User user, OrganisationUnit organisationUnit) {
     String cacheKey = joinHyphen(user.getUsername(), organisationUnit.getUid());
-
     return inUserOrgUnitHierarchyCache.get(
         cacheKey, ou -> isInUserHierarchy(user, organisationUnit));
   }
@@ -454,67 +406,13 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
       return false;
     }
 
-    return isDescendant(organisationUnit, user.getOrganisationUnits());
-  }
-
-  @Override
-  @Transactional
-  public boolean isDescendant(OrganisationUnit organisationUnit, Set<OrganisationUnit> ancestors) {
-    Objects.requireNonNull(organisationUnit);
-
-    if (isEmpty(ancestors)) {
-      return false;
-    }
-
-    Set<String> ancestorUids = IdentifiableObjectUtils.getUidsAsSet(ancestors);
-
-    OrganisationUnit unit = getOrganisationUnit(organisationUnit.getUid());
+    OrganisationUnit unit = organisationUnitStore.getByUid(organisationUnit.getUid());
 
     if (unit == null) {
-      unit = organisationUnit;
-    }
-
-    while (unit != null) {
-      if (ancestorUids.contains(unit.getUid())) {
-        return true;
-      }
-
-      unit = unit.getParent();
-    }
-
-    return false;
-  }
-
-  @Transactional(readOnly = true)
-  @Override
-  public boolean isDescendant(OrganisationUnit organisationUnit, OrganisationUnit ancestor) {
-    if (ancestor == null) {
       return false;
     }
 
-    OrganisationUnit unit = getOrganisationUnit(organisationUnit.getUid());
-
-    while (unit != null) {
-      if (ancestor.equals(unit)) {
-        return true;
-      }
-
-      unit = unit.getParent();
-    }
-
-    return false;
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean isInUserDataViewHierarchy(OrganisationUnit organisationUnit) {
-    return isInUserDataViewHierarchy(currentUserService.getCurrentUser(), organisationUnit);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean isInUserDataViewHierarchyCached(OrganisationUnit organisationUnit) {
-    return isInUserDataViewHierarchy(currentUserService.getCurrentUser(), organisationUnit);
+    return unit.isDescendant(user.getOrganisationUnits());
   }
 
   @Override
@@ -524,28 +422,7 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
       return false;
     }
 
-    return isDescendant(organisationUnit, user.getDataViewOrganisationUnitsWithFallback());
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean isInUserDataViewHierarchyCached(User user, OrganisationUnit organisationUnit) {
-    String cacheKey = joinHyphen(user.getUsername(), organisationUnit.getUid());
-
-    return inUserOrgUnitViewHierarchyCache.get(
-        cacheKey, ou -> isInUserDataViewHierarchy(user, organisationUnit));
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean isInUserSearchHierarchy(OrganisationUnit organisationUnit) {
-    return isInUserSearchHierarchy(currentUserService.getCurrentUser(), organisationUnit);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean isInUserSearchHierarchyCached(OrganisationUnit organisationUnit) {
-    return isInUserSearchHierarchyCached(currentUserService.getCurrentUser(), organisationUnit);
+    return organisationUnit.isDescendant(user.getDataViewOrganisationUnitsWithFallback());
   }
 
   @Override
@@ -564,7 +441,7 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
       return false;
     }
 
-    return isDescendant(organisationUnit, user.getTeiSearchOrganisationUnitsWithFallback());
+    return organisationUnit.isDescendant(user.getTeiSearchOrganisationUnitsWithFallback());
   }
 
   @Override
@@ -572,41 +449,7 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
   public boolean isInUserHierarchy(String uid, Set<OrganisationUnit> organisationUnits) {
     OrganisationUnit organisationUnit = organisationUnitStore.getByUid(uid);
 
-    return organisationUnit != null && isDescendant(organisationUnit, organisationUnits);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<String> getCaptureOrganisationUnitUidsWithChildren() {
-    User user = currentUserService.getCurrentUser();
-
-    if (user == null) {
-      return new ArrayList<>();
-    }
-
-    OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
-    params.setParents(user.getOrganisationUnits());
-    params.setFetchChildren(true);
-    return organisationUnitStore.getOrganisationUnitUids(params);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean isCaptureOrgUnitCountAboveThreshold(int threshold) {
-    User user = currentUserService.getCurrentUser();
-
-    if (user == null) {
-      return false;
-    }
-
-    return userCaptureOrgCountThresholdCache.get(
-        user.getUsername(),
-        ou -> {
-          OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
-          params.setParents(user.getOrganisationUnits());
-          params.setFetchChildren(true);
-          return organisationUnitStore.isOrgUnitCountAboveThreshold(params, threshold);
-        });
+    return organisationUnit != null && organisationUnit.isDescendant(organisationUnits);
   }
 
   // -------------------------------------------------------------------------
@@ -738,12 +581,10 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
 
   @Override
   @Transactional(readOnly = true)
-  public int getOfflineOrganisationUnitLevels() {
+  public int getOfflineOrganisationUnitLevels(User user) {
     // ---------------------------------------------------------------------
     // Get level from organisation unit of current user
     // ---------------------------------------------------------------------
-
-    User user = currentUserService.getCurrentUser();
 
     if (user != null && user.hasOrganisationUnit()) {
       OrganisationUnit organisationUnit = user.getOrganisationUnit();

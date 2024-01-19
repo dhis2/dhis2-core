@@ -35,14 +35,16 @@ import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 import static org.hisp.dhis.system.notification.NotificationLevel.WARN;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsignificant;
-import static org.hisp.dhis.util.DateUtils.parseDate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -55,7 +57,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
@@ -110,8 +112,10 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.quick.BatchHandler;
@@ -146,8 +150,6 @@ public class DefaultDataValueSetService implements DataValueSetService {
 
   private final CompleteDataSetRegistrationService registrationService;
 
-  private final CurrentUserService currentUserService;
-
   private final DataValueSetStore dataValueSetStore;
 
   private final SystemSettingManager systemSettingManager;
@@ -173,6 +175,8 @@ public class DefaultDataValueSetService implements DataValueSetService {
   private final DataValueSetImportValidator importValidator;
 
   private final SchemaService schemaService;
+
+  private final UserService userService;
 
   // -------------------------------------------------------------------------
   // DataValueSet implementation
@@ -329,12 +333,11 @@ public class DefaultDataValueSetService implements DataValueSetService {
 
   @Override
   public void decideAccess(DataExportParams params) {
-    User user = currentUserService.getCurrentUser();
-
     // Verify data set read sharing
 
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     for (DataSet dataSet : params.getDataSets()) {
-      if (!aclService.canDataRead(user, dataSet)) {
+      if (!aclService.canDataRead(currentUserDetails, dataSet)) {
         throw new IllegalQueryException(new ErrorMessage(ErrorCode.E2010, dataSet.getUid()));
       }
     }
@@ -342,15 +345,17 @@ public class DefaultDataValueSetService implements DataValueSetService {
     // Verify attribute option combination data read sharing
 
     for (CategoryOptionCombo optionCombo : params.getAttributeOptionCombos()) {
-      if (!aclService.canDataRead(user, optionCombo)) {
+      if (!aclService.canDataRead(currentUserDetails, optionCombo)) {
         throw new IllegalQueryException(new ErrorMessage(ErrorCode.E2011, optionCombo.getUid()));
       }
     }
 
     // Verify org unit being located within user data capture hierarchy
 
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
     for (OrganisationUnit unit : params.getOrganisationUnits()) {
-      if (!organisationUnitService.isInUserDataViewHierarchy(unit)) {
+      if (!organisationUnitService.isInUserDataViewHierarchy(currentUser, unit)) {
         throw new IllegalQueryException(new ErrorMessage(ErrorCode.E2012, unit.getUid()));
       }
     }
@@ -640,8 +645,12 @@ public class DefaultDataValueSetService implements DataValueSetService {
       return summary;
     } catch (Exception ex) {
       log.error(DebugUtils.getStackTrace(ex));
-      notifier.notify(id, ERROR, "Process failed: " + ex.getMessage(), true);
-      return new ImportSummary(ImportStatus.ERROR, "The import process failed: " + ex.getMessage());
+      ImportSummary summary =
+          new ImportSummary(ImportStatus.ERROR, "The import process failed: " + ex.getMessage());
+      notifier
+          .notify(id, ERROR, "Process failed: " + ex.getMessage(), true)
+          .addJobSummary(id, summary, ImportSummary.class);
+      return summary;
     }
   }
 
@@ -703,12 +712,12 @@ public class DefaultDataValueSetService implements DataValueSetService {
       return context.getSummary();
     }
 
-    Date completeDate = parseDate(dataValueSet.getCompleteDate());
+    LocalDate completeDate = getCompletionDate(dataValueSet.getCompleteDate());
     if (dataSetContext.getDataSet() != null && completeDate != null) {
       notifier.notify(id, notificationLevel, "Completing data set");
       handleComplete(
           dataSetContext.getDataSet(),
-          completeDate,
+          Date.from(completeDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant()),
           dataSetContext.getOuterPeriod(),
           dataSetContext.getOuterOrgUnit(),
           dataSetContext.getFallbackCategoryOptionCombo(),
@@ -760,6 +769,16 @@ public class DefaultDataValueSetService implements DataValueSetService {
             + importCount.getDeleted());
 
     return context.getSummary();
+  }
+
+  static LocalDate getCompletionDate(String completeDate) {
+    if (completeDate == null || completeDate.isEmpty()) return null;
+    LocalDate today = LocalDate.now();
+    if ("true".equalsIgnoreCase(completeDate)) return today;
+    if ("false".equalsIgnoreCase(completeDate)) return null;
+    LocalDate date = LocalDate.parse(completeDate);
+    if (date.isAfter(today)) return today;
+    return date;
   }
 
   private void importDataValue(
@@ -914,7 +933,7 @@ public class DefaultDataValueSetService implements DataValueSetService {
                 internalValue,
                 existingValue.getValue(),
                 context.getStoredBy(dataValue),
-                AuditType.DELETE);
+                ChangeLogType.DELETE);
 
         context.getAuditBatchHandler().addObject(auditValue);
       }
@@ -928,23 +947,20 @@ public class DefaultDataValueSetService implements DataValueSetService {
       ImportContext.DataValueContext valueContext,
       DataValue internalValue,
       DataValue existingValue) {
-    AuditType auditType = AuditType.UPDATE;
+    ChangeLogType changeLogType = ChangeLogType.UPDATE;
     if (internalValue.isNullValue()
         || internalValue.isDeleted()
         || dataValueIsZeroAndInsignificant(dataValue.getValue(), valueContext.getDataElement())) {
       internalValue.setDeleted(true);
 
-      auditType = AuditType.DELETE;
+      changeLogType = ChangeLogType.DELETE;
 
       importCount.incrementDeleted();
     } else {
-      importCount.incrementUpdated();
-    }
-    if (!internalValue.isDeleted()
-        && Objects.equals(existingValue.getValue(), internalValue.getValue())
-        && Objects.equals(existingValue.getComment(), internalValue.getComment())
-        && existingValue.isFollowup() == internalValue.isFollowup()) {
-      return; // avoid performing unnecessary updates
+      if (dataValueUpdateShouldBeIgnored(internalValue, existingValue)) {
+        importCount.incrementIgnored();
+        return;
+      } else importCount.incrementUpdated();
     }
     if (!context.isDryRun()) {
       context.getDataValueBatchHandler().updateObject(internalValue);
@@ -953,14 +969,17 @@ public class DefaultDataValueSetService implements DataValueSetService {
           && !Objects.equals(existingValue.getValue(), internalValue.getValue())) {
         DataValueAudit auditValue =
             new DataValueAudit(
-                internalValue, existingValue.getValue(), context.getStoredBy(dataValue), auditType);
+                internalValue,
+                existingValue.getValue(),
+                context.getStoredBy(dataValue),
+                changeLogType);
 
         context.getAuditBatchHandler().addObject(auditValue);
       }
 
       if (valueContext.getDataElement().isFileType()) {
         FileResource fr = fileResourceService.getFileResource(existingValue.getValue());
-        if (auditType == AuditType.DELETE) {
+        if (changeLogType == ChangeLogType.DELETE) {
           fileResourceService.deleteFileResource(fr);
         } else {
           if (fr != null && !fr.isAssigned()) {
@@ -971,6 +990,14 @@ public class DefaultDataValueSetService implements DataValueSetService {
         }
       }
     }
+  }
+
+  private static boolean dataValueUpdateShouldBeIgnored(
+      DataValue internalValue, DataValue existingValue) {
+    return !internalValue.isDeleted()
+        && Objects.equals(existingValue.getValue(), internalValue.getValue())
+        && Objects.equals(existingValue.getComment(), internalValue.getComment())
+        && existingValue.isFollowup() == internalValue.isFollowup();
   }
 
   private void preheatCaches(ImportContext context) {
@@ -1033,11 +1060,16 @@ public class DefaultDataValueSetService implements DataValueSetService {
       DataValueSet data,
       BatchHandler<DataValue> dataValueBatchHandler,
       BatchHandler<DataValueAudit> auditBatchHandler) {
-    final User currentUser = currentUserService.getCurrentUser();
+
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
+    User currentUser = userService.getUserByUsername(currentUsername);
+
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
 
     boolean auditEnabled = config.isEnabled(CHANGELOG_AGGREGATE);
     boolean hasSkipAuditAuth =
-        currentUser != null && currentUser.isAuthorized(Authorities.F_SKIP_DATA_IMPORT_AUDIT);
+        currentUserDetails != null
+            && currentUserDetails.isAuthorized(Authorities.F_SKIP_DATA_IMPORT_AUDIT.name());
     boolean skipAudit = (options.isSkipAudit() && hasSkipAuditAuth) || !auditEnabled;
 
     SystemSettingManager settings = systemSettingManager;
@@ -1054,6 +1086,7 @@ public class DefaultDataValueSetService implements DataValueSetService {
             IdSchemes::getCategoryOptionComboIdScheme);
     IdScheme dataSetIdScheme =
         createIdScheme(data.getDataSetIdSchemeProperty(), options, IdSchemes::getDataSetIdScheme);
+
     return ImportContext.builder()
         .importOptions(options)
         .summary(new ImportSummary().setImportOptions(options))
@@ -1061,7 +1094,8 @@ public class DefaultDataValueSetService implements DataValueSetService {
         .skipLockExceptionCheck(!lockExceptionStore.anyExists())
         .i18n(i18nManager.getI18n())
         .currentUser(currentUser)
-        .currentOrgUnits(currentUserService.getCurrentUserOrganisationUnits())
+        .currentOrgUnits(
+            currentUser != null ? currentUser.getOrganisationUnits() : Collections.emptySet())
         .hasSkipAuditAuth(hasSkipAuditAuth)
         .skipAudit(skipAudit)
         .idScheme(createIdScheme(data.getIdSchemeProperty(), options, IdSchemes::getIdScheme))
@@ -1105,7 +1139,8 @@ public class DefaultDataValueSetService implements DataValueSetService {
         .requireAttrOptionCombo(
             options.isRequireAttributeOptionCombo()
                 || settings.getBoolSetting(SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO))
-        .forceDataInput(inputUtils.canForceDataInput(currentUser, options.isForce()))
+        .forceDataInput(
+            inputUtils.canForceDataInput(UserDetails.fromUser(currentUser), options.isForce()))
 
         // data fetching state
         .dataElementCallable(

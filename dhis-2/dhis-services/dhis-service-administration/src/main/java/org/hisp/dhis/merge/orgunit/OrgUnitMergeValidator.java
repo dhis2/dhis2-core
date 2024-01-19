@@ -74,7 +74,7 @@ public class OrgUnitMergeValidator {
     if (request.getSources().contains(request.getTarget())) {
       return new ErrorMessage(ErrorCode.E1502);
     }
-    if (organisationUnitService.isDescendant(request.getTarget(), request.getSources())) {
+    if (request.getTarget().isDescendant(request.getSources())) {
       return new ErrorMessage(ErrorCode.E1504);
     }
 

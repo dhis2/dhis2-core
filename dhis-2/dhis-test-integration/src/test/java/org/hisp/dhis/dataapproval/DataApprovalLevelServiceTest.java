@@ -40,10 +40,10 @@ import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
@@ -59,8 +59,6 @@ class DataApprovalLevelServiceTest extends TransactionalIntegrationTest {
   @Autowired private CategoryService categoryService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
-
-  @Autowired private CurrentUserService currentUserService;
 
   @Autowired private UserService _userService;
 
@@ -144,10 +142,10 @@ class DataApprovalLevelServiceTest extends TransactionalIntegrationTest {
     // ---------------------------------------------------------------------
     // Add supporting data
     // ---------------------------------------------------------------------
-    setA = new CategoryOptionGroupSet("Set A");
-    setB = new CategoryOptionGroupSet("Set B");
-    setC = new CategoryOptionGroupSet("Set C");
-    setD = new CategoryOptionGroupSet("Set D");
+    setA = new CategoryOptionGroupSet("Set A", DataDimensionType.DISAGGREGATION);
+    setB = new CategoryOptionGroupSet("Set B", DataDimensionType.DISAGGREGATION);
+    setC = new CategoryOptionGroupSet("Set C", DataDimensionType.DISAGGREGATION);
+    setD = new CategoryOptionGroupSet("Set D", DataDimensionType.DISAGGREGATION);
     categoryService.saveCategoryOptionGroupSet(setA);
     categoryService.saveCategoryOptionGroupSet(setB);
     categoryService.saveCategoryOptionGroupSet(setC);
@@ -388,7 +386,7 @@ class DataApprovalLevelServiceTest extends TransactionalIntegrationTest {
     dataViewOrgUnits.add(organisationUnitB);
 
     User cu = createAndAddUser(assignedOrgUnits, dataViewOrgUnits);
-    injectSecurityContext(cu);
+    injectSecurityContextUser(cu);
 
     Map<OrganisationUnit, Integer> readApprovalLevels =
         dataApprovalLevelService.getUserReadApprovalLevels();
@@ -422,7 +420,7 @@ class DataApprovalLevelServiceTest extends TransactionalIntegrationTest {
     User cu =
         createAndAddUser(
             assignedOrgUnits, dataViewOrgUnits, DataApproval.AUTH_APPROVE_LOWER_LEVELS);
-    injectSecurityContext(cu);
+    injectSecurityContextUser(cu);
 
     Map<OrganisationUnit, Integer> readApprovalLevels =
         dataApprovalLevelService.getUserReadApprovalLevels();
@@ -465,7 +463,7 @@ class DataApprovalLevelServiceTest extends TransactionalIntegrationTest {
     dataViewOrgUnits.add(organisationUnitB);
 
     User cu = createAndAddUser(assignedOrgUnits, dataViewOrgUnits);
-    injectSecurityContext(cu);
+    injectSecurityContextUser(cu);
 
     Map<OrganisationUnit, Integer> readApprovalLevels =
         dataApprovalLevelService.getUserReadApprovalLevels();
@@ -501,7 +499,7 @@ class DataApprovalLevelServiceTest extends TransactionalIntegrationTest {
     dataViewOrgUnits.add(organisationUnitB);
 
     User cu = createAndAddUser(assignedOrgUnits, dataViewOrgUnits);
-    injectSecurityContext(cu);
+    injectSecurityContextUser(cu);
 
     Map<OrganisationUnit, Integer> readApprovalLevels =
         dataApprovalLevelService.getUserReadApprovalLevels();
@@ -533,10 +531,10 @@ class DataApprovalLevelServiceTest extends TransactionalIntegrationTest {
     dataViewOrgUnits.add(organisationUnitB);
 
     User cu = createAndAddUser(assignedOrgUnits, dataViewOrgUnits, DataApproval.AUTH_APPROVE);
-    injectSecurityContext(cu);
+    injectSecurityContextUser(cu);
 
     List<DataApprovalLevel> levels =
-        dataApprovalLevelService.getUserDataApprovalLevels(currentUserService.getCurrentUser());
+        dataApprovalLevelService.getUserDataApprovalLevels(getCurrentUser());
     assertEquals("02 2A 2B 03 3A 3B 04 4A 4B", levelNames(levels));
   }
 
@@ -562,10 +560,10 @@ class DataApprovalLevelServiceTest extends TransactionalIntegrationTest {
     User cu =
         createAndAddUser(
             assignedOrgUnits, dataViewOrgUnits, DataApproval.AUTH_APPROVE_LOWER_LEVELS);
-    injectSecurityContext(cu);
+    injectSecurityContextUser(cu);
 
     List<DataApprovalLevel> levels =
-        dataApprovalLevelService.getUserDataApprovalLevels(currentUserService.getCurrentUser());
+        dataApprovalLevelService.getUserDataApprovalLevels(getCurrentUser());
     assertEquals("02 2A 2B 03 3A 3B 04 4A 4B", levelNames(levels));
   }
 
@@ -594,10 +592,10 @@ class DataApprovalLevelServiceTest extends TransactionalIntegrationTest {
             dataViewOrgUnits,
             DataApproval.AUTH_APPROVE,
             DataApproval.AUTH_APPROVE_LOWER_LEVELS);
-    injectSecurityContext(cu);
+    injectSecurityContextUser(cu);
 
     List<DataApprovalLevel> levels =
-        dataApprovalLevelService.getUserDataApprovalLevels(currentUserService.getCurrentUser());
+        dataApprovalLevelService.getUserDataApprovalLevels(getCurrentUser());
     assertEquals("02 2A 2B 03 3A 3B 04 4A 4B", levelNames(levels));
   }
 
@@ -622,10 +620,10 @@ class DataApprovalLevelServiceTest extends TransactionalIntegrationTest {
 
     User cu =
         createAndAddUser(assignedOrgUnits, dataViewOrgUnits, DataApproval.AUTH_ACCEPT_LOWER_LEVELS);
-    injectSecurityContext(cu);
+    injectSecurityContextUser(cu);
 
     List<DataApprovalLevel> levels =
-        dataApprovalLevelService.getUserDataApprovalLevels(currentUserService.getCurrentUser());
+        dataApprovalLevelService.getUserDataApprovalLevels(getCurrentUser());
     assertEquals("02 2A 2B 03 3A 3B 04 4A 4B", levelNames(levels));
   }
 
@@ -639,10 +637,10 @@ class DataApprovalLevelServiceTest extends TransactionalIntegrationTest {
 
     User cu =
         createAndAddUser(assignedOrgUnits, dataViewOrgUnits, DataApproval.AUTH_ACCEPT_LOWER_LEVELS);
-    injectSecurityContext(cu);
+    injectSecurityContextUser(cu);
 
     List<DataApprovalLevel> levels =
-        dataApprovalLevelService.getUserDataApprovalLevels(currentUserService.getCurrentUser());
+        dataApprovalLevelService.getUserDataApprovalLevels(getCurrentUser());
     assertEquals("04", levelNames(levels));
   }
 

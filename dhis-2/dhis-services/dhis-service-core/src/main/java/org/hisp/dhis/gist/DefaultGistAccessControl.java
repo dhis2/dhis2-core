@@ -46,6 +46,7 @@ import org.hisp.dhis.schema.annotation.Gist.Transform;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 
@@ -68,7 +69,7 @@ public class DefaultGistAccessControl implements GistAccessControl {
   private static final Set<String> PUBLIC_PROPERTY_PATHS =
       unmodifiableSet(new HashSet<>(asList("sharing", "access", "translations")));
 
-  private final User currentUser;
+  private final UserDetails currentUser;
 
   private final AclService aclService;
 
@@ -142,8 +143,11 @@ public class DefaultGistAccessControl implements GistAccessControl {
 
   @Override
   public boolean canFilterByAccessOfUser(String userUid) {
-    User user = getCurrentUserUid().equals(userUid) ? currentUser : userService.getUser(userUid);
-    return user != null && aclService.canRead(currentUser, user);
+    UserDetails user =
+        getCurrentUserUid().equals(userUid)
+            ? currentUser
+            : UserDetails.fromUser(userService.getUser(userUid));
+    return user != null && aclService.canRead(currentUser, userService.getUser(user.getUid()));
   }
 
   @Override

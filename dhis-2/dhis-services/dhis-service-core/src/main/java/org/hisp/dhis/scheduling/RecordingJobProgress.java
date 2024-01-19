@@ -42,8 +42,9 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * The {@link RecordingJobProgress} take care of the flow control aspect of {@link JobProgress} API.
@@ -147,6 +148,23 @@ public class RecordingJobProgress implements JobProgress {
   @Override
   public void addError(
       @Nonnull ErrorCode code,
+      @CheckForNull String uid,
+      @Nonnull String type,
+      @Nonnull List<String> args) {
+    addError(code.name(), uid, type, args);
+  }
+
+  @Override
+  public void addError(
+      @Nonnull ValidationCode code,
+      @CheckForNull String uid,
+      @Nonnull String type,
+      @Nonnull List<String> args) {
+    addError(code.name(), uid, type, args);
+  }
+
+  private void addError(
+      @Nonnull String code,
       @CheckForNull String uid,
       @Nonnull String type,
       @Nonnull List<String> args) {
@@ -352,7 +370,7 @@ public class RecordingJobProgress implements JobProgress {
     if (configuration != null) {
       process.setJobId(configuration.getUid());
     }
-    CurrentUserDetails user = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails user = CurrentUserUtil.getCurrentUserDetails();
     if (user != null) {
       process.setUserId(user.getUid());
     }

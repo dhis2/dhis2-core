@@ -125,7 +125,6 @@ public class DefaultOrgUnitProfileService implements OrgUnitProfileService {
             ORG_UNIT_PROFILE_NAMESPACE,
             DatastoreNamespaceProtection.ProtectionType.NONE,
             DatastoreNamespaceProtection.ProtectionType.RESTRICTED,
-            false,
             "ALL",
             ORG_UNIT_PROFILE_AUTHORITY));
   }

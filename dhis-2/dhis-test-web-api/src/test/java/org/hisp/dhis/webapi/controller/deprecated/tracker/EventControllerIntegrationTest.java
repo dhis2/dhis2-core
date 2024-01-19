@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.deprecated.tracker;
 
-import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
+import static org.hisp.dhis.security.Authorities.ALL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -63,14 +63,12 @@ class EventControllerIntegrationTest extends DhisControllerIntegrationTest {
     programStage.setUid("pSllsjpfLH2");
     program.getProgramStages().add(programStage);
     manager.save(programStage);
-    user =
-        createAndAddUser(
-            "username", organisationUnit, F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name());
+    user = createAndAddUser("username", organisationUnit, ALL.name());
   }
 
   @Test
   void testQueryCsv() {
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
     HttpResponse res =
         GET(
             "/events/query.csv?format=csv&orgUnit=ZiMBqH865GV&program=q04UBOqq3rp&programStage=pSllsjpfLH2");
@@ -80,7 +78,7 @@ class EventControllerIntegrationTest extends DhisControllerIntegrationTest {
 
   @Test
   void testGetCsvZip() {
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
     HttpResponse res =
         GET(
             "/events.csv.zip?attachment=events.csv.zip&orgUnit=ZiMBqH865GV&program=q04UBOqq3rp&programStage=pSllsjpfLH2");
@@ -91,7 +89,7 @@ class EventControllerIntegrationTest extends DhisControllerIntegrationTest {
 
   @Test
   void testGetXml() {
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
     HttpResponse res =
         GET(
             "/events.xml?attachment=events.xml&orgUnit=ZiMBqH865GV&program=q04UBOqq3rp&programStage=pSllsjpfLH2");
@@ -102,7 +100,7 @@ class EventControllerIntegrationTest extends DhisControllerIntegrationTest {
 
   @Test
   void testGetXmlZip() {
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
     HttpResponse res =
         GET(
             "/events.xml.zip?attachment=events.xml.zip&orgUnit=ZiMBqH865GV&program=q04UBOqq3rp&programStage=pSllsjpfLH2");
@@ -113,7 +111,7 @@ class EventControllerIntegrationTest extends DhisControllerIntegrationTest {
 
   @Test
   void testGetJsonZip() {
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     HttpResponse res =
         GET(

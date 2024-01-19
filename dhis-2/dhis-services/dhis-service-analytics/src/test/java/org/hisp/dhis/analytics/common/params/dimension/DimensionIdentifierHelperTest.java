@@ -40,7 +40,7 @@ class DimensionIdentifierHelperTest {
   @Test
   void testFromFullDimensionId() {
     // Given
-    String fullDimensionId = "lxAQ7Zs9VYR[1].RaMbOrTys0n[4].bh1Edk21e2n";
+    String fullDimensionId = "lxAQ7Zs9VYR[0].RaMbOrTys0n[4].bh1Edk21e2n";
 
     // When
     StringDimensionIdentifier dimensionIdentifier = fromFullDimensionId(fullDimensionId);
@@ -54,7 +54,7 @@ class DimensionIdentifierHelperTest {
         "lxAQ7Zs9VYR",
         dimensionIdentifier.getProgram().getElement().getUid(),
         "Program uid should be lxAQ7Zs9VYR");
-    assertEquals(1, dimensionIdentifier.getProgram().getOffset(), "Program offset should be 1");
+    assertEquals(0, dimensionIdentifier.getProgram().getOffset(), "Program offset should be 0");
     assertEquals(
         "RaMbOrTys0n",
         dimensionIdentifier.getProgramStage().getElement().getUid(),
@@ -65,13 +65,12 @@ class DimensionIdentifierHelperTest {
   @Test
   void testFromDimensionIdWithUnsupportedOffset() {
     // Given
-    String dimensionIdWithNumberOffset = "lxAQ7Zs9VYR[0].bh1Edk21e2n";
+    String dimensionIdWithDashOffset = "lxAQ7Zs9VYR[-].bh1Edk21e2n";
     String dimensionIdWithStringOffset = "lxAQ7Zs9VYR[X].bh1Edk21e2n";
 
     // When
     // Then
-    assertThrows(
-        IllegalQueryException.class, () -> fromFullDimensionId(dimensionIdWithNumberOffset));
+    assertThrows(IllegalQueryException.class, () -> fromFullDimensionId(dimensionIdWithDashOffset));
     assertThrows(
         IllegalQueryException.class, () -> fromFullDimensionId(dimensionIdWithStringOffset));
   }

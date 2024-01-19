@@ -31,6 +31,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
@@ -109,4 +111,28 @@ public interface DatastoreStore extends IdentifiableObjectStore<DatastoreEntry> 
    * @return number of entries in the given namespace.
    */
   int countKeysInNamespace(String namespace);
+
+  /**
+   * Updates the entry value (path is undefined or empty) or updates the existing value the the
+   * provided path with the provided value.
+   *
+   * <p>If a roll size is provided and the exiting value (at path) is an array the array is not
+   * replaced with the value but the value is appended to the array. The head of the array is
+   * dropped if the size of the array is equal or larger than the roll size.
+   *
+   * @param ns namespace to update
+   * @param key key to update
+   * @param value the new JSON value, null to remove the entry or clear the property at the provided
+   *     path
+   * @param path to update, null or empty to update the root (the entire value)
+   * @param roll when set the value is appended to arrays instead of replacing them while also
+   *     rolling (dropping the array head element when its size exceeds the given roll size)
+   * @return true, if the update affects an existing row
+   */
+  boolean updateEntry(
+      @Nonnull String ns,
+      @Nonnull String key,
+      @CheckForNull String value,
+      @CheckForNull String path,
+      @CheckForNull Integer roll);
 }

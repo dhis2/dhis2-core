@@ -116,19 +116,55 @@ class JobConfigurationRunErrorsControllerTest extends DhisControllerIntegrationT
     assertEquals(1, errors.size());
   }
 
-  private String createAndRunImportWithErrors() throws InterruptedException {
-    JsonWebMessage message =
-        POST(
-                "/metadata?async=true",
-                "{'organisationUnits':[{'name':'My Unit', 'shortName':'OU1'}]}")
-            .content(HttpStatus.OK)
-            .as(JsonWebMessage.class);
-    String jobId = message.getString("response.id").string();
+  @Test
+  void testGetJobRunErrors_ListIncludeInput() throws InterruptedException {
+    // language=JSON
+    String json =
+        """
+      {
+          "trackedEntities": [
+              {
+                  "trackedEntity":"sHH8mh1Fn0z",
+                  "trackedEntityType": "nEenWmSyUEp",
+                  "orgUnit": "DiszpKrYNg7"
+              }
+          ]
+      }
+      """;
+    JsonWebMessage msg =
+        POST("/tracker?async=true", json).content(HttpStatus.OK).as(JsonWebMessage.class);
+    String jobId = msg.getString("response.id").string();
+    waitUntilJobIsComplete(jobId);
 
+    JsonArray errors = GET("/jobConfigurations/errors?includeInput=true").content();
+    assertEquals(2, errors.size());
+    JsonObject trackerImportError =
+        errors.asList(JsonObject.class).stream()
+            .filter(obj -> obj.getString("id").string().equals(jobId))
+            .findFirst()
+            .orElseThrow();
+
+    // language=JSON
+    String expected =
+        """
+      {"trackedEntities":[{"trackedEntity":"sHH8mh1Fn0z","trackedEntityType":{"idScheme":"UID","identifier":"nEenWmSyUEp"},"orgUnit":{"idScheme":"UID","identifier":"DiszpKrYNg7"},"inactive":false,"deleted":false,"potentialDuplicate":false,"relationships":[],"attributes":[],"enrollments":[]}],"enrollments":[],"events":[],"relationships":[]}""";
+    assertEquals(expected, trackerImportError.getObject("input").node().getDeclaration());
+  }
+
+  private String createAndRunImportWithErrors() throws InterruptedException {
+    String json = "{'organisationUnits':[{'name':'My Unit', 'shortName':'OU1'}]}";
+    JsonWebMessage msg =
+        POST("/metadata?async=true", json).content(HttpStatus.OK).as(JsonWebMessage.class);
+    String jobId = msg.getString("response.id").string();
+
+    waitUntilJobIsComplete(jobId);
+    return jobId;
+  }
+
+  private void waitUntilJobIsComplete(String jobId) throws InterruptedException {
     BooleanSupplier jobCompleted =
         () -> isDone(GET("/jobConfigurations/{id}/gist?fields=id,jobStatus", jobId).content());
     assertTrue(await(ofSeconds(10), jobCompleted), "import did not run");
-    return jobId;
   }
 
   private static boolean isDone(JsonMixed config) {

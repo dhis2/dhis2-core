@@ -75,6 +75,10 @@ public interface JsonDataIntegrityCheck extends JsonObject {
     return getBoolean("isSlow").booleanValue();
   }
 
+  default boolean getIsProgrammatic() {
+    return getBoolean("isProgrammatic").booleanValue();
+  }
+
   default String getCode() {
     return getString("code").string();
   }

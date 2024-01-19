@@ -37,8 +37,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.nio.file.Files;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Properties;
 import java.util.regex.Pattern;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +55,11 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
 import org.jclouds.ContextBuilder;
-import org.jclouds.blobstore.*;
+import org.jclouds.blobstore.BlobRequestSigner;
+import org.jclouds.blobstore.BlobStore;
+import org.jclouds.blobstore.BlobStoreContext;
+import org.jclouds.blobstore.ContainerNotFoundException;
+import org.jclouds.blobstore.LocalBlobRequestSigner;
 import org.jclouds.blobstore.domain.Blob;
 import org.jclouds.blobstore.internal.RequestSigningUnsupported;
 import org.jclouds.domain.Credentials;
@@ -220,9 +230,28 @@ public class JCloudsFileResourceContentStore implements FileResourceContentStore
   }
 
   @Override
-  public String saveFileResourceContent(FileResource fileResource, byte[] bytes) {
-    Blob blob = createBlob(fileResource, bytes);
+  public String saveFileResourceContent(@Nonnull FileResource fr, @Nonnull byte[] bytes) {
+    return saveFileResourceContent(fr, createBlob(fr, bytes), null);
+  }
 
+  @Override
+  public String saveFileResourceContent(@Nonnull FileResource fr, @Nonnull File file) {
+    return saveFileResourceContent(
+        fr,
+        createBlob(fr, StringUtils.EMPTY, file, fr.getContentMd5()),
+        () -> {
+          try {
+            Files.deleteIfExists(file.toPath());
+          } catch (IOException ioe) {
+            log.warn(
+                String.format("Temporary file '%s' could not be deleted.", file.toPath()), ioe);
+          }
+        });
+  }
+
+  @CheckForNull
+  private String saveFileResourceContent(
+      @Nonnull FileResource fr, @CheckForNull Blob blob, @CheckForNull Runnable postPutCallback) {
     if (blob == null) {
       return null;
     }
@@ -234,35 +263,18 @@ public class JCloudsFileResourceContentStore implements FileResourceContentStore
       return null;
     }
 
-    log.debug(String.format("File resource saved with key: %s", fileResource.getStorageKey()));
-
-    return fileResource.getStorageKey();
-  }
-
-  @Override
-  public String saveFileResourceContent(FileResource fileResource, File file) {
-    Blob blob = createBlob(fileResource, StringUtils.EMPTY, file, fileResource.getContentMd5());
-
-    if (blob == null) {
-      return null;
+    if (postPutCallback != null) {
+      postPutCallback.run();
     }
 
-    blobStore.putBlob(config.container, blob);
+    log.debug(String.format("File resource saved with key: %s", fr.getStorageKey()));
 
-    try {
-      Files.deleteIfExists(file.toPath());
-    } catch (IOException ioe) {
-      log.warn(String.format("Temporary file '%s' could not be deleted.", file.toPath()), ioe);
-    }
-
-    log.debug(String.format("File resource saved with key: %s", fileResource.getStorageKey()));
-
-    return fileResource.getStorageKey();
+    return fr.getStorageKey();
   }
 
   @Override
   public String saveFileResourceContent(
-      FileResource fileResource, Map<ImageFileDimension, File> imageFiles) {
+      @Nonnull FileResource fr, @Nonnull Map<ImageFileDimension, File> imageFiles) {
     if (imageFiles.isEmpty()) {
       return null;
     }
@@ -282,7 +294,7 @@ public class JCloudsFileResourceContentStore implements FileResourceContentStore
         return null;
       }
 
-      blob = createBlob(fileResource, entry.getKey().getDimension(), file, contentMd5);
+      blob = createBlob(fr, entry.getKey().getDimension(), file, contentMd5);
 
       if (blob != null) {
         try {
@@ -300,7 +312,7 @@ public class JCloudsFileResourceContentStore implements FileResourceContentStore
       }
     }
 
-    return fileResource.getStorageKey();
+    return fr.getStorageKey();
   }
 
   @Override
@@ -371,7 +383,7 @@ public class JCloudsFileResourceContentStore implements FileResourceContentStore
     blobStore.removeBlob(config.container, key);
   }
 
-  private Blob createBlob(FileResource fileResource, byte[] bytes) {
+  private Blob createBlob(@Nonnull FileResource fileResource, @Nonnull byte[] bytes) {
     return blobStore
         .blobBuilder(fileResource.getStorageKey())
         .payload(bytes)
@@ -383,7 +395,10 @@ public class JCloudsFileResourceContentStore implements FileResourceContentStore
   }
 
   private Blob createBlob(
-      FileResource fileResource, String fileDimension, File file, String contentMd5) {
+      @Nonnull FileResource fileResource,
+      String fileDimension,
+      @Nonnull File file,
+      @Nonnull String contentMd5) {
     return blobStore
         .blobBuilder(StringUtils.join(fileResource.getStorageKey(), fileDimension))
         .payload(file)

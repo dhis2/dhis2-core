@@ -46,6 +46,7 @@ import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -62,8 +63,11 @@ class TrackedEntityProgramAttributeFileResourceTest extends TrackerTest {
 
   @Autowired private FileResourceService fileResourceService;
 
+  @Autowired protected UserService _userService;
+
   @Override
   protected void initTest() throws IOException {
+    userService = _userService;
     setUpMetadata("tracker/te_program_with_tea_fileresource_metadata.json");
     injectAdminUser();
   }
@@ -79,7 +83,7 @@ class TrackedEntityProgramAttributeFileResourceTest extends TrackerTest {
             FileResourceDomain.DOCUMENT);
     fileResource.setUid("Jzf6hHNP7jx");
     File file = File.createTempFile("file-resource", "test");
-    fileResourceService.saveFileResource(fileResource, file);
+    fileResourceService.asyncSaveFileResource(fileResource, file);
     assertFalse(fileResource.isAssigned());
     ImportReport importReport =
         trackerImportService.importTracker(

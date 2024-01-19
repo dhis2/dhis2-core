@@ -58,9 +58,9 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dxf2.deprecated.tracker.DeprecatedTrackerTest;
 import org.hisp.dhis.dxf2.deprecated.tracker.TrackedEntityInstanceEnrollmentParams;
 import org.hisp.dhis.dxf2.deprecated.tracker.TrackedEntityInstanceParams;
-import org.hisp.dhis.dxf2.deprecated.tracker.TrackerTest;
 import org.hisp.dhis.dxf2.deprecated.tracker.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.ProgramOwner;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.Relationship;
@@ -82,7 +82,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Luciano Fiandesio
  */
-class TrackedEntityAggregateTest extends TrackerTest {
+class TrackedEntityAggregateTest extends DeprecatedTrackerTest {
   @Autowired private TrackedEntityInstanceService trackedEntityInstanceService;
 
   @Autowired private EntityManager entityManager;
@@ -99,8 +99,8 @@ class TrackedEntityAggregateTest extends TrackerTest {
   void setUp() {
     doInTransaction(
         () -> {
-          superUser = preCreateInjectAdminUser();
-          injectSecurityContext(superUser);
+          superUser = userService.getUserByUsername("admin_test");
+          injectSecurityContextUser(superUser);
 
           nonSuperUser = createUserWithAuth("testUser2");
           nonSuperUser.addOrganisationUnit(organisationUnitA);
@@ -212,13 +212,13 @@ class TrackedEntityAggregateTest extends TrackerTest {
     queryParams.setOrgUnits(Sets.newHashSet(organisationUnitA));
     queryParams.setTrackedEntityType(trackedEntityTypeA);
     queryParams.setLastUpdatedStartDate(Date.from(Instant.now().minus(1, ChronoUnit.DAYS)));
-    queryParams.setLastUpdatedEndDate(new Date());
+    queryParams.setLastUpdatedEndDate(Date.from(Instant.now().plus(1, ChronoUnit.DAYS)));
     TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
     final List<TrackedEntityInstance> trackedEntityInstances =
         trackedEntityInstanceService.getTrackedEntityInstances(queryParams, params, false, true);
     assertThat(trackedEntityInstances, hasSize(4));
     assertThat(trackedEntityInstances.get(0).getEnrollments(), hasSize(0));
-    // Update last updated start date to today
+    // Update last updated start date to tomorrow
     queryParams.setLastUpdatedStartDate(Date.from(Instant.now().plus(1, ChronoUnit.DAYS)));
     final List<TrackedEntityInstance> limitedTTrackedEntityInstances =
         trackedEntityInstanceService.getTrackedEntityInstances(queryParams, params, false, true);
@@ -228,7 +228,7 @@ class TrackedEntityAggregateTest extends TrackerTest {
   @Test
   @Disabled("12098 This test is not working")
   void testFetchTrackedEntityInstancesWithEventFilters() {
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
     doInTransaction(
         () -> {
           this.persistTrackedEntityInstanceWithEnrollmentAndEvents();
@@ -635,7 +635,7 @@ class TrackedEntityAggregateTest extends TrackerTest {
     final String[] teiUid = new String[2];
     doInTransaction(
         () -> {
-          injectSecurityContext(superUser);
+          injectSecurityContextUser(superUser);
           TrackedEntity t1 = this.persistTrackedEntity();
           TrackedEntity t2 = this.persistTrackedEntity();
           this.persistRelationship(t1, t2);

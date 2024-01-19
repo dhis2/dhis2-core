@@ -44,6 +44,7 @@ import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
+import org.hisp.dhis.analytics.cache.OutliersCache;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SettingKey;
@@ -65,6 +66,8 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
   private final SystemSettingManager systemSettingManager;
 
   private final AnalyticsCache analyticsCache;
+
+  private final OutliersCache outliersCache;
 
   // TODO introduce last successful timestamps per table type
 
@@ -111,6 +114,7 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
 
     progress.startingStage("Invalidate analytics caches", SKIP_STAGE);
     progress.runStage(analyticsCache::invalidateAll);
+    progress.runStage(outliersCache::invalidateAll);
     progress.completedProcess("Analytics tables updated: " + clock.time());
   }
 
@@ -149,8 +153,6 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
   // -------------------------------------------------------------------------
 
   private void generateResourceTablesInternal(JobProgress progress) {
-    final Date startTime = new Date();
-
     resourceTableService.dropAllSqlViews(progress);
 
     Map<String, Runnable> generators = new LinkedHashMap<>();
@@ -184,6 +186,6 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
     resourceTableService.createAllSqlViews(progress);
 
     systemSettingManager.saveSystemSetting(
-        SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE, startTime);
+        SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE, new Date());
   }
 }

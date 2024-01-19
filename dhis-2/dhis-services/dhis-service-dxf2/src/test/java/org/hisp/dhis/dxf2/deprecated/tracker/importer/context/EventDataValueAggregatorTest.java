@@ -28,7 +28,10 @@
 package org.hisp.dhis.dxf2.deprecated.tracker.importer.context;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;

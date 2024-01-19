@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.system.grid;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.google.common.collect.Lists;
 import java.nio.charset.StandardCharsets;

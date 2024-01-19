@@ -29,12 +29,14 @@ package org.hisp.dhis.webapi.controller.scheduling;
 
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
+import static org.hisp.dhis.scheduling.JobConfiguration.maxDelayedExecutionTime;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
+import javax.annotation.CheckForNull;
 import lombok.Value;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobStatus;
@@ -51,6 +53,27 @@ class SchedulerEntry {
 
   @JsonProperty Date nextExecutionTime;
 
+  /**
+   * The end of the window for the current {@link #nextExecutionTime}. This means if execution is
+   * missed on the intended time this will be the latest time an attempt is made for that occurrence
+   * before the next time will be the occurrence after that.
+   */
+  @JsonProperty Date maxDelayedExecutionTime;
+
+  /**
+   * The number of seconds until the next execution will happen. This is purely for convenience to
+   * spare the client to fetch the server time to compute this value as the client can not use the
+   * client local time to compute it from {@link #nextExecutionTime}
+   */
+  @JsonProperty Long secondsToNextExecutionTime;
+
+  /**
+   * The number of seconds until the end of the execution window. This is purely for convenience to
+   * * spare the client to fetch the server time to compute this value as the client can not use the
+   * * client local time to compute it from {@link #maxDelayedExecutionTime}
+   */
+  @JsonProperty Long secondsToMaxDelayedExecutionTime;
+
   @JsonProperty JobStatus status;
 
   @JsonProperty boolean enabled;
@@ -61,12 +84,17 @@ class SchedulerEntry {
 
   static SchedulerEntry of(JobConfiguration config, Duration maxCronDelay) {
     Instant nextExecutionTime = config.nextExecutionTime(Instant.now(), maxCronDelay);
+    Instant maxDelayedExecutionTime =
+        maxDelayedExecutionTime(config, maxCronDelay, nextExecutionTime);
     return new SchedulerEntry(
         config.getName(),
         config.getJobType().name(),
         config.getCronExpression(),
         config.getDelay(),
-        nextExecutionTime == null ? null : Date.from(nextExecutionTime),
+        dateOf(nextExecutionTime),
+        dateOf(maxDelayedExecutionTime),
+        secondsUntil(nextExecutionTime),
+        secondsUntil(maxDelayedExecutionTime),
         config.getJobStatus(),
         config.isEnabled(),
         config.getJobType().isUserDefined(),
@@ -87,12 +115,17 @@ class SchedulerEntry {
             .findAny()
             .orElse(trigger.getJobStatus());
     Instant nextExecutionTime = trigger.nextExecutionTime(Instant.now(), maxCronDelay);
+    Instant maxDelayedExecutionTime =
+        maxDelayedExecutionTime(trigger, maxCronDelay, nextExecutionTime);
     return new SchedulerEntry(
         trigger.getQueueName(),
         "Sequence",
         trigger.getCronExpression(),
         trigger.getDelay(),
-        nextExecutionTime == null ? null : Date.from(nextExecutionTime),
+        dateOf(nextExecutionTime),
+        dateOf(maxDelayedExecutionTime),
+        secondsUntil(nextExecutionTime),
+        secondsUntil(maxDelayedExecutionTime),
         queueStatus,
         trigger.isEnabled(),
         true,
@@ -100,5 +133,15 @@ class SchedulerEntry {
             .sorted(comparing(JobConfiguration::getQueuePosition))
             .map(SchedulerEntryJob::of)
             .collect(toList()));
+  }
+
+  private static Date dateOf(Instant instant) {
+    return instant == null ? null : Date.from(instant);
+  }
+
+  @CheckForNull
+  public static Long secondsUntil(Instant instant) {
+    if (instant == null) return null;
+    return Duration.between(Instant.now(), instant).getSeconds();
   }
 }

@@ -28,8 +28,11 @@
 package org.hisp.dhis.program;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.parser.expression.ParserUtils.*;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
+import static org.hisp.dhis.parser.expression.ParserUtils.assumeProgramExpressionProgramAttribute;
+import static org.hisp.dhis.parser.expression.ParserUtils.assumeStageElementSyntax;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.A_BRACE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.HASH_BRACE;
 
 import java.util.Set;
 import org.hisp.dhis.parser.expression.antlr.ExpressionBaseListener;

@@ -37,6 +37,6 @@ import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 public class vIncidentDate extends ProgramDateVariable {
   @Override
   public Object getSql(CommonExpressionVisitor visitor) {
-    return "incidentdate";
+    return "occurreddate";
   }
 }

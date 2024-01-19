@@ -404,7 +404,14 @@ public class RequestParamsValidator {
 
   public static void validatePaginationParameters(PageRequestParams params)
       throws BadRequestException {
-    if (Boolean.TRUE.equals(params.getSkipPaging())
+    if (params.getPaging() != null
+        && params.getSkipPaging() != null
+        && params.getPaging().equals(params.getSkipPaging())) {
+      throw new BadRequestException(
+          "Paging can either be enabled or disabled. Prefer 'paging' as 'skipPaging' will be removed.");
+    }
+
+    if (!params.isPaged()
         && (ObjectUtils.firstNonNull(params.getPage(), params.getPageSize()) != null
             || Boolean.TRUE.equals(params.getTotalPages()))) {
       throw new BadRequestException(

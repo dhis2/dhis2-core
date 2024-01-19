@@ -74,7 +74,7 @@ class FieldTest {
     Validator<String> isValidUid =
         (r, b, uid) -> {
           // to demonstrate that we are getting the trackedEntity field
-          r.addError(new Error(uid, E1000, ENROLLMENT, uid));
+          r.addError(new Error(uid, E1000, ENROLLMENT, uid, List.of(uid)));
         };
 
     Validator<Enrollment> validator = field(Enrollment::getTrackedEntity, isValidUid);
@@ -172,7 +172,8 @@ class FieldTest {
    * tracker type, uid or error code.
    */
   private static void addError(Reporter reporter, String message) {
-    reporter.addError(new Error(message, ValidationCode.E9999, TrackerType.TRACKED_ENTITY, "uid"));
+    reporter.addError(
+        new Error(message, ValidationCode.E9999, TrackerType.TRACKED_ENTITY, "uid", List.of()));
   }
 
   private List<String> actualErrorMessages() {

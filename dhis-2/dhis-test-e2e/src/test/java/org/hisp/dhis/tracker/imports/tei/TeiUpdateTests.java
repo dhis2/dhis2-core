@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.tracker.imports.tei;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.containsStringIgnoringCase;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.notNullValue;
 
 import com.google.gson.JsonObject;
 import java.io.File;

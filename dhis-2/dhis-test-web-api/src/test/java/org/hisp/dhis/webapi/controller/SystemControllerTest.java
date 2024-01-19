@@ -28,6 +28,8 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.jsontree.JsonArray;
@@ -96,6 +98,23 @@ class SystemControllerTest extends DhisControllerConvenienceTest {
     JsonObject summary = GET("/system/taskSummaries/META_DATA_SYNC/xyz").content(HttpStatus.OK);
     assertTrue(summary.isObject());
     assertEquals(0, summary.size());
+  }
+
+  @Test
+  void testGetSystemInfo() {
+    JsonObject info = GET("/system/info").content();
+    // testing one sensitive and one non-sensitive property
+    assertNotNull(info.getString("javaVersion").string());
+    assertNotNull(info.getString("serverDate").string());
+  }
+
+  @Test
+  void testGetSystemInfo_NonSuperUser() {
+    switchToNewUser("guest");
+    JsonObject info = GET("/system/info").content();
+    // testing one sensitive and one non-sensitive property
+    assertNull(info.getString("javaVersion").string());
+    assertNotNull(info.getString("serverDate").string());
   }
 
   private static void assertObjectMembers(JsonObject root, String... members) {

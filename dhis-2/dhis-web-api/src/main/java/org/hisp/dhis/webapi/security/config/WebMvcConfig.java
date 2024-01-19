@@ -43,10 +43,8 @@ import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPathConverter;
 import org.hisp.dhis.node.DefaultNodeService;
 import org.hisp.dhis.node.NodeService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
-import org.hisp.dhis.webapi.mvc.CurrentUserInfoHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
@@ -116,12 +114,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   @Autowired
   public CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;
 
-  @Autowired
-  public CurrentUserInfoHandlerMethodArgumentResolver currentUserInfoHandlerMethodArgumentResolver;
-
   @Autowired public DefaultRequestInfoService requestInfoService;
-
-  @Autowired private CurrentUserService currentUserService;
 
   @Autowired private UserSettingService userSettingService;
 
@@ -151,7 +144,6 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
     resolvers.add(dhisApiVersionHandlerMethodArgumentResolver());
     resolvers.add(currentUserHandlerMethodArgumentResolver);
-    resolvers.add(currentUserInfoHandlerMethodArgumentResolver);
   }
 
   @Bean
@@ -219,7 +211,6 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
 
   @Override
   protected void addFormatters(FormatterRegistry registry) {
-    registry.addConverter(new StringToOrderCriteriaListConverter());
     registry.addConverter(new FieldPathConverter());
   }
 
@@ -248,7 +239,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
 
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
-    registry.addInterceptor(new UserContextInterceptor(currentUserService, userSettingService));
+    registry.addInterceptor(new UserContextInterceptor(userSettingService));
     registry.addInterceptor(new RequestInfoInterceptor(requestInfoService));
   }
 

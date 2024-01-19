@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.expression.dataitem;
 
-import static org.hisp.dhis.common.DimensionItemType.*;
+import static org.hisp.dhis.common.DimensionItemType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.parser.expression.ParserUtils.assumeExpressionProgramAttribute;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 

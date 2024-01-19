@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import java.util.Objects;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OpenApi.Shared.Pattern;
 
 /**
  * {@link PageRequestParams} represent the HTTP request parameters that configure whether it is
@@ -39,6 +40,7 @@ import java.util.Objects;
  *
  * <p>{@code totalPages=true} is only supported on paginated responses.
  */
+@OpenApi.Shared(pattern = Pattern.TRACKER)
 public interface PageRequestParams {
   /** Returns the page number to be returned. */
   Integer getPage();
@@ -52,17 +54,39 @@ public interface PageRequestParams {
   /**
    * Indicates whether to return all items {@code skipPaging=true} or a page of items {@code
    * skipPaging=false}.
+   *
+   * @deprecated use {@link #getPaging} instead
    */
+  @Deprecated(since = "2.41")
   Boolean getSkipPaging();
 
   /**
-   * Indicates whether to return a page of items or all items. By default, responses are paginated.
+   * Indicates whether to return all items {@code paging=false} or a page of items {@code
+   * paging=true}.
    */
+  Boolean getPaging();
+
+  /**
+   * Indicates whether to return a page of items or all items. By default, responses are paginated.
+   *
+   * <p>Note: this assumes {@link #getPaging()} and {@link #getSkipPaging()} have been validated.
+   * Preference is given to {@link #getPaging()} as the other parameter is deprecated.
+   */
+  @OpenApi.Ignore
   default boolean isPaged() {
-    return Objects.requireNonNullElse(getSkipPaging(), true);
+    if (getPaging() != null) {
+      return Boolean.TRUE.equals(getPaging());
+    }
+
+    if (getSkipPaging() != null) {
+      return Boolean.FALSE.equals(getSkipPaging());
+    }
+
+    return true;
   }
 
   /** Indicates whether to include the total number of items and pages in the paginated response. */
+  @OpenApi.Ignore
   default boolean isPageTotal() {
     return Boolean.TRUE.equals(getTotalPages());
   }

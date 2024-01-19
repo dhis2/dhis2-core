@@ -88,6 +88,18 @@ public enum ErrorCode {
   E1522("User `{0}` is not allowed to move organisation `{1}` unit from parent `{2}`"),
   E1523("User `{0}` is not allowed to move organisation `{1}` unit to parent `{2}`"),
 
+  /* Indicator Type merge */
+  E1530("At least one source indicator type must be specified"),
+  E1531("Target indicator type must be specified"),
+  E1532("Target indicator type cannot be a source indicator type"),
+  E1533("{0} indicator type does not exist: `{1}`"),
+
+  /* Indicator merge */
+  E1540("At least one source indicator must be specified"),
+  E1541("Target indicator must be specified"),
+  E1542("Target indicator cannot be a source indicator"),
+  E1543("{0} indicator does not exist: `{1}`"),
+
   /* Data */
   E2000("Query parameters cannot be null"),
   E2001("At least one data element, data set or data element group must be specified"),
@@ -135,10 +147,11 @@ public enum ErrorCode {
   E2042("Min value must be specified"),
   E2043("Max value must be specified"),
   E2044("Max value must be greater than min value"),
+  E2045("Case insensitive operators can only be used with constant values"),
 
   /* Outlier detection */
   E2200("At least one data element must be specified"),
-  E2201("Start date and end date must be specified"),
+  E2201("Start date and end date or relative period must be specified"),
   E2202("Start date must be before end date"),
   E2203(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),
   E2204("Threshold must be a positive number"),
@@ -146,7 +159,11 @@ public enum ErrorCode {
   E2206("Max results exceeds the allowed max limit: `{0}`"),
   E2207("Data start date must be before data end date"),
   E2208("Non-numeric data values encountered during outlier value detection"),
-
+  E2209("Data start date not allowed"),
+  E2210("Data end date not allowed"),
+  E2211("Algorithm min-max values not allowed"),
+  E2212("Specifying both a start date/end date and a relative period is not allowed"),
+  E2213("Value of param orderBy is not compatible with algorithm `{0}`"),
   /* Followup analysis */
   E2300("At least one data element or data set must be specified"),
   E2301("Start date and end date must be specified directly or indirectly by specifying a period"),
@@ -332,10 +349,13 @@ public enum ErrorCode {
   E6019("AttributeValue `{0}` is an invalid `{1}` ID"),
   E6020("AttributeValue `{0}` is an invalid username"),
   E6021("AttributeValue `{0}` is an invalid phone number"),
+  E6022("Object cannot reference itself by property `{0}`"),
 
   /* File resource */
   E6100("Filename not present"),
   E6101("File type not allowed"),
+  E6102("File content could not be stored"),
+  E6103("File resource appears to have no content"),
 
   /* Users */
   E6200("Feedback message recipients user group not defined"),
@@ -425,6 +445,12 @@ public enum ErrorCode {
   E7144(
       "Query failed because a referenced table does not exist. Please ensure analytics job was run"),
   E7145("Query failed because of a syntax error"),
+
+  /* Analytics outliers */
+
+  E7180(
+      "The analytics outliers data does not exist. Please ensure analytics job was run and did not skip the outliers"),
+  E7181("Column `{0}` specified, in orderBy, is not eligible for orderBy or does not exist"),
 
   /* Event analytics */
   E7200(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),

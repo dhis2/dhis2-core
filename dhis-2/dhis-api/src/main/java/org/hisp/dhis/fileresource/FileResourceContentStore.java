@@ -34,6 +34,8 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -64,7 +66,8 @@ public interface FileResourceContentStore {
    * @param bytes the byte array.
    * @return the key on success or null if saving failed.
    */
-  String saveFileResourceContent(FileResource fileResource, byte[] bytes);
+  @CheckForNull
+  String saveFileResourceContent(@Nonnull FileResource fileResource, @Nonnull byte[] bytes);
 
   /**
    * Save the contents of the File to the file store.
@@ -73,7 +76,8 @@ public interface FileResourceContentStore {
    * @param file the File. Will be consumed upon deletion.
    * @return the key on success or null if saving failed.
    */
-  String saveFileResourceContent(FileResource fileResource, File file);
+  @CheckForNull
+  String saveFileResourceContent(@Nonnull FileResource fileResource, @Nonnull File file);
 
   /**
    * Save the content of image files.
@@ -82,8 +86,9 @@ public interface FileResourceContentStore {
    * @param imageFile will map image dimension to its associated file.
    * @return the key on success or null if saving failed.
    */
+  @CheckForNull
   String saveFileResourceContent(
-      FileResource fileResource, Map<ImageFileDimension, File> imageFile);
+      @Nonnull FileResource fileResource, @Nonnull Map<ImageFileDimension, File> imageFile);
 
   /**
    * Delete the content bytes of a file resource.

@@ -508,6 +508,8 @@
       "relationships": [],
       "occurredAt": "2019-01-25T12:10:38.100",
       "scheduledAt": "2019-01-28T12:32:38.100",
+      "createdAtClient": "2020-01-25T12:10:38.100",
+      "updatedAtClient": "2020-01-26T12:10:38.100",
       "storedBy": "admin",
       "followUp": true,
       "deleted": false,
@@ -521,7 +523,6 @@
           "identifier": "xYerKDKCefk"
         }
       ],
-
       "dataValues": [
         {
           "dataElement": {
@@ -586,6 +587,8 @@
       "relationships": [],
       "occurredAt": "2020-01-28T00:00:00.000",
       "scheduledAt": "2019-01-28T12:10:38.100",
+      "createdAtClient": "2019-01-25T12:10:38.100",
+      "updatedAtClient": "2021-01-26T12:10:38.100",
       "storedBy": "admin",
       "followUp": true,
       "deleted": false,
@@ -599,7 +602,6 @@
           "identifier": "xYerKDKCefk"
         }
       ],
-
       "dataValues": [
         {
           "dataElement": {
@@ -682,7 +684,6 @@
           "identifier": "xYerKDKCefk"
         }
       ],
-
       "notes": []
     },
     {
@@ -717,7 +718,6 @@
           "identifier": "xYerKDKCefk"
         }
       ],
-
       "notes": []
     },
     {
@@ -1099,6 +1099,7 @@
         "idScheme": "UID",
         "identifier": "TV9oB9LT3sh"
       },
+      "createdAtClient": "2018-10-01T12:17:30.163",
       "bidirectional": false,
       "deleted": false,
       "from": {
@@ -1114,6 +1115,7 @@
         "idScheme": "UID",
         "identifier": "TV9oB9LT3sh"
       },
+      "createdAtClient": "2018-11-01T13:24:37.118",
       "bidirectional": false,
       "deleted": false,
       "from": {

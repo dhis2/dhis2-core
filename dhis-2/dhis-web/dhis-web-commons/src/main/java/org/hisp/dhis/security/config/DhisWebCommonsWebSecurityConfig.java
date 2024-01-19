@@ -37,7 +37,7 @@ import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.MappedRedirectStrategy;
-import org.hisp.dhis.security.authtentication.CustomAuthFailureHandler;
+import org.hisp.dhis.security.authentication.CustomAuthFailureHandler;
 import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
 import org.hisp.dhis.security.oidc.DhisOidcLogoutSuccessHandler;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;

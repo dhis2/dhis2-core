@@ -46,16 +46,16 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
 public class DeduplicationHelper {
-  private final CurrentUserService currentUserService;
-
   private final AclService aclService;
 
   private final RelationshipService relationshipService;
@@ -63,6 +63,8 @@ public class DeduplicationHelper {
   private final OrganisationUnitService organisationUnitService;
 
   private final EnrollmentService enrollmentService;
+
+  private final UserService userService;
 
   public String getInvalidReferenceErrors(DeduplicationMergeParams params) {
     TrackedEntity original = params.getOriginal();
@@ -247,15 +249,17 @@ public class DeduplicationHelper {
 
   public String getUserAccessErrors(
       TrackedEntity original, TrackedEntity duplicate, MergeObject mergeObject) {
-    User user = currentUserService.getCurrentUser();
 
-    if (user == null
-        || !(user.isAuthorized("ALL") || user.isAuthorized("F_TRACKED_ENTITY_MERGE"))) {
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+
+    if (currentUserDetails == null
+        || !(currentUserDetails.getAllAuthorities().contains("ALL")
+            || currentUserDetails.getAllAuthorities().contains("F_TRACKED_ENTITY_MERGE"))) {
       return "Missing required authority for merging tracked entities.";
     }
 
-    if (!aclService.canDataWrite(user, original.getTrackedEntityType())
-        || !aclService.canDataWrite(user, duplicate.getTrackedEntityType())) {
+    if (!aclService.canDataWrite(currentUserDetails, original.getTrackedEntityType())
+        || !aclService.canDataWrite(currentUserDetails, duplicate.getTrackedEntityType())) {
       return "Missing data write access to Tracked Entity Type.";
     }
 
@@ -263,17 +267,21 @@ public class DeduplicationHelper {
         relationshipService.getRelationships(mergeObject.getRelationships()).stream()
             .map(Relationship::getRelationshipType)
             .distinct()
-            .collect(Collectors.toList());
+            .toList();
 
-    if (relationshipTypes.stream().anyMatch(rt -> !aclService.canDataWrite(user, rt))) {
+    if (relationshipTypes.stream()
+        .anyMatch(rt -> !aclService.canDataWrite(currentUserDetails, rt))) {
       return "Missing data write access to one or more Relationship Types.";
     }
 
     List<Enrollment> enrollments = enrollmentService.getEnrollments(mergeObject.getEnrollments());
 
-    if (enrollments.stream().anyMatch(e -> !aclService.canDataWrite(user, e.getProgram()))) {
+    if (enrollments.stream()
+        .anyMatch(e -> !aclService.canDataWrite(currentUserDetails, e.getProgram()))) {
       return "Missing data write access to one or more Programs.";
     }
+
+    User user = userService.getUserByUsername(currentUserDetails.getUsername());
 
     if (!organisationUnitService.isInUserHierarchyCached(user, original.getOrganisationUnit())
         || !organisationUnitService.isInUserHierarchyCached(

@@ -59,11 +59,12 @@ import org.hisp.dhis.preheat.PreheatParams;
 import org.hisp.dhis.preheat.PreheatService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.NoopJobProgress;
-import org.hisp.dhis.schema.MergeParams;
-import org.hisp.dhis.schema.MergeService;
+import org.hisp.dhis.schema.MetadataMergeParams;
+import org.hisp.dhis.schema.MetadataMergeService;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -75,14 +76,14 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DefaultObjectBundleService implements ObjectBundleService {
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
   private final PreheatService preheatService;
   private final SchemaService schemaService;
   private final EntityManager entityManager;
   private final IdentifiableObjectManager manager;
   private final DbmsManager dbmsManager;
   private final HibernateCacheManager cacheManager;
-  private final MergeService mergeService;
+  private final MetadataMergeService metadataMergeService;
   private final ObjectBundleHooks objectBundleHooks;
   private final EventHookPublisher eventHookPublisher;
 
@@ -91,8 +92,9 @@ public class DefaultObjectBundleService implements ObjectBundleService {
   public ObjectBundle create(ObjectBundleParams params) {
     PreheatParams preheatParams = params.getPreheatParams();
 
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     if (params.getUser() == null) {
-      params.setUser(currentUserService.getCurrentUser());
+      params.setUser(currentUser);
     }
 
     preheatParams.setUser(params.getUser());
@@ -299,8 +301,8 @@ public class DefaultObjectBundleService implements ObjectBundleService {
               object, bundle.getPreheat(), bundle.getPreheatIdentifier());
 
           if (bundle.getMergeMode() != MergeMode.NONE) {
-            mergeService.merge(
-                new MergeParams<>(object, persistedObject)
+            metadataMergeService.merge(
+                new MetadataMergeParams<>(object, persistedObject)
                     .setMergeMode(bundle.getMergeMode())
                     .setSkipSharing(bundle.isSkipSharing())
                     .setSkipTranslation(bundle.isSkipTranslation()));
@@ -374,7 +376,7 @@ public class DefaultObjectBundleService implements ObjectBundleService {
 
           hooks.forEach(hook -> hook.preDelete(object, bundle));
           try {
-            manager.delete(object, bundle.getUser());
+            manager.delete(object);
           } catch (DeleteNotAllowedException ex) {
             lastEx.set(ex);
             throw ex;

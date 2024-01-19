@@ -62,11 +62,27 @@ public class TokenOperator<T extends Comparable<? super T>> extends Operator<T> 
   public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, QueryPath queryPath) {
     String value = caseSensitive ? getValue(String.class) : getValue(String.class).toLowerCase();
 
+    Predicate defaultSearch =
+        builder.equal(
+            builder.function(
+                JsonbFunctions.REGEXP_SEARCH,
+                Boolean.class,
+                root.get(queryPath.getPath()),
+                builder.literal(TokenUtils.createRegex(value).toString())),
+            true);
+
+    if (queryPath.getLocale() == null
+        || !queryPath.getProperty().isTranslatable()
+        || queryPath.getProperty().getTranslationKey() == null) {
+      return defaultSearch;
+    }
     return builder.equal(
         builder.function(
-            JsonbFunctions.REGEXP_SEARCH,
+            JsonbFunctions.SEARCH_TRANSLATION_TOKEN,
             Boolean.class,
-            root.get(queryPath.getPath()),
+            root.get("translations"),
+            builder.literal("{" + queryPath.getProperty().getTranslationKey() + "}"),
+            builder.literal(queryPath.getLocale().getLanguage()),
             builder.literal(TokenUtils.createRegex(value).toString())),
         true);
   }

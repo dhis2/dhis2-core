@@ -27,19 +27,11 @@
  */
 package org.hisp.dhis.common.hibernate;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Function;
 import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.hibernate.SharingHibernateGenericStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserDetails;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -47,6 +39,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * This class contains methods for generating predicates which are used for validating sharing
  * access permission.
  */
+@Slf4j
 public class SharingHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
     extends InternalHibernateGenericStoreImpl<T> implements SharingHibernateGenericStore<T> {
   public SharingHibernateGenericStoreImpl(
@@ -55,50 +48,7 @@ public class SharingHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
       ApplicationEventPublisher publisher,
       Class<T> clazz,
       AclService aclService,
-      CurrentUserService currentUserService,
       boolean cacheable) {
-    super(entityManager, jdbcTemplate, publisher, clazz, aclService, currentUserService, cacheable);
-  }
-
-  @Override
-  public final List<Function<Root<T>, Predicate>> getSharingPredicates(
-      CriteriaBuilder builder, String access) {
-    return getSharingPredicates(builder, CurrentUserUtil.getCurrentUserDetails(), access);
-  }
-
-  @Override
-  public List<Function<Root<T>, Predicate>> getDataSharingPredicates(
-      CriteriaBuilder builder, CurrentUserDetails user, String access) {
-    return getDataSharingPredicates(builder, user.getUid(), user.getUserGroupIds(), access);
-  }
-
-  @Override
-  public List<Function<Root<T>, Predicate>> getSharingPredicates(
-      CriteriaBuilder builder, CurrentUserDetails user, String access) {
-    if (!sharingEnabled(user) || user == null) {
-      return new ArrayList<>();
-    }
-
-    return getSharingPredicates(builder, user.getUid(), user.getUserGroupIds(), access);
-  }
-
-  @Override
-  public List<Function<Root<T>, Predicate>> getSharingPredicates(CriteriaBuilder builder) {
-    return getSharingPredicates(
-        builder, CurrentUserUtil.getCurrentUserDetails(), AclService.LIKE_READ_METADATA);
-  }
-
-  @Override
-  public List<Function<Root<T>, Predicate>> getSharingPredicates(
-      CriteriaBuilder builder, CurrentUserDetails user) {
-    return getSharingPredicates(
-        builder, user.getUid(), user.getUserGroupIds(), AclService.LIKE_READ_METADATA);
-  }
-
-  @Override
-  public List<Function<Root<T>, Predicate>> getDataSharingPredicates(
-      CriteriaBuilder builder, CurrentUserDetails user) {
-    return getDataSharingPredicates(
-        builder, user.getUid(), user.getUserGroupIds(), AclService.LIKE_READ_METADATA);
+    super(entityManager, jdbcTemplate, publisher, clazz, aclService, cacheable);
   }
 }

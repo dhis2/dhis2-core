@@ -121,9 +121,6 @@ public class DimensionIdentifierHelper {
       String elementUid = split[0];
       try {
         int offset = Integer.parseInt(split[1]);
-        if (offset == 0) {
-          throwIllegalQueryEx(ErrorCode.E7138, elementWithOffset);
-        }
         return ElementWithOffset.of(StringUid.of(elementUid), offset);
 
       } catch (NumberFormatException ignored) {

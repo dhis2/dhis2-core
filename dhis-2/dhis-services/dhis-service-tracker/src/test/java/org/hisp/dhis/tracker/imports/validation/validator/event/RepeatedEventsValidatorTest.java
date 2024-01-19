@@ -191,7 +191,8 @@ class RepeatedEventsValidatorTest extends DhisConvenienceTest {
     List<Event> events = Lists.newArrayList(invalidEvent, notRepeatableEvent("B"));
     bundle.setEvents(events);
     events.forEach(e -> bundle.setStrategy(e, TrackerImportStrategy.CREATE_AND_UPDATE));
-    reporter.addError(new Error("", E9999, invalidEvent.getTrackerType(), invalidEvent.getUid()));
+    reporter.addError(
+        new Error("", E9999, invalidEvent.getTrackerType(), invalidEvent.getUid(), List.of()));
 
     validator.validate(reporter, bundle, bundle.getEvents());
 

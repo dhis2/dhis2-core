@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.deprecated.tracker.event;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.containsStringIgnoringCase;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.google.gson.JsonObject;

@@ -35,9 +35,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.common.math.StatsAccumulator;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -53,8 +55,8 @@ import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionQuery;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutlierDetectionResponse;
-import org.hisp.dhis.outlierdetection.OutlierDetectionService;
 import org.hisp.dhis.outlierdetection.OutlierValue;
+import org.hisp.dhis.outlierdetection.parser.OutlierDetectionQueryParser;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
@@ -73,7 +75,9 @@ class OutlierDetectionServiceModifiedZScoreTest extends IntegrationTestBase {
 
   @Autowired private DataValueService dataValueService;
 
-  @Autowired private OutlierDetectionService subject;
+  @Autowired private DefaultOutlierDetectionService subject;
+
+  @Autowired private OutlierDetectionQueryParser parser;
 
   private DataElement deA;
 
@@ -117,14 +121,14 @@ class OutlierDetectionServiceModifiedZScoreTest extends IntegrationTestBase {
   @Test
   void testGetFromQuery() {
     OutlierDetectionQuery query = new OutlierDetectionQuery();
-    query.setDe(List.of("deabcdefghA", "deabcdefghB"));
+    query.setDx(Set.of("deabcdefghA", "deabcdefghB"));
     query.setStartDate(getDate(2020, 1, 1));
     query.setEndDate(getDate(2020, 6, 1));
-    query.setOu(List.of("ouabcdefghA", "ouabcdefghB"));
+    query.setOu(Set.of("ouabcdefghA", "ouabcdefghB"));
     query.setAlgorithm(OutlierDetectionAlgorithm.MOD_Z_SCORE);
     query.setThreshold(2.5);
     query.setMaxResults(100);
-    OutlierDetectionRequest request = subject.getFromQuery(query);
+    OutlierDetectionRequest request = parser.getFromQuery(query);
     assertEquals(2, request.getDataElements().size());
     assertEquals(2, request.getOrgUnits().size());
     assertEquals(getDate(2020, 1, 1), request.getStartDate());
@@ -247,7 +251,7 @@ class OutlierDetectionServiceModifiedZScoreTest extends IntegrationTestBase {
             .withThreshold(2.0)
             .build();
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    subject.getOutlierValuesAsCsv(request, out);
+    subject.getOutlierValuesAsCsv(request, new PrintWriter(out));
     List<String> csvLines =
         TextUtils.toLines(new String(out.toByteArray(), StandardCharsets.UTF_8));
     final int endIndex = 61;

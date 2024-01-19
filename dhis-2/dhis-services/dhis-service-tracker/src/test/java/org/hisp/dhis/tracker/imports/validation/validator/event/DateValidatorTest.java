@@ -41,7 +41,6 @@ import com.google.common.collect.Sets;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.time.temporal.ChronoUnit;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.event.EventStatus;
@@ -277,6 +276,6 @@ class DateValidatorTest extends DhisConvenienceTest {
   }
 
   private Instant sevenDaysAgo() {
-    return LocalDateTime.now().minus(7, ChronoUnit.DAYS).toInstant(ZoneOffset.UTC);
+    return LocalDateTime.now().minusDays(7).toInstant(ZoneOffset.UTC);
   }
 }

@@ -156,12 +156,6 @@ public class JsonAssertions {
     assertFalse(json.has(name), String.format("member \"%s\" should NOT be in %s", name, json));
   }
 
-  public static void assertHasMembers(JsonObject json, String... names) {
-    for (String name : names) {
-      assertHasMember(json, name);
-    }
-  }
-
   public static void assertHasMember(JsonObject json, String name) {
     assertTrue(json.has(name), String.format("member \"%s\" should be in %s", name, json));
   }

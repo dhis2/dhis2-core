@@ -77,7 +77,7 @@ public class EnrollmentQuery {
           .put(COLUMNS.LAST_UPDATED_BY, new TableColumn("pi", "lastupdatedbyuserinfo"))
           .put(COLUMNS.STATUS, new TableColumn("pi", "status"))
           .put(COLUMNS.ENROLLMENTDATE, new TableColumn("pi", "enrollmentdate"))
-          .put(COLUMNS.INCIDENTDATE, new TableColumn("pi", "incidentdate"))
+          .put(COLUMNS.INCIDENTDATE, new TableColumn("pi", "occurreddate"))
           .put(COLUMNS.FOLLOWUP, new TableColumn("pi", "followup"))
           .put(COLUMNS.COMPLETED, new TableColumn("pi", "completeddate"))
           .put(COLUMNS.COMPLETEDBY, new TableColumn("pi", "completedby"))

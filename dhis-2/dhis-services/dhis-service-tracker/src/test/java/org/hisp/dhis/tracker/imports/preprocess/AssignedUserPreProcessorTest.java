@@ -55,7 +55,7 @@ class AssignedUserPreProcessorTest extends DhisConvenienceTest {
 
   private static final String USERNAME = "Username";
 
-  private AssignedUserPreProcessor preProcessorToTest = new AssignedUserPreProcessor();
+  private final AssignedUserPreProcessor preProcessorToTest = new AssignedUserPreProcessor();
 
   @Mock private TrackerPreheat preheat;
 

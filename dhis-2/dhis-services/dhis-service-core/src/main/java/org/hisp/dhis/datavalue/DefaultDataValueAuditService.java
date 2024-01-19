@@ -33,7 +33,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionComboStore;
-import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -134,21 +134,21 @@ public class DefaultDataValueAuditService implements DataValueAuditService {
     }
 
     // case if the audit trail started out with DELETE
-    if (dataValueAudits.get(dataValueAudits.size() - 1).getAuditType() == AuditType.DELETE) {
+    if (dataValueAudits.get(dataValueAudits.size() - 1).getAuditType() == ChangeLogType.DELETE) {
       DataValueAudit valueAudit = createDataValueAudit(dataValue);
       valueAudit.setValue(dataValueAudits.get(dataValueAudits.size() - 1).getValue());
       dataValueAudits.add(valueAudit);
     }
 
     // unless top is CREATE, inject current DV as audit on top
-    if (!dataValue.isDeleted() && dataValueAudits.get(0).getAuditType() != AuditType.CREATE) {
+    if (!dataValue.isDeleted() && dataValueAudits.get(0).getAuditType() != ChangeLogType.CREATE) {
       DataValueAudit dataValueAudit = createDataValueAudit(dataValue);
-      dataValueAudit.setAuditType(AuditType.UPDATE);
+      dataValueAudit.setAuditType(ChangeLogType.UPDATE);
       dataValueAudit.setCreated(dataValue.getLastUpdated());
       dataValueAudits.add(0, dataValueAudit);
     }
 
-    dataValueAudits.get(dataValueAudits.size() - 1).setAuditType(AuditType.CREATE);
+    dataValueAudits.get(dataValueAudits.size() - 1).setAuditType(ChangeLogType.CREATE);
 
     return dataValueAudits;
   }
@@ -156,7 +156,7 @@ public class DefaultDataValueAuditService implements DataValueAuditService {
   private static DataValueAudit createDataValueAudit(DataValue dataValue) {
     DataValueAudit dataValueAudit =
         new DataValueAudit(
-            dataValue, dataValue.getValue(), dataValue.getStoredBy(), AuditType.CREATE);
+            dataValue, dataValue.getValue(), dataValue.getStoredBy(), ChangeLogType.CREATE);
     dataValueAudit.setCreated(dataValue.getCreated());
 
     return dataValueAudit;

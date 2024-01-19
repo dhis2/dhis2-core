@@ -75,8 +75,8 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ReflectionUtils;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -101,8 +101,6 @@ public class DefaultFieldFilterService implements FieldFilterService {
 
   private final AclService aclService;
 
-  private final CurrentUserService currentUserService;
-
   private final AttributeService attributeService;
 
   private final Set<NodeTransformer> nodeTransformers;
@@ -123,7 +121,6 @@ public class DefaultFieldFilterService implements FieldFilterService {
       FieldParser fieldParser,
       SchemaService schemaService,
       AclService aclService,
-      CurrentUserService currentUserService,
       AttributeService attributeService,
       CacheProvider cacheProvider,
       UserGroupService userGroupService,
@@ -132,7 +129,6 @@ public class DefaultFieldFilterService implements FieldFilterService {
     this.fieldParser = fieldParser;
     this.schemaService = schemaService;
     this.aclService = aclService;
-    this.currentUserService = currentUserService;
     this.userService = userService;
     this.attributeService = attributeService;
     this.userGroupService = userGroupService;
@@ -223,14 +219,15 @@ public class DefaultFieldFilterService implements FieldFilterService {
 
     final FieldMap finalFieldMap = fieldMap;
 
-    if (params.getUser() == null) {
-      params.setUser(currentUserService.getCurrentUser());
+    if (params.getUserDetails() == null) {
+      params.setUserDetails(CurrentUserUtil.getCurrentUserDetails());
     }
 
     objects.forEach(
         object -> {
           AbstractNode node =
-              buildNode(finalFieldMap, wrapper, object, params.getUser(), params.getDefaults());
+              buildNode(
+                  finalFieldMap, wrapper, object, params.getUserDetails(), params.getDefaults());
 
           if (node != null) {
             collectionNode.addChild(node);
@@ -270,8 +267,8 @@ public class DefaultFieldFilterService implements FieldFilterService {
 
     final FieldMap finalFieldMap = fieldMap;
 
-    if (params.getUser() == null) {
-      params.setUser(currentUserService.getCurrentUser());
+    if (params.getUserDetails() == null) {
+      params.setUserDetails(CurrentUserUtil.getCurrentUserDetails());
     }
 
     objects.forEach(
@@ -287,9 +284,13 @@ public class DefaultFieldFilterService implements FieldFilterService {
   }
 
   private AbstractNode buildNode(
-      FieldMap fieldMap, Class<?> klass, Object object, User user, Defaults defaults) {
+      FieldMap fieldMap,
+      Class<?> klass,
+      Object object,
+      UserDetails userDetails,
+      Defaults defaults) {
     Schema schema = schemaService.getDynamicSchema(klass);
-    return buildNode(fieldMap, klass, object, user, schema.getName(), defaults);
+    return buildNode(fieldMap, klass, object, userDetails, schema.getName(), defaults);
   }
 
   private boolean mayExclude(Class<?> klass, Defaults defaults) {
@@ -342,7 +343,7 @@ public class DefaultFieldFilterService implements FieldFilterService {
       FieldMap fieldMap,
       Class<?> klass,
       Object object,
-      User user,
+      UserDetails userDetails,
       String nodeName,
       Defaults defaults) {
     Schema schema = schemaService.getDynamicSchema(klass);
@@ -361,7 +362,7 @@ public class DefaultFieldFilterService implements FieldFilterService {
     updateFields(fieldMap, schema.getKlass());
 
     if (fieldMap.containsKey("access") && schema.isIdentifiableObject()) {
-      Access access = aclService.getAccess((IdentifiableObject) object, user);
+      Access access = aclService.getAccess((IdentifiableObject) object, userDetails);
 
       ((BaseIdentifiableObject) object).setAccess(access);
     }
@@ -460,7 +461,8 @@ public class DefaultFieldFilterService implements FieldFilterService {
             FieldMap map = getFullFieldMap(schemaService.getDynamicSchema(property.getItemKlass()));
 
             for (Object collectionObject : collection) {
-              Node node = buildNode(map, property.getItemKlass(), collectionObject, user, defaults);
+              Node node =
+                  buildNode(map, property.getItemKlass(), collectionObject, userDetails, defaults);
 
               if (node != null && !node.getChildren().isEmpty()) {
                 child.addChild(node);
@@ -487,7 +489,11 @@ public class DefaultFieldFilterService implements FieldFilterService {
           } else {
             child =
                 buildNode(
-                    getFullFieldMap(propertySchema), propertyClass, returnValue, user, defaults);
+                    getFullFieldMap(propertySchema),
+                    propertyClass,
+                    returnValue,
+                    userDetails,
+                    defaults);
           }
         }
       } else {
@@ -509,7 +515,7 @@ public class DefaultFieldFilterService implements FieldFilterService {
                       fieldValue,
                       sch.getKlass(),
                       collectionObject,
-                      user,
+                      userDetails,
                       property.getName(),
                       defaults);
             } else {
@@ -518,7 +524,7 @@ public class DefaultFieldFilterService implements FieldFilterService {
                       fieldValue,
                       property.getItemKlass(),
                       collectionObject,
-                      user,
+                      userDetails,
                       property.getName(),
                       defaults);
             }
@@ -529,7 +535,7 @@ public class DefaultFieldFilterService implements FieldFilterService {
           }
         } else {
           returnValue = handleJsonbObjectProperties(klass, propertyClass, returnValue);
-          child = buildNode(fieldValue, propertyClass, returnValue, user, defaults);
+          child = buildNode(fieldValue, propertyClass, returnValue, userDetails, defaults);
         }
       }
 

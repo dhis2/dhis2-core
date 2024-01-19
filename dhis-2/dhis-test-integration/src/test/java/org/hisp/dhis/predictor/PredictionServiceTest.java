@@ -306,7 +306,7 @@ class PredictionServiceTest extends IntegrationTestBase {
     Set<OrganisationUnit> units = newHashSet(sourceA, sourceB, sourceG);
 
     User user = createAndAddUser(true, "mockUser", units, units);
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
   }
 
   // -------------------------------------------------------------------------
@@ -688,7 +688,7 @@ class PredictionServiceTest extends IntegrationTestBase {
     Set<OrganisationUnit> units = newHashSet(sourceA);
 
     User user2 = createAndAddUser(true, "mockUser2", units, units);
-    injectSecurityContext(user2);
+    injectSecurityContextUser(user2);
 
     Predictor p =
         createPredictor(

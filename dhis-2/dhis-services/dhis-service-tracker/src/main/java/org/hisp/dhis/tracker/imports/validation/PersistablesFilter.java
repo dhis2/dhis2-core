@@ -316,20 +316,20 @@ class PersistablesFilter {
             .map(p -> p.apply(entity))
             .filter(this::isNotValid) // remove valid parents
             .map(p -> error(ValidationCode.E5000, entity, p))
-            .collect(Collectors.toList());
+            .toList();
     this.result.errors.addAll(errors);
   }
 
   private static Error error(ValidationCode code, TrackerDto notPersistable, TrackerDto reason) {
-    String message =
-        MessageFormat.format(
-            code.getMessage(),
-            notPersistable.getTrackerType().getName(),
-            notPersistable.getUid(),
-            reason.getTrackerType().getName(),
-            reason.getUid());
-
-    return new Error(message, code, notPersistable.getTrackerType(), notPersistable.getUid());
+    Object[] args = {
+      notPersistable.getTrackerType().getName(),
+      notPersistable.getUid(),
+      reason.getTrackerType().getName(),
+      reason.getUid()
+    };
+    String message = MessageFormat.format(code.getMessage(), args);
+    return new Error(
+        message, code, notPersistable.getTrackerType(), notPersistable.getUid(), List.of(args));
   }
 
   /**
