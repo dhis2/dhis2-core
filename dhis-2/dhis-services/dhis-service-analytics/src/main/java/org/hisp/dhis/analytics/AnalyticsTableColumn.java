@@ -95,7 +95,8 @@ public class AnalyticsTableColumn {
    * @param dataType analytics table column data type.
    * @param alias source table column alias and name.
    */
-  public AnalyticsTableColumn(String name, ColumnDataType dataType, String alias, Collation collation) {
+  public AnalyticsTableColumn(
+      String name, ColumnDataType dataType, String alias, Collation collation) {
     this.name = name;
     this.dataType = dataType;
     this.notNull = ColumnNotNullConstraint.NULL;

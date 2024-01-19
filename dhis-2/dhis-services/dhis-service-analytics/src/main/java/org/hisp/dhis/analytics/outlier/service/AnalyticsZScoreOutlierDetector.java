@@ -36,7 +36,7 @@ import static org.hisp.dhis.period.PeriodType.getIsoPeriod;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
-
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.OutlierDetectionAlgorithm;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.outlier.OutlierSqlStatementProcessor;
@@ -50,8 +50,6 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
-
-import lombok.RequiredArgsConstructor;
 
 /**
  * Manager for database queries related to outlier data detection based on z-score and modified

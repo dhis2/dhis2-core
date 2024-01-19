@@ -38,7 +38,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Optional;
 import java.util.regex.Matcher;
-
+import lombok.NoArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsConstants;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.period.Period;
@@ -46,8 +46,6 @@ import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.springframework.util.Assert;
-
-import lombok.NoArgsConstructor;
 
 /**
  * @author Lars Helge Overland

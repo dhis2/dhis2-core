@@ -59,7 +59,7 @@ import java.io.Writer;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
-
+import lombok.AllArgsConstructor;
 import org.hisp.dhis.analytics.cache.OutliersCache;
 import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.common.TableInfoReader;
@@ -86,8 +86,6 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
-
-import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
 @Service
