@@ -31,11 +31,6 @@ import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.common.ValueType.getValueTypeFromSqlType;
 import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
 import static org.hisp.dhis.feedback.ErrorCode.E7230;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.google.common.collect.Iterables;
 import java.io.Serializable;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -48,11 +43,10 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
-import net.sf.jasperreports.engine.JRException;
-import net.sf.jasperreports.engine.JRField;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
@@ -68,6 +62,12 @@ import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.google.common.collect.Iterables;
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JRField;
 
 /**
  * @author Lars Helge Overland
@@ -536,7 +536,7 @@ public class ListGrid implements Grid, Serializable {
   public Grid addAndPopulateColumnsBefore(
       int referenceColumnIndex, Map<Object, List<?>> valueMap, int newColumns) {
     Validate.inclusiveBetween(0, getWidth() - 1, referenceColumnIndex);
-    Validate.notNull(valueMap);
+    Objects.requireNonNull(valueMap);
     verifyGridState();
 
     for (List<Object> row : grid) {
