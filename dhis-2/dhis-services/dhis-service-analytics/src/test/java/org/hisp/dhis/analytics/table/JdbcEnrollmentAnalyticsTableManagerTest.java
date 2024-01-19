@@ -38,7 +38,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.analytics.AnalyticsExportSettings;
+import org.hisp.dhis.analytics.AnalyticsTableExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
@@ -75,7 +75,7 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
 
   @Mock private JdbcTemplate jdbcTemplate;
 
-  @Mock private AnalyticsExportSettings analyticsExportSettings;
+  @Mock private AnalyticsTableExportSettings analyticsExportSettings;
 
   @Mock private PeriodDataProvider periodDataProvider;
 

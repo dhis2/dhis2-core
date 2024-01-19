@@ -38,8 +38,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTable;
+import org.hisp.dhis.analytics.AnalyticsTableExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableManager;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
@@ -76,7 +76,7 @@ class JdbcAnalyticsTableManagerTest {
 
   @Mock private JdbcTemplate jdbcTemplate;
 
-  @Mock private AnalyticsExportSettings analyticsExportSettings;
+  @Mock private AnalyticsTableExportSettings analyticsExportSettings;
 
   @Mock private PeriodDataProvider periodDataProvider;
 

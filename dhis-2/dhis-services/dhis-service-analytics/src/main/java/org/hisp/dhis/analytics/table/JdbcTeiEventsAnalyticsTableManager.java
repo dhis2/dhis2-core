@@ -59,9 +59,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.AnalyticsTableExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -103,7 +103,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
       DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       TrackedEntityTypeService trackedEntityTypeService,
-      AnalyticsExportSettings settings,
+      AnalyticsTableExportSettings settings,
       PeriodDataProvider periodDataProvider) {
     super(
         idObjectManager,

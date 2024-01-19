@@ -220,7 +220,7 @@ public class AnalyticsSqlUtils {
    * @param collate the type of collate to be used.
    * @return the collate statement, or blank if the given "collate" is null/blank.
    */
-  public static String getCollate(String collate) {
+  public static String getCollation(String collate) {
     if (isNotBlank(collate)) {
       return " collate \"" + collate + "\" ";
     }

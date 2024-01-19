@@ -67,9 +67,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.AnalyticsTableExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -134,7 +134,7 @@ class JdbcEventAnalyticsTableManagerTest {
 
   @Mock private PeriodDataProvider periodDataProvider;
 
-  @Mock private AnalyticsExportSettings analyticsExportSettings;
+  @Mock private AnalyticsTableExportSettings analyticsExportSettings;
 
   private JdbcEventAnalyticsTableManager subject;
 

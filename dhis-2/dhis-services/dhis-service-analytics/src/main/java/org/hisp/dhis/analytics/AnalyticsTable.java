@@ -29,7 +29,9 @@ package org.hisp.dhis.analytics;
 
 import java.util.Date;
 import java.util.List;
+import lombok.Getter;
 import org.hisp.dhis.analytics.table.PartitionUtils;
+import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -40,6 +42,7 @@ import org.springframework.util.Assert;
  *
  * @author Lars Helge Overland
  */
+@Getter
 public class AnalyticsTable {
   /** Analytics table type. */
   private AnalyticsTableType tableType;
@@ -94,6 +97,24 @@ public class AnalyticsTable {
   // -------------------------------------------------------------------------
   // Logic
   // -------------------------------------------------------------------------
+
+  /**
+   * Returns a list of all columns including dimension columns and value columns.
+   *
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
+  public List<AnalyticsTableColumn> getAllColumns() {
+    return ListUtils.union(getDimensionColumns(), getValueColumns());
+  }
+
+  /**
+   * Returns the count of all columns.
+   *
+   * @return the count of all columns.
+   */
+  public int getColumnCount() {
+    return getAllColumns().size();
+  }
 
   /**
    * Adds an analytics partition table to this master table.
@@ -159,34 +180,6 @@ public class AnalyticsTable {
         .filter(AnalyticsTablePartition::isLatestPartition)
         .findAny()
         .orElse(null);
-  }
-
-  // -------------------------------------------------------------------------
-  // Getters
-  // -------------------------------------------------------------------------
-
-  public AnalyticsTableType getTableType() {
-    return tableType;
-  }
-
-  public List<AnalyticsTableColumn> getDimensionColumns() {
-    return dimensionColumns;
-  }
-
-  public List<AnalyticsTableColumn> getValueColumns() {
-    return valueColumns;
-  }
-
-  public Program getProgram() {
-    return program;
-  }
-
-  public TrackedEntityType getTrackedEntityType() {
-    return trackedEntityType;
-  }
-
-  public List<AnalyticsTablePartition> getTablePartitions() {
-    return tablePartitions;
   }
 
   // -------------------------------------------------------------------------

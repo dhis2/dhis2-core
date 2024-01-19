@@ -130,9 +130,9 @@ class AnalyticsSqlUtilsTest {
 
   @Test
   void testGetCollate() {
-    assertEquals(" collate \"Posix\" ", AnalyticsSqlUtils.getCollate("Posix"));
-    assertEquals("", AnalyticsSqlUtils.getCollate(null));
-    assertEquals("", AnalyticsSqlUtils.getCollate(""));
-    assertEquals("", AnalyticsSqlUtils.getCollate(" "));
+    assertEquals(" collate \"Posix\" ", AnalyticsSqlUtils.getCollation("Posix"));
+    assertEquals("", AnalyticsSqlUtils.getCollation(null));
+    assertEquals("", AnalyticsSqlUtils.getCollation(""));
+    assertEquals("", AnalyticsSqlUtils.getCollation(" "));
   }
 }

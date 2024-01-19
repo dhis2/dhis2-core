@@ -44,9 +44,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.AnalyticsTableExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -98,7 +98,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
       DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       JdbcConfiguration jdbcConfiguration,
-      AnalyticsExportSettings analyticsExportSettings,
+      AnalyticsTableExportSettings analyticsExportSettings,
       PeriodDataProvider periodDataProvider) {
     super(
         idObjectManager,
@@ -282,8 +282,8 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
   private List<AnalyticsTableColumn> getDimensionColumns() {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-    columns.addAll(addOrganisationUnitLevels());
-    columns.addAll(addOrganisationUnitGroupSets());
+    columns.addAll(getOrganisationUnitLevelColumns());
+    columns.addAll(getOrganisationUnitGroupSetColumns());
 
     columns.addAll(getFixedColumns());
 

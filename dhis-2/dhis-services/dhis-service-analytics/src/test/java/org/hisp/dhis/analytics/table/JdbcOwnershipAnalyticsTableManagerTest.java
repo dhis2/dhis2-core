@@ -59,9 +59,9 @@ import java.util.List;
 import java.util.Map;
 import javax.sql.DataSource;
 import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.AnalyticsTableExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -125,7 +125,7 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
 
   @Mock private JdbcOwnershipWriter writer;
 
-  @Mock private AnalyticsExportSettings analyticsExportSettings;
+  @Mock private AnalyticsTableExportSettings analyticsExportSettings;
 
   @Mock private PeriodDataProvider periodDataProvider;
 
