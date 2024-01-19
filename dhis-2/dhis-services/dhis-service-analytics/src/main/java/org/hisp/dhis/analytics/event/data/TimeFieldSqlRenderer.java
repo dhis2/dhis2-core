@@ -51,8 +51,8 @@ import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.jdbc.PostgreSqlStatementBuilder;
 import org.hisp.dhis.jdbc.StatementBuilder;
-import org.hisp.dhis.jdbc.statementbuilder.PostgreSqlStatementBuilder;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 
