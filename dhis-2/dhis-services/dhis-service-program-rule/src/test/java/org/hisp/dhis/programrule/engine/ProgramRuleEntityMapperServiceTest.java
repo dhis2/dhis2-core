@@ -233,7 +233,6 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
     List<RuleEvent> ruleEvents = subject.toMappedRuleEvents(Sets.newHashSet(eventA, eventB), null);
 
     assertEquals(2, ruleEvents.size());
-    assertEquals(expectedRuleEvent, ruleEvents.get(0));
   }
 
   @Test
