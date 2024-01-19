@@ -27,21 +27,18 @@
  */
 package org.hisp.dhis.analytics;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 /**
  * Represents SQL functions that can be used by indexes.
  *
  * @author maikel arabori
  */
+@Getter
+@RequiredArgsConstructor
 public enum IndexFunction {
   LOWER("lower");
 
   private final String value;
-
-  IndexFunction(final String value) {
-    this.value = value;
-  }
-
-  public String value() {
-    return value;
-  }
 }

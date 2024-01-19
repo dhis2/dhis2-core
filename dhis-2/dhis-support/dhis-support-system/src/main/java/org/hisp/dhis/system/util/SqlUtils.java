@@ -57,7 +57,7 @@ public class SqlUtils {
    * @return the quoted relation.
    */
   public static String quote(String relation) {
-    String rel = relation.replaceAll(QUOTE, (QUOTE + QUOTE));
+    String rel = relation.replace(QUOTE, (QUOTE + QUOTE));
 
     return QUOTE + rel + QUOTE;
   }

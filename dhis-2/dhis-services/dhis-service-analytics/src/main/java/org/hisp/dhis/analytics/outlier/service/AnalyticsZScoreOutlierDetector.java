@@ -37,7 +37,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.OutlierDetectionAlgorithm;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.outlier.OutlierSqlStatementProcessor;
@@ -61,7 +60,6 @@ import org.springframework.stereotype.Repository;
  * the modified z-score uses the median as middle value or more mathematically correct as the
  * <em>measure of central tendency</em>.
  */
-@Slf4j
 @Repository
 @RequiredArgsConstructor
 public class AnalyticsZScoreOutlierDetector {

@@ -105,7 +105,7 @@ public class AnalyticsIndexHelper {
         + index.getTable()
         + " "
         + "using "
-        + index.getType().keyword()
+        + index.getType().getKeyword()
         + " ("
         + indexColumns
         + ");";
@@ -161,7 +161,7 @@ public class AnalyticsIndexHelper {
    */
   private static String maybeApplyFunctionToIndex(AnalyticsIndex index, String indexColumns) {
     if (index.hasFunction()) {
-      return index.getFunction().value() + "(" + indexColumns + ")";
+      return index.getFunction().getValue() + "(" + indexColumns + ")";
     }
 
     return indexColumns;
@@ -215,7 +215,7 @@ public class AnalyticsIndexHelper {
    */
   private static String maybeSuffixIndexName(AnalyticsIndex index, String indexName) {
     if (index.hasFunction()) {
-      return indexName + "_" + index.getFunction().value();
+      return indexName + "_" + index.getFunction().getValue();
     }
 
     return indexName;
