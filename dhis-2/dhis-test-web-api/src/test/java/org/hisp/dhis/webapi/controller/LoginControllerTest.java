@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,34 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security;
+package org.hisp.dhis.webapi.controller;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.io.IOException;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@NoArgsConstructor
-@AllArgsConstructor
-@Getter
-@Builder
-public class LoginConfigResponse {
+class LoginControllerTest extends DhisControllerIntegrationTest {
 
-  @JsonProperty private String applicationTitle;
-  @JsonProperty private String applicationDescription;
-  @JsonProperty private String applicationNotification;
-  @JsonProperty private String applicationLeftSideFooter;
-  @JsonProperty private String applicationRightSideFooter;
-  @JsonProperty private String countryFlag;
-  @JsonProperty private String uiLocale;
-  @JsonProperty private String loginPageLogo;
-  @JsonProperty private String topMenuLogo;
-  @JsonProperty private String style;
-  @JsonProperty private boolean emailConfigured;
-  @JsonProperty private boolean selfRegistrationEnabled;
-  @JsonProperty private boolean selfRegistrationNoRecaptcha;
+  private static final String iconKey = "iconKey";
+
+  @Test
+  void shouldGetLoginConfig() throws IOException {
+    JsonObject response = GET("/loginConfig").content();
+    assertEquals("DHIS 2", response.getString("applicationTitle").string());
+    assertEquals("en", response.getString("uiLocale").string());
+  }
+
+  @Test
+  void shouldNotGetValidLoginConfigKey() throws IOException {
+    JsonObject response = GET(String.format("/loginConfig/%s", "applicationTitle")).content();
+    assertEquals(iconKey, response.getString("key").string());
+  }
+
+  @Test
+  void shouldNotGetInvalidLoginConfigKey() throws IOException {
+    JsonObject response = GET(String.format("/loginConfig/%s", "not_a_valid_key")).content();
+    assertEquals(iconKey, response.getString("key").string());
+  }
 }

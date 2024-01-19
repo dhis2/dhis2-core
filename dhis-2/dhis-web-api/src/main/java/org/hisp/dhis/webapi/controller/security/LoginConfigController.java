@@ -1,5 +1,36 @@
+/*
+ * Copyright (c) 2004-2024, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.webapi.controller.security;
 
+import java.util.EnumSet;
+import java.util.Locale;
+import java.util.Optional;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
@@ -28,21 +59,21 @@ public class LoginConfigController {
   private final SystemSettingManager manager;
   private final ConfigurationService configurationService;
 
+  @Getter
   private enum KEYS {
     APPLICATION_TITLE("applicationTitle"),
     APPLICATION_INTRO("applicationDescription"),
-    APPLICATION_RIGHT_FOOTER(""),
-    APPLICATION_FOOTER(""),
-    APPLICATION_NOTIFICATION(""),
-    FLAG_IMAGE(""),
-    CUSTOM_LOGIN_PAGE_LOGO(""),
-    STYLE(""),
-    CUSTOM_TOP_MENU_LOGO(""),
-    SYSTEM_NOTIFICATIONS_EMAIL(""),
-    SELF_REGISTRATION_NO_RECAPTCHA(""),
-    UI_LOCALE("");
+    APPLICATION_NOTIFICATION("applicationNotification"),
+    APPLICATION_FOOTER("applicationLeftSideFooter"),
+    APPLICATION_RIGHT_FOOTER("applicationRightSideFooter"),
+    FLAG_IMAGE("countryFlag"),
+    UI_LOCALE("uiLocale"),
+    CUSTOM_LOGIN_PAGE_LOGO("loginPageLogo"),
+    CUSTOM_TOP_MENU_LOGO("topMenuLogo"),
+    STYLE("style"),
+    SELF_REGISTRATION_NO_RECAPTCHA("selfRegistrationNoRecaptcha");
 
-    private String keyName;
+    private final String keyName;
 
     KEYS(String keyName) {
       this.keyName = keyName;
@@ -69,13 +100,14 @@ public class LoginConfigController {
 
     builder.countryFlag(manager.getStringSetting(SettingKey.valueOf(KEYS.FLAG_IMAGE.name())));
 
-    builder.uiLocale(manager.getStringSetting(SettingKey.valueOf(KEYS.UI_LOCALE.name())));
+    builder.uiLocale(
+        manager
+            .getSystemSetting(SettingKey.valueOf(KEYS.UI_LOCALE.name()), Locale.class)
+            .getLanguage());
 
-    builder.loginPageLogo(
-        manager.getStringSetting(SettingKey.valueOf(KEYS.CUSTOM_LOGIN_PAGE_LOGO.name())));
+    builder.loginPageLogo("logo.png");
 
-    builder.topMenuLogo(
-        manager.getStringSetting(SettingKey.valueOf(KEYS.CUSTOM_TOP_MENU_LOGO.name())));
+    builder.topMenuLogo("toppagelogo.png");
 
     builder.style(manager.getStringSetting(SettingKey.valueOf(KEYS.STYLE.name())));
 
@@ -92,7 +124,15 @@ public class LoginConfigController {
 
   @GetMapping("/{configKey}")
   public @ResponseBody String getConfigKey(@PathVariable String configKey) {
-    KEYS validKey = KEYS.valueOf(configKey);
-    return manager.getStringSetting(SettingKey.valueOf(validKey.name()));
+    Optional<KEYS> validKey =
+        EnumSet.allOf(KEYS.class).stream()
+            .filter((e -> e.getKeyName().equals(configKey)))
+            .findFirst();
+
+    if (validKey.isPresent()) {
+      return manager.getStringSetting(SettingKey.valueOf(validKey.get().name()));
+    }
+
+    throw new IllegalArgumentException("Not a valid login config key");
   }
 }
