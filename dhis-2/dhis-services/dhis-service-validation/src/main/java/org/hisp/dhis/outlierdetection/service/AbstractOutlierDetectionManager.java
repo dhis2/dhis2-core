@@ -35,7 +35,6 @@ import static org.hisp.dhis.period.PeriodType.getIsoPeriod;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutlierValue;
@@ -49,7 +48,6 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
  * Manager for database queries related to outlier data detection (Z-Score, modified Z-Score,
  * Min-Max values).
  */
-@Slf4j
 public abstract class AbstractOutlierDetectionManager {
   private final NamedParameterJdbcTemplate jdbcTemplate;
   private final OutlierSqlStatementProcessor sqlStatementProcessor;
