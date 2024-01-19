@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.programrule.engine;
 
-public class RuleActionKeys {
+public class RuleActionKey {
+
+  private RuleActionKey() {}
+
   public static final String CONTENT = "content";
   public static final String FIELD = "field";
   public static final String ATTRIBUTE_TYPE = "attributeType";

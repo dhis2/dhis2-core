@@ -28,7 +28,7 @@
 package org.hisp.dhis.programrule.engine;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.programrule.engine.RuleActionKeys.NOTIFICATION;
+import static org.hisp.dhis.programrule.engine.RuleActionKey.NOTIFICATION;
 
 import java.util.Date;
 import lombok.RequiredArgsConstructor;

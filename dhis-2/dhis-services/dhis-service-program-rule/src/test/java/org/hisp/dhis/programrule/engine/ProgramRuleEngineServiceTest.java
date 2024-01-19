@@ -28,7 +28,7 @@
 package org.hisp.dhis.programrule.engine;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.SYSTEM_PROGRAM_RULE_SERVER_EXECUTION;
-import static org.hisp.dhis.programrule.engine.RuleActionKeys.NOTIFICATION;
+import static org.hisp.dhis.programrule.engine.RuleActionKey.NOTIFICATION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
