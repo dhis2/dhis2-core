@@ -184,7 +184,7 @@ public class ProgramRuleEngine {
   public RuleValidationResult getDescription(String condition, Program program) {
     if (program == null) {
       log.error(ERROR);
-      return new RuleValidationResult(false, ERROR);
+      return RuleValidationResult.invalid(ERROR);
     }
 
     return ruleEngine.validate(
