@@ -28,6 +28,7 @@
 package org.hisp.dhis.db.model;
 
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -42,15 +43,25 @@ public class Column
     /**
      * Column name.
      */
+    @NonNull
     private final String name;
 
     /**
      * Column data type.
      */
+    @NonNull
     private final DataType dataType;
 
     /**
      * Column not null constraint.
      */
-    private final boolean notNull = false;
+    @NonNull
+    private final Nullable nullable;
+
+    public Column( String name, DataType dataType )
+    {
+        this.name = name;
+        this.dataType = dataType;
+        this.nullable = Nullable.NULL;
+    }
 }

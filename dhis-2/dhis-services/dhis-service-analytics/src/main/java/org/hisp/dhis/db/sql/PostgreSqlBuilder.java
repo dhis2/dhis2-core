@@ -32,6 +32,7 @@ import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Index;
+import org.hisp.dhis.db.model.Nullable;
 import org.hisp.dhis.db.model.Table;
 
 public class PostgreSqlBuilder
@@ -166,7 +167,9 @@ public class PostgreSqlBuilder
     @Override
     public String createTable( Table table )
     {
-        String sql = "create table " + quote( table.getName() ) + " ";
+        String unlogged = table.isUnlogged() ? "unlogged " : "";
+
+        String sql = "create " + unlogged + "table " + quote( table.getName() ) + " ";
 
         // Columns
 
@@ -174,7 +177,7 @@ public class PostgreSqlBuilder
         {
             String dataType = getDataTypeName( column.getDataType() );
 
-            String nullable = column.isNotNull() ? "not null" : "null";
+            String nullable = column.getNullable() == Nullable.NOT_NULL ? "not null" : "null";
 
             sql += quote( column.getName() ) + " " + dataType + " " + nullable + ",";
         }

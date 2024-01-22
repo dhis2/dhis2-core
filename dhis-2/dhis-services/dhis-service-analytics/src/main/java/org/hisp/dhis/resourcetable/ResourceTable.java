@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.db.model.Table;
 
 /**
  * @author Lars Helge Overland
@@ -101,6 +102,13 @@ public abstract class ResourceTable<T>
     // -------------------------------------------------------------------------
     // Abstract methods
     // -------------------------------------------------------------------------
+
+    /**
+     * Returns the resource table as a {@link Table}.
+     * 
+     * @return the resource table as a {@link Table}.
+     */
+    public abstract Table getTable();
 
     /**
      * Returns the {@link ResourceTableType} of this resource table.

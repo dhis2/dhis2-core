@@ -1,9 +1,9 @@
 package org.hisp.dhis.db.model;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -18,16 +18,19 @@ public class Index
     /**
      * Index name.
      */
+    @NonNull
     private final String name;
 
     /**
      * Index type, defaults to {@link IndexType.BTREE}.
      */
+    @NonNull
     private final IndexType indexType = IndexType.BTREE;
 
     /**
      * The name of the table to apply the index to.
      */
+    @NonNull
     private final String tableName;
 
     /**
@@ -38,5 +41,6 @@ public class Index
     /**
      * Index column names.
      */
-    private final List<String> columns = new ArrayList<>();
+    @NonNull
+    private final List<String> columns;
 }

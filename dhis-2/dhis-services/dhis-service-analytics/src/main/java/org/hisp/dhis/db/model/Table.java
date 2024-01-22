@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.db.model;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -45,22 +45,25 @@ public class Table
     /**
      * Table name. Required.
      */
+    @NonNull
     private final String name;
 
     /**
      * Table columns. At least one column required.
      */
-    private final List<Column> columns = new ArrayList<>();
+    @NonNull
+    private final List<Column> columns;
 
     /**
      * Table primary key column name(s).
      */
-    private final List<String> primaryKey = new ArrayList<>();
+    @NonNull
+    private final List<String> primaryKey;
 
     /**
-     * Whether table is logged. PostgreSQL-only feature.
+     * Whether table is unlogged. PostgreSQL-only feature.
      */
-    private boolean logged;
+    private final boolean unlogged;
 
     /**
      * Whether the table has a primary key.
