@@ -34,7 +34,6 @@ import org.hisp.dhis.db.model.Table;
 
 public class PostgreSqlBuilder
     extends AbstractSqlBuilder
-    implements SqlBuilder
 {
     @Override
     public String typeSmallInt()
@@ -79,9 +78,9 @@ public class PostgreSqlBuilder
     }
 
     @Override
-    public String typeChar()
+    public String typeCharacter( int length )
     {
-        return "char";
+        return String.format( "char(%d)", length );
     }
 
     @Override
@@ -130,6 +129,12 @@ public class PostgreSqlBuilder
     public String typeGeometry()
     {
         return "geometry";
+    }
+
+    @Override
+    public String typeGeometryPoint()
+    {
+        return "geometry(Point, 4326)";
     }
 
     @Override

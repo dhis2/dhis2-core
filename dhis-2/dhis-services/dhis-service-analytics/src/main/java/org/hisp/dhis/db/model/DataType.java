@@ -29,6 +29,13 @@ package org.hisp.dhis.db.model;
 
 public enum DataType
 {
+    SMALLINT,
+    BIGINT,
+    INTEGER,
+    NUMERIC,
+    REAL,
+    DOUBLE,
+    BOOLEAN,
     CHARACTER_11,
     CHARACTER_32,
     VARCHAR_50,
@@ -37,12 +44,9 @@ public enum DataType
     TEXT,
     DATE,
     TIMESTAMP,
-    INTEGER,
-    SMALLINT,
-    BIGINT,
-    DOUBLE,
-    NUMERIC,
-    BOOLEAN,
+    TIMESTAMPTZ,
+    TIME,
+    TIMETZ,
     GEOMETRY,
     GEOMETRY_POINT,
     JSONB;

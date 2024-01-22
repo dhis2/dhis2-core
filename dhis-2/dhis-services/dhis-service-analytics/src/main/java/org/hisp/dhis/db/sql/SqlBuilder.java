@@ -45,7 +45,7 @@ public interface SqlBuilder
 
     String typeBoolean();
 
-    String typeChar();
+    String typeCharacter( int length );
 
     String typeVarchar( int length );
 
@@ -62,6 +62,8 @@ public interface SqlBuilder
     String typeTimeTz();
 
     String typeGeometry();
+
+    String typeGeometryPoint();
 
     String typeJsonb();
 
