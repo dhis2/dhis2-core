@@ -34,9 +34,18 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class Column
 {
+    /**
+     * Column name.
+     */
     private final String name;
 
+    /**
+     * Column data type.
+     */
     private final DataType dataType;
 
+    /**
+     * Column not null constraint.
+     */
     private final boolean notNull = false;
 }
