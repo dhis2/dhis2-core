@@ -38,6 +38,11 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.db.model.Column;
+import org.hisp.dhis.db.model.DataType;
+import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.model.Nullable;
+import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
@@ -60,6 +65,18 @@ public class DataSetOrganisationUnitCategoryResourceTable extends ResourceTable<
         super( objects );
         this.defaultOptionCombo = defaultOptionCombo;
         this.tableType = tableType;
+    }
+
+    @Override
+    public Table getTable()
+    {
+        List<Column> columns = List.of(
+            new Column( "", DataType.BIGINT, Nullable.NOT_NULL ),
+            new Column( "", DataType.BIGINT, Nullable.NOT_NULL ) );
+
+        List<String> primaryKey = List.of( "" );
+
+        return new Table( "", columns, primaryKey, Logged.UNLOGGED );
     }
 
     @Override
