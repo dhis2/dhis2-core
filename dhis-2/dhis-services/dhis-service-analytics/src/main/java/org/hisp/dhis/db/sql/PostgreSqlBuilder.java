@@ -31,6 +31,7 @@ import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import org.hisp.dhis.db.model.Column;
+import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 
 public class PostgreSqlBuilder
@@ -235,5 +236,11 @@ public class PostgreSqlBuilder
     public String dropTableIfExists( Table table )
     {
         return String.format( "drop table if exists %s", quote( table.getName() ) );
+    }
+
+    @Override
+    public String createIndex( Index index )
+    {
+        return ""; //TODO
     }
 }

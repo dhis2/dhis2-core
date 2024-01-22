@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.db.sql;
 
+import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 
 public interface SqlBuilder
@@ -181,4 +182,10 @@ public interface SqlBuilder
      * @return a drop table if exists statement.
      */
     String dropTableIfExists( Table table );
+
+    /**
+     * @param index the {@link Index}.
+     * @return a create index statement.
+     */
+    String createIndex( Index index );
 }
