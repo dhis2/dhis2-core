@@ -33,6 +33,7 @@ import java.util.Optional;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
+import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Nullable;
 import org.hisp.dhis.db.model.Table;
@@ -66,6 +67,12 @@ public class CategoryOptionComboResourceTable extends ResourceTable<CategoryOpti
         List<String> primaryKey = List.of( "" );
 
         return new Table( "", columns, primaryKey, Logged.UNLOGGED );
+    }
+
+    @Override
+    public List<Index> getIndexes()
+    {
+        return List.of();
     }
 
     @Override

@@ -33,6 +33,7 @@ import java.util.Optional;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
+import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Nullable;
 import org.hisp.dhis.db.model.Table;
@@ -72,6 +73,12 @@ public class DataApprovalMinLevelResourceTable extends ResourceTable<Organisatio
             "organisationunitid" );
 
         return new Table( "_dataapprovalminlevel", columns, primaryKey, Logged.UNLOGGED );
+    }
+
+    @Override
+    public List<Index> getIndexes()
+    {
+        return List.of();
     }
 
     @Override

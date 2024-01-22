@@ -35,6 +35,7 @@ import java.util.Optional;
 
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
+import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Nullable;
 import org.hisp.dhis.db.model.Table;
@@ -79,6 +80,12 @@ public class OrganisationUnitGroupSetResourceTable extends ResourceTable<Organis
         List<String> primaryKey = List.of( "organisationunitid" );
 
         return new Table( "_organisationunitgroupsetstructure", columns, primaryKey, Logged.UNLOGGED );
+    }
+
+    @Override
+    public List<Index> getIndexes()
+    {
+        return List.of();
     }
 
     @Override

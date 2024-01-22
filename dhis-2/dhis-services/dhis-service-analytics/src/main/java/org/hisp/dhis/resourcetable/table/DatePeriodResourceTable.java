@@ -39,6 +39,7 @@ import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
+import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Nullable;
 import org.hisp.dhis.db.model.Table;
@@ -83,6 +84,12 @@ public class DatePeriodResourceTable extends ResourceTable<Integer>
         }
 
         return new Table( "_dateperiodstructure", columns, List.of(), Logged.UNLOGGED );
+    }
+
+    @Override
+    public List<Index> getIndexes()
+    {
+        return List.of();
     }
 
     @Override

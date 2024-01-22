@@ -33,6 +33,7 @@ import java.util.Optional;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
+import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Nullable;
 import org.hisp.dhis.db.model.Table;
@@ -80,6 +81,12 @@ public class DataApprovalRemapLevelResourceTable extends ResourceTable<DataAppro
         List<String> primaryKey = List.of( "workflowid", "dataapprovallevelid" );
 
         return new Table( "_dataapprovalremaplevel", columns, primaryKey, Logged.UNLOGGED );
+    }
+
+    @Override
+    public List<Index> getIndexes()
+    {
+        return List.of();
     }
 
     @Override

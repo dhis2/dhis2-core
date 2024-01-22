@@ -40,6 +40,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
+import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Nullable;
 import org.hisp.dhis.db.model.Table;
@@ -78,6 +79,12 @@ public class DataSetOrganisationUnitCategoryResourceTable extends ResourceTable<
             new Column( "coenddate", DataType.DATE ) );
 
         return new Table( "_datasetorganisationunitcategory", columns, List.of(), Logged.UNLOGGED );
+    }
+
+    @Override
+    public List<Index> getIndexes()
+    {
+        return List.of();
     }
 
     @Override
