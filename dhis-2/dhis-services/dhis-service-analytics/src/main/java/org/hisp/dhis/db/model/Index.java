@@ -48,7 +48,7 @@ public class Index
 
     /** Index type, defaults to {@link IndexType.BTREE}. */
     @NonNull
-    private final IndexType indexType = IndexType.BTREE;
+    private final IndexType indexType;
 
     /** The name of the table to apply the index to. */
     @NonNull
@@ -60,4 +60,13 @@ public class Index
     /** Index column names. */
     @NonNull
     private final List<String> columns;
+
+    public Index( String name, String tableName, List<String> columns )
+    {
+        this.name = name;
+        this.indexType = IndexType.BTREE;
+        this.tableName = tableName;
+        this.unique = false;
+        this.columns = columns;
+    }
 }
