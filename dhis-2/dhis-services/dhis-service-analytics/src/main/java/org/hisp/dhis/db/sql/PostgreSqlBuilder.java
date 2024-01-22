@@ -32,6 +32,7 @@ import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Index;
+import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Nullable;
 import org.hisp.dhis.db.model.Table;
 
@@ -167,7 +168,7 @@ public class PostgreSqlBuilder
     @Override
     public String createTable( Table table )
     {
-        String unlogged = table.isUnlogged() ? "unlogged " : "";
+        String unlogged = table.getLogged() == Logged.UNLOGGED ? "unlogged " : "";
 
         String sql = "create " + unlogged + "table " + quote( table.getName() ) + " ";
 

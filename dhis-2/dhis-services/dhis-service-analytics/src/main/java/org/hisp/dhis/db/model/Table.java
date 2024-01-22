@@ -61,9 +61,10 @@ public class Table
     private final List<String> primaryKey;
 
     /**
-     * Whether table is unlogged. PostgreSQL-only feature.
+     * Whether table is logged or unlogged. PostgreSQL-only feature.
      */
-    private final boolean unlogged;
+    @NonNull
+    private final Logged logged;
 
     /**
      * Whether the table has a primary key.
