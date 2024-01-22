@@ -33,6 +33,7 @@ import java.sql.SQLException;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.CodeGenerator;
 import org.springframework.util.Assert;
 
 import com.google.common.collect.Sets;
@@ -124,6 +125,18 @@ public class SqlUtils
         }
 
         return quote ? (SINGLE_QUOTE + value + SINGLE_QUOTE) : value;
+    }
+
+    /**
+     * Appends an underscore and five character random suffix to the given
+     * relation.
+     * 
+     * @param relation the relation.
+     * @return the appended relation.
+     */
+    public static String appendRandom( String relation )
+    {
+        return String.format( "%s_%s", relation, CodeGenerator.generateCode( 5 ) );
     }
 
     /**
