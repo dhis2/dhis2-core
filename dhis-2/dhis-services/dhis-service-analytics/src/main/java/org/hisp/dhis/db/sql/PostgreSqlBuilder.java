@@ -218,4 +218,9 @@ public class PostgreSqlBuilder
             """, table.getName() );
     }
 
+    public String dropTable( Table table )
+    {
+        return String.format( "drop table %s", quote( table.getName() ) );
+    }
+
 }

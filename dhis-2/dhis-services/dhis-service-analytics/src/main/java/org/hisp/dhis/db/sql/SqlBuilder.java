@@ -33,53 +33,139 @@ public interface SqlBuilder
 {
     // Data types
 
+    /**
+     * @return the name of the small integer data type.
+     */
     String typeSmallInt();
 
+    /**
+     * @return the name of the integer data type.
+     */
     String typeInteger();
 
+    /**
+     * @return the name of the big integer data type.
+     */
     String typeBigInt();
 
+    /**
+     * @return the name of the numeric data type.
+     */
     String typeNumeric();
 
+    /**
+     * @return the name of the real data type.
+     */
     String typeReal();
 
+    /**
+     * @return the name of the double data type.
+     */
     String typeDouble();
 
+    /**
+     * @return the name of the boolean data type.
+     */
     String typeBoolean();
 
+    /**
+     * @param length the character length.
+     * @return the name of the character data type.
+     */
     String typeCharacter( int length );
 
+    /**
+     * @param length the character length.
+     * @return the name of the character varying data type.
+     */
     String typeVarchar( int length );
 
+    /**
+     * @return the name of the text data type.
+     */
     String typeText();
 
+    /**
+     * @return the name of the date data type.
+     */
     String typeDate();
 
+    /**
+     * @return the name of the timestamp data type.
+     */
     String typeTimestamp();
 
+    /**
+     * @return the name of the timestamp with time zone data type.
+     */
     String typeTimestampTz();
 
+    /**
+     * @return the name of the time data type.
+     */
     String typeTime();
 
+    /**
+     * @return the name of the time with time zone data type.
+     */
     String typeTimeTz();
 
+    /**
+     * @return the name of the geometry data type.
+     */
     String typeGeometry();
 
+    /**
+     * @return the name of the geometry point data type.
+     */
     String typeGeometryPoint();
 
+    /**
+     * @return the name of the JSONB data type.
+     */
     String typeJsonb();
 
     // Capabilities
 
+    /**
+     * @return true if the DBMS supports table analysis.
+     */
     boolean supportsAnalyze();
 
+    /**
+     * @return true if the DBMS supports table vacuuming.
+     */
     boolean supportsVacuum();
 
     // Statements
 
+    /**
+     * @param table the {@link Table}.
+     * @return a create table statement.
+     */
     String createTable( Table table );
 
+    /**
+     * @param table the {@link Table}.
+     * @return an analyze table statement.
+     */
     String analyzeTable( Table table );
 
+    /**
+     * @param table the {@link Table}.
+     * @return a vacuum table statement.
+     */
     String vacuumTable( Table table );
+
+    /**
+     * @param table the {@link Table}.
+     * @return a query which will return a single row if the table exists.
+     */
+    String tableExists( Table table );
+
+    /**
+     * @param table the {@link Table}.
+     * @return a drop table statement.
+     */
+    String dropTable( Table table );
 }
