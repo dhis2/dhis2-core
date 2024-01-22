@@ -28,7 +28,7 @@
 package org.hisp.dhis.analytics.common.processing;
 
 import static java.util.Collections.emptySet;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.joinWith;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
@@ -149,6 +149,14 @@ public class MetadataParamsHandler {
     }
   }
 
+  /**
+   * Adds an extra entry to metadata items if needed, i.e. if the dimension identifier is a date
+   * dimension which supports custom labels (enrollmentdate, incidentdate, executiondate) and for
+   * any specified dimension identifier that has a prefix.
+   *
+   * @param dimensionIdentifier the dimension identifier
+   * @param items the metadata items
+   */
   private void addDimensionIdentifierToItemsIfNeeded(
       DimensionIdentifier<DimensionParam> dimensionIdentifier, Map<String, Object> items) {
 
@@ -168,6 +176,13 @@ public class MetadataParamsHandler {
             .collect(Collectors.toMap(Entry::getKey, Entry::getValue)));
   }
 
+  /**
+   * Returns the custom label for the given dimension identifier. Dimension identifier is a date
+   * dimension which supports custom labels (enrollmentdate, incidentdate, executiondate)
+   *
+   * @param dimensionIdentifier the dimension identifier
+   * @return the custom label
+   */
   private MetadataItem getCustomLabel(DimensionIdentifier<DimensionParam> dimensionIdentifier) {
     return new MetadataItem(
         STATIC_DIMENSION_MAPPER.entrySet().stream()
@@ -176,14 +191,10 @@ public class MetadataParamsHandler {
             .findFirst()
             .map(
                 entry ->
-                    getIfNotBlankOrElse(
+                    defaultIfBlank(
                         entry.getValue().apply(dimensionIdentifier),
                         entry.getKey().getHeaderColumnName()))
             .orElse(null));
-  }
-
-  private String getIfNotBlankOrElse(String value, String headerColumnName) {
-    return isNotBlank(value) ? value : headerColumnName;
   }
 
   private boolean supportsCustomLabel(DimensionIdentifier<DimensionParam> dimensionIdentifier) {

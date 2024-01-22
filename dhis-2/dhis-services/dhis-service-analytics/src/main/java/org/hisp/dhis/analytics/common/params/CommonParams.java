@@ -214,9 +214,9 @@ public class CommonParams {
   }
 
   /**
-   * gets all dimension identifiers, including parsed headers and order parameters, and removes
-   * duplicates (by getting the first element of each group) Shouldn't be used when the order of the
-   * dimension identifiers is important or when access to dimension identifiers restrictions is
+   * Gets all dimension identifiers, including parsed headers and order parameters, and removes
+   * duplicates (by getting the first element of each group). Shouldn't be used when the order of
+   * the dimension identifiers is important or when access to dimension identifiers restrictions is
    * needed
    *
    * @return the list of dimension identifiers
