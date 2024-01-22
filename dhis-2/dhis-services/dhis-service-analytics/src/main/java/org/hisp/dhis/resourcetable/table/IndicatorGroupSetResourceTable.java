@@ -56,7 +56,6 @@ public class IndicatorGroupSetResourceTable extends ResourceTable<IndicatorGroup
 
     public IndicatorGroupSetResourceTable( List<IndicatorGroupSet> groupSets, String parameters )
     {
-        super( groupSets );
         this.groupSets = groupSets;
         this.parameters = parameters;
     }

@@ -57,12 +57,13 @@ import com.beust.jcommander.internal.Lists;
  */
 public class DatePeriodResourceTable extends ResourceTable<Integer>
 {
+    private final List<Integer> years;
+
     private final String parameters;
 
     public DatePeriodResourceTable( List<Integer> years, String parameters )
     {
-        super( years );
-        //TODO years not in use, should be fixed
+        this.years = years;
         this.parameters = parameters;
     }
 
@@ -125,8 +126,8 @@ public class DatePeriodResourceTable extends ResourceTable<Integer>
 
         List<Object[]> batchArgs = new ArrayList<>();
 
-        int firstYearSupported = objects.get( 0 );
-        int lastYearSupported = objects.get( objects.size() - 1 );
+        int firstYearSupported = years.get( 0 );
+        int lastYearSupported = years.get( years.size() - 1 );
 
         Date startDate = new Cal( firstYearSupported, 1, 1, true ).time();
         Date endDate = new Cal( lastYearSupported + 1, 1, 1, true ).time();

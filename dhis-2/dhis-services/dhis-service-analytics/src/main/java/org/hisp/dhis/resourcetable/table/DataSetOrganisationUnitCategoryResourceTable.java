@@ -66,7 +66,6 @@ public class DataSetOrganisationUnitCategoryResourceTable extends ResourceTable<
     public DataSetOrganisationUnitCategoryResourceTable(
         List<DataSet> dataSets, CategoryOptionCombo defaultOptionCombo, String parameters )
     {
-        super( dataSets );
         this.dataSets = dataSets;
         this.defaultOptionCombo = defaultOptionCombo;
         this.parameters = parameters;

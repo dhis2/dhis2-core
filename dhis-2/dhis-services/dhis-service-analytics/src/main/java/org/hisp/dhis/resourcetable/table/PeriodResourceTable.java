@@ -68,7 +68,6 @@ public class PeriodResourceTable extends ResourceTable<Period>
 
     public PeriodResourceTable( List<Period> periods, String parameters )
     {
-        super( periods );
         this.periods = periods;
         this.parameters = parameters;
     }

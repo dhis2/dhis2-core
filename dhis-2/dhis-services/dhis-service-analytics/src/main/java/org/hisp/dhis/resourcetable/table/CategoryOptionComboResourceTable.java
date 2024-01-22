@@ -53,7 +53,6 @@ public class CategoryOptionComboResourceTable extends ResourceTable<CategoryOpti
 
     public CategoryOptionComboResourceTable( List<CategoryOptionCombo> categoryOptionCombos, String parameters )
     {
-        super( categoryOptionCombos );
         this.parameters = parameters;
     }
 

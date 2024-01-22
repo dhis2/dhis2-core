@@ -56,7 +56,6 @@ public class DataElementGroupSetResourceTable extends ResourceTable<DataElementG
 
     public DataElementGroupSetResourceTable( List<DataElementGroupSet> groupSets, String tableType )
     {
-        super( groupSets );
         this.groupSets = groupSets;
         this.tableType = tableType;
     }

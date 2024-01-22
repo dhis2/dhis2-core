@@ -33,21 +33,14 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 
+import lombok.NoArgsConstructor;
+
 /**
  * @author Lars Helge Overland
  */
+@NoArgsConstructor
 public abstract class ResourceTable<T> {
   protected static final String TEMP_TABLE_SUFFIX = "_temp";
-
-  protected List<T> objects;
-
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
-
-  protected ResourceTable(List<T> objects) {
-    this.objects = objects;
-  }
 
   // -------------------------------------------------------------------------
   // Public methods

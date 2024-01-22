@@ -55,7 +55,7 @@ import com.google.common.collect.Lists;
  */
 public class OrganisationUnitStructureResourceTable extends ResourceTable<OrganisationUnit>
 {
-    private final OrganisationUnitService organisationUnitService; // TODO nasty, avoid
+    private final OrganisationUnitService organisationUnitService; // TODO rewrite and avoid
 
     private final int organisationUnitLevels;
 
@@ -66,7 +66,6 @@ public class OrganisationUnitStructureResourceTable extends ResourceTable<Organi
         int organisationUnitLevels,
         String tableType )
     {
-        super( List.of() );
         this.organisationUnitService = organisationUnitService;
         this.organisationUnitLevels = organisationUnitLevels;
         this.tableType = tableType;

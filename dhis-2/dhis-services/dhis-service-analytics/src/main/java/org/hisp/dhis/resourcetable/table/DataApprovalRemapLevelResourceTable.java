@@ -66,7 +66,6 @@ public class DataApprovalRemapLevelResourceTable extends ResourceTable<DataAppro
 
     public DataApprovalRemapLevelResourceTable( List<DataApprovalWorkflow> workflows, String parameters )
     {
-        super( workflows );
         this.parameters = parameters;
     }
 

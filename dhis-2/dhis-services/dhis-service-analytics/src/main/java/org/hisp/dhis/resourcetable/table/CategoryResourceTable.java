@@ -61,7 +61,6 @@ public class CategoryResourceTable extends ResourceTable<Category>
     public CategoryResourceTable(
         List<Category> categories, List<CategoryOptionGroupSet> groupSets, String parameters )
     {
-        super( categories );
         this.categories = categories;
         this.groupSets = groupSets;
         this.parameters = parameters;

@@ -61,7 +61,6 @@ public class DataElementResourceTable extends ResourceTable<DataElement>
 
     public DataElementResourceTable( List<DataElement> dataElements, String parameters )
     {
-        super( dataElements );
         this.dataElements = dataElements;
         this.parameters = parameters;
     }

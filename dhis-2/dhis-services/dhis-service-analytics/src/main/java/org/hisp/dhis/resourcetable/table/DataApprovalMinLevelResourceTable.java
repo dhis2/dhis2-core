@@ -54,7 +54,6 @@ public class DataApprovalMinLevelResourceTable extends ResourceTable<Organisatio
 
     public DataApprovalMinLevelResourceTable( List<OrganisationUnitLevel> levels, String parameters )
     {
-        super( levels );
         this.levels = levels;
         this.parameters = parameters;
     }

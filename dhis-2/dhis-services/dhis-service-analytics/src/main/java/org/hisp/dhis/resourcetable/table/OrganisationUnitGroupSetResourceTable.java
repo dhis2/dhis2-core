@@ -62,7 +62,6 @@ public class OrganisationUnitGroupSetResourceTable extends ResourceTable<Organis
     public OrganisationUnitGroupSetResourceTable(
         List<OrganisationUnitGroupSet> groupSets, int organisationUnitLevels, String parameters )
     {
-        super( groupSets );
         this.groupSets = groupSets;
         this.organisationUnitLevels = organisationUnitLevels;
         this.parameters = parameters;
