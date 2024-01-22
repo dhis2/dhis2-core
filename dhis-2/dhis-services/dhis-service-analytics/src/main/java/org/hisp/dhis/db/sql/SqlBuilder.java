@@ -31,5 +31,39 @@ import org.hisp.dhis.db.model.Table;
 
 public interface SqlBuilder
 {
+    String typeSmallInt();
+
+    String typeInteger();
+
+    String typeBigInt();
+
+    String typeNumeric();
+
+    String typeReal();
+
+    String typeDouble();
+
+    String typeBoolean();
+
+    String typeChar();
+
+    String typeVarchar( int length );
+
+    String typeText();
+
+    String typeDate();
+
+    String typeTimestamp();
+
+    String typeTimestampTz();
+
+    String typeTime();
+
+    String typeTimeTz();
+
+    String typeGeometry();
+
+    String typeJsonb();
+
     String createTable( Table table );
 }

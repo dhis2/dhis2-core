@@ -33,8 +33,111 @@ import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Table;
 
 public class PostgreSqlBuilder
+    extends AbstractSqlBuilder
     implements SqlBuilder
 {
+    @Override
+    public String typeSmallInt()
+    {
+        return "smallint";
+    }
+
+    @Override
+    public String typeInteger()
+    {
+        return "integer";
+    }
+
+    @Override
+    public String typeBigInt()
+    {
+        return "bigint";
+    }
+
+    @Override
+    public String typeNumeric()
+    {
+        return "numeric(18,6)";
+    }
+
+    @Override
+    public String typeReal()
+    {
+        return "real";
+    }
+
+    @Override
+    public String typeDouble()
+    {
+        return "double precision";
+    }
+
+    @Override
+    public String typeBoolean()
+    {
+        return "boolean";
+    }
+
+    @Override
+    public String typeChar()
+    {
+        return "char";
+    }
+
+    @Override
+    public String typeVarchar( int length )
+    {
+        return String.format( "varchar(%d)", length );
+    }
+
+    @Override
+    public String typeText()
+    {
+        return "text";
+    }
+
+    @Override
+    public String typeDate()
+    {
+        return "date";
+    }
+
+    @Override
+    public String typeTimestamp()
+    {
+        return "timestamp";
+    }
+
+    @Override
+    public String typeTimestampTz()
+    {
+        return "timestamptz";
+    }
+
+    @Override
+    public String typeTime()
+    {
+        return "time";
+    }
+
+    @Override
+    public String typeTimeTz()
+    {
+        return "timetz";
+    }
+
+    @Override
+    public String typeGeometry()
+    {
+        return "geometry";
+    }
+
+    @Override
+    public String typeJsonb()
+    {
+        return "jsonb";
+    }
+
     @Override
     public String createTable( Table table )
     {

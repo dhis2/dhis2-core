@@ -32,10 +32,11 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public class Column {
-  private final String name;
+public class Column
+{
+    private final String name;
 
-  private final DataType dataType;
+    private final DataType dataType;
 
-  private final boolean notNull = false;
+    private final boolean notNull = false;
 }
