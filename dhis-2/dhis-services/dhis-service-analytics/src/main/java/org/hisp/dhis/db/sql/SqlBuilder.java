@@ -31,6 +31,8 @@ import org.hisp.dhis.db.model.Table;
 
 public interface SqlBuilder
 {
+    // Data types
+
     String typeSmallInt();
 
     String typeInteger();
@@ -67,5 +69,17 @@ public interface SqlBuilder
 
     String typeJsonb();
 
+    // Capabilities
+
+    boolean supportsAnalyze();
+
+    boolean supportsVacuum();
+
+    // Statements
+
     String createTable( Table table );
+
+    String analyzeTable( Table table );
+
+    String vacuumTable( Table table );
 }

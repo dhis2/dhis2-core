@@ -36,6 +36,8 @@ import org.hisp.dhis.db.model.Table;
 public class PostgreSqlBuilder
     extends AbstractSqlBuilder
 {
+    // Data types
+
     @Override
     public String typeSmallInt()
     {
@@ -144,6 +146,22 @@ public class PostgreSqlBuilder
         return "jsonb";
     }
 
+    // Capabilities
+
+    @Override
+    public boolean supportsAnalyze()
+    {
+        return true;
+    }
+
+    @Override
+    public boolean supportsVacuum()
+    {
+        return true;
+    }
+
+    // Statements
+
     @Override
     public String createTable( Table table )
     {
@@ -178,4 +196,26 @@ public class PostgreSqlBuilder
 
         return sql + ");";
     }
+
+    @Override
+    public String analyzeTable( Table table )
+    {
+        return String.format( "analyze %s;", quote( table.getName() ) );
+    }
+
+    @Override
+    public String vacuumTable( Table table )
+    {
+        return String.format( "vacuum %s;", quote( table.getName() ) );
+    }
+
+    public String tableExists( Table table )
+    {
+        return String.format( """
+            select * from information_schema.tables
+            where table_schema = 'public'
+            and table_name = '%s';
+            """, table.getName() );
+    }
+
 }
