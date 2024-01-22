@@ -58,8 +58,10 @@ public class CategoryOptionComboResourceTable extends ResourceTable<CategoryOpti
     public Table getTable()
     {
         List<Column> columns = List.of(
-            new Column( "", DataType.BIGINT, Nullable.NOT_NULL ),
-            new Column( "", DataType.BIGINT, Nullable.NOT_NULL ) );
+            new Column( "dataelementid", DataType.BIGINT, Nullable.NOT_NULL ),
+            new Column( "dataelementuid", DataType.CHARACTER_11, Nullable.NOT_NULL ),
+            new Column( "categoryoptioncomboid", DataType.BIGINT, Nullable.NOT_NULL ),
+            new Column( "categoryoptioncombouid", DataType.CHARACTER_11, Nullable.NOT_NULL ) );
 
         List<String> primaryKey = List.of( "" );
 
