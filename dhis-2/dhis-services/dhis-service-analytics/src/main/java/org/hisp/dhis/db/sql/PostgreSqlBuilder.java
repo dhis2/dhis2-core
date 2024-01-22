@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.db.sql;
 
+import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import org.hisp.dhis.db.model.Column;
@@ -148,11 +149,33 @@ public class PostgreSqlBuilder
     {
         String sql = "create table " + quote( table.getName() ) + " ";
 
+        // Columns
+
         for ( Column column : table.getColumns() )
         {
+            String dataType = getDataTypeName( column.getDataType() );
 
+            String nullable = column.isNotNull() ? "not null" : "null";
+
+            sql += quote( column.getName() ) + " " + dataType + " " + nullable + ",";
         }
 
-        return sql;
+        // Primary key
+
+        if ( table.hasPrimaryKey() )
+        {
+            sql += "primary key (";
+
+            for ( Column column : table.getPrimaryKey() )
+            {
+                sql += quote( column.getName() ) + ",";
+            }
+
+            sql = removeLastComma( sql ) + "),";
+        }
+
+        sql = removeLastComma( sql );
+
+        return sql + ");";
     }
 }

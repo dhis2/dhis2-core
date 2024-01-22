@@ -56,4 +56,12 @@ public class Table
      * Whether table is logged. PostgreSQL-only feature.
      */
     private boolean logged;
+
+    /**
+     * Whether the table has a primary key.
+     */
+    public boolean hasPrimaryKey()
+    {
+        return !primaryKey.isEmpty();
+    }
 }
