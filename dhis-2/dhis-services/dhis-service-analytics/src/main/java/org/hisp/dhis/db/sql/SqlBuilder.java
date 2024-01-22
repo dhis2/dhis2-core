@@ -25,17 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.db.model;
+package org.hisp.dhis.db.sql;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.db.model.Table;
 
-@Getter
-@RequiredArgsConstructor
-public class Column {
-  private final String name;
-
-  private final DataType dataType;
-
-  private final boolean notNull = false;
+public interface SqlBuilder
+{
+    String createTable( Table table );
 }

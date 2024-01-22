@@ -25,17 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.db.model;
+package org.hisp.dhis.db.sql;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 
-@Getter
-@RequiredArgsConstructor
-public class Column {
-  private final String name;
+import org.hisp.dhis.db.model.Table;
 
-  private final DataType dataType;
+public class PostgreSqlBuilder
+    implements SqlBuilder
+{
+    @Override
+    public String createTable( Table table )
+    {
+        String sql = "create table " + quote( table.getName() ) + " ";
 
-  private final boolean notNull = false;
+        return sql;
+    }
 }
