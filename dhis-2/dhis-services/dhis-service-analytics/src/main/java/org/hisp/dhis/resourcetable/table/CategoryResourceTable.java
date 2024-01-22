@@ -66,13 +66,27 @@ public class CategoryResourceTable extends ResourceTable<Category>
     @Override
     public Table getTable()
     {
-        List<Column> columns = List.of(
-            new Column( "", DataType.BIGINT, Nullable.NOT_NULL ),
-            new Column( "", DataType.BIGINT, Nullable.NOT_NULL ) );
+        List<Column> columns = Lists.newArrayList(
+            new Column( "categoryoptioncomboid", DataType.BIGINT, Nullable.NOT_NULL ),
+            new Column( "categoryoptioncomboname", DataType.VARCHAR_255 ) );
 
-        List<String> primaryKey = List.of( "" );
+        UniqueNameContext nameContext = new UniqueNameContext();
 
-        return new Table( "", columns, primaryKey, Logged.UNLOGGED );
+        for ( Category category : objects )
+        {
+            columns.add( new Column( nameContext.uniqueName( category.getShortName() ), DataType.VARCHAR_255 ) );
+            columns.add( new Column( category.getUid(), DataType.CHARACTER_11 ) );
+        }
+
+        for ( CategoryOptionGroupSet groupSet : groupSets )
+        {
+            columns.add( new Column( nameContext.uniqueName( groupSet.getShortName() ), DataType.VARCHAR_255 ) );
+            columns.add( new Column( groupSet.getUid(), DataType.CHARACTER_11 ) );
+        }
+
+        List<String> primaryKey = List.of( "categoryoptioncomboid" );
+
+        return new Table( "_categorystructure", columns, primaryKey, Logged.UNLOGGED );
     }
 
     @Override
