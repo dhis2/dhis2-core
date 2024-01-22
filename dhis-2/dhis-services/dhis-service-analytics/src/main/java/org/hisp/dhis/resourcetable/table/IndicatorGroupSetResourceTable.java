@@ -29,9 +29,9 @@ package org.hisp.dhis.resourcetable.table;
 
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 
-import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Optional;
+
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
@@ -43,117 +43,129 @@ import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
+import com.google.common.collect.Lists;
+
 /**
  * @author Lars Helge Overland
  */
-public class IndicatorGroupSetResourceTable extends ResourceTable<IndicatorGroupSet> {
-  private final String tableType;
+public class IndicatorGroupSetResourceTable extends ResourceTable<IndicatorGroupSet>
+{
+    private final List<IndicatorGroupSet> groupSets;
 
-  public IndicatorGroupSetResourceTable(List<IndicatorGroupSet> objects, String tableType) {
-    super(objects);
-    this.tableType = tableType;
-  }
+    private final String parameters;
 
-  @Override
-  public Table getTable() {
-    List<Column> columns =
-        Lists.newArrayList(
-            new Column("indicatorid", DataType.BIGINT, Nullable.NOT_NULL),
-            new Column("indicatorname", DataType.VARCHAR_255, Nullable.NOT_NULL));
-
-    for (IndicatorGroupSet groupSet : objects) {
-      columns.addAll(
-          List.of(
-              new Column(groupSet.getShortName(), DataType.VARCHAR_255),
-              new Column(groupSet.getUid(), DataType.CHARACTER_11)));
+    public IndicatorGroupSetResourceTable( List<IndicatorGroupSet> groupSets, String parameters )
+    {
+        super( groupSets );
+        this.groupSets = groupSets;
+        this.parameters = parameters;
     }
 
-    List<String> primaryKey = List.of("indicatorid");
+    @Override
+    public Table getTable()
+    {
+        List<Column> columns = Lists.newArrayList(
+            new Column( "indicatorid", DataType.BIGINT, Nullable.NOT_NULL ),
+            new Column( "indicatorname", DataType.VARCHAR_255, Nullable.NOT_NULL ) );
 
-    return new Table("", columns, primaryKey, Logged.UNLOGGED);
-  }
+        for ( IndicatorGroupSet groupSet : groupSets )
+        {
+            columns.addAll(
+                List.of(
+                    new Column( groupSet.getShortName(), DataType.VARCHAR_255 ),
+                    new Column( groupSet.getUid(), DataType.CHARACTER_11 ) ) );
+        }
 
-  @Override
-  public List<Index> getIndexes() {
-    return List.of();
-  }
+        List<String> primaryKey = List.of( "indicatorid" );
 
-  @Override
-  public ResourceTableType getTableType() {
-    return ResourceTableType.INDICATOR_GROUP_SET_STRUCTURE;
-  }
+        return new Table( "", columns, primaryKey, Logged.UNLOGGED );
+    }
 
-  @Override
-  public String getCreateTempTableStatement() {
-    String statement =
-        "create "
-            + tableType
+    @Override
+    public List<Index> getIndexes()
+    {
+        return List.of();
+    }
+
+    @Override
+    public ResourceTableType getTableType()
+    {
+        return ResourceTableType.INDICATOR_GROUP_SET_STRUCTURE;
+    }
+
+    @Override
+    public String getCreateTempTableStatement()
+    {
+        String statement = "create "
+            + parameters
             + " table "
             + getTempTableName()
             + " ("
             + "indicatorid bigint not null, "
             + "indicatorname varchar(230), ";
 
-    for (IndicatorGroupSet groupSet : objects) {
-      statement += quote(groupSet.getShortName()) + " varchar(230), ";
-      statement += quote(groupSet.getUid()) + " character(11), ";
+        for ( IndicatorGroupSet groupSet : groupSets )
+        {
+            statement += quote( groupSet.getShortName() ) + " varchar(230), ";
+            statement += quote( groupSet.getUid() ) + " character(11), ";
+        }
+
+        statement += "primary key (indicatorid))";
+
+        return statement;
     }
 
-    statement += "primary key (indicatorid))";
-
-    return statement;
-  }
-
-  @Override
-  public Optional<String> getPopulateTempTableStatement() {
-    String sql =
-        "insert into "
+    @Override
+    public Optional<String> getPopulateTempTableStatement()
+    {
+        String sql = "insert into "
             + getTempTableName()
             + " "
             + "select i.indicatorid as indicatorid, i.name as indicatorname, ";
 
-    for (IndicatorGroupSet groupSet : objects) {
-      sql +=
-          "("
-              + "select ig.name from indicatorgroup ig "
-              + "inner join indicatorgroupmembers igm on igm.indicatorgroupid = ig.indicatorgroupid "
-              + "inner join indicatorgroupsetmembers igsm on "
-              + "igsm.indicatorgroupid = igm.indicatorgroupid and igsm.indicatorgroupsetid = "
-              + groupSet.getId()
-              + " "
-              + "where igm.indicatorid = i.indicatorid "
-              + "limit 1) as "
-              + quote(groupSet.getName())
-              + ", ";
+        for ( IndicatorGroupSet groupSet : groupSets )
+        {
+            sql += "("
+                + "select ig.name from indicatorgroup ig "
+                + "inner join indicatorgroupmembers igm on igm.indicatorgroupid = ig.indicatorgroupid "
+                + "inner join indicatorgroupsetmembers igsm on "
+                + "igsm.indicatorgroupid = igm.indicatorgroupid and igsm.indicatorgroupsetid = "
+                + groupSet.getId()
+                + " "
+                + "where igm.indicatorid = i.indicatorid "
+                + "limit 1) as "
+                + quote( groupSet.getName() )
+                + ", ";
 
-      sql +=
-          "("
-              + "select ig.uid from indicatorgroup ig "
-              + "inner join indicatorgroupmembers igm on "
-              + "igm.indicatorgroupid = ig.indicatorgroupid "
-              + "inner join indicatorgroupsetmembers igsm on "
-              + "igsm.indicatorgroupid = igm.indicatorgroupid and igsm.indicatorgroupsetid = "
-              + groupSet.getId()
-              + " "
-              + "where igm.indicatorid = i.indicatorid "
-              + "limit 1) as "
-              + quote(groupSet.getUid())
-              + ", ";
+            sql += "("
+                + "select ig.uid from indicatorgroup ig "
+                + "inner join indicatorgroupmembers igm on "
+                + "igm.indicatorgroupid = ig.indicatorgroupid "
+                + "inner join indicatorgroupsetmembers igsm on "
+                + "igsm.indicatorgroupid = igm.indicatorgroupid and igsm.indicatorgroupsetid = "
+                + groupSet.getId()
+                + " "
+                + "where igm.indicatorid = i.indicatorid "
+                + "limit 1) as "
+                + quote( groupSet.getUid() )
+                + ", ";
+        }
+
+        sql = TextUtils.removeLastComma( sql ) + " ";
+        sql += "from indicator i";
+
+        return Optional.of( sql );
     }
 
-    sql = TextUtils.removeLastComma(sql) + " ";
-    sql += "from indicator i";
+    @Override
+    public Optional<List<Object[]>> getPopulateTempTableContent()
+    {
+        return Optional.empty();
+    }
 
-    return Optional.of(sql);
-  }
-
-  @Override
-  public Optional<List<Object[]>> getPopulateTempTableContent() {
-    return Optional.empty();
-  }
-
-  @Override
-  public List<String> getCreateIndexStatements() {
-    return Lists.newArrayList();
-  }
+    @Override
+    public List<String> getCreateIndexStatements()
+    {
+        return Lists.newArrayList();
+    }
 }
