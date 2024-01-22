@@ -74,16 +74,14 @@ public class CategoryResourceTable extends ResourceTable<Category>
 
         for ( Category category : objects )
         {
-            columns.addAll( List.of(
-                new Column( nameContext.uniqueName( category.getShortName() ), DataType.VARCHAR_255 ),
-                new Column( category.getUid(), DataType.CHARACTER_11 ) ) );
+            columns.add( new Column( nameContext.uniqueName( category.getShortName() ), DataType.VARCHAR_255 ) );
+            columns.add( new Column( category.getUid(), DataType.CHARACTER_11 ) );
         }
 
         for ( CategoryOptionGroupSet groupSet : groupSets )
         {
-            columns.addAll( List.of(
-                new Column( nameContext.uniqueName( groupSet.getShortName() ), DataType.VARCHAR_255 ),
-                new Column( groupSet.getUid(), DataType.CHARACTER_11 ) ) );
+            columns.add( new Column( nameContext.uniqueName( groupSet.getShortName() ), DataType.VARCHAR_255 ) );
+            columns.add( new Column( groupSet.getUid(), DataType.CHARACTER_11 ) );
         }
 
         List<String> primaryKey = List.of( "categoryoptioncomboid" );
