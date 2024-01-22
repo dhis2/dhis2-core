@@ -209,6 +209,7 @@ public class PostgreSqlBuilder
         return String.format( "vacuum %s;", quote( table.getName() ) );
     }
 
+    @Override
     public String tableExists( Table table )
     {
         return String.format( """
@@ -218,6 +219,7 @@ public class PostgreSqlBuilder
             """, table.getName() );
     }
 
+    @Override
     public String dropTable( Table table )
     {
         return String.format( "drop table %s", quote( table.getName() ) );
