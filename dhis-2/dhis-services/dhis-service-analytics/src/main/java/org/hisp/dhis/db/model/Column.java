@@ -33,7 +33,7 @@ import lombok.RequiredArgsConstructor;
 /**
  * Represents a database table column.
  * 
- * @author Lars Overland
+ * @author Lars Helge Overland
  */
 @Getter
 @RequiredArgsConstructor

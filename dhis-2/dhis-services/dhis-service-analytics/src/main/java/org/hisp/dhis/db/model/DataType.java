@@ -30,7 +30,7 @@ package org.hisp.dhis.db.model;
 /**
  * Enumeration of database data types.
  * 
- * @author Lars Overland
+ * @author Lars Helge Overland
  */
 public enum DataType
 {

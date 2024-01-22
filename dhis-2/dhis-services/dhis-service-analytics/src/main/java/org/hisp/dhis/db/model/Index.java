@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 /**
  * Represents a database index.
  * 
- * @author Lars Overland
+ * @author Lars Helge Overland
  */
 @Getter
 @RequiredArgsConstructor
