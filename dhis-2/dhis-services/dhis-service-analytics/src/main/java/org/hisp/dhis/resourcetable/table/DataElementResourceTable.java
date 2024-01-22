@@ -41,6 +41,7 @@ import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Nullable;
 import org.hisp.dhis.db.model.Table;
+import org.hisp.dhis.db.model.Unique;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
@@ -158,6 +159,7 @@ public class DataElementResourceTable extends ResourceTable<DataElement>
         List.of(
             new Index( ("in_dataelementstructure_dataelementuid_" + getRandomSuffix()),
                 "_dataelementstructure",
+                Unique.UNIQUE,
                 List.of( "dataelementuid" ) ),
             new Index( ("in_dataelementstructure_datasetid_" + getRandomSuffix()),
                 "_dataelementstructure",
