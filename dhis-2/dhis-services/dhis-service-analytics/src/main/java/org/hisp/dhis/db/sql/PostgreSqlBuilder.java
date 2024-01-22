@@ -241,6 +241,11 @@ public class PostgreSqlBuilder
     @Override
     public String createIndex( Index index )
     {
-        return ""; //TODO
+        String unique = index.isUnique() ? "unique " : "";
+
+        String columns = String.join( ", ", index.getColumns() );
+
+        return String.format( "create %s index %s on %s(%s);",
+            unique, quote( index.getName() ), quote( index.getTableName() ), columns );
     }
 }
