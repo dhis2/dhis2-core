@@ -85,16 +85,16 @@ public class DataElementResourceTable extends ResourceTable<DataElement>
     public List<Index> getIndexes()
     {
         return List.of(
-            new Index( ("in_dataelementstructure_dataelementuid_" + getRandomSuffix()),
+            new Index( withRandomSuffix( "in_dataelementstructure_dataelementuid" ),
                 Unique.UNIQUE,
                 List.of( "dataelementuid" ) ),
-            new Index( ("in_dataelementstructure_datasetid_" + getRandomSuffix()),
+            new Index( withRandomSuffix( "in_dataelementstructure_datasetid" ),
                 List.of( "datasetid" ) ),
-            new Index( ("in_dataelementstructure_datasetuid_" + getRandomSuffix()),
+            new Index( withRandomSuffix( "in_dataelementstructure_datasetuid" ),
                 List.of( "datasetuid" ) ),
-            new Index( ("in_dataelementstructure_periodtypeid_" + getRandomSuffix()),
+            new Index( withRandomSuffix( "in_dataelementstructure_periodtypeid" ),
                 List.of( "periodtypeid" ) ),
-            new Index( ("in_dataelementstructure_workflowid_" + getRandomSuffix()),
+            new Index( withRandomSuffix( "in_dataelementstructure_workflowid" ),
                 List.of( "workflowid" ) ) );
 
     }

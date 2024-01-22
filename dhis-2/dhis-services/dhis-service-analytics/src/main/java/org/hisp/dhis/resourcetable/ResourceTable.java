@@ -100,6 +100,11 @@ public abstract class ResourceTable<T>
         return CodeGenerator.generateCode( 5 );
     }
 
+    protected String withRandomSuffix( String relation )
+    {
+        return String.format( "%s_%s", relation, CodeGenerator.generateCode( 5 ) );
+    }
+
     // -------------------------------------------------------------------------
     // Abstract methods
     // -------------------------------------------------------------------------
