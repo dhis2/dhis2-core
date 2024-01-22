@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.eventvisualization;
 
-import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asActualDimension;
 import static org.hisp.dhis.eventvisualization.Attribute.COLUMN;
 import static org.hisp.dhis.eventvisualization.Attribute.FILTER;
 import static org.hisp.dhis.eventvisualization.Attribute.ROW;
+import static org.hisp.dhis.eventvisualization.SimpleDimension.Type.OU;
 import static org.hisp.dhis.eventvisualization.SimpleDimension.Type.contains;
 import static org.hisp.dhis.eventvisualization.SimpleDimension.Type.from;
 
@@ -134,12 +134,17 @@ public class SimpleDimensionHandler {
 
     for (SimpleDimension simpleDimension : eventAnalyticalObject.getSimpleDimensions()) {
       boolean hasSameDimension = simpleDimension.asQualifiedDimension().equals(qualifiedDimension);
+      boolean isOrgUnit = from(simpleDimension.getDimension()) == OU;
 
       if (simpleDimension.belongsTo(parent) && hasSameDimension) {
-        items.addAll(
-            simpleDimension.getValues().stream()
-                .map(BaseDimensionalItemObject::new)
-                .collect(toList()));
+        for (String dim : simpleDimension.getValues()) {
+          if (isOrgUnit) {
+            BaseDimensionalItemObject itemObject = new BaseDimensionalItemObject(dim, null);
+            items.add(itemObject);
+          } else {
+            items.add(new BaseDimensionalItemObject(dim));
+          }
+        }
       }
     }
 
