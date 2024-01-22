@@ -77,7 +77,7 @@ public class DataSetOrganisationUnitCategoryResourceTable extends ResourceTable<
             new Column( "costartdate", DataType.DATE ),
             new Column( "coenddate", DataType.DATE ) );
 
-        return new Table( "", columns, List.of(), Logged.UNLOGGED );
+        return new Table( "_datasetorganisationunitcategory", columns, List.of(), Logged.UNLOGGED );
     }
 
     @Override

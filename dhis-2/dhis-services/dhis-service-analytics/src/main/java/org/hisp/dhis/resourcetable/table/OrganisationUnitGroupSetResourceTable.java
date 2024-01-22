@@ -64,7 +64,7 @@ public class OrganisationUnitGroupSetResourceTable extends ResourceTable<Organis
     @Override
     public Table getTable()
     {
-        List<Column> columns = List.of(
+        List<Column> columns = Lists.newArrayList(
             new Column( "organisationunitid", DataType.BIGINT, Nullable.NOT_NULL ),
             new Column( "organisationunitname", DataType.VARCHAR_255, Nullable.NOT_NULL ),
             new Column( "startdate", DataType.DATE ) );
