@@ -164,6 +164,13 @@ public interface SqlBuilder
     String tableExists( Table table );
 
     /**
+     * @param existingName the name of the table.
+     * @param newName the name to rename the table to.
+     * @return a rename table statement.
+     */
+    String renameTable( String name, String newName );
+
+    /**
      * @param table the {@link Table}.
      * @return a drop table statement.
      */

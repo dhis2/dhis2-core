@@ -220,6 +220,12 @@ public class PostgreSqlBuilder
     }
 
     @Override
+    public String renameTable( String name, String newName )
+    {
+        return String.format( "alter table % rename to %;", quote( name ), quote( newName ) );
+    }
+
+    @Override
     public String dropTable( Table table )
     {
         return String.format( "drop table %s", quote( table.getName() ) );
