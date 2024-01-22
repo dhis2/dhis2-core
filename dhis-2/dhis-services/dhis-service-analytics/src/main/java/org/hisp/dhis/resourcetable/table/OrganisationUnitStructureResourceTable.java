@@ -31,7 +31,6 @@ import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -153,7 +152,7 @@ public class OrganisationUnitStructureResourceTable extends ResourceTable<Organi
         {
             int level = i + 1;
 
-            Collection<OrganisationUnit> units = organisationUnitService.getOrganisationUnitsAtLevel( level );
+            List<OrganisationUnit> units = organisationUnitService.getOrganisationUnitsAtLevel( level );
 
             for ( OrganisationUnit unit : units )
             {
