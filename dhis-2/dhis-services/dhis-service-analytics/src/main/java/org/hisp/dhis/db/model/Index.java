@@ -57,12 +57,18 @@ public class Index
     @NonNull
     private final List<String> columns;
 
+    /**
+     * SQL {©code where} condition for index.
+     */
+    private final String condition;
+
     public Index( String name, List<String> columns )
     {
         this.name = name;
         this.indexType = IndexType.BTREE;
         this.unique = Unique.NON_UNIQUE;
         this.columns = columns;
+        this.condition = null;
     }
 
     public Index( String name, Unique unique, List<String> columns )
@@ -71,5 +77,6 @@ public class Index
         this.indexType = IndexType.BTREE;
         this.unique = unique;
         this.columns = columns;
+        this.condition = null;
     }
 }

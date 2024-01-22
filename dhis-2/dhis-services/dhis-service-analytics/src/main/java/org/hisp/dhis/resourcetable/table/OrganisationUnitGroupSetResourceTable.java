@@ -36,9 +36,11 @@ import java.util.Optional;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
+import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Nullable;
 import org.hisp.dhis.db.model.Table;
+import org.hisp.dhis.db.model.Unique;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
@@ -85,7 +87,17 @@ public class OrganisationUnitGroupSetResourceTable extends ResourceTable<Organis
     @Override
     public List<Index> getIndexes()
     {
-        return List.of();
+        return List.of(
+            new Index( ("in_orgunitgroupsetstructure_not_null_" + getRandomSuffix()),
+                IndexType.BTREE,
+                Unique.NON_UNIQUE,
+                List.of( "organisationunitid", "startdate" ),
+                "startdate is not null" ),
+            new Index( ("in_orgunitgroupsetstructure_null_" + getRandomSuffix()),
+                IndexType.BTREE,
+                Unique.NON_UNIQUE,
+                List.of( "organisationunitid", "startdate" ),
+                "startdate is null" ) );
     }
 
     @Override
