@@ -74,7 +74,6 @@ public class CategoryOptionComboResourceTable extends ResourceTable<CategoryOpti
     {
         return List.of(
             new Index( "in_dataelementcategoryoptioncombo_" + getRandomSuffix(),
-                "_dataelementcategoryoptioncombo",
                 List.of( "dataelementuid", "categoryoptioncombouid" ) ) );
     }
 

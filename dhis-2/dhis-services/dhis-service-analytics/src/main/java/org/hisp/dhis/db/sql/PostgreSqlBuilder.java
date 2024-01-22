@@ -245,7 +245,7 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder
     }
 
     @Override
-    public String createIndex( Index index )
+    public String createIndex( Table table, Index index )
     {
         String unique = index.getUnique() == Unique.UNIQUE ? "unique " : "";
 
@@ -253,6 +253,6 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder
 
         return String.format(
             "create %s index %s on %s(%s);",
-            unique, quote( index.getName() ), quote( index.getTableName() ), columns );
+            unique, quote( index.getName() ), quote( table.getName() ), columns );
     }
 }

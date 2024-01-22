@@ -50,10 +50,6 @@ public class Index
     @NonNull
     private final IndexType indexType;
 
-    /** The name of the table to apply the index to. */
-    @NonNull
-    private final String tableName;
-
     /** Index uniqueness constraint. */
     private final Unique unique;
 
@@ -61,20 +57,18 @@ public class Index
     @NonNull
     private final List<String> columns;
 
-    public Index( String name, String tableName, List<String> columns )
+    public Index( String name, List<String> columns )
     {
         this.name = name;
         this.indexType = IndexType.BTREE;
-        this.tableName = tableName;
         this.unique = Unique.NON_UNIQUE;
         this.columns = columns;
     }
 
-    public Index( String name, String tableName, Unique unique, List<String> columns )
+    public Index( String name, Unique unique, List<String> columns )
     {
         this.name = name;
         this.indexType = IndexType.BTREE;
-        this.tableName = tableName;
         this.unique = unique;
         this.columns = columns;
     }
