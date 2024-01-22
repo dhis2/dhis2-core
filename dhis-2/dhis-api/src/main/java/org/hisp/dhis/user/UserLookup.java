@@ -25,27 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.collection;
+package org.hisp.dhis.user;
 
-import java.util.HashMap;
-import java.util.Map;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Set;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
+ * DTO for a minimal and non-sensitive representation of a user.
+ *
  * @author Lars Helge Overland
  */
-public class JobLocalMap<T, V> {
-  private final Map<JobConfiguration, Map<T, V>> internalMap;
+@Getter
+@Setter
+@NoArgsConstructor
+public class UserLookup {
+  @JsonProperty private String id;
 
-  public JobLocalMap() {
-    this.internalMap = new HashMap<>();
-  }
+  @JsonProperty private String username;
 
-  public Map<T, V> get(JobConfiguration id) {
-    return internalMap.computeIfAbsent(id, k -> new HashMap<>());
-  }
+  @JsonProperty private String firstName;
 
-  public boolean clear(JobConfiguration id) {
-    return internalMap.remove(id) != null;
+  @JsonProperty private String surname;
+
+  @JsonProperty private String displayName;
+
+  @JsonProperty private Set<String> roles;
+
+  @JsonProperty private Set<String> groups;
+
+  public static UserLookup fromUser(User user) {
+    String displayName = String.format("%s %s", user.getFirstName(), user.getSurname());
+
+    UserLookup lookup = new UserLookup();
+    lookup.setId(user.getUid()); // Will be changed to UUID later
+    lookup.setUsername(user.getUsername());
+    lookup.setFirstName(user.getFirstName());
+    lookup.setSurname(user.getSurname());
+    lookup.setDisplayName(displayName);
+    return lookup;
   }
 }

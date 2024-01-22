@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,17 +25,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.filter;
+package org.hisp.dhis.analytics;
 
-import org.hisp.dhis.commons.filter.Filter;
-import org.hisp.dhis.indicator.IndicatorGroup;
-
-/**
- * @author Lars Helge Overland
- */
-public class IndicatorGroupWithoutGroupSetFilter implements Filter<IndicatorGroup> {
-  @Override
-  public boolean retain(IndicatorGroup object) {
-    return object == null || object.getGroupSets().isEmpty();
-  }
+public enum Collation {
+  C;
 }

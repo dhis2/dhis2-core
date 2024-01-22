@@ -999,8 +999,28 @@ public class DefaultUserService implements UserService {
   @Override
   @Nonnull
   @Transactional(readOnly = true)
-  public List<User> getLinkedUserAccounts(@Nonnull User actingUser) {
-    return userStore.getLinkedUserAccounts(actingUser);
+  public List<UserLookup> getLinkedUserAccounts(@Nonnull User actingUser) {
+    List<User> linkedUserAccounts = userStore.getLinkedUserAccounts(actingUser);
+
+    List<UserLookup> userLookups =
+        linkedUserAccounts.stream().map(UserLookup::fromUser).collect(Collectors.toList());
+
+    for (int i = 0; i < linkedUserAccounts.size(); i++) {
+      userLookups
+          .get(i)
+          .setRoles(
+              linkedUserAccounts.get(i).getUserRoles().stream()
+                  .map(UserRole::getUid)
+                  .collect(Collectors.toSet()));
+      userLookups
+          .get(i)
+          .setGroups(
+              linkedUserAccounts.get(i).getGroups().stream()
+                  .map(UserGroup::getUid)
+                  .collect(Collectors.toSet()));
+    }
+
+    return userLookups;
   }
 
   @Override

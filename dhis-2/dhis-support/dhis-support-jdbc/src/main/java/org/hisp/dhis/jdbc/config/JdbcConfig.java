@@ -27,13 +27,11 @@
  */
 package org.hisp.dhis.jdbc.config;
 
-import com.google.common.collect.Lists;
 import javax.sql.DataSource;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.jdbc.dialect.StatementDialectFactoryBean;
 import org.hisp.quick.StatementDialect;
-import org.hisp.quick.StatementInterceptor;
 import org.hisp.quick.configuration.JdbcConfigurationFactoryBean;
 import org.hisp.quick.factory.DefaultBatchHandlerFactory;
 import org.hisp.quick.statement.JdbcStatementManager;
@@ -78,12 +76,5 @@ public class JdbcConfig {
     DefaultBatchHandlerFactory defaultBatchHandlerFactory = new DefaultBatchHandlerFactory();
     defaultBatchHandlerFactory.setJdbcConfiguration(jdbcConfiguration().getObject());
     return defaultBatchHandlerFactory;
-  }
-
-  @Bean
-  public StatementInterceptor statementInterceptor() throws Exception {
-    StatementInterceptor statementInterceptor = new StatementInterceptor();
-    statementInterceptor.setStatementManagers(Lists.newArrayList(statementManager()));
-    return statementInterceptor;
   }
 }

@@ -39,7 +39,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.Assert;
 
 /**
- * Utilities for analytics SQL operations, compatible with PostgreSQL and H2 database platforms.
+ * Utilities for analytics SQL operations.
  *
  * @author Lars Helge Overland
  */
@@ -70,7 +70,7 @@ public class AnalyticsSqlUtils {
   public static String quote(String relation) {
     Assert.notNull(relation, "Relation must be specified");
 
-    String rel = relation.replaceAll(QUOTE, (QUOTE + QUOTE));
+    String rel = relation.replace(QUOTE, (QUOTE + QUOTE));
 
     return QUOTE + rel + QUOTE;
   }
@@ -112,7 +112,7 @@ public class AnalyticsSqlUtils {
   public static String removeQuote(String relation) {
     Assert.notNull(relation, "Relation must be specified");
 
-    return relation.replaceAll(AnalyticsSqlUtils.QUOTE, EMPTY);
+    return relation.replace(AnalyticsSqlUtils.QUOTE, EMPTY);
   }
 
   /**
@@ -220,7 +220,7 @@ public class AnalyticsSqlUtils {
    * @param collate the type of collate to be used.
    * @return the collate statement, or blank if the given "collate" is null/blank.
    */
-  public static String getCollate(String collate) {
+  public static String getCollation(String collate) {
     if (isNotBlank(collate)) {
       return " collate \"" + collate + "\" ";
     }

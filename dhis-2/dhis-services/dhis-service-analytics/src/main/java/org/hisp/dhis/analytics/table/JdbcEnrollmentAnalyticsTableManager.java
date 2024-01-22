@@ -43,9 +43,9 @@ import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.AnalyticsTableExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -83,7 +83,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
       PartitionManager partitionManager,
       DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
-      AnalyticsExportSettings analyticsExportSettings,
+      AnalyticsTableExportSettings analyticsExportSettings,
       PeriodDataProvider periodDataProvider) {
     super(
         idObjectManager,
@@ -234,10 +234,10 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
   private List<AnalyticsTableColumn> getDimensionColumns(Program program) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-    columns.addAll(addOrganisationUnitLevels());
+    columns.addAll(getOrganisationUnitLevelColumns());
     columns.add(getOrganisationUnitNameHierarchyColumn());
-    columns.addAll(addOrganisationUnitGroupSets());
-    columns.addAll(addPeriodTypeColumns("dps"));
+    columns.addAll(getOrganisationUnitGroupSetColumns());
+    columns.addAll(getPeriodTypeColumns("dps"));
     columns.addAll(addTrackedEntityAttributes(program));
     columns.addAll(getFixedColumns());
 

@@ -69,7 +69,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
-import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -92,8 +91,6 @@ class GridAdaptorTest extends DhisConvenienceTest {
 
   private SchemeIdResponseMapper schemeIdResponseMapper;
 
-  private User user;
-
   @BeforeEach
   void setUp() {
     headerParamsHandler = new HeaderParamsHandler();
@@ -101,7 +98,6 @@ class GridAdaptorTest extends DhisConvenienceTest {
     schemeIdResponseMapper = new SchemeIdResponseMapper();
     gridAdaptor =
         new GridAdaptor(headerParamsHandler, metadataDetailsHandler, schemeIdResponseMapper);
-    user = makeUser(ADMIN_USER_UID);
   }
 
   @Test
