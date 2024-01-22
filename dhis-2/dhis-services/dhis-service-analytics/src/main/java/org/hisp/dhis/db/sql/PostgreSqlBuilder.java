@@ -29,6 +29,7 @@ package org.hisp.dhis.db.sql;
 
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 
+import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Table;
 
 public class PostgreSqlBuilder
@@ -38,6 +39,11 @@ public class PostgreSqlBuilder
     public String createTable( Table table )
     {
         String sql = "create table " + quote( table.getName() ) + " ";
+
+        for ( Column column : table.getColumns() )
+        {
+
+        }
 
         return sql;
     }
