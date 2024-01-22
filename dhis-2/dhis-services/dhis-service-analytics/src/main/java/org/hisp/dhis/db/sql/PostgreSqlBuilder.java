@@ -184,9 +184,9 @@ public class PostgreSqlBuilder
         {
             sql += "primary key (";
 
-            for ( Column column : table.getPrimaryKey() )
+            for ( String columnName : table.getPrimaryKey() )
             {
-                sql += quote( column.getName() ) + ",";
+                sql += quote( columnName ) + ",";
             }
 
             sql = removeLastComma( sql ) + "),";

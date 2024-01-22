@@ -48,9 +48,9 @@ public class Table
     private final List<Column> columns = new ArrayList<>();
 
     /**
-     * Table primary key.
+     * Table primary key column(s).
      */
-    private final List<Column> primaryKey = new ArrayList<>();
+    private final List<String> primaryKey = new ArrayList<>();
 
     /**
      * Whether table is logged. PostgreSQL-only feature.
