@@ -33,35 +33,24 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * Represents a database table column.
- * 
+ *
  * @author Lars Helge Overland
  */
 @Getter
 @RequiredArgsConstructor
-public class Column
-{
-    /**
-     * Column name.
-     */
-    @NonNull
-    private final String name;
+public class Column {
+  /** Column name. */
+  @NonNull private final String name;
 
-    /**
-     * Column data type.
-     */
-    @NonNull
-    private final DataType dataType;
+  /** Column data type. */
+  @NonNull private final DataType dataType;
 
-    /**
-     * Column not null constraint.
-     */
-    @NonNull
-    private final Nullable nullable;
+  /** Column not null constraint. */
+  @NonNull private final Nullable nullable;
 
-    public Column( String name, DataType dataType )
-    {
-        this.name = name;
-        this.dataType = dataType;
-        this.nullable = Nullable.NULL;
-    }
+  public Column(String name, DataType dataType) {
+    this.name = name;
+    this.dataType = dataType;
+    this.nullable = Nullable.NULL;
+  }
 }

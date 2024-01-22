@@ -28,49 +28,32 @@
 package org.hisp.dhis.db.model;
 
 import java.util.List;
-
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 /**
  * Represents a database table.
- * 
+ *
  * @author Lars Helge Overland
  */
 @Getter
 @RequiredArgsConstructor
-public class Table
-{
-    /**
-     * Table name. Required.
-     */
-    @NonNull
-    private final String name;
+public class Table {
+  /** Table name. Required. */
+  @NonNull private final String name;
 
-    /**
-     * Table columns. At least one column required.
-     */
-    @NonNull
-    private final List<Column> columns;
+  /** Table columns. At least one column required. */
+  @NonNull private final List<Column> columns;
 
-    /**
-     * Table primary key column name(s).
-     */
-    @NonNull
-    private final List<String> primaryKey;
+  /** Table primary key column name(s). */
+  @NonNull private final List<String> primaryKey;
 
-    /**
-     * Whether table is logged or unlogged. PostgreSQL-only feature.
-     */
-    @NonNull
-    private final Logged logged;
+  /** Whether table is logged or unlogged. PostgreSQL-only feature. */
+  @NonNull private final Logged logged;
 
-    /**
-     * Whether the table has a primary key.
-     */
-    public boolean hasPrimaryKey()
-    {
-        return !primaryKey.isEmpty();
-    }
+  /** Whether the table has a primary key. */
+  public boolean hasPrimaryKey() {
+    return !primaryKey.isEmpty();
+  }
 }

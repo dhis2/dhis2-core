@@ -32,22 +32,21 @@ import java.util.List;
 /**
  * @author Lars Helge Overland
  */
-public interface ResourceTableStore
-{
+public interface ResourceTableStore {
 
-    /**
-     * Generates the given resource table.
-     *
-     * @param resourceTable the resource table.
-     */
-    void generateResourceTable( ResourceTable<?> resourceTable );
+  /**
+   * Generates the given resource table.
+   *
+   * @param resourceTable the resource table.
+   */
+  void generateResourceTable(ResourceTable<?> resourceTable);
 
-    /**
-     * Performs a batch update.
-     *
-     * @param columns the number of columns in the table to update.
-     * @param tableName the name of the table to update.
-     * @param batchArgs the arguments to use for the update statement.
-     */
-    void batchUpdate( int columns, String tableName, List<Object[]> batchArgs );
+  /**
+   * Performs a batch update.
+   *
+   * @param columns the number of columns in the table to update.
+   * @param tableName the name of the table to update.
+   * @param batchArgs the arguments to use for the update statement.
+   */
+  void batchUpdate(int columns, String tableName, List<Object[]> batchArgs);
 }
