@@ -32,26 +32,27 @@ package org.hisp.dhis.db.model;
  *
  * @author Lars Helge Overland
  */
-public enum DataType {
-  SMALLINT,
-  BIGINT,
-  INTEGER,
-  NUMERIC,
-  REAL,
-  DOUBLE,
-  BOOLEAN,
-  CHARACTER_11,
-  CHARACTER_32,
-  VARCHAR_50,
-  VARCHAR_255,
-  VARCHAR_1200,
-  TEXT,
-  DATE,
-  TIMESTAMP,
-  TIMESTAMPTZ,
-  TIME,
-  TIMETZ,
-  GEOMETRY,
-  GEOMETRY_POINT,
-  JSONB;
+public enum DataType
+{
+    SMALLINT,
+    BIGINT,
+    INTEGER,
+    NUMERIC,
+    REAL,
+    DOUBLE,
+    BOOLEAN,
+    CHARACTER_11,
+    CHARACTER_32,
+    VARCHAR_50,
+    VARCHAR_255,
+    VARCHAR_1200,
+    TEXT,
+    DATE,
+    TIMESTAMP,
+    TIMESTAMPTZ,
+    TIME,
+    TIMETZ,
+    GEOMETRY,
+    GEOMETRY_POINT,
+    JSONB;
 }
