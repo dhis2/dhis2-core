@@ -37,6 +37,7 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
+import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Nullable;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.resourcetable.ResourceTable;
@@ -72,7 +73,7 @@ public class CategoryOptionComboNameResourceTable extends ResourceTable<Category
 
         List<String> primaryKey = List.of( "categoryoptioncomboid" );
 
-        return new Table( "_categoryoptioncomboname", columns, primaryKey, true );
+        return new Table( "_categoryoptioncomboname", columns, primaryKey, Logged.UNLOGGED );
     }
 
     @Override
