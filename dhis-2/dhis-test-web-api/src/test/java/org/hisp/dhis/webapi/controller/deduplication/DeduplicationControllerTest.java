@@ -134,7 +134,7 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest {
     save(potentialDuplicate2);
 
     JsonPage page =
-        GET("/potentialDuplicates?&page=2&pageSize=1")
+        GET("/potentialDuplicates?page=2&pageSize=1")
             .content(HttpStatus.OK)
             .asObject(JsonPage.class);
 
