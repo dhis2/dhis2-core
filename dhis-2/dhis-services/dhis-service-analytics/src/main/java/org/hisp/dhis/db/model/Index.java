@@ -21,6 +21,11 @@ public class Index
     private final String name;
 
     /**
+     * Index type, defaults to {@link IndexType.BTREE}.
+     */
+    private final IndexType indexType = IndexType.BTREE;
+
+    /**
      * The name of the table to apply the index to.
      */
     private final String tableName;
