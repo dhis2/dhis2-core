@@ -27,11 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller.deduplication;
 
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.deduplication.DeduplicationStatus;
@@ -41,6 +44,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.controller.tracker.JsonPage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,7 +61,9 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest {
 
   private TrackedEntity origin;
 
-  private TrackedEntity duplicate;
+  private TrackedEntity duplicate1;
+
+  private TrackedEntity duplicate2;
 
   @BeforeEach
   public void setUp() {
@@ -65,38 +71,91 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest {
     dbmsManager.save(orgUnit);
 
     origin = createTrackedEntity(orgUnit);
-    duplicate = createTrackedEntity(orgUnit);
+    duplicate1 = createTrackedEntity(orgUnit);
+    duplicate2 = createTrackedEntity(orgUnit);
 
     dbmsManager.save(origin);
-    dbmsManager.save(duplicate);
+    dbmsManager.save(duplicate1);
+    dbmsManager.save(duplicate2);
   }
 
   @Test
   void shouldPostPotentialDuplicateWhenTrackedEntitiesExist() throws Exception {
     PotentialDuplicate potentialDuplicate =
-        new PotentialDuplicate(origin.getUid(), duplicate.getUid());
+        new PotentialDuplicate(origin.getUid(), duplicate1.getUid());
     assertStatus(
         HttpStatus.OK, POST(ENDPOINT, objectMapper.writeValueAsString(potentialDuplicate)));
   }
 
   @Test
-  void shouldContainsDefaultFieldsWhenGetPotentialDuplicates() {
-    PotentialDuplicate potentialDuplicate =
-        new PotentialDuplicate(origin.getUid(), duplicate.getUid());
-    save(potentialDuplicate);
+  void shouldContainDefaultFieldsWhenGetPotentialDuplicates() {
+    PotentialDuplicate potentialDuplicate1 =
+        new PotentialDuplicate(origin.getUid(), duplicate1.getUid());
+    save(potentialDuplicate1);
+    PotentialDuplicate potentialDuplicate2 =
+        new PotentialDuplicate(origin.getUid(), duplicate2.getUid());
+    save(potentialDuplicate2);
+
+    JsonPage page = GET(ENDPOINT).content(HttpStatus.OK).asObject(JsonPage.class);
 
     JsonList<JsonPotentialDuplicate> list =
-        GET(ENDPOINT, HttpStatus.OK)
-            .content()
-            .getList("potentialDuplicates", JsonPotentialDuplicate.class);
+        page.getList("potentialDuplicates", JsonPotentialDuplicate.class);
+    assertContainsOnly(
+        List.of(potentialDuplicate1.getUid(), potentialDuplicate2.getUid()),
+        list.toList(JsonPotentialDuplicate::getUid));
 
     JsonPotentialDuplicate jsonPotentialDuplicate = list.get(0);
-    assertEquals(potentialDuplicate.getUid(), jsonPotentialDuplicate.getUid());
-    assertEquals(potentialDuplicate.getStatus().name(), jsonPotentialDuplicate.getStatus());
-    assertEquals(potentialDuplicate.getOriginal(), jsonPotentialDuplicate.getOriginal());
-    assertEquals(potentialDuplicate.getDuplicate(), jsonPotentialDuplicate.getDuplicate());
-    assertNotNull(potentialDuplicate.getCreated());
-    assertNotNull(potentialDuplicate.getLastUpdated());
+    assertEquals(potentialDuplicate1.getUid(), jsonPotentialDuplicate.getUid());
+    assertEquals(potentialDuplicate1.getStatus().name(), jsonPotentialDuplicate.getStatus());
+    assertEquals(potentialDuplicate1.getOriginal(), jsonPotentialDuplicate.getOriginal());
+    assertEquals(potentialDuplicate1.getDuplicate(), jsonPotentialDuplicate.getDuplicate());
+    assertNotNull(potentialDuplicate1.getCreated());
+    assertNotNull(potentialDuplicate1.getLastUpdated());
+
+    assertEquals(1, page.getPager().getPage());
+    assertEquals(50, page.getPager().getPageSize());
+    assertHasNoMember(page.getPager(), "total");
+    assertHasNoMember(page.getPager(), "pageCount");
+
+    // assert deprecated fields
+    assertEquals(1, page.getPage());
+    assertEquals(50, page.getPageSize());
+    assertHasNoMember(page, "total");
+    assertHasNoMember(page, "pageCount");
+  }
+
+  @Test
+  void shouldGetPaginatedItemsWithNonDefaults() {
+    PotentialDuplicate potentialDuplicate1 =
+        new PotentialDuplicate(origin.getUid(), duplicate1.getUid());
+    save(potentialDuplicate1);
+    PotentialDuplicate potentialDuplicate2 =
+        new PotentialDuplicate(origin.getUid(), duplicate2.getUid());
+    save(potentialDuplicate2);
+
+    JsonPage page =
+        GET("/potentialDuplicates?&page=2&pageSize=1")
+            .content(HttpStatus.OK)
+            .asObject(JsonPage.class);
+
+    JsonList<JsonPotentialDuplicate> list =
+        page.getList("potentialDuplicates", JsonPotentialDuplicate.class);
+    assertEquals(
+        1,
+        list.size(),
+        () ->
+            String.format("mismatch in number of expected potential duplicates(s), got %s", list));
+
+    assertEquals(2, page.getPager().getPage());
+    assertEquals(1, page.getPager().getPageSize());
+    assertHasNoMember(page.getPager(), "total");
+    assertHasNoMember(page.getPager(), "pageCount");
+
+    // assert deprecated fields
+    assertEquals(2, page.getPage());
+    assertEquals(1, page.getPageSize());
+    assertHasNoMember(page.getPager(), "total");
+    assertHasNoMember(page.getPager(), "pageCount");
   }
 
   @Test
@@ -109,7 +168,7 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void shouldThrowPostPotentialDuplicateWhenMissingOriginTeiInPayload() throws Exception {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(null, duplicate.getUid());
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(null, duplicate1.getUid());
     assertStatus(
         HttpStatus.BAD_REQUEST,
         POST(ENDPOINT, objectMapper.writeValueAsString(potentialDuplicate)));
@@ -118,7 +177,7 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest {
   @Test
   void shouldThrowBadRequestWhenPutPotentialDuplicateAlreadyMerged() {
     PotentialDuplicate potentialDuplicate =
-        new PotentialDuplicate(origin.getUid(), duplicate.getUid());
+        new PotentialDuplicate(origin.getUid(), duplicate1.getUid());
     potentialDuplicate.setStatus(DeduplicationStatus.MERGED);
     save(potentialDuplicate);
 
@@ -133,7 +192,8 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void shouldThrowBadRequestWhenPutPotentialDuplicateToMergedStatus() {
-    PotentialDuplicate potentialDuplicate = potentialDuplicate(origin.getUid(), duplicate.getUid());
+    PotentialDuplicate potentialDuplicate =
+        potentialDuplicate(origin.getUid(), duplicate1.getUid());
     assertStatus(
         HttpStatus.BAD_REQUEST,
         PUT(
@@ -145,7 +205,8 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void shouldUpdatePotentialDuplicateWhenPotentialDuplicateExistsAndCorrectStatus() {
-    PotentialDuplicate potentialDuplicate = potentialDuplicate(origin.getUid(), duplicate.getUid());
+    PotentialDuplicate potentialDuplicate =
+        potentialDuplicate(origin.getUid(), duplicate1.getUid());
     assertStatus(
         HttpStatus.OK,
         PUT(
@@ -157,7 +218,8 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void shouldGetPotentialDuplicateByIdWhenPotentialDuplicateExists() {
-    PotentialDuplicate potentialDuplicate = potentialDuplicate(origin.getUid(), duplicate.getUid());
+    PotentialDuplicate potentialDuplicate =
+        potentialDuplicate(origin.getUid(), duplicate1.getUid());
     assertStatus(HttpStatus.OK, GET(ENDPOINT + potentialDuplicate.getUid()));
   }
 
