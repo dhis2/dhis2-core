@@ -21,6 +21,11 @@ public class Index
     private final String name;
 
     /**
+     * The name of the table to apply the index to.
+     */
+    private final String tableName;
+
+    /**
      * Index uniqueness constraint.
      */
     private final boolean unique;
