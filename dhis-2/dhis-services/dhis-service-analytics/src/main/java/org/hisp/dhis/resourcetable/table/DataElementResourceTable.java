@@ -155,6 +155,23 @@ public class DataElementResourceTable extends ResourceTable<DataElement>
     @Override
     public List<String> getCreateIndexStatements()
     {
+        List.of(
+            new Index( ("in_dataelementstructure_dataelementuid_" + getRandomSuffix()),
+                "_dataelementstructure",
+                List.of( "dataelementuid" ) ),
+            new Index( ("in_dataelementstructure_datasetid_" + getRandomSuffix()),
+                "_dataelementstructure",
+                List.of( "datasetid" ) ),
+            new Index( ("in_dataelementstructure_datasetuid_" + getRandomSuffix()),
+                "_dataelementstructure",
+                List.of( "datasetuid" ) ),
+            new Index( ("in_dataelementstructure_periodtypeid_" + getRandomSuffix()),
+                "_dataelementstructure",
+                List.of( "periodtypeid" ) ),
+            new Index( ("in_dataelementstructure_workflowid_" + getRandomSuffix()),
+                "_dataelementstructure",
+                List.of( "workflowid" ) ) );
+
         return Lists.newArrayList(
             "create unique index in_dataelementstructure_dataelementuid_"
                 + getRandomSuffix()
