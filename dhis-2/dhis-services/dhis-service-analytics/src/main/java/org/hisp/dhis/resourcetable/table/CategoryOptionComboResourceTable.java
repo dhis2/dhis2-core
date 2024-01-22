@@ -72,7 +72,10 @@ public class CategoryOptionComboResourceTable extends ResourceTable<CategoryOpti
     @Override
     public List<Index> getIndexes()
     {
-        return List.of();
+        return List.of(
+            new Index( "in_dataelementcategoryoptioncombo_" + getRandomSuffix(),
+                "_dataelementcategoryoptioncombo",
+                List.of( "dataelementuid", "categoryoptioncombouid" ) ) );
     }
 
     @Override
