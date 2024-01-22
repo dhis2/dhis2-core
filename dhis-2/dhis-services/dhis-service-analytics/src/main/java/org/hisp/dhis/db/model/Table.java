@@ -33,6 +33,11 @@ import java.util.List;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * Represents a database table.
+ * 
+ * @author Lars Overland
+ */
 @Getter
 @RequiredArgsConstructor
 public class Table
@@ -48,7 +53,7 @@ public class Table
     private final List<Column> columns = new ArrayList<>();
 
     /**
-     * Table primary key column(s).
+     * Table primary key column name(s).
      */
     private final List<String> primaryKey = new ArrayList<>();
 

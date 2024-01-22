@@ -27,6 +27,11 @@
  */
 package org.hisp.dhis.db.model;
 
+/**
+ * Enumeration of database data types.
+ * 
+ * @author Lars Overland
+ */
 public enum DataType
 {
     SMALLINT,
