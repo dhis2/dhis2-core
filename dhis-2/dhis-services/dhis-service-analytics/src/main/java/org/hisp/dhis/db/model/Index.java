@@ -28,7 +28,6 @@
 package org.hisp.dhis.db.model;
 
 import java.util.List;
-
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -40,43 +39,35 @@ import lombok.RequiredArgsConstructor;
  */
 @Getter
 @RequiredArgsConstructor
-public class Index
-{
-    /** Index name. */
-    @NonNull
-    private final String name;
+public class Index {
+  /** Index name. */
+  @NonNull private final String name;
 
-    /** Index type, defaults to {@link IndexType.BTREE}. */
-    @NonNull
-    private final IndexType indexType;
+  /** Index type, defaults to {@link IndexType.BTREE}. */
+  @NonNull private final IndexType indexType;
 
-    /** Index uniqueness constraint. */
-    private final Unique unique;
+  /** Index uniqueness constraint. */
+  private final Unique unique;
 
-    /** Index column names. */
-    @NonNull
-    private final List<String> columns;
+  /** Index column names. */
+  @NonNull private final List<String> columns;
 
-    /**
-     * SQL {©code where} condition for index.
-     */
-    private final String condition;
+  /** SQL {©code where} condition for index. */
+  private final String condition;
 
-    public Index( String name, List<String> columns )
-    {
-        this.name = name;
-        this.indexType = IndexType.BTREE;
-        this.unique = Unique.NON_UNIQUE;
-        this.columns = columns;
-        this.condition = null;
-    }
+  public Index(String name, List<String> columns) {
+    this.name = name;
+    this.indexType = IndexType.BTREE;
+    this.unique = Unique.NON_UNIQUE;
+    this.columns = columns;
+    this.condition = null;
+  }
 
-    public Index( String name, Unique unique, List<String> columns )
-    {
-        this.name = name;
-        this.indexType = IndexType.BTREE;
-        this.unique = unique;
-        this.columns = columns;
-        this.condition = null;
-    }
+  public Index(String name, Unique unique, List<String> columns) {
+    this.name = name;
+    this.indexType = IndexType.BTREE;
+    this.unique = unique;
+    this.columns = columns;
+    this.condition = null;
+  }
 }

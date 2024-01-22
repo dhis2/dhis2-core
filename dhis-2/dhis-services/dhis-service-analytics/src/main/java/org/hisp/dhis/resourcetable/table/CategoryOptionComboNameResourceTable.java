@@ -29,10 +29,11 @@ package org.hisp.dhis.resourcetable.table;
 
 import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST;
 
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.db.model.Column;
@@ -44,102 +45,87 @@ import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
-import com.google.common.collect.Lists;
-
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author Lars Helge Overland import org.hisp.dhis.db.model.Table;
  */
 @Slf4j
-public class CategoryOptionComboNameResourceTable extends ResourceTable<CategoryCombo>
-{
-    private final String tableType;
+public class CategoryOptionComboNameResourceTable extends ResourceTable<CategoryCombo> {
+  private final String tableType;
 
-    public CategoryOptionComboNameResourceTable( List<CategoryCombo> objects, String tableType )
-    {
-        super( objects );
-        this.tableType = tableType;
+  public CategoryOptionComboNameResourceTable(List<CategoryCombo> objects, String tableType) {
+    super(objects);
+    this.tableType = tableType;
+  }
+
+  @Override
+  public Table getTable() {
+    List<Column> columns =
+        List.of(
+            new Column("categoryoptioncomboid", DataType.BIGINT, Nullable.NOT_NULL),
+            new Column("categoryoptioncomboname", DataType.VARCHAR_255),
+            new Column("approvallevel", DataType.INTEGER),
+            new Column("startdate", DataType.DATE),
+            new Column("enddate", DataType.DATE));
+
+    List<String> primaryKey = List.of("categoryoptioncomboid");
+
+    return new Table("_categoryoptioncomboname", columns, primaryKey, Logged.UNLOGGED);
+  }
+
+  @Override
+  public List<Index> getIndexes() {
+    return List.of();
+  }
+
+  @Override
+  public ResourceTableType getTableType() {
+    return ResourceTableType.CATEGORY_OPTION_COMBO_NAME;
+  }
+
+  @Override
+  public String getCreateTempTableStatement() {
+    return "create "
+        + tableType
+        + " table "
+        + getTempTableName()
+        + " (categoryoptioncomboid bigint not null primary key, "
+        + "categoryoptioncomboname varchar(255), approvallevel integer, "
+        + "startdate date, enddate date)";
+  }
+
+  @Override
+  public Optional<String> getPopulateTempTableStatement() {
+    return Optional.empty();
+  }
+
+  @Override
+  public Optional<List<Object[]>> getPopulateTempTableContent() {
+    List<Object[]> batchArgs = new ArrayList<>();
+
+    for (CategoryCombo combo : objects) {
+      if (!combo.isValid()) {
+        log.warn("Ignoring category combo, not valid: " + combo);
+        continue;
+      }
+
+      for (CategoryOptionCombo coc : combo.getOptionCombos()) {
+        List<Object> values = new ArrayList<>();
+
+        values.add(coc.getId());
+        values.add(coc.getName());
+        values.add(coc.isIgnoreApproval() ? APPROVAL_LEVEL_HIGHEST : null);
+        values.add(coc.getLatestStartDate());
+        values.add(coc.getEarliestEndDate());
+
+        batchArgs.add(values.toArray());
+      }
     }
 
-    @Override
-    public Table getTable()
-    {
-        List<Column> columns = List.of(
-            new Column( "categoryoptioncomboid", DataType.BIGINT, Nullable.NOT_NULL ),
-            new Column( "categoryoptioncomboname", DataType.VARCHAR_255 ),
-            new Column( "approvallevel", DataType.INTEGER ),
-            new Column( "startdate", DataType.DATE ),
-            new Column( "enddate", DataType.DATE ) );
+    return Optional.of(batchArgs);
+  }
 
-        List<String> primaryKey = List.of( "categoryoptioncomboid" );
-
-        return new Table( "_categoryoptioncomboname", columns, primaryKey, Logged.UNLOGGED );
-    }
-
-    @Override
-    public List<Index> getIndexes()
-    {
-        return List.of();
-    }
-
-    @Override
-    public ResourceTableType getTableType()
-    {
-        return ResourceTableType.CATEGORY_OPTION_COMBO_NAME;
-    }
-
-    @Override
-    public String getCreateTempTableStatement()
-    {
-        return "create "
-            + tableType
-            + " table "
-            + getTempTableName()
-            + " (categoryoptioncomboid bigint not null primary key, "
-            + "categoryoptioncomboname varchar(255), approvallevel integer, "
-            + "startdate date, enddate date)";
-    }
-
-    @Override
-    public Optional<String> getPopulateTempTableStatement()
-    {
-        return Optional.empty();
-    }
-
-    @Override
-    public Optional<List<Object[]>> getPopulateTempTableContent()
-    {
-        List<Object[]> batchArgs = new ArrayList<>();
-
-        for ( CategoryCombo combo : objects )
-        {
-            if ( !combo.isValid() )
-            {
-                log.warn( "Ignoring category combo, not valid: " + combo );
-                continue;
-            }
-
-            for ( CategoryOptionCombo coc : combo.getOptionCombos() )
-            {
-                List<Object> values = new ArrayList<>();
-
-                values.add( coc.getId() );
-                values.add( coc.getName() );
-                values.add( coc.isIgnoreApproval() ? APPROVAL_LEVEL_HIGHEST : null );
-                values.add( coc.getLatestStartDate() );
-                values.add( coc.getEarliestEndDate() );
-
-                batchArgs.add( values.toArray() );
-            }
-        }
-
-        return Optional.of( batchArgs );
-    }
-
-    @Override
-    public List<String> getCreateIndexStatements()
-    {
-        return Lists.newArrayList();
-    }
+  @Override
+  public List<String> getCreateIndexStatements() {
+    return Lists.newArrayList();
+  }
 }

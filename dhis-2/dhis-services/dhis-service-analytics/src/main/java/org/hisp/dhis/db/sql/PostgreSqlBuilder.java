@@ -37,222 +37,190 @@ import org.hisp.dhis.db.model.Nullable;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.Unique;
 
-public class PostgreSqlBuilder extends AbstractSqlBuilder
-{
-    // Data types
+public class PostgreSqlBuilder extends AbstractSqlBuilder {
+  // Data types
 
-    @Override
-    public String typeSmallInt()
-    {
-        return "smallint";
+  @Override
+  public String typeSmallInt() {
+    return "smallint";
+  }
+
+  @Override
+  public String typeInteger() {
+    return "integer";
+  }
+
+  @Override
+  public String typeBigInt() {
+    return "bigint";
+  }
+
+  @Override
+  public String typeNumeric() {
+    return "numeric(18,6)";
+  }
+
+  @Override
+  public String typeReal() {
+    return "real";
+  }
+
+  @Override
+  public String typeDouble() {
+    return "double precision";
+  }
+
+  @Override
+  public String typeBoolean() {
+    return "boolean";
+  }
+
+  @Override
+  public String typeCharacter(int length) {
+    return String.format("char(%d)", length);
+  }
+
+  @Override
+  public String typeVarchar(int length) {
+    return String.format("varchar(%d)", length);
+  }
+
+  @Override
+  public String typeText() {
+    return "text";
+  }
+
+  @Override
+  public String typeDate() {
+    return "date";
+  }
+
+  @Override
+  public String typeTimestamp() {
+    return "timestamp";
+  }
+
+  @Override
+  public String typeTimestampTz() {
+    return "timestamptz";
+  }
+
+  @Override
+  public String typeTime() {
+    return "time";
+  }
+
+  @Override
+  public String typeTimeTz() {
+    return "timetz";
+  }
+
+  @Override
+  public String typeGeometry() {
+    return "geometry";
+  }
+
+  @Override
+  public String typeGeometryPoint() {
+    return "geometry(Point, 4326)";
+  }
+
+  @Override
+  public String typeJsonb() {
+    return "jsonb";
+  }
+
+  // Capabilities
+
+  @Override
+  public boolean supportsAnalyze() {
+    return true;
+  }
+
+  @Override
+  public boolean supportsVacuum() {
+    return true;
+  }
+
+  // Statements
+
+  @Override
+  public String createTable(Table table) {
+    String unlogged = table.getLogged() == Logged.UNLOGGED ? "unlogged " : "";
+
+    String sql = "create " + unlogged + "table " + quote(table.getName()) + " ";
+
+    // Columns
+
+    for (Column column : table.getColumns()) {
+      String dataType = getDataTypeName(column.getDataType());
+
+      String nullable = column.getNullable() == Nullable.NOT_NULL ? "not null" : "null";
+
+      sql += quote(column.getName()) + " " + dataType + " " + nullable + ",";
     }
 
-    @Override
-    public String typeInteger()
-    {
-        return "integer";
+    // Primary key
+
+    if (table.hasPrimaryKey()) {
+      sql += "primary key (";
+
+      for (String columnName : table.getPrimaryKey()) {
+        sql += quote(columnName) + ",";
+      }
+
+      sql = removeLastComma(sql) + "),";
     }
 
-    @Override
-    public String typeBigInt()
-    {
-        return "bigint";
-    }
+    sql = removeLastComma(sql);
 
-    @Override
-    public String typeNumeric()
-    {
-        return "numeric(18,6)";
-    }
+    return sql + ");";
+  }
 
-    @Override
-    public String typeReal()
-    {
-        return "real";
-    }
+  @Override
+  public String analyzeTable(Table table) {
+    return String.format("analyze %s;", quote(table.getName()));
+  }
 
-    @Override
-    public String typeDouble()
-    {
-        return "double precision";
-    }
+  @Override
+  public String vacuumTable(Table table) {
+    return String.format("vacuum %s;", quote(table.getName()));
+  }
 
-    @Override
-    public String typeBoolean()
-    {
-        return "boolean";
-    }
-
-    @Override
-    public String typeCharacter( int length )
-    {
-        return String.format( "char(%d)", length );
-    }
-
-    @Override
-    public String typeVarchar( int length )
-    {
-        return String.format( "varchar(%d)", length );
-    }
-
-    @Override
-    public String typeText()
-    {
-        return "text";
-    }
-
-    @Override
-    public String typeDate()
-    {
-        return "date";
-    }
-
-    @Override
-    public String typeTimestamp()
-    {
-        return "timestamp";
-    }
-
-    @Override
-    public String typeTimestampTz()
-    {
-        return "timestamptz";
-    }
-
-    @Override
-    public String typeTime()
-    {
-        return "time";
-    }
-
-    @Override
-    public String typeTimeTz()
-    {
-        return "timetz";
-    }
-
-    @Override
-    public String typeGeometry()
-    {
-        return "geometry";
-    }
-
-    @Override
-    public String typeGeometryPoint()
-    {
-        return "geometry(Point, 4326)";
-    }
-
-    @Override
-    public String typeJsonb()
-    {
-        return "jsonb";
-    }
-
-    // Capabilities
-
-    @Override
-    public boolean supportsAnalyze()
-    {
-        return true;
-    }
-
-    @Override
-    public boolean supportsVacuum()
-    {
-        return true;
-    }
-
-    // Statements
-
-    @Override
-    public String createTable( Table table )
-    {
-        String unlogged = table.getLogged() == Logged.UNLOGGED ? "unlogged " : "";
-
-        String sql = "create " + unlogged + "table " + quote( table.getName() ) + " ";
-
-        // Columns
-
-        for ( Column column : table.getColumns() )
-        {
-            String dataType = getDataTypeName( column.getDataType() );
-
-            String nullable = column.getNullable() == Nullable.NOT_NULL ? "not null" : "null";
-
-            sql += quote( column.getName() ) + " " + dataType + " " + nullable + ",";
-        }
-
-        // Primary key
-
-        if ( table.hasPrimaryKey() )
-        {
-            sql += "primary key (";
-
-            for ( String columnName : table.getPrimaryKey() )
-            {
-                sql += quote( columnName ) + ",";
-            }
-
-            sql = removeLastComma( sql ) + "),";
-        }
-
-        sql = removeLastComma( sql );
-
-        return sql + ");";
-    }
-
-    @Override
-    public String analyzeTable( Table table )
-    {
-        return String.format( "analyze %s;", quote( table.getName() ) );
-    }
-
-    @Override
-    public String vacuumTable( Table table )
-    {
-        return String.format( "vacuum %s;", quote( table.getName() ) );
-    }
-
-    @Override
-    public String tableExists( Table table )
-    {
-        return String.format(
-            """
+  @Override
+  public String tableExists(Table table) {
+    return String.format(
+        """
                 select * from information_schema.tables
                 where table_schema = 'public'
                 and table_name = '%s';
                 """,
-            table.getName() );
-    }
+        table.getName());
+  }
 
-    @Override
-    public String renameTable( String name, String newName )
-    {
-        return String.format( "alter table % rename to %;", quote( name ), quote( newName ) );
-    }
+  @Override
+  public String renameTable(String name, String newName) {
+    return String.format("alter table % rename to %;", quote(name), quote(newName));
+  }
 
-    @Override
-    public String dropTable( Table table )
-    {
-        return String.format( "drop table %s", quote( table.getName() ) );
-    }
+  @Override
+  public String dropTable(Table table) {
+    return String.format("drop table %s", quote(table.getName()));
+  }
 
-    @Override
-    public String dropTableIfExists( Table table )
-    {
-        return String.format( "drop table if exists %s", quote( table.getName() ) );
-    }
+  @Override
+  public String dropTableIfExists(Table table) {
+    return String.format("drop table if exists %s", quote(table.getName()));
+  }
 
-    @Override
-    public String createIndex( Table table, Index index )
-    {
-        String unique = index.getUnique() == Unique.UNIQUE ? "unique " : "";
+  @Override
+  public String createIndex(Table table, Index index) {
+    String unique = index.getUnique() == Unique.UNIQUE ? "unique " : "";
 
-        String columns = String.join( ", ", index.getColumns() );
+    String columns = String.join(", ", index.getColumns());
 
-        return String.format(
-            "create %s index %s on %s(%s);",
-            unique, quote( index.getName() ), quote( table.getName() ), columns );
-    }
+    return String.format(
+        "create %s index %s on %s(%s);",
+        unique, quote(index.getName()), quote(table.getName()), columns);
+  }
 }
