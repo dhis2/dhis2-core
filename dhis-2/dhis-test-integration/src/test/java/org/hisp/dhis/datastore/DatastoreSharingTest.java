@@ -254,7 +254,7 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
     injectSecurityContextUser(userWithNoAccess);
     String entryUpdate = mapValueToJson(club("arsenal update 4"));
 
-    // then no auth error is thrown
+    // then an access error is thrown
     assertThrows(
         AccessDeniedException.class,
         () -> datastoreService.updateEntry(NAMESPACE, "arsenal", entryUpdate, null, null));
