@@ -124,10 +124,12 @@ public class ProgramNotificationInstanceController {
       Pager pager = new Pager(page, total, pageSize);
       pager.force(page, pageSize);
       return Page.withPager(
-          instances, org.hisp.dhis.tracker.export.Page.of(instances, pager, true));
+          ProgramNotificationInstanceSchemaDescriptor.PLURAL,
+          instances,
+          org.hisp.dhis.tracker.export.Page.of(instances, pager, true));
     }
 
-    return Page.withoutPager(instances);
+    return Page.withoutPager(ProgramNotificationInstanceSchemaDescriptor.PLURAL, instances);
   }
 
   /**

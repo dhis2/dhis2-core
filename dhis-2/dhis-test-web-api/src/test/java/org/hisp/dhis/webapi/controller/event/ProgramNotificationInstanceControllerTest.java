@@ -109,7 +109,7 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
     JsonList<JsonIdentifiableObject> list =
         GET("/programNotificationInstances?programInstance={uid}", enrollment.getUid())
             .content(HttpStatus.OK)
-            .getList("instances", JsonIdentifiableObject.class);
+            .getList("programNotificationInstances", JsonIdentifiableObject.class);
 
     assertContainsOnly(
         List.of(enrollmentNotification1.getName(), enrollmentNotification2.getName()),
@@ -133,7 +133,7 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
     JsonList<JsonIdentifiableObject> list =
         GET("/programNotificationInstances?programStageInstance={uid}", event.getUid())
             .content(HttpStatus.OK)
-            .getList("instances", JsonIdentifiableObject.class);
+            .getList("programNotificationInstances", JsonIdentifiableObject.class);
 
     assertEquals(eventNotification.getName(), list.get(0).getName());
   }
@@ -143,7 +143,7 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
     JsonList<JsonIdentifiableObject> list =
         GET("/programNotificationInstances?event={uid}", event.getUid())
             .content(HttpStatus.OK)
-            .getList("instances", JsonIdentifiableObject.class);
+            .getList("programNotificationInstances", JsonIdentifiableObject.class);
 
     assertEquals(eventNotification.getName(), list.get(0).getName());
   }
@@ -167,7 +167,8 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
             .content(HttpStatus.OK)
             .asObject(JsonPage.class);
 
-    JsonList<JsonIdentifiableObject> list = page.getList("instances", JsonIdentifiableObject.class);
+    JsonList<JsonIdentifiableObject> list =
+        page.getList("programNotificationInstances", JsonIdentifiableObject.class);
     assertContainsOnly(
         List.of(enrollmentNotification1.getName(), enrollmentNotification2.getName()),
         list.toList(JsonIdentifiableObject::getName));
@@ -191,7 +192,8 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
             .content(HttpStatus.OK)
             .asObject(JsonPage.class);
 
-    JsonList<JsonIdentifiableObject> list = page.getList("instances", JsonIdentifiableObject.class);
+    JsonList<JsonIdentifiableObject> list =
+        page.getList("programNotificationInstances", JsonIdentifiableObject.class);
     assertEquals(
         1,
         list.size(),
@@ -216,7 +218,8 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
             .content(HttpStatus.OK)
             .asObject(JsonPage.class);
 
-    JsonList<JsonIdentifiableObject> list = page.getList("instances", JsonIdentifiableObject.class);
+    JsonList<JsonIdentifiableObject> list =
+        page.getList("programNotificationInstances", JsonIdentifiableObject.class);
     assertContainsOnly(
         List.of(enrollmentNotification1.getName(), enrollmentNotification2.getName()),
         list.toList(JsonIdentifiableObject::getName));
@@ -240,7 +243,8 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
             .content(HttpStatus.OK)
             .asObject(JsonPage.class);
 
-    JsonList<JsonIdentifiableObject> list = page.getList("instances", JsonIdentifiableObject.class);
+    JsonList<JsonIdentifiableObject> list =
+        page.getList("programNotificationInstances", JsonIdentifiableObject.class);
     assertContainsOnly(
         List.of(enrollmentNotification1.getName(), enrollmentNotification2.getName()),
         list.toList(JsonIdentifiableObject::getName));
@@ -260,7 +264,8 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
             .content(HttpStatus.OK)
             .asObject(JsonPage.class);
 
-    JsonList<JsonIdentifiableObject> list = page.getList("instances", JsonIdentifiableObject.class);
+    JsonList<JsonIdentifiableObject> list =
+        page.getList("programNotificationInstances", JsonIdentifiableObject.class);
     assertContainsOnly(
         List.of(enrollmentNotification1.getName(), enrollmentNotification2.getName()),
         list.toList(JsonIdentifiableObject::getName));
