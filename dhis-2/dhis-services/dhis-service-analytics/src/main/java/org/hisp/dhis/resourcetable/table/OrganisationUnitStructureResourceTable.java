@@ -42,6 +42,7 @@ import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Nullable;
 import org.hisp.dhis.db.model.Table;
+import org.hisp.dhis.db.model.Unique;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.resourcetable.ResourceTable;
@@ -96,7 +97,10 @@ public class OrganisationUnitStructureResourceTable extends ResourceTable<Organi
     @Override
     public List<Index> getIndexes()
     {
-        return List.of();
+        return List.of(
+            new Index( ("in_orgunitstructure_organisationunituid_" + getRandomSuffix()),
+                Unique.UNIQUE,
+                List.of( "organisationunituid" ) ) );
     }
 
     @Override

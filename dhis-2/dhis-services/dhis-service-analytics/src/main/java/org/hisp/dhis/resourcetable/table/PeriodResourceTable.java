@@ -43,6 +43,7 @@ import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Nullable;
 import org.hisp.dhis.db.model.Table;
+import org.hisp.dhis.db.model.Unique;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.WeeklyAbstractPeriodType;
@@ -92,7 +93,10 @@ public class PeriodResourceTable extends ResourceTable<Period>
     @Override
     public List<Index> getIndexes()
     {
-        return List.of();
+        return List.of(
+            new Index( ("in_periodstructure_iso_" + getRandomSuffix()),
+                Unique.UNIQUE,
+                List.of( "iso" ) ) );
     }
 
     @Override
