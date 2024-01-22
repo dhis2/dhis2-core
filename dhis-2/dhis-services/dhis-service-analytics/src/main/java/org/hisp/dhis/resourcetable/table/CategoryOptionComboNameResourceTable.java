@@ -66,7 +66,7 @@ public class CategoryOptionComboNameResourceTable extends ResourceTable<Category
     {
         List<Column> columns = List.of(
             new Column( "categoryoptioncomboid", DataType.BIGINT, Nullable.NOT_NULL ),
-            new Column( "categoryoptioncomboname", DataType.VARCHAR_255 ),
+            new Column( "categoryoptioncomboname", DataType.VARCHAR_255, Nullable.NOT_NULL ),
             new Column( "approvallevel", DataType.INTEGER ),
             new Column( "startdate", DataType.DATE ),
             new Column( "enddate", DataType.DATE ) );
