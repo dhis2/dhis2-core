@@ -225,4 +225,9 @@ public class PostgreSqlBuilder
         return String.format( "drop table %s", quote( table.getName() ) );
     }
 
+    @Override
+    public String dropTableIfExists( Table table )
+    {
+        return String.format( "drop table if exists %s", quote( table.getName() ) );
+    }
 }

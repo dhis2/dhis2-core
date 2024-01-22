@@ -168,4 +168,10 @@ public interface SqlBuilder
      * @return a drop table statement.
      */
     String dropTable( Table table );
+
+    /**
+     * @param table the {@link Table}.
+     * @return a drop table if exists statement.
+     */
+    String dropTableIfExists( Table table );
 }
