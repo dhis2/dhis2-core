@@ -84,7 +84,19 @@ public class DataElementResourceTable extends ResourceTable<DataElement>
     @Override
     public List<Index> getIndexes()
     {
-        return List.of();
+        return List.of(
+            new Index( ("in_dataelementstructure_dataelementuid_" + getRandomSuffix()),
+                Unique.UNIQUE,
+                List.of( "dataelementuid" ) ),
+            new Index( ("in_dataelementstructure_datasetid_" + getRandomSuffix()),
+                List.of( "datasetid" ) ),
+            new Index( ("in_dataelementstructure_datasetuid_" + getRandomSuffix()),
+                List.of( "datasetuid" ) ),
+            new Index( ("in_dataelementstructure_periodtypeid_" + getRandomSuffix()),
+                List.of( "periodtypeid" ) ),
+            new Index( ("in_dataelementstructure_workflowid_" + getRandomSuffix()),
+                List.of( "workflowid" ) ) );
+
     }
 
     @Override
@@ -156,19 +168,6 @@ public class DataElementResourceTable extends ResourceTable<DataElement>
     @Override
     public List<String> getCreateIndexStatements()
     {
-        List.of(
-            new Index( ("in_dataelementstructure_dataelementuid_" + getRandomSuffix()),
-                Unique.UNIQUE,
-                List.of( "dataelementuid" ) ),
-            new Index( ("in_dataelementstructure_datasetid_" + getRandomSuffix()),
-                List.of( "datasetid" ) ),
-            new Index( ("in_dataelementstructure_datasetuid_" + getRandomSuffix()),
-                List.of( "datasetuid" ) ),
-            new Index( ("in_dataelementstructure_periodtypeid_" + getRandomSuffix()),
-                List.of( "periodtypeid" ) ),
-            new Index( ("in_dataelementstructure_workflowid_" + getRandomSuffix()),
-                List.of( "workflowid" ) ) );
-
         return Lists.newArrayList(
             "create unique index in_dataelementstructure_dataelementuid_"
                 + getRandomSuffix()
