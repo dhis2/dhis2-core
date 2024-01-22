@@ -82,7 +82,7 @@ public class ProgramNotificationTemplateController
       @RequestParam(required = false) String program,
       @RequestParam(required = false) String programStage,
       @RequestParam(required = false) boolean skipPaging,
-      @RequestParam(required = false, defaultValue = "1") int page,
+      @RequestParam(required = false, defaultValue = "0") int page,
       @RequestParam(required = false, defaultValue = "50") int pageSize) {
     ProgramNotificationTemplateParam params =
         ProgramNotificationTemplateParam.builder()
