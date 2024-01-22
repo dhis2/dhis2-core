@@ -55,7 +55,7 @@ public class Index
     private final String tableName;
 
     /** Index uniqueness constraint. */
-    private final boolean unique;
+    private final Unique unique;
 
     /** Index column names. */
     @NonNull
@@ -66,7 +66,16 @@ public class Index
         this.name = name;
         this.indexType = IndexType.BTREE;
         this.tableName = tableName;
-        this.unique = false;
+        this.unique = Unique.NON_UNIQUE;
+        this.columns = columns;
+    }
+
+    public Index( String name, String tableName, Unique unique, List<String> columns )
+    {
+        this.name = name;
+        this.indexType = IndexType.BTREE;
+        this.tableName = tableName;
+        this.unique = unique;
         this.columns = columns;
     }
 }
