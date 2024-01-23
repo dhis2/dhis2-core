@@ -122,7 +122,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
   /**
    * Invokes table hooks.
    *
-   * @param resourceTable
+   * @param tableType the {@link TableType}.
    */
   private void invokeTableHooks(ResourceTableType tableType) {
     List<AnalyticsTableHook> hooks =
