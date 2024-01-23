@@ -48,12 +48,12 @@ public class Index {
   @NonNull private final IndexType indexType;
 
   /** Index uniqueness constraint. */
-  private final Unique unique;
+  @NonNull private final Unique unique;
 
   /** Index column names. */
   @NonNull private final List<String> columns;
 
-  /** SQL {©code where} condition for index. */
+  /** SQL {©code where} condition for index. Optional. */
   private final String condition;
 
   public Index(String name, List<String> columns) {
