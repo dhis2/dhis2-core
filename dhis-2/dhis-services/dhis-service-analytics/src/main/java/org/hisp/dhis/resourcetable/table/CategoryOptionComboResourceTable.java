@@ -30,9 +30,9 @@ package org.hisp.dhis.resourcetable.table;
 import static org.hisp.dhis.db.model.Table.toStaging;
 import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
 
-import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Optional;
+
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
@@ -40,65 +40,58 @@ import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
-import org.hisp.dhis.resourcetable.ResourceTable;
+import org.hisp.dhis.resourcetable.ResourceTable2;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
 /**
  * @author Lars Helge Overland
  */
-public class CategoryOptionComboResourceTable extends ResourceTable<CategoryOptionCombo> {
-  private static final String TABLE_NAME = "_dataelementcategoryoptioncombo";
+public class CategoryOptionComboResourceTable implements ResourceTable2
+{
+    private static final String TABLE_NAME = "_dataelementcategoryoptioncombo";
 
-  private final String parameters;
+    private final String parameters;
 
-  public CategoryOptionComboResourceTable(
-      List<CategoryOptionCombo> categoryOptionCombos, String parameters) {
-    this.parameters = parameters;
-  }
+    public CategoryOptionComboResourceTable(
+        List<CategoryOptionCombo> categoryOptionCombos, String parameters )
+    {
+        this.parameters = parameters;
+    }
 
-  @Override
-  public Table getTable() {
-    return new Table(toStaging(TABLE_NAME), getColumns(), List.of(), getIndexes(), Logged.UNLOGGED);
-  }
+    @Override
+    public Table getTable()
+    {
+        return new Table( toStaging( TABLE_NAME ), getColumns(), List.of(), getIndexes(), Logged.UNLOGGED );
+    }
 
-  private List<Column> getColumns() {
-    return List.of(
-        new Column("dataelementid", DataType.BIGINT, Nullable.NOT_NULL),
-        new Column("dataelementuid", DataType.CHARACTER_11, Nullable.NOT_NULL),
-        new Column("categoryoptioncomboid", DataType.BIGINT, Nullable.NOT_NULL),
-        new Column("categoryoptioncombouid", DataType.CHARACTER_11, Nullable.NOT_NULL));
-  }
+    private List<Column> getColumns()
+    {
+        return List.of(
+            new Column( "dataelementid", DataType.BIGINT, Nullable.NOT_NULL ),
+            new Column( "dataelementuid", DataType.CHARACTER_11, Nullable.NOT_NULL ),
+            new Column( "categoryoptioncomboid", DataType.BIGINT, Nullable.NOT_NULL ),
+            new Column( "categoryoptioncombouid", DataType.CHARACTER_11, Nullable.NOT_NULL ) );
+    }
 
-  private List<Index> getIndexes() {
-    return List.of(
-        new Index(
-            appendRandom("in_dataelementcategoryoptioncombo"),
-            List.of("dataelementuid", "categoryoptioncombouid")));
-  }
+    private List<Index> getIndexes()
+    {
+        return List.of(
+            new Index(
+                appendRandom( "in_dataelementcategoryoptioncombo" ),
+                List.of( "dataelementuid", "categoryoptioncombouid" ) ) );
+    }
 
-  @Override
-  public ResourceTableType getTableType() {
-    return ResourceTableType.DATA_ELEMENT_CATEGORY_OPTION_COMBO;
-  }
+    @Override
+    public ResourceTableType getTableType()
+    {
+        return ResourceTableType.DATA_ELEMENT_CATEGORY_OPTION_COMBO;
+    }
 
-  @Override
-  public String getCreateTempTableStatement() {
-    return "create "
-        + parameters
-        + " table "
-        + getTempTableName()
-        + " ("
-        + "dataelementid bigint not null, "
-        + "dataelementuid varchar(11) not null, "
-        + "categoryoptioncomboid bigint not null, "
-        + "categoryoptioncombouid varchar(11) not null)";
-  }
-
-  @Override
-  public Optional<String> getPopulateTempTableStatement() {
-    String sql =
-        "insert into "
-            + getTempTableName()
+    @Override
+    public Optional<String> getPopulateTempTableStatement()
+    {
+        String sql = "insert into "
+            + getStagingTableName()
             + " (dataelementid, dataelementuid, categoryoptioncomboid, categoryoptioncombouid) "
             + "select de.dataelementid as dataelementid, de.uid as dataelementuid, "
             + "coc.categoryoptioncomboid as categoryoptioncomboid, coc.uid as categoryoptioncombouid "
@@ -106,25 +99,12 @@ public class CategoryOptionComboResourceTable extends ResourceTable<CategoryOpti
             + "join categorycombos_optioncombos cc on de.categorycomboid = cc.categorycomboid "
             + "join categoryoptioncombo coc on cc.categoryoptioncomboid = coc.categoryoptioncomboid";
 
-    return Optional.of(sql);
-  }
+        return Optional.of( sql );
+    }
 
-  @Override
-  public Optional<List<Object[]>> getPopulateTempTableContent() {
-    return Optional.empty();
-  }
-
-  @Override
-  public List<String> getCreateIndexStatements() {
-    String name = "in_dataelementcategoryoptioncombo_" + getRandomSuffix();
-
-    String sql =
-        "create index "
-            + name
-            + " on "
-            + getTempTableName()
-            + "(dataelementuid, categoryoptioncombouid)";
-
-    return Lists.newArrayList(sql);
-  }
+    @Override
+    public Optional<List<Object[]>> getPopulateTempTableContent()
+    {
+        return Optional.empty();
+    }
 }

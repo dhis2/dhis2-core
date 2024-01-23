@@ -29,9 +29,9 @@ package org.hisp.dhis.resourcetable.table;
 
 import static org.hisp.dhis.db.model.Table.toStaging;
 
-import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Optional;
+
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
@@ -39,68 +39,59 @@ import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
-import org.hisp.dhis.resourcetable.ResourceTable;
+import org.hisp.dhis.resourcetable.ResourceTable2;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
 /**
  * @author Lars Helge Overland
  */
-public class DataApprovalMinLevelResourceTable extends ResourceTable<OrganisationUnitLevel> {
-  private static final String TABLE_NAME = "_dataapprovalminlevel";
+public class DataApprovalMinLevelResourceTable implements ResourceTable2
+{
+    private static final String TABLE_NAME = "_dataapprovalminlevel";
 
-  private final List<OrganisationUnitLevel> levels;
+    private final List<OrganisationUnitLevel> levels;
 
-  private final String parameters;
+    private final String parameters;
 
-  public DataApprovalMinLevelResourceTable(List<OrganisationUnitLevel> levels, String parameters) {
-    this.levels = levels;
-    this.parameters = parameters;
-  }
+    public DataApprovalMinLevelResourceTable( List<OrganisationUnitLevel> levels, String parameters )
+    {
+        this.levels = levels;
+        this.parameters = parameters;
+    }
 
-  @Override
-  public Table getTable() {
-    return new Table(
-        toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), List.of(), Logged.UNLOGGED);
-  }
+    @Override
+    public Table getTable()
+    {
+        return new Table(
+            toStaging( TABLE_NAME ), getColumns(), getPrimaryKey(), List.of(), Logged.UNLOGGED );
+    }
 
-  private List<Column> getColumns() {
-    return List.of(
-        new Column("workflowid", DataType.BIGINT, Nullable.NOT_NULL),
-        new Column("periodid", DataType.BIGINT, Nullable.NOT_NULL),
-        new Column("organisationunitid", DataType.BIGINT, Nullable.NOT_NULL),
-        new Column("attributeoptioncomboid", DataType.BIGINT, Nullable.NOT_NULL),
-        new Column("minlevel", DataType.INTEGER, Nullable.NOT_NULL));
-  }
+    private List<Column> getColumns()
+    {
+        return List.of(
+            new Column( "workflowid", DataType.BIGINT, Nullable.NOT_NULL ),
+            new Column( "periodid", DataType.BIGINT, Nullable.NOT_NULL ),
+            new Column( "organisationunitid", DataType.BIGINT, Nullable.NOT_NULL ),
+            new Column( "attributeoptioncomboid", DataType.BIGINT, Nullable.NOT_NULL ),
+            new Column( "minlevel", DataType.INTEGER, Nullable.NOT_NULL ) );
+    }
 
-  private List<String> getPrimaryKey() {
-    return List.of("workflowid", "periodid", "attributeoptioncomboid", "organisationunitid");
-  }
+    private List<String> getPrimaryKey()
+    {
+        return List.of( "workflowid", "periodid", "attributeoptioncomboid", "organisationunitid" );
+    }
 
-  @Override
-  public ResourceTableType getTableType() {
-    return ResourceTableType.DATA_APPROVAL_MIN_LEVEL;
-  }
+    @Override
+    public ResourceTableType getTableType()
+    {
+        return ResourceTableType.DATA_APPROVAL_MIN_LEVEL;
+    }
 
-  @Override
-  public String getCreateTempTableStatement() {
-    return "create "
-        + parameters
-        + " table "
-        + getTempTableName()
-        + "("
-        + "workflowid bigint not null, "
-        + "periodid bigint not null, "
-        + "organisationunitid bigint not null, "
-        + "attributeoptioncomboid bigint not null, "
-        + "minlevel integer not null, "
-        + "primary key (workflowid,periodid,attributeoptioncomboid,organisationunitid))";
-  }
-
-  @Override
-  public Optional<String> getPopulateTempTableStatement() {
-    String sql =
-        "insert into "
-            + getTempTableName()
+    @Override
+    public Optional<String> getPopulateTempTableStatement()
+    {
+        String sql = "insert into "
+            + getStagingTableName()
             + " (workflowid,periodid,organisationunitid,attributeoptioncomboid,minlevel) "
             + "select da.workflowid, da.periodid, da.organisationunitid, "
             + "da.attributeoptioncomboid, dal.level as minlevel "
@@ -118,22 +109,19 @@ public class DataApprovalMinLevelResourceTable extends ResourceTable<Organisatio
             + "and dal.level > dal2.level "
             + "and ( ";
 
-    for (OrganisationUnitLevel level : levels) {
-      sql += "ous.idlevel" + level.getLevel() + " = da2.organisationunitid or ";
+        for ( OrganisationUnitLevel level : levels )
+        {
+            sql += "ous.idlevel" + level.getLevel() + " = da2.organisationunitid or ";
+        }
+
+        sql = TextUtils.removeLastOr( sql ) + ") )";
+
+        return Optional.of( sql );
     }
 
-    sql = TextUtils.removeLastOr(sql) + ") )";
-
-    return Optional.of(sql);
-  }
-
-  @Override
-  public Optional<List<Object[]>> getPopulateTempTableContent() {
-    return Optional.empty();
-  }
-
-  @Override
-  public List<String> getCreateIndexStatements() {
-    return Lists.newArrayList();
-  }
+    @Override
+    public Optional<List<Object[]>> getPopulateTempTableContent()
+    {
+        return Optional.empty();
+    }
 }
