@@ -32,6 +32,9 @@ import java.util.List;
 import org.hisp.dhis.jsontree.JsonDate;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.Required;
+import org.hisp.dhis.jsontree.Validation;
+import org.hisp.dhis.jsontree.Validation.YesNo;
 
 /**
  * Web API equivalent of a {@link org.hisp.dhis.common.BaseIdentifiableObject}.
@@ -39,6 +42,7 @@ import org.hisp.dhis.jsontree.JsonObject;
  * @author Jan Bernitt
  */
 public interface JsonIdentifiableObject extends JsonObject {
+  @Required
   default String getId() {
     return getString("id").string();
   }
@@ -79,16 +83,18 @@ public interface JsonIdentifiableObject extends JsonObject {
     return get("created", JsonDate.class).date();
   }
 
+  @Validation(required = YesNo.NO)
   default boolean getExternalAccess() {
-    return getBoolean("externalAccess").booleanValue();
+    return getBoolean("externalAccess").booleanValue(false);
   }
 
   default List<String> getFavorites() {
     return getArray("favorites").stringValues();
   }
 
+  @Validation(required = YesNo.NO)
   default boolean isFavorite() {
-    return getBoolean("favorite").booleanValue();
+    return getBoolean("favorite").booleanValue(false);
   }
 
   default JsonSharing getSharing() {

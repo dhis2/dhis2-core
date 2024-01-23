@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.json;
 
 import java.time.LocalDateTime;
 import org.hisp.dhis.jsontree.JsonDate;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.Required;
 import org.hisp.dhis.metadata.MetadataProposalStatus;
@@ -66,8 +67,8 @@ public interface JsonMetadataProposal extends JsonObject {
     return getString("targetId").string();
   }
 
-  default JsonObject getChange() {
-    return getObject("change");
+  default JsonMixed getChange() {
+    return get("change", JsonMixed.class);
   }
 
   default String getComment() {
