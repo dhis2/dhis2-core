@@ -76,7 +76,6 @@ public class OutlierAnalysis implements Serializable {
   @JsonIgnore
   public boolean isValid() {
     return maxResults == null
-        || (maxResults != null
-            && (maxResults >= MAX_RESULTS_MIN_VALUE && maxResults <= MAX_RESULTS_MAX_VALUE));
+        || (maxResults >= MAX_RESULTS_MIN_VALUE && maxResults <= MAX_RESULTS_MAX_VALUE);
   }
 }
