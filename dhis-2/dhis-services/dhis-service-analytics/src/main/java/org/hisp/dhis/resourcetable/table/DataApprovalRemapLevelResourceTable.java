@@ -33,7 +33,6 @@ import java.util.Optional;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
-import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Nullable;
 import org.hisp.dhis.db.model.Table;
@@ -62,6 +61,8 @@ import com.google.common.collect.Lists;
  */
 public class DataApprovalRemapLevelResourceTable extends ResourceTable<DataApprovalWorkflow>
 {
+    private static final String TABLE_NAME = "_dataapprovalremaplevel";
+
     private final String parameters;
 
     public DataApprovalRemapLevelResourceTable( List<DataApprovalWorkflow> workflows, String parameters )
@@ -72,20 +73,20 @@ public class DataApprovalRemapLevelResourceTable extends ResourceTable<DataAppro
     @Override
     public Table getTable()
     {
-        List<Column> columns = List.of(
+        return new Table( TABLE_NAME, getColumns(), getPrimaryKey(), List.of(), Logged.UNLOGGED );
+    }
+
+    private List<Column> getColumns()
+    {
+        return List.of(
             new Column( "workflowid", DataType.BIGINT, Nullable.NOT_NULL ),
             new Column( "dataapprovallevelid", DataType.BIGINT, Nullable.NOT_NULL ),
             new Column( "level", DataType.INTEGER, Nullable.NOT_NULL ) );
-
-        List<String> primaryKey = List.of( "workflowid", "dataapprovallevelid" );
-
-        return new Table( "_dataapprovalremaplevel", columns, primaryKey, Logged.UNLOGGED );
     }
 
-    @Override
-    public List<Index> getIndexes()
+    private List<String> getPrimaryKey()
     {
-        return List.of();
+        return List.of( "workflowid", "dataapprovallevelid" );
     }
 
     @Override

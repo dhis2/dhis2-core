@@ -33,7 +33,6 @@ import java.util.Optional;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
-import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Nullable;
 import org.hisp.dhis.db.model.Table;
@@ -48,6 +47,8 @@ import com.google.common.collect.Lists;
  */
 public class DataApprovalMinLevelResourceTable extends ResourceTable<OrganisationUnitLevel>
 {
+    private static final String TABLE_NAME = "_dataapprovalminlevel";
+
     private final List<OrganisationUnitLevel> levels;
 
     private final String parameters;
@@ -61,22 +62,22 @@ public class DataApprovalMinLevelResourceTable extends ResourceTable<Organisatio
     @Override
     public Table getTable()
     {
-        List<Column> columns = List.of(
+        return new Table( TABLE_NAME, getColumns(), getPrimaryKey(), List.of(), Logged.UNLOGGED );
+    }
+
+    private List<Column> getColumns()
+    {
+        return List.of(
             new Column( "workflowid", DataType.BIGINT, Nullable.NOT_NULL ),
             new Column( "periodid", DataType.BIGINT, Nullable.NOT_NULL ),
             new Column( "organisationunitid", DataType.BIGINT, Nullable.NOT_NULL ),
             new Column( "attributeoptioncomboid", DataType.BIGINT, Nullable.NOT_NULL ),
             new Column( "minlevel", DataType.INTEGER, Nullable.NOT_NULL ) );
-
-        List<String> primaryKey = List.of( "workflowid", "periodid", "attributeoptioncomboid", "organisationunitid" );
-
-        return new Table( "_dataapprovalminlevel", columns, primaryKey, Logged.UNLOGGED );
     }
 
-    @Override
-    public List<Index> getIndexes()
+    private List<String> getPrimaryKey()
     {
-        return List.of();
+        return List.of( "workflowid", "periodid", "attributeoptioncomboid", "organisationunitid" );
     }
 
     @Override

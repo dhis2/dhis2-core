@@ -37,7 +37,6 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
-import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Nullable;
 import org.hisp.dhis.db.model.Table;
@@ -54,6 +53,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CategoryOptionComboNameResourceTable extends ResourceTable<CategoryCombo>
 {
+    private static final String TABLE_NAME = "_categoryoptioncomboname";
+
     private final List<CategoryCombo> categoryCombos;
 
     private final String parameters;
@@ -67,22 +68,22 @@ public class CategoryOptionComboNameResourceTable extends ResourceTable<Category
     @Override
     public Table getTable()
     {
-        List<Column> columns = List.of(
+        return new Table( TABLE_NAME, getColumns(), getPrimaryKey(), List.of(), Logged.UNLOGGED );
+    }
+
+    private List<Column> getColumns()
+    {
+        return List.of(
             new Column( "categoryoptioncomboid", DataType.BIGINT, Nullable.NOT_NULL ),
             new Column( "categoryoptioncomboname", DataType.VARCHAR_255 ),
             new Column( "approvallevel", DataType.INTEGER ),
             new Column( "startdate", DataType.DATE ),
             new Column( "enddate", DataType.DATE ) );
-
-        List<String> primaryKey = List.of( "categoryoptioncomboid" );
-
-        return new Table( "_categoryoptioncomboname", columns, primaryKey, Logged.UNLOGGED );
     }
 
-    @Override
-    public List<Index> getIndexes()
+    private List<String> getPrimaryKey()
     {
-        return List.of();
+        return List.of( "categoryoptioncomboid" );
     }
 
     @Override

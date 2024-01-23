@@ -37,7 +37,6 @@ import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
-import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Nullable;
 import org.hisp.dhis.db.model.Table;
@@ -52,6 +51,8 @@ import com.google.common.collect.Lists;
  */
 public class CategoryResourceTable extends ResourceTable<Category>
 {
+    private static final String TABLE_NAME = "_categorystructure";
+
     private final List<Category> categories;
 
     private final List<CategoryOptionGroupSet> groupSets;
@@ -68,6 +69,11 @@ public class CategoryResourceTable extends ResourceTable<Category>
 
     @Override
     public Table getTable()
+    {
+        return new Table( TABLE_NAME, getColumns(), getPrimaryKey(), List.of(), Logged.UNLOGGED );
+    }
+
+    private List<Column> getColumns()
     {
         List<Column> columns = Lists.newArrayList(
             new Column( "categoryoptioncomboid", DataType.BIGINT, Nullable.NOT_NULL ),
@@ -91,15 +97,12 @@ public class CategoryResourceTable extends ResourceTable<Category>
                     new Column( groupSet.getUid(), DataType.CHARACTER_11 ) ) );
         }
 
-        List<String> primaryKey = List.of( "categoryoptioncomboid" );
-
-        return new Table( "_categorystructure", columns, primaryKey, Logged.UNLOGGED );
+        return columns;
     }
 
-    @Override
-    public List<Index> getIndexes()
+    private List<String> getPrimaryKey()
     {
-        return List.of();
+        return List.of( "categoryoptioncomboid" );
     }
 
     @Override

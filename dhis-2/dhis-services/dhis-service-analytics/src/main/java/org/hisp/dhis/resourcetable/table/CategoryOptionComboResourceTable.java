@@ -49,6 +49,8 @@ import com.google.common.collect.Lists;
  */
 public class CategoryOptionComboResourceTable extends ResourceTable<CategoryOptionCombo>
 {
+    private static final String TABLE_NAME = "_dataelementcategoryoptioncombo";
+
     private final String parameters;
 
     public CategoryOptionComboResourceTable( List<CategoryOptionCombo> categoryOptionCombos, String parameters )
@@ -59,19 +61,20 @@ public class CategoryOptionComboResourceTable extends ResourceTable<CategoryOpti
     @Override
     public Table getTable()
     {
-        List<Column> columns = List.of(
+        return new Table( TABLE_NAME, getColumns(),
+            List.of(), getIndexes(), Logged.UNLOGGED );
+    }
+
+    private List<Column> getColumns()
+    {
+        return List.of(
             new Column( "dataelementid", DataType.BIGINT, Nullable.NOT_NULL ),
             new Column( "dataelementuid", DataType.CHARACTER_11, Nullable.NOT_NULL ),
             new Column( "categoryoptioncomboid", DataType.BIGINT, Nullable.NOT_NULL ),
             new Column( "categoryoptioncombouid", DataType.CHARACTER_11, Nullable.NOT_NULL ) );
-
-        List<String> primaryKey = List.of( "" );
-
-        return new Table( "", columns, primaryKey, Logged.UNLOGGED );
     }
 
-    @Override
-    public List<Index> getIndexes()
+    private List<Index> getIndexes()
     {
         return List.of(
             new Index(
