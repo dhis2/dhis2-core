@@ -29,7 +29,6 @@ package org.hisp.dhis.db.model;
 
 import java.util.List;
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.db.model.constraint.Unique;
 
@@ -41,17 +40,17 @@ import org.hisp.dhis.db.model.constraint.Unique;
 @Getter
 @RequiredArgsConstructor
 public class Index {
-  /** Index name. */
-  @NonNull private final String name;
+  /** Index name. Required. */
+  private final String name;
 
-  /** Index type, defaults to {@link IndexType.BTREE}. */
-  @NonNull private final IndexType indexType;
+  /** Index type, defaults to {@link IndexType.BTREE}. Required. */
+  private final IndexType indexType;
 
-  /** Index uniqueness constraint. */
-  @NonNull private final Unique unique;
+  /** Index uniqueness constraint. Required. */
+  private final Unique unique;
 
-  /** Index column names. */
-  @NonNull private final List<String> columns;
+  /** Index column names. Required. */
+  private final List<String> columns;
 
   /** SQL {©code where} condition for index. Optional. */
   private final String condition;

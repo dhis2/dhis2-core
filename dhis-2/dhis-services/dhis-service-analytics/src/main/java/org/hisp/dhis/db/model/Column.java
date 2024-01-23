@@ -28,7 +28,6 @@
 package org.hisp.dhis.db.model;
 
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.db.model.constraint.Nullable;
 
@@ -40,14 +39,14 @@ import org.hisp.dhis.db.model.constraint.Nullable;
 @Getter
 @RequiredArgsConstructor
 public class Column {
-  /** Column name. */
-  @NonNull private final String name;
+  /** Column name. Required. */
+  private final String name;
 
-  /** Column data type. */
-  @NonNull private final DataType dataType;
+  /** Column data type. Required. */
+  private final DataType dataType;
 
-  /** Column not null constraint. */
-  @NonNull private final Nullable nullable;
+  /** Column not null constraint. Required. */
+  private final Nullable nullable;
 
   public Column(String name, DataType dataType) {
     this.name = name;
