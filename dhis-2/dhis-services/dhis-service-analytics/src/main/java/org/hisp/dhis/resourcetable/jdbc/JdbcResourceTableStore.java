@@ -94,13 +94,9 @@ public class JdbcResourceTableStore implements ResourceTableStore
 
         log.debug( "Analyzed resource table: '{}'", resourceTable.getTempTableName() );
 
-        // ---------------------------------------------------------------------
-        // Swap tables
-        // ---------------------------------------------------------------------
+        jdbcTemplate.execute( sqlBuilder.dropTableIfExists( tableName ) );
 
-        jdbcTemplate.execute( resourceTable.getDropTableIfExistsStatement() );
-
-        jdbcTemplate.execute( resourceTable.getRenameTempTableStatement() );
+        jdbcTemplate.execute( sqlBuilder.renameTable( stagingTable, tableName ) );
 
         log.debug( "Swapped resource table: '{}'", resourceTable.getTableName() );
 
