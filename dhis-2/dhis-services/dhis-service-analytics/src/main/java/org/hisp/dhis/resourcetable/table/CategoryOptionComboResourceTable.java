@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
+import static org.hisp.dhis.db.model.Table.toStaging;
 import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
 
 import com.google.common.collect.Lists;
@@ -57,7 +58,7 @@ public class CategoryOptionComboResourceTable extends ResourceTable<CategoryOpti
 
   @Override
   public Table getTable() {
-    return new Table(TABLE_NAME, getColumns(), List.of(), getIndexes(), Logged.UNLOGGED);
+    return new Table(toStaging(TABLE_NAME), getColumns(), List.of(), getIndexes(), Logged.UNLOGGED);
   }
 
   private List<Column> getColumns() {

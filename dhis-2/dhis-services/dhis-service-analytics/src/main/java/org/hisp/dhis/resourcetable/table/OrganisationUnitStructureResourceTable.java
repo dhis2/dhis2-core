@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
+import static org.hisp.dhis.db.model.Table.toStaging;
 import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 
@@ -72,7 +73,8 @@ public class OrganisationUnitStructureResourceTable extends ResourceTable<Organi
 
   @Override
   public Table getTable() {
-    return new Table(TABLE_NAME, getColumns(), getPrimaryKey(), getIndexes(), Logged.UNLOGGED);
+    return new Table(
+        toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), getIndexes(), Logged.UNLOGGED);
   }
 
   private List<Column> getColumns() {

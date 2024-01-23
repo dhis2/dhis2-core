@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
+import static org.hisp.dhis.db.model.Table.toStaging;
+
 import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Optional;
@@ -57,7 +59,8 @@ public class DataApprovalMinLevelResourceTable extends ResourceTable<Organisatio
 
   @Override
   public Table getTable() {
-    return new Table(TABLE_NAME, getColumns(), getPrimaryKey(), List.of(), Logged.UNLOGGED);
+    return new Table(
+        toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), List.of(), Logged.UNLOGGED);
   }
 
   private List<Column> getColumns() {
