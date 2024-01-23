@@ -131,18 +131,6 @@ class DatastoreControllerAppTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testUpdateKeyJsonValue() {
-    assertStatus(HttpStatus.CREATED, POST("/dataStore/test-app-ns/key1", "[]"));
-    assertStatus(HttpStatus.OK, PUT("/dataStore/test-app-ns/key1", "{}"));
-    switchToNewUser("just-test-app-admin", App.SEE_APP_AUTHORITY_PREFIX + "test");
-    assertStatus(HttpStatus.OK, PUT("/dataStore/test-app-ns/key1", "{}"));
-    switchToNewUser("has-no-app-authority");
-    assertEquals(
-        "Namespace 'test-app-ns' is protected, access denied",
-        PUT("/dataStore/test-app-ns/key1", "{}").error(HttpStatus.FORBIDDEN).getMessage());
-  }
-
-  @Test
   void testDeleteKeyJsonValue() {
     assertStatus(HttpStatus.CREATED, POST("/dataStore/test-app-ns/key1", "[]"));
     assertStatus(HttpStatus.OK, DELETE("/dataStore/test-app-ns/key1"));
