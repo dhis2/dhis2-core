@@ -29,6 +29,7 @@ package org.hisp.dhis.eventvisualization;
 
 import static java.util.Arrays.stream;
 import static org.hisp.dhis.common.DimensionType.DATA_X;
+import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.DimensionType.PERIOD;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
@@ -68,7 +69,8 @@ public class SimpleDimension implements Serializable {
     EVENT_STATUS("eventStatus", DATA_X),
     PROGRAM_STATUS("programStatus", DATA_X),
     CREATED_BY("createdBy", DATA_X),
-    LAST_UPDATED_BY("lastUpdatedBy", DATA_X);
+    LAST_UPDATED_BY("lastUpdatedBy", DATA_X),
+    OU("ou", ORGANISATION_UNIT);
 
     private final String dimension;
 
