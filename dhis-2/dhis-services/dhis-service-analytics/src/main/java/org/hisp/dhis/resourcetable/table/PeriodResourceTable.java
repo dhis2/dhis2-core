@@ -148,7 +148,7 @@ public class PeriodResourceTable extends ResourceTable<Period> {
         if (!uniqueIsoDates.add(isoDate)) {
           // Protect against duplicates produced by calendars
 
-          log.warn("Duplicate ISO date for period, ignoring: " + period + ", ISO date: " + isoDate);
+          log.warn("Duplicate ISO date for period: '{}', ignoring ISO date: '{}'", period, isoDate);
           continue;
         }
 
