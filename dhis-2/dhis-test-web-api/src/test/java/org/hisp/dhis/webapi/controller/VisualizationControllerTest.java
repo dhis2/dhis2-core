@@ -114,6 +114,40 @@ class VisualizationControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
+  void testPostForNullOutlierMaxResults() {
+    // Given
+    String body =
+        """
+            {
+                "name": "Test Visualization",
+                "type": "LINE",
+                "program": {
+                    "id": "IpHINAT79UW"
+                },
+                "outlierAnalysis": {
+                    "enabled": true,
+                    "outlierMethod": "MODIFIED_Z_SCORE",
+                    "thresholdFactor": 3,
+                    "extremeLines": {
+                        "enabled": false,
+                        "value": 1
+                    },
+                    "maxResults": null
+                }
+            }
+        """;
+
+    // When
+    String uid = assertStatus(CREATED, POST("/visualizations/", body));
+
+    // Then
+    String getParams = "?fields=:all,columns[:all,items,sorting]";
+    JsonObject response = GET("/visualizations/" + uid + getParams).content();
+
+    assertThat(response.get("outlierAnalysis").toString(), not(containsString("maxResults")));
+  }
+
+  @Test
   void testPostInvalidSortingObject() {
     // Given
     String invalidDimension = "invalidOne";
