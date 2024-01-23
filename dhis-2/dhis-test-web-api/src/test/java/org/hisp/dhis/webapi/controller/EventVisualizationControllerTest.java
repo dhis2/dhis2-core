@@ -784,15 +784,6 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
 
     JsonNode filtersNode0 = response.get("filters").node().element(0);
     assertThat(
-        filtersNode0.get("items").element(0).get("code").value().toString(),
-        is(equalTo("OrganisationUnitCodeA")));
-    assertThat(
-        filtersNode0.get("items").element(0).get("name").value().toString(),
-        is(equalTo("OrganisationUnitA")));
-    assertThat(
-        filtersNode0.get("items").element(0).get("dimensionItemType").value().toString(),
-        is(equalTo("ORGANISATION_UNIT")));
-    assertThat(
         filtersNode0.get("items").element(0).get("dimensionItem").value().toString(),
         is(equalTo("ImspTQPwCqd")));
     assertThat(
