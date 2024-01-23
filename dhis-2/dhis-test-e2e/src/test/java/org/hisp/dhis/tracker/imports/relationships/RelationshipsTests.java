@@ -309,7 +309,7 @@ public class RelationshipsTests extends TrackerApiTest {
     ApiResponse relationshipResponse =
         trackerImportExportActions.get("/relationships?tei=" + trackedEntity_1);
 
-    relationshipResponse.validate().statusCode(200).body("instances.size()", is(2));
+    relationshipResponse.validate().statusCode(200).body("relationships.size()", is(2));
   }
 
   @Test
@@ -349,8 +349,8 @@ public class RelationshipsTests extends TrackerApiTest {
     relationshipResponse
         .validate()
         .statusCode(200)
-        .body("instances[0].relationship", is(createdRelationshipUid))
-        .body("instances.size()", is(1));
+        .body("relationships[0].relationship", is(createdRelationshipUid))
+        .body("relationships.size()", is(1));
   }
 
   @Test

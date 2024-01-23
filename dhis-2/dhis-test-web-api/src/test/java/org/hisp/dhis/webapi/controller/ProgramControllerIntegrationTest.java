@@ -148,7 +148,7 @@ class ProgramControllerIntegrationTest extends DhisControllerIntegrationTest {
             .as(JsonWebMessage.class);
 
     JsonList<JsonEnrollment> enrollments =
-        enrollmentsForOrgUnit.getList("instances", JsonEnrollment.class);
+        enrollmentsForOrgUnit.getList("enrollments", JsonEnrollment.class);
     Set<JsonEnrollment> originalProgramEnrollments =
         enrollments.stream()
             .filter(enrollment -> enrollment.getProgram().equals(PROGRAM_UID))
