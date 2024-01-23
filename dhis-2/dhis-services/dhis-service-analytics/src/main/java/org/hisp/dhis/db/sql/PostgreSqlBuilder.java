@@ -33,9 +33,9 @@ import static org.hisp.dhis.system.util.SqlUtils.quote;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
-import org.hisp.dhis.db.model.Nullable;
 import org.hisp.dhis.db.model.Table;
-import org.hisp.dhis.db.model.Unique;
+import org.hisp.dhis.db.model.constraint.Nullable;
+import org.hisp.dhis.db.model.constraint.Unique;
 
 public class PostgreSqlBuilder extends AbstractSqlBuilder {
   // Data types

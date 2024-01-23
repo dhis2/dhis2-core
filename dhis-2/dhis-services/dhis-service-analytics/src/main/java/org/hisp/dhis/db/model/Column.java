@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.db.model;
 
+import org.hisp.dhis.db.model.constraint.Nullable;
+
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
