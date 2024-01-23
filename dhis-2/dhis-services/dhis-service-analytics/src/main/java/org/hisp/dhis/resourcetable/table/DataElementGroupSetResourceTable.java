@@ -51,17 +51,16 @@ public class DataElementGroupSetResourceTable implements ResourceTable {
 
   private final List<DataElementGroupSet> groupSets;
 
-  private final String tableType;
+  private final Logged logged;
 
-  public DataElementGroupSetResourceTable(List<DataElementGroupSet> groupSets, String parameters) {
+  public DataElementGroupSetResourceTable(List<DataElementGroupSet> groupSets, Logged logged) {
     this.groupSets = groupSets;
-    this.tableType = parameters;
+    this.logged = logged;
   }
 
   @Override
   public Table getTable() {
-    return new Table(
-        toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), List.of(), Logged.UNLOGGED);
+    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), List.of(), logged);
   }
 
   private List<Column> getColumns() {

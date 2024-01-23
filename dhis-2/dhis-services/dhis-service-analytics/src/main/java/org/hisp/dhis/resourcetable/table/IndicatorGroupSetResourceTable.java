@@ -51,17 +51,16 @@ public class IndicatorGroupSetResourceTable implements ResourceTable {
 
   private final List<IndicatorGroupSet> groupSets;
 
-  private final String parameters;
+  private final Logged logged;
 
-  public IndicatorGroupSetResourceTable(List<IndicatorGroupSet> groupSets, String parameters) {
+  public IndicatorGroupSetResourceTable(List<IndicatorGroupSet> groupSets, Logged logged) {
     this.groupSets = groupSets;
-    this.parameters = parameters;
+    this.logged = logged;
   }
 
   @Override
   public Table getTable() {
-    return new Table(
-        toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), List.of(), Logged.UNLOGGED);
+    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), List.of(), logged);
   }
 
   private List<Column> getColumns() {

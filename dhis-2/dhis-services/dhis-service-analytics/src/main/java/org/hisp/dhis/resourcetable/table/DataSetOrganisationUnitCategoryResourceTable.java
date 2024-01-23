@@ -63,18 +63,18 @@ public class DataSetOrganisationUnitCategoryResourceTable implements ResourceTab
 
   private final CategoryOptionCombo defaultOptionCombo;
 
-  private final String parameters;
+  private final Logged logged;
 
   public DataSetOrganisationUnitCategoryResourceTable(
-      List<DataSet> dataSets, CategoryOptionCombo defaultOptionCombo, String parameters) {
+      List<DataSet> dataSets, CategoryOptionCombo defaultOptionCombo, Logged logged) {
     this.dataSets = dataSets;
     this.defaultOptionCombo = defaultOptionCombo;
-    this.parameters = parameters;
+    this.logged = logged;
   }
 
   @Override
   public Table getTable() {
-    return new Table(toStaging(TABLE_NAME), getColumns(), List.of(), getIndexes(), Logged.UNLOGGED);
+    return new Table(toStaging(TABLE_NAME), getColumns(), List.of(), getIndexes(), logged);
   }
 
   private List<Column> getColumns() {

@@ -62,17 +62,16 @@ public class PeriodResourceTable implements ResourceTable {
 
   private final List<Period> periods;
 
-  private final String parameters;
+  private final Logged logged;
 
-  public PeriodResourceTable(List<Period> periods, String parameters) {
+  public PeriodResourceTable(List<Period> periods, Logged logged) {
     this.periods = periods;
-    this.parameters = parameters;
+    this.logged = logged;
   }
 
   @Override
   public Table getTable() {
-    return new Table(
-        toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), getIndexes(), Logged.UNLOGGED);
+    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), getIndexes(), logged);
   }
 
   private List<Column> getColumns() {

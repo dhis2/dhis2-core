@@ -53,18 +53,16 @@ public class CategoryOptionComboNameResourceTable implements ResourceTable {
 
   private final List<CategoryCombo> categoryCombos;
 
-  private final String parameters;
+  private final Logged logged;
 
-  public CategoryOptionComboNameResourceTable(
-      List<CategoryCombo> categoryCombos, String parameters) {
+  public CategoryOptionComboNameResourceTable(List<CategoryCombo> categoryCombos, Logged logged) {
     this.categoryCombos = categoryCombos;
-    this.parameters = parameters;
+    this.logged = logged;
   }
 
   @Override
   public Table getTable() {
-    return new Table(
-        toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), List.of(), Logged.UNLOGGED);
+    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), List.of(), logged);
   }
 
   private List<Column> getColumns() {

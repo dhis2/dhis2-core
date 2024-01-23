@@ -59,21 +59,18 @@ public class OrganisationUnitStructureResourceTable implements ResourceTable {
 
   private final int organisationUnitLevels;
 
-  private final String tableType;
+  private final Logged logged;
 
   public OrganisationUnitStructureResourceTable(
-      OrganisationUnitService organisationUnitService,
-      int organisationUnitLevels,
-      String tableType) {
+      OrganisationUnitService organisationUnitService, int organisationUnitLevels, Logged logged) {
     this.organisationUnitService = organisationUnitService;
     this.organisationUnitLevels = organisationUnitLevels;
-    this.tableType = tableType;
+    this.logged = logged;
   }
 
   @Override
   public Table getTable() {
-    return new Table(
-        toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), getIndexes(), Logged.UNLOGGED);
+    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), getIndexes(), logged);
   }
 
   private List<Column> getColumns() {

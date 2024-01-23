@@ -59,17 +59,15 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 public class DataApprovalRemapLevelResourceTable implements ResourceTable {
   private static final String TABLE_NAME = "_dataapprovalremaplevel";
 
-  private final String parameters;
+  private final Logged logged;
 
-  public DataApprovalRemapLevelResourceTable(
-      List<DataApprovalWorkflow> workflows, String parameters) {
-    this.parameters = parameters;
+  public DataApprovalRemapLevelResourceTable(List<DataApprovalWorkflow> workflows, Logged logged) {
+    this.logged = logged;
   }
 
   @Override
   public Table getTable() {
-    return new Table(
-        toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), List.of(), Logged.UNLOGGED);
+    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), List.of(), logged);
   }
 
   private List<Column> getColumns() {

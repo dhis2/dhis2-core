@@ -57,16 +57,16 @@ public class DatePeriodResourceTable implements ResourceTable {
 
   private final List<Integer> years;
 
-  private final String parameters;
+  private final Logged logged;
 
-  public DatePeriodResourceTable(List<Integer> years, String parameters) {
+  public DatePeriodResourceTable(List<Integer> years, Logged logged) {
     this.years = years;
-    this.parameters = parameters;
+    this.logged = logged;
   }
 
   @Override
   public Table getTable() {
-    return new Table(toStaging(TABLE_NAME), getColumns(), List.of(), List.of(), Logged.UNLOGGED);
+    return new Table(toStaging(TABLE_NAME), getColumns(), List.of(), List.of(), logged);
   }
 
   private List<Column> getColumns() {

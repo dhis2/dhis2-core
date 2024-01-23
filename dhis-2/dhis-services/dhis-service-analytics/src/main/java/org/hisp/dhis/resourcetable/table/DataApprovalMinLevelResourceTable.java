@@ -49,17 +49,16 @@ public class DataApprovalMinLevelResourceTable implements ResourceTable {
 
   private final List<OrganisationUnitLevel> levels;
 
-  private final String parameters;
+  private final Logged logged;
 
-  public DataApprovalMinLevelResourceTable(List<OrganisationUnitLevel> levels, String parameters) {
+  public DataApprovalMinLevelResourceTable(List<OrganisationUnitLevel> levels, Logged logged) {
     this.levels = levels;
-    this.parameters = parameters;
+    this.logged = logged;
   }
 
   @Override
   public Table getTable() {
-    return new Table(
-        toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), List.of(), Logged.UNLOGGED);
+    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), List.of(), logged);
   }
 
   private List<Column> getColumns() {

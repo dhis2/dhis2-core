@@ -57,19 +57,18 @@ public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
 
   private final int organisationUnitLevels;
 
-  private final String parameters;
+  private final Logged logged;
 
   public OrganisationUnitGroupSetResourceTable(
-      List<OrganisationUnitGroupSet> groupSets, int organisationUnitLevels, String parameters) {
+      List<OrganisationUnitGroupSet> groupSets, int organisationUnitLevels, Logged logged) {
     this.groupSets = groupSets;
     this.organisationUnitLevels = organisationUnitLevels;
-    this.parameters = parameters;
+    this.logged = logged;
   }
 
   @Override
   public Table getTable() {
-    return new Table(
-        toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), getIndexes(), Logged.UNLOGGED);
+    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), getIndexes(), logged);
   }
 
   private List<Column> getColumns() {

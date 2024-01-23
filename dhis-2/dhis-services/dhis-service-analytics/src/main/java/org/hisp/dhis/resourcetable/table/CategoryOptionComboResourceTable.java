@@ -32,7 +32,6 @@ import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
 
 import java.util.List;
 import java.util.Optional;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
@@ -48,16 +47,15 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 public class CategoryOptionComboResourceTable implements ResourceTable {
   private static final String TABLE_NAME = "_dataelementcategoryoptioncombo";
 
-  private final String parameters;
+  private final Logged logged;
 
-  public CategoryOptionComboResourceTable(
-      List<CategoryOptionCombo> categoryOptionCombos, String parameters) {
-    this.parameters = parameters;
+  public CategoryOptionComboResourceTable(Logged logged) {
+    this.logged = logged;
   }
 
   @Override
   public Table getTable() {
-    return new Table(toStaging(TABLE_NAME), getColumns(), List.of(), getIndexes(), Logged.UNLOGGED);
+    return new Table(toStaging(TABLE_NAME), getColumns(), List.of(), getIndexes(), logged);
   }
 
   private List<Column> getColumns() {

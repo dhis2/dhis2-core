@@ -55,19 +55,18 @@ public class CategoryResourceTable implements ResourceTable {
 
   private final List<CategoryOptionGroupSet> groupSets;
 
-  private final String parameters;
+  private final Logged logged;
 
   public CategoryResourceTable(
-      List<Category> categories, List<CategoryOptionGroupSet> groupSets, String parameters) {
+      List<Category> categories, List<CategoryOptionGroupSet> groupSets, Logged logged) {
     this.categories = categories;
     this.groupSets = groupSets;
-    this.parameters = parameters;
+    this.logged = logged;
   }
 
   @Override
   public Table getTable() {
-    return new Table(
-        toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), List.of(), Logged.UNLOGGED);
+    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), List.of(), logged);
   }
 
   private List<Column> getColumns() {

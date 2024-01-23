@@ -55,17 +55,16 @@ public class DataElementResourceTable implements ResourceTable {
 
   private final List<DataElement> dataElements;
 
-  private final String parameters;
+  private final Logged logged;
 
-  public DataElementResourceTable(List<DataElement> dataElements, String parameters) {
+  public DataElementResourceTable(List<DataElement> dataElements, Logged logged) {
     this.dataElements = dataElements;
-    this.parameters = parameters;
+    this.logged = logged;
   }
 
   @Override
   public Table getTable() {
-    return new Table(
-        toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), getIndexes(), Logged.UNLOGGED);
+    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), getIndexes(), logged);
   }
 
   private List<Column> getColumns() {
