@@ -210,9 +210,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
         .content(HttpStatus.OK);
 
     JsonIdentifiableObject organisationUnit =
-        GET("/organisationUnits/{id}", "rXnqqH2Pu6N")
-            .content()
-            .asObject(JsonIdentifiableObject.class);
+        GET("/organisationUnits/{id}", "rXnqqH2Pu6N").content().asA(JsonIdentifiableObject.class);
 
     assertEquals(1, organisationUnit.getAttributeValues().size());
     JsonAttributeValue attributeValue = organisationUnit.getAttributeValues().get(0);
