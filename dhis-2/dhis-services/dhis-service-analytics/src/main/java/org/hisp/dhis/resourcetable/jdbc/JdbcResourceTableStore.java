@@ -63,10 +63,6 @@ public class JdbcResourceTableStore implements ResourceTableStore {
 
   private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
-  // -------------------------------------------------------------------------
-  // ResourceTableStore implementation
-  // -------------------------------------------------------------------------
-
   @Override
   public void generateResourceTable(ResourceTable<?> resourceTable) {
     log.info("Generating resource table: '{}'", resourceTable.getTableName());
