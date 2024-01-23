@@ -31,7 +31,6 @@ import static org.hisp.dhis.db.model.Table.toStaging;
 
 import java.util.List;
 import java.util.Optional;
-import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
@@ -61,7 +60,7 @@ public class DataApprovalRemapLevelResourceTable implements ResourceTable {
 
   private final Logged logged;
 
-  public DataApprovalRemapLevelResourceTable(List<DataApprovalWorkflow> workflows, Logged logged) {
+  public DataApprovalRemapLevelResourceTable(Logged logged) {
     this.logged = logged;
   }
 

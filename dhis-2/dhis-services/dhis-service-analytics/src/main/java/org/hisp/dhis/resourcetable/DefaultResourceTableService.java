@@ -207,7 +207,7 @@ public class DefaultResourceTableService implements ResourceTableService {
   @Override
   public void generateDataApprovalRemapLevelTable() {
     resourceTableStore.generateResourceTable(
-        new DataApprovalRemapLevelResourceTable(null, analyticsExportSettings.getTableLogged()));
+        new DataApprovalRemapLevelResourceTable(analyticsExportSettings.getTableLogged()));
   }
 
   @Override
