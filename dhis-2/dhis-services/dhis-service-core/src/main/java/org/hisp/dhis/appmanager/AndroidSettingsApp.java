@@ -48,6 +48,6 @@ public class AndroidSettingsApp {
   public AndroidSettingsApp(DatastoreService service) {
     service.addProtection(
         new DatastoreNamespaceProtection(
-            NAMESPACE, ProtectionType.NONE, ProtectionType.RESTRICTED, false, AUTHORITY));
+            NAMESPACE, ProtectionType.NONE, ProtectionType.RESTRICTED, AUTHORITY));
   }
 }

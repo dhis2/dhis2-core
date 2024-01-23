@@ -30,6 +30,7 @@ package org.hisp.dhis.datastore.hibernate;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.copyOfRange;
 import static java.util.Collections.emptyList;
+import static org.hisp.dhis.query.JpaQueryUtils.generateHqlQueryForSharingCheck;
 
 import java.util.Date;
 import java.util.List;
@@ -86,7 +87,12 @@ public class HibernateDatastoreStore extends HibernateIdentifiableObjectStore<Da
 
   @Override
   public List<String> getKeysInNamespace(String namespace, Date lastUpdated) {
-    String hql = "select key from DatastoreEntry where namespace = :namespace";
+    String accessFilter =
+        generateHqlQueryForSharingCheck(
+            "ds", currentUserService.getCurrentUser(), AclService.LIKE_READ_METADATA);
+
+    String hql =
+        "select key from DatastoreEntry ds where namespace = :namespace and " + accessFilter;
 
     if (lastUpdated != null) {
       hql += " and lastupdated >= :lastUpdated ";
@@ -113,8 +119,13 @@ public class HibernateDatastoreStore extends HibernateIdentifiableObjectStore<Da
 
   @Override
   public <T> T getEntries(DatastoreQuery query, Function<Stream<DatastoreFields>, T> transform) {
+    String accessFilter =
+        generateHqlQueryForSharingCheck(
+            "ds", currentUserService.getCurrentUser(), AclService.LIKE_READ_METADATA);
     DatastoreQueryBuilder builder =
-        new DatastoreQueryBuilder("from DatastoreEntry where namespace = :namespace", query);
+        new DatastoreQueryBuilder(
+            "from DatastoreEntry ds where namespace = :namespace and " + accessFilter, query);
+
     String hql = builder.createFetchHQL();
 
     Query<?> hQuery =
