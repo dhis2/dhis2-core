@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.eventvisualization;
 
-import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asActualDimension;
 import static org.hisp.dhis.eventvisualization.Attribute.COLUMN;
 import static org.hisp.dhis.eventvisualization.Attribute.FILTER;
 import static org.hisp.dhis.eventvisualization.Attribute.ROW;
+import static org.hisp.dhis.eventvisualization.SimpleDimension.Type.OU;
 import static org.hisp.dhis.eventvisualization.SimpleDimension.Type.contains;
 import static org.hisp.dhis.eventvisualization.SimpleDimension.Type.from;
 
@@ -43,6 +43,8 @@ import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.EventAnalyticalObject;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 
 /**
  * Responsible for handling and associating the simple event dimensions in the EventAnalyticalObject
@@ -134,12 +136,17 @@ public class SimpleDimensionHandler {
 
     for (SimpleDimension simpleDimension : eventAnalyticalObject.getSimpleDimensions()) {
       boolean hasSameDimension = simpleDimension.asQualifiedDimension().equals(qualifiedDimension);
+      boolean isOrgUnit = from(simpleDimension.getDimension()) == OU;
 
       if (simpleDimension.belongsTo(parent) && hasSameDimension) {
-        items.addAll(
-            simpleDimension.getValues().stream()
-                .map(BaseDimensionalItemObject::new)
-                .collect(toList()));
+        for (String dim : simpleDimension.getValues()) {
+          if (isOrgUnit) {
+            BaseDimensionalItemObject itemObject = new BaseDimensionalItemObject(dim, null);
+            items.add(itemObject);
+          } else {
+            items.add(new BaseDimensionalItemObject(dim));
+          }
+        }
       }
     }
 
@@ -156,7 +163,7 @@ public class SimpleDimensionHandler {
   private SimpleDimension createSimpleEventDimensionFor(
       DimensionalObject dimensionalObject, Attribute parent) {
     String programUid =
-        dimensionalObject.getProgram() != null ? dimensionalObject.getProgram().getUid() : null;
+        getProgramUid(dimensionalObject.getProgram(), dimensionalObject.getProgramStage());
     String programStageUid =
         dimensionalObject.getProgramStage() != null
             ? dimensionalObject.getProgramStage().getUid()
@@ -172,5 +179,25 @@ public class SimpleDimensionHandler {
     }
 
     return simpleDimension;
+  }
+
+  /**
+   * Retrieves the user uid of the program, based on the given objects. Tries to get the uid from
+   * the program. If not found, it tries the program present in the program stage.
+   *
+   * @param program the {@link Program}.
+   * @param programStage the {@link ProgramStage}.
+   * @return the program uid or null.
+   */
+  private String getProgramUid(Program program, ProgramStage programStage) {
+    if (program != null) {
+      return program.getUid();
+    }
+
+    if (programStage != null && programStage.getProgram() != null) {
+      return programStage.getProgram().getUid();
+    }
+
+    return null;
   }
 }

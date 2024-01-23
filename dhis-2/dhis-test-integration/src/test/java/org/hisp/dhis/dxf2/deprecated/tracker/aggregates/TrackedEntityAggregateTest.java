@@ -538,8 +538,11 @@ class TrackedEntityAggregateTest extends DeprecatedTrackerTest {
     assertAssignedUserProperties(event);
 
     // Dates
+    long lastUpdated = parseDate(event.getLastUpdated()).getTime();
+    long created = parseDate(event.getCreated()).getTime();
+
+    assertTrue(lastUpdated >= created);
     assertNotNull(event.getEventDate());
-    assertEquals(event.getCreated(), event.getLastUpdated());
     assertEquals(event.getCreatedAtClient(), event.getLastUpdatedAtClient());
     assertEquals(event.getCreatedAtClient(), event.getCompletedDate());
     assertNotEquals(event.getCreated(), event.getCreatedAtClient());

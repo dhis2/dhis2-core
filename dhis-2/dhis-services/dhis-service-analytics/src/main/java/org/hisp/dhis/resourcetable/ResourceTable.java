@@ -71,11 +71,11 @@ public abstract class ResourceTable<T> {
     return getTableName() + TEMP_TABLE_SUFFIX;
   }
 
-  public final String getDropTableStatement() {
+  public final String getDropTableIfExistsStatement() {
     return "drop table if exists " + getTableName() + " cascade;";
   }
 
-  public final String getDropTempTableStatement() {
+  public final String getDropTempTableIfExistsStatement() {
     return "drop table if exists " + getTempTableName() + ";";
   }
 

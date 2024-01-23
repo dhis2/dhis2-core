@@ -29,6 +29,7 @@ package org.hisp.dhis.resourcetable.table;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.hisp.dhis.resourcetable.util.UniqueNameContext;
 import org.junit.jupiter.api.Test;
 
 /**

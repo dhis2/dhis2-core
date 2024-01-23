@@ -37,6 +37,7 @@ import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
+import org.hisp.dhis.resourcetable.util.UniqueNameContext;
 
 /**
  * @author Lars Helge Overland
