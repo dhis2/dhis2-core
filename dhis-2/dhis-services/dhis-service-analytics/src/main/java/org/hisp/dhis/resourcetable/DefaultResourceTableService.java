@@ -104,7 +104,7 @@ public class DefaultResourceTableService implements ResourceTableService {
 
   @Override
   @Transactional
-  public void generateOrganisationUnitStructures() {
+  public void generateOrganisationUnitStructureTable() {
     resourceTableStore.generateResourceTable(
         new OrganisationUnitStructureResourceTable(
             null,
@@ -125,7 +125,7 @@ public class DefaultResourceTableService implements ResourceTableService {
 
   @Override
   @Transactional
-  public void generateCategoryOptionComboNames() {
+  public void generateCategoryOptionComboNameTable() {
     resourceTableStore.generateResourceTable(
         new CategoryOptionComboNameResourceTable(
             idObjectManager.getAllNoAcl(CategoryCombo.class),
