@@ -81,6 +81,9 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /** Tests ordering and pagination of tracker exporters via the service layer. */
@@ -1351,6 +1354,98 @@ class OrderAndPaginationExporterTest extends TrackerTest {
               .toList();
       assertEquals(expected, relationships);
     }
+  }
+
+  private static Stream<Arguments> orderByFieldInDescendingOrderWhenModeSelected() {
+    return Stream.of(
+        Arguments.of("enrollment.uid", "pTzf9KYMk72", "D9PbzJY8bJM"),
+        Arguments.of("occurredDate", "D9PbzJY8bJM", "pTzf9KYMk72"),
+        Arguments.of("enrollment.status", "D9PbzJY8bJM", "pTzf9KYMk72"),
+        Arguments.of("uid", "pTzf9KYMk72", "D9PbzJY8bJM"));
+  }
+
+  private static Stream<Arguments> orderByFieldInAscendingOrderWhenModeSelected() {
+    return Stream.of(
+        Arguments.of("enrollment.uid", "D9PbzJY8bJM", "pTzf9KYMk72"),
+        Arguments.of("occurredDate", "pTzf9KYMk72", "D9PbzJY8bJM"),
+        Arguments.of("enrollment.status", "pTzf9KYMk72", "D9PbzJY8bJM"),
+        Arguments.of("uid", "D9PbzJY8bJM", "pTzf9KYMk72"));
+  }
+
+  @ParameterizedTest
+  @MethodSource("orderByFieldInDescendingOrderWhenModeSelected")
+  void shouldOrderByFieldInDescendingOrderWhenModeSelected(
+      String field, String firstEvent, String secondEvent)
+      throws ForbiddenException, BadRequestException {
+
+    eventParamsBuilder.orgUnitMode(SELECTED);
+    eventParamsBuilder.orgUnitUid(orgUnit.getUid());
+    eventParamsBuilder.orderBy(field, SortDirection.DESC);
+
+    List<String> events = getEvents(eventParamsBuilder.build());
+    assertEquals(List.of(firstEvent, secondEvent), events);
+  }
+
+  @ParameterizedTest
+  @MethodSource("orderByFieldInAscendingOrderWhenModeSelected")
+  void shouldOrderByFieldInAscendingOrderWhenModeSelected(
+      String field, String firstEvent, String secondEvent)
+      throws ForbiddenException, BadRequestException {
+
+    eventParamsBuilder.orgUnitMode(SELECTED);
+    eventParamsBuilder.orgUnitUid(orgUnit.getUid());
+    eventParamsBuilder.orderBy(field, SortDirection.ASC);
+
+    List<String> events = getEvents(eventParamsBuilder.build());
+    assertEquals(List.of(firstEvent, secondEvent), events);
+  }
+
+  private static Stream<Arguments> orderByFieldInDescendingOrderWhenModeDescendants() {
+    return Stream.of(
+        Arguments.of("organisationUnit.uid", "gvULMgNiAfM", "SbUJzkxKYAG"),
+        Arguments.of("enrollment.program.uid", "SbUJzkxKYAG", "gvULMgNiAfM"),
+        Arguments.of("programStage.uid", "SbUJzkxKYAG", "gvULMgNiAfM"),
+        Arguments.of("scheduledDate", "gvULMgNiAfM", "SbUJzkxKYAG"),
+        Arguments.of("status", "gvULMgNiAfM", "SbUJzkxKYAG"),
+        Arguments.of("storedBy", "SbUJzkxKYAG", "gvULMgNiAfM"));
+  }
+
+  private static Stream<Arguments> orderByFieldInAscendingOrderWhenModeDescendants() {
+    return Stream.of(
+        Arguments.of("organisationUnit.uid", "SbUJzkxKYAG", "gvULMgNiAfM"),
+        Arguments.of("enrollment.program.uid", "gvULMgNiAfM", "SbUJzkxKYAG"),
+        Arguments.of("programStage.uid", "gvULMgNiAfM", "SbUJzkxKYAG"),
+        Arguments.of("scheduledDate", "SbUJzkxKYAG", "gvULMgNiAfM"),
+        Arguments.of("status", "SbUJzkxKYAG", "gvULMgNiAfM"),
+        Arguments.of("storedBy", "gvULMgNiAfM", "SbUJzkxKYAG"));
+  }
+
+  @ParameterizedTest
+  @MethodSource("orderByFieldInDescendingOrderWhenModeDescendants")
+  void shouldOrderByFieldInDescendingOrderWhenModeDescendants(
+      String field, String firstEvent, String secondEvent)
+      throws ForbiddenException, BadRequestException {
+
+    eventParamsBuilder.orgUnitMode(DESCENDANTS);
+    eventParamsBuilder.orgUnitUid("RojfDTBhoGC");
+    eventParamsBuilder.orderBy(field, SortDirection.DESC);
+
+    List<String> events = getEvents(eventParamsBuilder.build());
+    assertEquals(List.of(firstEvent, secondEvent), events);
+  }
+
+  @ParameterizedTest
+  @MethodSource("orderByFieldInAscendingOrderWhenModeDescendants")
+  void shouldOrderByFieldInAscendingOrderWhenModeDescendants(
+      String field, String firstEvent, String secondEvent)
+      throws ForbiddenException, BadRequestException {
+
+    eventParamsBuilder.orgUnitMode(DESCENDANTS);
+    eventParamsBuilder.orgUnitUid("RojfDTBhoGC");
+    eventParamsBuilder.orderBy(field, SortDirection.ASC);
+
+    List<String> events = getEvents(eventParamsBuilder.build());
+    assertEquals(List.of(firstEvent, secondEvent), events);
   }
 
   private <T extends IdentifiableObject> T get(Class<T> type, String uid) {
