@@ -125,7 +125,7 @@ class ExportControllerPaginationTest extends DhisControllerConvenienceTest {
     JsonPage page =
         GET("/tracker/relationships?trackedEntity={uid}", to.getUid())
             .content(HttpStatus.OK)
-            .asObject(JsonPage.class);
+            .asA(JsonPage.class);
 
     assertContainsOnly(
         List.of(r1.getUid(), r2.getUid()),
@@ -154,7 +154,7 @@ class ExportControllerPaginationTest extends DhisControllerConvenienceTest {
     JsonPage page =
         GET("/tracker/relationships?trackedEntity={uid}&paging=true", to.getUid())
             .content(HttpStatus.OK)
-            .asObject(JsonPage.class);
+            .asA(JsonPage.class);
 
     assertContainsOnly(
         List.of(r1.getUid(), r2.getUid()),
@@ -183,7 +183,7 @@ class ExportControllerPaginationTest extends DhisControllerConvenienceTest {
     JsonPage page =
         GET("/tracker/relationships?trackedEntity={uid}&totalPages=true", to.getUid())
             .content(HttpStatus.OK)
-            .asObject(JsonPage.class);
+            .asA(JsonPage.class);
 
     assertContainsOnly(
         List.of(r1.getUid(), r2.getUid()),
@@ -212,7 +212,7 @@ class ExportControllerPaginationTest extends DhisControllerConvenienceTest {
     JsonPage page =
         GET("/tracker/relationships?trackedEntity={uid}&page=2&pageSize=1", to.getUid())
             .content(HttpStatus.OK)
-            .asObject(JsonPage.class);
+            .asA(JsonPage.class);
 
     JsonList<JsonRelationship> instances = page.getList("instances", JsonRelationship.class);
     assertEquals(
@@ -244,7 +244,7 @@ class ExportControllerPaginationTest extends DhisControllerConvenienceTest {
                 "/tracker/relationships?trackedEntity={uid}&page=2&pageSize=1&totalPages=true",
                 to.getUid())
             .content(HttpStatus.OK)
-            .asObject(JsonPage.class);
+            .asA(JsonPage.class);
 
     JsonList<JsonRelationship> instances = page.getList("instances", JsonRelationship.class);
     assertEquals(
@@ -274,7 +274,7 @@ class ExportControllerPaginationTest extends DhisControllerConvenienceTest {
     JsonPage page =
         GET("/tracker/relationships?trackedEntity={uid}&skipPaging=true", to.getUid())
             .content(HttpStatus.OK)
-            .asObject(JsonPage.class);
+            .asA(JsonPage.class);
 
     assertContainsOnly(
         List.of(r1.getUid(), r2.getUid()),
@@ -300,7 +300,7 @@ class ExportControllerPaginationTest extends DhisControllerConvenienceTest {
     JsonPage page =
         GET("/tracker/relationships?trackedEntity={uid}&paging=false", to.getUid())
             .content(HttpStatus.OK)
-            .asObject(JsonPage.class);
+            .asA(JsonPage.class);
 
     assertContainsOnly(
         List.of(r1.getUid(), r2.getUid()),

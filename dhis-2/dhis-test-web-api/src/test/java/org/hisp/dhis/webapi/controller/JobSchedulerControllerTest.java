@@ -362,7 +362,7 @@ class JobSchedulerControllerTest extends DhisControllerConvenienceTest {
         List.of("a", "b", "c"),
         entries
             .asList(JsonObject.class)
-            .viewAsList(entry -> entry.getString("name"))
+            .project(entry -> entry.getString("name"))
             .toList(JsonString::string));
 
     JsonObject jobA = entries.getObject(0);
@@ -384,7 +384,7 @@ class JobSchedulerControllerTest extends DhisControllerConvenienceTest {
         Set.copyOf(
             entries
                 .asList(JsonObject.class)
-                .viewAsList(entry -> entry.getString("name"))
+                .project(entry -> entry.getString("name"))
                 .toList(JsonString::string)));
   }
 
@@ -403,7 +403,7 @@ class JobSchedulerControllerTest extends DhisControllerConvenienceTest {
         List.of("b", "testQueue"),
         entries
             .asList(JsonObject.class)
-            .viewAsList(entry -> entry.getString("name"))
+            .project(entry -> entry.getString("name"))
             .toList(JsonString::string));
     assertEquals(
         List.of("a", "c"),
@@ -411,7 +411,7 @@ class JobSchedulerControllerTest extends DhisControllerConvenienceTest {
             .getObject(1)
             .getArray("sequence")
             .asList(JsonObject.class)
-            .viewAsList(entry -> entry.getString("name"))
+            .project(entry -> entry.getString("name"))
             .toList(JsonString::string));
   }
 
@@ -428,7 +428,7 @@ class JobSchedulerControllerTest extends DhisControllerConvenienceTest {
         GET("/scheduler/queueable")
             .content()
             .asList(JsonObject.class)
-            .viewAsList(entry -> entry.getString("name"))
+            .project(entry -> entry.getString("name"))
             .toList(JsonString::string));
 
     assertEquals(
@@ -436,7 +436,7 @@ class JobSchedulerControllerTest extends DhisControllerConvenienceTest {
         GET("/scheduler/queueable?name=testQueue")
             .content()
             .asList(JsonObject.class)
-            .viewAsList(entry -> entry.getString("name"))
+            .project(entry -> entry.getString("name"))
             .toList(JsonString::string));
   }
 
