@@ -33,7 +33,6 @@ import org.hisp.dhis.scheduling.JobProgress;
  * @author Lars Helge Overland
  */
 public interface ResourceTableService {
-
   /** Generates a resource table containing the hierarchy graph for each OrganisationUnit. */
   void generateOrganisationUnitStructureTable();
 
