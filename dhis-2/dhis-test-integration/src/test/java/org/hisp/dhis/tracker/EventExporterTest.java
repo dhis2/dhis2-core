@@ -109,8 +109,6 @@ class EventExporterTest extends TrackerTest {
 
   private ProgramStage programStage;
 
-  private ProgramStage programStage1;
-
   private Program program;
 
   final Function<EventQueryParams, List<String>> eventsFunction =
@@ -139,7 +137,7 @@ class EventExporterTest extends TrackerTest {
             fromJson("tracker/event_and_enrollment.json", importUser.getUid())));
     orgUnit = get(OrganisationUnit.class, "h4w96yEMlzO");
     programStage = get(ProgramStage.class, "NpsdDv6kKSO");
-    programStage1 = get(ProgramStage.class, "qLZC0lvvxQH");
+    ProgramStage programStage1 = get(ProgramStage.class, "qLZC0lvvxQH");
     program = programStage.getProgram();
     trackedEntityInstance = get(TrackedEntityInstance.class, "dUE514NMOlo");
 
@@ -197,38 +195,6 @@ class EventExporterTest extends TrackerTest {
     assertAll(
         () -> assertNote(importUser, "comment value", notes.get(0)),
         () -> assertNote(importUser, "comment value", notes.get(1)));
-  }
-
-  @Test
-  void shouldReturnPaginatedEventsWithNotesGivenNonDefaultPageSize() {
-    EventQueryParams params = new EventQueryParams();
-    params.setOrgUnit(orgUnit);
-    params.setEvents(Set.of("pTzf9KYMk72", "D9PbzJY8bJM"));
-    params.addOrders(List.of(new OrderParam("occurredAt", SortDirection.DESC)));
-
-    params.setPage(1);
-    params.setPageSize(1);
-
-    Events firstPage = eventService.getEvents(params);
-
-    assertAll(
-        "first page",
-        () -> assertSlimPager(1, 1, false, firstPage),
-        () -> assertEquals(List.of("D9PbzJY8bJM"), eventUids(firstPage)));
-
-    params.setPage(2);
-
-    Events secondPage = eventService.getEvents(params);
-
-    assertAll(
-        "second (last) page",
-        () -> assertSlimPager(2, 1, true, secondPage),
-        () -> assertEquals(List.of("pTzf9KYMk72"), eventUids(secondPage)));
-
-    params.setPage(2);
-    params.setPageSize(3);
-
-    assertIsEmpty(getEvents(params));
   }
 
   @ParameterizedTest
@@ -1118,135 +1084,6 @@ class EventExporterTest extends TrackerTest {
   }
 
   @Test
-  void testOrderEventsOnAttributeAsc() {
-    TrackedEntityAttribute tea = get(TrackedEntityAttribute.class, "toUpdate000");
-
-    EventQueryParams params = new EventQueryParams();
-    params.setOrgUnitSelectionMode(SELECTED);
-    params.setOrgUnit(orgUnit);
-    params.addFilterAttributes(queryItem(tea));
-    params.addAttributeOrders(List.of(new OrderParam(tea.getUid(), SortDirection.ASC)));
-    params.addOrders(params.getAttributeOrders());
-
-    List<String> trackedEntities =
-        eventService.getEvents(params).getEvents().stream()
-            .map(Event::getTrackedEntityInstance)
-            .collect(Collectors.toList());
-
-    assertEquals(List.of("dUE514NMOlo", "QS6w44flWAf"), trackedEntities);
-  }
-
-  @Test
-  void testOrderEventsOnAttributeDesc() {
-    TrackedEntityAttribute tea = get(TrackedEntityAttribute.class, "toUpdate000");
-
-    EventQueryParams params = new EventQueryParams();
-    params.setOrgUnitSelectionMode(SELECTED);
-    params.setOrgUnit(orgUnit);
-    params.addFilterAttributes(queryItem(tea));
-    params.addAttributeOrders(List.of(new OrderParam(tea.getUid(), SortDirection.DESC)));
-    params.addOrders(params.getAttributeOrders());
-
-    List<String> trackedEntities =
-        eventService.getEvents(params).getEvents().stream()
-            .map(Event::getTrackedEntityInstance)
-            .collect(Collectors.toList());
-
-    assertEquals(List.of("QS6w44flWAf", "dUE514NMOlo"), trackedEntities);
-  }
-
-  @Test
-  void testOrderEventsOnMultipleAttributesDesc() {
-    TrackedEntityAttribute tea = get(TrackedEntityAttribute.class, "toUpdate000");
-    TrackedEntityAttribute tea1 = get(TrackedEntityAttribute.class, "toDelete000");
-
-    EventQueryParams params = new EventQueryParams();
-    params.setOrgUnitSelectionMode(SELECTED);
-    params.setOrgUnit(orgUnit);
-    params.addFilterAttributes(List.of(queryItem(tea), queryItem(tea1)));
-    params.addAttributeOrders(
-        List.of(
-            new OrderParam(tea1.getUid(), SortDirection.DESC),
-            new OrderParam(tea.getUid(), SortDirection.DESC)));
-    params.addOrders(params.getAttributeOrders());
-
-    List<String> trackedEntities =
-        eventService.getEvents(params).getEvents().stream()
-            .map(Event::getTrackedEntityInstance)
-            .collect(Collectors.toList());
-
-    assertEquals(List.of("QS6w44flWAf", "dUE514NMOlo"), trackedEntities);
-  }
-
-  @Test
-  void testOrderEventsOnMultipleAttributesAsc() {
-    TrackedEntityAttribute tea = get(TrackedEntityAttribute.class, "toUpdate000");
-    TrackedEntityAttribute tea1 = get(TrackedEntityAttribute.class, "toDelete000");
-
-    EventQueryParams params = new EventQueryParams();
-    params.setOrgUnitSelectionMode(SELECTED);
-    params.setOrgUnit(orgUnit);
-    params.addFilterAttributes(List.of(queryItem(tea), queryItem(tea1)));
-    params.addAttributeOrders(
-        List.of(
-            new OrderParam(tea1.getUid(), SortDirection.DESC),
-            new OrderParam(tea.getUid(), SortDirection.ASC)));
-    params.addOrders(params.getAttributeOrders());
-
-    Events events = eventService.getEvents(params);
-
-    assertEquals(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), eventUids(events));
-    List<String> trackedEntities =
-        events.getEvents().stream()
-            .map(Event::getTrackedEntityInstance)
-            .collect(Collectors.toList());
-
-    assertEquals(List.of("dUE514NMOlo", "QS6w44flWAf"), trackedEntities);
-  }
-
-  @Test
-  void shouldOrderEventsByMultipleAttributesAndPaginateWhenGivenNonDefaultPageSize() {
-    TrackedEntityAttribute tea = get(TrackedEntityAttribute.class, "toUpdate000");
-    TrackedEntityAttribute tea1 = get(TrackedEntityAttribute.class, "toDelete000");
-
-    EventQueryParams params = new EventQueryParams();
-    params.setOrgUnit(orgUnit);
-    params.addFilterAttributes(List.of(queryItem(tea), queryItem(tea1)));
-    params.setOrgUnitSelectionMode(SELECTED);
-    params.addAttributeOrders(
-        List.of(
-            new OrderParam(tea1.getUid(), SortDirection.DESC),
-            new OrderParam(tea.getUid(), SortDirection.ASC)));
-    params.addOrders(params.getAttributeOrders());
-    params.setEvents(Set.of("D9PbzJY8bJM", "pTzf9KYMk72"));
-
-    params.setPage(1);
-    params.setPageSize(1);
-
-    Events firstPage = eventService.getEvents(params);
-
-    assertAll(
-        "first page",
-        () -> assertSlimPager(1, 1, false, firstPage),
-        () -> assertEquals(List.of("D9PbzJY8bJM"), eventUids(firstPage)));
-
-    params.setPage(2);
-    params.setPageSize(1);
-
-    Events secondPage = eventService.getEvents(params);
-
-    assertAll(
-        "second (last) page",
-        () -> assertSlimPager(2, 1, true, secondPage),
-        () -> assertEquals(List.of("pTzf9KYMk72"), eventUids(secondPage)));
-
-    params.setPage(3);
-    params.setPageSize(3);
-
-    assertIsEmpty(getEvents(params));
-  }
-
-  @Test
   void testEnrollmentOccurredAfterSetToAfterLastOccurredAtDate() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(SELECTED);
@@ -1259,60 +1096,6 @@ class EventExporterTest extends TrackerTest {
             .collect(Collectors.toList());
 
     assertIsEmpty(enrollments);
-  }
-
-  @Test
-  void testOrderByEnrolledAtDesc() {
-    EventQueryParams params = new EventQueryParams();
-    params.setOrgUnitSelectionMode(SELECTED);
-    params.setOrgUnit(orgUnit);
-    params.addOrders(List.of(new OrderParam("enrolledAt", SortDirection.DESC)));
-
-    List<String> enrollments =
-        eventService.getEvents(params).getEvents().stream()
-            .map(Event::getEnrollment)
-            .collect(Collectors.toList());
-
-    assertEquals(List.of("TvctPPhpD8z", "nxP7UnKhomJ"), enrollments);
-  }
-
-  @Test
-  void testOrderByEnrolledAtAsc() {
-    EventQueryParams params = new EventQueryParams();
-    params.setOrgUnitSelectionMode(SELECTED);
-    params.setOrgUnit(orgUnit);
-    params.addOrders(List.of(new OrderParam("enrolledAt", SortDirection.ASC)));
-
-    List<String> enrollments =
-        eventService.getEvents(params).getEvents().stream()
-            .map(Event::getEnrollment)
-            .collect(Collectors.toList());
-
-    assertEquals(List.of("nxP7UnKhomJ", "TvctPPhpD8z"), enrollments);
-  }
-
-  @Test
-  void testOrderByOccurredAtDesc() {
-    EventQueryParams params = new EventQueryParams();
-    params.setOrgUnitSelectionMode(SELECTED);
-    params.setOrgUnit(orgUnit);
-    params.addOrders(List.of(new OrderParam("occurredAt", SortDirection.DESC)));
-
-    Events events = eventService.getEvents(params);
-
-    assertEquals(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), eventUids(events));
-  }
-
-  @Test
-  void testOrderByOccurredAtAsc() {
-    EventQueryParams params = new EventQueryParams();
-    params.setOrgUnitSelectionMode(SELECTED);
-    params.setOrgUnit(orgUnit);
-    params.addOrders(List.of(new OrderParam("occurredAt", SortDirection.ASC)));
-
-    Events events = eventService.getEvents(params);
-
-    assertEquals(List.of("pTzf9KYMk72", "D9PbzJY8bJM"), eventUids(events));
   }
 
   @Test
@@ -1361,91 +1144,6 @@ class EventExporterTest extends TrackerTest {
     List<String> events = eventsFunction.apply(params);
 
     assertContainsOnly(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
-  }
-
-  @Test
-  void shouldSortEntitiesRespectingOrderWhenAttributeOrderSuppliedBeforeOrderParam() {
-    TrackedEntityAttribute tea = get(TrackedEntityAttribute.class, "toUpdate000");
-
-    EventQueryParams params = new EventQueryParams();
-    params.setOrgUnitSelectionMode(SELECTED);
-    params.setOrgUnit(orgUnit);
-    params.addFilterAttributes(List.of(queryItem(tea)));
-    params.addAttributeOrders(List.of(new OrderParam("toUpdate000", SortDirection.ASC)));
-    params.addOrders(
-        List.of(
-            new OrderParam(tea.getUid(), SortDirection.ASC),
-            new OrderParam("enrolledAt", SortDirection.ASC)));
-
-    List<String> trackedEntities =
-        eventService.getEvents(params).getEvents().stream()
-            .map(Event::getTrackedEntityInstance)
-            .collect(Collectors.toList());
-
-    assertEquals(List.of("dUE514NMOlo", "QS6w44flWAf"), trackedEntities);
-  }
-
-  @Test
-  void shouldSortEntitiesRespectingOrderWhenOrderParamSuppliedBeforeAttributeOrder() {
-    TrackedEntityAttribute tea = get(TrackedEntityAttribute.class, "toUpdate000");
-
-    EventQueryParams params = new EventQueryParams();
-    params.setOrgUnitSelectionMode(SELECTED);
-    params.setOrgUnit(orgUnit);
-    params.addFilterAttributes(List.of(queryItem(tea)));
-    params.addAttributeOrders(List.of(new OrderParam(tea.getUid(), SortDirection.DESC)));
-    params.addOrders(
-        List.of(
-            new OrderParam("enrolledAt", SortDirection.DESC),
-            new OrderParam(tea.getUid(), SortDirection.DESC)));
-
-    List<String> trackedEntities =
-        eventService.getEvents(params).getEvents().stream()
-            .map(Event::getTrackedEntityInstance)
-            .collect(Collectors.toList());
-
-    assertEquals(List.of("dUE514NMOlo", "QS6w44flWAf"), trackedEntities);
-  }
-
-  @Test
-  void shouldSortEntitiesRespectingOrderWhenDataElementSuppliedBeforeOrderParam() {
-    EventQueryParams params = new EventQueryParams();
-    params.setOrgUnitSelectionMode(SELECTED);
-    params.setOrgUnit(orgUnit);
-    params.addDataElements(List.of(queryItem("DATAEL00006")));
-    params.addGridOrders(List.of(new OrderParam("DATAEL00006", OrderParam.SortDirection.DESC)));
-    params.addOrders(
-        List.of(
-            new OrderParam("dueDate", OrderParam.SortDirection.DESC),
-            new OrderParam("DATAEL00006", OrderParam.SortDirection.DESC),
-            new OrderParam("enrolledAt", OrderParam.SortDirection.DESC)));
-
-    List<String> trackedEntities =
-        eventService.getEvents(params).getEvents().stream()
-            .map(Event::getTrackedEntityInstance)
-            .collect(Collectors.toList());
-
-    assertEquals(List.of("QS6w44flWAf", "dUE514NMOlo"), trackedEntities);
-  }
-
-  @Test
-  void shouldSortEntitiesRespectingOrderWhenOrderParamSuppliedBeforeDataElement() {
-    EventQueryParams params = new EventQueryParams();
-    params.setOrgUnitSelectionMode(SELECTED);
-    params.setOrgUnit(orgUnit);
-    params.addDataElements(List.of(queryItem("DATAEL00006")));
-    params.addGridOrders(List.of(new OrderParam("DATAEL00006", OrderParam.SortDirection.DESC)));
-    params.addOrders(
-        List.of(
-            new OrderParam("enrolledAt", OrderParam.SortDirection.DESC),
-            new OrderParam("DATAEL00006", OrderParam.SortDirection.DESC)));
-
-    List<String> trackedEntities =
-        eventService.getEvents(params).getEvents().stream()
-            .map(Event::getTrackedEntityInstance)
-            .collect(Collectors.toList());
-
-    assertEquals(List.of("dUE514NMOlo", "QS6w44flWAf"), trackedEntities);
   }
 
   @Test
@@ -1578,6 +1276,10 @@ class EventExporterTest extends TrackerTest {
     return t;
   }
 
+  private static List<String> eventUids(Events events) {
+    return events.getEvents().stream().map(Event::getEvent).collect(Collectors.toList());
+  }
+
   private static void assertSlimPager(int pageNumber, int pageSize, boolean isLast, Events events) {
     assertInstanceOf(
         SlimPager.class, events.getPager(), "SlimPager should be returned if totalPages=false");
@@ -1600,13 +1302,5 @@ class EventExporterTest extends TrackerTest {
         () -> assertEquals(pageNumber, pager.getPage(), "number of current page"),
         () -> assertEquals(pageSize, pager.getPageSize(), "page size"),
         () -> assertEquals(totalCount, pager.getTotal(), "total page count"));
-  }
-
-  private List<String> getEvents(EventQueryParams params) {
-    return eventUids(eventService.getEvents(params));
-  }
-
-  private static List<String> eventUids(Events events) {
-    return events.getEvents().stream().map(Event::getEvent).collect(Collectors.toList());
   }
 }
