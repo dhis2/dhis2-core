@@ -159,12 +159,6 @@ public interface SqlBuilder {
 
   /**
    * @param table the {@link Table}.
-   * @return a query which will return a single row if the table exists.
-   */
-  String tableExists(Table table);
-
-  /**
-   * @param table the {@link Table}.
    * @param newName the new name for the table.
    * @return a rename table statement.
    */

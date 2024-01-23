@@ -155,7 +155,6 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
     for (Column column : table.getColumns()) {
       String dataType = getDataTypeName(column.getDataType());
       String nullable = column.getNullable() == Nullable.NOT_NULL ? "not null" : "null";
-
       sql += quote(column.getName()) + " " + dataType + " " + nullable + ",";
     }
 
@@ -184,17 +183,6 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   @Override
   public String vacuumTable(Table table) {
     return String.format("vacuum %s;", quote(table.getName()));
-  }
-
-  @Override
-  public String tableExists(Table table) {
-    return String.format(
-        """
-                select * from information_schema.tables
-                where table_schema = 'public'
-                and table_name = '%s';
-                """,
-        table.getName());
   }
 
   @Override
