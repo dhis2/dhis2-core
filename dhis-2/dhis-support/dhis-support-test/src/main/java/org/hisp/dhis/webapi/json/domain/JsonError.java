@@ -29,9 +29,9 @@ package org.hisp.dhis.webapi.json.domain;
 
 import java.util.function.Consumer;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.jsontree.Expected;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.Required;
 
 /**
  * A generic error JSON as usually returned by DHIS2.
@@ -39,12 +39,12 @@ import org.hisp.dhis.jsontree.JsonObject;
  * @author Jan Bernitt
  */
 public interface JsonError extends JsonObject {
-  @Expected
+  @Required
   default String getHttpStatus() {
     return getString("httpStatus").string();
   }
 
-  @Expected
+  @Required
   default int getHttpStatusCode() {
     return getNumber("httpStatusCode").intValue();
   }

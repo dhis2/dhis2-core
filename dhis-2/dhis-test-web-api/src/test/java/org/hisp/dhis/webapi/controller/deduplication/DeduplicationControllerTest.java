@@ -98,7 +98,7 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void shouldContainDefaultFieldsWhenGetPotentialDuplicates() {
-    JsonPage page = GET(ENDPOINT).content(HttpStatus.OK).asObject(JsonPage.class);
+    JsonPage page = GET(ENDPOINT).content(HttpStatus.OK).asA(JsonPage.class);
 
     JsonList<JsonPotentialDuplicate> list =
         page.getList("potentialDuplicates", JsonPotentialDuplicate.class);
@@ -129,9 +129,7 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest {
   @Test
   void shouldGetPaginatedItemsWithNonDefaults() {
     JsonPage page =
-        GET("/potentialDuplicates?page=2&pageSize=1")
-            .content(HttpStatus.OK)
-            .asObject(JsonPage.class);
+        GET("/potentialDuplicates?page=2&pageSize=1").content(HttpStatus.OK).asA(JsonPage.class);
 
     JsonList<JsonPotentialDuplicate> list =
         page.getList("potentialDuplicates", JsonPotentialDuplicate.class);
@@ -156,7 +154,7 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest {
   @Test
   void shouldGetPaginatedItemsWithPagingSetToTrue() {
     JsonPage page =
-        GET("/potentialDuplicates?paging=true").content(HttpStatus.OK).asObject(JsonPage.class);
+        GET("/potentialDuplicates?paging=true").content(HttpStatus.OK).asA(JsonPage.class);
 
     JsonList<JsonPotentialDuplicate> list =
         page.getList("potentialDuplicates", JsonPotentialDuplicate.class);
@@ -179,7 +177,7 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest {
   @Test
   void shouldGetNonPaginatedItemsWithSkipPaging() {
     JsonPage page =
-        GET("/potentialDuplicates?skipPaging=true").content(HttpStatus.OK).asObject(JsonPage.class);
+        GET("/potentialDuplicates?skipPaging=true").content(HttpStatus.OK).asA(JsonPage.class);
 
     JsonList<JsonPotentialDuplicate> list =
         page.getList("potentialDuplicates", JsonPotentialDuplicate.class);
@@ -198,7 +196,7 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest {
   @Test
   void shouldGetNonPaginatedItemsWithPagingSetToFalse() {
     JsonPage page =
-        GET("/potentialDuplicates?paging=false").content(HttpStatus.OK).asObject(JsonPage.class);
+        GET("/potentialDuplicates?paging=false").content(HttpStatus.OK).asA(JsonPage.class);
 
     JsonList<JsonPotentialDuplicate> list =
         page.getList("potentialDuplicates", JsonPotentialDuplicate.class);
