@@ -29,141 +29,155 @@ package org.hisp.dhis.resourcetable.jdbc;
 
 import java.util.List;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePhase;
+import org.hisp.dhis.db.model.Table;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableStore;
 import org.hisp.dhis.system.util.Clock;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Lars Helge Overland
  */
 @Slf4j
 @RequiredArgsConstructor
-@Service("org.hisp.dhis.resourcetable.ResourceTableStore")
-public class JdbcResourceTableStore implements ResourceTableStore {
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
+@Service( "org.hisp.dhis.resourcetable.ResourceTableStore" )
+public class JdbcResourceTableStore implements ResourceTableStore
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  private final AnalyticsTableHookService analyticsTableHookService;
+    private final AnalyticsTableHookService analyticsTableHookService;
 
-  private final JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
-  // -------------------------------------------------------------------------
-  // ResourceTableStore implementation
-  // -------------------------------------------------------------------------
+    private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
-  @Override
-  public void generateResourceTable(ResourceTable<?> resourceTable) {
-    log.info("Generating resource table: '{}'", resourceTable.getTableName());
+    // -------------------------------------------------------------------------
+    // ResourceTableStore implementation
+    // -------------------------------------------------------------------------
 
-    final Clock clock = new Clock().startClock();
-    final String createTableSql = resourceTable.getCreateTempTableStatement();
-    final Optional<String> populateTableSql = resourceTable.getPopulateTempTableStatement();
-    final Optional<List<Object[]>> populateTableContent =
-        resourceTable.getPopulateTempTableContent();
-    final List<String> createIndexSql = resourceTable.getCreateIndexStatements();
-    final String analyzeTableSql = String.format("analyze %s;", resourceTable.getTempTableName());
+    @Override
+    public void generateResourceTable( ResourceTable<?> resourceTable )
+    {
+        log.info( "Generating resource table: '{}'", resourceTable.getTableName() );
 
-    // ---------------------------------------------------------------------
-    // Drop temporary table if it exists
-    // ---------------------------------------------------------------------
+        final Clock clock = new Clock().startClock();
+        final Table stagingTable = resourceTable.getTable();
+        final Optional<String> populateTableSql = resourceTable.getPopulateTempTableStatement();
+        final Optional<List<Object[]>> populateTableContent = resourceTable.getPopulateTempTableContent();
+        final List<String> createIndexSql = resourceTable.getCreateIndexStatements();
+        final String analyzeTableSql = sqlBuilder.analyzeTable( stagingTable );
 
-    jdbcTemplate.execute(resourceTable.getDropTempTableIfExistsStatement());
+        // ---------------------------------------------------------------------
+        // Drop staging table if it exists
+        // ---------------------------------------------------------------------
 
-    // ---------------------------------------------------------------------
-    // Create temporary table
-    // ---------------------------------------------------------------------
+        jdbcTemplate.execute( sqlBuilder.dropTableIfExists( stagingTable ) );
 
-    log.debug("Create table SQL: '{}'", createTableSql);
+        // ---------------------------------------------------------------------
+        // Create staging table
+        // ---------------------------------------------------------------------
 
-    jdbcTemplate.execute(createTableSql);
+        jdbcTemplate.execute( sqlBuilder.createTable( stagingTable ) );
 
-    // ---------------------------------------------------------------------
-    // Populate temporary table through SQL or object batch update
-    // ---------------------------------------------------------------------
+        // ---------------------------------------------------------------------
+        // Populate staging table with SQL statement or object batch update
+        // ---------------------------------------------------------------------
 
-    if (populateTableSql.isPresent()) {
-      log.debug("Populate table SQL: '{}'", populateTableSql.get());
+        if ( populateTableSql.isPresent() )
+        {
+            log.debug( "Populate table SQL: '{}'", populateTableSql.get() );
 
-      jdbcTemplate.execute(populateTableSql.get());
-    } else if (populateTableContent.isPresent()) {
-      List<Object[]> content = populateTableContent.get();
+            jdbcTemplate.execute( populateTableSql.get() );
+        }
+        else if ( populateTableContent.isPresent() )
+        {
+            List<Object[]> content = populateTableContent.get();
 
-      log.debug("Populate table content rows: {}", content.size());
+            log.debug( "Populate table content rows: {}", content.size() );
 
-      if (content.size() > 0) {
-        int columns = content.get(0).length;
+            if ( content.size() > 0 )
+            {
+                int columns = content.get( 0 ).length;
 
-        batchUpdate(columns, resourceTable.getTempTableName(), content);
-      }
+                batchUpdate( columns, resourceTable.getTempTableName(), content );
+            }
+        }
+
+        // ---------------------------------------------------------------------
+        // Invoke hooks
+        // ---------------------------------------------------------------------
+
+        List<AnalyticsTableHook> hooks = analyticsTableHookService.getByPhaseAndResourceTableType(
+            AnalyticsTablePhase.RESOURCE_TABLE_POPULATED, resourceTable.getTableType() );
+
+        if ( !hooks.isEmpty() )
+        {
+            analyticsTableHookService.executeAnalyticsTableSqlHooks( hooks );
+
+            log.info( "Invoked resource table hooks: '{}'", hooks.size() );
+        }
+
+        // ---------------------------------------------------------------------
+        // Create indexes
+        // ---------------------------------------------------------------------
+
+        for ( final String sql : createIndexSql )
+        {
+            log.debug( "Create index SQL: '{}'", sql );
+
+            jdbcTemplate.execute( sql );
+        }
+
+        // ---------------------------------------------------------------------
+        // Analyze
+        // ---------------------------------------------------------------------
+
+        jdbcTemplate.execute( analyzeTableSql );
+
+        log.debug( "Analyzed resource table: '{}'", resourceTable.getTempTableName() );
+
+        // ---------------------------------------------------------------------
+        // Swap tables
+        // ---------------------------------------------------------------------
+
+        jdbcTemplate.execute( resourceTable.getDropTableIfExistsStatement() );
+
+        jdbcTemplate.execute( resourceTable.getRenameTempTableStatement() );
+
+        log.debug( "Swapped resource table: '{}'", resourceTable.getTableName() );
+
+        log.info( "Resource table '{}' update done: '{}'", resourceTable.getTableName(), clock.time() );
     }
 
-    // ---------------------------------------------------------------------
-    // Invoke hooks
-    // ---------------------------------------------------------------------
+    @Override
+    public void batchUpdate( int columns, String tableName, List<Object[]> batchArgs )
+    {
+        if ( columns == 0 || tableName == null )
+        {
+            return;
+        }
 
-    List<AnalyticsTableHook> hooks =
-        analyticsTableHookService.getByPhaseAndResourceTableType(
-            AnalyticsTablePhase.RESOURCE_TABLE_POPULATED, resourceTable.getTableType());
+        StringBuilder builder = new StringBuilder( "insert into " + tableName + " values (" );
 
-    if (!hooks.isEmpty()) {
-      analyticsTableHookService.executeAnalyticsTableSqlHooks(hooks);
+        for ( int i = 0; i < columns; i++ )
+        {
+            builder.append( "?," );
+        }
 
-      log.info("Invoked resource table hooks: '{}'", hooks.size());
+        builder.deleteCharAt( builder.length() - 1 ).append( ")" );
+
+        jdbcTemplate.batchUpdate( builder.toString(), batchArgs );
     }
-
-    // ---------------------------------------------------------------------
-    // Create indexes
-    // ---------------------------------------------------------------------
-
-    for (final String sql : createIndexSql) {
-      log.debug("Create index SQL: '{}'", sql);
-
-      jdbcTemplate.execute(sql);
-    }
-
-    // ---------------------------------------------------------------------
-    // Analyze
-    // ---------------------------------------------------------------------
-
-    jdbcTemplate.execute(analyzeTableSql);
-
-    log.debug("Analyzed resource table: '{}'", resourceTable.getTempTableName());
-
-    // ---------------------------------------------------------------------
-    // Swap tables
-    // ---------------------------------------------------------------------
-
-    jdbcTemplate.execute(resourceTable.getDropTableIfExistsStatement());
-
-    jdbcTemplate.execute(resourceTable.getRenameTempTableStatement());
-
-    log.debug("Swapped resource table: '{}'", resourceTable.getTableName());
-
-    log.info("Resource table '{}' update done: '{}'", resourceTable.getTableName(), clock.time());
-  }
-
-  @Override
-  public void batchUpdate(int columns, String tableName, List<Object[]> batchArgs) {
-    if (columns == 0 || tableName == null) {
-      return;
-    }
-
-    StringBuilder builder = new StringBuilder("insert into " + tableName + " values (");
-
-    for (int i = 0; i < columns; i++) {
-      builder.append("?,");
-    }
-
-    builder.deleteCharAt(builder.length() - 1).append(")");
-
-    jdbcTemplate.batchUpdate(builder.toString(), batchArgs);
-  }
 }
