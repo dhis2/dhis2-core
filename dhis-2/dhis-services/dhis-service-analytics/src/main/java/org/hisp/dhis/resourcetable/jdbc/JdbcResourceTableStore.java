@@ -34,7 +34,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePhase;
-import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableStore;
 import org.hisp.dhis.system.util.Clock;
@@ -53,8 +52,6 @@ public class JdbcResourceTableStore implements ResourceTableStore {
   // -------------------------------------------------------------------------
 
   private final AnalyticsTableHookService analyticsTableHookService;
-
-  private final DbmsManager dbmsManager;
 
   private final JdbcTemplate jdbcTemplate;
 
