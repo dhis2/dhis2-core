@@ -83,7 +83,7 @@ class ProgramNotificationTemplateControllerTest extends DhisControllerConvenienc
     JsonPage page =
         GET("/programNotificationTemplates/filter?program={uid}", program.getUid())
             .content(HttpStatus.OK)
-            .asObject(JsonPage.class);
+            .asA(JsonPage.class);
 
     JsonList<JsonIdentifiableObject> list =
         page.getList("programNotificationTemplates", JsonIdentifiableObject.class);
@@ -112,7 +112,7 @@ class ProgramNotificationTemplateControllerTest extends DhisControllerConvenienc
                 "/programNotificationTemplates/filter?program={uid}&page=2&pageSize=1",
                 program.getUid())
             .content(HttpStatus.OK)
-            .asObject(JsonPage.class);
+            .asA(JsonPage.class);
 
     JsonList<JsonIdentifiableObject> list =
         page.getList("programNotificationTemplates", JsonIdentifiableObject.class);
@@ -138,7 +138,7 @@ class ProgramNotificationTemplateControllerTest extends DhisControllerConvenienc
     JsonPage page =
         GET("/programNotificationTemplates/filter?program={uid}&paging=true", program.getUid())
             .content(HttpStatus.OK)
-            .asObject(JsonPage.class);
+            .asA(JsonPage.class);
 
     JsonList<JsonIdentifiableObject> list =
         page.getList("programNotificationTemplates", JsonIdentifiableObject.class);
@@ -163,7 +163,7 @@ class ProgramNotificationTemplateControllerTest extends DhisControllerConvenienc
     JsonPage page =
         GET("/programNotificationTemplates/filter?program={uid}&skipPaging=true", program.getUid())
             .content(HttpStatus.OK)
-            .asObject(JsonPage.class);
+            .asA(JsonPage.class);
 
     JsonList<JsonIdentifiableObject> list =
         page.getList("programNotificationTemplates", JsonIdentifiableObject.class);
@@ -184,7 +184,7 @@ class ProgramNotificationTemplateControllerTest extends DhisControllerConvenienc
     JsonPage page =
         GET("/programNotificationTemplates/filter?program={uid}&paging=false", program.getUid())
             .content(HttpStatus.OK)
-            .asObject(JsonPage.class);
+            .asA(JsonPage.class);
 
     JsonList<JsonIdentifiableObject> list =
         page.getList("programNotificationTemplates", JsonIdentifiableObject.class);

@@ -28,9 +28,9 @@
 package org.hisp.dhis.webapi.json.domain;
 
 import java.time.Instant;
-import org.hisp.dhis.jsontree.Expected;
 import org.hisp.dhis.jsontree.JsonNumber;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.Required;
 import org.hisp.dhis.scheduling.JobStatus;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingType;
@@ -42,12 +42,12 @@ import org.hisp.dhis.scheduling.SchedulingType;
  */
 public interface JsonJobConfiguration extends JsonIdentifiableObject {
 
-  @Expected
+  @Required
   default JobType getJobType() {
     return getString("jobType").parsed(JobType::valueOf);
   }
 
-  @Expected
+  @Required
   default SchedulingType getSchedulingType() {
     return getString("schedulingType").parsed(SchedulingType::valueOf);
   }

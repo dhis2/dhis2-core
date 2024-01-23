@@ -165,7 +165,7 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
     JsonPage page =
         GET("/programNotificationInstances?enrollment={uid}", enrollment.getUid())
             .content(HttpStatus.OK)
-            .asObject(JsonPage.class);
+            .asA(JsonPage.class);
 
     JsonList<JsonIdentifiableObject> list =
         page.getList("programNotificationInstances", JsonIdentifiableObject.class);
@@ -190,7 +190,7 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
     JsonPage page =
         GET("/programNotificationInstances?enrollment={uid}&page=2&pageSize=1", enrollment.getUid())
             .content(HttpStatus.OK)
-            .asObject(JsonPage.class);
+            .asA(JsonPage.class);
 
     JsonList<JsonIdentifiableObject> list =
         page.getList("programNotificationInstances", JsonIdentifiableObject.class);
@@ -216,7 +216,7 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
     JsonPage page =
         GET("/programNotificationInstances?enrollment={uid}&paging=true", enrollment.getUid())
             .content(HttpStatus.OK)
-            .asObject(JsonPage.class);
+            .asA(JsonPage.class);
 
     JsonList<JsonIdentifiableObject> list =
         page.getList("programNotificationInstances", JsonIdentifiableObject.class);
@@ -241,7 +241,7 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
     JsonPage page =
         GET("/programNotificationInstances?enrollment={uid}&skipPaging=true", enrollment.getUid())
             .content(HttpStatus.OK)
-            .asObject(JsonPage.class);
+            .asA(JsonPage.class);
 
     JsonList<JsonIdentifiableObject> list =
         page.getList("programNotificationInstances", JsonIdentifiableObject.class);
@@ -262,7 +262,7 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
     JsonPage page =
         GET("/programNotificationInstances?enrollment={uid}&paging=false", enrollment.getUid())
             .content(HttpStatus.OK)
-            .asObject(JsonPage.class);
+            .asA(JsonPage.class);
 
     JsonList<JsonIdentifiableObject> list =
         page.getList("programNotificationInstances", JsonIdentifiableObject.class);
