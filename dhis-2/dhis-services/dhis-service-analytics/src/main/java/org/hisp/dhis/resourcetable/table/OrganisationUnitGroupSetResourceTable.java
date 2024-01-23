@@ -53,6 +53,8 @@ import com.google.common.collect.Lists;
  */
 public class OrganisationUnitGroupSetResourceTable extends ResourceTable<OrganisationUnitGroupSet>
 {
+    private static final String TABLE_NAME = "_organisationunitgroupsetstructure";
+
     private final List<OrganisationUnitGroupSet> groupSets;
 
     private final int organisationUnitLevels;
@@ -70,6 +72,11 @@ public class OrganisationUnitGroupSetResourceTable extends ResourceTable<Organis
     @Override
     public Table getTable()
     {
+        return new Table( TABLE_NAME, getColumns(), getPrimaryKey(), getIndexes(), Logged.UNLOGGED );
+    }
+
+    private List<Column> getColumns()
+    {
         List<Column> columns = Lists.newArrayList(
             new Column( "organisationunitid", DataType.BIGINT, Nullable.NOT_NULL ),
             new Column( "organisationunitname", DataType.VARCHAR_255, Nullable.NOT_NULL ),
@@ -83,12 +90,14 @@ public class OrganisationUnitGroupSetResourceTable extends ResourceTable<Organis
                     new Column( groupSet.getUid(), DataType.CHARACTER_11 ) ) );
         }
 
-        List<String> primaryKey = List.of( "organisationunitid" );
-
-        return new Table( "_organisationunitgroupsetstructure", columns, primaryKey, Logged.UNLOGGED );
+        return columns;
     }
 
-    @Override
+    private List<String> getPrimaryKey()
+    {
+        return List.of( "organisationunitid" );
+    }
+
     public List<Index> getIndexes()
     {
         return List.of(

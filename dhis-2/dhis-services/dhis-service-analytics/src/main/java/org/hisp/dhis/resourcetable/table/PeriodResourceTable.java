@@ -62,6 +62,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class PeriodResourceTable extends ResourceTable<Period>
 {
+    private static final String TABLE_NAME = "_periodstructure";
+
     private final List<Period> periods;
 
     private final String parameters;
@@ -74,6 +76,11 @@ public class PeriodResourceTable extends ResourceTable<Period>
 
     @Override
     public Table getTable()
+    {
+        return new Table( TABLE_NAME, getColumns(), getPrimaryKey(), getIndexes(), Logged.UNLOGGED );
+    }
+
+    private List<Column> getColumns()
     {
         List<Column> columns = Lists.newArrayList(
             new Column( "periodid", DataType.BIGINT, Nullable.NOT_NULL ),
@@ -88,13 +95,15 @@ public class PeriodResourceTable extends ResourceTable<Period>
             columns.add( new Column( periodType.getName().toLowerCase(), DataType.VARCHAR_50 ) );
         }
 
-        List<String> primaryKey = List.of( "periodid" );
-
-        return new Table( "_periodstructure", columns, primaryKey, Logged.UNLOGGED );
+        return columns;
     }
 
-    @Override
-    public List<Index> getIndexes()
+    private List<String> getPrimaryKey()
+    {
+        return List.of( "periodid" );
+    }
+
+    private List<Index> getIndexes()
     {
         return List.of(
             new Index( appendRandom( "in_periodstructure_iso" ), Unique.UNIQUE, List.of( "iso" ) ) );

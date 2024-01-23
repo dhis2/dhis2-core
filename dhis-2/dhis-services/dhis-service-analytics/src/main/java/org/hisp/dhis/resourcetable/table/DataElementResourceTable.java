@@ -54,6 +54,7 @@ import com.google.common.collect.Lists;
  */
 public class DataElementResourceTable extends ResourceTable<DataElement>
 {
+    private static final String TABLE_NAME = "_dataelementstructure";
 
     private final List<DataElement> dataElements;
 
@@ -68,7 +69,12 @@ public class DataElementResourceTable extends ResourceTable<DataElement>
     @Override
     public Table getTable()
     {
-        List<Column> columns = List.of(
+        return new Table( TABLE_NAME, getColumns(), getPrimaryKey(), getIndexes(), Logged.UNLOGGED );
+    }
+
+    private List<Column> getColumns()
+    {
+        return List.of(
             new Column( "dataelementid", DataType.BIGINT, Nullable.NOT_NULL ),
             new Column( "dataelementuid", DataType.CHARACTER_11, Nullable.NOT_NULL ),
             new Column( "dataelementname", DataType.VARCHAR_255, Nullable.NOT_NULL ),
@@ -79,14 +85,14 @@ public class DataElementResourceTable extends ResourceTable<DataElement>
             new Column( "workflowid", DataType.BIGINT ),
             new Column( "periodtypeid", DataType.BIGINT ),
             new Column( "periodtypename", DataType.VARCHAR_255 ) );
-
-        List<String> primaryKey = List.of( "dataelementid" );
-
-        return new Table( "_dataelementstructure", columns, primaryKey, Logged.UNLOGGED );
     }
 
-    @Override
-    public List<Index> getIndexes()
+    private List<String> getPrimaryKey()
+    {
+        return List.of( "dataelementid" );
+    }
+
+    private List<Index> getIndexes()
     {
         return List.of(
             new Index(

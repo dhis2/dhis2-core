@@ -35,7 +35,6 @@ import java.util.Optional;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
-import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Nullable;
 import org.hisp.dhis.db.model.Table;
@@ -50,6 +49,8 @@ import com.google.common.collect.Lists;
  */
 public class IndicatorGroupSetResourceTable extends ResourceTable<IndicatorGroupSet>
 {
+    private static final String TABLE_NAME = "_indicatorgroupsetstructure";
+
     private final List<IndicatorGroupSet> groupSets;
 
     private final String parameters;
@@ -63,6 +64,11 @@ public class IndicatorGroupSetResourceTable extends ResourceTable<IndicatorGroup
     @Override
     public Table getTable()
     {
+        return new Table( TABLE_NAME, getColumns(), getPrimaryKey(), List.of(), Logged.UNLOGGED );
+    }
+
+    private List<Column> getColumns()
+    {
         List<Column> columns = Lists.newArrayList(
             new Column( "indicatorid", DataType.BIGINT, Nullable.NOT_NULL ),
             new Column( "indicatorname", DataType.VARCHAR_255, Nullable.NOT_NULL ) );
@@ -75,15 +81,12 @@ public class IndicatorGroupSetResourceTable extends ResourceTable<IndicatorGroup
                     new Column( groupSet.getUid(), DataType.CHARACTER_11 ) ) );
         }
 
-        List<String> primaryKey = List.of( "indicatorid" );
-
-        return new Table( "", columns, primaryKey, Logged.UNLOGGED );
+        return columns;
     }
 
-    @Override
-    public List<Index> getIndexes()
+    private List<String> getPrimaryKey()
     {
-        return List.of();
+        return List.of( "indicatorid" );
     }
 
     @Override

@@ -55,7 +55,9 @@ import com.google.common.collect.Lists;
  */
 public class OrganisationUnitStructureResourceTable extends ResourceTable<OrganisationUnit>
 {
-    private final OrganisationUnitService organisationUnitService; // TODO rewrite and avoid
+    private static final String TABLE_NAME = "_orgunitstructure";
+
+    private final OrganisationUnitService organisationUnitService; // TODO rewrite and avoid dependency
 
     private final int organisationUnitLevels;
 
@@ -74,6 +76,11 @@ public class OrganisationUnitStructureResourceTable extends ResourceTable<Organi
     @Override
     public Table getTable()
     {
+        return new Table( TABLE_NAME, getColumns(), getPrimaryKey(), getIndexes(), Logged.UNLOGGED );
+    }
+
+    private List<Column> getColumns()
+    {
         List<Column> columns = Lists.newArrayList(
             new Column( "organisationunitid", DataType.BIGINT, Nullable.NOT_NULL ),
             new Column( "organisationunituid", DataType.CHARACTER_11, Nullable.NOT_NULL ),
@@ -88,13 +95,15 @@ public class OrganisationUnitStructureResourceTable extends ResourceTable<Organi
                     new Column( ("namelevel" + k), DataType.TEXT ) ) );
         }
 
-        List<String> primaryKey = List.of( "organisationunitid" );
-
-        return new Table( "", columns, primaryKey, Logged.UNLOGGED );
+        return columns;
     }
 
-    @Override
-    public List<Index> getIndexes()
+    private List<String> getPrimaryKey()
+    {
+        return List.of( "organisationunitid" );
+    }
+
+    private List<Index> getIndexes()
     {
         return List.of(
             new Index(

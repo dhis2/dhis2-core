@@ -57,6 +57,8 @@ import com.google.common.collect.Lists;
  */
 public class DataSetOrganisationUnitCategoryResourceTable extends ResourceTable<DataSet>
 {
+    private static final String TABLE_NAME = "_datasetorganisationunitcategory";
+
     private final List<DataSet> dataSets;
 
     private final CategoryOptionCombo defaultOptionCombo;
@@ -74,18 +76,20 @@ public class DataSetOrganisationUnitCategoryResourceTable extends ResourceTable<
     @Override
     public Table getTable()
     {
-        List<Column> columns = List.of(
+        return new Table( TABLE_NAME, getColumns(), List.of(), getIndexes(), Logged.UNLOGGED );
+    }
+
+    private List<Column> getColumns()
+    {
+        return List.of(
             new Column( "datasetid", DataType.BIGINT, Nullable.NOT_NULL ),
             new Column( "organisationunitid", DataType.BIGINT, Nullable.NOT_NULL ),
             new Column( "attributeoptioncomboid", DataType.BIGINT, Nullable.NOT_NULL ),
             new Column( "costartdate", DataType.DATE ),
             new Column( "coenddate", DataType.DATE ) );
-
-        return new Table( "_datasetorganisationunitcategory", columns, List.of(), Logged.UNLOGGED );
     }
 
-    @Override
-    public List<Index> getIndexes()
+    private List<Index> getIndexes()
     {
         return List.of(
             new Index(

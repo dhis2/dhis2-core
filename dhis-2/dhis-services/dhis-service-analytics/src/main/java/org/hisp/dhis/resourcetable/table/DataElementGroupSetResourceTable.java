@@ -36,7 +36,6 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
-import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Nullable;
 import org.hisp.dhis.db.model.Table;
@@ -50,18 +49,25 @@ import com.google.common.collect.Lists;
  */
 public class DataElementGroupSetResourceTable extends ResourceTable<DataElementGroupSet>
 {
+    private static final String TABLE_NAME = "_dataelementgroupsetstructure";
+
     private final List<DataElementGroupSet> groupSets;
 
     private final String tableType;
 
-    public DataElementGroupSetResourceTable( List<DataElementGroupSet> groupSets, String tableType )
+    public DataElementGroupSetResourceTable( List<DataElementGroupSet> groupSets, String parameters )
     {
         this.groupSets = groupSets;
-        this.tableType = tableType;
+        this.tableType = parameters;
     }
 
     @Override
     public Table getTable()
+    {
+        return new Table( TABLE_NAME, getColumns(), getPrimaryKey(), List.of(), Logged.UNLOGGED );
+    }
+
+    private List<Column> getColumns()
     {
         List<Column> columns = Lists.newArrayList(
             new Column( "dataelementid", DataType.BIGINT, Nullable.NOT_NULL ),
@@ -75,15 +81,12 @@ public class DataElementGroupSetResourceTable extends ResourceTable<DataElementG
                     new Column( groupSet.getUid(), DataType.CHARACTER_11 ) ) );
         }
 
-        List<String> primaryKey = List.of( "dataelementid" );
-
-        return new Table( "_dataelementgroupsetstructure", columns, primaryKey, Logged.UNLOGGED );
+        return columns;
     }
 
-    @Override
-    public List<Index> getIndexes()
+    private List<String> getPrimaryKey()
     {
-        return List.of();
+        return List.of( "dataelementid" );
     }
 
     @Override

@@ -39,7 +39,6 @@ import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
-import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Nullable;
 import org.hisp.dhis.db.model.Table;
@@ -57,6 +56,8 @@ import com.beust.jcommander.internal.Lists;
  */
 public class DatePeriodResourceTable extends ResourceTable<Integer>
 {
+    private static final String TABLE_NAME = "_dateperiodstructure";
+
     private final List<Integer> years;
 
     private final String parameters;
@@ -70,6 +71,11 @@ public class DatePeriodResourceTable extends ResourceTable<Integer>
     @Override
     public Table getTable()
     {
+        return new Table( TABLE_NAME, getColumns(), List.of(), List.of(), Logged.UNLOGGED );
+    }
+
+    private List<Column> getColumns()
+    {
         List<Column> columns = Lists.newArrayList(
             new Column( "dateperiod", DataType.DATE, Nullable.NOT_NULL ),
             new Column( "year", DataType.INTEGER, Nullable.NOT_NULL ) );
@@ -79,13 +85,7 @@ public class DatePeriodResourceTable extends ResourceTable<Integer>
             columns.add( new Column( periodType.getName().toLowerCase(), DataType.VARCHAR_50 ) );
         }
 
-        return new Table( "_dateperiodstructure", columns, List.of(), Logged.UNLOGGED );
-    }
-
-    @Override
-    public List<Index> getIndexes()
-    {
-        return List.of();
+        return columns;
     }
 
     @Override
