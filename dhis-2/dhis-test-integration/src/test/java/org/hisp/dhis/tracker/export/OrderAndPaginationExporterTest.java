@@ -776,16 +776,18 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldOrderEventsByEnrollmentProgramUIDDesc() throws ForbiddenException, BadRequestException {
+  void shouldOrderEventsByEnrollmentProgramUIDDesc()
+      throws ForbiddenException, BadRequestException {
     Event pTzf9KYMk72 =
         get(Event.class, "pTzf9KYMk72"); // enrolled in program BFcipDERJnf with registration
     Event QRYjLTiJTrA =
         get(Event.class, "QRYjLTiJTrA"); // enrolled in program BFcipDERJne without registration
     List<String> expected =
-        new java.util.ArrayList<>(Stream.of(pTzf9KYMk72, QRYjLTiJTrA)
-            .sorted(Comparator.comparing(event -> event.getEnrollment().getProgram().getUid()))
-            .map(Event::getUid)
-            .toList());
+        new java.util.ArrayList<>(
+            Stream.of(pTzf9KYMk72, QRYjLTiJTrA)
+                .sorted(Comparator.comparing(event -> event.getEnrollment().getProgram().getUid()))
+                .map(Event::getUid)
+                .toList());
     Collections.reverse(expected);
 
     EventOperationParams params =
