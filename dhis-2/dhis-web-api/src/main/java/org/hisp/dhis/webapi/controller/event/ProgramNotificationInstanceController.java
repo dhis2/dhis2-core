@@ -33,6 +33,7 @@ import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.program.EnrollmentService;
@@ -41,7 +42,7 @@ import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceParam;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.schema.descriptors.ProgramNotificationInstanceSchemaDescriptor;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
+import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -75,16 +76,27 @@ public class ProgramNotificationInstanceController {
 
   @PreAuthorize("hasRole('ALL')")
   @GetMapping(produces = {"application/json"})
-  public @ResponseBody PagingWrapper<ProgramNotificationInstance> getScheduledMessage(
+  public @ResponseBody Page<ProgramNotificationInstance> getScheduledMessage(
       @Deprecated(since = "2.41") @RequestParam(required = false) UID programInstance,
       @RequestParam(required = false) UID enrollment,
       @Deprecated(since = "2.41") @RequestParam(required = false) UID programStageInstance,
       @RequestParam(required = false) UID event,
       @RequestParam(required = false) Date scheduledAt,
-      @RequestParam(required = false) boolean skipPaging,
-      @RequestParam(required = false, defaultValue = "0") int page,
+      // @deprecated use {@code paging} instead
+      @Deprecated(since = "2.41") @RequestParam(required = false) Boolean skipPaging,
+      // TODO(tracker): set paging=true once skipPaging is removed. Both cannot have a default right
+      // now. This would lead to invalid parameters if the user passes the other param i.e.
+      // skipPaging==paging.
+      @RequestParam(required = false) Boolean paging,
+      @RequestParam(required = false, defaultValue = "1") int page,
       @RequestParam(required = false, defaultValue = "50") int pageSize)
       throws BadRequestException {
+    if (paging != null && skipPaging != null && paging.equals(skipPaging)) {
+      throw new BadRequestException(
+          "Paging can either be enabled or disabled. Prefer 'paging' as 'skipPaging' will be removed.");
+    }
+    boolean isPaged = isPaged(paging, skipPaging);
+
     UID enrollmentUid =
         validateDeprecatedParameter("programInstance", programInstance, "enrollment", enrollment);
     UID eventUid =
@@ -96,27 +108,45 @@ public class ProgramNotificationInstanceController {
                 enrollmentService.getEnrollment(
                     enrollmentUid == null ? null : enrollmentUid.getValue()))
             .event(eventService.getEvent(eventUid == null ? null : eventUid.getValue()))
-            .skipPaging(skipPaging)
+            .skipPaging(!isPaged)
             .page(page)
             .pageSize(pageSize)
             .scheduledAt(scheduledAt)
             .build();
-
-    PagingWrapper<ProgramNotificationInstance> instancePagingWrapper = new PagingWrapper<>();
-
-    if (!skipPaging) {
-      long total = programNotificationInstanceService.countProgramNotificationInstances(params);
-
-      instancePagingWrapper =
-          instancePagingWrapper.withPager(
-              PagingWrapper.Pager.builder().page(page).pageSize(pageSize).total(total).build());
-    }
-
     programNotificationInstanceService.validateQueryParameters(params);
 
     List<ProgramNotificationInstance> instances =
         programNotificationInstanceService.getProgramNotificationInstances(params);
 
-    return instancePagingWrapper.withInstances(instances);
+    if (isPaged) {
+      long total = programNotificationInstanceService.countProgramNotificationInstances(params);
+
+      Pager pager = new Pager(page, total, pageSize);
+      pager.force(page, pageSize);
+      return Page.withPager(
+          ProgramNotificationInstanceSchemaDescriptor.PLURAL,
+          instances,
+          org.hisp.dhis.tracker.export.Page.of(instances, pager, true));
+    }
+
+    return Page.withoutPager(ProgramNotificationInstanceSchemaDescriptor.PLURAL, instances);
+  }
+
+  /**
+   * Indicates whether to return a page of items or all items. By default, responses are paginated.
+   *
+   * <p>Note: this assumes {@code paging} and {@code skipPaging} have been validated. Preference is
+   * given to {@code paging} as the other parameter is deprecated.
+   */
+  private static boolean isPaged(Boolean paging, Boolean skipPaging) {
+    if (paging != null) {
+      return Boolean.TRUE.equals(paging);
+    }
+
+    if (skipPaging != null) {
+      return Boolean.FALSE.equals(skipPaging);
+    }
+
+    return true;
   }
 }

@@ -97,14 +97,22 @@ public class DeduplicationController {
   public Page<ObjectNode> getPotentialDuplicates(
       PotentialDuplicateCriteria criteria,
       HttpServletResponse response,
-      @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) List<FieldPath> fields) {
+      @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) List<FieldPath> fields)
+      throws BadRequestException {
+    if (criteria.getPaging() != null
+        && criteria.getSkipPaging() != null
+        && criteria.getPaging().equals(criteria.getSkipPaging())) {
+      throw new BadRequestException(
+          "Paging can either be enabled or disabled. Prefer 'paging' as 'skipPaging' will be removed.");
+    }
+
     List<PotentialDuplicate> potentialDuplicates =
         deduplicationService.getPotentialDuplicates(criteria);
     List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(potentialDuplicates, fields);
 
     setNoStore(response);
 
-    if (criteria.isPagingRequest()) {
+    if (criteria.isPaged()) {
       Pager pager = new Pager(criteria.getPageWithDefault(), 0, criteria.getPageSizeWithDefault());
       pager.force(criteria.getPageWithDefault(), criteria.getPageSizeWithDefault());
       org.hisp.dhis.tracker.export.Page<PotentialDuplicate> page =

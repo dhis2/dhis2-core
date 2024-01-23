@@ -182,7 +182,7 @@ public final class GistQuery {
         .inverse(params.isInverse())
         .total(params.isCountTotalPages())
         .absoluteUrls(params.isAbsoluteUrls())
-        .headless(!params.isIncludePager())
+        .headless(params.isHeadless())
         .describe(params.isDescribe())
         .references(params.isReferences())
         .anyFilter(params.getRootJunction() == Junction.Type.OR)
