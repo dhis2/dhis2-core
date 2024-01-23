@@ -74,7 +74,6 @@ public class JdbcResourceTableStore implements ResourceTableStore
 
         final Clock clock = new Clock().startClock();
         final Table stagingTable = resourceTable.getTable();
-        final String createTableSql = resourceTable.getCreateTempTableStatement();
         final Optional<String> populateTableSql = resourceTable.getPopulateTempTableStatement();
         final Optional<List<Object[]>> populateTableContent = resourceTable.getPopulateTempTableContent();
         final List<String> createIndexSql = resourceTable.getCreateIndexStatements();
@@ -84,11 +83,13 @@ public class JdbcResourceTableStore implements ResourceTableStore
         // Drop temporary table if it exists
         // ---------------------------------------------------------------------
 
-        jdbcTemplate.execute( resourceTable.getDropTempTableIfExistsStatement() );
+        jdbcTemplate.execute( sqlBuilder.dropTableIfExists( stagingTable ) );
 
         // ---------------------------------------------------------------------
         // Create temporary table
         // ---------------------------------------------------------------------
+
+        final String createTableSql = sqlBuilder.createTable( stagingTable );
 
         log.debug( String.format( "Create table SQL: '%s'", createTableSql ) );
 
