@@ -30,7 +30,7 @@ package org.hisp.dhis.resourcetable.table;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.db.model.Table.toStaging;
 
-import com.beust.jcommander.internal.Lists;
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
