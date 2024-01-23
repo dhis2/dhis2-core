@@ -30,11 +30,12 @@ package org.hisp.dhis.resourcetable;
 /**
  * @author Lars Helge Overland
  */
-public interface ResourceTableStore {
-  /**
-   * Generates the given resource table.
-   *
-   * @param resourceTable the resource table.
-   */
-  void generateResourceTable(ResourceTable<?> resourceTable);
+public interface ResourceTableStore
+{
+    /**
+     * Generates the given resource table.
+     *
+     * @param resourceTable the resource table.
+     */
+    void generateResourceTable( ResourceTable2 resourceTable );
 }

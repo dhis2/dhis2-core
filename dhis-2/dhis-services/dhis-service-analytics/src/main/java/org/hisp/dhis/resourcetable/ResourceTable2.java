@@ -21,5 +21,4 @@ public interface ResourceTable2
     {
         return toStaging( getTableType().getTableName() );
     }
-
 }
