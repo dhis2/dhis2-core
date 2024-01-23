@@ -33,6 +33,7 @@ import java.util.List;
  * @author Lars Helge Overland
  */
 public interface ResourceTableStore {
+  String ID = ResourceTableStore.class.getName();
 
   /**
    * Generates the given resource table.

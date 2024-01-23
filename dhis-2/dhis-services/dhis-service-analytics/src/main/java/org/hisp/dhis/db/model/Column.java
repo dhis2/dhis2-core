@@ -27,11 +27,10 @@
  */
 package org.hisp.dhis.db.model;
 
-import org.hisp.dhis.db.model.constraint.Nullable;
-
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.db.model.constraint.Nullable;
 
 /**
  * Represents a database table column.
