@@ -34,9 +34,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePhase;
-import org.hisp.dhis.db.model.Table;
-import org.hisp.dhis.db.sql.PostgreSqlBuilder;
-import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableStore;
@@ -61,8 +58,6 @@ public class JdbcResourceTableStore implements ResourceTableStore {
 
   private final JdbcTemplate jdbcTemplate;
 
-  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
-
   // -------------------------------------------------------------------------
   // ResourceTableStore implementation
   // -------------------------------------------------------------------------
@@ -72,7 +67,6 @@ public class JdbcResourceTableStore implements ResourceTableStore {
     log.info(String.format("Generating resource table: '%s'", resourceTable.getTableName()));
 
     final Clock clock = new Clock().startClock();
-    final Table table = resourceTable.getTable();
     final String createTableSql = resourceTable.getCreateTempTableStatement();
     final Optional<String> populateTableSql = resourceTable.getPopulateTempTableStatement();
     final Optional<List<Object[]>> populateTableContent =
