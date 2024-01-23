@@ -30,7 +30,6 @@ package org.hisp.dhis.icon.jdbc;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.icon.CustomIcon;
 import org.hisp.dhis.icon.CustomIconStore;
@@ -39,7 +38,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
-@Slf4j
 @Repository("org.hisp.dhis.icon.CustomIconStore")
 @RequiredArgsConstructor
 public class JdbcCustomIconStore implements CustomIconStore {
