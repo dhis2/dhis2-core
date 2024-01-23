@@ -67,7 +67,7 @@ public class Table {
   /**
    * Converts the given table name to a staging table name.
    *
-   * @param name the table name.
+   * @param tableName the table name.
    * @return the staging table name.
    */
   public static String toStaging(String tableName) {
