@@ -78,7 +78,7 @@ public class CategoryOptionComboNameResourceTable extends ResourceTable<Category
 
     for (CategoryCombo combo : objects) {
       if (!combo.isValid()) {
-        log.warn("Ignoring category combo, not valid: " + combo);
+        log.warn("Ignoring category combo, not valid: {}", combo);
         continue;
       }
 

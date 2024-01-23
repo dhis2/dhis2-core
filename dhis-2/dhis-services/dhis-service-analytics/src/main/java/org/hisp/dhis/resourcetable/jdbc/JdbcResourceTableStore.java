@@ -34,7 +34,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePhase;
-import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableStore;
 import org.hisp.dhis.system.util.Clock;
@@ -54,8 +53,6 @@ public class JdbcResourceTableStore implements ResourceTableStore {
 
   private final AnalyticsTableHookService analyticsTableHookService;
 
-  private final DbmsManager dbmsManager;
-
   private final JdbcTemplate jdbcTemplate;
 
   // -------------------------------------------------------------------------
@@ -64,7 +61,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
 
   @Override
   public void generateResourceTable(ResourceTable<?> resourceTable) {
-    log.info(String.format("Generating resource table: '%s'", resourceTable.getTableName()));
+    log.info("Generating resource table: '{}'", resourceTable.getTableName());
 
     final Clock clock = new Clock().startClock();
     final String createTableSql = resourceTable.getCreateTempTableStatement();
@@ -84,7 +81,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
     // Create temporary table
     // ---------------------------------------------------------------------
 
-    log.debug(String.format("Create table SQL: '%s'", createTableSql));
+    log.debug("Create table SQL: '{}'", createTableSql);
 
     jdbcTemplate.execute(createTableSql);
 
@@ -93,13 +90,13 @@ public class JdbcResourceTableStore implements ResourceTableStore {
     // ---------------------------------------------------------------------
 
     if (populateTableSql.isPresent()) {
-      log.debug(String.format("Populate table SQL: '%s'", populateTableSql.get()));
+      log.debug("Populate table SQL: '{}'", populateTableSql.get());
 
       jdbcTemplate.execute(populateTableSql.get());
     } else if (populateTableContent.isPresent()) {
       List<Object[]> content = populateTableContent.get();
 
-      log.debug(String.format("Populate table content rows: '%d'", content.size()));
+      log.debug("Populate table content rows: {}", content.size());
 
       if (content.size() > 0) {
         int columns = content.get(0).length;
@@ -119,7 +116,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
     if (!hooks.isEmpty()) {
       analyticsTableHookService.executeAnalyticsTableSqlHooks(hooks);
 
-      log.info(String.format("Invoked resource table hooks: '%d'", hooks.size()));
+      log.info("Invoked resource table hooks: '{}'", hooks.size());
     }
 
     // ---------------------------------------------------------------------
@@ -127,7 +124,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
     // ---------------------------------------------------------------------
 
     for (final String sql : createIndexSql) {
-      log.debug(String.format("Create index SQL: '%s'", sql));
+      log.debug("Create index SQL: '{}'", sql);
 
       jdbcTemplate.execute(sql);
     }
@@ -138,7 +135,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
 
     jdbcTemplate.execute(analyzeTableSql);
 
-    log.debug(String.format("Analyzed resource table: '%s'", resourceTable.getTempTableName()));
+    log.debug("Analyzed resource table: '{}'", resourceTable.getTempTableName());
 
     // ---------------------------------------------------------------------
     // Swap tables
@@ -148,11 +145,9 @@ public class JdbcResourceTableStore implements ResourceTableStore {
 
     jdbcTemplate.execute(resourceTable.getRenameTempTableStatement());
 
-    log.debug(String.format("Swapped resource table: '%s'", resourceTable.getTableName()));
+    log.debug("Swapped resource table: '{}'", resourceTable.getTableName());
 
-    log.info(
-        String.format(
-            "Resource table '%s' update done: '%s'", resourceTable.getTableName(), clock.time()));
+    log.info("Resource table '{}' update done: '{}'", resourceTable.getTableName(), clock.time());
   }
 
   @Override
