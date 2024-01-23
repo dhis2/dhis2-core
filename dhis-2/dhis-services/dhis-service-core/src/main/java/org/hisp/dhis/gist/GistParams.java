@@ -66,9 +66,7 @@ public final class GistParams {
 
   boolean absoluteUrls = false;
 
-  Boolean headless;
-
-  Boolean paging;
+  boolean headless;
 
   boolean describe = false;
 
@@ -94,15 +92,5 @@ public final class GistParams {
     if (totalPages != null) return totalPages;
     if (total != null) return total;
     return false;
-  }
-
-  @JsonIgnore
-  public boolean isIncludePager() throws BadRequestException {
-    if (paging != null && headless != null && paging == headless)
-      throw new BadRequestException(
-          "paging and headless request parameters are contradicting each other");
-    if (paging != null) return paging;
-    if (headless != null) return !headless;
-    return true;
   }
 }

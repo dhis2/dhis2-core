@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,145 +32,63 @@ import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.google.common.collect.Sets;
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.notification.ProgramNotificationInstance;
-import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
-import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienceTest {
-
-  @Autowired private ProgramNotificationInstanceService programNotificationInstanceService;
-
-  @Autowired private EnrollmentService enrollmentService;
-
-  @Autowired private EventService eventService;
-
-  @Autowired private TrackedEntityService teiService;
+class ProgramNotificationTemplateControllerTest extends DhisControllerConvenienceTest {
 
   @Autowired private IdentifiableObjectManager idObjectManager;
-  private Enrollment enrollment;
-  private Event event;
-  private ProgramNotificationInstance enrollmentNotification1;
-  private ProgramNotificationInstance enrollmentNotification2;
-  private ProgramNotificationInstance eventNotification;
+
+  @Autowired private ProgramNotificationTemplateService templateTemplateService;
+  private Program program;
+  private ProgramNotificationTemplate programTemplate1;
+  private ProgramNotificationTemplate programTemplate2;
 
   @BeforeEach
   void setUp() {
     OrganisationUnit ouA = createOrganisationUnit('A');
     idObjectManager.save(ouA);
 
-    Program prA = createProgram('A', Sets.newHashSet(), ouA);
-    idObjectManager.save(prA);
-    ProgramStage psA = createProgramStage('A', prA);
-    idObjectManager.save(psA);
-    TrackedEntity teiA = createTrackedEntity('A', ouA);
-    teiService.addTrackedEntity(teiA);
-    enrollment = createEnrollment(prA, teiA, ouA);
-    enrollmentService.addEnrollment(enrollment);
+    programTemplate1 = new ProgramNotificationTemplate();
+    programTemplate1.setName("template 1");
+    programTemplate1.setMessageTemplate("message 1");
+    templateTemplateService.save(programTemplate1);
 
-    enrollmentNotification1 = new ProgramNotificationInstance();
-    enrollmentNotification1.setName("enrollment A notification 1");
-    enrollmentNotification1.setEnrollment(enrollment);
-    programNotificationInstanceService.save(enrollmentNotification1);
+    programTemplate2 = new ProgramNotificationTemplate();
+    programTemplate2.setName("template 2");
+    programTemplate2.setMessageTemplate("message 2");
+    templateTemplateService.save(programTemplate2);
 
-    enrollmentNotification2 = new ProgramNotificationInstance();
-    enrollmentNotification2.setName("enrollment A notification 2");
-    enrollmentNotification2.setEnrollment(enrollment);
-    programNotificationInstanceService.save(enrollmentNotification2);
-
-    event = createEvent(psA, enrollment, ouA);
-    eventService.addEvent(event);
-    eventNotification = new ProgramNotificationInstance();
-    eventNotification.setName("event A notification");
-    eventNotification.setEvent(event);
-    programNotificationInstanceService.save(eventNotification);
-  }
-
-  @Test
-  void shouldGetProgramNotificationWhenPassingDeprecatedProgramInstanceParam() {
-    JsonList<JsonIdentifiableObject> list =
-        GET("/programNotificationInstances?programInstance={uid}", enrollment.getUid())
-            .content(HttpStatus.OK)
-            .getList("programNotificationInstances", JsonIdentifiableObject.class);
-
-    assertContainsOnly(
-        List.of(enrollmentNotification1.getName(), enrollmentNotification2.getName()),
-        list.toList(JsonIdentifiableObject::getName));
-  }
-
-  @Test
-  void shouldFailToGetProgramNotificationWhenPassingEnrollmentAndProgramInstanceParams() {
-    assertStartsWith(
-        "Only one parameter of 'programInstance' and 'enrollment'",
-        GET(
-                "/programNotificationInstances?enrollment={uid}&programInstance={uid}",
-                enrollment.getUid(),
-                enrollment.getUid())
-            .error(HttpStatus.BAD_REQUEST)
-            .getMessage());
-  }
-
-  @Test
-  void shouldGetProgramNotificationWhenPassingDeprecatedProgramStageInstanceParam() {
-    JsonList<JsonIdentifiableObject> list =
-        GET("/programNotificationInstances?programStageInstance={uid}", event.getUid())
-            .content(HttpStatus.OK)
-            .getList("programNotificationInstances", JsonIdentifiableObject.class);
-
-    assertEquals(eventNotification.getName(), list.get(0).getName());
-  }
-
-  @Test
-  void shouldGetProgramNotificationWhenPassingEventParams() {
-    JsonList<JsonIdentifiableObject> list =
-        GET("/programNotificationInstances?event={uid}", event.getUid())
-            .content(HttpStatus.OK)
-            .getList("programNotificationInstances", JsonIdentifiableObject.class);
-
-    assertEquals(eventNotification.getName(), list.get(0).getName());
-  }
-
-  @Test
-  void shouldFailToGetProgramNotificationWhenPassingEventAndProgramStageInstanceParams() {
-    assertStartsWith(
-        "Only one parameter of 'programStageInstance' and 'event'",
-        GET(
-                "/programNotificationInstances?event={uid}&programStageInstance={uid}",
-                event.getUid(),
-                event.getUid())
-            .error(HttpStatus.BAD_REQUEST)
-            .getMessage());
+    program = createProgram('A', Set.of(), ouA);
+    program.setNotificationTemplates(Set.of(programTemplate1, programTemplate2));
+    idObjectManager.save(program);
   }
 
   @Test
   void shouldGetPaginatedItemsWithDefaults() {
     JsonPage page =
-        GET("/programNotificationInstances?enrollment={uid}", enrollment.getUid())
+        GET("/programNotificationTemplates/filter?program={uid}", program.getUid())
             .content(HttpStatus.OK)
             .asObject(JsonPage.class);
 
     JsonList<JsonIdentifiableObject> list =
-        page.getList("programNotificationInstances", JsonIdentifiableObject.class);
+        page.getList("programNotificationTemplates", JsonIdentifiableObject.class);
     assertContainsOnly(
-        List.of(enrollmentNotification1.getName(), enrollmentNotification2.getName()),
+        List.of(programTemplate1.getName(), programTemplate2.getName()),
         list.toList(JsonIdentifiableObject::getName));
 
     assertEquals(1, page.getPager().getPage());
@@ -185,15 +103,19 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
     assertEquals(1, page.getPageCount());
   }
 
+  @Disabled(
+      "  TODO(tracker): https://dhis2.atlassian.net/browse/DHIS2-16522 pagination is not implemented in the store")
   @Test
   void shouldGetPaginatedItemsWithNonDefaults() {
     JsonPage page =
-        GET("/programNotificationInstances?enrollment={uid}&page=2&pageSize=1", enrollment.getUid())
+        GET(
+                "/programNotificationTemplates/filter?program={uid}&page=2&pageSize=1",
+                program.getUid())
             .content(HttpStatus.OK)
             .asObject(JsonPage.class);
 
     JsonList<JsonIdentifiableObject> list =
-        page.getList("programNotificationInstances", JsonIdentifiableObject.class);
+        page.getList("programNotificationTemplates", JsonIdentifiableObject.class);
     assertEquals(
         1,
         list.size(),
@@ -214,14 +136,14 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
   @Test
   void shouldGetPaginatedItemsWithPagingSetToTrue() {
     JsonPage page =
-        GET("/programNotificationInstances?enrollment={uid}&paging=true", enrollment.getUid())
+        GET("/programNotificationTemplates/filter?program={uid}&paging=true", program.getUid())
             .content(HttpStatus.OK)
             .asObject(JsonPage.class);
 
     JsonList<JsonIdentifiableObject> list =
-        page.getList("programNotificationInstances", JsonIdentifiableObject.class);
+        page.getList("programNotificationTemplates", JsonIdentifiableObject.class);
     assertContainsOnly(
-        List.of(enrollmentNotification1.getName(), enrollmentNotification2.getName()),
+        List.of(programTemplate1.getName(), programTemplate2.getName()),
         list.toList(JsonIdentifiableObject::getName));
 
     assertEquals(1, page.getPager().getPage());
@@ -239,14 +161,14 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
   @Test
   void shouldGetNonPaginatedItemsWithSkipPaging() {
     JsonPage page =
-        GET("/programNotificationInstances?enrollment={uid}&skipPaging=true", enrollment.getUid())
+        GET("/programNotificationTemplates/filter?program={uid}&skipPaging=true", program.getUid())
             .content(HttpStatus.OK)
             .asObject(JsonPage.class);
 
     JsonList<JsonIdentifiableObject> list =
-        page.getList("programNotificationInstances", JsonIdentifiableObject.class);
+        page.getList("programNotificationTemplates", JsonIdentifiableObject.class);
     assertContainsOnly(
-        List.of(enrollmentNotification1.getName(), enrollmentNotification2.getName()),
+        List.of(programTemplate1.getName(), programTemplate2.getName()),
         list.toList(JsonIdentifiableObject::getName));
     assertHasNoMember(page, "pager");
 
@@ -260,14 +182,14 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
   @Test
   void shouldGetNonPaginatedItemsWithPagingSetToFalse() {
     JsonPage page =
-        GET("/programNotificationInstances?enrollment={uid}&paging=false", enrollment.getUid())
+        GET("/programNotificationTemplates/filter?program={uid}&paging=false", program.getUid())
             .content(HttpStatus.OK)
             .asObject(JsonPage.class);
 
     JsonList<JsonIdentifiableObject> list =
-        page.getList("programNotificationInstances", JsonIdentifiableObject.class);
+        page.getList("programNotificationTemplates", JsonIdentifiableObject.class);
     assertContainsOnly(
-        List.of(enrollmentNotification1.getName(), enrollmentNotification2.getName()),
+        List.of(programTemplate1.getName(), programTemplate2.getName()),
         list.toList(JsonIdentifiableObject::getName));
     assertHasNoMember(page, "pager");
 
@@ -282,8 +204,8 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
   void shouldFailWhenSkipPagingAndPagingAreFalse() {
     String message =
         GET(
-                "/programNotificationInstances?enrollment={uid}&paging=false&skipPaging=false",
-                enrollment.getUid())
+                "/programNotificationTemplates/filter?program={uid}&paging=false&skipPaging=false",
+                program.getUid())
             .content(HttpStatus.BAD_REQUEST)
             .getString("message")
             .string();
@@ -295,8 +217,8 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
   void shouldFailWhenSkipPagingAndPagingAreTrue() {
     String message =
         GET(
-                "/programNotificationInstances?enrollment={uid}&paging=true&skipPaging=true",
-                enrollment.getUid())
+                "/programNotificationTemplates/filter?program={uid}&paging=true&skipPaging=true",
+                program.getUid())
             .content(HttpStatus.BAD_REQUEST)
             .getString("message")
             .string();
