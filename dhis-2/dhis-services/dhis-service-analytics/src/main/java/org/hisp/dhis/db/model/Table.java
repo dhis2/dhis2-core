@@ -28,6 +28,7 @@
 package org.hisp.dhis.db.model;
 
 import java.util.List;
+
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -39,24 +40,41 @@ import lombok.RequiredArgsConstructor;
  */
 @Getter
 @RequiredArgsConstructor
-public class Table {
-  /** Table name. Required. */
-  @NonNull private final String name;
+public class Table
+{
+    private static final String STAGING_SUFFIX = "_staging";
 
-  /** Table columns. At least one column required. */
-  @NonNull private final List<Column> columns;
+    /** Table name. Required. */
+    @NonNull
+    private final String name;
 
-  /** Table primary key column name(s). */
-  @NonNull private final List<String> primaryKey;
+    /** Table columns. At least one column required. */
+    @NonNull
+    private final List<Column> columns;
 
-  /** Table indexes. */
-  @NonNull private final List<Index> indexes;
+    /** Table primary key column name(s). */
+    @NonNull
+    private final List<String> primaryKey;
 
-  /** Whether table is logged or unlogged. PostgreSQL-only feature. */
-  @NonNull private final Logged logged;
+    /** Table indexes. */
+    @NonNull
+    private final List<Index> indexes;
 
-  /** Whether the table has a primary key. */
-  public boolean hasPrimaryKey() {
-    return !primaryKey.isEmpty();
-  }
+    /** Whether table is logged or unlogged. PostgreSQL-only feature. */
+    @NonNull
+    private final Logged logged;
+
+    /** Whether the table has a primary key. */
+    public boolean hasPrimaryKey()
+    {
+        return !primaryKey.isEmpty();
+    }
+
+    /**
+     * @return the name of the staging table.
+     */
+    public String getStagingName()
+    {
+        return name + STAGING_SUFFIX;
+    }
 }
