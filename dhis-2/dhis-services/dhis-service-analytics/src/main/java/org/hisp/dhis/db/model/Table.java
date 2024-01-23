@@ -42,8 +42,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class Table
 {
-    private static final String STAGING_SUFFIX = "_staging";
-
     /** Table name. Required. */
     @NonNull
     private final String name;
@@ -68,13 +66,5 @@ public class Table
     public boolean hasPrimaryKey()
     {
         return !primaryKey.isEmpty();
-    }
-
-    /**
-     * @return the name of the staging table.
-     */
-    public String getStagingName()
-    {
-        return name + STAGING_SUFFIX;
     }
 }
