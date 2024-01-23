@@ -72,7 +72,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
     final Optional<List<Object[]>> populateTableContent =
         resourceTable.getPopulateTempTableContent();
     final List<String> createIndexSql = resourceTable.getCreateIndexStatements();
-    final String analyzeTableSql = String.format("analyze %s;", resourceTable.getTableName());
+    final String analyzeTableSql = String.format("analyze %s;", resourceTable.getTempTableName());
 
     // ---------------------------------------------------------------------
     // Drop temporary table if it exists
@@ -135,6 +135,14 @@ public class JdbcResourceTableStore implements ResourceTableStore {
     }
 
     // ---------------------------------------------------------------------
+    // Analyze
+    // ---------------------------------------------------------------------
+
+    jdbcTemplate.execute(analyzeTableSql);
+
+    log.debug(String.format("Analyzed resource table: '%s'", resourceTable.getTempTableName()));
+
+    // ---------------------------------------------------------------------
     // Swap tables
     // ---------------------------------------------------------------------
 
@@ -145,14 +153,6 @@ public class JdbcResourceTableStore implements ResourceTableStore {
     jdbcTemplate.execute(resourceTable.getRenameTempTableStatement());
 
     log.debug(String.format("Swapped resource table: '%s'", resourceTable.getTableName()));
-
-    // ---------------------------------------------------------------------
-    // Analyze
-    // ---------------------------------------------------------------------
-
-    jdbcTemplate.execute(analyzeTableSql);
-
-    log.debug(String.format("Analyzed resource table: '%s'", resourceTable.getTableName()));
 
     log.info(
         String.format(

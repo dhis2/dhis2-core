@@ -82,7 +82,7 @@ class DataIntegrityOptionSetsWrongSortOrderControllerTest
 
     JsonObject content =
         GET("/optionSets/" + goodOptionSet + "?fields=id,name,options[id,name,sortOrder").content();
-    JsonOptionSet myOptionSet = content.asObject(JsonOptionSet.class);
+    JsonOptionSet myOptionSet = content.as(JsonOptionSet.class);
     assertEquals(myOptionSet.getId(), goodOptionSet);
 
     Set<Number> sortOrders =
@@ -129,7 +129,7 @@ class DataIntegrityOptionSetsWrongSortOrderControllerTest
 
     JsonObject content =
         GET("/optionSets/" + goodOptionSet + "?fields=id,name,options[id,name,sortOrder").content();
-    JsonOptionSet myOptionSet = content.asObject(JsonOptionSet.class);
+    JsonOptionSet myOptionSet = content.as(JsonOptionSet.class);
     assertEquals(myOptionSet.getId(), goodOptionSet);
 
     Set<Number> sortOrders =

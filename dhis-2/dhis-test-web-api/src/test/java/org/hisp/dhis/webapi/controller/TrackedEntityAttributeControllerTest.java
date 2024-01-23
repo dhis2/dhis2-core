@@ -290,7 +290,7 @@ class TrackedEntityAttributeControllerTest extends DhisControllerConvenienceTest
         expected,
         actualJson
             .getArray("trackedEntityAttributes")
-            .viewAsList(e -> e.asObject().getString("displayName"))
+            .projectAsList(e -> e.asObject().getString("displayName"))
             .stream()
             .map(JsonString::string)
             .collect(Collectors.toSet()));

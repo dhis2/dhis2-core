@@ -27,9 +27,8 @@
  */
 package org.hisp.dhis.datastore;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.hamcrest.Matchers.equalTo;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
@@ -70,6 +69,11 @@ class DatastoreKeysTest extends ApiTest {
 
   @AfterEach
   public void deleteEntries() {
+    loginActions.loginAsSuperUser();
+    datastoreActions
+        .post("/" + NAMESPACE + "/testEntry", getEntry("testEntry"))
+        .validate()
+        .statusCode(201);
     datastoreActions.delete(NAMESPACE).validateStatus(200);
   }
 
@@ -79,18 +83,18 @@ class DatastoreKeysTest extends ApiTest {
     loginActions.loginAsAdmin();
     String key1 = "arsenal";
     String key2 = "spurs";
-    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
-    datastoreActions.post("/" + NAMESPACE + "/" + key2, newEntry(key2)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, getEntry(key1)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key2, getEntry(key2)).validate().statusCode(201);
 
     // make call with fields query param as basic user and check can see 2 entries
     loginActions.loginAsUser(BASIC_USER, "Test1234!");
     QueryParamsBuilder params = new QueryParamsBuilder().add("fields", "league");
-    ApiResponse getResponse = datastoreActions.get("/" + NAMESPACE, params).validateStatus(200);
-
-    JsonArray entries = getResponse.getBody().getAsJsonArray("entries");
-    assertEquals("{\"key\":\"arsenal\",\"league\":\"prem\"}", entries.get(0).toString());
-    assertEquals("{\"key\":\"spurs\",\"league\":\"prem\"}", entries.get(1).toString());
-    assertEquals(2, entries.size());
+    datastoreActions
+        .get("/" + NAMESPACE, params)
+        .validate()
+        .statusCode(200)
+        .body("entries[0].key", equalTo("arsenal"))
+        .body("entries[1].key", equalTo("spurs"));
   }
 
   @Test
@@ -99,8 +103,8 @@ class DatastoreKeysTest extends ApiTest {
     loginActions.loginAsAdmin();
     String key1 = "arsenal";
     String key2 = "spurs";
-    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
-    datastoreActions.post("/" + NAMESPACE + "/" + key2, newEntry(key2)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, getEntry(key1)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key2, getEntry(key2)).validate().statusCode(201);
 
     // get ids of entries
     ApiResponse mdResponse1 = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
@@ -111,15 +115,15 @@ class DatastoreKeysTest extends ApiTest {
         new QueryParamsBuilder().add("type", "dataStore").add("id", uid1);
     sharingActions.post("", sharingNoPublicAccess(), sharingParams).validateStatus(200);
 
-    // make call with fields query param as super user and check can see 2 entries
+    // make call with fields query param as superuser and check can see 2 entries
     loginActions.loginAsSuperUser();
     QueryParamsBuilder params = new QueryParamsBuilder().add("fields", "league");
-    ApiResponse getResponse = datastoreActions.get("/" + NAMESPACE, params).validateStatus(200);
-
-    JsonArray entries = getResponse.getBody().getAsJsonArray("entries");
-    assertEquals("{\"key\":\"arsenal\",\"league\":\"prem\"}", entries.get(0).toString());
-    assertEquals("{\"key\":\"spurs\",\"league\":\"prem\"}", entries.get(1).toString());
-    assertEquals(2, entries.size());
+    datastoreActions
+        .get("/" + NAMESPACE, params)
+        .validate()
+        .statusCode(200)
+        .body("entries[0].key", equalTo("arsenal"))
+        .body("entries[1].key", equalTo("spurs"));
   }
 
   @Test
@@ -128,8 +132,8 @@ class DatastoreKeysTest extends ApiTest {
     loginActions.loginAsAdmin();
     String key1 = "arsenal";
     String key2 = "spurs";
-    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
-    datastoreActions.post("/" + NAMESPACE + "/" + key2, newEntry(key2)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, getEntry(key1)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key2, getEntry(key2)).validate().statusCode(201);
 
     // get ids of entries
     ApiResponse mdResponse1 = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
@@ -147,12 +151,12 @@ class DatastoreKeysTest extends ApiTest {
 
     // make call with fields query param as user with no access and check can see no entries
     loginActions.loginAsUser(BASIC_USER, "Test1234!");
-
     QueryParamsBuilder params = new QueryParamsBuilder().add("fields", "league");
-    ApiResponse getResponse = datastoreActions.get("/" + NAMESPACE, params).validateStatus(200);
-
-    JsonArray entries = getResponse.getBody().getAsJsonArray("entries");
-    assertEquals(0, entries.size());
+    datastoreActions
+        .get("/" + NAMESPACE, params)
+        .validate()
+        .statusCode(200)
+        .body("entries.size()", equalTo(0));
   }
 
   @Test
@@ -161,8 +165,8 @@ class DatastoreKeysTest extends ApiTest {
     loginActions.loginAsAdmin();
     String key1 = "arsenal";
     String key2 = "spurs";
-    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
-    datastoreActions.post("/" + NAMESPACE + "/" + key2, newEntry(key2)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, getEntry(key1)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key2, getEntry(key2)).validate().statusCode(201);
 
     // get ids of entries
     ApiResponse mdResponse1 = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
@@ -180,12 +184,12 @@ class DatastoreKeysTest extends ApiTest {
     loginActions.loginAsUser(BASIC_USER, "Test1234!");
 
     QueryParamsBuilder fieldsParam = new QueryParamsBuilder().add("fields", "league");
-    ApiResponse getResponse = datastoreActions.get("/" + NAMESPACE, fieldsParam);
-
-    JsonArray entries = getResponse.getBody().getAsJsonArray("entries");
-    assertEquals("{\"key\":\"arsenal\",\"league\":\"prem\"}", entries.get(0).toString());
-    assertEquals("{\"key\":\"spurs\",\"league\":\"prem\"}", entries.get(1).toString());
-    assertEquals(2, entries.size());
+    datastoreActions
+        .get("/" + NAMESPACE, fieldsParam)
+        .validate()
+        .statusCode(200)
+        .body("entries[0].key", equalTo("arsenal"))
+        .body("entries[1].key", equalTo("spurs"));
   }
 
   @Test
@@ -194,8 +198,8 @@ class DatastoreKeysTest extends ApiTest {
     loginActions.loginAsAdmin();
     String key1 = "arsenal";
     String key2 = "spurs";
-    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
-    datastoreActions.post("/" + NAMESPACE + "/" + key2, newEntry(key2)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, getEntry(key1)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key2, getEntry(key2)).validate().statusCode(201);
 
     // get id of 1 entry
     ApiResponse mdResponse1 =
@@ -218,12 +222,12 @@ class DatastoreKeysTest extends ApiTest {
     loginActions.loginAsUser(BASIC_USER, "Test1234!");
 
     QueryParamsBuilder fieldsParam = new QueryParamsBuilder().add("fields", "league");
-    ApiResponse getResponse =
-        datastoreActions.get("/" + NAMESPACE, fieldsParam).validateStatus(200);
-
-    JsonArray entries = getResponse.getBody().getAsJsonArray("entries");
-    assertEquals("{\"key\":\"spurs\",\"league\":\"prem\"}", entries.get(0).toString());
-    assertEquals(1, entries.size());
+    datastoreActions
+        .get("/" + NAMESPACE, fieldsParam)
+        .validate()
+        .statusCode(200)
+        .body("entries[0].key", equalTo("spurs"))
+        .body("entries.size()", equalTo(1));
   }
 
   @Test
@@ -232,8 +236,8 @@ class DatastoreKeysTest extends ApiTest {
     loginActions.loginAsAdmin();
     String key1 = "arsenal";
     String key2 = "spurs";
-    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
-    datastoreActions.post("/" + NAMESPACE + "/" + key2, newEntry(key2)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, getEntry(key1)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key2, getEntry(key2)).validate().statusCode(201);
 
     // get ids of entries
     ApiResponse mdResponse1 = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
@@ -254,13 +258,12 @@ class DatastoreKeysTest extends ApiTest {
     loginActions.loginAsUser(BASIC_USER, "Test1234!");
 
     QueryParamsBuilder fieldsParam = new QueryParamsBuilder().add("fields", "league");
-    ApiResponse getResponse =
-        datastoreActions.get("/" + NAMESPACE, fieldsParam).validateStatus(200);
-
-    JsonArray entries = getResponse.getBody().getAsJsonArray("entries");
-    assertEquals("{\"key\":\"arsenal\",\"league\":\"prem\"}", entries.get(0).toString());
-    assertEquals("{\"key\":\"spurs\",\"league\":\"prem\"}", entries.get(1).toString());
-    assertEquals(2, entries.size());
+    datastoreActions
+        .get("/" + NAMESPACE, fieldsParam)
+        .validate()
+        .statusCode(200)
+        .body("entries[0].key", equalTo("arsenal"))
+        .body("entries[1].key", equalTo("spurs"));
   }
 
   @Test
@@ -269,8 +272,8 @@ class DatastoreKeysTest extends ApiTest {
     loginActions.loginAsAdmin();
     String key1 = "arsenal";
     String key2 = "spurs";
-    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
-    datastoreActions.post("/" + NAMESPACE + "/" + key2, newEntry(key2)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, getEntry(key1)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key2, getEntry(key2)).validate().statusCode(201);
 
     // get id of 1 entry
     ApiResponse mdResponse1 = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
@@ -294,12 +297,12 @@ class DatastoreKeysTest extends ApiTest {
     loginActions.loginAsUser(BASIC_USER, "Test1234!");
 
     QueryParamsBuilder fieldsParam = new QueryParamsBuilder().add("fields", "league");
-    ApiResponse getResponse =
-        datastoreActions.get("/" + NAMESPACE, fieldsParam).validateStatus(200);
-
-    JsonArray entries = getResponse.getBody().getAsJsonArray("entries");
-    assertEquals("{\"key\":\"arsenal\",\"league\":\"prem\"}", entries.get(0).toString());
-    assertEquals(1, entries.size());
+    datastoreActions
+        .get("/" + NAMESPACE, fieldsParam)
+        .validate()
+        .statusCode(200)
+        .body("entries[0].key", equalTo("arsenal"))
+        .body("entries.size()", equalTo(1));
   }
 
   @Test
@@ -308,8 +311,8 @@ class DatastoreKeysTest extends ApiTest {
     loginActions.loginAsAdmin();
     String key1 = "arsenal";
     String key2 = "spurs";
-    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
-    datastoreActions.post("/" + NAMESPACE + "/" + key2, newEntry(key2)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, getEntry(key1)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key2, getEntry(key2)).validate().statusCode(201);
 
     // get ids of entries
     ApiResponse mdResponse1 = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
@@ -327,10 +330,11 @@ class DatastoreKeysTest extends ApiTest {
 
     // make call as basic user with no access and check can see no entries
     loginActions.loginAsUser(BASIC_USER, "Test1234!");
-    ApiResponse getResponse = datastoreActions.get("/" + NAMESPACE + "/keys").validateStatus(200);
-
-    String entries = getResponse.getAsString();
-    assertEquals("[]", entries);
+    datastoreActions
+        .get("/" + NAMESPACE + "/keys")
+        .validate()
+        .statusCode(200)
+        .body("entries.size()", equalTo(0));
   }
 
   @Test
@@ -339,15 +343,17 @@ class DatastoreKeysTest extends ApiTest {
     loginActions.loginAsAdmin();
     String key1 = "arsenal";
     String key2 = "spurs";
-    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
-    datastoreActions.post("/" + NAMESPACE + "/" + key2, newEntry(key2)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, getEntry(key1)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key2, getEntry(key2)).validate().statusCode(201);
 
     // make call as owner and check can see entries
     loginActions.loginAsUser(BASIC_USER, "Test1234!");
-    ApiResponse getResponse = datastoreActions.get("/" + NAMESPACE + "/keys").validateStatus(200);
-
-    String entries = getResponse.getAsString();
-    assertEquals("[\"arsenal\",\"spurs\"]", entries);
+    datastoreActions
+        .get("/" + NAMESPACE + "/keys")
+        .validate()
+        .statusCode(200)
+        .body("[0]", equalTo("arsenal"))
+        .body("[1]", equalTo("spurs"));
   }
 
   @Test
@@ -356,17 +362,19 @@ class DatastoreKeysTest extends ApiTest {
     loginActions.loginAsAdmin();
     String key1 = "arsenal";
     String key2 = "spurs";
-    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
-    datastoreActions.post("/" + NAMESPACE + "/" + key2, newEntry(key2)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, getEntry(key1)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key2, getEntry(key2)).validate().statusCode(201);
 
     // make call as basic user and check can see entries
-    ApiResponse getResponse = datastoreActions.get("/" + NAMESPACE + "/keys").validateStatus(200);
-
-    String entries = getResponse.getAsString();
-    assertEquals("[\"arsenal\",\"spurs\"]", entries);
+    datastoreActions
+        .get("/" + NAMESPACE + "/keys")
+        .validate()
+        .statusCode(200)
+        .body("[0]", equalTo("arsenal"))
+        .body("[1]", equalTo("spurs"));
   }
 
-  protected static JsonObject newEntry(String team) {
+  protected static JsonObject getEntry(String team) {
     JsonObject jsonObject = new JsonObject();
     jsonObject.addProperty("name", team);
     jsonObject.addProperty("league", "prem");
