@@ -29,9 +29,9 @@ package org.hisp.dhis.resourcetable.table;
 
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 
+import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Optional;
-
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.db.model.Column;
@@ -42,63 +42,55 @@ import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Lars Helge Overland
  */
-public class DataElementGroupSetResourceTable extends ResourceTable<DataElementGroupSet>
-{
-    private static final String TABLE_NAME = "_dataelementgroupsetstructure";
+public class DataElementGroupSetResourceTable extends ResourceTable<DataElementGroupSet> {
+  private static final String TABLE_NAME = "_dataelementgroupsetstructure";
 
-    private final List<DataElementGroupSet> groupSets;
+  private final List<DataElementGroupSet> groupSets;
 
-    private final String tableType;
+  private final String tableType;
 
-    public DataElementGroupSetResourceTable( List<DataElementGroupSet> groupSets, String parameters )
-    {
-        this.groupSets = groupSets;
-        this.tableType = parameters;
+  public DataElementGroupSetResourceTable(List<DataElementGroupSet> groupSets, String parameters) {
+    this.groupSets = groupSets;
+    this.tableType = parameters;
+  }
+
+  @Override
+  public Table getTable() {
+    return new Table(TABLE_NAME, getColumns(), getPrimaryKey(), List.of(), Logged.UNLOGGED);
+  }
+
+  private List<Column> getColumns() {
+    List<Column> columns =
+        Lists.newArrayList(
+            new Column("dataelementid", DataType.BIGINT, Nullable.NOT_NULL),
+            new Column("dataelementname", DataType.VARCHAR_255, Nullable.NOT_NULL));
+
+    for (DataElementGroupSet groupSet : groupSets) {
+      columns.addAll(
+          List.of(
+              new Column(groupSet.getShortName(), DataType.VARCHAR_255),
+              new Column(groupSet.getUid(), DataType.CHARACTER_11)));
     }
 
-    @Override
-    public Table getTable()
-    {
-        return new Table( TABLE_NAME, getColumns(), getPrimaryKey(), List.of(), Logged.UNLOGGED );
-    }
+    return columns;
+  }
 
-    private List<Column> getColumns()
-    {
-        List<Column> columns = Lists.newArrayList(
-            new Column( "dataelementid", DataType.BIGINT, Nullable.NOT_NULL ),
-            new Column( "dataelementname", DataType.VARCHAR_255, Nullable.NOT_NULL ) );
+  private List<String> getPrimaryKey() {
+    return List.of("dataelementid");
+  }
 
-        for ( DataElementGroupSet groupSet : groupSets )
-        {
-            columns.addAll(
-                List.of(
-                    new Column( groupSet.getShortName(), DataType.VARCHAR_255 ),
-                    new Column( groupSet.getUid(), DataType.CHARACTER_11 ) ) );
-        }
+  @Override
+  public ResourceTableType getTableType() {
+    return ResourceTableType.DATA_ELEMENT_GROUP_SET_STRUCTURE;
+  }
 
-        return columns;
-    }
-
-    private List<String> getPrimaryKey()
-    {
-        return List.of( "dataelementid" );
-    }
-
-    @Override
-    public ResourceTableType getTableType()
-    {
-        return ResourceTableType.DATA_ELEMENT_GROUP_SET_STRUCTURE;
-    }
-
-    @Override
-    public String getCreateTempTableStatement()
-    {
-        String statement = "create "
+  @Override
+  public String getCreateTempTableStatement() {
+    String statement =
+        "create "
             + tableType
             + " table "
             + getTempTableName()
@@ -106,67 +98,65 @@ public class DataElementGroupSetResourceTable extends ResourceTable<DataElementG
             + "dataelementid bigint not null, "
             + "dataelementname varchar(230), ";
 
-        for ( DataElementGroupSet groupSet : groupSets )
-        {
-            statement += quote( groupSet.getShortName() ) + " varchar(230), ";
-            statement += quote( groupSet.getUid() ) + " character(11), ";
-        }
-
-        statement += "primary key (dataelementid))";
-
-        return statement;
+    for (DataElementGroupSet groupSet : groupSets) {
+      statement += quote(groupSet.getShortName()) + " varchar(230), ";
+      statement += quote(groupSet.getUid()) + " character(11), ";
     }
 
-    @Override
-    public Optional<String> getPopulateTempTableStatement()
-    {
-        String sql = "insert into "
+    statement += "primary key (dataelementid))";
+
+    return statement;
+  }
+
+  @Override
+  public Optional<String> getPopulateTempTableStatement() {
+    String sql =
+        "insert into "
             + getTempTableName()
             + " "
             + "select d.dataelementid as dataelementid, d.name as dataelementname, ";
 
-        for ( DataElementGroupSet groupSet : groupSets )
-        {
-            sql += "("
-                + "select deg.name from dataelementgroup deg "
-                + "inner join dataelementgroupmembers degm on degm.dataelementgroupid = deg.dataelementgroupid "
-                + "inner join dataelementgroupsetmembers degsm on "
-                + "degsm.dataelementgroupid = degm.dataelementgroupid and degsm.dataelementgroupsetid = "
-                + groupSet.getId()
-                + " "
-                + "where degm.dataelementid = d.dataelementid "
-                + "limit 1) as "
-                + quote( groupSet.getName() )
-                + ", ";
+    for (DataElementGroupSet groupSet : groupSets) {
+      sql +=
+          "("
+              + "select deg.name from dataelementgroup deg "
+              + "inner join dataelementgroupmembers degm on degm.dataelementgroupid = deg.dataelementgroupid "
+              + "inner join dataelementgroupsetmembers degsm on "
+              + "degsm.dataelementgroupid = degm.dataelementgroupid and degsm.dataelementgroupsetid = "
+              + groupSet.getId()
+              + " "
+              + "where degm.dataelementid = d.dataelementid "
+              + "limit 1) as "
+              + quote(groupSet.getName())
+              + ", ";
 
-            sql += "("
-                + "select deg.uid from dataelementgroup deg "
-                + "inner join dataelementgroupmembers degm on degm.dataelementgroupid = deg.dataelementgroupid "
-                + "inner join dataelementgroupsetmembers degsm on "
-                + "degsm.dataelementgroupid = degm.dataelementgroupid and degsm.dataelementgroupsetid = "
-                + groupSet.getId()
-                + " "
-                + "where degm.dataelementid = d.dataelementid "
-                + "limit 1) as "
-                + quote( groupSet.getUid() )
-                + ", ";
-        }
-
-        sql = TextUtils.removeLastComma( sql ) + " ";
-        sql += "from dataelement d";
-
-        return Optional.of( sql );
+      sql +=
+          "("
+              + "select deg.uid from dataelementgroup deg "
+              + "inner join dataelementgroupmembers degm on degm.dataelementgroupid = deg.dataelementgroupid "
+              + "inner join dataelementgroupsetmembers degsm on "
+              + "degsm.dataelementgroupid = degm.dataelementgroupid and degsm.dataelementgroupsetid = "
+              + groupSet.getId()
+              + " "
+              + "where degm.dataelementid = d.dataelementid "
+              + "limit 1) as "
+              + quote(groupSet.getUid())
+              + ", ";
     }
 
-    @Override
-    public Optional<List<Object[]>> getPopulateTempTableContent()
-    {
-        return Optional.empty();
-    }
+    sql = TextUtils.removeLastComma(sql) + " ";
+    sql += "from dataelement d";
 
-    @Override
-    public List<String> getCreateIndexStatements()
-    {
-        return Lists.newArrayList();
-    }
+    return Optional.of(sql);
+  }
+
+  @Override
+  public Optional<List<Object[]>> getPopulateTempTableContent() {
+    return Optional.empty();
+  }
+
+  @Override
+  public List<String> getCreateIndexStatements() {
+    return Lists.newArrayList();
+  }
 }
