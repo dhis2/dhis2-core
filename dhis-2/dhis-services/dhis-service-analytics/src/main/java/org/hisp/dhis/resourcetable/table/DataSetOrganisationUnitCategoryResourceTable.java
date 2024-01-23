@@ -30,13 +30,13 @@ package org.hisp.dhis.resourcetable.table;
 import static org.hisp.dhis.db.model.Table.toStaging;
 import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
 
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -49,128 +49,113 @@ import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.model.constraint.Unique;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.resourcetable.ResourceTable2;
+import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.hisp.dhis.util.DateUtils;
-
-import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
  */
-public class DataSetOrganisationUnitCategoryResourceTable implements ResourceTable2
-{
-    private static final String TABLE_NAME = "_datasetorganisationunitcategory";
+public class DataSetOrganisationUnitCategoryResourceTable implements ResourceTable {
+  private static final String TABLE_NAME = "_datasetorganisationunitcategory";
 
-    private final List<DataSet> dataSets;
+  private final List<DataSet> dataSets;
 
-    private final CategoryOptionCombo defaultOptionCombo;
+  private final CategoryOptionCombo defaultOptionCombo;
 
-    private final String parameters;
+  private final String parameters;
 
-    public DataSetOrganisationUnitCategoryResourceTable(
-        List<DataSet> dataSets, CategoryOptionCombo defaultOptionCombo, String parameters )
-    {
-        this.dataSets = dataSets;
-        this.defaultOptionCombo = defaultOptionCombo;
-        this.parameters = parameters;
-    }
+  public DataSetOrganisationUnitCategoryResourceTable(
+      List<DataSet> dataSets, CategoryOptionCombo defaultOptionCombo, String parameters) {
+    this.dataSets = dataSets;
+    this.defaultOptionCombo = defaultOptionCombo;
+    this.parameters = parameters;
+  }
 
-    @Override
-    public Table getTable()
-    {
-        return new Table( toStaging( TABLE_NAME ), getColumns(), List.of(), getIndexes(), Logged.UNLOGGED );
-    }
+  @Override
+  public Table getTable() {
+    return new Table(toStaging(TABLE_NAME), getColumns(), List.of(), getIndexes(), Logged.UNLOGGED);
+  }
 
-    private List<Column> getColumns()
-    {
-        return List.of(
-            new Column( "datasetid", DataType.BIGINT, Nullable.NOT_NULL ),
-            new Column( "organisationunitid", DataType.BIGINT, Nullable.NOT_NULL ),
-            new Column( "attributeoptioncomboid", DataType.BIGINT, Nullable.NOT_NULL ),
-            new Column( "costartdate", DataType.DATE ),
-            new Column( "coenddate", DataType.DATE ) );
-    }
+  private List<Column> getColumns() {
+    return List.of(
+        new Column("datasetid", DataType.BIGINT, Nullable.NOT_NULL),
+        new Column("organisationunitid", DataType.BIGINT, Nullable.NOT_NULL),
+        new Column("attributeoptioncomboid", DataType.BIGINT, Nullable.NOT_NULL),
+        new Column("costartdate", DataType.DATE),
+        new Column("coenddate", DataType.DATE));
+  }
 
-    private List<Index> getIndexes()
-    {
-        return List.of(
-            new Index(
-                appendRandom( "_datasetorganisationunitcategory" ),
-                Unique.UNIQUE,
-                List.of( "datasetid", "organisationunitid", "attributeoptioncomboid" ) ) );
-    }
+  private List<Index> getIndexes() {
+    return List.of(
+        new Index(
+            appendRandom("_datasetorganisationunitcategory"),
+            Unique.UNIQUE,
+            List.of("datasetid", "organisationunitid", "attributeoptioncomboid")));
+  }
 
-    @Override
-    public ResourceTableType getTableType()
-    {
-        return ResourceTableType.DATA_SET_ORG_UNIT_CATEGORY;
-    }
+  @Override
+  public ResourceTableType getTableType() {
+    return ResourceTableType.DATA_SET_ORG_UNIT_CATEGORY;
+  }
 
-    @Override
-    public Optional<String> getPopulateTempTableStatement()
-    {
-        return Optional.empty();
-    }
+  @Override
+  public Optional<String> getPopulateTempTableStatement() {
+    return Optional.empty();
+  }
 
-    /**
-     * Iterate over data sets and associated organisation units. If data set has
-     * a category combination and the organisation unit has category options,
-     * find the intersection of the category option combinations linked to the
-     * organisation unit through its category options, and the category option
-     * combinations linked to the data set through its category combination. If
-     * not, use the default category option combo.
-     */
-    @Override
-    public Optional<List<Object[]>> getPopulateTempTableContent()
-    {
-        List<Object[]> batchArgs = new ArrayList<>();
+  /**
+   * Iterate over data sets and associated organisation units. If data set has a category
+   * combination and the organisation unit has category options, find the intersection of the
+   * category option combinations linked to the organisation unit through its category options, and
+   * the category option combinations linked to the data set through its category combination. If
+   * not, use the default category option combo.
+   */
+  @Override
+  public Optional<List<Object[]>> getPopulateTempTableContent() {
+    List<Object[]> batchArgs = new ArrayList<>();
 
-        for ( DataSet dataSet : dataSets )
-        {
-            CategoryCombo categoryCombo = dataSet.getCategoryCombo();
+    for (DataSet dataSet : dataSets) {
+      CategoryCombo categoryCombo = dataSet.getCategoryCombo();
 
-            for ( OrganisationUnit orgUnit : dataSet.getSources() )
-            {
-                if ( !categoryCombo.isDefault() )
-                {
-                    if ( orgUnit.hasCategoryOptions() )
-                    {
-                        Set<CategoryOption> orgUnitOptions = orgUnit.getCategoryOptions();
+      for (OrganisationUnit orgUnit : dataSet.getSources()) {
+        if (!categoryCombo.isDefault()) {
+          if (orgUnit.hasCategoryOptions()) {
+            Set<CategoryOption> orgUnitOptions = orgUnit.getCategoryOptions();
 
-                        for ( CategoryOptionCombo optionCombo : categoryCombo.getOptionCombos() )
-                        {
-                            Set<CategoryOption> optionComboOptions = optionCombo.getCategoryOptions();
+            for (CategoryOptionCombo optionCombo : categoryCombo.getOptionCombos()) {
+              Set<CategoryOption> optionComboOptions = optionCombo.getCategoryOptions();
 
-                            if ( orgUnitOptions.containsAll( optionComboOptions ) )
-                            {
-                                Date startDate = DateUtils.min(
-                                    optionComboOptions.stream()
-                                        .map( co -> co.getStartDate() )
-                                        .collect( Collectors.toSet() ) );
-                                Date endDate = DateUtils.max(
-                                    optionComboOptions.stream()
-                                        .map( co -> co.getAdjustedEndDate( dataSet ) )
-                                        .collect( Collectors.toSet() ) );
+              if (orgUnitOptions.containsAll(optionComboOptions)) {
+                Date startDate =
+                    DateUtils.min(
+                        optionComboOptions.stream()
+                            .map(co -> co.getStartDate())
+                            .collect(Collectors.toSet()));
+                Date endDate =
+                    DateUtils.max(
+                        optionComboOptions.stream()
+                            .map(co -> co.getAdjustedEndDate(dataSet))
+                            .collect(Collectors.toSet()));
 
-                                List<Object> values = Lists.newArrayList(
-                                    dataSet.getId(), orgUnit.getId(), optionCombo.getId(), startDate, endDate );
+                List<Object> values =
+                    Lists.newArrayList(
+                        dataSet.getId(), orgUnit.getId(), optionCombo.getId(), startDate, endDate);
 
-                                batchArgs.add( values.toArray() );
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    List<Object> values = Lists.newArrayList(
-                        dataSet.getId(), orgUnit.getId(), defaultOptionCombo.getId(), null, null );
-
-                    batchArgs.add( values.toArray() );
-                }
+                batchArgs.add(values.toArray());
+              }
             }
-        }
+          }
+        } else {
+          List<Object> values =
+              Lists.newArrayList(
+                  dataSet.getId(), orgUnit.getId(), defaultOptionCombo.getId(), null, null);
 
-        return Optional.of( batchArgs );
+          batchArgs.add(values.toArray());
+        }
+      }
     }
+
+    return Optional.of(batchArgs);
+  }
 }

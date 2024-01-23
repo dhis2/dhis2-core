@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,105 +27,22 @@
  */
 package org.hisp.dhis.resourcetable;
 
+import static org.hisp.dhis.db.model.Table.toStaging;
+
 import java.util.List;
 import java.util.Optional;
-import lombok.NoArgsConstructor;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.db.model.Table;
 
-/**
- * @author Lars Helge Overland
- */
-@NoArgsConstructor
-public abstract class ResourceTable<T> {
-  protected static final String TEMP_TABLE_SUFFIX = "_temp";
+public interface ResourceTable {
+  Table getTable();
 
-  // -------------------------------------------------------------------------
-  // Public methods
-  // -------------------------------------------------------------------------
+  ResourceTableType getTableType();
 
-  /**
-   * Provides the name of the resource database table.
-   *
-   * @return the name of the resource database table.
-   */
-  public String getTableName() {
-    return getTableType().getTableName();
+  Optional<String> getPopulateTempTableStatement();
+
+  Optional<List<Object[]>> getPopulateTempTableContent();
+
+  default String getStagingTableName() {
+    return toStaging(getTableType().getTableName());
   }
-
-  /**
-   * Provides the temporary name of the resource database table.
-   *
-   * @return the temporary name of the resource database table.
-   */
-  public final String getTempTableName() {
-    return getTableName() + TEMP_TABLE_SUFFIX;
-  }
-
-  public final String getDropTableIfExistsStatement() {
-    return "drop table if exists " + getTableName() + " cascade;";
-  }
-
-  public final String getDropTempTableIfExistsStatement() {
-    return "drop table if exists " + getTempTableName() + ";";
-  }
-
-  public final String getRenameTempTableStatement() {
-    return "alter table " + getTempTableName() + " rename to " + getTableName() + ";";
-  }
-
-  // -------------------------------------------------------------------------
-  // Protected methods
-  // -------------------------------------------------------------------------
-
-  protected String getRandomSuffix() {
-    return CodeGenerator.generateCode(5);
-  }
-
-  // -------------------------------------------------------------------------
-  // Abstract methods
-  // -------------------------------------------------------------------------
-
-  /**
-   * Returns the resource table as a {@link Table}.
-   *
-   * @return the resource table as a {@link Table}.
-   */
-  public abstract Table getTable();
-
-  /**
-   * Returns the {@link ResourceTableType} of this resource table.
-   *
-   * @return the {@link ResourceTableType}.
-   */
-  public abstract ResourceTableType getTableType();
-
-  /**
-   * Provides a create table SQL statement for the temporary resource table.
-   *
-   * @return a create table statement.
-   */
-  public abstract String getCreateTempTableStatement();
-
-  /**
-   * Provides an insert into select from SQL statement for populating the temporary resource table.
-   *
-   * @return an insert into select from SQL statement.
-   */
-  public abstract Optional<String> getPopulateTempTableStatement();
-
-  /**
-   * Provides content for the temporary resource table as a list of object arrays.
-   *
-   * @return content for the temporary resource table.
-   */
-  public abstract Optional<List<Object[]>> getPopulateTempTableContent();
-
-  /**
-   * Returns SQL create index statements for the temporary table. Note that the indexes name must
-   * have a random component to avoid uniqueness conflicts.
-   *
-   * @return a list of SQL create index statements.
-   */
-  public abstract List<String> getCreateIndexStatements();
 }

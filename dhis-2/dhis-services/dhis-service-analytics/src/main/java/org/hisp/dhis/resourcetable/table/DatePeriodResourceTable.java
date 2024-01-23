@@ -30,11 +30,11 @@ package org.hisp.dhis.resourcetable.table;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.db.model.Table.toStaging;
 
+import com.beust.jcommander.internal.Lists;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.db.model.Column;
@@ -46,97 +46,86 @@ import org.hisp.dhis.period.Cal;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.resourcetable.ResourceTable2;
+import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
-
-import com.beust.jcommander.internal.Lists;
 
 /**
  * @author Lars Helge Overland
  */
-public class DatePeriodResourceTable implements ResourceTable2
-{
-    private static final String TABLE_NAME = "_dateperiodstructure";
+public class DatePeriodResourceTable implements ResourceTable {
+  private static final String TABLE_NAME = "_dateperiodstructure";
 
-    private final List<Integer> years;
+  private final List<Integer> years;
 
-    private final String parameters;
+  private final String parameters;
 
-    public DatePeriodResourceTable( List<Integer> years, String parameters )
-    {
-        this.years = years;
-        this.parameters = parameters;
+  public DatePeriodResourceTable(List<Integer> years, String parameters) {
+    this.years = years;
+    this.parameters = parameters;
+  }
+
+  @Override
+  public Table getTable() {
+    return new Table(toStaging(TABLE_NAME), getColumns(), List.of(), List.of(), Logged.UNLOGGED);
+  }
+
+  private List<Column> getColumns() {
+    List<Column> columns =
+        Lists.newArrayList(
+            new Column("dateperiod", DataType.DATE, Nullable.NOT_NULL),
+            new Column("year", DataType.INTEGER, Nullable.NOT_NULL));
+
+    for (PeriodType periodType : PeriodType.PERIOD_TYPES) {
+      columns.add(new Column(periodType.getName().toLowerCase(), DataType.VARCHAR_50));
     }
 
-    @Override
-    public Table getTable()
-    {
-        return new Table( toStaging( TABLE_NAME ), getColumns(), List.of(), List.of(), Logged.UNLOGGED );
+    return columns;
+  }
+
+  @Override
+  public ResourceTableType getTableType() {
+    return ResourceTableType.DATE_PERIOD_STRUCTURE;
+  }
+
+  @Override
+  public Optional<String> getPopulateTempTableStatement() {
+    return Optional.empty();
+  }
+
+  @Override
+  public Optional<List<Object[]>> getPopulateTempTableContent() {
+    List<PeriodType> periodTypes = PeriodType.getAvailablePeriodTypes();
+
+    List<Object[]> batchArgs = new ArrayList<>();
+
+    int firstYearSupported = years.get(0);
+    int lastYearSupported = years.get(years.size() - 1);
+
+    Date startDate = new Cal(firstYearSupported, 1, 1, true).time();
+    Date endDate = new Cal(lastYearSupported + 1, 1, 1, true).time();
+
+    List<Period> dailyPeriods = new DailyPeriodType().generatePeriods(startDate, endDate);
+
+    List<Date> days =
+        new UniqueArrayList<>(dailyPeriods.stream().map(Period::getStartDate).collect(toList()));
+
+    Calendar calendar = PeriodType.getCalendar();
+
+    for (Date day : days) {
+      List<Object> values = new ArrayList<>();
+
+      int year = PeriodType.getCalendar().fromIso(day).getYear();
+
+      values.add(day);
+      values.add(year);
+
+      for (PeriodType periodType : periodTypes) {
+        values.add(periodType.createPeriod(day, calendar).getIsoDate());
+      }
+
+      batchArgs.add(values.toArray());
     }
 
-    private List<Column> getColumns()
-    {
-        List<Column> columns = Lists.newArrayList(
-            new Column( "dateperiod", DataType.DATE, Nullable.NOT_NULL ),
-            new Column( "year", DataType.INTEGER, Nullable.NOT_NULL ) );
-
-        for ( PeriodType periodType : PeriodType.PERIOD_TYPES )
-        {
-            columns.add( new Column( periodType.getName().toLowerCase(), DataType.VARCHAR_50 ) );
-        }
-
-        return columns;
-    }
-
-    @Override
-    public ResourceTableType getTableType()
-    {
-        return ResourceTableType.DATE_PERIOD_STRUCTURE;
-    }
-
-    @Override
-    public Optional<String> getPopulateTempTableStatement()
-    {
-        return Optional.empty();
-    }
-
-    @Override
-    public Optional<List<Object[]>> getPopulateTempTableContent()
-    {
-        List<PeriodType> periodTypes = PeriodType.getAvailablePeriodTypes();
-
-        List<Object[]> batchArgs = new ArrayList<>();
-
-        int firstYearSupported = years.get( 0 );
-        int lastYearSupported = years.get( years.size() - 1 );
-
-        Date startDate = new Cal( firstYearSupported, 1, 1, true ).time();
-        Date endDate = new Cal( lastYearSupported + 1, 1, 1, true ).time();
-
-        List<Period> dailyPeriods = new DailyPeriodType().generatePeriods( startDate, endDate );
-
-        List<Date> days = new UniqueArrayList<>(
-            dailyPeriods.stream().map( Period::getStartDate ).collect( toList() ) );
-
-        Calendar calendar = PeriodType.getCalendar();
-
-        for ( Date day : days )
-        {
-            List<Object> values = new ArrayList<>();
-
-            int year = PeriodType.getCalendar().fromIso( day ).getYear();
-
-            values.add( day );
-            values.add( year );
-
-            for ( PeriodType periodType : periodTypes )
-            {
-                values.add( periodType.createPeriod( day, calendar ).getIsoDate() );
-            }
-
-            batchArgs.add( values.toArray() );
-        }
-
-        return Optional.of( batchArgs );
-    }
+    return Optional.of(batchArgs);
+  }
 }
