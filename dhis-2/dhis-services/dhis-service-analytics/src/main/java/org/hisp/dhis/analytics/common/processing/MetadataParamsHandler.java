@@ -163,7 +163,7 @@ public class MetadataParamsHandler {
     // for dates supporting custom labels, it will add the custom label to items using the full
     // dimension uid as key
     if (supportsCustomLabel(dimensionIdentifier)) {
-      items.put(dimensionIdentifier.getKey(), getCustomLabel(dimensionIdentifier));
+      items.put(dimensionIdentifier.getKeyNoOffset(), getCustomLabel(dimensionIdentifier));
     }
 
     // for entries like "abc", it will add a duplicate using dimensionuid (example
@@ -207,7 +207,7 @@ public class MetadataParamsHandler {
 
   private static Entry<String, Object> asEntryWithFullPrefix(
       DimensionIdentifier<DimensionParam> dimensionIdentifier, Entry<String, Object> entry) {
-    return Map.entry(dimensionIdentifier.getKey(), entry.getValue());
+    return Map.entry(dimensionIdentifier.getKeyNoOffset(), entry.getValue());
   }
 
   private static boolean isSameDimension(
