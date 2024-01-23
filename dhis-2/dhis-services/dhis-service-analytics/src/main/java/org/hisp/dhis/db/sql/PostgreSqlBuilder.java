@@ -154,7 +154,6 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
     for (Column column : table.getColumns()) {
       String dataType = getDataTypeName(column.getDataType());
-
       String nullable = column.getNullable() == Nullable.NOT_NULL ? "not null" : "null";
 
       sql += quote(column.getName()) + " " + dataType + " " + nullable + ",";
@@ -199,8 +198,8 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String renameTable(String name, String newName) {
-    return String.format("alter table % rename to %;", quote(name), quote(newName));
+  public String renameTable(Table table, String newName) {
+    return String.format("alter table % rename to %;", quote(table.getName()), quote(newName));
   }
 
   @Override
