@@ -78,9 +78,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
     // Drop temporary table if it exists
     // ---------------------------------------------------------------------
 
-    if (dbmsManager.tableExists(resourceTable.getTempTableName())) {
-      jdbcTemplate.execute(resourceTable.getDropTempTableStatement());
-    }
+    jdbcTemplate.execute(resourceTable.getDropTempTableIfExistsStatement());
 
     // ---------------------------------------------------------------------
     // Create temporary table
@@ -146,9 +144,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
     // Swap tables
     // ---------------------------------------------------------------------
 
-    if (dbmsManager.tableExists(resourceTable.getTableName())) {
-      jdbcTemplate.execute(resourceTable.getDropTableStatement());
-    }
+    jdbcTemplate.execute(resourceTable.getDropTableIfExistsStatement());
 
     jdbcTemplate.execute(resourceTable.getRenameTempTableStatement());
 
