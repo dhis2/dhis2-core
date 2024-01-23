@@ -43,6 +43,8 @@ import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.EventAnalyticalObject;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 
 /**
  * Responsible for handling and associating the simple event dimensions in the EventAnalyticalObject
@@ -161,7 +163,7 @@ public class SimpleDimensionHandler {
   private SimpleDimension createSimpleEventDimensionFor(
       DimensionalObject dimensionalObject, Attribute parent) {
     String programUid =
-        dimensionalObject.getProgram() != null ? dimensionalObject.getProgram().getUid() : null;
+        getProgramUid(dimensionalObject.getProgram(), dimensionalObject.getProgramStage());
     String programStageUid =
         dimensionalObject.getProgramStage() != null
             ? dimensionalObject.getProgramStage().getUid()
@@ -177,5 +179,25 @@ public class SimpleDimensionHandler {
     }
 
     return simpleDimension;
+  }
+
+  /**
+   * Retrieves the user uid of the program, based on the given objects. Tries to get the uid from
+   * the program. If not found, it tries the program present in the program stage.
+   *
+   * @param program the {@link Program}.
+   * @param programStage the {@link ProgramStage}.
+   * @return the program uid or null.
+   */
+  private String getProgramUid(Program program, ProgramStage programStage) {
+    if (program != null) {
+      return program.getUid();
+    }
+
+    if (programStage != null && programStage.getProgram() != null) {
+      return programStage.getProgram().getUid();
+    }
+
+    return null;
   }
 }

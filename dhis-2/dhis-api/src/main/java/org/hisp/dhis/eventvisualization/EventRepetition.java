@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.eventvisualization;
 
+import static org.hisp.dhis.common.DimensionalObjectUtils.asQualifiedDimension;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -48,8 +49,9 @@ import org.hisp.dhis.common.EmbeddedObject;
  */
 @Data
 @AllArgsConstructor
-@NoArgsConstructor
+@NoArgsConstructor(force = true)
 public class EventRepetition implements Serializable, EmbeddedObject {
+
   /** The attribute which the event repetition belongs to. */
   @JsonProperty
   @JacksonXmlProperty(namespace = DXF_2_0)
@@ -90,4 +92,8 @@ public class EventRepetition implements Serializable, EmbeddedObject {
   @JacksonXmlProperty(namespace = DXF_2_0)
   @Nonnull
   private List<Integer> indexes = new ArrayList<>();
+
+  public String qualifiedDimension() {
+    return asQualifiedDimension(dimension, program, programStage);
+  }
 }
