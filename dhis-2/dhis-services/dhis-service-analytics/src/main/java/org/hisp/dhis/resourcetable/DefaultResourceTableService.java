@@ -104,7 +104,7 @@ public class DefaultResourceTableService implements ResourceTableService {
 
   @Override
   @Transactional
-  public void generateOrganisationUnitStructures() {
+  public void generateOrganisationUnitStructureTable() {
     resourceTableStore.generateResourceTable(
         new OrganisationUnitStructureResourceTable(
             null,
@@ -125,7 +125,7 @@ public class DefaultResourceTableService implements ResourceTableService {
 
   @Override
   @Transactional
-  public void generateCategoryOptionComboNames() {
+  public void generateCategoryOptionComboNameTable() {
     resourceTableStore.generateResourceTable(
         new CategoryOptionComboNameResourceTable(
             idObjectManager.getAllNoAcl(CategoryCombo.class),
@@ -286,9 +286,10 @@ public class DefaultResourceTableService implements ResourceTableService {
             sqlViewService.createViewTable(view);
           } catch (IllegalQueryException ex) {
             log.warn(
-                String.format(
-                    "Ignoring SQL view which failed validation: %s, %s, message: %s",
-                    view.getUid(), view.getName(), ex.getMessage()));
+                "Ignoring SQL view which failed validation: '{}', '{}', message: '{}'",
+                view.getUid(),
+                view.getName(),
+                ex.getMessage());
           }
         });
   }

@@ -158,13 +158,13 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
     Map<String, Runnable> generators = new LinkedHashMap<>();
     generators.put(
         "generating OrganisationUnit structures",
-        resourceTableService::generateOrganisationUnitStructures);
+        resourceTableService::generateOrganisationUnitStructureTable);
     generators.put(
         "generating DataSetOrganisationUnitCategory table",
         resourceTableService::generateDataSetOrganisationUnitCategoryTable);
     generators.put(
         "generating CategoryOptionCombo names",
-        resourceTableService::generateCategoryOptionComboNames);
+        resourceTableService::generateCategoryOptionComboNameTable);
     generators.put(
         "generating DataElementGroupSet table",
         resourceTableService::generateDataElementGroupSetTable);

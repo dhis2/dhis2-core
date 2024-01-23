@@ -25,29 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.resourcetable;
+package org.hisp.dhis.resourcetable.util;
 
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
- * @author Lars Helge Overland
+ * @author Luciano Fiandesio
+ * @author Jan Bernitt
  */
-public interface ResourceTableStore {
-  String ID = ResourceTableStore.class.getName();
+public final class UniqueNameContext {
+  private final Set<String> uniqueNames = new HashSet<>();
 
   /**
-   * Generates the given resource table.
+   * Returns the name that is unique within the name context. The returned name is potentially
+   * appended with a number to ensure uniqueness.
    *
-   * @param resourceTable the resource table.
+   * @param name the name.
+   * @return a unique name based on the given name.
    */
-  void generateResourceTable(ResourceTable<?> resourceTable);
+  public String uniqueName(String name) {
+    String uniqueName = name;
 
-  /**
-   * Performs a batch update.
-   *
-   * @param columns the number of columns in the table to update.
-   * @param tableName the name of the table to update.
-   * @param batchArgs the arguments to use for the update statement.
-   */
-  void batchUpdate(int columns, String tableName, List<Object[]> batchArgs);
+    if (uniqueNames.contains(uniqueName)) {
+      int n = uniqueNames.size();
+
+      do {
+        uniqueName = name + n;
+        n++;
+      } while (uniqueNames.contains(uniqueName));
+    }
+
+    this.uniqueNames.add(uniqueName);
+
+    return uniqueName;
+  }
 }
