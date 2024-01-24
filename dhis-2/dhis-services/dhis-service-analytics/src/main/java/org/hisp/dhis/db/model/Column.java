@@ -48,6 +48,12 @@ public class Column {
   /** Column not null constraint. Required. */
   private final Nullable nullable;
 
+  /**
+   * Constructor.
+   *
+   * @param name the column name.
+   * @param dataType the {@link DataType}.
+   */
   public Column(String name, DataType dataType) {
     this.name = name;
     this.dataType = dataType;
