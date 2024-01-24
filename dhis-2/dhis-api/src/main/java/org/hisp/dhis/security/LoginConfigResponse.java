@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,37 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common.hibernate;
+package org.hisp.dhis.security;
 
-import java.util.Date;
-import javax.annotation.Nonnull;
-import javax.persistence.EntityManager;
-import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
-import org.hisp.dhis.common.SoftDeletableObject;
-import org.hisp.dhis.security.acl.AclService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
- * @author Enrico Colasante
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class SoftDeleteHibernateObjectStore<T extends SoftDeletableObject>
-    extends HibernateIdentifiableObjectStore<T> {
-  public SoftDeleteHibernateObjectStore(
-      EntityManager entityManager,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      Class<T> clazz,
-      AclService aclService,
-      boolean cacheable) {
-    super(entityManager, jdbcTemplate, publisher, clazz, aclService, cacheable);
-  }
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Builder
+public class LoginConfigResponse {
 
-  @Override
-  public void delete(@Nonnull SoftDeletableObject object) {
-    publisher.publishEvent(new ObjectDeletionRequestedEvent(object));
-    object.setDeleted(true);
-    object.setLastUpdated(new Date());
-    getSession().update(object);
-  }
+  @JsonProperty private String applicationTitle;
+  @JsonProperty private String applicationDescription;
+  @JsonProperty private String applicationNotification;
+  @JsonProperty private String applicationLeftSideFooter;
+  @JsonProperty private String applicationRightSideFooter;
+  @JsonProperty private String countryFlag;
+  @JsonProperty private String uiLocale;
+  @JsonProperty private String loginPageLogo;
+  @JsonProperty private String topMenuLogo;
+  @JsonProperty private String style;
+  @JsonProperty private boolean emailConfigured;
+  @JsonProperty private boolean selfRegistrationEnabled;
+  @JsonProperty private boolean selfRegistrationNoRecaptcha;
 }
