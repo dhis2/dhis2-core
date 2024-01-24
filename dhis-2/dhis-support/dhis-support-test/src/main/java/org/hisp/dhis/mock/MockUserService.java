@@ -265,7 +265,7 @@ public class MockUserService implements UserService {
   public void canIssueFilter(Collection<UserRole> userRoles) {}
 
   @Override
-  public List<ErrorReport> validateUserCreateOrUpdate(User user, User currentUser) {
+  public List<ErrorReport> validateUserCreateOrUpdateAccess(User user, User currentUser) {
     return null;
   }
 
