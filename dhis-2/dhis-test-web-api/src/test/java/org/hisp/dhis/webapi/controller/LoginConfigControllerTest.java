@@ -40,24 +40,37 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class LoginControllerTest extends DhisControllerIntegrationTest {
-
-  private static final String iconKey = "iconKey";
+class LoginConfigControllerTest extends DhisControllerIntegrationTest {
 
   @Autowired SystemSettingManager systemSettingManager;
 
   @Test
   void shouldGetLoginConfig() throws IOException {
     systemSettingManager.saveSystemSetting(SettingKey.LOGIN_POPUP, "<html>TEXT</html>");
-
-    String systemSetting =
-        systemSettingManager.getSystemSetting(SettingKey.LOGIN_POPUP, String.class);
-
-    assertEquals("<html>TEXT</html>", systemSetting);
+    systemSettingManager.saveSystemSetting(SettingKey.APPLICATION_FOOTER, "APPLICATION_FOOTER");
+    systemSettingManager.saveSystemSetting(SettingKey.APPLICATION_INTRO, "APPLICATION_INTRO");
+    systemSettingManager.saveSystemSetting(
+        SettingKey.APPLICATION_NOTIFICATION, "APPLICATION_NOTIFICATION");
+    systemSettingManager.saveSystemSetting(SettingKey.APPLICATION_FOOTER, "APPLICATION_FOOTER");
+    systemSettingManager.saveSystemSetting(SettingKey.FLAG_IMAGE, "FLAG_IMAGE");
+    systemSettingManager.saveSystemSetting(SettingKey.CUSTOM_LOGIN_PAGE_LOGO, true);
+    systemSettingManager.saveSystemSetting(SettingKey.CUSTOM_TOP_MENU_LOGO, true);
 
     JsonObject response = GET("/loginConfig").content();
     assertEquals("DHIS 2", response.getString("applicationTitle").string());
+    assertEquals("APPLICATION_INTRO", response.getString("applicationDescription").string());
+    assertEquals(
+        "APPLICATION_NOTIFICATION", response.getString("applicationNotification").string());
+    assertEquals("APPLICATION_FOOTER", response.getString("applicationLeftSideFooter").string());
+    assertEquals("FLAG_IMAGE", response.getString("countryFlag").string());
     assertEquals("en", response.getString("uiLocale").string());
+    assertEquals("/api/staticContent/logo_front.png", response.getString("loginPageLogo").string());
+    assertEquals("/external-static/logo_banner.png", response.getString("topMenuLogo").string());
+    assertEquals("light_blue/light_blue.css", response.getString("style").string());
     assertEquals("<html>TEXT</html>", response.getString("loginPopup").string());
+
+    assertEquals(false, response.getBoolean("selfRegistrationNoRecaptcha").booleanValue());
+    assertEquals(false, response.getBoolean("selfRegistrationEnabled").booleanValue());
+    assertEquals(false, response.getBoolean("emailConfigured").booleanValue());
   }
 }
