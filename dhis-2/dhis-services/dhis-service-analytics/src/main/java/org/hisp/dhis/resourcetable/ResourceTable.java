@@ -31,12 +31,37 @@ import java.util.List;
 import java.util.Optional;
 import org.hisp.dhis.db.model.Table;
 
+/**
+ * Represents a resource database table.
+ *
+ * @author Lars Helge Overland
+ */
 public interface ResourceTable {
+  /**
+   * Returns the table definition.
+   *
+   * @return the {@link Table}.
+   */
   Table getTable();
 
+  /**
+   * Returns the resource table type.
+   *
+   * @return the {@link ResourceTableType}.
+   */
   ResourceTableType getTableType();
 
+  /**
+   * Returns an optional SQL statement for populating the resource table.
+   *
+   * @return an optional SQL statement, may be empty.
+   */
   Optional<String> getPopulateTempTableStatement();
 
+  /**
+   * Returns the content of a resource table as an optional list of objects arrays.
+   *
+   * @return an optional list of object arrays, may be empty.
+   */
   Optional<List<Object[]>> getPopulateTempTableContent();
 }

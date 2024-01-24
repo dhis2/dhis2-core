@@ -63,9 +63,9 @@ public class Table {
    * Constructor.
    *
    * @param name the table name.
-   * @param columns the list of table {@link Column}.
-   * @param primaryKey the table primary key.
-   * @param indexes the list of table {@link Index}.
+   * @param columns the list of {@link Column}.
+   * @param primaryKey the primary key.
+   * @param indexes the list of {@link Index}.
    */
   public Table(String name, List<Column> columns, List<String> primaryKey, List<Index> indexes) {
     this.name = name;
@@ -75,7 +75,11 @@ public class Table {
     this.logged = Logged.LOGGED;
   }
 
-  /** Whether the table has a primary key. */
+  /**
+   * Indicates whether the table has a primary key.
+   *
+   * @return true if the table has a primary key.
+   */
   public boolean hasPrimaryKey() {
     return !primaryKey.isEmpty();
   }
