@@ -211,6 +211,11 @@ public class JsonObjectBuilder {
     return array;
   }
 
+  public JsonObjectBuilder deleteByJsonPath(String path) {
+    JsonPath.using(jsonPathConfiguration).parse(jsonObject).delete(path);
+    return this;
+  }
+
   public JsonObject build() {
     return this.jsonObject;
   }

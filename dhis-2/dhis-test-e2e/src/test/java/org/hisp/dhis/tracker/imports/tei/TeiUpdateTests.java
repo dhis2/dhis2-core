@@ -125,11 +125,11 @@ public class TeiUpdateTests extends TrackerApiTest {
 
   @Test
   public void shouldUpdateExportedTrackedEntity() throws Exception {
-    String teId = importTei();
+    String teUID = importTei();
     JsonObjectBuilder trackedEntities =
         trackerImportExportActions
             .getTrackedEntities(
-                new QueryParamsBuilder().add("fields", "*").add("trackedEntity", teId))
+                new QueryParamsBuilder().add("fields", "*").add("trackedEntity", teUID))
             .getBodyAsJsonBuilder()
             .addPropertyByJsonPath("trackedEntities[0].attributes[0].value", "Rabbit");
 
