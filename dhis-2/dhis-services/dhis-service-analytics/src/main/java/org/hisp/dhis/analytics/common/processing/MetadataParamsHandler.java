@@ -184,17 +184,22 @@ public class MetadataParamsHandler {
    * @return the custom label
    */
   private MetadataItem getCustomLabel(DimensionIdentifier<DimensionParam> dimensionIdentifier) {
-    return new MetadataItem(
-        STATIC_DIMENSION_MAPPER.entrySet().stream()
-            .filter(
-                entry -> entry.getKey() == dimensionIdentifier.getDimension().getStaticDimension())
-            .findFirst()
-            .map(
-                entry ->
-                    defaultIfBlank(
-                        entry.getValue().apply(dimensionIdentifier),
-                        entry.getKey().getHeaderColumnName()))
-            .orElse(null));
+    MetadataItem metadataItem =
+        new MetadataItem(
+            STATIC_DIMENSION_MAPPER.entrySet().stream()
+                .filter(
+                    entry ->
+                        entry.getKey() == dimensionIdentifier.getDimension().getStaticDimension())
+                .findFirst()
+                .map(
+                    entry ->
+                        defaultIfBlank(
+                            entry.getValue().apply(dimensionIdentifier),
+                            entry.getKey().getHeaderColumnName()))
+                .orElse(null));
+    metadataItem.setDimensionType(
+        dimensionIdentifier.getDimension().getDimensionParamObjectType().getDimensionType());
+    return metadataItem;
   }
 
   private boolean supportsCustomLabel(DimensionIdentifier<DimensionParam> dimensionIdentifier) {
