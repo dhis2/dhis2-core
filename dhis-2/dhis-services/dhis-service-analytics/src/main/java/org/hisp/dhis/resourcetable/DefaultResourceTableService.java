@@ -40,7 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.analytics.AnalyticsExportSettings;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
@@ -98,19 +98,19 @@ public class DefaultResourceTableService implements ResourceTableService {
 
   private final CategoryService categoryService;
 
-  private final AnalyticsExportSettings analyticsExportSettings;
+  private final AnalyticsTableExportSettings analyticsExportSettings;
 
   private final PeriodDataProvider periodDataProvider;
 
   @Override
   @Transactional
-  public void generateOrganisationUnitStructures() {
+  public void generateOrganisationUnitStructureTable() {
     resourceTableStore.generateResourceTable(
         new OrganisationUnitStructureResourceTable(
             null,
             organisationUnitService,
             organisationUnitService.getNumberOfOrganisationalLevels(),
-            analyticsExportSettings.getTableType()));
+            analyticsExportSettings.getTableParameters()));
   }
 
   @Override
@@ -120,16 +120,16 @@ public class DefaultResourceTableService implements ResourceTableService {
         new DataSetOrganisationUnitCategoryResourceTable(
             idObjectManager.getAllNoAcl(DataSet.class),
             categoryService.getDefaultCategoryOptionCombo(),
-            analyticsExportSettings.getTableType()));
+            analyticsExportSettings.getTableParameters()));
   }
 
   @Override
   @Transactional
-  public void generateCategoryOptionComboNames() {
+  public void generateCategoryOptionComboNameTable() {
     resourceTableStore.generateResourceTable(
         new CategoryOptionComboNameResourceTable(
             idObjectManager.getAllNoAcl(CategoryCombo.class),
-            analyticsExportSettings.getTableType()));
+            analyticsExportSettings.getTableParameters()));
   }
 
   @Override
@@ -138,7 +138,7 @@ public class DefaultResourceTableService implements ResourceTableService {
     resourceTableStore.generateResourceTable(
         new DataElementGroupSetResourceTable(
             idObjectManager.getDataDimensionsNoAcl(DataElementGroupSet.class),
-            analyticsExportSettings.getTableType()));
+            analyticsExportSettings.getTableParameters()));
   }
 
   @Override
@@ -147,7 +147,7 @@ public class DefaultResourceTableService implements ResourceTableService {
     resourceTableStore.generateResourceTable(
         new IndicatorGroupSetResourceTable(
             idObjectManager.getAllNoAcl(IndicatorGroupSet.class),
-            analyticsExportSettings.getTableType()));
+            analyticsExportSettings.getTableParameters()));
   }
 
   @Override
@@ -157,7 +157,7 @@ public class DefaultResourceTableService implements ResourceTableService {
         new OrganisationUnitGroupSetResourceTable(
             idObjectManager.getDataDimensionsNoAcl(OrganisationUnitGroupSet.class),
             organisationUnitService.getNumberOfOrganisationalLevels(),
-            analyticsExportSettings.getTableType()));
+            analyticsExportSettings.getTableParameters()));
   }
 
   @Override
@@ -167,7 +167,7 @@ public class DefaultResourceTableService implements ResourceTableService {
         new CategoryResourceTable(
             idObjectManager.getDataDimensionsNoAcl(Category.class),
             idObjectManager.getDataDimensionsNoAcl(CategoryOptionGroupSet.class),
-            analyticsExportSettings.getTableType()));
+            analyticsExportSettings.getTableParameters()));
   }
 
   @Override
@@ -176,7 +176,7 @@ public class DefaultResourceTableService implements ResourceTableService {
     resourceTableStore.generateResourceTable(
         new DataElementResourceTable(
             idObjectManager.getAllNoAcl(DataElement.class),
-            analyticsExportSettings.getTableType()));
+            analyticsExportSettings.getTableParameters()));
   }
 
   @Override
@@ -188,7 +188,7 @@ public class DefaultResourceTableService implements ResourceTableService {
     checkYearsOffset(availableYears);
 
     resourceTableStore.generateResourceTable(
-        new DatePeriodResourceTable(availableYears, analyticsExportSettings.getTableType()));
+        new DatePeriodResourceTable(availableYears, analyticsExportSettings.getTableParameters()));
   }
 
   /**
@@ -237,20 +237,21 @@ public class DefaultResourceTableService implements ResourceTableService {
   public void generatePeriodTable() {
     resourceTableStore.generateResourceTable(
         new PeriodResourceTable(
-            periodService.getAllPeriods(), analyticsExportSettings.getTableType()));
+            periodService.getAllPeriods(), analyticsExportSettings.getTableParameters()));
   }
 
   @Override
   @Transactional
   public void generateCategoryOptionComboTable() {
     resourceTableStore.generateResourceTable(
-        new CategoryOptionComboResourceTable(null, analyticsExportSettings.getTableType()));
+        new CategoryOptionComboResourceTable(null, analyticsExportSettings.getTableParameters()));
   }
 
   @Override
   public void generateDataApprovalRemapLevelTable() {
     resourceTableStore.generateResourceTable(
-        new DataApprovalRemapLevelResourceTable(null, analyticsExportSettings.getTableType()));
+        new DataApprovalRemapLevelResourceTable(
+            null, analyticsExportSettings.getTableParameters()));
   }
 
   @Override
@@ -261,7 +262,7 @@ public class DefaultResourceTableService implements ResourceTableService {
     if (!orgUnitLevels.isEmpty()) {
       resourceTableStore.generateResourceTable(
           new DataApprovalMinLevelResourceTable(
-              orgUnitLevels, analyticsExportSettings.getTableType()));
+              orgUnitLevels, analyticsExportSettings.getTableParameters()));
     }
   }
 
@@ -285,9 +286,10 @@ public class DefaultResourceTableService implements ResourceTableService {
             sqlViewService.createViewTable(view);
           } catch (IllegalQueryException ex) {
             log.warn(
-                String.format(
-                    "Ignoring SQL view which failed validation: %s, %s, message: %s",
-                    view.getUid(), view.getName(), ex.getMessage()));
+                "Ignoring SQL view which failed validation: '{}', '{}', message: '{}'",
+                view.getUid(),
+                view.getName(),
+                ex.getMessage());
           }
         });
   }

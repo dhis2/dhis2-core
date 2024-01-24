@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.user.UserLookup;
 
 /**
  * Wrapper DTO for a list of UserLookups.

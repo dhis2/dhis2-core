@@ -25,17 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.filter;
+package org.hisp.dhis.resourcetable;
 
-import org.hisp.dhis.commons.filter.Filter;
-import org.hisp.dhis.indicator.IndicatorGroup;
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
  */
-public class IndicatorGroupWithoutGroupSetFilter implements Filter<IndicatorGroup> {
-  @Override
-  public boolean retain(IndicatorGroup object) {
-    return object == null || object.getGroupSets().isEmpty();
-  }
+public interface ResourceTableStore {
+  /**
+   * Generates the given resource table.
+   *
+   * @param resourceTable the resource table.
+   */
+  void generateResourceTable(ResourceTable<?> resourceTable);
+
+  /**
+   * Performs a batch update.
+   *
+   * @param columns the number of columns in the table to update.
+   * @param tableName the name of the table to update.
+   * @param batchArgs the arguments to use for the update statement.
+   */
+  void batchUpdate(int columns, String tableName, List<Object[]> batchArgs);
 }

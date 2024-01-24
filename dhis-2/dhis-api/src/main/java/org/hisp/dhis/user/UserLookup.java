@@ -25,39 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.objectmapper;
+package org.hisp.dhis.user;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import org.hisp.dhis.datavalue.DeflatedDataValue;
-import org.hisp.quick.mapper.RowMapper;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Set;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
+ * DTO for a minimal and non-sensitive representation of a user.
+ *
  * @author Lars Helge Overland
- * @version $Id$
  */
-public class DeflatedDataValueRowMapper
-    implements RowMapper<DeflatedDataValue>,
-        org.springframework.jdbc.core.RowMapper<DeflatedDataValue> {
-  @Override
-  public DeflatedDataValue mapRow(ResultSet resultSet) throws SQLException {
-    final DeflatedDataValue value = new DeflatedDataValue();
+@Getter
+@Setter
+@NoArgsConstructor
+public class UserLookup {
+  @JsonProperty private String id;
 
-    value.setDataElementId(resultSet.getLong("dataelementid"));
-    value.setPeriodId(resultSet.getLong("periodid"));
-    value.setSourceId(resultSet.getLong("sourceid"));
-    value.setCategoryOptionComboId(resultSet.getLong("categoryoptioncomboid"));
-    value.setValue(resultSet.getString("value"));
-    value.setStoredBy(resultSet.getString("storedby"));
-    value.setCreated(resultSet.getTimestamp("created"));
-    value.setLastUpdated(resultSet.getTimestamp("lastupdated"));
-    value.setComment(resultSet.getString("comment"));
+  @JsonProperty private String username;
 
-    return value;
-  }
+  @JsonProperty private String firstName;
 
-  @Override
-  public DeflatedDataValue mapRow(ResultSet resultSet, int rowNum) throws SQLException {
-    return mapRow(resultSet);
+  @JsonProperty private String surname;
+
+  @JsonProperty private String displayName;
+
+  @JsonProperty private Set<String> roles;
+
+  @JsonProperty private Set<String> groups;
+
+  public static UserLookup fromUser(User user) {
+    String displayName = String.format("%s %s", user.getFirstName(), user.getSurname());
+
+    UserLookup lookup = new UserLookup();
+    lookup.setId(user.getUid()); // Will be changed to UUID later
+    lookup.setUsername(user.getUsername());
+    lookup.setFirstName(user.getFirstName());
+    lookup.setSurname(user.getSurname());
+    lookup.setDisplayName(displayName);
+    return lookup;
   }
 }

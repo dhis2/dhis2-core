@@ -25,27 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.collection;
+package org.hisp.dhis.resourcetable.util;
 
-import java.util.HashMap;
-import java.util.Map;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
- * @author Lars Helge Overland
+ * @author Luciano Fiandesio
+ * @author Jan Bernitt
  */
-public class JobLocalMap<T, V> {
-  private final Map<JobConfiguration, Map<T, V>> internalMap;
+public final class UniqueNameContext {
+  private final Set<String> uniqueNames = new HashSet<>();
 
-  public JobLocalMap() {
-    this.internalMap = new HashMap<>();
-  }
+  /**
+   * Returns the name that is unique within the name context. The returned name is potentially
+   * appended with a number to ensure uniqueness.
+   *
+   * @param name the name.
+   * @return a unique name based on the given name.
+   */
+  public String uniqueName(String name) {
+    String uniqueName = name;
 
-  public Map<T, V> get(JobConfiguration id) {
-    return internalMap.computeIfAbsent(id, k -> new HashMap<>());
-  }
+    if (uniqueNames.contains(uniqueName)) {
+      int n = uniqueNames.size();
 
-  public boolean clear(JobConfiguration id) {
-    return internalMap.remove(id) != null;
+      do {
+        uniqueName = name + n;
+        n++;
+      } while (uniqueNames.contains(uniqueName));
+    }
+
+    this.uniqueNames.add(uniqueName);
+
+    return uniqueName;
   }
 }

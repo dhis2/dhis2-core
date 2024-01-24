@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,29 +25,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.resourcetable;
+package org.hisp.dhis.analytics;
 
-import java.util.List;
-
-/**
- * @author Lars Helge Overland
- */
-public interface ResourceTableStore {
-  String ID = ResourceTableStore.class.getName();
-
-  /**
-   * Generates the given resource table.
-   *
-   * @param resourceTable the resource table.
-   */
-  void generateResourceTable(ResourceTable<?> resourceTable);
-
-  /**
-   * Performs a batch update.
-   *
-   * @param columns the number of columns in the table to update.
-   * @param tableName the name of the table to update.
-   * @param batchArgs the arguments to use for the update statement.
-   */
-  void batchUpdate(int columns, String tableName, List<Object[]> batchArgs);
+public enum Collation {
+  C;
 }

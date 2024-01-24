@@ -38,7 +38,7 @@ import static org.mockito.Mockito.when;
 
 import java.time.Year;
 import java.util.List;
-import org.hisp.dhis.analytics.AnalyticsExportSettings;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,7 +53,7 @@ class DefaultResourceTableServiceTest {
 
   @Mock private PeriodDataProvider periodDataProvider;
 
-  @Mock private AnalyticsExportSettings analyticsExportSettings;
+  @Mock private AnalyticsTableExportSettings analyticsExportSettings;
 
   @Mock private ResourceTableStore resourceTableStore;
 

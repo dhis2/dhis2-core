@@ -342,6 +342,7 @@ class DimensionalObjectUtilsTest {
   void testLinkAssociationsWithProgramOnly() {
     // Given
     EventAnalyticalObject eventAnalyticalObject = stubEventAnalyticalObject();
+    eventAnalyticalObject.getEventRepetitions().get(0).setProgramStage(null);
     BaseDimensionalObject dimensionalObject = stubDimensionalObject();
     dimensionalObject.setProgramStage(null);
     org.hisp.dhis.eventvisualization.Attribute parent = COLUMN;
@@ -362,6 +363,7 @@ class DimensionalObjectUtilsTest {
   void testLinkAssociationsWithProgramStageOnly() {
     // Given
     EventAnalyticalObject eventAnalyticalObject = stubEventAnalyticalObject();
+    eventAnalyticalObject.getEventRepetitions().get(0).setProgram(null);
     BaseDimensionalObject dimensionalObject = stubDimensionalObject();
     dimensionalObject.setProgram(null);
     org.hisp.dhis.eventvisualization.Attribute parent = COLUMN;

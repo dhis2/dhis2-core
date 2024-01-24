@@ -72,10 +72,12 @@ import org.hisp.dhis.user.RestoreOptions;
 import org.hisp.dhis.user.RestoreType;
 import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserLookup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.webdomain.user.UserLookups;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -502,8 +504,9 @@ public class AccountController {
   }
 
   @GetMapping("/linkedAccounts")
-  public @ResponseBody List<User> getLinkedAccounts(@CurrentUser User currentUser) {
-    return userService.getLinkedUserAccounts(currentUser);
+  public @ResponseBody UserLookups getLinkedAccounts(@CurrentUser User currentUser) {
+    List<UserLookup> linkedUserAccounts = userService.getLinkedUserAccounts(currentUser);
+    return new UserLookups(linkedUserAccounts);
   }
 
   @GetMapping("/username")

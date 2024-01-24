@@ -51,7 +51,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -59,9 +58,9 @@ import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
@@ -90,7 +89,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
       DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       TrackedEntityTypeService trackedEntityTypeService,
-      AnalyticsExportSettings settings,
+      AnalyticsTableExportSettings settings,
       PeriodDataProvider periodDataProvider) {
     super(
         idObjectManager,
@@ -210,28 +209,20 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
   @Override
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
-    List<AnalyticsTableColumn> columns = partition.getMasterTable().getDimensionColumns();
-    List<AnalyticsTableColumn> values = partition.getMasterTable().getValueColumns();
+    List<AnalyticsTableColumn> dimensions = partition.getMasterTable().getDimensionColumns();
+    List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
 
-    validateDimensionColumns(columns);
+    validateDimensionColumns(dimensions);
 
     StringBuilder sql = new StringBuilder("insert into " + partition.getTempTableName() + " (");
 
-    for (AnalyticsTableColumn col : ListUtils.union(columns, values)) {
-      if (col.isVirtual()) {
-        continue;
-      }
-
+    for (AnalyticsTableColumn col : columns) {
       sql.append(col.getName() + ",");
     }
 
     removeLastComma(sql).append(") select ");
 
-    for (AnalyticsTableColumn col : columns) {
-      if (col.isVirtual()) {
-        continue;
-      }
-
+    for (AnalyticsTableColumn col : dimensions) {
       sql.append(col.getAlias() + ",");
     }
 

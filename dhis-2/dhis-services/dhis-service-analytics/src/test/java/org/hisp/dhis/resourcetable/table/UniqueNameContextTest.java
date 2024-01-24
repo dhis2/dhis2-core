@@ -27,37 +27,42 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
-import java.util.HashSet;
-import java.util.Set;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.hisp.dhis.resourcetable.util.UniqueNameContext;
+import org.junit.jupiter.api.Test;
 
 /**
- * @author Luciano Fiandesio
+ * Tests the {@link UniqueNameContext}.
+ *
  * @author Jan Bernitt
  */
-public final class UniqueNameContext {
-  private final Set<String> uniqueNames = new HashSet<>();
+class UniqueNameContextTest {
 
-  /**
-   * Returns the name that is unique within the name context. The returned name is potentially
-   * appended with a number to ensure uniqueness.
-   *
-   * @param name the name.
-   * @return a unique name based on the given name.
-   */
-  public String uniqueName(String name) {
-    String uniqueName = name;
+  private final UniqueNameContext context = new UniqueNameContext();
 
-    if (uniqueNames.contains(uniqueName)) {
-      int n = uniqueNames.size();
+  @Test
+  void alreadyUniqueNameIsKept() {
+    assertEquals("Foo", context.uniqueName("Foo"));
+    assertEquals("Bar", context.uniqueName("Bar"));
+    assertEquals("Baz", context.uniqueName("Baz"));
+  }
 
-      do {
-        uniqueName = name + n;
-        n++;
-      } while (uniqueNames.contains(uniqueName));
-    }
+  @Test
+  void nonUniqueNameIsExtendedWithCounter() {
+    assertEquals("Foo", context.uniqueName("Foo"));
+    assertEquals("Foo1", context.uniqueName("Foo"));
+    assertEquals("Foo2", context.uniqueName("Foo"));
+    assertEquals("Foo3", context.uniqueName("Foo"));
+  }
 
-    this.uniqueNames.add(uniqueName);
-
-    return uniqueName;
+  @Test
+  void nonUniqueNameExtensionDoesNotCollideWithExistingNames() {
+    assertEquals("Foo", context.uniqueName("Foo"));
+    assertEquals("Foo2", context.uniqueName("Foo2"));
+    assertEquals("Foo3", context.uniqueName("Foo"));
+    assertEquals("Foo23", context.uniqueName("Foo2"));
+    assertEquals("Foo4", context.uniqueName("Foo"));
+    assertEquals("Foo25", context.uniqueName("Foo2"));
   }
 }
