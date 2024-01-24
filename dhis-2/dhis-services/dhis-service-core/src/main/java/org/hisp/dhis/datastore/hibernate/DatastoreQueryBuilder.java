@@ -55,20 +55,22 @@ import org.hisp.dhis.system.util.SqlUtils;
  */
 @AllArgsConstructor
 public class DatastoreQueryBuilder {
+
+  private final String tableAndBaseFilterHql;
   private final DatastoreQuery query;
 
-  String createFetchHQL() {
+  public String createFetchHQL() {
     String fields = createFieldsHQL();
     String nonNullFilters = createHasNonNullFieldsFilters();
     String orders = createOrderHQL();
     String filters = createFilterHQL();
 
     return format(
-        "select key %s from DatastoreEntry where namespace = :namespace and (%s) and (%s) order by %s",
-        fields, nonNullFilters, filters, orders);
+        "select key %s %s and (%s) and (%s) order by %s",
+        fields, tableAndBaseFilterHql, nonNullFilters, filters, orders);
   }
 
-  void applyParameterValues(BiConsumer<String, Object> setParameter) {
+  public void applyParameterValues(BiConsumer<String, Object> setParameter) {
     int i = 0;
     for (Filter f : query.getFilters()) {
       if (!f.getOperator().isUnary() && !f.isNullValue()) {

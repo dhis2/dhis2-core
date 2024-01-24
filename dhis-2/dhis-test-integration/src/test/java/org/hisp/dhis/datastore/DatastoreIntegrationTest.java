@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -52,9 +53,12 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class DatastoreIntegrationTest extends IntegrationTestBase {
   @Autowired private DatastoreService datastore;
+  @Autowired private UserService _userService;
 
   @Override
   protected void setUpTest() throws Exception {
+    this.userService = _userService;
+    createAndInjectAdminUser();
     datastore.deleteNamespace("pets");
 
     addEntry("dog", toJson(false));
