@@ -327,7 +327,7 @@
         "idScheme": "UID",
         "identifier": "BFcipDERJnf"
       },
-      "status": "ACTIVE",
+      "status": "COMPLETED",
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "h4w96yEMlzO"
@@ -417,7 +417,7 @@
     },
     {
       "enrollment": "qxOSXoEZkOA",
-      "createdAtClient": "2017-01-26T13:48:13.363",
+      "createdAtClient": "2018-01-26T13:48:13.363",
       "trackedEntity": "woitxQbWYNq",
       "program": {
         "idScheme": "UID",
@@ -523,6 +523,7 @@
           "identifier": "xYerKDKCefk"
         }
       ],
+      "completedAt": "2020-01-28T00:00:00.000",
       "dataValues": [
         {
           "dataElement": {
@@ -1010,7 +1011,7 @@
     },
     {
       "event": "SbUJzkxKYAG",
-      "status": "COMPLETED",
+      "status": "ACTIVE",
       "program": {
         "idScheme": "UID",
         "identifier": "YlUmbgnKWkd"
@@ -1026,8 +1027,8 @@
       },
       "relationships": [],
       "occurredAt": "2019-01-28T00:00:00.000",
-      "scheduledAt": "2019-01-28T12:10:38.100",
-      "storedBy": "admin",
+      "scheduledAt": "2019-01-28T11:10:38.100",
+      "storedBy": "tracker",
       "followUp": true,
       "deleted": false,
       "attributeOptionCombo": {
