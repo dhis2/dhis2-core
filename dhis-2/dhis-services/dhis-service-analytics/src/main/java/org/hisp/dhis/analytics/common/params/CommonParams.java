@@ -227,7 +227,7 @@ public class CommonParams {
             parsedHeaders.stream(),
             orderParams.stream().map(AnalyticsSortingParams::getOrderBy))
         .flatMap(Function.identity())
-        .collect(Collectors.groupingBy(DimensionIdentifier::getKey))
+        .collect(Collectors.groupingBy(DimensionIdentifier::getKeyNoOffset))
         .values()
         .stream()
         .map(identifiers -> identifiers.get(0))
