@@ -32,7 +32,6 @@ import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
 
 import java.util.List;
 import java.util.Optional;
-
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
@@ -45,51 +44,45 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 /**
  * @author Lars Helge Overland
  */
-public class CategoryOptionComboResourceTable implements ResourceTable
-{
-    private static final String TABLE_NAME = "_dataelementcategoryoptioncombo";
+public class CategoryOptionComboResourceTable implements ResourceTable {
+  private static final String TABLE_NAME = "_dataelementcategoryoptioncombo";
 
-    private final Logged logged;
+  private final Logged logged;
 
-    public CategoryOptionComboResourceTable( Logged logged )
-    {
-        this.logged = logged;
-    }
+  public CategoryOptionComboResourceTable(Logged logged) {
+    this.logged = logged;
+  }
 
-    @Override
-    public Table getTable()
-    {
-        return new Table( toStaging( TABLE_NAME ), getColumns(), List.of(), getIndexes(), logged );
-    }
+  @Override
+  public Table getTable() {
+    return new Table(toStaging(TABLE_NAME), getColumns(), List.of(), getIndexes(), logged);
+  }
 
-    private List<Column> getColumns()
-    {
-        return List.of(
-            new Column( "dataelementid", DataType.BIGINT, Nullable.NOT_NULL ),
-            new Column( "dataelementuid", DataType.CHARACTER_11, Nullable.NOT_NULL ),
-            new Column( "categoryoptioncomboid", DataType.BIGINT, Nullable.NOT_NULL ),
-            new Column( "categoryoptioncombouid", DataType.CHARACTER_11, Nullable.NOT_NULL ) );
-    }
+  private List<Column> getColumns() {
+    return List.of(
+        new Column("dataelementid", DataType.BIGINT, Nullable.NOT_NULL),
+        new Column("dataelementuid", DataType.CHARACTER_11, Nullable.NOT_NULL),
+        new Column("categoryoptioncomboid", DataType.BIGINT, Nullable.NOT_NULL),
+        new Column("categoryoptioncombouid", DataType.CHARACTER_11, Nullable.NOT_NULL));
+  }
 
-    private List<Index> getIndexes()
-    {
-        return List.of(
-            new Index(
-                appendRandom( "in_dataelementcategoryoptioncombo" ),
-                List.of( "dataelementuid", "categoryoptioncombouid" ) ) );
-    }
+  private List<Index> getIndexes() {
+    return List.of(
+        new Index(
+            appendRandom("in_dataelementcategoryoptioncombo"),
+            List.of("dataelementuid", "categoryoptioncombouid")));
+  }
 
-    @Override
-    public ResourceTableType getTableType()
-    {
-        return ResourceTableType.DATA_ELEMENT_CATEGORY_OPTION_COMBO;
-    }
+  @Override
+  public ResourceTableType getTableType() {
+    return ResourceTableType.DATA_ELEMENT_CATEGORY_OPTION_COMBO;
+  }
 
-    @Override
-    public Optional<String> getPopulateTempTableStatement()
-    {
-        String sql = "insert into "
-            + toStaging( TABLE_NAME )
+  @Override
+  public Optional<String> getPopulateTempTableStatement() {
+    String sql =
+        "insert into "
+            + toStaging(TABLE_NAME)
             + " (dataelementid, dataelementuid, categoryoptioncomboid, categoryoptioncombouid) "
             + "select de.dataelementid as dataelementid, de.uid as dataelementuid, "
             + "coc.categoryoptioncomboid as categoryoptioncomboid, coc.uid as categoryoptioncombouid "
@@ -97,12 +90,11 @@ public class CategoryOptionComboResourceTable implements ResourceTable
             + "join categorycombos_optioncombos cc on de.categorycomboid = cc.categorycomboid "
             + "join categoryoptioncombo coc on cc.categoryoptioncomboid = coc.categoryoptioncomboid";
 
-        return Optional.of( sql );
-    }
+    return Optional.of(sql);
+  }
 
-    @Override
-    public Optional<List<Object[]>> getPopulateTempTableContent()
-    {
-        return Optional.empty();
-    }
+  @Override
+  public Optional<List<Object[]>> getPopulateTempTableContent() {
+    return Optional.empty();
+  }
 }

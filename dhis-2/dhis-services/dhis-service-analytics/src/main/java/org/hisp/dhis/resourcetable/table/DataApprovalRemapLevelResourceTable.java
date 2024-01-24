@@ -31,7 +31,6 @@ import static org.hisp.dhis.db.model.Table.toStaging;
 
 import java.util.List;
 import java.util.Optional;
-
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
@@ -41,64 +40,56 @@ import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
 /**
- * Remaps approval levels within a workflow for analytics tables approved data
- * visibility. This handles the case where a workflow does not include all data
- * approval levels. Where approval levels are skipped by the workflow, they are
- * remapped upwords so that higher-level users can see the approved data.
+ * Remaps approval levels within a workflow for analytics tables approved data visibility. This
+ * handles the case where a workflow does not include all data approval levels. Where approval
+ * levels are skipped by the workflow, they are remapped upwords so that higher-level users can see
+ * the approved data.
  *
- * <p>
- * For example, if a workfow includes approval levels 1,2,4, and 5, the approved
- * data will be tagged at levels 1,2,3, and 5. This allows level 2 users to see
- * data in this workflow that is approved at level 4.
+ * <p>For example, if a workfow includes approval levels 1,2,4, and 5, the approved data will be
+ * tagged at levels 1,2,3, and 5. This allows level 2 users to see data in this workflow that is
+ * approved at level 4.
  *
- * <p>
- * As another example, if a workflow includes levels 3,4,5, and 7, the approved
- * data will be tagged at levels 1,4,5, and 6. This allows level 1 users to see
- * level 3 approved data, and level 5 users to see level 7 approved data.
+ * <p>As another example, if a workflow includes levels 3,4,5, and 7, the approved data will be
+ * tagged at levels 1,4,5, and 6. This allows level 1 users to see level 3 approved data, and level
+ * 5 users to see level 7 approved data.
  *
  * @author Jim Grace
  */
-public class DataApprovalRemapLevelResourceTable implements ResourceTable
-{
-    private static final String TABLE_NAME = "_dataapprovalremaplevel";
+public class DataApprovalRemapLevelResourceTable implements ResourceTable {
+  private static final String TABLE_NAME = "_dataapprovalremaplevel";
 
-    private final Logged logged;
+  private final Logged logged;
 
-    public DataApprovalRemapLevelResourceTable( Logged logged )
-    {
-        this.logged = logged;
-    }
+  public DataApprovalRemapLevelResourceTable(Logged logged) {
+    this.logged = logged;
+  }
 
-    @Override
-    public Table getTable()
-    {
-        return new Table( toStaging( TABLE_NAME ), getColumns(), getPrimaryKey(), List.of(), logged );
-    }
+  @Override
+  public Table getTable() {
+    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), List.of(), logged);
+  }
 
-    private List<Column> getColumns()
-    {
-        return List.of(
-            new Column( "workflowid", DataType.BIGINT, Nullable.NOT_NULL ),
-            new Column( "dataapprovallevelid", DataType.BIGINT, Nullable.NOT_NULL ),
-            new Column( "level", DataType.INTEGER, Nullable.NOT_NULL ) );
-    }
+  private List<Column> getColumns() {
+    return List.of(
+        new Column("workflowid", DataType.BIGINT, Nullable.NOT_NULL),
+        new Column("dataapprovallevelid", DataType.BIGINT, Nullable.NOT_NULL),
+        new Column("level", DataType.INTEGER, Nullable.NOT_NULL));
+  }
 
-    private List<String> getPrimaryKey()
-    {
-        return List.of( "workflowid", "dataapprovallevelid" );
-    }
+  private List<String> getPrimaryKey() {
+    return List.of("workflowid", "dataapprovallevelid");
+  }
 
-    @Override
-    public ResourceTableType getTableType()
-    {
-        return ResourceTableType.DATA_APPROVAL_REMAP_LEVEL;
-    }
+  @Override
+  public ResourceTableType getTableType() {
+    return ResourceTableType.DATA_APPROVAL_REMAP_LEVEL;
+  }
 
-    @Override
-    public Optional<String> getPopulateTempTableStatement()
-    {
-        String sql = "insert into "
-            + toStaging( TABLE_NAME )
+  @Override
+  public Optional<String> getPopulateTempTableStatement() {
+    String sql =
+        "insert into "
+            + toStaging(TABLE_NAME)
             + " (workflowid,dataapprovallevelid,level) "
             + "select w.workflowid, w.dataapprovallevelid, "
             + "1 + coalesce((select max(l2.level) "
@@ -109,12 +100,11 @@ public class DataApprovalRemapLevelResourceTable implements ResourceTable
             + "from dataapprovalworkflowlevels w "
             + "join dataapprovallevel l on l.dataapprovallevelid = w.dataapprovallevelid";
 
-        return Optional.of( sql );
-    }
+    return Optional.of(sql);
+  }
 
-    @Override
-    public Optional<List<Object[]>> getPopulateTempTableContent()
-    {
-        return Optional.empty();
-    }
+  @Override
+  public Optional<List<Object[]>> getPopulateTempTableContent() {
+    return Optional.empty();
+  }
 }
