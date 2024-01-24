@@ -35,7 +35,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Primitives;
 import java.beans.PropertyDescriptor;
-import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
@@ -280,7 +279,8 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
     if (!params.isIncludeInput()) return JsonNode.of("null");
     try {
       FileResource fr = fileResourceService.getFileResource(fileResourceId);
-      if (fr == null || fr.getStorageStatus() != FileResourceStorageStatus.STORED) return JsonNode.NULL;
+      if (fr == null || fr.getStorageStatus() != FileResourceStorageStatus.STORED)
+        return JsonNode.NULL;
       byte[] bytes = fileResourceService.copyFileResourceContent(fr);
       return JsonNode.of(new String(bytes, StandardCharsets.UTF_8));
     } catch (Exception ex) {
