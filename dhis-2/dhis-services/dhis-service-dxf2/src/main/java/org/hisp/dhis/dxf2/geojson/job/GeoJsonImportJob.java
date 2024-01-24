@@ -32,6 +32,7 @@ import java.io.InputStream;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.dxf2.geojson.GeoJsonImportReport;
 import org.hisp.dhis.dxf2.geojson.GeoJsonService;
+import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
@@ -76,12 +77,8 @@ public class GeoJsonImportJob implements Job {
         return;
       }
       if (report.hasConflicts()) {
-        report
-            .getConflicts()
-            .forEach(
-                c ->
-                    progress.addError(
-                        c.getErrorCode(), c.getObject(), c.getGroupingKey(), c.getArgs()));
+        for (ImportConflict c : report.getConflicts())
+          progress.addError(c.getErrorCode(), c.getObject(), c.getGroupingKey(), c.getArgs());
       }
 
       ImportCount count = report.getImportCount();
