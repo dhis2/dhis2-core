@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.IOException;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -69,8 +70,8 @@ class LoginConfigControllerTest extends DhisControllerIntegrationTest {
     assertEquals("light_blue/light_blue.css", response.getString("style").string());
     assertEquals("<html>TEXT</html>", response.getString("loginPopup").string());
 
-    assertEquals(false, response.getBoolean("selfRegistrationNoRecaptcha").booleanValue());
-    assertEquals(false, response.getBoolean("selfRegistrationEnabled").booleanValue());
-    assertEquals(false, response.getBoolean("emailConfigured").booleanValue());
+    assertFalse(response.getBoolean("selfRegistrationNoRecaptcha").booleanValue());
+    assertFalse(response.getBoolean("selfRegistrationEnabled").booleanValue());
+    assertFalse(response.getBoolean("emailConfigured").booleanValue());
   }
 }
