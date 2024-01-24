@@ -55,7 +55,7 @@ class PostgreSqlBuilderTest {
     List<Index> indexes =
         List.of(
             new Index("in_immunization_data", List.of("data")),
-            new Index("in_immunization_peroid", List.of("period")));
+            new Index("in_immunization_period", List.of("period", "created")));
 
     return new Table("immunization", columns, primaryKey, indexes);
   }
@@ -152,11 +152,21 @@ class PostgreSqlBuilderTest {
   }
 
   @Test
-  void testCreateIndex() {
+  void testCreateIndexA() {
     Table table = getTableA();
 
     String expected = "create index \"in_immunization_data\" on \"immunization\" (\"data\");";
 
     assertEquals(expected, sqlBuilder.createIndex(table, table.getIndexes().get(0)));
+  }
+
+  @Test
+  void testCreateIndexB() {
+    Table table = getTableA();
+
+    String expected =
+        "create index \"in_immunization_period\" on \"immunization\" (\"period\", \"created\");";
+
+    assertEquals(expected, sqlBuilder.createIndex(table, table.getIndexes().get(1)));
   }
 }
