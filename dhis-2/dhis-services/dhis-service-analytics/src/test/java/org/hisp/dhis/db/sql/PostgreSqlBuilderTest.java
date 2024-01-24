@@ -141,7 +141,8 @@ class PostgreSqlBuilderTest {
     Table table = getTableA();
 
     String expected =
-        "select t.table_name from information_schema.tables t where t.table_schema = 'public' and t.table_name = 'immunization';";
+        "select t.table_name from information_schema.tables t "
+            + "where t.table_schema = 'public' and t.table_name = 'immunization';";
 
     assertEquals(expected, sqlBuilder.tableExists(table));
   }
