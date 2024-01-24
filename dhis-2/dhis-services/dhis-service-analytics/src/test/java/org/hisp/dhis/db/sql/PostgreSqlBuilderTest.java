@@ -135,4 +135,13 @@ class PostgreSqlBuilderTest {
 
     assertEquals(expected, sqlBuilder.dropTableIfExists("immunization"));
   }
+
+  @Test
+  void testCreateIndex() {
+    Table table = getTableA();
+
+    String expected = "create index \"in_immunization_data\" on \"immunization\" (\"data\");";
+
+    assertEquals(expected, sqlBuilder.createIndex(table, table.getIndexes().get(0)));
+  }
 }
