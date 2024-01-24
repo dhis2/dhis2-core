@@ -183,7 +183,6 @@ public final class ImportConflict {
         args == null
             ? List.of()
             : Stream.of(args).map(obj -> obj == null ? null : obj.toString()).toList();
-    ;
     this.objects = objects;
     this.property = property;
     if (index >= 0) {
