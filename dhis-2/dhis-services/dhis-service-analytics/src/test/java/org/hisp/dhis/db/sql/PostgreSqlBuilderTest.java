@@ -67,9 +67,7 @@ class PostgreSqlBuilderTest {
             new Column("facility_type", DataType.VARCHAR_255),
             new Column("bcg_doses", DataType.DOUBLE));
 
-    List<String> primaryKey = List.of("id");
-
-    return new Table("vaccination", columns, primaryKey, List.of(), Logged.UNLOGGED);
+    return new Table("vaccination", columns, List.of(), List.of(), Logged.UNLOGGED);
   }
 
   @Test
@@ -89,12 +87,13 @@ class PostgreSqlBuilderTest {
     assertEquals(expected, sqlBuilder.createTable(table));
   }
 
+  @Test
   void testCreateTableB() {
     Table table = getTableB();
 
     String expected =
         "create unlogged table \"vaccination\" (\"id\" integer not null, "
-            + "\"facility_type\" varchar(255) null, \"bcg_doses\" double precision null;";
+            + "\"facility_type\" varchar(255) null, \"bcg_doses\" double precision null);";
 
     assertEquals(expected, sqlBuilder.createTable(table));
   }
