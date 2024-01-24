@@ -30,7 +30,6 @@ package org.hisp.dhis.db.sql;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
-
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
@@ -38,56 +37,79 @@ import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.junit.jupiter.api.Test;
 
-class PostgreSqlBuilderTest
-{
-    private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+class PostgreSqlBuilderTest {
+  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
-    private Table getTableA()
-    {
-        List<Column> columnsA = List.of(
-            new Column( "id", DataType.BIGINT, Nullable.NOT_NULL ),
-            new Column( "data", DataType.CHARACTER_11, Nullable.NOT_NULL ),
-            new Column( "period", DataType.VARCHAR_50, Nullable.NOT_NULL ),
-            new Column( "created", DataType.TIMESTAMP ),
-            new Column( "value", DataType.DOUBLE ) );
+  private Table getTableA() {
+    List<Column> columnsA =
+        List.of(
+            new Column("id", DataType.BIGINT, Nullable.NOT_NULL),
+            new Column("data", DataType.CHARACTER_11, Nullable.NOT_NULL),
+            new Column("period", DataType.VARCHAR_50, Nullable.NOT_NULL),
+            new Column("created", DataType.TIMESTAMP),
+            new Column("value", DataType.DOUBLE));
 
-        List<String> primaryKeyA = List.of( "id" );
+    List<String> primaryKeyA = List.of("id");
 
-        List<Index> indexesA = List.of(
-            new Index( "in_immunization_data", List.of( "data" ) ),
-            new Index( "in_immunization_peroid", List.of( "period" ) ) );
+    List<Index> indexesA =
+        List.of(
+            new Index("in_immunization_data", List.of("data")),
+            new Index("in_immunization_peroid", List.of("period")));
 
-        return new Table( "immunization", columnsA, primaryKeyA, indexesA );
-    }
+    return new Table("immunization", columnsA, primaryKeyA, indexesA);
+  }
 
-    @Test
-    void testCreateTable()
-    {
-        Table table = getTableA();
+  @Test
+  void testCreateTable() {
+    Table table = getTableA();
 
-        String expected = "create table \"immunization\" (\"id\" bigint not null, \"data\" char(11) not null, "
+    String expected =
+        "create table \"immunization\" (\"id\" bigint not null, \"data\" char(11) not null, "
             + "\"period\" varchar(50) not null, \"created\" timestamp null, \"value\" double precision null, primary key (\"id\"));";
 
-        assertEquals( expected, sqlBuilder.createTable( table ) );
-    }
+    assertEquals(expected, sqlBuilder.createTable(table));
+  }
 
-    @Test
-    void testAnalyzeTable()
-    {
-        Table table = getTableA();
+  @Test
+  void testAnalyzeTable() {
+    Table table = getTableA();
 
-        String expected = "analyze \"immunization\";";
+    String expected = "analyze \"immunization\";";
 
-        assertEquals( expected, sqlBuilder.analyzeTable( table ) );
-    }
+    assertEquals(expected, sqlBuilder.analyzeTable(table));
+  }
 
-    @Test
-    void testVacuumTable()
-    {
-        Table table = getTableA();
+  @Test
+  void testVacuumTable() {
+    Table table = getTableA();
 
-        String expected = "vacuum \"immunization\";";
+    String expected = "vacuum \"immunization\";";
 
-        assertEquals( expected, sqlBuilder.vacuumTable( table ) );
-    }
+    assertEquals(expected, sqlBuilder.vacuumTable(table));
+  }
+
+  @Test
+  void testRenameTable() {
+    Table table = getTableA();
+
+    String expected = "alter table \"immunization\" rename to \"vaccination\";";
+
+    assertEquals(expected, sqlBuilder.renameTable(table, "vaccination"));
+  }
+
+  @Test
+  void testDropTableIfExists() {
+    Table table = getTableA();
+
+    String expected = "drop table if exists \"immunization\";";
+
+    assertEquals(expected, sqlBuilder.dropTableIfExists(table));
+  }
+
+  @Test
+  void testDropTableIfExistsString() {
+    String expected = "drop table if exists \"immunization\";";
+
+    assertEquals(expected, sqlBuilder.dropTableIfExists("immunization"));
+  }
 }
