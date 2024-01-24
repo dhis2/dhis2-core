@@ -30,7 +30,7 @@ package org.hisp.dhis.db.model;
 import java.util.List;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.RegExUtils;
 
 /**
  * Represents a database table.
@@ -42,7 +42,7 @@ import org.apache.commons.lang3.StringUtils;
 public class Table {
   private static final String STAGING_TABLE_SUFFIX = "_staging";
 
-  private static final String STAGING_TABLE_SUFFIX_REGEX = "\\_staging$";
+  private static final String STAGING_TABLE_SUFFIX_RGX = "\\_staging$";
 
   /** Table name. Required. */
   private final String name;
@@ -97,6 +97,6 @@ public class Table {
    * @return a main table name.
    */
   public static String fromStaging(String tableName) {
-    return tableName.replaceAll(STAGING_TABLE_SUFFIX_REGEX, StringUtils.EMPTY);
+    return RegExUtils.removePattern(tableName, STAGING_TABLE_SUFFIX_RGX);
   }
 }
