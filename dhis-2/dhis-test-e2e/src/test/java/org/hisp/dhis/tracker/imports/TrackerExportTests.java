@@ -99,8 +99,7 @@ public class TrackerExportTests extends TrackerApiTest {
 
     TrackerApiResponse response =
         trackerImportExportActions.postAndGetJobReport(
-            new File(
-                "src/test/resources/tracker/importer/trackedEntities/trackedEntitysWithEnrollmentsAndEvents.json"));
+            new File("src/test/resources/tracker/importer/teis/teisWithEnrollmentsAndEvents.json"));
 
     trackedEntityA = response.validateSuccessfulImport().extractImportedTeis().get(0);
     trackedEntityB = response.validateSuccessfulImport().extractImportedTeis().get(1);
@@ -125,7 +124,7 @@ public class TrackerExportTests extends TrackerApiTest {
         new FileReaderUtils()
             .read(
                 new File(
-                    "src/test/resources/tracker/importer/trackedEntities/trackedEntityWithEnrollmentAndEventsNested.json"))
+                    "src/test/resources/tracker/importer/teis/teiWithEnrollmentAndEventsNested.json"))
             .get(JsonObject.class);
   }
 

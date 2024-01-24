@@ -243,8 +243,8 @@ public class RelationshipsTests extends TrackerApiTest {
   @ParameterizedTest
   @ValueSource(
       strings = {
-        "src/test/resources/tracker/importer/trackedEntities/trackedEntitysAndRelationship.json",
-        "src/test/resources/tracker/importer/trackedEntities/trackedEntitysWithRelationship.json"
+        "src/test/resources/tracker/importer/teis/teisAndRelationship.json",
+        "src/test/resources/tracker/importer/teis/teisWithRelationship.json"
       })
   public void shouldImportObjectsWithRelationship(String file) throws Exception {
     JsonObject jsonObject = new FileReaderUtils().read(new File(file)).get(JsonObject.class);
@@ -368,8 +368,7 @@ public class RelationshipsTests extends TrackerApiTest {
     TrackerApiResponse response =
         trackerImportExportActions
             .postAndGetJobReport(
-                new File(
-                    "src/test/resources/tracker/importer/trackedEntities/trackedEntitysAndRelationship.json"))
+                new File("src/test/resources/tracker/importer/teis/teisAndRelationship.json"))
             .validateSuccessfulImport();
 
     List<String> trackedEntities = response.extractImportedTeis();
