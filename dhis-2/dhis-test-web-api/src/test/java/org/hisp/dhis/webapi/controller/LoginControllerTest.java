@@ -25,37 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common.hibernate;
+package org.hisp.dhis.webapi.controller;
 
-import java.util.Date;
-import javax.annotation.Nonnull;
-import javax.persistence.EntityManager;
-import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
-import org.hisp.dhis.common.SoftDeletableObject;
-import org.hisp.dhis.security.acl.AclService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.io.IOException;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.junit.jupiter.api.Test;
 
 /**
- * @author Enrico Colasante
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class SoftDeleteHibernateObjectStore<T extends SoftDeletableObject>
-    extends HibernateIdentifiableObjectStore<T> {
-  public SoftDeleteHibernateObjectStore(
-      EntityManager entityManager,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      Class<T> clazz,
-      AclService aclService,
-      boolean cacheable) {
-    super(entityManager, jdbcTemplate, publisher, clazz, aclService, cacheable);
-  }
+class LoginControllerTest extends DhisControllerIntegrationTest {
 
-  @Override
-  public void delete(@Nonnull SoftDeletableObject object) {
-    publisher.publishEvent(new ObjectDeletionRequestedEvent(object));
-    object.setDeleted(true);
-    object.setLastUpdated(new Date());
-    getSession().update(object);
+  private static final String iconKey = "iconKey";
+
+  @Test
+  void shouldGetLoginConfig() throws IOException {
+    JsonObject response = GET("/loginConfig").content();
+    assertEquals("DHIS 2", response.getString("applicationTitle").string());
+    assertEquals("en", response.getString("uiLocale").string());
   }
 }
