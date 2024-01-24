@@ -497,8 +497,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
       throw new IllegalStateException("Analytics table dimensions cannot be empty");
     }
 
-    List<String> columnNames =
-        columns.stream().map(AnalyticsTableColumn::getName).collect(Collectors.toList());
+    List<String> columnNames = columns.stream().map(AnalyticsTableColumn::getName).toList();
 
     Set<String> duplicates = ListUtils.getDuplicates(columnNames);
 
