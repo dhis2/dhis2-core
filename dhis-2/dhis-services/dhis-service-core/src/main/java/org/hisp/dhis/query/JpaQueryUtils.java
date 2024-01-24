@@ -397,13 +397,15 @@ public class JpaQueryUtils {
                 + "( %1$s, '%4$s', '%3$s') = true )");
   }
 
-  public static String generateHqlQueryForSharingCheck(String tableName, User user, String access) {
+  public static String generateHqlQueryForSharingCheck(
+      String tableAlias, User user, String access) {
     if (user.isSuper() || user.isAuthorized("Test_skipSharingCheck")) {
       return "1=1";
     }
 
     return "("
-        + sqlToHql(tableName, generateSQlQueryForSharingCheck(tableName + ".sharing", user, access))
+        + sqlToHql(
+            tableAlias, generateSQlQueryForSharingCheck(tableAlias + ".sharing", user, access))
         + ")";
   }
 
