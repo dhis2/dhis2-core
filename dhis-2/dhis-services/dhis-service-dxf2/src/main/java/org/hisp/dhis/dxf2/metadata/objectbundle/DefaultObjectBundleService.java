@@ -36,7 +36,6 @@ import static org.hisp.dhis.eventhook.EventUtils.metadataUpdate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
 import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,10 +47,14 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
 import org.hisp.dhis.eventhook.EventHookPublisher;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.preheat.Preheat;
@@ -62,6 +65,7 @@ import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.schema.MetadataMergeParams;
 import org.hisp.dhis.schema.MetadataMergeService;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.system.deletion.DeletionManager;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -86,6 +90,7 @@ public class DefaultObjectBundleService implements ObjectBundleService {
   private final MetadataMergeService metadataMergeService;
   private final ObjectBundleHooks objectBundleHooks;
   private final EventHookPublisher eventHookPublisher;
+  private final DeletionManager deletionManager;
 
   @Override
   @Transactional(readOnly = true)
@@ -365,7 +370,6 @@ public class DefaultObjectBundleService implements ObjectBundleService {
         "Deleting %d %s object(s) as %s"
             .formatted(objects.size(), klass.getSimpleName(), bundle.getUsername());
     progress.startingStage(message, persistedObjects.size());
-    AtomicReference<DeleteNotAllowedException> lastEx = new AtomicReference<>();
     progress.runStage(
         persistedObjects,
         IdentifiableObject::getName,
@@ -376,13 +380,15 @@ public class DefaultObjectBundleService implements ObjectBundleService {
 
           hooks.forEach(hook -> hook.preDelete(object, bundle));
           try {
-            manager.delete(object);
+            deletionManager.onDeletionWithoutRollBack(new ObjectDeletionRequestedEvent(object));
+            session.delete(object);
+            bundle.getPreheat().remove(bundle.getPreheatIdentifier(), object);
           } catch (DeleteNotAllowedException ex) {
-            lastEx.set(ex);
-            throw ex;
+            objectReport.addErrorReport(
+                new ErrorReport(klass, new ErrorMessage(ex.getMessage(), ErrorCode.E4030, null)));
+            typeReport.getStats().incIgnored();
+            typeReport.getStats().decDeleted();
           }
-
-          bundle.getPreheat().remove(bundle.getPreheatIdentifier(), object);
 
           if (log.isDebugEnabled()) {
             String msg =
@@ -397,7 +403,6 @@ public class DefaultObjectBundleService implements ObjectBundleService {
             session.flush();
           }
         });
-    if (lastEx.get() != null) throw lastEx.get();
 
     progress.startingStage("Publish deletion event for %s objects".formatted(objects.size()));
     progress.runStage(
