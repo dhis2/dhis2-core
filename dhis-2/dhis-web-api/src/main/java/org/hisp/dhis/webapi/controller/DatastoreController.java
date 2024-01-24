@@ -87,13 +87,29 @@ public class DatastoreController {
     return service.getNamespaces();
   }
 
-  /** Returns a list of strings representing keys in the given namespace. */
-  @GetMapping(value = "/{namespace}", produces = APPLICATION_JSON_VALUE)
+  /**
+   * The path {@code /{namespace}} is clashing with {@link #getEntries(String, String, boolean,
+   * HttpServletRequest, HttpServletResponse)} therefore a collision free alternative was added
+   * {@code /{namespace}/keys}.
+   */
+  @GetMapping(
+      value = {"/{namespace}/keys"},
+      produces = APPLICATION_JSON_VALUE)
   public @ResponseBody List<String> getKeysInNamespace(
       @RequestParam(required = false) Date lastUpdated,
       @PathVariable String namespace,
       HttpServletResponse response)
-      throws Exception {
+      throws NotFoundException {
+    return getKeysInNamespaceLegacy(lastUpdated, namespace, response);
+  }
+
+  /** Returns a list of strings representing keys in the given namespace. */
+  @GetMapping(value = "/{namespace}", produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody List<String> getKeysInNamespaceLegacy(
+      @RequestParam(required = false) Date lastUpdated,
+      @PathVariable String namespace,
+      HttpServletResponse response)
+      throws NotFoundException {
     setNoStore(response);
 
     List<String> keys = service.getKeysInNamespace(namespace, lastUpdated);
