@@ -29,6 +29,7 @@ package org.hisp.dhis.db.sql;
 
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
+import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
 
 import java.util.stream.Collectors;
 import org.hisp.dhis.db.model.Column;
@@ -204,12 +205,8 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   @Override
   public String tableExists(Table table) {
     return String.format(
-        """
-            select t.table_name from information_schema.tables t
-            where t.table_schema = 'public'
-            and t.table_name = '%s';
-                  """,
-        quote(table.getName()));
+        "select t.table_name from information_schema.tables t where t.table_schema = 'public' and t.table_name = %s;",
+        singleQuote(table.getName()));
   }
 
   @Override
