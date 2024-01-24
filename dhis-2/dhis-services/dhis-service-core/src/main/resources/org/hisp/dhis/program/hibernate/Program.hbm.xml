@@ -29,17 +29,17 @@
 
         <property name="incidentDateLabel" column="incidentdatelabel" type="text"/>
 
-        <property name="enrollmentLabel" column="enrollmentLabel" type="text"/>
+        <property name="enrollmentLabel" column="enrollmentlabel" type="text"/>
 
-        <property name="followUpLabel" column="followUpLabel" type="text"/>
+        <property name="followUpLabel" column="followuplabel" type="text"/>
 
-        <property name="orgUnitLabel" column="orgUnitLabel" type="text"/>
+        <property name="orgUnitLabel" column="orgunitlabel" type="text"/>
 
-        <property name="relationshipLabel" column="relationshipLabel" type="text"/>
+        <property name="relationshipLabel" column="relationshiplabel" type="text"/>
 
-        <property name="noteLabel" column="noteLabel" type="text"/>
+        <property name="noteLabel" column="notelabel" type="text"/>
 
-        <property name="trackedEntityAttributeLabel" column="trackedEntityAttributeLabel" type="text"/>
+        <property name="trackedEntityAttributeLabel" column="trackedentityattributelabel" type="text"/>
 
         <set name="programStages" order-by="sortOrder">
             <key column="programid"/>

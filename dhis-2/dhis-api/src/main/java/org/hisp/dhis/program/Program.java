@@ -939,6 +939,12 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
     copy.setTrackedEntityType(original.getTrackedEntityType());
     copy.setUseFirstStageDuringRegistration(original.getUseFirstStageDuringRegistration());
     copy.setUserRoles(copyOf(original.getUserRoles()));
+    copy.setEnrollmentLabel(original.getEnrollmentLabel());
+    copy.setNoteLabel(original.getNoteLabel());
+    copy.setFollowUpLabel(original.getFollowUpLabel());
+    copy.setOrgUnitLabel(original.getOrgUnitLabel());
+    copy.setTrackedEntityAttributeLabel(original.getTrackedEntityAttributeLabel());
+    copy.setRelationshipLabel(original.getRelationshipLabel());
   }
 
   public record ProgramStageTuple(ProgramStage original, ProgramStage copy) {}

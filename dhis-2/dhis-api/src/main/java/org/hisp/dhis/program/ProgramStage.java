@@ -599,5 +599,7 @@ public class ProgramStage extends BaseNameableObject implements MetadataObject {
     copy.setStandardInterval(original.getStandardInterval());
     copy.setStyle(original.getStyle());
     copy.setValidationStrategy(original.getValidationStrategy());
+    copy.setEventLabel(original.getEventLabel());
+    copy.setProgramStageLabel(original.getProgramStageLabel());
   }
 }
