@@ -35,6 +35,12 @@ import org.hisp.dhis.db.model.DataType;
  * @author Lars Helge Overland
  */
 public abstract class AbstractSqlBuilder implements SqlBuilder {
+  /**
+   * Returns the database name of the given data type.
+   *
+   * @param dataType the {@link DataType}.
+   * @return the data type name.
+   */
   protected String getDataTypeName(DataType dataType) {
     switch (dataType) {
       case SMALLINT:
