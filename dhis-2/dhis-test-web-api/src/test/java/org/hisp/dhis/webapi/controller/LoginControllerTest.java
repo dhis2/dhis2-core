@@ -31,8 +31,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -41,10 +44,20 @@ class LoginControllerTest extends DhisControllerIntegrationTest {
 
   private static final String iconKey = "iconKey";
 
+  @Autowired SystemSettingManager systemSettingManager;
+
   @Test
   void shouldGetLoginConfig() throws IOException {
+    systemSettingManager.saveSystemSetting(SettingKey.LOGIN_POPUP, "<html>TEXT</html>");
+
+    String systemSetting =
+        systemSettingManager.getSystemSetting(SettingKey.LOGIN_POPUP, String.class);
+
+    assertEquals("<html>TEXT</html>", systemSetting);
+
     JsonObject response = GET("/loginConfig").content();
     assertEquals("DHIS 2", response.getString("applicationTitle").string());
     assertEquals("en", response.getString("uiLocale").string());
+    assertEquals("<html>TEXT</html>", response.getString("loginPopup").string());
   }
 }
