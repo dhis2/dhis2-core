@@ -441,22 +441,15 @@ public class AccountController {
   public ResponseEntity<Map<String, String>> updatePassword(
       @RequestParam String oldPassword,
       @RequestParam String password,
-      @CurrentUser User user,
+      @RequestParam String username,
       HttpServletRequest request) {
     Map<String, String> result = new HashMap<>();
-
-    String username = null;
-    if (user != null) {
-      username = user.getUsername();
-    }
 
     if (username == null) {
       username = (String) request.getSession().getAttribute("username");
     }
 
-    if (user == null) {
-      user = userService.getUserByUsername(username);
-    }
+    User user = userService.getUserByUsername(username);
 
     if (username == null) {
       result.put("status", "NON_EXPIRED");

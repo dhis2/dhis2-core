@@ -88,7 +88,8 @@ class AccountControllerTest extends DhisControllerConvenienceTest {
         "status",
         "NON_EXPIRED",
         "Account is not expired, redirecting to login.",
-        POST("/account/password?oldPassword=xyz&password=abc").content(HttpStatus.BAD_REQUEST));
+        POST("/account/password?username=admin&oldPassword=xyz&password=abc")
+            .content(HttpStatus.BAD_REQUEST));
   }
 
   @Test
