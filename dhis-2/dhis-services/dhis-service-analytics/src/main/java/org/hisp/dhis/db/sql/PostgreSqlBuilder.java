@@ -39,6 +39,11 @@ import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.model.constraint.Unique;
 
+/**
+ * Implementation of {@link SqlBuilder} for PostgreSQL.
+ *
+ * @author Lars Helge Overland
+ */
 public class PostgreSqlBuilder extends AbstractSqlBuilder {
   // Data types
 

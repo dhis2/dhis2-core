@@ -30,6 +30,11 @@ package org.hisp.dhis.db.sql;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 
+/**
+ * Interface which provides methods for generation of SQL statements and queries.
+ *
+ * @author Lars Helge Overland
+ */
 public interface SqlBuilder {
   // Data types
 

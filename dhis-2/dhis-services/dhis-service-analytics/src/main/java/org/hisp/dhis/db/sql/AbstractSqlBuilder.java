@@ -29,6 +29,11 @@ package org.hisp.dhis.db.sql;
 
 import org.hisp.dhis.db.model.DataType;
 
+/**
+ * Abstract SQL builder class.
+ *
+ * @author Lars Helge Overland
+ */
 public abstract class AbstractSqlBuilder implements SqlBuilder {
   protected String getDataTypeName(DataType dataType) {
     switch (dataType) {
