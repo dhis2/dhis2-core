@@ -55,9 +55,8 @@ public interface ResourceTableService {
   void generateOrganisationUnitGroupSetTable();
 
   /**
-   * Generates a resource table for all category option combos.
-   *
-   * <p>Depends on the category option combo names table.
+   * Generates a resource table for all category option combos. Depends on the category option combo
+   * names table.
    */
   void generateCategoryTable();
 

@@ -40,7 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.analytics.AnalyticsTableExportSettings;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
@@ -286,9 +286,10 @@ public class DefaultResourceTableService implements ResourceTableService {
             sqlViewService.createViewTable(view);
           } catch (IllegalQueryException ex) {
             log.warn(
-                String.format(
-                    "Ignoring SQL view which failed validation: %s, %s, message: %s",
-                    view.getUid(), view.getName(), ex.getMessage()));
+                "Ignoring SQL view which failed validation: '{}', '{}', message: '{}'",
+                view.getUid(),
+                view.getName(),
+                ex.getMessage());
           }
         });
   }

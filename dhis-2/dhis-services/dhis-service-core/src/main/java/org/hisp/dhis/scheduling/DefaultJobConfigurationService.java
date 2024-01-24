@@ -35,7 +35,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Primitives;
 import java.beans.PropertyDescriptor;
-import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
@@ -63,7 +62,9 @@ import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.fileresource.FileResourceStorageStatus;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -277,11 +278,12 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   private JsonNode getJobInput(JobRunErrorsParams params, String fileResourceId) {
     if (!params.isIncludeInput()) return JsonNode.of("null");
     try {
-      byte[] bytes =
-          fileResourceService.copyFileResourceContent(
-              fileResourceService.getFileResource(fileResourceId));
+      FileResource fr = fileResourceService.getFileResource(fileResourceId);
+      if (fr == null || fr.getStorageStatus() != FileResourceStorageStatus.STORED)
+        return JsonNode.NULL;
+      byte[] bytes = fileResourceService.copyFileResourceContent(fr);
       return JsonNode.of(new String(bytes, StandardCharsets.UTF_8));
-    } catch (IOException ex) {
+    } catch (Exception ex) {
       log.warn("Could not copy file content to error info for file: " + fileResourceId, ex);
       return JsonNode.of("\"" + ex.getMessage() + "\"");
     }
