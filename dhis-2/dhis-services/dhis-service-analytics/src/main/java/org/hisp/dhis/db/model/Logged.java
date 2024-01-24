@@ -29,11 +29,10 @@ package org.hisp.dhis.db.model;
 
 /**
  * Represents the table logged parameter.
- * 
+ *
  * @author Lars Helge Overland
  */
-public enum Logged
-{
-    LOGGED,
-    UNLOGGED
+public enum Logged {
+  LOGGED,
+  UNLOGGED
 }

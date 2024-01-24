@@ -148,14 +148,14 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   public String createTable(Table table) {
     String unlogged = table.getLogged() == Logged.UNLOGGED ? "unlogged " : "";
 
-    String sql = "create " + unlogged + "table " + quote(table.getName()) + " ";
+    String sql = "create " + unlogged + "table " + quote(table.getName()) + " (";
 
     // Columns
 
     for (Column column : table.getColumns()) {
       String dataType = getDataTypeName(column.getDataType());
       String nullable = column.getNullable() == Nullable.NOT_NULL ? "not null" : "null";
-      sql += quote(column.getName()) + " " + dataType + " " + nullable + ",";
+      sql += quote(column.getName()) + " " + dataType + " " + nullable + ", ";
     }
 
     // Primary key
@@ -164,7 +164,7 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
       sql += "primary key (";
 
       for (String columnName : table.getPrimaryKey()) {
-        sql += quote(columnName) + ",";
+        sql += quote(columnName) + ", ";
       }
 
       sql = removeLastComma(sql) + "),";

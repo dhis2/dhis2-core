@@ -28,11 +28,9 @@
 package org.hisp.dhis.db.model;
 
 import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Represents a database table.
@@ -41,69 +39,64 @@ import lombok.RequiredArgsConstructor;
  */
 @Getter
 @RequiredArgsConstructor
-public class Table
-{
-    private static final String STAGING_TABLE_SUFFIX = "_staging";
+public class Table {
+  private static final String STAGING_TABLE_SUFFIX = "_staging";
 
-    private static final String STAGING_TABLE_SUFFIX_REGEX = "\\_staging$";
+  private static final String STAGING_TABLE_SUFFIX_REGEX = "\\_staging$";
 
-    /** Table name. Required. */
-    private final String name;
+  /** Table name. Required. */
+  private final String name;
 
-    /** Table columns. At least one column required. */
-    private final List<Column> columns;
+  /** Table columns. At least one column required. */
+  private final List<Column> columns;
 
-    /** Table primary key column name(s). Optional. */
-    private final List<String> primaryKey;
+  /** Table primary key column name(s). Optional. */
+  private final List<String> primaryKey;
 
-    /** Table indexes. Optional. */
-    private final List<Index> indexes;
+  /** Table indexes. Optional. */
+  private final List<Index> indexes;
 
-    /** Whether table is logged or unlogged. PostgreSQL-only feature. */
-    private final Logged logged;
+  /** Whether table is logged or unlogged. PostgreSQL-only feature. */
+  private final Logged logged;
 
-    /**
-     * Constructor.
-     * 
-     * @param name the table name.
-     * @param columns the list of table {@link Column}.
-     * @param primaryKey the table primary key.
-     * @param indexes the list of table {@link Index}.
-     */
-    public Table( String name, List<Column> columns, List<String> primaryKey, List<Index> indexes )
-    {
-        this.name = name;
-        this.columns = columns;
-        this.primaryKey = primaryKey;
-        this.indexes = indexes;
-        this.logged = Logged.LOGGED;
-    }
+  /**
+   * Constructor.
+   *
+   * @param name the table name.
+   * @param columns the list of table {@link Column}.
+   * @param primaryKey the table primary key.
+   * @param indexes the list of table {@link Index}.
+   */
+  public Table(String name, List<Column> columns, List<String> primaryKey, List<Index> indexes) {
+    this.name = name;
+    this.columns = columns;
+    this.primaryKey = primaryKey;
+    this.indexes = indexes;
+    this.logged = Logged.LOGGED;
+  }
 
-    /** Whether the table has a primary key. */
-    public boolean hasPrimaryKey()
-    {
-        return !primaryKey.isEmpty();
-    }
+  /** Whether the table has a primary key. */
+  public boolean hasPrimaryKey() {
+    return !primaryKey.isEmpty();
+  }
 
-    /**
-     * Converts the given table name to a staging table name.
-     *
-     * @param tableName the table name.
-     * @return the staging table name.
-     */
-    public static String toStaging( String tableName )
-    {
-        return tableName + STAGING_TABLE_SUFFIX;
-    }
+  /**
+   * Converts the given table name to a staging table name.
+   *
+   * @param tableName the table name.
+   * @return the staging table name.
+   */
+  public static String toStaging(String tableName) {
+    return tableName + STAGING_TABLE_SUFFIX;
+  }
 
-    /**
-     * Converts the given staging table name to a main table name.
-     *
-     * @param tableName the staging table name.
-     * @return a main table name.
-     */
-    public static String fromStaging( String tableName )
-    {
-        return tableName.replaceAll( STAGING_TABLE_SUFFIX_REGEX, StringUtils.EMPTY );
-    }
+  /**
+   * Converts the given staging table name to a main table name.
+   *
+   * @param tableName the staging table name.
+   * @return a main table name.
+   */
+  public static String fromStaging(String tableName) {
+    return tableName.replaceAll(STAGING_TABLE_SUFFIX_REGEX, StringUtils.EMPTY);
+  }
 }

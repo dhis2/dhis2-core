@@ -29,12 +29,11 @@ package org.hisp.dhis.db.model;
 
 /**
  * Enumeration of index types.
- * 
+ *
  * @author Lars Helge Overland
  */
-public enum IndexType
-{
-    BTREE,
-    GIN,
-    GIST
+public enum IndexType {
+  BTREE,
+  GIN,
+  GIST
 }
