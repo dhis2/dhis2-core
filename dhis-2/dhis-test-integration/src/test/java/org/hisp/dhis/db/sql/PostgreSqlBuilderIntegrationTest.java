@@ -67,7 +67,7 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
   }
 
   @Test
-  void testCreateDropTable() {
+  void testCreateAndDropTable() {
     Table table = getTableA();
 
     execute(sqlBuilder.createTable(table));
@@ -84,7 +84,7 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
   }
 
   @Test
-  void testCreateIndexes() {
+  void testCreateIndex() {
     Table table = getTableA();
 
     execute(sqlBuilder.createTable(table));
