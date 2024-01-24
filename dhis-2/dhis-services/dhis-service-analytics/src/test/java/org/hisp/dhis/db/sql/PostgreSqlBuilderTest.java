@@ -82,7 +82,8 @@ class PostgreSqlBuilderTest {
 
     String expected =
         "create table \"immunization\" (\"id\" bigint not null, \"data\" char(11) not null, "
-            + "\"period\" varchar(50) not null, \"created\" timestamp null, \"value\" double precision null, primary key (\"id\"));";
+            + "\"period\" varchar(50) not null, \"created\" timestamp null, "
+            + "\"value\" double precision null, primary key (\"id\"));";
 
     assertEquals(expected, sqlBuilder.createTable(table));
   }
