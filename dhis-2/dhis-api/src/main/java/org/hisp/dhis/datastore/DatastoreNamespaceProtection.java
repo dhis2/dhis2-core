@@ -95,10 +95,6 @@ public class DatastoreNamespaceProtection {
     return namespace;
   }
 
-  /**
-   * @return true when the {@link org.hisp.dhis.user.sharing.Sharing} of a {@link DatastoreEntry}
-   *     should be checked in addition to authority based checks, else false.
-   */
   public Set<String> getAuthorities() {
     return authorities;
   }
