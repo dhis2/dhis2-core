@@ -33,6 +33,7 @@ import java.util.List;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
+import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.junit.jupiter.api.Test;
@@ -41,7 +42,7 @@ class PostgreSqlBuilderTest {
   private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
   private Table getTableA() {
-    List<Column> columnsA =
+    List<Column> columns =
         List.of(
             new Column("id", DataType.BIGINT, Nullable.NOT_NULL),
             new Column("data", DataType.CHARACTER_11, Nullable.NOT_NULL),
@@ -49,23 +50,45 @@ class PostgreSqlBuilderTest {
             new Column("created", DataType.TIMESTAMP),
             new Column("value", DataType.DOUBLE));
 
-    List<String> primaryKeyA = List.of("id");
+    List<String> primaryKey = List.of("id");
 
-    List<Index> indexesA =
+    List<Index> indexes =
         List.of(
             new Index("in_immunization_data", List.of("data")),
             new Index("in_immunization_peroid", List.of("period")));
 
-    return new Table("immunization", columnsA, primaryKeyA, indexesA);
+    return new Table("immunization", columns, primaryKey, indexes);
+  }
+
+  private Table getTableB() {
+    List<Column> columns =
+        List.of(
+            new Column("id", DataType.INTEGER, Nullable.NOT_NULL),
+            new Column("facility_type", DataType.VARCHAR_255),
+            new Column("bcg_doses", DataType.DOUBLE));
+
+    List<String> primaryKey = List.of("id");
+
+    return new Table("vaccination", columns, primaryKey, List.of(), Logged.UNLOGGED);
   }
 
   @Test
-  void testCreateTable() {
+  void testCreateTableA() {
     Table table = getTableA();
 
     String expected =
         "create table \"immunization\" (\"id\" bigint not null, \"data\" char(11) not null, "
             + "\"period\" varchar(50) not null, \"created\" timestamp null, \"value\" double precision null, primary key (\"id\"));";
+
+    assertEquals(expected, sqlBuilder.createTable(table));
+  }
+
+  void testCreateTableB() {
+    Table table = getTableB();
+
+    String expected =
+        "create unlogged table \"vaccination\" (\"id\" integer not null, "
+            + "\"facility_type\" varchar(255) null, \"bcg_doses\" double precision null;";
 
     assertEquals(expected, sqlBuilder.createTable(table));
   }
