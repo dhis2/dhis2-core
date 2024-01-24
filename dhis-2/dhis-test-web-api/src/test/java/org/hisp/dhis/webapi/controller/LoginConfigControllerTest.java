@@ -46,7 +46,7 @@ class LoginConfigControllerTest extends DhisControllerIntegrationTest {
   @Autowired SystemSettingManager systemSettingManager;
 
   @Test
-  void shouldGetLoginConfig() throws IOException {
+  void shouldGetLoginConfig() {
     systemSettingManager.saveSystemSetting(SettingKey.LOGIN_POPUP, "<html>TEXT</html>");
     systemSettingManager.saveSystemSetting(SettingKey.APPLICATION_FOOTER, "APPLICATION_FOOTER");
     systemSettingManager.saveSystemSetting(SettingKey.APPLICATION_INTRO, "APPLICATION_INTRO");
