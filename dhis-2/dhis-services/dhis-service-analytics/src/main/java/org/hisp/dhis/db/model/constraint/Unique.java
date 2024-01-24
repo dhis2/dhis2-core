@@ -27,6 +27,11 @@
  */
 package org.hisp.dhis.db.model.constraint;
 
+/**
+ * Represents a database uniqueness constraint.
+ *
+ * @author Lars Helge Overland
+ */
 public enum Unique {
   UNIQUE,
   NON_UNIQUE;

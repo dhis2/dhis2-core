@@ -27,6 +27,11 @@
  */
 package org.hisp.dhis.db.model.constraint;
 
+/**
+ * Represents a database not null constraint.
+ *
+ * @author Lars Helge Overland
+ */
 public enum Nullable {
   NULL,
   NOT_NULL
