@@ -85,11 +85,11 @@ public class TrackerExportTests extends TrackerApiTest {
 
   private static String event;
 
-  private static String trackedEntityToTeiRelationship;
+  private static String trackedEntityToTrackedEntityRelationship;
 
-  private static String enrollmentToTeiRelationship;
+  private static String enrollmentToTrackedEntityRelationship;
 
-  private static String eventToTeiRelationship;
+  private static String eventToTrackedEntityRelationship;
 
   private static JsonObject trackedEntityWithEnrollmentAndEventsTemplate;
 
@@ -108,16 +108,16 @@ public class TrackerExportTests extends TrackerApiTest {
 
     event = response.extractImportedEvents().get(0);
 
-    trackedEntityToTeiRelationship =
+    trackedEntityToTrackedEntityRelationship =
         importRelationshipBetweenTeis(trackedEntityA, trackedEntityB)
             .extractImportedRelationships()
             .get(0);
-    enrollmentToTeiRelationship =
+    enrollmentToTrackedEntityRelationship =
         importRelationshipEnrollmentToTei(enrollment, trackedEntityB)
             .extractImportedRelationships()
             .get(0);
 
-    eventToTeiRelationship =
+    eventToTrackedEntityRelationship =
         importRelationshipEventToTei(event, trackedEntityB).extractImportedRelationships().get(0);
 
     trackedEntityWithEnrollmentAndEventsTemplate =
@@ -172,11 +172,11 @@ public class TrackerExportTests extends TrackerApiTest {
             null),
         Arguments.of("/events/" + event, "enrollment,createdAt", null),
         Arguments.of(
-            "/relationships/" + trackedEntityToTeiRelationship,
+            "/relationships/" + trackedEntityToTrackedEntityRelationship,
             "from,to[trackedEntity[trackedEntity]]",
             "from,to.trackedEntity.trackedEntity"),
         Arguments.of(
-            "/relationships/" + enrollmentToTeiRelationship,
+            "/relationships/" + enrollmentToTrackedEntityRelationship,
             "from,from[enrollment[enrollment]]",
             "from,from.enrollment.enrollment"));
   }
@@ -242,7 +242,7 @@ public class TrackerExportTests extends TrackerApiTest {
   }
 
   @Test
-  public void shouldGetTeisWithSofDeletedEventsWhenIncludeDeletedInRequest() {
+  public void shouldGetTrackedEntitiesWithSofDeletedEventsWhenIncludeDeletedInRequest() {
     TrackerApiResponse response =
         trackerImportExportActions
             .postAndGetJobReport(
@@ -326,7 +326,8 @@ public class TrackerExportTests extends TrackerApiTest {
   }
 
   @Test
-  public void singleTeiAndCollectionTeiShouldReturnSameResult() throws Exception {
+  public void singleTrackedEntitiesAndCollectionTrackedEntityShouldReturnSameResult()
+      throws Exception {
 
     TrackerApiResponse trackedEntity =
         trackerImportExportActions.getTrackedEntity(
@@ -373,7 +374,7 @@ public class TrackerExportTests extends TrackerApiTest {
   }
 
   @Test
-  public void shouldReturnSingleTeiGivenFilter() {
+  public void shouldReturnSingleTrackedEntityGivenFilter() {
     trackerImportExportActions
         .get("trackedEntities?orgUnit=O6uvpzGd5pu&program=f1AyMswryyQ&filter=kZeSYCgaHTk:in:Bravo")
         .validate()
@@ -384,7 +385,7 @@ public class TrackerExportTests extends TrackerApiTest {
             everyItem(is("Bravo")));
   }
 
-  Stream<Arguments> shouldReturnTeisMatchingAttributeCriteria() {
+  Stream<Arguments> shouldReturnTrackedEntitiesMatchingAttributeCriteria() {
     return Stream.of(
         Arguments.of("like", "av", containsString("av")),
         Arguments.of("sw", "Te", startsWith("Te")),
@@ -395,7 +396,7 @@ public class TrackerExportTests extends TrackerApiTest {
 
   @MethodSource()
   @ParameterizedTest
-  public void shouldReturnTeisMatchingAttributeCriteria(
+  public void shouldReturnTrackedEntitiesMatchingAttributeCriteria(
       String operator, String searchCriteria, Matcher<?> everyItemMatcher) {
     QueryParamsBuilder queryParamsBuilder =
         new QueryParamsBuilder()
@@ -414,7 +415,7 @@ public class TrackerExportTests extends TrackerApiTest {
   }
 
   @Test
-  public void shouldReturnSingleTeiGivenFilterWhileSkippingPaging() {
+  public void shouldReturnSingleTrackedEntityGivenFilterWhileSkippingPaging() {
     trackerImportExportActions
         .get(
             "trackedEntities?skipPaging=true&orgUnit=O6uvpzGd5pu&program=f1AyMswryyQ&filter=kZeSYCgaHTk:in:Bravo")
@@ -427,14 +428,14 @@ public class TrackerExportTests extends TrackerApiTest {
   }
 
   @Test
-  public void shouldReturnRelationshipsByTei() {
+  public void shouldReturnRelationshipsByTrackedEntity() {
     trackerImportExportActions
         .getRelationship("?trackedEntity=" + trackedEntityA)
         .validate()
         .statusCode(200)
         .body("relationships", hasSize(greaterThanOrEqualTo(1)))
         .rootPath("relationships[0]")
-        .body("relationship", equalTo(trackedEntityToTeiRelationship))
+        .body("relationship", equalTo(trackedEntityToTrackedEntityRelationship))
         .body("from.trackedEntity.trackedEntity", equalTo(trackedEntityA))
         .body("to.trackedEntity.trackedEntity", equalTo(trackedEntityB));
   }
@@ -447,7 +448,7 @@ public class TrackerExportTests extends TrackerApiTest {
         .statusCode(200)
         .body("events", hasSize(greaterThanOrEqualTo(1)))
         .rootPath("events[0].relationships[0]")
-        .body("relationship", equalTo(eventToTeiRelationship))
+        .body("relationship", equalTo(eventToTrackedEntityRelationship))
         .body("from.event.event", equalTo(event))
         .body("to.trackedEntity.trackedEntity", equalTo(trackedEntityB));
   }
