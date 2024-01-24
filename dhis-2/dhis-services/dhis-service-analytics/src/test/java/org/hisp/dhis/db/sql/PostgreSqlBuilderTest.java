@@ -73,6 +73,12 @@ class PostgreSqlBuilderTest {
   }
 
   @Test
+  void testDataType() {
+    assertEquals("double precision", sqlBuilder.typeDouble());
+    assertEquals("geometry", sqlBuilder.typeGeometry());
+  }
+
+  @Test
   void testCreateTableA() {
     Table table = getTableA();
 
@@ -138,13 +144,11 @@ class PostgreSqlBuilderTest {
 
   @Test
   void testTableExists() {
-    Table table = getTableA();
-
     String expected =
         "select t.table_name from information_schema.tables t "
             + "where t.table_schema = 'public' and t.table_name = 'immunization';";
 
-    assertEquals(expected, sqlBuilder.tableExists(table));
+    assertEquals(expected, sqlBuilder.tableExists("immunization"));
   }
 
   @Test

@@ -177,11 +177,11 @@ public interface SqlBuilder {
   String dropTableIfExists(String name);
 
   /**
-   * @param table the {@link Table}.
+   * @param name the table name.
    * @return a statement which will return a single row with a single column with the table name if
    *     the table exists.
    */
-  String tableExists(Table table);
+  String tableExists(String name);
 
   /**
    * @param table the {@link Table}.
