@@ -28,9 +28,11 @@
 package org.hisp.dhis.db.model;
 
 import java.util.List;
+
+import org.hisp.dhis.db.model.constraint.Unique;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.db.model.constraint.Unique;
 
 /**
  * Represents a database index.
@@ -39,41 +41,51 @@ import org.hisp.dhis.db.model.constraint.Unique;
  */
 @Getter
 @RequiredArgsConstructor
-public class Index {
-  /** Index name. Required. */
-  private final String name;
+public class Index
+{
+    /** Index name. Required. */
+    private final String name;
 
-  /** Index type, defaults to {@link IndexType.BTREE}. Required. */
-  private final IndexType indexType;
+    /** Index type, defaults to {@link IndexType.BTREE}. Required. */
+    private final IndexType indexType;
 
-  /** Index uniqueness constraint. Required. */
-  private final Unique unique;
+    /** Index uniqueness constraint. Required. */
+    private final Unique unique;
 
-  /** Index column names. Required. */
-  private final List<String> columns;
+    /** Index column names. Required. */
+    private final List<String> columns;
 
-  /** SQL {©code where} condition for index. Optional. */
-  private final String condition;
+    /** SQL {©code where} condition for index. Optional. */
+    private final String condition;
 
-  /**
-   * Constructor.
-   *
-   * @param name the index name.
-   * @param columns the list of index columns.
-   */
-  public Index(String name, List<String> columns) {
-    this.name = name;
-    this.indexType = IndexType.BTREE;
-    this.unique = Unique.NON_UNIQUE;
-    this.columns = columns;
-    this.condition = null;
-  }
+    /**
+     * Constructor.
+     *
+     * @param name the index name.
+     * @param columns the list of index column names.
+     */
+    public Index( String name, List<String> columns )
+    {
+        this.name = name;
+        this.indexType = IndexType.BTREE;
+        this.unique = Unique.NON_UNIQUE;
+        this.columns = columns;
+        this.condition = null;
+    }
 
-  public Index(String name, Unique unique, List<String> columns) {
-    this.name = name;
-    this.indexType = IndexType.BTREE;
-    this.unique = unique;
-    this.columns = columns;
-    this.condition = null;
-  }
+    /**
+     * Constructor.
+     * 
+     * @param name the index name.
+     * @param unique the uniqueness property.
+     * @param columns the list of index column names.
+     */
+    public Index( String name, Unique unique, List<String> columns )
+    {
+        this.name = name;
+        this.indexType = IndexType.BTREE;
+        this.unique = unique;
+        this.columns = columns;
+        this.condition = null;
+    }
 }
