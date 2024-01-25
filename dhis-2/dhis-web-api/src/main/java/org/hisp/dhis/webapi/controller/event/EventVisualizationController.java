@@ -52,6 +52,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationService;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.legend.LegendSetService;
@@ -173,6 +174,27 @@ public class EventVisualizationController extends AbstractCrudController<EventVi
         period.setName(format.formatPeriod(period));
       }
     }
+  }
+
+  @Override
+  protected void preCreateEntity(EventVisualization newEventVisualization)
+      throws ConflictException {
+    /**
+     * Once a legacy EventVisualization is CREATED through this new endpoint, it will automatically
+     * become a non-legacy EventVisualization.
+     */
+    forceNonLegacy(newEventVisualization);
+  }
+
+  @Override
+  protected void preUpdateEntity(
+      EventVisualization eventVisualization, EventVisualization newEventVisualization)
+      throws ConflictException {
+    /**
+     * Once a legacy EventVisualization is UPDATED through this new endpoint, it will automatically
+     * become a non-legacy EventVisualization.
+     */
+    forceNonLegacy(newEventVisualization);
   }
 
   private void forceNonLegacy(EventVisualization eventVisualization) {
