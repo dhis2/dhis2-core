@@ -29,7 +29,7 @@ package org.hisp.dhis.analytics;
 
 import java.util.Date;
 import java.util.List;
-import lombok.Getter;
+
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
@@ -37,198 +37,236 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.springframework.util.Assert;
 
+import lombok.Getter;
+
 /**
  * Class representing an analytics database table.
  *
  * @author Lars Helge Overland
  */
 @Getter
-public class AnalyticsTable {
-  /** Analytics table type. */
-  private AnalyticsTableType tableType;
+public class AnalyticsTable
+{
+    /** Analytics table type. */
+    private AnalyticsTableType tableType;
 
-  /** Columns representing dimensions. */
-  private List<AnalyticsTableColumn> dimensionColumns;
+    /** Columns representing dimensions. */
+    private List<AnalyticsTableColumn> dimensionColumns;
 
-  /** Columns representing values. */
-  private List<AnalyticsTableColumn> valueColumns;
+    /** Columns representing values. */
+    private List<AnalyticsTableColumn> valueColumns;
 
-  /** Program for analytics tables, applies to events and enrollments. */
-  private Program program;
+    /** Program for analytics tables, applies to events and enrollments. */
+    private Program program;
 
-  private TrackedEntityType trackedEntityType;
+    private TrackedEntityType trackedEntityType;
 
-  /** Analytics table partitions for this base analytics table. */
-  private List<AnalyticsTablePartition> tablePartitions = new UniqueArrayList<>();
+    /** Analytics table partitions for this base analytics table. */
+    private List<AnalyticsTablePartition> tablePartitions = new UniqueArrayList<>();
 
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
 
-  public AnalyticsTable() {}
-
-  public AnalyticsTable(
-      AnalyticsTableType tableType,
-      List<AnalyticsTableColumn> dimensionColumns,
-      List<AnalyticsTableColumn> valueColumns) {
-    this.tableType = tableType;
-    this.dimensionColumns = dimensionColumns;
-    this.valueColumns = valueColumns;
-  }
-
-  public AnalyticsTable(
-      AnalyticsTableType tableType,
-      List<AnalyticsTableColumn> dimensionColumns,
-      List<AnalyticsTableColumn> valueColumns,
-      Program program) {
-    this(tableType, dimensionColumns, valueColumns);
-    this.program = program;
-  }
-
-  public AnalyticsTable(
-      AnalyticsTableType tableType,
-      List<AnalyticsTableColumn> dimensionColumns,
-      List<AnalyticsTableColumn> valueColumns,
-      TrackedEntityType trackedEntityType) {
-    this(tableType, dimensionColumns, valueColumns);
-    this.trackedEntityType = trackedEntityType;
-  }
-
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
-  /**
-   * Returns a list of all columns including dimension columns and value columns.
-   *
-   * @return a list of {@link AnalyticsTableColumn}.
-   */
-  public List<AnalyticsTableColumn> getColumns() {
-    return ListUtils.union(getDimensionColumns(), getValueColumns());
-  }
-
-  /**
-   * Returns the count of all columns.
-   *
-   * @return the count of all columns.
-   */
-  public int getColumnCount() {
-    return getColumns().size();
-  }
-
-  /**
-   * Adds an analytics partition table to this master table.
-   *
-   * @param year the year.
-   * @param startDate the start date.
-   * @param endDate the end date.
-   * @return this analytics table.
-   */
-  public AnalyticsTable addPartitionTable(Integer year, Date startDate, Date endDate) {
-    Assert.notNull(year, "Year must be specified");
-
-    AnalyticsTablePartition tablePartition =
-        new AnalyticsTablePartition(this, year, startDate, endDate, false); // TODO
-    // approval
-    this.tablePartitions.add(tablePartition);
-
-    return this;
-  }
-
-  public String getBaseName() {
-    return tableType.getTableName();
-  }
-
-  public String getTableName() {
-    return getTableName(tableType.getTableName());
-  }
-
-  public String getTempTableName() {
-    return getTableName(tableType.getTableName() + AnalyticsTableManager.TABLE_TEMP_SUFFIX);
-  }
-
-  private String getTableName(String baseName) {
-    String name = baseName;
-
-    if (program != null) {
-      name = PartitionUtils.getTableName(name, program);
-    } else if (trackedEntityType != null) {
-      name += PartitionUtils.SEP + trackedEntityType.getUid().toLowerCase();
+    public AnalyticsTable()
+    {
     }
 
-    return name;
-  }
-
-  public boolean hasPartitionTables() {
-    return !tablePartitions.isEmpty();
-  }
-
-  public AnalyticsTablePartition getLatestPartition() {
-    return tablePartitions.stream()
-        .filter(AnalyticsTablePartition::isLatestPartition)
-        .findAny()
-        .orElse(null);
-  }
-
-  // -------------------------------------------------------------------------
-  // hashCode, equals, toString
-  // -------------------------------------------------------------------------
-
-  @Override
-  public int hashCode() {
-    int prime = 31;
-    int result = 1;
-    result = prime * result + ((tableType == null) ? 0 : tableType.hashCode());
-    result = prime * result + ((program == null) ? 0 : program.hashCode());
-    result = prime * result + ((trackedEntityType == null) ? 0 : trackedEntityType.hashCode());
-    return result;
-  }
-
-  @Override
-  public boolean equals(Object object) {
-    if (this == object) {
-      return true;
+    public AnalyticsTable(
+        AnalyticsTableType tableType,
+        List<AnalyticsTableColumn> dimensionColumns,
+        List<AnalyticsTableColumn> valueColumns )
+    {
+        this.tableType = tableType;
+        this.dimensionColumns = dimensionColumns;
+        this.valueColumns = valueColumns;
     }
 
-    if (object == null) {
-      return false;
+    public AnalyticsTable(
+        AnalyticsTableType tableType,
+        List<AnalyticsTableColumn> dimensionColumns,
+        List<AnalyticsTableColumn> valueColumns,
+        Program program )
+    {
+        this( tableType, dimensionColumns, valueColumns );
+        this.program = program;
     }
 
-    if (getClass() != object.getClass()) {
-      return false;
+    public AnalyticsTable(
+        AnalyticsTableType tableType,
+        List<AnalyticsTableColumn> dimensionColumns,
+        List<AnalyticsTableColumn> valueColumns,
+        TrackedEntityType trackedEntityType )
+    {
+        this( tableType, dimensionColumns, valueColumns );
+        this.trackedEntityType = trackedEntityType;
     }
 
-    AnalyticsTable other = (AnalyticsTable) object;
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
 
-    if (tableType == null) {
-      if (other.tableType != null) {
-        return false;
-      }
-    } else if (tableType != other.tableType) {
-      return false;
+    /**
+     * Returns a list of all columns including dimension columns and value
+     * columns.
+     *
+     * @return a list of {@link AnalyticsTableColumn}.
+     */
+    public List<AnalyticsTableColumn> getColumns()
+    {
+        return ListUtils.union( getDimensionColumns(), getValueColumns() );
     }
 
-    if (program == null) {
-      if (other.program != null) {
-        return false;
-      }
-    } else if (!program.equals(other.program)) {
-      return false;
+    /**
+     * Returns the count of all columns.
+     *
+     * @return the count of all columns.
+     */
+    public int getColumnCount()
+    {
+        return getColumns().size();
     }
 
-    if (trackedEntityType == null) {
-      if (other.trackedEntityType != null) {
-        return false;
-      }
-    } else if (!trackedEntityType.equals(other.trackedEntityType)) {
-      return false;
+    /**
+     * Adds an analytics partition table to this master table.
+     *
+     * @param year the year.
+     * @param startDate the start date.
+     * @param endDate the end date.
+     * @return this analytics table.
+     */
+    public AnalyticsTable addPartitionTable( Integer year, Date startDate, Date endDate )
+    {
+        Assert.notNull( year, "Year must be specified" );
+
+        AnalyticsTablePartition tablePartition = new AnalyticsTablePartition( this, year, startDate, endDate, false ); // TODO
+        // approval
+        this.tablePartitions.add( tablePartition );
+
+        return this;
     }
 
-    return true;
-  }
+    public String getBaseName()
+    {
+        return tableType.getTableName();
+    }
 
-  @Override
-  public String toString() {
-    return "[Table name: " + getTableName() + ", partitions: " + tablePartitions + "]";
-  }
+    public String getTableName()
+    {
+        return getTableName( tableType.getTableName() );
+    }
+
+    public String getTempTableName()
+    {
+        return getTableName( tableType.getTableName() + AnalyticsTableManager.TABLE_TEMP_SUFFIX );
+    }
+
+    private String getTableName( String baseName )
+    {
+        if ( program != null )
+        {
+            return PartitionUtils.getTableName( baseName, program );
+        }
+        else if ( trackedEntityType != null )
+        {
+            return PartitionUtils.getTableName( baseName, trackedEntityType );
+        }
+        else
+        {
+            return baseName;
+        }
+    }
+
+    public boolean hasPartitionTables()
+    {
+        return !tablePartitions.isEmpty();
+    }
+
+    public AnalyticsTablePartition getLatestPartition()
+    {
+        return tablePartitions.stream()
+            .filter( AnalyticsTablePartition::isLatestPartition )
+            .findAny()
+            .orElse( null );
+    }
+
+    // -------------------------------------------------------------------------
+    // hashCode, equals, toString
+    // -------------------------------------------------------------------------
+
+    @Override
+    public int hashCode()
+    {
+        int prime = 31;
+        int result = 1;
+        result = prime * result + ((tableType == null) ? 0 : tableType.hashCode());
+        result = prime * result + ((program == null) ? 0 : program.hashCode());
+        result = prime * result + ((trackedEntityType == null) ? 0 : trackedEntityType.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals( Object object )
+    {
+        if ( this == object )
+        {
+            return true;
+        }
+
+        if ( object == null )
+        {
+            return false;
+        }
+
+        if ( getClass() != object.getClass() )
+        {
+            return false;
+        }
+
+        AnalyticsTable other = (AnalyticsTable) object;
+
+        if ( tableType == null )
+        {
+            if ( other.tableType != null )
+            {
+                return false;
+            }
+        }
+        else if ( tableType != other.tableType )
+        {
+            return false;
+        }
+
+        if ( program == null )
+        {
+            if ( other.program != null )
+            {
+                return false;
+            }
+        }
+        else if ( !program.equals( other.program ) )
+        {
+            return false;
+        }
+
+        if ( trackedEntityType == null )
+        {
+            if ( other.trackedEntityType != null )
+            {
+                return false;
+            }
+        }
+        else if ( !trackedEntityType.equals( other.trackedEntityType ) )
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "[Table name: " + getTableName() + ", partitions: " + tablePartitions + "]";
+    }
 }

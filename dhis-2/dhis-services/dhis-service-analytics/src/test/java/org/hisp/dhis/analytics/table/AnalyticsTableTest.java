@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.List;
+
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -38,49 +39,64 @@ import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  */
-class AnalyticsTableTest {
-  @Test
-  void testGetTableName() {
-    Program program = new Program("ProgramA", "DescriptionA");
-    program.setUid("UIDA");
-    AnalyticsTable tableA =
-        new AnalyticsTable(AnalyticsTableType.EVENT, List.of(), List.of(), program);
-    assertEquals("analytics_event_uida", tableA.getTableName());
-  }
+class AnalyticsTableTest
+{
+    @Test
+    void testGetTableNameWithProgram()
+    {
+        Program program = new Program( "ProgramA", "DescriptionA" );
+        program.setUid( "rfT56YbgFeK" );
+        AnalyticsTable table = new AnalyticsTable( AnalyticsTableType.EVENT, List.of(), List.of(), program );
+        assertEquals( "analytics_event_rft56ybgfek", table.getTableName() );
+        assertEquals( "analytics_event_temp_rft56ybgfek", table.getTempTableName() );
+    }
 
-  @Test
-  void testGetTablePartitionName() {
-    Program program = new Program("ProgramA", "DescriptionA");
-    program.setUid("UIDA");
-    Period periodA = new YearlyPeriodType().createPeriod(new DateTime(2014, 1, 1, 0, 0).toDate());
-    Period periodB = new YearlyPeriodType().createPeriod(new DateTime(2015, 1, 1, 0, 0).toDate());
-    AnalyticsTable tableA =
-        new AnalyticsTable(AnalyticsTableType.EVENT, List.of(), List.of(), program);
-    tableA.addPartitionTable(2014, periodA.getStartDate(), periodA.getEndDate());
-    tableA.addPartitionTable(2015, periodB.getStartDate(), periodB.getEndDate());
-    AnalyticsTablePartition partitionA = tableA.getTablePartitions().get(0);
-    AnalyticsTablePartition partitionB = tableA.getTablePartitions().get(1);
-    assertNotNull(partitionA);
-    assertNotNull(partitionB);
-    assertEquals("analytics_event_uida_2014", partitionA.getTableName());
-    assertEquals("analytics_event_uida_2015", partitionB.getTableName());
-    assertEquals("analytics_event_temp_uida_2014", partitionA.getTempTableName());
-    assertEquals("analytics_event_temp_uida_2015", partitionB.getTempTableName());
-  }
+    @Test
+    void testGetTableNameWithTrackedEntityType()
+    {
+        TrackedEntityType trackedEntityType = new TrackedEntityType();
+        trackedEntityType.setUid( "k7GfrBE3rT5" );
+        AnalyticsTable table = new AnalyticsTable( AnalyticsTableType.ENROLLMENT, List.of(), List.of(),
+            trackedEntityType );
+        assertEquals( "analytics_enrollment_k7gfrbe3rt5", table.getTableName() );
+        assertEquals( "analytics_enrollment_temp_k7gfrbe3rt5", table.getTempTableName() );
+    }
 
-  @Test
-  void testEquals() {
-    AnalyticsTable tableA = new AnalyticsTable(AnalyticsTableType.DATA_VALUE, List.of(), List.of());
-    AnalyticsTable tableB = new AnalyticsTable(AnalyticsTableType.DATA_VALUE, List.of(), List.of());
-    List<AnalyticsTable> uniqueList = new UniqueArrayList<>();
-    uniqueList.add(tableA);
-    uniqueList.add(tableB);
-    assertEquals(1, uniqueList.size());
-  }
+    @Test
+    void testGetTablePartitionName()
+    {
+        Program program = new Program( "ProgramA", "DescriptionA" );
+        program.setUid( "UIDA" );
+        Period periodA = new YearlyPeriodType().createPeriod( new DateTime( 2014, 1, 1, 0, 0 ).toDate() );
+        Period periodB = new YearlyPeriodType().createPeriod( new DateTime( 2015, 1, 1, 0, 0 ).toDate() );
+        AnalyticsTable tableA = new AnalyticsTable( AnalyticsTableType.EVENT, List.of(), List.of(), program );
+        tableA.addPartitionTable( 2014, periodA.getStartDate(), periodA.getEndDate() );
+        tableA.addPartitionTable( 2015, periodB.getStartDate(), periodB.getEndDate() );
+        AnalyticsTablePartition partitionA = tableA.getTablePartitions().get( 0 );
+        AnalyticsTablePartition partitionB = tableA.getTablePartitions().get( 1 );
+        assertNotNull( partitionA );
+        assertNotNull( partitionB );
+        assertEquals( "analytics_event_uida_2014", partitionA.getTableName() );
+        assertEquals( "analytics_event_uida_2015", partitionB.getTableName() );
+        assertEquals( "analytics_event_temp_uida_2014", partitionA.getTempTableName() );
+        assertEquals( "analytics_event_temp_uida_2015", partitionB.getTempTableName() );
+    }
+
+    @Test
+    void testEquals()
+    {
+        AnalyticsTable tableA = new AnalyticsTable( AnalyticsTableType.DATA_VALUE, List.of(), List.of() );
+        AnalyticsTable tableB = new AnalyticsTable( AnalyticsTableType.DATA_VALUE, List.of(), List.of() );
+        List<AnalyticsTable> uniqueList = new UniqueArrayList<>();
+        uniqueList.add( tableA );
+        uniqueList.add( tableB );
+        assertEquals( 1, uniqueList.size() );
+    }
 }
