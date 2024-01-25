@@ -1147,9 +1147,14 @@ public class ListGrid implements Grid, Serializable {
                       columnIndexes.get(Integer.parseInt(key)).toString(), ctxItem.get(key));
                 }
               });
-      orderedRowContext.put(rowContextEntry.getKey(), orderedRowContextItems);
+      if (!orderedRowContextItems.isEmpty()) {
+        orderedRowContext.put(rowContextEntry.getKey(), orderedRowContextItems);
+      }
     }
-    setRowContext(orderedRowContext);
+
+    if (!orderedRowContext.isEmpty()) {
+      setRowContext(orderedRowContext);
+    }
   }
 
   @Override
@@ -1207,8 +1212,8 @@ public class ListGrid implements Grid, Serializable {
    * status.
    *
    * @param rs the {@link ResultSet},
-   * @param columnName, grid row column name
-   * @param value, grid row column value
+   * @param columnName the {@link String}, grid row column name
+   * @param value the {@link Object}, grid row column value
    * @param rowIndex, row id
    * @return Map of column index and value status
    */
