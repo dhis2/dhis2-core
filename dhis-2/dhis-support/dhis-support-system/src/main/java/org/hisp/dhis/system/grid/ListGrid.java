@@ -1011,7 +1011,7 @@ public class ListGrid implements Grid, Serializable {
   public Grid addNamedRows(SqlRowSet rs) {
     String[] cols = headers.stream().map(GridHeader::getName).toArray(String[]::new);
     Set<String> headersSet = new LinkedHashSet<>();
-    Map<Integer, Map<String, Object>> rowContext = new HashMap<>();
+    rowContext = new HashMap<>();
 
     while (rs.next()) {
       addRow();
@@ -1020,40 +1020,58 @@ public class ListGrid implements Grid, Serializable {
       for (int i = 0; i < cols.length; i++) {
         if (headerExists(cols[i])) {
           String columnLabel = cols[i];
-          String indicatorColumnLabel = cols[i] + ".exists";
 
           Object value = rs.getObject(columnLabel);
           addValue(value);
           headersSet.add(columnLabel);
 
-          if (Arrays.stream(rs.getMetaData().getColumnNames())
-              .anyMatch(n -> n.equalsIgnoreCase(indicatorColumnLabel))) {
-
-            boolean isDefined = rs.getBoolean(indicatorColumnLabel);
-            boolean isSet = isDefined && value != null;
-
-            ValueStatus valueStatus =
-                !isDefined
-                    ? ValueStatus.NOT_DEFINED
-                    : isSet ? ValueStatus.SET : ValueStatus.NOT_SET;
-            if (valueStatus != ValueStatus.SET) {
-              Map<String, String> valueStatusMap = new HashMap<>();
-              valueStatusMap.put("valueStatus", valueStatus.getValue());
-              rowContextItem.put(Integer.toString(i), valueStatusMap);
-            }
-          }
+          rowContextItem = getRowContextItem(rs, cols[i], value, i);
         }
       }
       if (!rowContextItem.isEmpty()) {
         rowContext.put(currentRowWriteIndex, rowContextItem);
       }
     }
-    setRowContext(rowContext);
 
     // Needs to ensure the ordering of columns based on grid headers.
     repositionColumns(repositionHeaders(new ArrayList<>(headersSet)));
 
     return this;
+  }
+
+  /**
+   * @param rs the {@link ResultSet},
+   * @param columnName
+   * @param value
+   * @param rowIndex
+   * @return
+   */
+  private Map<String, Object> getRowContextItem(
+      SqlRowSet rs, String columnName, Object value, int rowIndex) {
+    Map<String, Object> rowContextItem = new HashMap<>();
+    String indicatorColumnLabel = columnName + ".exists";
+
+    if (Arrays.stream(rs.getMetaData().getColumnNames())
+        .anyMatch(n -> n.equalsIgnoreCase(indicatorColumnLabel))) {
+
+      boolean isDefined = rs.getBoolean(indicatorColumnLabel);
+      boolean isSet = isDefined && value != null;
+
+      ValueStatus valueStatus;
+      if (!isDefined) {
+        valueStatus = ValueStatus.NOT_DEFINED;
+      } else {
+        valueStatus = isSet ? ValueStatus.SET : ValueStatus.NOT_SET;
+      }
+
+      if (valueStatus != ValueStatus.SET) {
+        Map<String, String> valueStatusMap = new HashMap<>();
+        valueStatusMap.put("valueStatus", valueStatus.getValue());
+        rowContextItem.put(Integer.toString(rowIndex), valueStatusMap);
+      }
+    }
+
+    return rowContextItem;
   }
 
   @Override
@@ -1150,16 +1168,15 @@ public class ListGrid implements Grid, Serializable {
     Map<Integer, Map<String, Object>> orderedRowContext = new HashMap<>();
     Map<String, Object> orderedRowContextItems = new HashMap<>();
 
-    for (Integer rowCtxIndex : rowContext.keySet()) {
-      Map<String, Object> orderedRowContextItem = rowContext.get(rowCtxIndex);
-      orderedRowContextItem
+    for (Map.Entry<Integer, Map<String, Object>> rowContextEntry : rowContext.entrySet()) {
+      Map<String, Object> ctxItem = rowContextEntry.getValue();
+      ctxItem
           .keySet()
           .forEach(
               key ->
                   orderedRowContextItems.put(
-                      columnIndexes.get(Integer.parseInt(key)).toString(),
-                      orderedRowContextItem.get(key)));
-      orderedRowContext.put(rowCtxIndex, orderedRowContextItems);
+                      columnIndexes.get(Integer.parseInt(key)).toString(), ctxItem.get(key)));
+      orderedRowContext.put(rowContextEntry.getKey(), orderedRowContextItems);
     }
 
     setRowContext(orderedRowContext);
