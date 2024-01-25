@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,28 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.resourcetable;
+package org.hisp.dhis.db.model;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.db.model.constraint.Nullable;
 
 /**
+ * Represents a database table column.
+ *
  * @author Lars Helge Overland
  */
 @Getter
 @RequiredArgsConstructor
-public enum ResourceTableType {
-  ORG_UNIT_STRUCTURE,
-  DATA_SET_ORG_UNIT_CATEGORY,
-  CATEGORY_OPTION_COMBO_NAME,
-  DATA_ELEMENT_GROUP_SET_STRUCTURE,
-  INDICATOR_GROUP_SET_STRUCTURE,
-  ORG_UNIT_GROUP_SET_STRUCTURE,
-  CATEGORY_STRUCTURE,
-  DATA_ELEMENT_STRUCTURE,
-  PERIOD_STRUCTURE,
-  DATE_PERIOD_STRUCTURE,
-  DATA_ELEMENT_CATEGORY_OPTION_COMBO,
-  DATA_APPROVAL_REMAP_LEVEL,
-  DATA_APPROVAL_MIN_LEVEL;
+public class Column {
+  /** Column name. Required. */
+  private final String name;
+
+  /** Column data type. Required. */
+  private final DataType dataType;
+
+  /** Column not null constraint. Required. */
+  private final Nullable nullable;
+
+  /**
+   * Constructor.
+   *
+   * @param name the column name.
+   * @param dataType the {@link DataType}.
+   */
+  public Column(String name, DataType dataType) {
+    this.name = name;
+    this.dataType = dataType;
+    this.nullable = Nullable.NULL;
+  }
 }
