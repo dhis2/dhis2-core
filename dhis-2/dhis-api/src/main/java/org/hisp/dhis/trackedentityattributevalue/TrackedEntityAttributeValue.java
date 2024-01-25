@@ -66,13 +66,11 @@ public class TrackedEntityAttributeValue implements Serializable {
   private TrackedEntityAttribute attribute;
 
   @Setter @ToString.Include @AuditAttribute private TrackedEntity trackedEntity;
-
   @Setter @ToString.Include private Date created;
-
   @Setter @ToString.Include private Date lastUpdated;
+  @Setter @ToString.Include private String storedBy;
 
   private String encryptedValue;
-
   private String plainValue;
 
   /**
@@ -80,8 +78,6 @@ public class TrackedEntityAttributeValue implements Serializable {
    * not.
    */
   @ToString.Include private String value;
-
-  @Setter @ToString.Include private String storedBy;
 
   private transient boolean auditValueIsSet = false;
   private transient boolean valueIsSet = false;
