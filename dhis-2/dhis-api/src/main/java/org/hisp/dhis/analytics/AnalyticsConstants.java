@@ -30,10 +30,9 @@ package org.hisp.dhis.analytics;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
-@NoArgsConstructor( access = AccessLevel.PRIVATE )
-public class AnalyticsConstants
-{
-    public static final String ANALYTICS_TBL_ALIAS = "ax";
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class AnalyticsConstants {
+  public static final String ANALYTICS_TBL_ALIAS = "ax";
 
-    public static final String ANALYTICS_TBL_TEMP_SUFFIX = "_temp";
+  public static final String ANALYTICS_TBL_TEMP_SUFFIX = "_temp";
 }
