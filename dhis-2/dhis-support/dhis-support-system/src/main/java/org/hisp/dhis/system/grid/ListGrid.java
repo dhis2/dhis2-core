@@ -1040,11 +1040,16 @@ public class ListGrid implements Grid, Serializable {
   }
 
   /**
+   * The method retrieves row context content that describes the origin of the data value,
+   * indicating whether it is set, not set, or undefined.
+   * The column index is used as the map key, and the corresponding value contains information about the origin,
+   * also known as the value status.
+   *
    * @param rs the {@link ResultSet},
-   * @param columnName
-   * @param value
-   * @param rowIndex
-   * @return
+   * @param columnName, grid row column name
+   * @param value, grid row column value
+   * @param rowIndex, row id
+   * @return Map of column index and value status
    */
   private Map<String, Object> getRowContextItem(
       SqlRowSet rs, String columnName, Object value, int rowIndex) {
@@ -1173,12 +1178,14 @@ public class ListGrid implements Grid, Serializable {
       ctxItem
           .keySet()
           .forEach(
-              key ->
+              key -> {
+                if (key.matches("\\d+")) {
                   orderedRowContextItems.put(
-                      columnIndexes.get(Integer.parseInt(key)).toString(), ctxItem.get(key)));
+                      columnIndexes.get(Integer.parseInt(key)).toString(), ctxItem.get(key));
+                }
+              });
       orderedRowContext.put(rowContextEntry.getKey(), orderedRowContextItems);
     }
-
     setRowContext(orderedRowContext);
   }
 
