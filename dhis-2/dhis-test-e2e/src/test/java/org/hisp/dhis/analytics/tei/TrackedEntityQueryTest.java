@@ -2156,7 +2156,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "PID0001",
             "Johnson",
             "Sarah",
-            "1988-07-10",
+            "1988-07-10 00:00:00.0",
             "",
             "30",
             "FEMALE",
@@ -2184,7 +2184,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "7hdjdj",
             "Martin",
             "Steve",
-            "1976-02-03",
+            "1976-02-03 00:00:00.0",
             "",
             "43",
             "FEMALE",
@@ -2212,13 +2212,13 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "",
             "",
             "",
-            "1998-02-04",
+            "1998-02-04 00:00:00.0",
             "",
             "21",
             "",
             "",
             "",
-            "[40.41441,-3.71542]"));
+            "SRID=4326;POINT(40.41441 -3.71542)"));
   }
 
   @Test
@@ -2273,7 +2273,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "PID0001",
             "Johnson",
             "Sarah",
-            "1988-07-10",
+            "1988-07-10 00:00:00.0",
             "",
             "30",
             "FEMALE",
@@ -2301,7 +2301,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "7hdjdj",
             "Martin",
             "Steve",
-            "1976-02-03",
+            "1976-02-03 00:00:00.0",
             "",
             "43",
             "FEMALE",
@@ -2329,13 +2329,13 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "",
             "",
             "",
-            "1998-02-04",
+            "1998-02-04 00:00:00.0",
             "",
             "21",
             "",
             "",
             "",
-            "[40.41441,-3.71542]"));
+            "SRID=4326;POINT(40.41441 -3.71542)"));
   }
 
   @Test
