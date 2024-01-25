@@ -29,12 +29,14 @@ package org.hisp.dhis.analytics;
 
 import java.util.Date;
 import java.util.Objects;
+import lombok.Getter;
 
 /**
  * Class representing an analytics database table partition.
  *
  * @author Lars Helge Overland
  */
+@Getter
 public class AnalyticsTablePartition {
   public static final Integer LATEST_PARTITION = 0;
 
@@ -81,14 +83,6 @@ public class AnalyticsTablePartition {
   // Logic
   // -------------------------------------------------------------------------
 
-  public String getTableName() {
-    return getTableName(masterTable.getTableName(), year);
-  }
-
-  public String getTempTableName() {
-    return getTableName(masterTable.getTempTableName(), year);
-  }
-
   private static String getTableName(String baseName, Integer year) {
     String name = baseName;
 
@@ -103,28 +97,8 @@ public class AnalyticsTablePartition {
     return Objects.equals(year, LATEST_PARTITION);
   }
 
-  public AnalyticsTable getMasterTable() {
-    return masterTable;
-  }
-
-  public Integer getYear() {
-    return year;
-  }
-
-  public Date getStartDate() {
-    return startDate;
-  }
-
-  public Date getEndDate() {
-    return endDate;
-  }
-
-  public boolean isDataApproval() {
-    return dataApproval;
-  }
-
   @Override
   public String toString() {
-    return getTableName();
+    return tableName;
   }
 }
