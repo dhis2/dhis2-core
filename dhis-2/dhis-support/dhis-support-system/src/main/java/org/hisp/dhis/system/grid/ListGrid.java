@@ -52,6 +52,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRField;
@@ -79,6 +80,8 @@ public class ListGrid implements Grid, Serializable {
   private static final String REGRESSION_SUFFIX = "_regression";
 
   private static final String CUMULATIVE_SUFFIX = "_cumulative";
+
+  private static final Pattern numberRegex = Pattern.compile("\\d+");
 
   /** The title of the grid. */
   private String title;
@@ -1039,46 +1042,6 @@ public class ListGrid implements Grid, Serializable {
     return this;
   }
 
-  /**
-   * The method retrieves row context content that describes the origin of the data value,
-   * indicating whether it is set, not set, or undefined.
-   * The column index is used as the map key, and the corresponding value contains information about the origin,
-   * also known as the value status.
-   *
-   * @param rs the {@link ResultSet},
-   * @param columnName, grid row column name
-   * @param value, grid row column value
-   * @param rowIndex, row id
-   * @return Map of column index and value status
-   */
-  private Map<String, Object> getRowContextItem(
-      SqlRowSet rs, String columnName, Object value, int rowIndex) {
-    Map<String, Object> rowContextItem = new HashMap<>();
-    String indicatorColumnLabel = columnName + ".exists";
-
-    if (Arrays.stream(rs.getMetaData().getColumnNames())
-        .anyMatch(n -> n.equalsIgnoreCase(indicatorColumnLabel))) {
-
-      boolean isDefined = rs.getBoolean(indicatorColumnLabel);
-      boolean isSet = isDefined && value != null;
-
-      ValueStatus valueStatus;
-      if (!isDefined) {
-        valueStatus = ValueStatus.NOT_DEFINED;
-      } else {
-        valueStatus = isSet ? ValueStatus.SET : ValueStatus.NOT_SET;
-      }
-
-      if (valueStatus != ValueStatus.SET) {
-        Map<String, String> valueStatusMap = new HashMap<>();
-        valueStatusMap.put("valueStatus", valueStatus.getValue());
-        rowContextItem.put(Integer.toString(rowIndex), valueStatusMap);
-      }
-    }
-
-    return rowContextItem;
-  }
-
   @Override
   public Grid addPerformanceMetrics(List<ExecutionPlan> plans) {
     if (plans.isEmpty()) {
@@ -1179,7 +1142,7 @@ public class ListGrid implements Grid, Serializable {
           .keySet()
           .forEach(
               key -> {
-                if (key.matches("\\d+")) {
+                if (numberRegex.matcher(key).matches()) {
                   orderedRowContextItems.put(
                       columnIndexes.get(Integer.parseInt(key)).toString(), ctxItem.get(key));
                 }
@@ -1235,6 +1198,46 @@ public class ListGrid implements Grid, Serializable {
     for (int i = 0; i < headers.size(); i++) {
       columnIndexMap.put(headers.get(i).getColumn(), i);
     }
+  }
+
+  /**
+   * The method retrieves row context content that describes the origin of the data value,
+   * indicating whether it is set, not set, or undefined. The column index is used as the map key,
+   * and the corresponding value contains information about the origin, also known as the value
+   * status.
+   *
+   * @param rs the {@link ResultSet},
+   * @param columnName, grid row column name
+   * @param value, grid row column value
+   * @param rowIndex, row id
+   * @return Map of column index and value status
+   */
+  private Map<String, Object> getRowContextItem(
+      SqlRowSet rs, String columnName, Object value, int rowIndex) {
+    Map<String, Object> rowContextItem = new HashMap<>();
+    String indicatorColumnLabel = columnName + ".exists";
+
+    if (Arrays.stream(rs.getMetaData().getColumnNames())
+        .anyMatch(n -> n.equalsIgnoreCase(indicatorColumnLabel))) {
+
+      boolean isDefined = rs.getBoolean(indicatorColumnLabel);
+      boolean isSet = isDefined && value != null;
+
+      ValueStatus valueStatus;
+      if (!isDefined) {
+        valueStatus = ValueStatus.NOT_DEFINED;
+      } else {
+        valueStatus = isSet ? ValueStatus.SET : ValueStatus.NOT_SET;
+      }
+
+      if (valueStatus != ValueStatus.SET) {
+        Map<String, String> valueStatusMap = new HashMap<>();
+        valueStatusMap.put("valueStatus", valueStatus.getValue());
+        rowContextItem.put(Integer.toString(rowIndex), valueStatusMap);
+      }
+    }
+
+    return rowContextItem;
   }
 
   // -------------------------------------------------------------------------
