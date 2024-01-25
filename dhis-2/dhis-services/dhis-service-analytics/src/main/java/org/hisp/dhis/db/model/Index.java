@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,28 +25,62 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.resourcetable;
+package org.hisp.dhis.db.model;
 
+import java.util.List;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.db.model.constraint.Unique;
 
 /**
+ * Represents a database index.
+ *
  * @author Lars Helge Overland
  */
 @Getter
 @RequiredArgsConstructor
-public enum ResourceTableType {
-  ORG_UNIT_STRUCTURE,
-  DATA_SET_ORG_UNIT_CATEGORY,
-  CATEGORY_OPTION_COMBO_NAME,
-  DATA_ELEMENT_GROUP_SET_STRUCTURE,
-  INDICATOR_GROUP_SET_STRUCTURE,
-  ORG_UNIT_GROUP_SET_STRUCTURE,
-  CATEGORY_STRUCTURE,
-  DATA_ELEMENT_STRUCTURE,
-  PERIOD_STRUCTURE,
-  DATE_PERIOD_STRUCTURE,
-  DATA_ELEMENT_CATEGORY_OPTION_COMBO,
-  DATA_APPROVAL_REMAP_LEVEL,
-  DATA_APPROVAL_MIN_LEVEL;
+public class Index {
+  /** Index name. Required. */
+  private final String name;
+
+  /** Index type, defaults to {@link IndexType.BTREE}. Required. */
+  private final IndexType indexType;
+
+  /** Index uniqueness constraint. Required. */
+  private final Unique unique;
+
+  /** Index column names. Required. */
+  private final List<String> columns;
+
+  /** SQL {©code where} condition for index. Optional. */
+  private final String condition;
+
+  /**
+   * Constructor.
+   *
+   * @param name the index name.
+   * @param columns the list of index column names.
+   */
+  public Index(String name, List<String> columns) {
+    this.name = name;
+    this.indexType = IndexType.BTREE;
+    this.unique = Unique.NON_UNIQUE;
+    this.columns = columns;
+    this.condition = null;
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param name the index name.
+   * @param unique the uniqueness property.
+   * @param columns the list of index column names.
+   */
+  public Index(String name, Unique unique, List<String> columns) {
+    this.name = name;
+    this.indexType = IndexType.BTREE;
+    this.unique = unique;
+    this.columns = columns;
+    this.condition = null;
+  }
 }

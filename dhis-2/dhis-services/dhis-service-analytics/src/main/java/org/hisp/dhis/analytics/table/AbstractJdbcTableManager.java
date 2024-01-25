@@ -69,6 +69,7 @@ import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -334,20 +335,21 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     StringBuilder sql = new StringBuilder();
 
     String tableName = table.getTempTableName();
-    String parameters = analyticsExportSettings.getTableParameters();
+    Logged logged = analyticsExportSettings.getTableLogged();
+    String unlogged = logged == Logged.UNLOGGED ? "unlogged" : "";
 
-    sql.append("create ").append(parameters).append(" table ").append(tableName).append(" (");
+    sql.append("create ").append(unlogged).append(" table ").append(tableName).append(" (");
 
     for (AnalyticsTableColumn col : table.getColumns()) {
       String dataType = col.getDataType().getValue();
-      String nullConstraint = col.getNotNull().isNotNull() ? " not null" : " null";
+      String nullable = col.getNotNull().isNotNull() ? " not null" : " null";
       String collation = col.hasCollation() ? getCollation(col.getCollation().name()) : EMPTY;
 
       sql.append(col.getName())
           .append(SPACE)
           .append(dataType)
           .append(collation)
-          .append(nullConstraint)
+          .append(nullable)
           .append(",");
     }
 
@@ -379,12 +381,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    */
   private void createTempTablePartition(AnalyticsTable table, AnalyticsTablePartition partition) {
     String tableName = partition.getTempTableName();
-    String parameters = analyticsExportSettings.getTableParameters();
+    Logged logged = analyticsExportSettings.getTableLogged();
+    String logParam = logged == Logged.UNLOGGED ? "unlogged" : "";
     List<String> checks = getPartitionChecks(partition);
 
     StringBuilder sql = new StringBuilder();
 
-    sql.append("create ").append(parameters).append(" table ").append(tableName).append("(");
+    sql.append("create ").append(logParam).append(" table ").append(tableName).append("(");
 
     if (!checks.isEmpty()) {
       StringBuilder sqlCheck = new StringBuilder();
@@ -494,8 +497,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
       throw new IllegalStateException("Analytics table dimensions cannot be empty");
     }
 
-    List<String> columnNames =
-        columns.stream().map(AnalyticsTableColumn::getName).collect(Collectors.toList());
+    List<String> columnNames = columns.stream().map(AnalyticsTableColumn::getName).toList();
 
     Set<String> duplicates = ListUtils.getDuplicates(columnNames);
 

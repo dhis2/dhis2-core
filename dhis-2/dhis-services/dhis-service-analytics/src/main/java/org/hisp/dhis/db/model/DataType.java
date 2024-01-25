@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,28 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.resourcetable;
-
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+package org.hisp.dhis.db.model;
 
 /**
+ * Enumeration of database data types.
+ *
  * @author Lars Helge Overland
  */
-@Getter
-@RequiredArgsConstructor
-public enum ResourceTableType {
-  ORG_UNIT_STRUCTURE,
-  DATA_SET_ORG_UNIT_CATEGORY,
-  CATEGORY_OPTION_COMBO_NAME,
-  DATA_ELEMENT_GROUP_SET_STRUCTURE,
-  INDICATOR_GROUP_SET_STRUCTURE,
-  ORG_UNIT_GROUP_SET_STRUCTURE,
-  CATEGORY_STRUCTURE,
-  DATA_ELEMENT_STRUCTURE,
-  PERIOD_STRUCTURE,
-  DATE_PERIOD_STRUCTURE,
-  DATA_ELEMENT_CATEGORY_OPTION_COMBO,
-  DATA_APPROVAL_REMAP_LEVEL,
-  DATA_APPROVAL_MIN_LEVEL;
+public enum DataType {
+  SMALLINT,
+  BIGINT,
+  INTEGER,
+  NUMERIC,
+  REAL,
+  DOUBLE,
+  BOOLEAN,
+  CHARACTER_11,
+  CHARACTER_32,
+  VARCHAR_50,
+  VARCHAR_255,
+  VARCHAR_1200,
+  TEXT,
+  DATE,
+  TIMESTAMP,
+  TIMESTAMPTZ,
+  TIME,
+  TIMETZ,
+  GEOMETRY,
+  GEOMETRY_POINT,
+  JSONB;
 }

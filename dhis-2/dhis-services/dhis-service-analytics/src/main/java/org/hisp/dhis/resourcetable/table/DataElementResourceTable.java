@@ -28,13 +28,21 @@
 package org.hisp.dhis.resourcetable.table;
 
 import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST;
+import static org.hisp.dhis.db.model.Table.toStaging;
+import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
 
-import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.db.model.Column;
+import org.hisp.dhis.db.model.DataType;
+import org.hisp.dhis.db.model.Index;
+import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.model.Table;
+import org.hisp.dhis.db.model.constraint.Nullable;
+import org.hisp.dhis.db.model.constraint.Unique;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
@@ -42,36 +50,56 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 /**
  * @author Lars Helge Overland
  */
-public class DataElementResourceTable extends ResourceTable<DataElement> {
-  private final String tableType;
+public class DataElementResourceTable implements ResourceTable {
+  private static final String TABLE_NAME = "_dataelementstructure";
 
-  public DataElementResourceTable(List<DataElement> objects, String tableType) {
-    super(objects);
-    this.tableType = tableType;
+  private final List<DataElement> dataElements;
+
+  private final Logged logged;
+
+  public DataElementResourceTable(List<DataElement> dataElements, Logged logged) {
+    this.dataElements = dataElements;
+    this.logged = logged;
+  }
+
+  @Override
+  public Table getTable() {
+    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), getIndexes(), logged);
+  }
+
+  private List<Column> getColumns() {
+    return List.of(
+        new Column("dataelementid", DataType.BIGINT, Nullable.NOT_NULL),
+        new Column("dataelementuid", DataType.CHARACTER_11, Nullable.NOT_NULL),
+        new Column("dataelementname", DataType.VARCHAR_255, Nullable.NOT_NULL),
+        new Column("datasetid", DataType.BIGINT),
+        new Column("datasetuid", DataType.CHARACTER_11),
+        new Column("datasetname", DataType.VARCHAR_255),
+        new Column("datasetapprovallevel", DataType.INTEGER),
+        new Column("workflowid", DataType.BIGINT),
+        new Column("periodtypeid", DataType.BIGINT),
+        new Column("periodtypename", DataType.VARCHAR_255));
+  }
+
+  private List<String> getPrimaryKey() {
+    return List.of("dataelementid");
+  }
+
+  private List<Index> getIndexes() {
+    return List.of(
+        new Index(
+            appendRandom("in_dataelementstructure_dataelementuid"),
+            Unique.UNIQUE,
+            List.of("dataelementuid")),
+        new Index(appendRandom("in_dataelementstructure_datasetid"), List.of("datasetid")),
+        new Index(appendRandom("in_dataelementstructure_datasetuid"), List.of("datasetuid")),
+        new Index(appendRandom("in_dataelementstructure_periodtypeid"), List.of("periodtypeid")),
+        new Index(appendRandom("in_dataelementstructure_workflowid"), List.of("workflowid")));
   }
 
   @Override
   public ResourceTableType getTableType() {
     return ResourceTableType.DATA_ELEMENT_STRUCTURE;
-  }
-
-  @Override
-  public String getCreateTempTableStatement() {
-    return "create "
-        + tableType
-        + " table "
-        + getTempTableName()
-        + " ("
-        + "dataelementid BIGINT NOT NULL PRIMARY KEY, "
-        + "dataelementuid CHARACTER(11), "
-        + "dataelementname VARCHAR(230), "
-        + "datasetid BIGINT, "
-        + "datasetuid CHARACTER(11), "
-        + "datasetname VARCHAR(230), "
-        + "datasetapprovallevel INTEGER, "
-        + "workflowid BIGINT, "
-        + "periodtypeid INTEGER, "
-        + "periodtypename VARCHAR(230))";
   }
 
   @Override
@@ -83,7 +111,7 @@ public class DataElementResourceTable extends ResourceTable<DataElement> {
   public Optional<List<Object[]>> getPopulateTempTableContent() {
     List<Object[]> batchArgs = new ArrayList<>();
 
-    for (DataElement dataElement : objects) {
+    for (DataElement dataElement : dataElements) {
       List<Object> values = new ArrayList<>();
 
       final DataSet dataSet = dataElement.getApprovalDataSet();
@@ -109,35 +137,5 @@ public class DataElementResourceTable extends ResourceTable<DataElement> {
     }
 
     return Optional.of(batchArgs);
-  }
-
-  @Override
-  public List<String> getCreateIndexStatements() {
-    return Lists.newArrayList(
-        "create unique index in_dataelementstructure_dataelementuid_"
-            + getRandomSuffix()
-            + " on "
-            + getTempTableName()
-            + "(dataelementuid);",
-        "create index in_dataelementstructure_datasetid_"
-            + getRandomSuffix()
-            + " on "
-            + getTempTableName()
-            + "(datasetid);",
-        "create index in_dataelementstructure_datasetuid_"
-            + getRandomSuffix()
-            + " on "
-            + getTempTableName()
-            + "(datasetuid);",
-        "create index in_dataelementstructure_periodtypeid_"
-            + getRandomSuffix()
-            + " on "
-            + getTempTableName()
-            + "(periodtypeid);",
-        "create index in_dataelementstructure_workflowid_"
-            + getRandomSuffix()
-            + " on "
-            + getTempTableName()
-            + "(workflowid);");
   }
 }

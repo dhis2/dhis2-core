@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
+import static org.hisp.dhis.db.model.Table.toStaging;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import com.google.common.collect.Lists;
@@ -34,18 +35,52 @@ import java.util.List;
 import java.util.Optional;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
+import org.hisp.dhis.db.model.Column;
+import org.hisp.dhis.db.model.DataType;
+import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.model.Table;
+import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
 /**
  * @author Lars Helge Overland
  */
-public class DataElementGroupSetResourceTable extends ResourceTable<DataElementGroupSet> {
-  private final String tableType;
+public class DataElementGroupSetResourceTable implements ResourceTable {
+  private static final String TABLE_NAME = "_dataelementgroupsetstructure";
 
-  public DataElementGroupSetResourceTable(List<DataElementGroupSet> objects, String tableType) {
-    super(objects);
-    this.tableType = tableType;
+  private final List<DataElementGroupSet> groupSets;
+
+  private final Logged logged;
+
+  public DataElementGroupSetResourceTable(List<DataElementGroupSet> groupSets, Logged logged) {
+    this.groupSets = groupSets;
+    this.logged = logged;
+  }
+
+  @Override
+  public Table getTable() {
+    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), List.of(), logged);
+  }
+
+  private List<Column> getColumns() {
+    List<Column> columns =
+        Lists.newArrayList(
+            new Column("dataelementid", DataType.BIGINT, Nullable.NOT_NULL),
+            new Column("dataelementname", DataType.VARCHAR_255, Nullable.NOT_NULL));
+
+    for (DataElementGroupSet groupSet : groupSets) {
+      columns.addAll(
+          List.of(
+              new Column(groupSet.getShortName(), DataType.VARCHAR_255),
+              new Column(groupSet.getUid(), DataType.CHARACTER_11)));
+    }
+
+    return columns;
+  }
+
+  private List<String> getPrimaryKey() {
+    return List.of("dataelementid");
   }
 
   @Override
@@ -54,35 +89,14 @@ public class DataElementGroupSetResourceTable extends ResourceTable<DataElementG
   }
 
   @Override
-  public String getCreateTempTableStatement() {
-    String statement =
-        "create "
-            + tableType
-            + " table "
-            + getTempTableName()
-            + " ("
-            + "dataelementid bigint not null, "
-            + "dataelementname varchar(230), ";
-
-    for (DataElementGroupSet groupSet : objects) {
-      statement += quote(groupSet.getShortName()) + " varchar(230), ";
-      statement += quote(groupSet.getUid()) + " character(11), ";
-    }
-
-    statement += "primary key (dataelementid))";
-
-    return statement;
-  }
-
-  @Override
   public Optional<String> getPopulateTempTableStatement() {
     String sql =
         "insert into "
-            + getTempTableName()
+            + toStaging(TABLE_NAME)
             + " "
             + "select d.dataelementid as dataelementid, d.name as dataelementname, ";
 
-    for (DataElementGroupSet groupSet : objects) {
+    for (DataElementGroupSet groupSet : groupSets) {
       sql +=
           "("
               + "select deg.name from dataelementgroup deg "
@@ -119,10 +133,5 @@ public class DataElementGroupSetResourceTable extends ResourceTable<DataElementG
   @Override
   public Optional<List<Object[]>> getPopulateTempTableContent() {
     return Optional.empty();
-  }
-
-  @Override
-  public List<String> getCreateIndexStatements() {
-    return Lists.newArrayList();
   }
 }
