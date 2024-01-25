@@ -140,19 +140,15 @@ public class AnalyticsTable {
   }
 
   public String getTableName() {
-    String name = getBaseName();
-
-    if (program != null) {
-      name = PartitionUtils.getTableName(name, program);
-    } else if (trackedEntityType != null) {
-      name += PartitionUtils.SEP + trackedEntityType.getUid().toLowerCase();
-    }
-
-    return name;
+    return getTableName(tableType.getTableName());
   }
 
   public String getTempTableName() {
-    String name = getBaseName() + AnalyticsTableManager.TABLE_TEMP_SUFFIX;
+    return getTableName(tableType.getTableName() + AnalyticsTableManager.TABLE_TEMP_SUFFIX);
+  }
+
+  private String getTableName(String baseName) {
+    String name = baseName;
 
     if (program != null) {
       name = PartitionUtils.getTableName(name, program);
