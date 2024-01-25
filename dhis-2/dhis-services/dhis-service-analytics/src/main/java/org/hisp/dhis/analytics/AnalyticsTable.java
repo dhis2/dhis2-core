@@ -163,14 +163,6 @@ public class AnalyticsTable {
     return name;
   }
 
-  public boolean hasProgram() {
-    return program != null;
-  }
-
-  public boolean hasTrackedEntityType() {
-    return trackedEntityType != null;
-  }
-
   public boolean hasPartitionTables() {
     return !tablePartitions.isEmpty();
   }
