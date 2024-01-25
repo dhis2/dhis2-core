@@ -109,6 +109,11 @@ class ImportSummaryJacksonTest {
 
   private ImportConflict createImportConflictForIndex(int index) {
     return new ImportConflict(
-        singletonMap("key", "value"), "message", ErrorCode.E7600, "property", index);
+        singletonMap("key", "value"),
+        new Object[] {"value"},
+        "message",
+        ErrorCode.E7600,
+        "property",
+        index);
   }
 }
