@@ -342,14 +342,14 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
     for (AnalyticsTableColumn col : table.getColumns()) {
       String dataType = col.getDataType().getValue();
-      String nullConstraint = col.getNotNull().isNotNull() ? " not null" : " null";
+      String nullable = col.getNotNull().isNotNull() ? " not null" : " null";
       String collation = col.hasCollation() ? getCollation(col.getCollation().name()) : EMPTY;
 
       sql.append(col.getName())
           .append(SPACE)
           .append(dataType)
           .append(collation)
-          .append(nullConstraint)
+          .append(nullable)
           .append(",");
     }
 
