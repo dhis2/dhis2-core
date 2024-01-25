@@ -70,6 +70,7 @@ public class LoginConfigController {
     STYLE("style"),
     LOGIN_POPUP("loginPopup"),
     SELF_REGISTRATION_NO_RECAPTCHA("selfRegistrationNoRecaptcha"),
+    AAAAA("selfRegistrationNoRecaptcha"),
     TEST("selfRegistrationNoRecaptcha");
 
     private final String keyName;
