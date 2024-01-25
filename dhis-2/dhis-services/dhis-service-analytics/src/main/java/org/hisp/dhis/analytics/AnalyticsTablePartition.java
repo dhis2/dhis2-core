@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics;
 
 import java.util.Date;
 import java.util.Objects;
-import org.hisp.dhis.analytics.table.PartitionUtils;
 
 /**
  * Class representing an analytics database table partition.
@@ -38,6 +37,12 @@ import org.hisp.dhis.analytics.table.PartitionUtils;
  */
 public class AnalyticsTablePartition {
   public static final Integer LATEST_PARTITION = 0;
+
+  /** Table name. */
+  private String tableName;
+
+  /** Temporary table name. */
+  private String tempTableName;
 
   /** The master analytics table for this partition. */
   private AnalyticsTable masterTable;
@@ -63,6 +68,8 @@ public class AnalyticsTablePartition {
       Date startDate,
       Date endDate,
       boolean dataApproval) {
+    this.tableName = getTableName(masterTable.getTableName(), year);
+    this.tempTableName = getTableName(masterTable.getTempTableName(), year);
     this.masterTable = masterTable;
     this.year = year;
     this.startDate = startDate;
@@ -75,18 +82,18 @@ public class AnalyticsTablePartition {
   // -------------------------------------------------------------------------
 
   public String getTableName() {
-    return getTableName(false);
+    return getTableName(masterTable.getTableName(), year);
   }
 
   public String getTempTableName() {
-    return getTableName(true);
+    return getTableName(masterTable.getTempTableName(), year);
   }
 
-  private String getTableName(boolean forTempTable) {
-    String name = forTempTable ? masterTable.getTempTableName() : masterTable.getTableName();
+  private static String getTableName(String baseName, Integer year) {
+    String name = baseName;
 
     if (year != null) {
-      name += PartitionUtils.SEP + year;
+      name += "_" + year;
     }
 
     return name;

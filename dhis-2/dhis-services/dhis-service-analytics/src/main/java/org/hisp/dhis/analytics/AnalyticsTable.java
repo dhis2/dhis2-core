@@ -31,7 +31,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import lombok.Getter;
-import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.program.Program;
@@ -48,7 +47,7 @@ public class AnalyticsTable {
   /** Table name. */
   private String tableName;
 
-  /** Table temporary name. */
+  /** Temporary table name. */
   private String tempTableName;
 
   /** Analytics table type. */
@@ -60,10 +59,10 @@ public class AnalyticsTable {
   /** Columns representing values. */
   private List<AnalyticsTableColumn> valueColumns;
 
-  /** Program. */
+  /** Program of events in analytics table. */
   private Program program;
 
-  /** Tracked entity type. */
+  /** Tracked entity type of enrollments in analytics table. */
   private TrackedEntityType trackedEntityType;
 
   /** Analytics table partitions for this base analytics table. */
@@ -91,8 +90,8 @@ public class AnalyticsTable {
       List<AnalyticsTableColumn> dimensionColumns,
       List<AnalyticsTableColumn> valueColumns,
       Program program) {
-    this.tableName = PartitionUtils.getTableName(tableType.getTableName(), program);
-    this.tempTableName = PartitionUtils.getTableName(tableType.getTempTableName(), program);
+    this.tableName = getTableName(tableType.getTableName(), program);
+    this.tempTableName = getTableName(tableType.getTempTableName(), program);
     this.tableType = tableType;
     this.dimensionColumns = dimensionColumns;
     this.valueColumns = valueColumns;
@@ -104,8 +103,8 @@ public class AnalyticsTable {
       List<AnalyticsTableColumn> dimensionColumns,
       List<AnalyticsTableColumn> valueColumns,
       TrackedEntityType trackedEntityType) {
-    this.tableName = PartitionUtils.getTableName(tableType.getTableName(), trackedEntityType);
-    this.tableName = PartitionUtils.getTableName(tableType.getTempTableName(), trackedEntityType);
+    this.tableName = getTableName(tableType.getTableName(), trackedEntityType);
+    this.tableName = getTableName(tableType.getTempTableName(), trackedEntityType);
     this.tableType = tableType;
     this.dimensionColumns = dimensionColumns;
     this.valueColumns = valueColumns;
@@ -115,6 +114,28 @@ public class AnalyticsTable {
   // -------------------------------------------------------------------------
   // Logic
   // -------------------------------------------------------------------------
+
+  /**
+   * Returns a table name.
+   *
+   * @param baseName the table base name.
+   * @param program the {@link Program}.
+   * @return the table name.
+   */
+  public static String getTableName(String baseName, Program program) {
+    return baseName + "_" + program.getUid().toLowerCase();
+  }
+
+  /**
+   * Returns a table name.
+   *
+   * @param baseName the table base name.
+   * @param trackedEntityType the {@link TrackedEntityType}.
+   * @return the table name.
+   */
+  public static String getTableName(String baseName, TrackedEntityType trackedEntityType) {
+    return baseName + "_" + trackedEntityType.getUid().toLowerCase();
+  }
 
   /**
    * Returns a list of all columns including dimension columns and value columns.

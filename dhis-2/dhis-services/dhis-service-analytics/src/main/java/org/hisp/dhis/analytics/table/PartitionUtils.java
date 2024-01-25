@@ -43,8 +43,6 @@ import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.springframework.util.Assert;
 
 /**
@@ -99,28 +97,6 @@ public class PartitionUtils {
   public static Date getEndDate(Integer year) {
     Integer nextYear = year + 1;
     return getStartDate(nextYear);
-  }
-
-  /**
-   * Returns a table name.
-   *
-   * @param baseName the table base name.
-   * @param program the {@link Program}.
-   * @return the table name.
-   */
-  public static String getTableName(String baseName, Program program) {
-    return baseName + SEP + program.getUid().toLowerCase();
-  }
-
-  /**
-   * Returns a table name.
-   *
-   * @param baseName the table base name.
-   * @param trackedEntityType the {@link TrackedEntityType}.
-   * @return the table name.
-   */
-  public static String getTableName(String baseName, TrackedEntityType trackedEntityType) {
-    return baseName + SEP + trackedEntityType.getUid().toLowerCase();
   }
 
   /**
