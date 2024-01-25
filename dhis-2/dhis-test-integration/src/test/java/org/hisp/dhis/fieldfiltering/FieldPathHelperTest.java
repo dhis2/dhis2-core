@@ -118,7 +118,7 @@ class FieldPathHelperTest extends SingleSetupIntegrationTestBase {
             User.class);
 
     // then only matching exclusions should have been applied
-    // and exclusions starting with 'user' should still be present
+    // and fields starting with 'user' should still be present
     assertEquals(58, result.size()); // all user properties
     assertTrue(
         result.stream()

@@ -75,8 +75,7 @@ public class FieldPathHelper {
 
     applyProperties(fieldPathMap.values(), rootKlass);
 
-    List<FieldPath> presets =
-        fieldPaths.stream().filter(FieldPath::isPreset).collect(Collectors.toList());
+    List<FieldPath> presets = fieldPaths.stream().filter(FieldPath::isPreset).toList();
     applyPresets(presets, fieldPathMap, rootKlass);
 
     calculatePathCount(fieldPathMap.values())
@@ -89,8 +88,7 @@ public class FieldPathHelper {
               applyDefaults(fieldPathMap.get(k), rootKlass, fieldPathMap);
             });
 
-    List<FieldPath> exclusions =
-        fieldPaths.stream().filter(FieldPath::isExclude).collect(Collectors.toList());
+    List<FieldPath> exclusions = fieldPaths.stream().filter(FieldPath::isExclude).toList();
     applyExclusions(exclusions, fieldPathMap);
 
     return new ArrayList<>(fieldPathMap.values());
