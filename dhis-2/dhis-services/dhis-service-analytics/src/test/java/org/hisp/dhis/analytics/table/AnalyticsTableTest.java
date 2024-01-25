@@ -38,6 +38,7 @@ import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 
@@ -47,11 +48,30 @@ import org.junit.jupiter.api.Test;
 class AnalyticsTableTest {
   @Test
   void testGetTableName() {
+    AnalyticsTable table =
+        new AnalyticsTable(AnalyticsTableType.COMPLETENESS, List.of(), List.of());
+    assertEquals("analytics_completeness", table.getTableName());
+    assertEquals("analytics_completeness_temp", table.getTempTableName());
+  }
+
+  @Test
+  void testGetTableNameWithProgram() {
     Program program = new Program("ProgramA", "DescriptionA");
-    program.setUid("UIDA");
-    AnalyticsTable tableA =
+    program.setUid("rfT56YbgFeK");
+    AnalyticsTable table =
         new AnalyticsTable(AnalyticsTableType.EVENT, List.of(), List.of(), program);
-    assertEquals("analytics_event_uida", tableA.getTableName());
+    assertEquals("analytics_event_rft56ybgfek", table.getTableName());
+    assertEquals("analytics_event_temp_rft56ybgfek", table.getTempTableName());
+  }
+
+  @Test
+  void testGetTableNameWithTrackedEntityType() {
+    TrackedEntityType trackedEntityType = new TrackedEntityType();
+    trackedEntityType.setUid("k7GfrBE3rT5");
+    AnalyticsTable table =
+        new AnalyticsTable(AnalyticsTableType.ENROLLMENT, List.of(), List.of(), trackedEntityType);
+    assertEquals("analytics_enrollment_k7gfrbe3rt5", table.getTableName());
+    assertEquals("analytics_enrollment_temp_k7gfrbe3rt5", table.getTempTableName());
   }
 
   @Test

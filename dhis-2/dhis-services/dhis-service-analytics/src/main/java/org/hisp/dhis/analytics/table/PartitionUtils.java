@@ -43,7 +43,6 @@ import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.program.Program;
 import org.springframework.util.Assert;
 
 /**
@@ -98,17 +97,6 @@ public class PartitionUtils {
   public static Date getEndDate(Integer year) {
     Integer nextYear = year + 1;
     return getStartDate(nextYear);
-  }
-
-  /**
-   * Returns the table name of the table with the given base name and program.
-   *
-   * @param baseName the table base name.
-   * @param program the program.
-   * @return the table name.
-   */
-  public static String getTableName(String baseName, Program program) {
-    return baseName + SEP + program.getUid().toLowerCase();
   }
 
   /**

@@ -33,4 +33,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class AnalyticsConstants {
   public static final String ANALYTICS_TBL_ALIAS = "ax";
+
+  public static final String ANALYTICS_TBL_TEMP_SUFFIX = "_temp";
 }
