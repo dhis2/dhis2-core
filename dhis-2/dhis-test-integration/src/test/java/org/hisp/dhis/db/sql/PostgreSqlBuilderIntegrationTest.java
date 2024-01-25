@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
@@ -52,7 +53,7 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
         List.of(
             new Column("id", DataType.BIGINT, Nullable.NOT_NULL),
             new Column("data", DataType.CHARACTER_11, Nullable.NOT_NULL),
-            new Column("period", DataType.VARCHAR_50, Nullable.NOT_NULL),
+            new Column("period", DataType.VARCHAR_50, Nullable.NOT_NULL, Collation.C),
             new Column("created", DataType.TIMESTAMP),
             new Column("value", DataType.DOUBLE));
 

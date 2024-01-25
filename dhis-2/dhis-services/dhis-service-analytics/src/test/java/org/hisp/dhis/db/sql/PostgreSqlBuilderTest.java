@@ -30,6 +30,7 @@ package org.hisp.dhis.db.sql;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
+import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
@@ -64,7 +65,7 @@ class PostgreSqlBuilderTest {
     List<Column> columns =
         List.of(
             new Column("id", DataType.INTEGER, Nullable.NOT_NULL),
-            new Column("facility_type", DataType.VARCHAR_255),
+            new Column("facility_type", DataType.VARCHAR_255, Nullable.NULL, Collation.C),
             new Column("bcg_doses", DataType.DOUBLE));
 
     return new Table("vaccination", columns, List.of(), List.of(), Logged.UNLOGGED);
@@ -94,7 +95,7 @@ class PostgreSqlBuilderTest {
 
     String expected =
         "create unlogged table \"vaccination\" (\"id\" integer not null, "
-            + "\"facility_type\" varchar(255) null, \"bcg_doses\" double precision null);";
+            + "\"facility_type\" varchar(255) null collate \"C\", \"bcg_doses\" double precision null);";
 
     assertEquals(expected, sqlBuilder.createTable(table));
   }

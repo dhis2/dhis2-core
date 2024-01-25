@@ -336,20 +336,20 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
     String tableName = table.getTempTableName();
     Logged logged = analyticsExportSettings.getTableLogged();
-    String logParam = logged == Logged.UNLOGGED ? "unlogged" : "";
+    String unlogged = logged == Logged.UNLOGGED ? "unlogged" : "";
 
-    sql.append("create ").append(logParam).append(" table ").append(tableName).append(" (");
+    sql.append("create ").append(unlogged).append(" table ").append(tableName).append(" (");
 
     for (AnalyticsTableColumn col : table.getColumns()) {
       String dataType = col.getDataType().getValue();
-      String nullConstraint = col.getNotNull().isNotNull() ? " not null" : " null";
+      String nullable = col.getNotNull().isNotNull() ? " not null" : " null";
       String collation = col.hasCollation() ? getCollation(col.getCollation().name()) : EMPTY;
 
       sql.append(col.getName())
           .append(SPACE)
           .append(dataType)
           .append(collation)
-          .append(nullConstraint)
+          .append(nullable)
           .append(",");
     }
 

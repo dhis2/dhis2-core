@@ -27,54 +27,12 @@
  */
 package org.hisp.dhis.db.model;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.db.model.constraint.Nullable;
-
 /**
- * Represents a database table column.
+ * Enumeration of database collations.
  *
  * @author Lars Helge Overland
  */
-@Getter
-@RequiredArgsConstructor
-public class Column {
-  /** Column name. Required. */
-  private final String name;
-
-  /** Column data type. Required. */
-  private final DataType dataType;
-
-  /** Column not null constraint. Required. */
-  private final Nullable nullable;
-
-  /** Column collation. Required. */
-  private final Collation collation;
-
-  /**
-   * Constructor.
-   *
-   * @param name the column name.
-   * @param dataType the {@link DataType}.
-   */
-  public Column(String name, DataType dataType) {
-    this.name = name;
-    this.dataType = dataType;
-    this.nullable = Nullable.NULL;
-    this.collation = Collation.DEFAULT;
-  }
-
-  /**
-   * Constructor.
-   *
-   * @param name the column name.
-   * @param dataType the {@link DataType}.
-   * @param nullable the {@link Nullable} constraint.
-   */
-  public Column(String name, DataType dataType, Nullable nullable) {
-    this.name = name;
-    this.dataType = dataType;
-    this.nullable = nullable;
-    this.collation = Collation.DEFAULT;
-  }
+public enum Collation {
+  DEFAULT,
+  C;
 }
