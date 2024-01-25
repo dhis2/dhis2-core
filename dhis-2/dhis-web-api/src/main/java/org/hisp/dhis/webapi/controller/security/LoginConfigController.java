@@ -69,7 +69,8 @@ public class LoginConfigController {
     CUSTOM_TOP_MENU_LOGO("topMenuLogo", "/external-static/logo_banner.png"),
     STYLE("style"),
     LOGIN_POPUP("loginPopup"),
-    SELF_REGISTRATION_NO_RECAPTCHA("selfRegistrationNoRecaptcha");
+    SELF_REGISTRATION_NO_RECAPTCHA("selfRegistrationNoRecaptcha"),
+    TEST("selfRegistrationNoRecaptcha");
 
     private final String keyName;
     private final String defaultValue;
