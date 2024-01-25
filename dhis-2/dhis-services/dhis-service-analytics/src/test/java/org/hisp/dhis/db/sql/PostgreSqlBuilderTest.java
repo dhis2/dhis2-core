@@ -68,7 +68,9 @@ class PostgreSqlBuilderTest {
             new Column("facility_type", DataType.VARCHAR_255, Nullable.NULL, Collation.C),
             new Column("bcg_doses", DataType.DOUBLE));
 
-    return new Table("vaccination", columns, List.of(), List.of(), Logged.UNLOGGED);
+    List<String> checks = List.of("\"id\">0", "\bcg_doses\">0");
+
+    return new Table("vaccination", columns, List.of(), List.of(), checks, Logged.UNLOGGED);
   }
 
   @Test
@@ -95,7 +97,8 @@ class PostgreSqlBuilderTest {
 
     String expected =
         "create unlogged table \"vaccination\" (\"id\" integer not null, "
-            + "\"facility_type\" varchar(255) null collate \"C\", \"bcg_doses\" double precision null);";
+            + "\"facility_type\" varchar(255) null collate \"C\", \"bcg_doses\" double precision null, "
+            + "check(\"id\">0), check(\"bcg_doses\">0));";
 
     assertEquals(expected, sqlBuilder.createTable(table));
   }
