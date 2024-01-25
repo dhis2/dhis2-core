@@ -63,7 +63,7 @@ class StatusConditionTest {
 
     String rendered = statusCondition.render();
 
-    assertEquals("\"programUid[0]\".enrollmentstatus in (:1)", rendered);
+    assertEquals("\"programUid\".enrollmentstatus in (:1)", rendered);
     assertEquals("COMPLETED", queryContext.getParametersPlaceHolder().get("1"));
   }
 
@@ -87,7 +87,7 @@ class StatusConditionTest {
 
     String rendered = statusCondition.render();
 
-    assertEquals("\"programUid[0]\".enrollmentstatus in (:1)", rendered);
+    assertEquals("\"programUid\".enrollmentstatus in (:1)", rendered);
     assertEquals(values, queryContext.getParametersPlaceHolder().get("1"));
   }
 
@@ -108,7 +108,7 @@ class StatusConditionTest {
 
     String rendered = statusCondition.render();
 
-    assertEquals("\"programUid[0].programStageUid[0]\".status in (:1)", rendered);
+    assertEquals("\"programUid.programStageUid\".status in (:1)", rendered);
     assertEquals("COMPLETED", queryContext.getParametersPlaceHolder().get("1"));
   }
 
@@ -129,7 +129,7 @@ class StatusConditionTest {
 
     String rendered = statusCondition.render();
 
-    assertEquals("\"programUid[0].programStageUid[0]\".status in (:1)", rendered);
+    assertEquals("\"programUid.programStageUid\".status in (:1)", rendered);
     assertEquals(values, queryContext.getParametersPlaceHolder().get("1"));
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,26 +25,62 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.db.model;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import java.io.IOException;
-import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
-import org.junit.jupiter.api.Test;
+import java.util.List;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.db.model.constraint.Unique;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * Represents a database index.
+ *
+ * @author Lars Helge Overland
  */
-class LoginControllerTest extends DhisControllerIntegrationTest {
+@Getter
+@RequiredArgsConstructor
+public class Index {
+  /** Index name. Required. */
+  private final String name;
 
-  private static final String iconKey = "iconKey";
+  /** Index type, defaults to {@link IndexType.BTREE}. Required. */
+  private final IndexType indexType;
 
-  @Test
-  void shouldGetLoginConfig() throws IOException {
-    JsonObject response = GET("/loginConfig").content();
-    assertEquals("DHIS 2", response.getString("applicationTitle").string());
-    assertEquals("en", response.getString("uiLocale").string());
+  /** Index uniqueness constraint. Required. */
+  private final Unique unique;
+
+  /** Index column names. Required. */
+  private final List<String> columns;
+
+  /** SQL {©code where} condition for index. Optional. */
+  private final String condition;
+
+  /**
+   * Constructor.
+   *
+   * @param name the index name.
+   * @param columns the list of index column names.
+   */
+  public Index(String name, List<String> columns) {
+    this.name = name;
+    this.indexType = IndexType.BTREE;
+    this.unique = Unique.NON_UNIQUE;
+    this.columns = columns;
+    this.condition = null;
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param name the index name.
+   * @param unique the uniqueness property.
+   * @param columns the list of index column names.
+   */
+  public Index(String name, Unique unique, List<String> columns) {
+    this.name = name;
+    this.indexType = IndexType.BTREE;
+    this.unique = unique;
+    this.columns = columns;
+    this.condition = null;
   }
 }

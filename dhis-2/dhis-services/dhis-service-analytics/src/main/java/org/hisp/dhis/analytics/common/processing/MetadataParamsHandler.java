@@ -163,7 +163,7 @@ public class MetadataParamsHandler {
     // for dates supporting custom labels, it will add the custom label to items using the full
     // dimension uid as key
     if (supportsCustomLabel(dimensionIdentifier)) {
-      items.put(dimensionIdentifier.getKey(), getCustomLabel(dimensionIdentifier));
+      items.put(dimensionIdentifier.getKeyNoOffset(), getCustomLabel(dimensionIdentifier));
     }
 
     // for entries like "abc", it will add a duplicate using dimensionuid (example
@@ -184,17 +184,22 @@ public class MetadataParamsHandler {
    * @return the custom label
    */
   private MetadataItem getCustomLabel(DimensionIdentifier<DimensionParam> dimensionIdentifier) {
-    return new MetadataItem(
-        STATIC_DIMENSION_MAPPER.entrySet().stream()
-            .filter(
-                entry -> entry.getKey() == dimensionIdentifier.getDimension().getStaticDimension())
-            .findFirst()
-            .map(
-                entry ->
-                    defaultIfBlank(
-                        entry.getValue().apply(dimensionIdentifier),
-                        entry.getKey().getHeaderColumnName()))
-            .orElse(null));
+    MetadataItem metadataItem =
+        new MetadataItem(
+            STATIC_DIMENSION_MAPPER.entrySet().stream()
+                .filter(
+                    entry ->
+                        entry.getKey() == dimensionIdentifier.getDimension().getStaticDimension())
+                .findFirst()
+                .map(
+                    entry ->
+                        defaultIfBlank(
+                            entry.getValue().apply(dimensionIdentifier),
+                            entry.getKey().getHeaderColumnName()))
+                .orElse(null));
+    metadataItem.setDimensionType(
+        dimensionIdentifier.getDimension().getDimensionParamObjectType().getDimensionType());
+    return metadataItem;
   }
 
   private boolean supportsCustomLabel(DimensionIdentifier<DimensionParam> dimensionIdentifier) {
@@ -207,7 +212,7 @@ public class MetadataParamsHandler {
 
   private static Entry<String, Object> asEntryWithFullPrefix(
       DimensionIdentifier<DimensionParam> dimensionIdentifier, Entry<String, Object> entry) {
-    return Map.entry(dimensionIdentifier.getKey(), entry.getValue());
+    return Map.entry(dimensionIdentifier.getKeyNoOffset(), entry.getValue());
   }
 
   private static boolean isSameDimension(
