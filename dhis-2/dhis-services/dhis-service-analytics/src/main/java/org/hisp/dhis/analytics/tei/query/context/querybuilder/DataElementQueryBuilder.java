@@ -45,6 +45,7 @@ import org.hisp.dhis.analytics.common.query.IndexedOrder;
 import org.hisp.dhis.analytics.common.query.Order;
 import org.hisp.dhis.analytics.tei.query.DataElementCondition;
 import org.hisp.dhis.analytics.tei.query.RenderableDataValue;
+import org.hisp.dhis.analytics.tei.query.RenderableDataValueIndicator;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.tei.query.context.sql.RenderableSqlQuery;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilder;
@@ -77,7 +78,9 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
     RenderableSqlQuery.RenderableSqlQueryBuilder builder = RenderableSqlQuery.builder();
 
     // Select fields are the union of headers, dimensions and sorting params
-    streamDimensions(acceptedHeaders, acceptedDimensions, acceptedSortingParams)
+    List<DimensionIdentifier<DimensionParam>> dimensions =
+        streamDimensions(acceptedHeaders, acceptedDimensions, acceptedSortingParams).toList();
+    dimensions.stream()
         .map(
             dimensionIdentifier ->
                 Field.ofUnquoted(
@@ -87,6 +90,16 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
                         dimensionIdentifier.getDimension().getUid(),
                         fromValueType(dimensionIdentifier.getDimension().getValueType())),
                     dimensionIdentifier.toString()))
+        .forEach(builder::selectField);
+    dimensions.stream()
+        .map(
+            dimensionIdentifier ->
+                Field.ofUnquoted(
+                    StringUtils.EMPTY,
+                    RenderableDataValueIndicator.of(
+                        doubleQuote(dimensionIdentifier.getPrefix()),
+                        dimensionIdentifier.getDimension().getUid()),
+                    dimensionIdentifier + ".exists"))
         .forEach(builder::selectField);
 
     // Groupable conditions comes from dimensions

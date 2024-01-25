@@ -41,6 +41,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -64,6 +65,7 @@ import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.PerformanceMetrics;
 import org.hisp.dhis.common.Reference;
+import org.hisp.dhis.common.ValueStatus;
 import org.hisp.dhis.common.adapter.JacksonRowDataSerializer;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.system.util.MathUtils;
@@ -1009,17 +1011,44 @@ public class ListGrid implements Grid, Serializable {
   public Grid addNamedRows(SqlRowSet rs) {
     String[] cols = headers.stream().map(GridHeader::getName).toArray(String[]::new);
     Set<String> headersSet = new LinkedHashSet<>();
+    Map<Integer, Map<String, Object>> rowContext = new HashMap<>();
 
     while (rs.next()) {
       addRow();
+      Map<String, Object> rowContextItem = new HashMap<>();
 
       for (int i = 0; i < cols.length; i++) {
         if (headerExists(cols[i])) {
-          addValue(rs.getObject(cols[i]));
-          headersSet.add(cols[i]);
+          String columnLabel = cols[i];
+          String indicatorColumnLabel = cols[i] + ".exists";
+
+          Object value = rs.getObject(columnLabel);
+          addValue(value);
+          headersSet.add(columnLabel);
+
+          if (Arrays.stream(rs.getMetaData().getColumnNames())
+              .anyMatch(n -> n.equalsIgnoreCase(indicatorColumnLabel))) {
+
+            boolean isDefined = rs.getBoolean(indicatorColumnLabel);
+            boolean isSet = isDefined && value != null;
+
+            ValueStatus valueStatus =
+                !isDefined
+                    ? ValueStatus.NOT_DEFINED
+                    : isSet ? ValueStatus.SET : ValueStatus.NOT_SET;
+            if (valueStatus != ValueStatus.SET) {
+              Map<String, String> valueStatusMap = new HashMap<>();
+              valueStatusMap.put("valueStatus", valueStatus.getValue());
+              rowContextItem.put(Integer.toString(i), valueStatusMap);
+            }
+          }
         }
       }
+      if (!rowContextItem.isEmpty()) {
+        rowContext.put(currentRowWriteIndex, rowContextItem);
+      }
     }
+    setRowContext(rowContext);
 
     // Needs to ensure the ordering of columns based on grid headers.
     repositionColumns(repositionHeaders(new ArrayList<>(headersSet)));
@@ -1116,6 +1145,24 @@ public class ListGrid implements Grid, Serializable {
       row.clear();
       row.addAll(orderedValues);
     }
+
+    // reposition columns in the row context structure
+    Map<Integer, Map<String, Object>> orderedRowContext = new HashMap<>();
+    Map<String, Object> orderedRowContextItems = new HashMap<>();
+
+    for (Integer rowCtxIndex : rowContext.keySet()) {
+      Map<String, Object> orderedRowContextItem = rowContext.get(rowCtxIndex);
+      orderedRowContextItem
+          .keySet()
+          .forEach(
+              key ->
+                  orderedRowContextItems.put(
+                      columnIndexes.get(Integer.parseInt(key)).toString(),
+                      orderedRowContextItem.get(key)));
+      orderedRowContext.put(rowCtxIndex, orderedRowContextItems);
+    }
+
+    setRowContext(orderedRowContext);
   }
 
   @Override
