@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static org.hisp.dhis.analytics.AnalyticsTableManager.TABLE_TEMP_SUFFIX;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -122,18 +120,6 @@ public class PartitionUtils
     }
 
     /**
-     * Returns a temporary table name.
-     *
-     * @param baseName the table base name.
-     * @param program the {@link Program}.
-     * @return the table name.
-     */
-    public static String getTempTableName( String baseName, Program program )
-    {
-        return baseName + TABLE_TEMP_SUFFIX + SEP + program.getUid().toLowerCase();
-    }
-
-    /**
      * Returns a table name.
      *
      * @param baseName the table base name.
@@ -143,18 +129,6 @@ public class PartitionUtils
     public static String getTableName( String baseName, TrackedEntityType trackedEntityType )
     {
         return baseName + SEP + trackedEntityType.getUid().toLowerCase();
-    }
-
-    /**
-     * Returns a temporary table name.
-     *
-     * @param baseName the table base name.
-     * @param trackedEntityType the {@link TrackedEntityType}.
-     * @return the table name.
-     */
-    public static String getTempTableName( String baseName, TrackedEntityType trackedEntityType )
-    {
-        return baseName + TABLE_TEMP_SUFFIX + SEP + trackedEntityType.getUid().toLowerCase();
     }
 
     /**

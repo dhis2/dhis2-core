@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.analytics;
 
-import static org.hisp.dhis.analytics.AnalyticsTableManager.TABLE_TEMP_SUFFIX;
-
 import java.util.Date;
 import java.util.List;
 
@@ -90,7 +88,7 @@ public class AnalyticsTable
         List<AnalyticsTableColumn> valueColumns )
     {
         this.tableName = tableType.getTableName();
-        this.tempTableName = tableType.getTableName() + TABLE_TEMP_SUFFIX;
+        this.tempTableName = tableType.getTempTableName();
         this.tableType = tableType;
         this.dimensionColumns = dimensionColumns;
         this.valueColumns = valueColumns;
@@ -103,7 +101,7 @@ public class AnalyticsTable
         Program program )
     {
         this.tableName = PartitionUtils.getTableName( tableType.getTableName(), program );
-        this.tempTableName = PartitionUtils.getTempTableName( tableType.getTableName(), program );
+        this.tempTableName = PartitionUtils.getTableName( tableType.getTempTableName(), program );
         this.tableType = tableType;
         this.dimensionColumns = dimensionColumns;
         this.valueColumns = valueColumns;
@@ -117,7 +115,7 @@ public class AnalyticsTable
         TrackedEntityType trackedEntityType )
     {
         this.tableName = PartitionUtils.getTableName( tableType.getTableName(), trackedEntityType );
-        this.tableName = PartitionUtils.getTempTableName( tableType.getTableName(), trackedEntityType );
+        this.tableName = PartitionUtils.getTableName( tableType.getTempTableName(), trackedEntityType );
         this.tableType = tableType;
         this.dimensionColumns = dimensionColumns;
         this.valueColumns = valueColumns;
@@ -161,8 +159,8 @@ public class AnalyticsTable
     {
         Assert.notNull( year, "Year must be specified" );
 
-        AnalyticsTablePartition tablePartition = new AnalyticsTablePartition( this, year, startDate, endDate, false ); // TODO
-        // approval
+        AnalyticsTablePartition tablePartition = new AnalyticsTablePartition( this, year, startDate, endDate, false );
+
         this.tablePartitions.add( tablePartition );
 
         return this;
@@ -171,32 +169,6 @@ public class AnalyticsTable
     public String getBaseName()
     {
         return tableType.getTableName();
-    }
-
-    public String getTableName()
-    {
-        return getTableName( tableType.getTableName() );
-    }
-
-    public String getTempTableName()
-    {
-        return getTableName( tableType.getTableName() + AnalyticsTableManager.TABLE_TEMP_SUFFIX );
-    }
-
-    private String getTableName( String baseName )
-    {
-        if ( program != null )
-        {
-            return PartitionUtils.getTableName( baseName, program );
-        }
-        else if ( trackedEntityType != null )
-        {
-            return PartitionUtils.getTableName( baseName, trackedEntityType );
-        }
-        else
-        {
-            return baseName;
-        }
     }
 
     public boolean hasPartitionTables()
