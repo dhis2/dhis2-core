@@ -32,6 +32,7 @@ import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
 
 import java.util.stream.Collectors;
+import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
@@ -162,9 +163,13 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
     for (Column column : table.getColumns()) {
       String dataType = getDataTypeName(column.getDataType());
-      String nullable = column.getNullable() == Nullable.NOT_NULL ? "not null" : "null";
+      String nullable = column.getNullable() == Nullable.NOT_NULL ? " not null" : " null";
+      String collation = column.getCollation() == Collation.C ? (" collate " + quote("C")) : "";
 
-      sql.append(quote(column.getName()) + " " + dataType + " " + nullable + ", ");
+      sql.append(quote(column.getName()) + " ")
+          .append(dataType)
+          .append(nullable)
+          .append(collation + ", ");
     }
 
     // Primary key
