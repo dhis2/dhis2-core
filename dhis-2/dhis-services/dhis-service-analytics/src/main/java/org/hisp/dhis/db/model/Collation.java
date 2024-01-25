@@ -27,6 +27,11 @@
  */
 package org.hisp.dhis.db.model;
 
+/**
+ * Enumeration of database collations.
+ *
+ * @author Lars Helge Overland
+ */
 public enum Collation {
   DEFAULT,
   C;
