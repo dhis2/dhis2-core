@@ -104,7 +104,7 @@ public class AnalyticsTable {
       List<AnalyticsTableColumn> valueColumns,
       TrackedEntityType trackedEntityType) {
     this.tableName = getTableName(tableType.getTableName(), trackedEntityType);
-    this.tableName = getTableName(tableType.getTempTableName(), trackedEntityType);
+    this.tempTableName = getTableName(tableType.getTempTableName(), trackedEntityType);
     this.tableType = tableType;
     this.dimensionColumns = dimensionColumns;
     this.valueColumns = valueColumns;

@@ -47,6 +47,14 @@ import org.junit.jupiter.api.Test;
  */
 class AnalyticsTableTest {
   @Test
+  void testGetTableName() {
+    AnalyticsTable table =
+        new AnalyticsTable(AnalyticsTableType.COMPLETENESS, List.of(), List.of());
+    assertEquals("analytics_completeness", table.getTableName());
+    assertEquals("analytics_completeness_temp", table.getTempTableName());
+  }
+
+  @Test
   void testGetTableNameWithProgram() {
     Program program = new Program("ProgramA", "DescriptionA");
     program.setUid("rfT56YbgFeK");
