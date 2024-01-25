@@ -2966,4 +2966,25 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "metaData.items['IpHINAT79UW.ZzYYXq4fJie.cYGaxwK615G'].name",
             equalTo("MCH Infant HIV Test Result"));
   }
+
+  @Test
+  public void booleanReturns1() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=bJeK4FaRKDS")
+            .add("headers=bJeK4FaRKDS")
+            .add("lastUpdated=LAST_YEAR")
+            .add("desc=lastupdated")
+            .add("relativePeriodDate=2020-01-01")
+            .add("pageSize=1");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("Zy2SEgA61ys", JSON, JSON, params);
+
+    // Then
+    response.validate().statusCode(200);
+
+    validateRow(response, 0, List.of("1"));
+  }
 }

@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.table;
 import static java.lang.String.join;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.analytics.ColumnDataType.BOOLEAN;
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
@@ -39,7 +38,6 @@ import static org.hisp.dhis.analytics.ColumnDataType.GEOMETRY;
 import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
 import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
-import static org.hisp.dhis.analytics.ColumnDataType.VARCHAR_1200;
 import static org.hisp.dhis.analytics.ColumnDataType.VARCHAR_255;
 import static org.hisp.dhis.analytics.ColumnDataType.VARCHAR_50;
 import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
@@ -47,6 +45,7 @@ import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NULL;
 import static org.hisp.dhis.analytics.IndexType.GIST;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
@@ -284,8 +283,10 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
             .map(
                 tea ->
                     new AnalyticsTableColumn(
-                        quote(tea.getUid()), VARCHAR_1200, "\"" + tea.getUid() + "\".value"))
-            .collect(toList()));
+                        quote(tea.getUid()),
+                        getColumnType(tea.getValueType(), isSpatialSupport()),
+                        getSelectClause(tea.getValueType(), "\"" + tea.getUid() + "\".value")))
+            .toList());
 
     return columns;
   }
