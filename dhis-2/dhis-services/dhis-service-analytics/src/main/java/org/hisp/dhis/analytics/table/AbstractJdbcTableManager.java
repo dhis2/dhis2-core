@@ -336,9 +336,9 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
     String tableName = table.getTempTableName();
     Logged logged = analyticsExportSettings.getTableLogged();
-    String logParam = logged == Logged.UNLOGGED ? "unlogged" : "";
+    String unlogged = logged == Logged.UNLOGGED ? "unlogged" : "";
 
-    sql.append("create ").append(logParam).append(" table ").append(tableName).append(" (");
+    sql.append("create ").append(unlogged).append(" table ").append(tableName).append(" (");
 
     for (AnalyticsTableColumn col : table.getColumns()) {
       String dataType = col.getDataType().getValue();

@@ -154,10 +154,10 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String createTable(Table table) {
-    String unlogged = table.getLogged() == Logged.UNLOGGED ? "unlogged " : "";
+    String unlogged = table.getLogged() == Logged.UNLOGGED ? " unlogged" : "";
 
     StringBuilder sql =
-        new StringBuilder("create " + unlogged + "table " + quote(table.getName()) + " (");
+        new StringBuilder("create" + unlogged + " table " + quote(table.getName()) + " (");
 
     // Columns
 
