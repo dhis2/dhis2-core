@@ -296,7 +296,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   /**
    * Populates the given analytics table.
    *
-   * @param the {@link AnalyticsTableUpdateParams}.
+   * @param params the {@link AnalyticsTableUpdateParams}.
    * @param partition the {@link AnalyticsTablePartition}.
    * @param valueExpression the numeric value expression.
    * @param textValueExpression the textual value expression.
