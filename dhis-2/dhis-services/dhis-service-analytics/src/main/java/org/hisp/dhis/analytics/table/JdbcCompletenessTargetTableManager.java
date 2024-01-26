@@ -116,8 +116,7 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
     return params.isLatestUpdate()
         ? List.of()
-        : List.of(
-            new AnalyticsTable(getAnalyticsTableType(), getDimensionColumns(), getValueColumns()));
+        : List.of(new AnalyticsTable(getAnalyticsTableType(), getDimensionColumns(), List.of()));
   }
 
   @Override
@@ -159,9 +158,10 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
       sql += col.getSelectExpression() + ",";
     }
 
+    sql = TextUtils.removeLastComma(sql) + " ";
+
     sql +=
-        "1 as value "
-            + "from _datasetorganisationunitcategory doc "
+        "from _datasetorganisationunitcategory doc "
             + "inner join dataset ds on doc.datasetid=ds.datasetid "
             + "inner join organisationunit ou on doc.organisationunitid=ou.organisationunitid "
             + "left join _orgunitstructure ous on doc.organisationunitid=ous.organisationunitid "
@@ -214,12 +214,9 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
     }
 
     columns.addAll(getFixedColumns());
+    columns.add(new AnalyticsTableColumn(quote("value"), DOUBLE, "1 as value"));
 
     return filterDimensionColumns(columns);
-  }
-
-  private List<AnalyticsTableColumn> getValueColumns() {
-    return List.of(new AnalyticsTableColumn(quote("value"), DOUBLE, "value"));
   }
 
   @Override
