@@ -151,7 +151,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
    */
   private void getEnrollments(
       EventQueryParams params, Grid grid, String sql, boolean unlimitedPaging) {
-    log.debug(String.format("Analytics enrollment query SQL: %s", sql));
+    log.debug("Analytics enrollment query SQL: '{}'", sql);
 
     SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
 
@@ -251,7 +251,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
     long count = 0;
 
-    log.debug("Analytics enrollment count SQL: " + sql);
+    log.debug("Analytics enrollment count SQL: '{}'", sql);
 
     final String finalSqlValue = sql;
 

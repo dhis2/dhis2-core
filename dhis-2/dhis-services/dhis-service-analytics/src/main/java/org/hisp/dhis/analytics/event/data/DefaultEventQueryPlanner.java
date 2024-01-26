@@ -37,6 +37,7 @@ import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
+import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.Partitions;
@@ -98,7 +99,7 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
   public EventQueryParams planEnrollmentQuery(EventQueryParams params) {
     return new EventQueryParams.Builder(params)
         .withTableName(
-            PartitionUtils.getTableName(
+            AnalyticsTable.getTableName(
                 AnalyticsTableType.ENROLLMENT.getTableName(), params.getProgram()))
         .build();
   }
@@ -124,7 +125,7 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
             ? AnalyticsTableType.ENROLLMENT.getTableName()
             : AnalyticsTableType.EVENT.getTableName();
 
-    String tableName = PartitionUtils.getTableName(baseName, params.getProgram());
+    String tableName = AnalyticsTable.getTableName(baseName, params.getProgram());
 
     if (params.getCurrentUser() != null) {
       partitionManager.filterNonExistingPartitions(partitions, tableName);

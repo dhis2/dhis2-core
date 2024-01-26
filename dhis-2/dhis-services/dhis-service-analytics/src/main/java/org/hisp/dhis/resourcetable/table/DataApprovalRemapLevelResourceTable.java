@@ -27,10 +27,15 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
-import com.google.common.collect.Lists;
+import static org.hisp.dhis.db.model.Table.toStaging;
+
 import java.util.List;
 import java.util.Optional;
-import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
+import org.hisp.dhis.db.model.Column;
+import org.hisp.dhis.db.model.DataType;
+import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.model.Table;
+import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
@@ -50,12 +55,29 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
  *
  * @author Jim Grace
  */
-public class DataApprovalRemapLevelResourceTable extends ResourceTable<DataApprovalWorkflow> {
-  private final String tableType;
+public class DataApprovalRemapLevelResourceTable implements ResourceTable {
+  private static final String TABLE_NAME = "_dataapprovalremaplevel";
 
-  public DataApprovalRemapLevelResourceTable(List<DataApprovalWorkflow> objects, String tableType) {
-    super(objects);
-    this.tableType = tableType;
+  private final Logged logged;
+
+  public DataApprovalRemapLevelResourceTable(Logged logged) {
+    this.logged = logged;
+  }
+
+  @Override
+  public Table getTable() {
+    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), List.of(), logged);
+  }
+
+  private List<Column> getColumns() {
+    return List.of(
+        new Column("workflowid", DataType.BIGINT, Nullable.NOT_NULL),
+        new Column("dataapprovallevelid", DataType.BIGINT, Nullable.NOT_NULL),
+        new Column("level", DataType.INTEGER, Nullable.NOT_NULL));
+  }
+
+  private List<String> getPrimaryKey() {
+    return List.of("workflowid", "dataapprovallevelid");
   }
 
   @Override
@@ -64,23 +86,10 @@ public class DataApprovalRemapLevelResourceTable extends ResourceTable<DataAppro
   }
 
   @Override
-  public String getCreateTempTableStatement() {
-    return "create "
-        + tableType
-        + " table "
-        + getTempTableName()
-        + "("
-        + "workflowid bigint not null, "
-        + "dataapprovallevelid bigint not null, "
-        + "level integer not null, "
-        + "primary key (workflowid,dataapprovallevelid))";
-  }
-
-  @Override
   public Optional<String> getPopulateTempTableStatement() {
     String sql =
         "insert into "
-            + getTempTableName()
+            + toStaging(TABLE_NAME)
             + " (workflowid,dataapprovallevelid,level) "
             + "select w.workflowid, w.dataapprovallevelid, "
             + "1 + coalesce((select max(l2.level) "
@@ -97,10 +106,5 @@ public class DataApprovalRemapLevelResourceTable extends ResourceTable<DataAppro
   @Override
   public Optional<List<Object[]>> getPopulateTempTableContent() {
     return Optional.empty();
-  }
-
-  @Override
-  public List<String> getCreateIndexStatements() {
-    return Lists.newArrayList();
   }
 }

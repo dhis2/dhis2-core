@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
+import static org.hisp.dhis.db.model.Table.toStaging;
+import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
+
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Date;
@@ -38,6 +41,13 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.db.model.Column;
+import org.hisp.dhis.db.model.DataType;
+import org.hisp.dhis.db.model.Index;
+import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.model.Table;
+import org.hisp.dhis.db.model.constraint.Nullable;
+import org.hisp.dhis.db.model.constraint.Unique;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
@@ -46,31 +56,47 @@ import org.hisp.dhis.util.DateUtils;
 /**
  * @author Lars Helge Overland
  */
-public class DataSetOrganisationUnitCategoryResourceTable extends ResourceTable<DataSet> {
-  private CategoryOptionCombo defaultOptionCombo;
+public class DataSetOrganisationUnitCategoryResourceTable implements ResourceTable {
+  private static final String TABLE_NAME = "_datasetorganisationunitcategory";
 
-  private final String tableType;
+  private final List<DataSet> dataSets;
+
+  private final CategoryOptionCombo defaultOptionCombo;
+
+  private final Logged logged;
 
   public DataSetOrganisationUnitCategoryResourceTable(
-      List<DataSet> objects, CategoryOptionCombo defaultOptionCombo, String tableType) {
-    this.objects = objects;
+      List<DataSet> dataSets, CategoryOptionCombo defaultOptionCombo, Logged logged) {
+    this.dataSets = dataSets;
     this.defaultOptionCombo = defaultOptionCombo;
-    this.tableType = tableType;
+    this.logged = logged;
+  }
+
+  @Override
+  public Table getTable() {
+    return new Table(toStaging(TABLE_NAME), getColumns(), List.of(), getIndexes(), logged);
+  }
+
+  private List<Column> getColumns() {
+    return List.of(
+        new Column("datasetid", DataType.BIGINT, Nullable.NOT_NULL),
+        new Column("organisationunitid", DataType.BIGINT, Nullable.NOT_NULL),
+        new Column("attributeoptioncomboid", DataType.BIGINT, Nullable.NOT_NULL),
+        new Column("costartdate", DataType.DATE),
+        new Column("coenddate", DataType.DATE));
+  }
+
+  private List<Index> getIndexes() {
+    return List.of(
+        new Index(
+            appendRandom("_datasetorganisationunitcategory"),
+            Unique.UNIQUE,
+            List.of("datasetid", "organisationunitid", "attributeoptioncomboid")));
   }
 
   @Override
   public ResourceTableType getTableType() {
     return ResourceTableType.DATA_SET_ORG_UNIT_CATEGORY;
-  }
-
-  @Override
-  public String getCreateTempTableStatement() {
-    return "create "
-        + tableType
-        + " table "
-        + getTempTableName()
-        + "(datasetid bigint not null, organisationunitid bigint not null, "
-        + "attributeoptioncomboid bigint not null, costartdate date, coenddate date)";
   }
 
   @Override
@@ -89,7 +115,7 @@ public class DataSetOrganisationUnitCategoryResourceTable extends ResourceTable<
   public Optional<List<Object[]>> getPopulateTempTableContent() {
     List<Object[]> batchArgs = new ArrayList<>();
 
-    for (DataSet dataSet : objects) {
+    for (DataSet dataSet : dataSets) {
       CategoryCombo categoryCombo = dataSet.getCategoryCombo();
 
       for (OrganisationUnit orgUnit : dataSet.getSources()) {
@@ -131,19 +157,5 @@ public class DataSetOrganisationUnitCategoryResourceTable extends ResourceTable<
     }
 
     return Optional.of(batchArgs);
-  }
-
-  @Override
-  public List<String> getCreateIndexStatements() {
-    String sql =
-        "create unique index in_"
-            + getTableName()
-            + "_"
-            + getRandomSuffix()
-            + " on "
-            + getTempTableName()
-            + "(datasetid, organisationunitid, attributeoptioncomboid)";
-
-    return Lists.newArrayList(sql);
   }
 }

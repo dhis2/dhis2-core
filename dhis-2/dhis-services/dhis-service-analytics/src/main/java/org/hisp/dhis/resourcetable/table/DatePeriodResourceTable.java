@@ -28,14 +28,20 @@
 package org.hisp.dhis.resourcetable.table;
 
 import static java.util.stream.Collectors.toList;
-import static org.hisp.dhis.system.util.SqlUtils.quote;
+import static org.hisp.dhis.db.model.Table.toStaging;
 
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
+import org.hisp.dhis.db.model.Column;
+import org.hisp.dhis.db.model.DataType;
+import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.model.Table;
+import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.period.Cal;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.Period;
@@ -46,41 +52,39 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 /**
  * @author Lars Helge Overland
  */
-public class DatePeriodResourceTable extends ResourceTable<Integer> {
-  private final String tableType;
+public class DatePeriodResourceTable implements ResourceTable {
+  private static final String TABLE_NAME = "_dateperiodstructure";
 
-  /**
-   * Constructor method.
-   *
-   * @param years the list of years that periods will be generated for.
-   * @param tableType the table type.
-   */
-  public DatePeriodResourceTable(List<Integer> years, String tableType) {
-    super(years);
-    this.tableType = tableType;
+  private final List<Integer> years;
+
+  private final Logged logged;
+
+  public DatePeriodResourceTable(List<Integer> years, Logged logged) {
+    this.years = years;
+    this.logged = logged;
+  }
+
+  @Override
+  public Table getTable() {
+    return new Table(toStaging(TABLE_NAME), getColumns(), List.of(), List.of(), logged);
+  }
+
+  private List<Column> getColumns() {
+    List<Column> columns =
+        Lists.newArrayList(
+            new Column("dateperiod", DataType.DATE, Nullable.NOT_NULL),
+            new Column("year", DataType.INTEGER, Nullable.NOT_NULL));
+
+    for (PeriodType periodType : PeriodType.PERIOD_TYPES) {
+      columns.add(new Column(periodType.getName().toLowerCase(), DataType.VARCHAR_50));
+    }
+
+    return columns;
   }
 
   @Override
   public ResourceTableType getTableType() {
     return ResourceTableType.DATE_PERIOD_STRUCTURE;
-  }
-
-  @Override
-  public String getCreateTempTableStatement() {
-    String sql =
-        "create "
-            + tableType
-            + " table "
-            + getTempTableName()
-            + " (dateperiod date not null primary key, year integer not null";
-
-    for (PeriodType periodType : PeriodType.PERIOD_TYPES) {
-      sql += ", " + quote(periodType.getName().toLowerCase()) + " varchar(15)";
-    }
-
-    sql += ")";
-
-    return sql;
   }
 
   @Override
@@ -94,8 +98,8 @@ public class DatePeriodResourceTable extends ResourceTable<Integer> {
 
     List<Object[]> batchArgs = new ArrayList<>();
 
-    int firstYearSupported = objects.get(0);
-    int lastYearSupported = objects.get(objects.size() - 1);
+    int firstYearSupported = years.get(0);
+    int lastYearSupported = years.get(years.size() - 1);
 
     Date startDate = new Cal(firstYearSupported, 1, 1, true).time();
     Date endDate = new Cal(lastYearSupported + 1, 1, 1, true).time();
@@ -123,20 +127,5 @@ public class DatePeriodResourceTable extends ResourceTable<Integer> {
     }
 
     return Optional.of(batchArgs);
-  }
-
-  @Override
-  public List<String> getCreateIndexStatements() {
-    List<String> indexes = new ArrayList<>();
-
-    for (PeriodType periodType : PeriodType.PERIOD_TYPES) {
-      String colName = periodType.getName().toLowerCase();
-      String indexName = "in" + getTableName() + "_" + colName + "_" + getRandomSuffix();
-      String sql =
-          "create index " + indexName + " on " + getTempTableName() + "(" + quote(colName) + ")";
-      indexes.add(sql);
-    }
-
-    return indexes;
   }
 }
