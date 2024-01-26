@@ -70,7 +70,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
   @Test
   void shouldGetIconWhenIconKeyExists() throws IOException {
     String fileResourceId = createFileResource();
-    createIcon(fileResourceId, keywords);
+    createCustomIcon(fileResourceId, keywords);
 
     JsonObject response = GET(String.format("/icons/%s", iconKey)).content();
 
@@ -88,7 +88,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
   void shouldUpdateIconWhenKeyExists() throws IOException {
     String updatedDescription = "updatedDescription";
     String updatedKeywords = "['new k1', 'new k2']";
-    createIcon(createFileResource(), keywords);
+    createCustomIcon(createFileResource(), keywords);
 
     JsonObject response =
         PUT(
@@ -108,7 +108,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
   @Test
   void shouldGetOnlyCustomIcons() throws IOException {
     String fileResourceId = createFileResource();
-    createIcon(fileResourceId, keywords);
+    createCustomIcon(fileResourceId, keywords);
 
     JsonList<JsonIcon> icons =
         GET("/icons?keywords=m1").content(HttpStatus.OK).asList(JsonIcon.class);
@@ -119,7 +119,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
   @Test
   void shouldGetIconsWithSpecifiedKey() throws IOException {
     String fileResourceId = createFileResource();
-    createIcon(fileResourceId, keyword);
+    createCustomIcon(fileResourceId, keyword);
 
     JsonList<JsonIcon> icons =
         GET("/icons?keywords=m1").content(HttpStatus.OK).asList(JsonIcon.class);
@@ -129,14 +129,14 @@ class IconControllerTest extends DhisControllerIntegrationTest {
 
   @Test
   void shouldDeleteIconWhenKeyExists() throws IOException {
-    createIcon(createFileResource(), keywords);
+    createCustomIcon(createFileResource(), keywords);
 
     JsonObject response = DELETE(String.format("/icons/%s", iconKey)).content();
 
     assertEquals(String.format("Icon %s deleted", iconKey), response.getString("message").string());
   }
 
-  private String createIcon(String fileResourceId, String keywords) {
+  private String createCustomIcon(String fileResourceId, String keywords) {
 
     String key =
         """
