@@ -310,7 +310,7 @@ public class QueryItemHelper {
       try {
         return ((Number) rowContent).doubleValue() == Double.parseDouble(code);
       } catch (NumberFormatException e) {
-        log.warn(String.format("code %s is not Doublw", code), e.getMessage());
+        log.warn(String.format("Code %s is not double", code), e.getMessage());
       }
     }
 

@@ -27,12 +27,11 @@
  */
 package org.hisp.dhis.analytics.table.setting;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_UNLOGGED;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_PERIOD_YEARS_OFFSET;
 
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.stereotype.Component;
@@ -50,25 +49,18 @@ public class AnalyticsTableExportSettings {
 
   private final SystemSettingManager systemSettingManager;
 
-  private static final String PARAM_UNLOGGED = "unlogged";
-
   /**
-   * Returns a string with the table parameters. The supported parameters are:
+   * Returns the setting indicating whether resource and analytics tables should be logged or
+   * unlogged.
    *
-   * <ul>
-   *   <li>unlogged
-   * </ul>
-   *
-   * .
-   *
-   * @return the string representation of {@link AnalyticsTableType}.
+   * @return the {@link Logged} parameter.
    */
-  public String getTableParameters() {
+  public Logged getTableLogged() {
     if (dhisConfigurationProvider.isEnabled(ANALYTICS_TABLE_UNLOGGED)) {
-      return PARAM_UNLOGGED;
+      return Logged.UNLOGGED;
     }
 
-    return EMPTY;
+    return Logged.LOGGED;
   }
 
   /**

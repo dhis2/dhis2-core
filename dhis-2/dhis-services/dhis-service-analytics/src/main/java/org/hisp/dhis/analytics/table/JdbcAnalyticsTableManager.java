@@ -65,7 +65,6 @@ import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
@@ -323,18 +322,16 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
 
     String sql = "insert into " + partition.getTempTableName() + " (";
 
-    List<AnalyticsTableColumn> columns = getDimensionColumns(partition.getYear(), params);
-    List<AnalyticsTableColumn> values = partition.getMasterTable().getValueColumns();
+    List<AnalyticsTableColumn> dimensions = getDimensionColumns(partition.getYear(), params);
+    List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
 
-    validateDimensionColumns(columns);
-
-    for (AnalyticsTableColumn col : ListUtils.union(columns, values)) {
+    for (AnalyticsTableColumn col : columns) {
       sql += col.getName() + ",";
     }
 
     sql = TextUtils.removeLastComma(sql) + ") select ";
 
-    for (AnalyticsTableColumn col : columns) {
+    for (AnalyticsTableColumn col : dimensions) {
       sql += col.getAlias() + ",";
     }
 
@@ -618,7 +615,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     sql.append(" where oulevel > " + aggregationLevel);
     sql.append(" and dx in (" + getQuotedCommaDelimitedString(dataElements) + ")");
 
-    log.debug("Aggregation level SQL: " + sql);
+    log.debug("Aggregation level SQL: '{}'", sql);
 
     jdbcTemplate.execute(sql.toString());
   }
@@ -627,7 +624,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   public void vacuumTables(AnalyticsTablePartition partition) {
     String sql = "vacuum " + partition.getTempTableName();
 
-    log.debug("Vacuum SQL: " + sql);
+    log.debug("Vacuum table SQL: '{}'", sql);
 
     jdbcTemplate.execute(sql);
   }
@@ -650,9 +647,10 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         systemSettingManager.getIntegerSetting(SettingKey.IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD);
 
     log.debug(
-        String.format(
-            "Hide approval setting: %b, approval levels exists: %b, max years threshold: %d",
-            setting, levels, maxYears));
+        "Hide approval setting: {}, approval levels exists: {}, max years threshold: {}",
+        setting,
+        levels,
+        maxYears);
 
     if (year != null) {
       boolean periodOverMaxYears = AnalyticsUtils.periodIsOutsideApprovalMaxYears(year, maxYears);
@@ -671,19 +669,19 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
    */
   private String getOutliersJoinStatement() {
     return "left join (select t3.dataelementid, "
-        + "                           t3.sourceid, "
-        + "                           t3.categoryoptioncomboid, "
-        + "                           t3.attributeoptioncomboid, "
+        + "t3.sourceid, "
+        + "t3.categoryoptioncomboid, "
+        + "t3.attributeoptioncomboid, "
         // median of absolute deviations "mad" (median(xi - median(xi)))
-        + "                           percentile_cont(0.5) "
-        + "                           within group (order by abs(t3.value::double precision - t3.percentile_middle_value)) as MAD, "
+        + "percentile_cont(0.5) "
+        + "within group (order by abs(t3.value::double precision - t3.percentile_middle_value)) as MAD, "
         // mean
-        + "                           avg(t3.value::double precision)                                                 as avg_middle_value, "
+        + "avg(t3.value::double precision) as avg_middle_value, "
         // median of the samples (median(xi))
-        + "                           percentile_cont(0.5) "
-        + "                           within group (order by t3.value::double precision)                              as percentile_middle_value, "
+        + "percentile_cont(0.5) "
+        + "within group (order by t3.value::double precision) as percentile_middle_value, "
         // standard deviation of the normal distribution
-        + "                           stddev_pop(t3.value::double precision)                                          as std_dev "
+        + "stddev_pop(t3.value::double precision) as std_dev "
         // Table "t3" is the composition of the tables "t2" (median of xi) and "t3" (values xi).
         // For Z-Score  the mean (avg_middle_value) and standard deviation (std_dev) is used ((xi -
         // mean(x))/std_dev).
@@ -691,56 +689,56 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         // deviations (mad) is used (0.6745*(xi - median(x)/mad)).
         // The factor 0.6745 is the 0.75 quartile of the normal distribution, to which the "mad"
         // converges to.
-        + "                    from (select t1.dataelementid, "
-        + "                                 t1.sourceid, "
-        + "                                 t1.categoryoptioncomboid, "
-        + "                                 t1.attributeoptioncomboid, "
-        + "                                 t1.percentile_middle_value, "
-        + "                                 t2.value "
+        + "from (select t1.dataelementid, "
+        + "t1.sourceid, "
+        + "t1.categoryoptioncomboid, "
+        + "t1.attributeoptioncomboid, "
+        + "t1.percentile_middle_value, "
+        + "t2.value "
         // Table "t1" retrieving the median of all data element (dataelementid) values belongs to
         // the same organisation (sourceid)
         // coc and aoc.
-        + "                          from (select dv1.dataelementid                                   as dataelementid, "
-        + "                                       dv1.sourceid                                        as sourceid, "
-        + "                                       dv1.categoryoptioncomboid                           as categoryoptioncomboid, "
-        + "                                       dv1.attributeoptioncomboid                          as attributeoptioncomboid, "
+        + "from (select dv1.dataelementid as dataelementid, "
+        + "dv1.sourceid as sourceid, "
+        + "dv1.categoryoptioncomboid as categoryoptioncomboid, "
+        + "dv1.attributeoptioncomboid as attributeoptioncomboid, "
         // median
-        + "                                       percentile_cont(0.5) "
-        + "                                       within group (order by dv1.value::double precision) as percentile_middle_value "
-        + "                                from datavalue dv1 "
-        + "                                         inner join period pe on dv1.periodid = pe.periodid "
-        + "                                         inner join organisationunit ou on dv1.sourceid = ou.organisationunitid "
+        + "percentile_cont(0.5) "
+        + "within group (order by dv1.value::double precision) as percentile_middle_value "
+        + "from datavalue dv1 "
+        + "inner join period pe on dv1.periodid = pe.periodid "
+        + "inner join organisationunit ou on dv1.sourceid = ou.organisationunitid "
         // Only numeric values (value is varchar or string) can be used for stats calculation.
-        + "                                where dv1.value ~ '^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$' "
-        + "                                group by dv1.dataelementid, dv1.sourceid, dv1.categoryoptioncomboid, "
-        + "                                         dv1.attributeoptioncomboid) t1 "
-        + "                                   join "
+        + "where dv1.value ~ '^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$' "
+        + "group by dv1.dataelementid, dv1.sourceid, dv1.categoryoptioncomboid, "
+        + "dv1.attributeoptioncomboid) t1 "
+        + "join "
         // Table "t2" is the complement of the t1 table. It contains all values belong to the
         // specific median (see t1).
         // To "group by" criteria is added the time dimension (periodid). This part of the query has
         // to be verified (maybe add tei to aggregation criteria).
-        + "                               (select dv1.dataelementid          as dataelementid, "
-        + "                                       dv1.sourceid               as sourceid, "
-        + "                                       dv1.categoryoptioncomboid  as categoryoptioncomboid, "
-        + "                                       dv1.attributeoptioncomboid as attributeoptioncomboid, "
-        + "                                       dv1.value, "
-        + "                                       dv1.periodid "
-        + "                                from datavalue dv1 "
-        + "                                         inner join period pe on dv1.periodid = pe.periodid "
-        + "                                         inner join organisationunit ou on dv1.sourceid = ou.organisationunitid "
+        + "(select dv1.dataelementid as dataelementid, "
+        + "dv1.sourceid as sourceid, "
+        + "dv1.categoryoptioncomboid  as categoryoptioncomboid, "
+        + "dv1.attributeoptioncomboid as attributeoptioncomboid, "
+        + "dv1.value, "
+        + "dv1.periodid "
+        + "from datavalue dv1 "
+        + "inner join period pe on dv1.periodid = pe.periodid "
+        + "inner join organisationunit ou on dv1.sourceid = ou.organisationunitid "
         // Only numeric values (varchars) can be used for stats calculation.
-        + "                                where dv1.value ~ '^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$' "
-        + "                                group by dv1.dataelementid, dv1.sourceid, dv1.categoryoptioncomboid, "
-        + "                                         dv1.attributeoptioncomboid, dv1.value, dv1.periodid) t2 "
-        + "                               on t1.sourceid = t2.sourceid "
-        + "                                   and t1.categoryoptioncomboid = t2.categoryoptioncomboid "
-        + "                                   and t1.attributeoptioncomboid = t2.attributeoptioncomboid "
-        + "                                   and t1.dataelementid = t2.dataelementid) as t3 "
-        + "                    group by t3.dataelementid, t3.sourceid, t3.categoryoptioncomboid, "
-        + "                             t3.attributeoptioncomboid) as stats "
-        + "                   on dv.dataelementid = stats.dataelementid and dv.sourceid = stats.sourceid and "
-        + "                      dv.categoryoptioncomboid = stats.categoryoptioncomboid and "
-        + "                      dv.attributeoptioncomboid = stats.attributeoptioncomboid ";
+        + "where dv1.value ~ '^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$' "
+        + "group by dv1.dataelementid, dv1.sourceid, dv1.categoryoptioncomboid, "
+        + "dv1.attributeoptioncomboid, dv1.value, dv1.periodid) t2 "
+        + "on t1.sourceid = t2.sourceid "
+        + "and t1.categoryoptioncomboid = t2.categoryoptioncomboid "
+        + "and t1.attributeoptioncomboid = t2.attributeoptioncomboid "
+        + "and t1.dataelementid = t2.dataelementid) as t3 "
+        + "group by t3.dataelementid, t3.sourceid, t3.categoryoptioncomboid, "
+        + "t3.attributeoptioncomboid) as stats "
+        + "on dv.dataelementid = stats.dataelementid and dv.sourceid = stats.sourceid and "
+        + "dv.categoryoptioncomboid = stats.categoryoptioncomboid and "
+        + "dv.attributeoptioncomboid = stats.attributeoptioncomboid ";
   }
 
   private boolean skipOutliers(AnalyticsTableUpdateParams params) {

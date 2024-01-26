@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
-import static org.hisp.dhis.system.util.SqlUtils.quote;
+import static org.hisp.dhis.db.model.Table.toStaging;
+import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
@@ -38,6 +39,13 @@ import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.db.model.Column;
+import org.hisp.dhis.db.model.DataType;
+import org.hisp.dhis.db.model.Index;
+import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.model.Table;
+import org.hisp.dhis.db.model.constraint.Nullable;
+import org.hisp.dhis.db.model.constraint.Unique;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.WeeklyAbstractPeriodType;
@@ -49,36 +57,52 @@ import org.joda.time.DateTime;
  * @author Lars Helge Overland
  */
 @Slf4j
-public class PeriodResourceTable extends ResourceTable<Period> {
-  private final String tableType;
+public class PeriodResourceTable implements ResourceTable {
+  private static final String TABLE_NAME = "_periodstructure";
 
-  public PeriodResourceTable(List<Period> objects, String tableType) {
-    super(objects);
-    this.tableType = tableType;
+  private final List<Period> periods;
+
+  private final Logged logged;
+
+  public PeriodResourceTable(List<Period> periods, Logged logged) {
+    this.periods = periods;
+    this.logged = logged;
+  }
+
+  @Override
+  public Table getTable() {
+    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), getIndexes(), logged);
+  }
+
+  private List<Column> getColumns() {
+    List<Column> columns =
+        Lists.newArrayList(
+            new Column("periodid", DataType.BIGINT, Nullable.NOT_NULL),
+            new Column("iso", DataType.VARCHAR_50, Nullable.NOT_NULL),
+            new Column("daysno", DataType.INTEGER, Nullable.NOT_NULL),
+            new Column("startdate", DataType.DATE, Nullable.NOT_NULL),
+            new Column("enddate", DataType.DATE, Nullable.NOT_NULL),
+            new Column("year", DataType.INTEGER, Nullable.NOT_NULL));
+
+    for (PeriodType periodType : PeriodType.PERIOD_TYPES) {
+      columns.add(new Column(periodType.getName().toLowerCase(), DataType.VARCHAR_50));
+    }
+
+    return columns;
+  }
+
+  private List<String> getPrimaryKey() {
+    return List.of("periodid");
+  }
+
+  private List<Index> getIndexes() {
+    return List.of(
+        new Index(appendRandom("in_periodstructure_iso"), Unique.UNIQUE, List.of("iso")));
   }
 
   @Override
   public ResourceTableType getTableType() {
     return ResourceTableType.PERIOD_STRUCTURE;
-  }
-
-  @Override
-  public String getCreateTempTableStatement() {
-    String sql =
-        "create "
-            + tableType
-            + " table "
-            + getTempTableName()
-            + " (periodid bigint not null primary key, iso varchar(15) not null, "
-            + "daysno integer not null, startdate date not null, enddate date not null, year integer not null";
-
-    for (PeriodType periodType : PeriodType.PERIOD_TYPES) {
-      sql += ", " + quote(periodType.getName().toLowerCase()) + " varchar(15)";
-    }
-
-    sql += ")";
-
-    return sql;
   }
 
   @Override
@@ -94,7 +118,7 @@ public class PeriodResourceTable extends ResourceTable<Period> {
 
     Set<String> uniqueIsoDates = new HashSet<>();
 
-    for (Period period : objects) {
+    for (Period period : periods) {
       if (period != null && period.isValid()) {
         final String isoDate = period.getIsoDate();
 
@@ -126,15 +150,6 @@ public class PeriodResourceTable extends ResourceTable<Period> {
     }
 
     return Optional.of(batchArgs);
-  }
-
-  @Override
-  public List<String> getCreateIndexStatements() {
-    String name = "in_periodstructure_iso_" + getRandomSuffix();
-
-    String sql = "create unique index " + name + " on " + getTempTableName() + "(iso)";
-
-    return Lists.newArrayList(sql);
   }
 
   /**

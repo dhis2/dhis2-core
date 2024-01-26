@@ -27,15 +27,22 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
-import static org.hisp.dhis.system.util.SqlUtils.quote;
+import static org.hisp.dhis.db.model.Table.toStaging;
+import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.hisp.dhis.db.model.Column;
+import org.hisp.dhis.db.model.DataType;
+import org.hisp.dhis.db.model.Index;
+import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.model.Table;
+import org.hisp.dhis.db.model.constraint.Nullable;
+import org.hisp.dhis.db.model.constraint.Unique;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.resourcetable.ResourceTable;
@@ -44,51 +51,60 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 /**
  * @author Lars Helge Overland
  */
-public class OrganisationUnitStructureResourceTable extends ResourceTable<OrganisationUnit> {
-  private final OrganisationUnitService organisationUnitService; // Nasty
+public class OrganisationUnitStructureResourceTable implements ResourceTable {
+  private static final String TABLE_NAME = "_orgunitstructure";
+
+  private final OrganisationUnitService organisationUnitService;
 
   private final int organisationUnitLevels;
 
-  private final String tableType;
+  private final Logged logged;
 
   public OrganisationUnitStructureResourceTable(
-      List<OrganisationUnit> objects,
-      OrganisationUnitService organisationUnitService,
-      int organisationUnitLevels,
-      String tableType) {
-    super(objects);
+      OrganisationUnitService organisationUnitService, int organisationUnitLevels, Logged logged) {
     this.organisationUnitService = organisationUnitService;
     this.organisationUnitLevels = organisationUnitLevels;
-    this.tableType = tableType;
+    this.logged = logged;
+  }
+
+  @Override
+  public Table getTable() {
+    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), getIndexes(), logged);
+  }
+
+  private List<Column> getColumns() {
+    List<Column> columns =
+        Lists.newArrayList(
+            new Column("organisationunitid", DataType.BIGINT, Nullable.NOT_NULL),
+            new Column("organisationunituid", DataType.CHARACTER_11, Nullable.NOT_NULL),
+            new Column("level", DataType.INTEGER, Nullable.NOT_NULL));
+
+    for (int k = 1; k <= organisationUnitLevels; k++) {
+      columns.addAll(
+          List.of(
+              new Column(("idlevel" + k), DataType.BIGINT),
+              new Column(("uidlevel" + k), DataType.CHARACTER_11),
+              new Column(("namelevel" + k), DataType.TEXT)));
+    }
+
+    return columns;
+  }
+
+  private List<String> getPrimaryKey() {
+    return List.of("organisationunitid");
+  }
+
+  private List<Index> getIndexes() {
+    return List.of(
+        new Index(
+            appendRandom("in_orgunitstructure_organisationunituid"),
+            Unique.UNIQUE,
+            List.of("organisationunituid")));
   }
 
   @Override
   public ResourceTableType getTableType() {
     return ResourceTableType.ORG_UNIT_STRUCTURE;
-  }
-
-  @Override
-  public String getCreateTempTableStatement() {
-    StringBuilder sql = new StringBuilder();
-
-    sql.append("create ")
-        .append(tableType)
-        .append(" table ")
-        .append(getTempTableName())
-        .append("(organisationunitid bigint not null primary key,")
-        .append("organisationunituid character(11), level integer");
-
-    for (int k = 1; k <= organisationUnitLevels; k++) {
-      sql.append(", ")
-          .append(quote("idlevel" + k))
-          .append(" bigint, ")
-          .append(quote("uidlevel" + k))
-          .append(" character(11), ")
-          .append(quote("namelevel" + k))
-          .append(" text");
-    }
-
-    return sql.append(");").toString();
   }
 
   @Override
@@ -103,8 +119,7 @@ public class OrganisationUnitStructureResourceTable extends ResourceTable<Organi
     for (int i = 0; i < organisationUnitLevels; i++) {
       int level = i + 1;
 
-      Collection<OrganisationUnit> units =
-          organisationUnitService.getOrganisationUnitsAtLevel(level);
+      List<OrganisationUnit> units = organisationUnitService.getOrganisationUnitsAtLevel(level);
 
       for (OrganisationUnit unit : units) {
         List<Object> values = new ArrayList<>();
@@ -136,15 +151,5 @@ public class OrganisationUnitStructureResourceTable extends ResourceTable<Organi
     }
 
     return Optional.of(batchArgs);
-  }
-
-  @Override
-  public List<String> getCreateIndexStatements() {
-    String name = "in_orgunitstructure_organisationunituid_" + getRandomSuffix();
-
-    String sql =
-        "create unique index " + name + " on " + getTempTableName() + "(organisationunituid)";
-
-    return Lists.newArrayList(sql);
   }
 }

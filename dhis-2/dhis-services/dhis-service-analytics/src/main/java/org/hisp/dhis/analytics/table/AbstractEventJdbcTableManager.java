@@ -133,8 +133,6 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
 
     String sql = "insert into " + partition.getTempTableName() + " (";
 
-    validateDimensionColumns(columns);
-
     for (AnalyticsTableColumn col : columns) {
       sql += col.getName() + ",";
     }
