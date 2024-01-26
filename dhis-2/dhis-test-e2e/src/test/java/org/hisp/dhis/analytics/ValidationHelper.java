@@ -162,9 +162,7 @@ public class ValidationHelper {
       ApiResponse response, int rowIndex, int colIndex, String valueStatus) {
     response
         .validate()
-        .body(
-            "rowContext." + rowIndex + "." + colIndex + ".valueStatus",
-            equalTo(valueStatus));
+        .body("rowContext." + rowIndex + "." + colIndex + ".valueStatus", equalTo(valueStatus));
   }
 
   /**
