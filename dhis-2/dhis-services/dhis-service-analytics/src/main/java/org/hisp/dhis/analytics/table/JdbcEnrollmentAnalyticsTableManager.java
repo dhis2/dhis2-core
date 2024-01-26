@@ -188,8 +188,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
 
     for (Program program : programs) {
       AnalyticsTable table =
-          new AnalyticsTable(
-              getAnalyticsTableType(), getDimensionColumns(program), List.of(), program);
+          new AnalyticsTable(getAnalyticsTableType(), getDimensionColumns(program), program);
 
       tables.add(table);
     }

@@ -225,10 +225,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
     params.addExtraParam("", PROGRAMS_BY_TET_KEY, programsByTetUid);
 
     return trackedEntityTypeService.getAllTrackedEntityType().stream()
-        .map(
-            tet ->
-                new AnalyticsTable(
-                    getAnalyticsTableType(), getTableColumns(params, tet), emptyList(), tet))
+        .map(tet -> new AnalyticsTable(getAnalyticsTableType(), getTableColumns(params, tet), tet))
         .toList();
   }
 

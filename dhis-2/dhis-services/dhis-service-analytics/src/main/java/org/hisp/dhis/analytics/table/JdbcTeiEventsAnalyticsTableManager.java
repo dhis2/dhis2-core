@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.String.join;
 import static java.util.Collections.emptyList;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS;
@@ -184,8 +183,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
 
       Collections.sort(dataYears);
 
-      AnalyticsTable table =
-          new AnalyticsTable(getAnalyticsTableType(), getTableColumns(), newArrayList(), tet);
+      AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), getTableColumns(), tet);
 
       for (Integer year : dataYears) {
         table.addPartitionTable(year, getStartDate(calendar, year), getEndDate(calendar, year));

@@ -94,28 +94,24 @@ public class AnalyticsTable {
   }
 
   public AnalyticsTable(
-      AnalyticsTableType tableType,
-      List<AnalyticsTableColumn> dimensionColumns,
-      List<AnalyticsTableColumn> valueColumns,
-      Program program) {
+      AnalyticsTableType tableType, List<AnalyticsTableColumn> dimensionColumns, Program program) {
     this.tableName = getTableName(tableType.getTableName(), program);
     this.tempTableName = getTableName(tableType.getTempTableName(), program);
     this.tableType = tableType;
     this.dimensionColumns = dimensionColumns;
-    this.valueColumns = valueColumns;
+    this.valueColumns = List.of();
     this.program = program;
   }
 
   public AnalyticsTable(
       AnalyticsTableType tableType,
       List<AnalyticsTableColumn> dimensionColumns,
-      List<AnalyticsTableColumn> valueColumns,
       TrackedEntityType trackedEntityType) {
     this.tableName = getTableName(tableType.getTableName(), trackedEntityType);
     this.tempTableName = getTableName(tableType.getTempTableName(), trackedEntityType);
     this.tableType = tableType;
     this.dimensionColumns = dimensionColumns;
-    this.valueColumns = valueColumns;
+    this.valueColumns = List.of();
     this.trackedEntityType = trackedEntityType;
   }
 
