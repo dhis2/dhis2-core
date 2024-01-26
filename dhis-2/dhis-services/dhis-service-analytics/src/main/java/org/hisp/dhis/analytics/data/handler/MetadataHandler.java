@@ -48,10 +48,10 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
 
+import com.google.common.collect.Sets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
@@ -119,7 +119,7 @@ public class MetadataHandler {
                   params.getDimensionOrFilterItems(PERIOD_DIM_ID), calendar);
 
       dimensionItems.put(PERIOD_DIM_ID, periodUids);
-      dimensionItems.put(CATEGORYOPTIONCOMBO_DIM_ID, Set.of(cocNameMap.keySet()));
+      dimensionItems.put(CATEGORYOPTIONCOMBO_DIM_ID, Sets.newHashSet(cocNameMap.keySet()));
 
       for (DimensionalObject dim : params.getDimensionsAndFilters()) {
         if (!dimensionItems.containsKey(dim.getDimension())) {
