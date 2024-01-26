@@ -226,7 +226,6 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
             "10"));
     validateRow(
         response,
-        3,
         List.of(
             "UtDZmrX5lSd",
             "2014-11-15 21:20:06.375",
@@ -248,7 +247,6 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
             "8"));
     validateRow(
         response,
-        4,
         List.of(
             "PgkxEogQBnX",
             "2014-11-15 19:12:23.235",
@@ -270,7 +268,6 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
             "5"));
     validateRow(
         response,
-        5,
         List.of(
             "D4SVdlwKuXe",
             "2015-08-07 15:47:20.218",
@@ -292,7 +289,6 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
             "2"));
     validateRow(
         response,
-        6,
         List.of(
             "UmDlYjOjnbW",
             "2015-08-06 21:20:47.047",
@@ -314,7 +310,6 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
             "2"));
     validateRow(
         response,
-        7,
         List.of(
             "W58QwQyTbdE",
             "2015-08-07 15:47:21.024",
@@ -336,7 +331,6 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
             "2"));
     validateRow(
         response,
-        8,
         List.of(
             "XheNQ4xnHxp",
             "2015-08-06 21:20:48.903",
