@@ -102,7 +102,7 @@ public class JdbcRawAnalyticsManager implements RawAnalyticsManager {
 
     String sql = getSelectStatement(params, dimensions);
 
-    log.debug("Get raw data SQL: " + sql);
+    log.debug("Analytics raw data query SQL: '{}'", sql);
 
     SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
 
