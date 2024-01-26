@@ -32,10 +32,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.io.InputStream;
-import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.hisp.dhis.webapi.json.domain.JsonIcon;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.junit.jupiter.api.Test;
@@ -109,9 +110,10 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     String fileResourceId = createFileResource();
     createIcon(fileResourceId, keywords);
 
-    JsonArray iconArray = GET("/icons?type=CUSTOM").content(HttpStatus.OK);
+    JsonList<JsonIcon> icons =
+        GET("/icons?keywords=m1").content(HttpStatus.OK).asList(JsonIcon.class);
 
-    verifyAll(iconArray, keywords, fileResourceId);
+    assertCustomIcons(icons.get(0), keywords, fileResourceId);
   }
 
   @Test
@@ -119,9 +121,10 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     String fileResourceId = createFileResource();
     createIcon(fileResourceId, keyword);
 
-    JsonArray iconArray = GET("/icons?keywords=m1").content(HttpStatus.OK);
+    JsonList<JsonIcon> icons =
+        GET("/icons?keywords=m1").content(HttpStatus.OK).asList(JsonIcon.class);
 
-    verifyAll(iconArray, keyword, fileResourceId);
+    assertCustomIcons(icons.get(0), keyword, fileResourceId);
   }
 
   @Test
@@ -156,12 +159,12 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     return savedObject.getString("id").string();
   }
 
-  private void verifyAll(JsonArray iconArray, String keywords, String fileResourceId) {
+  private void assertCustomIcons(JsonIcon icon, String keywords, String fileResourceId) {
 
-    String actualKey = iconArray.getObject(0).getString("key").string();
-    String actualDescription = iconArray.getObject(0).getString("description").string();
-    String actualFileResourceId = iconArray.getObject(0).getString("fileResourceUid").string();
-    String actualKeywords = iconArray.getObject(0).getArray("keywords").toString();
+    String actualKey = icon.getString("key").string();
+    String actualDescription = icon.getString("description").string();
+    String actualFileResourceId = icon.getString("fileResourceUid").string();
+    String actualKeywords = icon.getArray("keywords").toString();
     assertAll(
         () ->
             assertEquals(

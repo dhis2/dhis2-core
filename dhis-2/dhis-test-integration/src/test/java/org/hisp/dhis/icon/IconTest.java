@@ -90,14 +90,14 @@ class IconTest extends TrackerTest {
 
     IconOperationParams operationParams = new IconOperationParams();
 
+    List<Icon> icons = iconService.getIcons(operationParams);
+
     assertEquals(
         defaultIconMap.size() + 1,
         iconService.getIcons(operationParams).size(),
         String.format(
             "Expected to find %d icons, but found %d instead: %s",
-            defaultIconMap.size() + 1,
-            iconService.getIcons(operationParams).size(),
-            iconService.getIcons(operationParams)));
+            defaultIconMap.size() + 1, icons.size(), icons));
   }
 
   @Test
