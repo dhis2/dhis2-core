@@ -44,15 +44,17 @@ public class IconOperationParams {
 
   private IconTypeFilter iconTypeFilter = IconTypeFilter.ALL;
   private List<String> keywords = new ArrayList<>();
-  private Date created;
-  private Date lastUpdated;
+  private Date createdStartDate;
+  private Date createdEndDate;
+  private Date lastUpdatedStartDate;
+  private Date lastUpdatedEndDate;
 
   public boolean hasLastUpdated() {
-    return lastUpdated != null;
+    return lastUpdatedStartDate != null;
   }
 
   public boolean hasCreated() {
-    return created != null;
+    return createdStartDate != null;
   }
 
   public boolean hasKeywords() {

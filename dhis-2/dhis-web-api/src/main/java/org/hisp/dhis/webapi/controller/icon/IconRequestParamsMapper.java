@@ -50,8 +50,10 @@ public class IconRequestParamsMapper {
             ? iconRequestParams.getKeywords()
             : new ArrayList<>());
     operationParams.setIconTypeFilter(iconRequestParams.getType());
-    operationParams.setCreated(iconRequestParams.getCreated());
-    operationParams.setLastUpdated(iconRequestParams.getLastUpdated());
+    operationParams.setCreatedStartDate(iconRequestParams.getCreatedStartDate());
+    operationParams.setCreatedEndDate(iconRequestParams.getCreatedEndDate());
+    operationParams.setLastUpdatedStartDate(iconRequestParams.getLastUpdatedStartDate());
+    operationParams.setLastUpdatedEndDate(iconRequestParams.getLastUpdatedEndDate());
 
     return operationParams;
   }
@@ -59,17 +61,20 @@ public class IconRequestParamsMapper {
   private void validate(IconRequestParams iconRequestParams) throws BadRequestException {
 
     if (iconRequestParams.hasCreated()
-        && !DateUtils.dateIsValid(DateUtils.getMediumDateString(iconRequestParams.getCreated()))) {
+        && !DateUtils.dateIsValid(
+            DateUtils.getMediumDateString(iconRequestParams.getCreatedStartDate()))) {
       throw new BadRequestException(
-          String.format("created date %s is not valid", iconRequestParams.getCreated().toString()));
+          String.format(
+              "created date %s is not valid", iconRequestParams.getCreatedStartDate().toString()));
     }
 
     if (iconRequestParams.hasLastUpdated()
         && !DateUtils.dateIsValid(
-            DateUtils.getMediumDateString(iconRequestParams.getLastUpdated()))) {
+            DateUtils.getMediumDateString(iconRequestParams.getLastUpdatedStartDate()))) {
       throw new BadRequestException(
           String.format(
-              "lastupdated date %s is not valid", iconRequestParams.getLastUpdated().toString()));
+              "lastupdated date %s is not valid",
+              iconRequestParams.getLastUpdatedStartDate().toString()));
     }
   }
 }

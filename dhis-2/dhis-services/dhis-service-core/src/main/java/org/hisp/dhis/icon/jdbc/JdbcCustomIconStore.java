@@ -138,7 +138,7 @@ public class JdbcCustomIconStore implements CustomIconStore {
       sql +=
           hlp.whereAnd()
               + " c.lastupdated >= '"
-              + getLongDateString(iconOperationParams.getLastUpdated())
+              + getLongDateString(iconOperationParams.getLastUpdatedStartDate())
               + "'";
     }
 
@@ -146,7 +146,7 @@ public class JdbcCustomIconStore implements CustomIconStore {
       sql +=
           hlp.whereAnd()
               + " c.created >= '"
-              + getLongDateString(iconOperationParams.getCreated())
+              + getLongDateString(iconOperationParams.getCreatedStartDate())
               + "'";
     }
     if (iconOperationParams.hasKeywords()) {
