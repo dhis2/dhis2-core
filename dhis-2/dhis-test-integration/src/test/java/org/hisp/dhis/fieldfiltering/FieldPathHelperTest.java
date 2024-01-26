@@ -120,7 +120,7 @@ class FieldPathHelperTest extends SingleSetupIntegrationTestBase {
 
     // then only matching exclusions should have been applied
     // and fields starting with 'user' should still be present
-    assertEquals(58, result.size()); // all user properties
+    assertEquals(59, result.size()); // all user properties
     assertTrue(
         result.stream()
             .map(FieldPath::getName)
