@@ -44,8 +44,8 @@ import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.program.notification.template.snapshot.NotificationTemplateService;
+import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.rules.models.RuleAction;
-import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
@@ -85,7 +85,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
   @Override
   public boolean accept(RuleAction ruleAction) {
-    return ruleAction instanceof RuleActionScheduleMessage;
+    return ruleAction.getType().equals(ProgramRuleActionType.SCHEDULEMESSAGE.name());
   }
 
   @Override
@@ -101,9 +101,9 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
     String key = generateKey(template, enrollment);
 
-    String date = StringUtils.unwrap(ruleEffect.data(), '\'');
+    String date = StringUtils.unwrap(ruleEffect.getData(), '\'');
 
-    if (!isDateValid(date)) {
+    if (isDateInvalid(date)) {
       return;
     }
 
@@ -147,9 +147,9 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
     ProgramNotificationTemplate template = result.getTemplate();
     String key = generateKey(template, event.getEnrollment());
 
-    String date = StringUtils.unwrap(ruleEffect.data(), '\'');
+    String date = StringUtils.unwrap(ruleEffect.getData(), '\'');
 
-    if (!isDateValid(date)) {
+    if (isDateInvalid(date)) {
       return;
     }
 
@@ -178,15 +178,15 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
   // -------------------------------------------------------------------------
 
   private void handleSingleEvent(RuleEffect ruleEffect, Event event) {
-    ProgramNotificationTemplate template = getNotificationTemplate(ruleEffect.ruleAction());
+    ProgramNotificationTemplate template = getNotificationTemplate(ruleEffect.getRuleAction());
 
     if (template == null) {
       return;
     }
 
-    String date = StringUtils.unwrap(ruleEffect.data(), '\'');
+    String date = StringUtils.unwrap(ruleEffect.getData(), '\'');
 
-    if (!isDateValid(date)) {
+    if (isDateInvalid(date)) {
       return;
     }
 
@@ -200,15 +200,13 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
     log.info(String.format(LOG_MESSAGE, template.getUid()));
   }
 
-  private boolean isDateValid(String date) {
-    if (StringUtils.isNotBlank(date)) {
-      if (DateUtils.dateIsValid(date)) {
-        return true;
-      }
+  private boolean isDateInvalid(String date) {
+    if (StringUtils.isNotBlank(date) && DateUtils.dateIsValid(date)) {
+      return false;
     }
 
     log.error("Invalid date: " + date);
 
-    return false;
+    return true;
   }
 }

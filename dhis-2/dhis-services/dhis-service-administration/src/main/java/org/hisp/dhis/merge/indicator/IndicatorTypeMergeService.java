@@ -29,15 +29,11 @@ package org.hisp.dhis.merge.indicator;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.commons.collection.CollectionUtils;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorService;
@@ -45,6 +41,7 @@ import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeRequest;
 import org.hisp.dhis.merge.MergeService;
+import org.hisp.dhis.merge.MergeValidator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,28 +56,18 @@ public class IndicatorTypeMergeService implements MergeService {
 
   private final IndicatorService indicatorService;
   private final IdentifiableObjectManager idObjectManager;
+  private final MergeValidator validator;
 
   @Override
   public MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport) {
     // sources
     Set<UID> sources = new HashSet<>();
-    Optional.ofNullable(params.getSources())
-        .filter(CollectionUtils::isNotEmpty)
-        .ifPresentOrElse(
-            ids -> getSourcesAndVerify(ids, mergeReport, sources),
-            () -> mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1530)));
+    validator.verifySources(params.getSources(), sources, mergeReport, IndicatorType.class);
 
     // target
-    Optional<UID> target = Optional.ofNullable(params.getTarget());
-    checkIsTargetInSources(sources, target, mergeReport);
+    validator.checkIsTargetInSources(sources, params.getTarget(), mergeReport, IndicatorType.class);
 
-    return target
-        .map(t -> getTargetAndVerify(t, mergeReport, sources, params))
-        .orElseGet(
-            () -> {
-              mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1531));
-              return MergeRequest.empty();
-            });
+    return validator.verifyTarget(mergeReport, sources, params, IndicatorType.class);
   }
 
   @Override
@@ -96,37 +83,11 @@ public class IndicatorTypeMergeService implements MergeService {
     return mergeReport;
   }
 
-  private void checkIsTargetInSources(
-      Set<UID> sources, Optional<UID> target, MergeReport mergeReport) {
-    target.ifPresent(
-        t -> {
-          if (sources.contains(t)) mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1532));
-        });
-  }
-
   private void handleDeleteSources(List<IndicatorType> sources, MergeReport mergeReport) {
     for (IndicatorType source : sources) {
       mergeReport.addDeletedSource(source.getUid());
       idObjectManager.delete(source);
     }
-  }
-
-  /**
-   * Retrieves the {@link IndicatorType} with the given identifier. If a valid {@link IndicatorType}
-   * is not found then an empty {@link Optional} is returned and an error is added to the report.
-   *
-   * @param uid the indicator type identifier
-   * @return {@link Optional<UID>}
-   */
-  private Optional<UID> getAndVerifyIndicatorType(
-      UID uid, MergeReport mergeReport, String indType) {
-    return Optional.ofNullable(idObjectManager.get(IndicatorType.class, uid.getValue()))
-        .map(it -> UID.of(it.getUid()))
-        .or(
-            () -> {
-              mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1533, indType, uid));
-              return Optional.empty();
-            });
   }
 
   /**
@@ -139,23 +100,5 @@ public class IndicatorTypeMergeService implements MergeService {
   private void reassignIndicatorAssociations(IndicatorType target, List<IndicatorType> sources) {
     List<Indicator> associatedIndicators = indicatorService.getAssociatedIndicators(sources);
     associatedIndicators.forEach(ind -> ind.setIndicatorType(target));
-  }
-
-  private void getSourcesAndVerify(Set<UID> uids, MergeReport report, Set<UID> indicatorTypes) {
-    uids.forEach(
-        uid -> getAndVerifyIndicatorType(uid, report, "Source").ifPresent(indicatorTypes::add));
-  }
-
-  private MergeRequest getTargetAndVerify(
-      UID target, MergeReport report, Set<UID> sources, MergeParams params) {
-    return getAndVerifyIndicatorType(target, report, "Target")
-        .map(
-            t ->
-                MergeRequest.builder()
-                    .sources(sources)
-                    .target(t)
-                    .deleteSources(params.isDeleteSources())
-                    .build())
-        .orElse(MergeRequest.empty());
   }
 }

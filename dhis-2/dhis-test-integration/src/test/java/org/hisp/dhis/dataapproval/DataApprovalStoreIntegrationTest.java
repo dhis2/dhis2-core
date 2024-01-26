@@ -43,7 +43,6 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataapproval.hibernate.HibernateDataApprovalStore;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -161,7 +160,6 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
             periodStore,
             categoryService,
             systemSettingManager,
-            new PostgreSQLStatementBuilder(),
             _userService);
 
     // ---------------------------------------------------------------------

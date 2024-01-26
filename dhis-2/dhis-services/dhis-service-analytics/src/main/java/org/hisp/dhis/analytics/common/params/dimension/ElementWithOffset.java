@@ -50,6 +50,10 @@ public class ElementWithOffset<T extends UidObject> {
 
   private final Integer offset;
 
+  public static <T extends UidObject> ElementWithOffset<T> of(T element) {
+    return ElementWithOffset.of(element, null);
+  }
+
   public boolean hasOffset() {
     return Objects.nonNull(offset);
   }
@@ -75,7 +79,7 @@ public class ElementWithOffset<T extends UidObject> {
   @Override
   public String toString() {
     if (isPresent()) {
-      if (hasOffset()) {
+      if (hasOffset() && offset != 0) {
         return element.getUid() + "[" + offset + "]";
       }
       return element.getUid();

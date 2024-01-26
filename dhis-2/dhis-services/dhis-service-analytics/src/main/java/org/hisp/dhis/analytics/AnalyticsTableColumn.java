@@ -31,18 +31,16 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 /**
  * Class representing an analytics database table column.
  *
  * @author Lars Helge Overland
  */
+@Getter
 @EqualsAndHashCode
 public class AnalyticsTableColumn {
-  public enum Collate {
-    C
-  }
-
   /** The column name. */
   private final String name;
 
@@ -55,20 +53,17 @@ public class AnalyticsTableColumn {
   /** The column SQL alias. */
   private final String alias;
 
-  /** Sets a custom collate for the column if one is defined. */
-  private Collate collate;
+  /** The column collation. */
+  private Collation collation;
 
-  /** Date of creation of the underlying data dimension. */
-  private Date created;
+  /** Explicit index type, defaults to database default type {@link IndexType#BTREE}. */
+  private IndexType indexType = IndexType.BTREE;
 
   /** Whether to skip building an index for this column. */
   private boolean skipIndex = false;
 
-  /** Whether to skip column and just build an index based on column name. */
-  private boolean virtual = false;
-
-  /** Explicit index type, defaults to database default type {@link IndexType#BTREE}. */
-  private IndexType indexType = IndexType.BTREE;
+  /** Date of creation of the underlying data dimension. */
+  private Date created;
 
   /** Explicit index column names, defaults to column name. */
   private List<String> indexColumns = new ArrayList<>();
@@ -97,12 +92,13 @@ public class AnalyticsTableColumn {
    * @param dataType analytics table column data type.
    * @param alias source table column alias and name.
    */
-  public AnalyticsTableColumn(String name, ColumnDataType dataType, String alias, Collate collate) {
+  public AnalyticsTableColumn(
+      String name, ColumnDataType dataType, String alias, Collation collation) {
     this.name = name;
     this.dataType = dataType;
     this.notNull = ColumnNotNullConstraint.NULL;
     this.alias = alias;
-    this.collate = collate;
+    this.collation = collation;
   }
 
   /**
@@ -119,27 +115,22 @@ public class AnalyticsTableColumn {
     this.notNull = notNull;
   }
 
-  /**
-   * Constructor
-   *
-   * @param name
-   * @param dataType
-   * @param virtual
-   */
-  public AnalyticsTableColumn(String name, ColumnDataType dataType, boolean virtual) {
-    this.name = name;
-    this.dataType = dataType;
-    this.virtual = virtual;
-    this.alias = "";
-  }
-
   // -------------------------------------------------------------------------
   // Logic
   // -------------------------------------------------------------------------
 
-  /** Indicates whether explicit index columns have been specified, defaults to this column name. */
+  /** Indicates whether explicit index columns are specified, defaults to this column name. */
   public boolean hasIndexColumns() {
     return !indexColumns.isEmpty();
+  }
+
+  /**
+   * Indicates whether a collation is specified.
+   *
+   * @return
+   */
+  public boolean hasCollation() {
+    return collation != null;
   }
 
   // -------------------------------------------------------------------------
@@ -157,12 +148,12 @@ public class AnalyticsTableColumn {
   }
 
   /**
-   * Sets the index columns.
+   * Sets the index type.
    *
-   * @param indexColumns columns to index, defaults to this column name.
+   * @param indexType the index type.
    */
-  public AnalyticsTableColumn withIndexColumns(List<String> indexColumns) {
-    this.indexColumns = indexColumns;
+  public AnalyticsTableColumn withIndexType(IndexType indexType) {
+    this.indexType = indexType;
     return this;
   }
 
@@ -177,60 +168,12 @@ public class AnalyticsTableColumn {
   }
 
   /**
-   * Sets the index type.
+   * Sets the index columns.
    *
-   * @param indexType the index type.
+   * @param indexColumns columns to index, defaults to this column name.
    */
-  public AnalyticsTableColumn withIndexType(IndexType indexType) {
-    this.indexType = indexType;
+  public AnalyticsTableColumn withIndexColumns(List<String> indexColumns) {
+    this.indexColumns = indexColumns;
     return this;
-  }
-
-  // -------------------------------------------------------------------------
-  // Get and set methods
-  // -------------------------------------------------------------------------
-
-  public String getName() {
-    return name;
-  }
-
-  public ColumnDataType getDataType() {
-    return dataType;
-  }
-
-  public String getAlias() {
-    return alias;
-  }
-
-  public Collate getCollate() {
-    return collate;
-  }
-
-  public boolean hasCollate() {
-    return collate != null;
-  }
-
-  public ColumnNotNullConstraint getNotNull() {
-    return notNull;
-  }
-
-  public Date getCreated() {
-    return created;
-  }
-
-  public boolean isSkipIndex() {
-    return skipIndex;
-  }
-
-  public IndexType getIndexType() {
-    return indexType;
-  }
-
-  public List<String> getIndexColumns() {
-    return indexColumns;
-  }
-
-  public boolean isVirtual() {
-    return virtual;
   }
 }

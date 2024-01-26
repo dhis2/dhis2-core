@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.util;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.join;
-import static org.hisp.dhis.analytics.AnalyticsTableManager.TABLE_TEMP_SUFFIX;
 import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.IndexFunction.LOWER;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
@@ -41,6 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.AnalyticsConstants;
 import org.hisp.dhis.analytics.AnalyticsIndex;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
@@ -105,7 +105,7 @@ public class AnalyticsIndexHelper {
         + index.getTable()
         + " "
         + "using "
-        + index.getType().keyword()
+        + index.getType().getKeyword()
         + " ("
         + indexColumns
         + ");";
@@ -161,7 +161,7 @@ public class AnalyticsIndexHelper {
    */
   private static String maybeApplyFunctionToIndex(AnalyticsIndex index, String indexColumns) {
     if (index.hasFunction()) {
-      return index.getFunction().value() + "(" + indexColumns + ")";
+      return index.getFunction().getValue() + "(" + indexColumns + ")";
     }
 
     return indexColumns;
@@ -200,7 +200,7 @@ public class AnalyticsIndexHelper {
    */
   private static String shortenTableName(String table, AnalyticsTableType tableType) {
     table = table.replaceAll(tableType.getTableName(), "ax");
-    table = table.replaceAll(TABLE_TEMP_SUFFIX, EMPTY);
+    table = table.replaceAll(AnalyticsConstants.ANALYTICS_TBL_TEMP_SUFFIX, EMPTY);
 
     return table;
   }
@@ -215,7 +215,7 @@ public class AnalyticsIndexHelper {
    */
   private static String maybeSuffixIndexName(AnalyticsIndex index, String indexName) {
     if (index.hasFunction()) {
-      return indexName + "_" + index.getFunction().value();
+      return indexName + "_" + index.getFunction().getValue();
     }
 
     return indexName;

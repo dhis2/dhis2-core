@@ -49,8 +49,6 @@ import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.i18n.I18n;
-import org.hisp.dhis.jdbc.StatementBuilder;
-import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ProgramExpressionParams;
 import org.hisp.dhis.random.BeanRandomizer;
@@ -84,8 +82,6 @@ class ProgramSqlGeneratorVariablesTest extends DhisConvenienceTest {
 
   @Mock private I18n i18n;
 
-  private StatementBuilder statementBuilder;
-
   private CommonExpressionVisitor subject;
 
   private ProgramIndicator eventIndicator;
@@ -96,8 +92,6 @@ class ProgramSqlGeneratorVariablesTest extends DhisConvenienceTest {
 
   @BeforeEach
   public void setUp() {
-    statementBuilder = new PostgreSQLStatementBuilder();
-
     eventIndicator = new ProgramIndicator();
     eventIndicator.setAnalyticsType(AnalyticsType.EVENT);
 
@@ -309,7 +303,6 @@ class ProgramSqlGeneratorVariablesTest extends DhisConvenienceTest {
             .dimensionService(dimensionService)
             .programIndicatorService(programIndicatorService)
             .programStageService(programStageService)
-            .statementBuilder(statementBuilder)
             .i18nSupplier(() -> new I18n(null, null))
             .itemMap(PROGRAM_INDICATOR_ITEMS)
             .itemMethod(ITEM_GET_SQL)

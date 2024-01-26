@@ -49,7 +49,9 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import javax.annotation.Nonnull;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.IdentifiableObject;
 
 /**
  * Utility methods for operations on various collections.
@@ -282,6 +284,7 @@ public class CollectionUtils {
   }
 
   /** Returns a map of 1 or more key/value pairs. */
+  @SuppressWarnings("unchecked")
   public static <K, V> Map<K, V> mapOf(K key, V value, Object... keysAndValues) {
     List<Map.Entry<K, V>> entries = new ArrayList<>(1 + keysAndValues.length / 2);
 
@@ -328,5 +331,13 @@ public class CollectionUtils {
     }
 
     return duplicates;
+  }
+
+  public static <T extends IdentifiableObject> boolean containsUid(
+      List<T> elements, @Nonnull T element) {
+    if (CollectionUtils.isNotEmpty(elements)) {
+      return elements.stream().anyMatch(el -> el.getUid().equals(element.getUid()));
+    }
+    return false;
   }
 }

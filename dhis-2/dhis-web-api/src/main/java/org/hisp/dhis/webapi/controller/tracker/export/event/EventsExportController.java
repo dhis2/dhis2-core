@@ -56,17 +56,13 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper.Pager;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper.Pager.PagerBuilder;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
-import org.hisp.dhis.webapi.controller.tracker.export.OpenApiExport;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
+import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.mapstruct.factory.Mappers;
@@ -119,50 +115,33 @@ class EventsExportController {
         "event", EventMapper.ORDERABLE_FIELDS, eventService.getOrderableFields());
   }
 
-  @OpenApi.Response(status = Status.OK, value = OpenApiExport.ListResponse.class)
+  @OpenApi.Response(status = Status.OK, value = Page.class)
   @GetMapping(produces = "application/json")
-  PagingWrapper<ObjectNode> getEvents(EventRequestParams eventRequestParams)
+  Page<ObjectNode> getEvents(EventRequestParams requestParams)
       throws BadRequestException, ForbiddenException {
-    validatePaginationParameters(eventRequestParams);
+    validatePaginationParameters(requestParams);
+    EventOperationParams eventOperationParams = eventParamsMapper.map(requestParams);
 
-    EventOperationParams eventOperationParams = eventParamsMapper.map(eventRequestParams);
-
-    if (eventRequestParams.isPaged()) {
+    if (requestParams.isPaged()) {
       PageParams pageParams =
           new PageParams(
-              eventRequestParams.getPage(),
-              eventRequestParams.getPageSize(),
-              eventRequestParams.getTotalPages());
+              requestParams.getPage(), requestParams.getPageSize(), requestParams.getTotalPages());
 
-      Page<org.hisp.dhis.program.Event> events =
+      org.hisp.dhis.tracker.export.Page<org.hisp.dhis.program.Event> eventsPage =
           eventService.getEvents(eventOperationParams, pageParams);
-
-      PagerBuilder pagerBuilder =
-          Pager.builder()
-              .page(events.getPager().getPage())
-              .pageSize(events.getPager().getPageSize());
-
-      if (eventRequestParams.isPageTotal()) {
-        pagerBuilder
-            .pageCount(events.getPager().getPageCount())
-            .total(events.getPager().getTotal());
-      }
-
-      PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
-      pagingWrapper = pagingWrapper.withPager(pagerBuilder.build());
       List<ObjectNode> objectNodes =
           fieldFilterService.toObjectNodes(
-              EVENTS_MAPPER.fromCollection(events.getItems()), eventRequestParams.getFields());
-      return pagingWrapper.withInstances(objectNodes);
+              EVENTS_MAPPER.fromCollection(eventsPage.getItems()), requestParams.getFields());
+
+      return Page.withPager(objectNodes, eventsPage);
     }
 
     List<org.hisp.dhis.program.Event> events = eventService.getEvents(eventOperationParams);
     List<ObjectNode> objectNodes =
         fieldFilterService.toObjectNodes(
-            EVENTS_MAPPER.fromCollection(events), eventRequestParams.getFields());
+            EVENTS_MAPPER.fromCollection(events), requestParams.getFields());
 
-    PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
-    return pagingWrapper.withInstances(objectNodes);
+    return Page.withoutPager(objectNodes);
   }
 
   @GetMapping(produces = CONTENT_TYPE_JSON_GZIP)

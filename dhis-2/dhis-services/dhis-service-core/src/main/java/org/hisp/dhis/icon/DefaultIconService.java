@@ -46,7 +46,6 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserService;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -63,8 +62,6 @@ public class DefaultIconService implements IconService {
   private final CustomIconStore customIconStore;
 
   private final FileResourceService fileResourceService;
-
-  private final UserService userService;
 
   private final Map<String, DefaultIcon> defaultIcons =
       Arrays.stream(DefaultIcon.Icons.values())

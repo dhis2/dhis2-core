@@ -37,8 +37,6 @@ import java.util.Set;
  * @author Lars Helge Overland
  */
 public interface AnalyticsTableManager {
-  String TABLE_TEMP_SUFFIX = "_temp";
-
   /**
    * Returns the {@link AnalyticsTableType} of analytics table which this manager handles.
    *

@@ -56,7 +56,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -66,6 +65,7 @@ import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.ColumnDataType;
 import org.hisp.dhis.analytics.IndexType;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryService;
@@ -74,7 +74,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.period.PeriodType;
@@ -111,11 +110,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       DataApprovalLevelService dataApprovalLevelService,
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
-      StatementBuilder statementBuilder,
       PartitionManager partitionManager,
       DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
-      AnalyticsExportSettings analyticsExportSettings,
+      AnalyticsTableExportSettings analyticsExportSettings,
       PeriodDataProvider periodDataProvider) {
     super(
         idObjectManager,
@@ -125,7 +123,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         dataApprovalLevelService,
         resourceTableService,
         tableHookService,
-        statementBuilder,
         partitionManager,
         databaseInfoProvider,
         jdbcTemplate,
@@ -537,15 +534,15 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       }
     }
 
-    columns.addAll(addOrganisationUnitLevels());
+    columns.addAll(getOrganisationUnitLevelColumns());
     columns.add(getOrganisationUnitNameHierarchyColumn());
-    columns.addAll(addOrganisationUnitGroupSets());
+    columns.addAll(getOrganisationUnitGroupSetColumns());
 
     columns.addAll(
         categoryService.getAttributeCategoryOptionGroupSetsNoAcl().stream()
             .map(l -> toCharColumn(quote(l.getUid()), "acs", l.getCreated()))
             .collect(Collectors.toList()));
-    columns.addAll(addPeriodTypeColumns("dps"));
+    columns.addAll(getPeriodTypeColumns("dps"));
 
     columns.addAll(
         program.getAnalyticsDataElements().stream()
@@ -789,9 +786,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   private String getDataClause(String uid, ValueType valueType) {
     if (valueType.isNumeric() || valueType.isDate()) {
       String regex = valueType.isNumeric() ? NUMERIC_LENIENT_REGEXP : DATE_REGEXP;
-      String regexMatch = statementBuilder.getRegexpMatch();
 
-      return " and eventdatavalues #>> '{" + uid + ",value}' " + regexMatch + " '" + regex + "'";
+      return " and eventdatavalues #>> '{" + uid + ",value}' ~* '" + regex + "'";
     }
 
     return "";

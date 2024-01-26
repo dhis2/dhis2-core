@@ -29,9 +29,11 @@ package org.hisp.dhis.programrule.engine;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Map;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.rules.models.RuleActionAssign;
+import org.hisp.dhis.programrule.ProgramRuleActionType;
+import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -60,8 +62,13 @@ class RuleActionAssignImplementerTest extends DhisConvenienceTest {
   @Test
   void testRuleActionAssignRegex1() {
     assignValueImplementer.implement(
-        RuleEffect.create(
-            "ruleId1", RuleActionAssign.create("content", "action-data", "field"), "field-data"),
+        new RuleEffect(
+            "ruleId1",
+            new RuleAction(
+                "action-data",
+                ProgramRuleActionType.ASSIGN.name(),
+                Map.of("content", "content", "field", "field")),
+            "field-data"),
         enrollment);
 
     assertTrue(inMemoryMap.get(ENROLLMENT_UID).containsKey("field"));
@@ -70,8 +77,13 @@ class RuleActionAssignImplementerTest extends DhisConvenienceTest {
   @Test
   void testRuleActionAssignRegex2() {
     assignValueImplementer.implement(
-        RuleEffect.create(
-            "ruleId1", RuleActionAssign.create("content", "action-data", "field123"), "field-data"),
+        new RuleEffect(
+            "ruleId1",
+            new RuleAction(
+                "action-data",
+                ProgramRuleActionType.ASSIGN.name(),
+                Map.of("content", "content", "field", "field123")),
+            "field-data"),
         enrollment);
 
     assertTrue(inMemoryMap.get(ENROLLMENT_UID).containsKey("field123"));
@@ -80,9 +92,12 @@ class RuleActionAssignImplementerTest extends DhisConvenienceTest {
   @Test
   void testRuleActionAssignRegex3() {
     assignValueImplementer.implement(
-        RuleEffect.create(
+        new RuleEffect(
             "ruleId1",
-            RuleActionAssign.create("content", "action-data", "name-field"),
+            new RuleAction(
+                "action-data",
+                ProgramRuleActionType.ASSIGN.name(),
+                Map.of("content", "content", "field", "name-field")),
             "field-data"),
         enrollment);
 
@@ -92,9 +107,12 @@ class RuleActionAssignImplementerTest extends DhisConvenienceTest {
   @Test
   void testRuleActionAssignRegex4() {
     assignValueImplementer.implement(
-        RuleEffect.create(
+        new RuleEffect(
             "ruleId1",
-            RuleActionAssign.create("content", "action-data", "name field"),
+            new RuleAction(
+                "action-data",
+                ProgramRuleActionType.ASSIGN.name(),
+                Map.of("content", "content", "field", "name field")),
             "field-data"),
         enrollment);
 
@@ -104,9 +122,12 @@ class RuleActionAssignImplementerTest extends DhisConvenienceTest {
   @Test
   void testRuleActionAssignRegex5() {
     assignValueImplementer.implement(
-        RuleEffect.create(
+        new RuleEffect(
             "ruleId1",
-            RuleActionAssign.create("content", "action-data", "name.field"),
+            new RuleAction(
+                "action-data",
+                ProgramRuleActionType.ASSIGN.name(),
+                Map.of("content", "content", "field", "name.field")),
             "field-data"),
         enrollment);
 
@@ -116,9 +137,12 @@ class RuleActionAssignImplementerTest extends DhisConvenienceTest {
   @Test
   void testRuleActionAssignRegex6() {
     assignValueImplementer.implement(
-        RuleEffect.create(
+        new RuleEffect(
             "ruleId1",
-            RuleActionAssign.create("content", "action-data", "first name field"),
+            new RuleAction(
+                "action-data",
+                ProgramRuleActionType.ASSIGN.name(),
+                Map.of("content", "content", "field", "first name field")),
             "field-data"),
         enrollment);
 

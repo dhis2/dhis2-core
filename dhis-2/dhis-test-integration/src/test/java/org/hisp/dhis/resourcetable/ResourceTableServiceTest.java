@@ -104,9 +104,9 @@ class ResourceTableServiceTest extends SingleSetupIntegrationTestBase {
   void testGenerateAllResourceTables() {
     List<Runnable> generators =
         List.of(
-            resourceTableService::generateOrganisationUnitStructures,
+            resourceTableService::generateOrganisationUnitStructureTable,
             resourceTableService::generateDataSetOrganisationUnitCategoryTable,
-            resourceTableService::generateCategoryOptionComboNames,
+            resourceTableService::generateCategoryOptionComboNameTable,
             resourceTableService::generateDataElementGroupSetTable,
             resourceTableService::generateIndicatorGroupSetTable,
             resourceTableService::generateOrganisationUnitGroupSetTable,

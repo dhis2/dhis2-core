@@ -126,8 +126,20 @@ public class DimensionIdentifier<D extends UidObject> implements IdentifiableKey
     EVENT
   }
 
+  public DimensionIdentifier<D> withoutOffset() {
+    return DimensionIdentifier.of(
+        ElementWithOffset.of(this.getProgram().getElement()),
+        ElementWithOffset.of(this.getProgramStage().getElement()),
+        this.getDimension(),
+        this.getGroupId());
+  }
+
   @Override
   public String getKey() {
     return toString();
+  }
+
+  public String getKeyNoOffset() {
+    return withoutOffset().toString();
   }
 }

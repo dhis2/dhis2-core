@@ -34,7 +34,6 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.user.User;
 
 /**
@@ -65,7 +64,7 @@ public class JobRunErrorsParams {
   @CheckForNull private Date to;
 
   /** The codes to select, any match combined */
-  @CheckForNull private List<ErrorCode> code;
+  @CheckForNull private List<String> code;
 
   /** The object with errors to select, any match combined */
   @CheckForNull private List<UID> object;

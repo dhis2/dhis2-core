@@ -48,11 +48,11 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
@@ -75,8 +75,6 @@ public class DefaultSqlViewService implements SqlViewService {
   // -------------------------------------------------------------------------
 
   private final SqlViewStore sqlViewStore;
-
-  private final StatementBuilder statementBuilder;
 
   private final DhisConfigurationProvider config;
 
@@ -294,7 +292,7 @@ public class DefaultSqlViewService implements SqlViewService {
         "select "
             + QueryUtils.parseSelectFields(fields)
             + " from "
-            + statementBuilder.columnQuote(sqlView.getViewName())
+            + SqlUtils.quote(sqlView.getViewName())
             + " ";
 
     boolean hasCriteria = criteria != null && !criteria.isEmpty();
@@ -326,7 +324,7 @@ public class DefaultSqlViewService implements SqlViewService {
         sql +=
             sqlHelper.whereAnd()
                 + " "
-                + statementBuilder.columnQuote(filter)
+                + SqlUtils.quote(filter)
                 + "='"
                 + criteria.get(filter)
                 + "' ";

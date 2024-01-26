@@ -48,6 +48,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -536,7 +537,7 @@ public class ListGrid implements Grid, Serializable {
   public Grid addAndPopulateColumnsBefore(
       int referenceColumnIndex, Map<Object, List<?>> valueMap, int newColumns) {
     Validate.inclusiveBetween(0, getWidth() - 1, referenceColumnIndex);
-    Validate.notNull(valueMap);
+    Objects.requireNonNull(valueMap);
     verifyGridState();
 
     for (List<Object> row : grid) {

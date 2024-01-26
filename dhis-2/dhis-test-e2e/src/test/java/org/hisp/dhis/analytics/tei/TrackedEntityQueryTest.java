@@ -2808,7 +2808,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         response,
         0,
         "IpHINAT79UW.programstatus",
-        "Enrollment PROGRAM_STATUS",
+        "Program Status, Child Programme",
         "TEXT",
         "java.lang.String",
         false,
@@ -2844,7 +2844,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         response,
         0,
         "IpHINAT79UW.enrollmentstatus",
-        "Enrollment ENROLLMENT_STATUS",
+        "Enrollment Status, Child Programme",
         "TEXT",
         "java.lang.String",
         false,
@@ -2881,7 +2881,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         response,
         0,
         "IpHINAT79UW.incidentdate",
-        "Enrollment INCIDENTDATE",
+        "Date of birth, Child Programme",
         "DATETIME",
         "java.time.LocalDateTime",
         false,
@@ -2912,7 +2912,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         response,
         0,
         "IpHINAT79UW.ouname",
-        "Enrollment Organisation unit name",
+        "Organisation Unit Name, Child Programme",
         "TEXT",
         "java.lang.String",
         false,
@@ -2926,6 +2926,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         new QueryParamsBuilder()
             .add("dimension=IpHINAT79UW.GxdhnY5wmHq")
             .add("headers=IpHINAT79UW.GxdhnY5wmHq")
+            .add("lastupdated=LAST_YEAR")
             .add("asc=lastupdated")
             .add("relativePeriodDate=2016-01-01");
 
@@ -2943,5 +2944,26 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         .body("headers", hasSize(equalTo(1)));
 
     validateRow(response, 0, List.of(""));
+  }
+
+  @Test
+  public void metaContainsFullPrefixWithDimensionName() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=IpHINAT79UW.ZzYYXq4fJie.cYGaxwK615G")
+            .add("headers=IpHINAT79UW.ZzYYXq4fJie.cYGaxwK615G,IpHINAT79UW.enrollmentdate");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("metaData.items['IpHINAT79UW.enrollmentdate'].name", equalTo("Date of enrollment"))
+        .body(
+            "metaData.items['IpHINAT79UW.ZzYYXq4fJie.cYGaxwK615G'].name",
+            equalTo("MCH Infant HIV Test Result"));
   }
 }

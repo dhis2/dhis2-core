@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.visualization;
 
+import java.util.List;
 import org.hisp.dhis.common.AnalyticalObjectService;
 
 /**
@@ -71,4 +72,13 @@ public interface VisualizationService extends AnalyticalObjectService<Visualizat
    * @return the Visualization.
    */
   Visualization getVisualizationNoAcl(String uid);
+
+  /**
+   * Retrieves all {@link Visualization}s that have {@link org.hisp.dhis.indicator.Indicator} refs
+   * in the sorting object.
+   *
+   * @param indicators the {@link org.hisp.dhis.indicator.Indicator} refs to search for.
+   * @return matching {@link Visualization}s.
+   */
+  List<Visualization> getVisualizationsWithIndicatorSorting(List<String> indicators);
 }

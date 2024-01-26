@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.outlier.data;
 
 import static java.util.stream.Collectors.toList;
+import static org.hisp.dhis.analytics.outlier.Order.getOrderBy;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -104,7 +105,7 @@ public class OutlierQueryParser {
     }
 
     if (queryParams.getOrderBy() != null) {
-      builder.orderBy(queryParams.getOrderBy());
+      builder.orderBy(getOrderBy(queryParams.getOrderBy()));
     }
 
     if (queryParams.getSortOrder() != null) {

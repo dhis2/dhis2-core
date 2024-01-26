@@ -59,6 +59,10 @@ public enum AnalyticsTableType {
     return tableName;
   }
 
+  public String getTempTableName() {
+    return tableName + AnalyticsConstants.ANALYTICS_TBL_TEMP_SUFFIX;
+  }
+
   public boolean hasPeriodDimension() {
     return periodDimension;
   }
