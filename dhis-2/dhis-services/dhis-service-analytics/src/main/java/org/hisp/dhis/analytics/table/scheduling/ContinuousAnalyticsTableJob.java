@@ -84,7 +84,7 @@ public class ContinuousAnalyticsTableJob implements Job {
 
     if (!checkJobOutliersConsistency(parameters)) {
       log.info(
-          "Updating the analytics table is currently not feasible. The incoming job parameters do not align with the existing outliers data structure, preventing a successful update.");
+          "Updating analytics table is currently not feasible, job parameters not aligned with existing outlier data");
       return;
     }
 

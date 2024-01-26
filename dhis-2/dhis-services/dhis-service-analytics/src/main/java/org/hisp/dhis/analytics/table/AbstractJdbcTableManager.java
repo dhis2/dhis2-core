@@ -356,8 +356,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     TextUtils.removeLastComma(sql).append(") ").append(getTableOptions());
 
     log.info("Creating table: '{}', columns: '{}'", tableName, table.getColumnCount());
-
-    log.debug("Create table SQL: {}", sql);
+    log.debug("Create table SQL: '{}'", sql);
 
     jdbcTemplate.execute(sql.toString());
   }
@@ -401,7 +400,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .append(getTableOptions());
 
     log.info("Creating partition table: '{}'", tableName);
-    log.debug("Create SQL: {}", sql);
+    log.debug("Create table SQL: '{}'", sql);
 
     jdbcTemplate.execute(sql.toString());
   }
