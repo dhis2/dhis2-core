@@ -74,6 +74,14 @@ public class AnalyticsTable {
 
   public AnalyticsTable() {}
 
+  public AnalyticsTable(AnalyticsTableType tableType, List<AnalyticsTableColumn> dimensionColumns) {
+    this.tableName = tableType.getTableName();
+    this.tempTableName = tableType.getTempTableName();
+    this.tableType = tableType;
+    this.dimensionColumns = dimensionColumns;
+    this.valueColumns = List.of();
+  }
+
   public AnalyticsTable(
       AnalyticsTableType tableType,
       List<AnalyticsTableColumn> dimensionColumns,

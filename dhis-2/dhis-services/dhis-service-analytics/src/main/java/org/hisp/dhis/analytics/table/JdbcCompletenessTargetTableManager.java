@@ -147,7 +147,6 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
 
     String sql = "insert into " + tableName + " (";
 
-    List<AnalyticsTableColumn> dimensions = partition.getMasterTable().getDimensionColumns();
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
 
     for (AnalyticsTableColumn col : columns) {
@@ -156,7 +155,7 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
 
     sql = TextUtils.removeLastComma(sql) + ") select ";
 
-    for (AnalyticsTableColumn col : dimensions) {
+    for (AnalyticsTableColumn col : columns) {
       sql += col.getSelectExpression() + ",";
     }
 

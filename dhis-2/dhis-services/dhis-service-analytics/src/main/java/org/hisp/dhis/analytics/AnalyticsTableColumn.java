@@ -77,7 +77,7 @@ public class AnalyticsTableColumn {
    *
    * @param name the analytics table column name.
    * @param dataType the analytics table column data type.
-   * @param selectExpression the expression to use in select clauses.
+   * @param selectExpression the expression to use in the select clause.
    */
   public AnalyticsTableColumn(String name, ColumnDataType dataType, String selectExpression) {
     this.name = name;
@@ -91,7 +91,7 @@ public class AnalyticsTableColumn {
    *
    * @param name the analytics table column name.
    * @param dataType the analytics table column data type.
-   * @param selectExpression the expression to use in select clauses.
+   * @param selectExpression the expression to use in the select clause.
    */
   public AnalyticsTableColumn(
       String name, ColumnDataType dataType, String selectExpression, Collation collation) {
@@ -108,7 +108,7 @@ public class AnalyticsTableColumn {
    * @param name the analytics table column name.
    * @param dataType the analytics table column data type.
    * @param notNull the analytics table column not null constraint.
-   * @param selectExpression the expression to use in select clauses.
+   * @param selectExpression the expression to use in the select clause.
    */
   public AnalyticsTableColumn(
       String name,
