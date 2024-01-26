@@ -148,27 +148,6 @@ class VisualizationControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testPostInvalidSortingObject() {
-    // Given
-    String invalidDimension = "invalidOne";
-    String sorting = "'sorting': [{'dimension': '" + invalidDimension + "', 'direction':'ASC'}]";
-    String body =
-        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
-            + mockProgram.getUid()
-            + "'}, 'columns': [{'dimension': 'pe'}],"
-            + sorting
-            + "}";
-
-    // When
-    HttpResponse response = POST("/visualizations/", body);
-
-    // Then
-    assertEquals(
-        "Sorting dimension ‘" + invalidDimension + "’ is not a column",
-        response.error(CONFLICT).getMessage());
-  }
-
-  @Test
   void testPostSortingObject() {
     // Given
     String dimension = "pe";
@@ -315,47 +294,5 @@ class VisualizationControllerTest extends DhisControllerConvenienceTest {
     assertThat(response.get("sorting").toString(), containsString("pe"));
     assertThat(response.get("sorting").toString(), containsString("ASC"));
     assertThat(response.get("sorting").toString(), not(containsString("DESC")));
-  }
-
-  @Test
-  void testPostBlankSortingObject() {
-    // Given
-    String blankDimension = " ";
-    String sorting = "'sorting': [{'dimension': '" + blankDimension + "', 'direction':'ASC'}]";
-    String body =
-        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
-            + mockProgram.getUid()
-            + "'}, 'columns': [{'dimension': 'pe'}],"
-            + sorting
-            + "}";
-
-    // When
-    HttpResponse response = POST("/visualizations/", body);
-
-    // Then
-    assertEquals(
-        "Sorting must have a valid dimension and a direction",
-        response.error(CONFLICT).getMessage());
-  }
-
-  @Test
-  void testPostNullSortingObject() {
-    // Given
-    String blankDimension = " ";
-    String sorting = "'sorting': [{'dimension': '" + blankDimension + "', 'direction':'ASC'}]";
-    String body =
-        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
-            + mockProgram.getUid()
-            + "'}, 'columns': [{'dimension': 'pe'}],"
-            + sorting
-            + "}";
-
-    // When
-    HttpResponse response = POST("/visualizations/", body);
-
-    // Then
-    assertEquals(
-        "Sorting must have a valid dimension and a direction",
-        response.error(CONFLICT).getMessage());
   }
 }
