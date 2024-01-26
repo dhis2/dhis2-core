@@ -237,9 +237,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   @Transactional
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
     log.info(
-        format(
-            "Get tables using earliest: %s, spatial support: %b",
-            params.getFromDate(), isSpatialSupport()));
+        "Get tables using earliest: {}, spatial support: {}",
+        params.getFromDate(),
+        isSpatialSupport());
 
     List<Integer> availableDataYears =
         periodDataProvider.getAvailableYears(
@@ -355,16 +355,16 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         tables.add(table);
 
         log.info(
-            format(
-                "Added latest event analytics partition for program: '%s' with start: '%s' and end: '%s'",
-                program.getUid(), getLongDateString(startDate), getLongDateString(endDate)));
+            "Added latest event analytics partition for program: '{}' with start: '{}' and end: '{}'",
+            program.getUid(),
+            getLongDateString(startDate),
+            getLongDateString(endDate));
       } else {
         log.info(
-            format(
-                "No updated latest event data found for program: '%s' with start: '%s' and end: '%s",
-                program.getUid(),
-                getLongDateString(lastAnyTableUpdate),
-                getLongDateString(endDate)));
+            "No updated latest event data found for program: '{}' with start: '{}' and end: '{}",
+            program.getUid(),
+            getLongDateString(lastAnyTableUpdate),
+            getLongDateString(endDate));
       }
     }
 
