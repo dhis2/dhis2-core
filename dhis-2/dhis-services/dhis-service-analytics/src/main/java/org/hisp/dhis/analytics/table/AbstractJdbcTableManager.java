@@ -382,12 +382,12 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   private void createTempTablePartition(AnalyticsTable table, AnalyticsTablePartition partition) {
     String tableName = partition.getTempTableName();
     Logged logged = analyticsExportSettings.getTableLogged();
-    String logParam = logged == Logged.UNLOGGED ? "unlogged" : "";
+    String unlogged = logged == Logged.UNLOGGED ? "unlogged" : "";
     List<String> checks = getPartitionChecks(partition);
 
     StringBuilder sql = new StringBuilder();
 
-    sql.append("create ").append(logParam).append(" table ").append(tableName).append("(");
+    sql.append("create ").append(unlogged).append(" table ").append(tableName).append("(");
 
     if (!checks.isEmpty()) {
       StringBuilder sqlCheck = new StringBuilder();

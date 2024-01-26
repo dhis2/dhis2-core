@@ -185,14 +185,16 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
         sql.append(quote(columnName) + ", ");
       }
 
-      removeLastComma(sql);
-
-      sql.append("),");
+      removeLastComma(sql).append("), ");
     }
 
-    removeLastComma(sql);
+    // Checks
 
-    return sql.append(");").toString();
+    for (String check : table.getChecks()) {
+      sql.append("check(" + check + "), ");
+    }
+
+    return removeLastComma(sql).append(");").toString();
   }
 
   @Override
