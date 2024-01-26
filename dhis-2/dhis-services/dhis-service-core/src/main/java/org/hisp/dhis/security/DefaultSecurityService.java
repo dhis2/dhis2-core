@@ -340,7 +340,6 @@ public class DefaultSecurityService implements SecurityService {
   }
 
   @Override
-  @Transactional
   public String generateAndPersistTokens(User user, RestoreOptions restoreOptions) {
     RestoreType restoreType = restoreOptions.getRestoreType();
 
