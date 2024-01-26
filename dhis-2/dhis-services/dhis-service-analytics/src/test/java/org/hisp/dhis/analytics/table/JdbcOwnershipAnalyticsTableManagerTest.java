@@ -159,13 +159,9 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
             analyticsExportSettings,
             periodDataProvider);
 
-    tableA =
-        new AnalyticsTable(
-            AnalyticsTableType.OWNERSHIP, target.getFixedColumns(), emptyList(), programA);
+    tableA = new AnalyticsTable(AnalyticsTableType.OWNERSHIP, target.getFixedColumns(), programA);
 
-    tableB =
-        new AnalyticsTable(
-            AnalyticsTableType.OWNERSHIP, target.getFixedColumns(), emptyList(), programB);
+    tableB = new AnalyticsTable(AnalyticsTableType.OWNERSHIP, target.getFixedColumns(), programB);
 
     partitionA = new AnalyticsTablePartition(tableA, 1, new Date(), new Date(), true);
   }
