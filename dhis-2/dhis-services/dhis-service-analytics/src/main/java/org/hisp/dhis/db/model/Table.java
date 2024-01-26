@@ -56,7 +56,7 @@ public class Table {
   /** Table indexes. Optional. */
   private final List<Index> indexes;
 
-  /** Table checks. Optional. */
+  /** Table checks. PostgreSQL-only featre. Optional. */
   private final List<String> checks;
 
   /** Whether table is logged or unlogged. PostgreSQL-only feature. */
