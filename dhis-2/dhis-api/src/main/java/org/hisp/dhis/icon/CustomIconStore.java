@@ -44,7 +44,7 @@ public interface CustomIconStore {
   /**
    * Returns a list of custom icons that contain all the specified keywords
    *
-   * @param keywords the icon needs to contain
+   * @param iconOperationParams contains query params for CustomIcon
    * @return the list of custom icons that contain all the keywords
    */
   Stream<CustomIcon> getIcons(IconOperationParams iconOperationParams);

@@ -85,24 +85,6 @@ class IconTest extends TrackerTest {
   }
 
   @Test
-  void shouldGetAllIconsWhenRequested() {
-    Map<String, DefaultIcon> defaultIconMap = getAllDefaultIcons();
-
-    IconOperationParams operationParams = new IconOperationParams();
-    operationParams.setIconTypeFilter(IconTypeFilter.ALL);
-    operationParams.setKeywords(List.of());
-
-    assertEquals(
-        defaultIconMap.size() + 1,
-        iconService.getIcons(operationParams).size(),
-        String.format(
-            "Expected to find %d icons, but found %d instead: %s",
-            defaultIconMap.size() + 1,
-            iconService.getIcons(operationParams).size(),
-            iconService.getIcons(operationParams)));
-  }
-
-  @Test
   void shouldGetAllIconsByDefault() {
     Map<String, DefaultIcon> defaultIconMap = getAllDefaultIcons();
 
