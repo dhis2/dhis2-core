@@ -296,10 +296,12 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   /**
    * Populates the given analytics table.
    *
-   * @param valueExpression numeric value expression.
-   * @param textValueExpression textual value expression.
-   * @param valueTypes data element value types to include data for.
-   * @param whereClause where clause to constrain data query.
+   * @param the {@link AnalyticsTableUpdateParams}.
+   * @param partition the {@link AnalyticsTablePartition}.
+   * @param valueExpression the numeric value expression.
+   * @param textValueExpression the textual value expression.
+   * @param valueTypes the data element value types to include data for.
+   * @param whereClause the where clause to constrain the data query.
    */
   private void populateTable(
       AnalyticsTableUpdateParams params,
