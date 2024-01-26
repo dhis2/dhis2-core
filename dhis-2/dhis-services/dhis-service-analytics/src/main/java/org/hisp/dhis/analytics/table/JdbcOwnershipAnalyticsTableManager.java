@@ -209,7 +209,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
     StringBuilder sb = new StringBuilder("select ");
 
     for (AnalyticsTableColumn col : getDimensionColumns()) {
-      sb.append(col.getAlias()).append(",");
+      sb.append(col.getSelectExpression()).append(",");
     }
 
     sb.deleteCharAt(sb.length() - 1); // Remove the final ','.

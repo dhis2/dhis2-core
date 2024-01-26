@@ -48,10 +48,10 @@ public class AnalyticsTableColumn {
   private final ColumnDataType dataType;
 
   /** Column not null constraint, default is to allow null values. */
-  private ColumnNotNullConstraint notNull = ColumnNotNullConstraint.NULL;
+  private final ColumnNotNullConstraint notNull;
 
-  /** The column SQL alias. */
-  private final String alias;
+  /** The expression to use in select clauses. */
+  private final String selectExpression;
 
   /** The column collation. */
   private Collation collation;
@@ -75,44 +75,50 @@ public class AnalyticsTableColumn {
   /**
    * Constructor.
    *
-   * @param name analytics table column name.
-   * @param dataType analytics table column data type.
-   * @param alias source table column alias and name.
+   * @param name the analytics table column name.
+   * @param dataType the analytics table column data type.
+   * @param selectExpression the expression to use in select clauses.
    */
-  public AnalyticsTableColumn(String name, ColumnDataType dataType, String alias) {
+  public AnalyticsTableColumn(String name, ColumnDataType dataType, String selectExpression) {
     this.name = name;
     this.dataType = dataType;
-    this.alias = alias;
+    this.notNull = ColumnNotNullConstraint.NULL;
+    this.selectExpression = selectExpression;
   }
 
   /**
    * Constructor.
    *
-   * @param name analytics table column name.
-   * @param dataType analytics table column data type.
-   * @param alias source table column alias and name.
+   * @param name the analytics table column name.
+   * @param dataType the analytics table column data type.
+   * @param selectExpression the expression to use in select clauses.
    */
   public AnalyticsTableColumn(
-      String name, ColumnDataType dataType, String alias, Collation collation) {
+      String name, ColumnDataType dataType, String selectExpression, Collation collation) {
     this.name = name;
     this.dataType = dataType;
     this.notNull = ColumnNotNullConstraint.NULL;
-    this.alias = alias;
+    this.selectExpression = selectExpression;
     this.collation = collation;
   }
 
   /**
    * Constructor.
    *
-   * @param name analytics table column name.
-   * @param dataType analytics table column data type.
-   * @param notNull analytics table column not null constraint.
-   * @param alias source table column alias and name.
+   * @param name the analytics table column name.
+   * @param dataType the analytics table column data type.
+   * @param notNull the analytics table column not null constraint.
+   * @param selectExpression the expression to use in select clauses.
    */
   public AnalyticsTableColumn(
-      String name, ColumnDataType dataType, ColumnNotNullConstraint notNull, String alias) {
-    this(name, dataType, alias);
+      String name,
+      ColumnDataType dataType,
+      ColumnNotNullConstraint notNull,
+      String selectExpression) {
+    this.name = name;
+    this.dataType = dataType;
     this.notNull = notNull;
+    this.selectExpression = selectExpression;
   }
 
   // -------------------------------------------------------------------------

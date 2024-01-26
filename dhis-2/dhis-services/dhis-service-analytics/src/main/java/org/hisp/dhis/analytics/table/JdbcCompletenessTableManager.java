@@ -214,7 +214,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     String select = "select ";
 
     for (AnalyticsTableColumn col : dimensions) {
-      select += col.getAlias() + ",";
+      select += col.getSelectExpression() + ",";
     }
 
     // Database legacy fix
