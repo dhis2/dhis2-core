@@ -37,7 +37,6 @@ import static org.hisp.dhis.analytics.table.PartitionUtils.getLatestTablePartiti
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
-import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -127,7 +126,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
 
   @Override
   public Set<String> getExistingDatabaseTables() {
-    return Sets.newHashSet(getTableName());
+    return Set.of(getTableName());
   }
 
   @Override

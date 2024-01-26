@@ -35,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-import com.google.common.collect.Sets;
+import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemId;
@@ -121,7 +121,7 @@ class DataElementGroupResolverTest {
     String expression = createIndicatorExpression();
 
     when(expressionService.getExpressionDimensionalItemIds(expression, INDICATOR_EXPRESSION))
-        .thenReturn(Sets.newHashSet(dimensionalItemId));
+        .thenReturn(Set.of(dimensionalItemId));
 
     // act
 
@@ -143,7 +143,7 @@ class DataElementGroupResolverTest {
     String expression = createIndicatorExpression();
 
     when(expressionService.getExpressionDimensionalItemIds(expression, INDICATOR_EXPRESSION))
-        .thenReturn(Sets.newHashSet(dimensionalItemId));
+        .thenReturn(Set.of(dimensionalItemId));
 
     // act
 
@@ -165,7 +165,7 @@ class DataElementGroupResolverTest {
     String expression = createIndicatorExpression();
 
     when(expressionService.getExpressionDimensionalItemIds(expression, INDICATOR_EXPRESSION))
-        .thenReturn(Sets.newHashSet(dimensionalItemId));
+        .thenReturn(Set.of(dimensionalItemId));
 
     // act
 
@@ -187,7 +187,7 @@ class DataElementGroupResolverTest {
     String expression = "lsdjflakjdflkajdslfhaglakujdhfg";
 
     when(expressionService.getExpressionDimensionalItemIds(expression, INDICATOR_EXPRESSION))
-        .thenReturn(Sets.newHashSet(dimensionalItemId));
+        .thenReturn(Set.of(dimensionalItemId));
 
     // act
 

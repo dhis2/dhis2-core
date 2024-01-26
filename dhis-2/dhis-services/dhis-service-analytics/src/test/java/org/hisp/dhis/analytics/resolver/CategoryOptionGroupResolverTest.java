@@ -35,8 +35,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-import com.google.common.collect.Sets;
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionComboStore;
 import org.hisp.dhis.category.CategoryOptionGroupStore;
@@ -110,7 +110,7 @@ class CategoryOptionGroupResolverTest {
     String expression = createIndicatorExpression();
 
     when(expressionService.getExpressionDimensionalItemIds(expression, INDICATOR_EXPRESSION))
-        .thenReturn(Sets.newHashSet(dimensionalItemId));
+        .thenReturn(Set.of(dimensionalItemId));
     when(categoryOptionGroupStore.loadByUid(anyString()))
         .thenReturn(createCategoryOptionGroup('A'));
     when(categoryOptionComboStore.getCategoryOptionCombosByGroupUid(anyString(), anyString()))
@@ -139,7 +139,7 @@ class CategoryOptionGroupResolverTest {
     String expression = createIndicatorExpression();
 
     when(expressionService.getExpressionDimensionalItemIds(expression, INDICATOR_EXPRESSION))
-        .thenReturn(Sets.newHashSet(dimensionalItemId));
+        .thenReturn(Set.of(dimensionalItemId));
 
     // act
 
@@ -161,7 +161,7 @@ class CategoryOptionGroupResolverTest {
     String expression = createIndicatorExpression();
 
     when(expressionService.getExpressionDimensionalItemIds(expression, INDICATOR_EXPRESSION))
-        .thenReturn(Sets.newHashSet(dimensionalItemId));
+        .thenReturn(Set.of(dimensionalItemId));
 
     // act
 
@@ -183,7 +183,7 @@ class CategoryOptionGroupResolverTest {
     String expression = "lsdjflakjdflkajdslfhaglakujdhfg";
 
     when(expressionService.getExpressionDimensionalItemIds(expression, INDICATOR_EXPRESSION))
-        .thenReturn(Sets.newHashSet(dimensionalItemId));
+        .thenReturn(Set.of(dimensionalItemId));
 
     // act
 

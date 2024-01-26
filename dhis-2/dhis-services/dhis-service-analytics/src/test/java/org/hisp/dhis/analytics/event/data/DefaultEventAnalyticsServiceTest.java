@@ -38,7 +38,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.google.common.collect.Sets;
+import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
@@ -119,7 +119,7 @@ class DefaultEventAnalyticsServiceTest {
   void testOutputSchemeWhenSchemeIsSet() {
     IdScheme codeScheme = IdScheme.CODE;
     OrganisationUnit mockOrgUnit = createOrganisationUnit('A');
-    Program mockProgram = createProgram('A', null, null, Sets.newHashSet(mockOrgUnit), null);
+    Program mockProgram = createProgram('A', null, null, Set.of(mockOrgUnit), null);
     EventQueryParams mockParams = mockEventQueryParams(mockOrgUnit, mockProgram, codeScheme);
 
     doNothing().when(securityManager).decideAccessEventQuery(mockParams);
@@ -136,7 +136,7 @@ class DefaultEventAnalyticsServiceTest {
   void testOutputSchemeWhenNoSchemeIsSet() {
     IdScheme noScheme = null;
     OrganisationUnit mockOrgUnit = createOrganisationUnit('A');
-    Program mockProgram = createProgram('A', null, null, Sets.newHashSet(mockOrgUnit), null);
+    Program mockProgram = createProgram('A', null, null, Set.of(mockOrgUnit), null);
     EventQueryParams mockParams = mockEventQueryParams(mockOrgUnit, mockProgram, noScheme);
 
     doNothing().when(securityManager).decideAccessEventQuery(mockParams);

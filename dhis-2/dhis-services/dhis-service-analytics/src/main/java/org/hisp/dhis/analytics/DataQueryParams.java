@@ -53,7 +53,6 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -848,8 +847,7 @@ public class DataQueryParams {
 
   /** Indicates whether this query has any of the given aggregation types. */
   public boolean isAnyAggregationType(AggregationType... types) {
-    return hasAggregationType()
-        && Sets.newHashSet(types).contains(aggregationType.getAggregationType());
+    return hasAggregationType() && Set.of(types).contains(aggregationType.getAggregationType());
   }
 
   /** Indicates whether the this parameters has the given output format specified. */
