@@ -40,6 +40,7 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
+import com.google.common.collect.Sets;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -239,7 +240,7 @@ class DataQueryServiceDimensionItemKeywordTest {
     IndicatorGroup indicatorGroup = new IndicatorGroup("dummy");
     indicatorGroup.setUid(INDICATOR_GROUP_UID);
     indicatorGroup.setCode("CODE_10");
-    indicatorGroup.setMembers(Set.of(new Indicator(), new Indicator()));
+    indicatorGroup.setMembers(Sets.newHashSet(new Indicator(), new Indicator()));
     when(idObjectManager.getObject(IndicatorGroup.class, UID, INDICATOR_GROUP_UID))
         .thenReturn(indicatorGroup);
     when(idObjectManager.getObject(OrganisationUnit.class, UID, "goRUwCHPg1M"))
@@ -422,7 +423,7 @@ class DataQueryServiceDimensionItemKeywordTest {
     DataElementGroup dataElementGroup = new DataElementGroup("dummy");
     dataElementGroup.setUid(DATA_ELEMENT_GROUP_UID);
     dataElementGroup.setCode("CODE_10");
-    dataElementGroup.setMembers(Set.of(new DataElement(), new DataElement()));
+    dataElementGroup.setMembers(Sets.newHashSet(new DataElement(), new DataElement()));
 
     when(idObjectManager.getObject(DataElementGroup.class, UID, DATA_ELEMENT_GROUP_UID))
         .thenReturn(dataElementGroup);
@@ -479,12 +480,12 @@ class DataQueryServiceDimensionItemKeywordTest {
     DataElementGroup dataElementGroup = new DataElementGroup("dummyDG");
     dataElementGroup.setUid(DATA_ELEMENT_GROUP_UID);
     dataElementGroup.setCode("CODE_10");
-    dataElementGroup.setMembers(Set.of(new DataElement(), new DataElement()));
+    dataElementGroup.setMembers(Sets.newHashSet(new DataElement(), new DataElement()));
 
     IndicatorGroup indicatorGroup = new IndicatorGroup("dummyIG");
     indicatorGroup.setUid(INDICATOR_GROUP_UID);
     indicatorGroup.setCode("CODE_10");
-    indicatorGroup.setMembers(Set.of(new Indicator(), new Indicator()));
+    indicatorGroup.setMembers(Sets.newHashSet(new Indicator(), new Indicator()));
 
     when(idObjectManager.getObject(DataElementGroup.class, UID, DATA_ELEMENT_GROUP_UID))
         .thenReturn(dataElementGroup);
