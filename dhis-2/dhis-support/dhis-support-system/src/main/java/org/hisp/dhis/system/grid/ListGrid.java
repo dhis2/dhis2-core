@@ -260,12 +260,12 @@ public class ListGrid implements Grid, Serializable {
 
   @Override
   public List<GridHeader> getVisibleHeaders() {
-    return headers.stream().filter(h -> !h.isHidden()).collect(Collectors.toList());
+    return headers.stream().filter(h -> !h.isHidden()).toList();
   }
 
   @Override
   public List<GridHeader> getMetadataHeaders() {
-    return headers.stream().filter(GridHeader::isMeta).collect(Collectors.toList());
+    return headers.stream().filter(GridHeader::isMeta).toList();
   }
 
   @Override
@@ -281,7 +281,7 @@ public class ListGrid implements Grid, Serializable {
   @Override
   @JsonProperty
   public int getHeight() {
-    return grid != null && grid.size() > 0 ? grid.size() : 0;
+    return grid != null && !grid.isEmpty() ? grid.size() : 0;
   }
 
   @Override
@@ -289,7 +289,7 @@ public class ListGrid implements Grid, Serializable {
   public int getWidth() {
     verifyGridState();
 
-    return grid != null && grid.size() > 0 ? grid.get(0).size() : 0;
+    return grid != null && !grid.isEmpty() ? grid.get(0).size() : 0;
   }
 
   @Override
@@ -351,7 +351,7 @@ public class ListGrid implements Grid, Serializable {
   public int getVisibleWidth() {
     verifyGridState();
 
-    return grid != null && grid.size() > 0 ? getVisibleRows().get(0).size() : 0;
+    return grid != null && !grid.isEmpty() ? getVisibleRows().get(0).size() : 0;
   }
 
   @Override
@@ -387,9 +387,7 @@ public class ListGrid implements Grid, Serializable {
   public Grid addValues(Object[] values) {
     List<Object> row = grid.get(currentRowWriteIndex);
 
-    for (Object value : values) {
-      row.add(value);
-    }
+    row.addAll(Arrays.asList(values));
 
     return this;
   }
@@ -453,7 +451,7 @@ public class ListGrid implements Grid, Serializable {
 
     List<List<Object>> tempGrid = new ArrayList<>();
 
-    if (headers != null && headers.size() > 0) {
+    if (headers != null && !headers.isEmpty()) {
       for (List<Object> row : grid) {
         List<Object> tempRow = new ArrayList<>();
 
@@ -541,7 +539,7 @@ public class ListGrid implements Grid, Serializable {
   @Override
   public Grid addAndPopulateColumnsBefore(
       int referenceColumnIndex, Map<Object, List<?>> valueMap, int newColumns) {
-    Validate.inclusiveBetween(0, getWidth() - 1, referenceColumnIndex);
+    Validate.inclusiveBetween(0, getWidth() - 1L, referenceColumnIndex);
     Objects.requireNonNull(valueMap);
     verifyGridState();
 
@@ -595,7 +593,7 @@ public class ListGrid implements Grid, Serializable {
   public Grid removeColumn(int columnIndex) {
     verifyGridState();
 
-    if (headers.size() > 0) {
+    if (!headers.isEmpty()) {
       headers.remove(columnIndex);
     }
 
@@ -795,7 +793,7 @@ public class ListGrid implements Grid, Serializable {
   }
 
   @Override
-  public Grid substituteMetaData(Map<? extends Object, ? extends Object> metaDataMap) {
+  public Grid substituteMetaData(Map<?, ?> metaDataMap) {
     if (metaDataMap == null || headers == null || headers.isEmpty()) {
       return this;
     }
@@ -823,9 +821,7 @@ public class ListGrid implements Grid, Serializable {
 
   @Override
   public Grid substituteMetaData(
-      int sourceColumnIndex,
-      int targetColumnIndex,
-      Map<? extends Object, ? extends Object> metaDataMap) {
+      int sourceColumnIndex, int targetColumnIndex, Map<?, ?> metaDataMap) {
     if (metaDataMap == null) {
       return this;
     }
@@ -1253,7 +1249,7 @@ public class ListGrid implements Grid, Serializable {
   public String toString() {
     StringBuilder builder = new StringBuilder("[\n");
 
-    if (headers != null && headers.size() > 0) {
+    if (headers != null && !headers.isEmpty()) {
       List<String> headerNames = new ArrayList<>();
 
       for (GridHeader header : headers) {
@@ -1275,9 +1271,9 @@ public class ListGrid implements Grid, Serializable {
   // -------------------------------------------------------------------------
 
   public static class GridRowComparator implements Comparator<List<Object>> {
-    private int columnIndex;
+    private final int columnIndex;
 
-    private int order;
+    private final int order;
 
     protected GridRowComparator(int columnIndex, int order) {
       this.columnIndex = columnIndex;
