@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
@@ -40,7 +39,6 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getCollation;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
-import com.google.common.base.Preconditions;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -330,8 +328,6 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @param table the {@link AnalyticsTable}.
    */
   protected void createTempTable(AnalyticsTable table) {
-    validateDimensionColumns(table.getDimensionColumns());
-
     StringBuilder sql = new StringBuilder();
 
     String tableName = table.getTempTableName();
@@ -483,28 +479,6 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     }
 
     return table;
-  }
-
-  /**
-   * Checks whether the given list of columns are valid.
-   *
-   * @param columns the list of {@link AnalyticsTableColumn}.
-   * @throws IllegalArgumentException if not valid.
-   */
-  protected void validateDimensionColumns(List<AnalyticsTableColumn> columns) {
-    if (isEmpty(columns)) {
-      throw new IllegalStateException("Analytics table dimensions cannot be empty");
-    }
-
-    List<String> columnNames = columns.stream().map(AnalyticsTableColumn::getName).toList();
-
-    Set<String> duplicates = ListUtils.getDuplicates(columnNames);
-
-    boolean columnsAreUnique = duplicates.isEmpty();
-
-    Preconditions.checkArgument(
-        columnsAreUnique,
-        String.format("Analytics table dimensions contain duplicates: %s", duplicates));
   }
 
   /**
