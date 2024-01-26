@@ -325,8 +325,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     List<AnalyticsTableColumn> dimensions = getDimensionColumns(partition.getYear(), params);
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
 
-    validateDimensionColumns(dimensions);
-
     for (AnalyticsTableColumn col : columns) {
       sql += col.getName() + ",";
     }
