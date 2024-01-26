@@ -48,8 +48,7 @@ import org.junit.jupiter.api.Test;
 class AnalyticsTableTest {
   @Test
   void testGetTableName() {
-    AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.COMPLETENESS, List.of(), List.of());
+    AnalyticsTable table = new AnalyticsTable(AnalyticsTableType.COMPLETENESS, List.of());
     assertEquals("analytics_completeness", table.getTableName());
     assertEquals("analytics_completeness_temp", table.getTempTableName());
   }
@@ -94,8 +93,8 @@ class AnalyticsTableTest {
 
   @Test
   void testEquals() {
-    AnalyticsTable tableA = new AnalyticsTable(AnalyticsTableType.DATA_VALUE, List.of(), List.of());
-    AnalyticsTable tableB = new AnalyticsTable(AnalyticsTableType.DATA_VALUE, List.of(), List.of());
+    AnalyticsTable tableA = new AnalyticsTable(AnalyticsTableType.DATA_VALUE, List.of());
+    AnalyticsTable tableB = new AnalyticsTable(AnalyticsTableType.DATA_VALUE, List.of());
     List<AnalyticsTable> uniqueList = new UniqueArrayList<>();
     uniqueList.add(tableA);
     uniqueList.add(tableB);
