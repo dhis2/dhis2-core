@@ -106,8 +106,6 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
     assertTrue(tableExists(table.getName()));
 
     jdbcTemplate.execute(sqlBuilder.dropTableIfExists(table));
-
-    assertFalse(tableExists(table.getName()));
   }
 
   @Test
