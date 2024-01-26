@@ -56,6 +56,9 @@ public class Table {
   /** Table indexes. Optional. */
   private final List<Index> indexes;
 
+  /** Table checks. PostgreSQL-only featre. Optional. */
+  private final List<String> checks;
+
   /** Whether table is logged or unlogged. PostgreSQL-only feature. */
   private final Logged logged;
 
@@ -72,7 +75,31 @@ public class Table {
     this.columns = columns;
     this.primaryKey = primaryKey;
     this.indexes = indexes;
+    this.checks = List.of();
     this.logged = Logged.LOGGED;
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param name the table name.
+   * @param columns the list of {@link Column}.
+   * @param primaryKey the primary key.
+   * @param indexes the list of {@link Index}.
+   * @param logged the {@link Logged} parameter.
+   */
+  public Table(
+      String name,
+      List<Column> columns,
+      List<String> primaryKey,
+      List<Index> indexes,
+      Logged logged) {
+    this.name = name;
+    this.columns = columns;
+    this.primaryKey = primaryKey;
+    this.indexes = indexes;
+    this.checks = List.of();
+    this.logged = logged;
   }
 
   /**
@@ -82,6 +109,15 @@ public class Table {
    */
   public boolean hasPrimaryKey() {
     return !primaryKey.isEmpty();
+  }
+
+  /**
+   * Indicates whether the table has any checks.
+   *
+   * @return true if the table has any checks.
+   */
+  public boolean hasChecks() {
+    return !checks.isEmpty();
   }
 
   /**

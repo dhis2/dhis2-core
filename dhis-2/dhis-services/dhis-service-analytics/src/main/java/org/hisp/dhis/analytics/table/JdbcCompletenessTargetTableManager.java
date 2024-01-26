@@ -151,8 +151,6 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
     List<AnalyticsTableColumn> dimensions = partition.getMasterTable().getDimensionColumns();
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
 
-    validateDimensionColumns(dimensions);
-
     for (AnalyticsTableColumn col : columns) {
       sql += col.getName() + ",";
     }

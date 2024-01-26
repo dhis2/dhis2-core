@@ -212,8 +212,6 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
     List<AnalyticsTableColumn> dimensions = partition.getMasterTable().getDimensionColumns();
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
 
-    validateDimensionColumns(dimensions);
-
     StringBuilder sql = new StringBuilder("insert into " + partition.getTempTableName() + " (");
 
     for (AnalyticsTableColumn col : columns) {

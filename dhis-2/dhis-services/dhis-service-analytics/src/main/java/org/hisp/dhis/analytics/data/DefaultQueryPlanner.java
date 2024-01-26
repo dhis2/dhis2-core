@@ -213,9 +213,9 @@ public class DefaultQueryPlanner implements QueryPlanner {
 
     if (subQueries.size() > queryGroups.getAllQueries().size()) {
       log.debug(
-          String.format(
-              "Split on dimension %s: %d",
-              dimension, (subQueries.size() / queryGroups.getAllQueries().size())));
+          "Split on dimension {}: {}",
+          dimension,
+          (subQueries.size() / queryGroups.getAllQueries().size()));
     }
 
     return DataQueryGroups.newBuilder().withQueries(subQueries).build();
@@ -708,7 +708,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
    */
   private void logQuerySplit(List<DataQueryParams> queries, String splitCriteria) {
     if (queries.size() > 1) {
-      log.debug(String.format("Split on '%s': %d", splitCriteria, queries.size()));
+      log.debug("Split on '{}': {}", splitCriteria, queries.size());
     }
   }
 }
