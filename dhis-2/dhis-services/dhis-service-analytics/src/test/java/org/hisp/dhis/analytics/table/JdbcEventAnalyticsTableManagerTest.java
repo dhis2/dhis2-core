@@ -66,7 +66,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;

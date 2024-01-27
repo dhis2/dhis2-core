@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -50,7 +49,7 @@ public class AnalyticsTableColumn {
 
   /** Column not null constraint, default is to allow null values. */
   private ColumnNotNullConstraint notNull = ColumnNotNullConstraint.NULL;
-  
+
   /** The expression to use in select clauses. */
   private final String selectExpression;
 

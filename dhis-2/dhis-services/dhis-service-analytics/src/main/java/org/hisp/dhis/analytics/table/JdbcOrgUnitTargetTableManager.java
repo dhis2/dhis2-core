@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -59,8 +58,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -114,7 +111,7 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
 
   @Override
   public Set<String> getExistingDatabaseTables() {
-    return Sets.newHashSet(getTableName());
+    return Set.of(getTableName());
   }
 
   @Override

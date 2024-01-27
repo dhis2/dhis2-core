@@ -40,12 +40,13 @@ import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString
 import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL_UNAPPROVED;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
+import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTable;
@@ -82,10 +83,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.google.common.collect.Sets;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * This class manages the analytics tables. The analytics table is a denormalized table designed for
@@ -284,10 +281,9 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         partition,
         "1",
         "null",
-        Sets.newHashSet(ValueType.BOOLEAN, ValueType.TRUE_ONLY),
+        Set.of(ValueType.BOOLEAN, ValueType.TRUE_ONLY),
         "dv.value = 'true'");
-    populateTable(
-        params, partition, "0", "null", Sets.newHashSet(ValueType.BOOLEAN), "dv.value = 'false'");
+    populateTable(params, partition, "0", "null", Set.of(ValueType.BOOLEAN), "dv.value = 'false'");
     populateTable(
         params,
         partition,
