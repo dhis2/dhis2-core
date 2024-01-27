@@ -34,14 +34,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.ListUtils;
+import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.rules.models.RuleAction;
-import org.hisp.dhis.rules.models.RuleActionAssign;
-import org.hisp.dhis.rules.models.RuleActionError;
-import org.hisp.dhis.rules.models.RuleActionErrorOnCompletion;
-import org.hisp.dhis.rules.models.RuleActionSetMandatoryField;
-import org.hisp.dhis.rules.models.RuleActionShowError;
-import org.hisp.dhis.rules.models.RuleActionShowWarning;
-import org.hisp.dhis.rules.models.RuleActionWarningOnCompletion;
 import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -90,43 +84,37 @@ class RuleActionEnrollmentMapper {
         .map(
             effect ->
                 buildEnrollmentRuleActionExecutor(
-                    effect.ruleId(), effect.data(), effect.ruleAction(), attributes))
+                    effect.getRuleId(), effect.getData(), effect.getRuleAction(), attributes))
         .filter(Objects::nonNull)
-        .collect(Collectors.toList());
+        .toList();
   }
 
   private RuleActionExecutor<Enrollment> buildEnrollmentRuleActionExecutor(
       String ruleId, String data, RuleAction ruleAction, List<Attribute> attributes) {
-    if (ruleAction instanceof RuleActionAssign) {
-      RuleActionAssign action = (RuleActionAssign) ruleAction;
+    if (ruleAction.getType().equals(ProgramRuleActionType.ASSIGN.name())) {
       return new AssignAttributeExecutor(
-          systemSettingManager, ruleId, data, action.field(), attributes);
+          systemSettingManager, ruleId, data, ruleAction.field(), attributes);
     }
-    if (ruleAction instanceof RuleActionSetMandatoryField) {
-      RuleActionSetMandatoryField action = (RuleActionSetMandatoryField) ruleAction;
-      return new SetMandatoryFieldExecutor(ruleId, action.field());
+    if (ruleAction.getType().equals(ProgramRuleActionType.SETMANDATORYFIELD.name())) {
+      return new SetMandatoryFieldExecutor(ruleId, ruleAction.field());
     }
-    if (ruleAction instanceof RuleActionShowError) {
-      RuleActionShowError action = (RuleActionShowError) ruleAction;
+    if (ruleAction.getType().equals(ProgramRuleActionType.SHOWERROR.name())) {
       return new ShowErrorExecutor(
-          new ValidationRuleAction(ruleId, data, action.field(), action.content()));
+          new ValidationRuleAction(ruleId, data, ruleAction.field(), ruleAction.content()));
     }
-    if (ruleAction instanceof RuleActionShowWarning) {
-      RuleActionShowWarning action = (RuleActionShowWarning) ruleAction;
+    if (ruleAction.getType().equals(ProgramRuleActionType.SHOWWARNING.name())) {
       return new ShowWarningExecutor(
-          new ValidationRuleAction(ruleId, data, action.field(), action.content()));
+          new ValidationRuleAction(ruleId, data, ruleAction.field(), ruleAction.content()));
     }
-    if (ruleAction instanceof RuleActionErrorOnCompletion) {
-      RuleActionErrorOnCompletion action = (RuleActionErrorOnCompletion) ruleAction;
+    if (ruleAction.getType().equals(ProgramRuleActionType.ERRORONCOMPLETE.name())) {
       return new ShowErrorOnCompleteExecutor(
-          new ValidationRuleAction(ruleId, data, action.field(), action.content()));
+          new ValidationRuleAction(ruleId, data, ruleAction.field(), ruleAction.content()));
     }
-    if (ruleAction instanceof RuleActionWarningOnCompletion) {
-      RuleActionWarningOnCompletion action = (RuleActionWarningOnCompletion) ruleAction;
+    if (ruleAction.getType().equals(ProgramRuleActionType.WARNINGONCOMPLETE.name())) {
       return new ShowWarningOnCompleteExecutor(
-          new ValidationRuleAction(ruleId, data, action.field(), action.content()));
+          new ValidationRuleAction(ruleId, data, ruleAction.field(), ruleAction.content()));
     }
-    if (ruleAction instanceof RuleActionError) {
+    if (ruleAction.getType().equals("ERROR")) {
       return new RuleEngineErrorExecutor(ruleId, data);
     }
     return null;

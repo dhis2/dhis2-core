@@ -63,7 +63,7 @@
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis.rules</groupId>
-      <artifactId>rule-engine</artifactId>
+      <artifactId>rule-engine-jvm</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>

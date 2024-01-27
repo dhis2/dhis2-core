@@ -58,7 +58,6 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
-import org.hisp.dhis.analytics.AnalyticsTableExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -66,6 +65,7 @@ import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.ColumnDataType;
 import org.hisp.dhis.analytics.IndexType;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryService;
@@ -237,9 +237,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   @Transactional
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
     log.info(
-        format(
-            "Get tables using earliest: %s, spatial support: %b",
-            params.getFromDate(), isSpatialSupport()));
+        "Get tables using earliest: {}, spatial support: {}",
+        params.getFromDate(),
+        isSpatialSupport());
 
     List<Integer> availableDataYears =
         periodDataProvider.getAvailableYears(
@@ -355,16 +355,16 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         tables.add(table);
 
         log.info(
-            format(
-                "Added latest event analytics partition for program: '%s' with start: '%s' and end: '%s'",
-                program.getUid(), getLongDateString(startDate), getLongDateString(endDate)));
+            "Added latest event analytics partition for program: '{}' with start: '{}' and end: '{}'",
+            program.getUid(),
+            getLongDateString(startDate),
+            getLongDateString(endDate));
       } else {
         log.info(
-            format(
-                "No updated latest event data found for program: '%s' with start: '%s' and end: '%s",
-                program.getUid(),
-                getLongDateString(lastAnyTableUpdate),
-                getLongDateString(endDate)));
+            "No updated latest event data found for program: '{}' with start: '{}' and end: '{}",
+            program.getUid(),
+            getLongDateString(lastAnyTableUpdate),
+            getLongDateString(endDate));
       }
     }
 

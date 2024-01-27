@@ -66,9 +66,9 @@ public class DefaultQueryValidator implements QueryValidator {
 
     if (error != null) {
       log.warn(
-          String.format(
-              "Analytics validation failed, code: '%s', message: '%s'",
-              error.getErrorCode(), error.getMessage()));
+          "Analytics validation failed, code: '{}', message: '{}'",
+          error.getErrorCode(),
+          error.getMessage());
 
       throw new IllegalQueryException(error);
     }
@@ -169,7 +169,7 @@ public class DefaultQueryValidator implements QueryValidator {
     }
 
     if (violation != null) {
-      log.warn(String.format("Validation failed: %s", violation));
+      log.warn("Validation failed: {}", violation);
 
       throw new IllegalQueryException(violation);
     }

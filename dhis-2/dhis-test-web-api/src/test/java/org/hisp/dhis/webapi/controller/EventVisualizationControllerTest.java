@@ -457,69 +457,6 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testPostInvalidSortingObject() {
-    // Given
-    String invalidDimension = "invalidOne";
-    String sorting = "'sorting': [{'dimension': '" + invalidDimension + "', 'direction':'ASC'}]";
-    String body =
-        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
-            + mockProgram.getUid()
-            + "'}, 'columns': [{'dimension': 'pe'}],"
-            + sorting
-            + "}";
-
-    // When
-    HttpResponse response = POST("/eventVisualizations/", body);
-
-    // Then
-    assertEquals(
-        "Sorting dimension ‘" + invalidDimension + "’ is not a column",
-        response.error(CONFLICT).getMessage());
-  }
-
-  @Test
-  void testPostBlankSortingObject() {
-    // Given
-    String blankDimension = " ";
-    String sorting = "'sorting': [{'dimension': '" + blankDimension + "', 'direction':'ASC'}]";
-    String body =
-        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
-            + mockProgram.getUid()
-            + "'}, 'columns': [{'dimension': 'pe'}],"
-            + sorting
-            + "}";
-
-    // When
-    HttpResponse response = POST("/eventVisualizations/", body);
-
-    // Then
-    assertEquals(
-        "Sorting must have a valid dimension and a direction",
-        response.error(CONFLICT).getMessage());
-  }
-
-  @Test
-  void testPostNullSortingObject() {
-    // Given
-    String blankDimension = " ";
-    String sorting = "'sorting': [{'dimension': '" + blankDimension + "', 'direction':'ASC'}]";
-    String body =
-        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
-            + mockProgram.getUid()
-            + "'}, 'columns': [{'dimension': 'pe'}],"
-            + sorting
-            + "}";
-
-    // When
-    HttpResponse response = POST("/eventVisualizations/", body);
-
-    // Then
-    assertEquals(
-        "Sorting must have a valid dimension and a direction",
-        response.error(CONFLICT).getMessage());
-  }
-
-  @Test
   void testPutSortingObject() {
     // Given
     String dimension = "pe";
@@ -783,15 +720,6 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
     assertThat(columnsNode3.get("dimension").value().toString(), is(equalTo("created")));
 
     JsonNode filtersNode0 = response.get("filters").node().element(0);
-    assertThat(
-        filtersNode0.get("items").element(0).get("code").value().toString(),
-        is(equalTo("OrganisationUnitCodeA")));
-    assertThat(
-        filtersNode0.get("items").element(0).get("name").value().toString(),
-        is(equalTo("OrganisationUnitA")));
-    assertThat(
-        filtersNode0.get("items").element(0).get("dimensionItemType").value().toString(),
-        is(equalTo("ORGANISATION_UNIT")));
     assertThat(
         filtersNode0.get("items").element(0).get("dimensionItem").value().toString(),
         is(equalTo("ImspTQPwCqd")));

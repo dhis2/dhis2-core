@@ -27,11 +27,15 @@
  */
 package org.hisp.dhis.webapi.controller.deduplication;
 
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.deduplication.DeduplicationStatus;
@@ -41,6 +45,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.controller.tracker.JsonPage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,48 +60,178 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest {
 
   @Autowired private ObjectMapper objectMapper;
 
+  private OrganisationUnit orgUnit;
   private TrackedEntity origin;
-
-  private TrackedEntity duplicate;
+  private TrackedEntity duplicate1;
+  private PotentialDuplicate potentialDuplicate1;
+  private PotentialDuplicate potentialDuplicate2;
 
   @BeforeEach
   public void setUp() {
-    OrganisationUnit orgUnit = createOrganisationUnit(CodeGenerator.generateUid());
+    orgUnit = createOrganisationUnit(CodeGenerator.generateUid());
     dbmsManager.save(orgUnit);
 
     origin = createTrackedEntity(orgUnit);
-    duplicate = createTrackedEntity(orgUnit);
+    duplicate1 = createTrackedEntity(orgUnit);
+    TrackedEntity duplicate2 = createTrackedEntity(orgUnit);
 
     dbmsManager.save(origin);
-    dbmsManager.save(duplicate);
+    dbmsManager.save(duplicate1);
+    dbmsManager.save(duplicate2);
+
+    potentialDuplicate1 = new PotentialDuplicate(origin.getUid(), duplicate1.getUid());
+    save(potentialDuplicate1);
+    potentialDuplicate2 = new PotentialDuplicate(origin.getUid(), duplicate2.getUid());
+    save(potentialDuplicate2);
   }
 
   @Test
   void shouldPostPotentialDuplicateWhenTrackedEntitiesExist() throws Exception {
+    TrackedEntity te = createTrackedEntity(orgUnit);
+    dbmsManager.save(te);
     PotentialDuplicate potentialDuplicate =
-        new PotentialDuplicate(origin.getUid(), duplicate.getUid());
+        new PotentialDuplicate(te.getUid(), duplicate1.getUid());
+
     assertStatus(
         HttpStatus.OK, POST(ENDPOINT, objectMapper.writeValueAsString(potentialDuplicate)));
   }
 
   @Test
-  void shouldContainsDefaultFieldsWhenGetPotentialDuplicates() {
-    PotentialDuplicate potentialDuplicate =
-        new PotentialDuplicate(origin.getUid(), duplicate.getUid());
-    save(potentialDuplicate);
+  void shouldContainDefaultFieldsWhenGetPotentialDuplicates() {
+    JsonPage page = GET(ENDPOINT).content(HttpStatus.OK).asA(JsonPage.class);
 
     JsonList<JsonPotentialDuplicate> list =
-        GET(ENDPOINT, HttpStatus.OK)
-            .content()
-            .getList("potentialDuplicates", JsonPotentialDuplicate.class);
+        page.getList("potentialDuplicates", JsonPotentialDuplicate.class);
+    assertContainsOnly(
+        List.of(potentialDuplicate1.getUid(), potentialDuplicate2.getUid()),
+        list.toList(JsonPotentialDuplicate::getUid));
 
     JsonPotentialDuplicate jsonPotentialDuplicate = list.get(0);
-    assertEquals(potentialDuplicate.getUid(), jsonPotentialDuplicate.getUid());
-    assertEquals(potentialDuplicate.getStatus().name(), jsonPotentialDuplicate.getStatus());
-    assertEquals(potentialDuplicate.getOriginal(), jsonPotentialDuplicate.getOriginal());
-    assertEquals(potentialDuplicate.getDuplicate(), jsonPotentialDuplicate.getDuplicate());
-    assertNotNull(potentialDuplicate.getCreated());
-    assertNotNull(potentialDuplicate.getLastUpdated());
+    assertEquals(potentialDuplicate1.getUid(), jsonPotentialDuplicate.getUid());
+    assertEquals(potentialDuplicate1.getStatus().name(), jsonPotentialDuplicate.getStatus());
+    assertEquals(potentialDuplicate1.getOriginal(), jsonPotentialDuplicate.getOriginal());
+    assertEquals(potentialDuplicate1.getDuplicate(), jsonPotentialDuplicate.getDuplicate());
+    assertNotNull(potentialDuplicate1.getCreated());
+    assertNotNull(potentialDuplicate1.getLastUpdated());
+
+    assertEquals(1, page.getPager().getPage());
+    assertEquals(50, page.getPager().getPageSize());
+    assertHasNoMember(page.getPager(), "total");
+    assertHasNoMember(page.getPager(), "pageCount");
+
+    // assert deprecated fields
+    assertEquals(1, page.getPage());
+    assertEquals(50, page.getPageSize());
+    assertHasNoMember(page, "total");
+    assertHasNoMember(page, "pageCount");
+  }
+
+  @Test
+  void shouldGetPaginatedItemsWithNonDefaults() {
+    JsonPage page =
+        GET("/potentialDuplicates?page=2&pageSize=1").content(HttpStatus.OK).asA(JsonPage.class);
+
+    JsonList<JsonPotentialDuplicate> list =
+        page.getList("potentialDuplicates", JsonPotentialDuplicate.class);
+    assertEquals(
+        1,
+        list.size(),
+        () ->
+            String.format("mismatch in number of expected potential duplicates(s), got %s", list));
+
+    assertEquals(2, page.getPager().getPage());
+    assertEquals(1, page.getPager().getPageSize());
+    assertHasNoMember(page.getPager(), "total");
+    assertHasNoMember(page.getPager(), "pageCount");
+
+    // assert deprecated fields
+    assertEquals(2, page.getPage());
+    assertEquals(1, page.getPageSize());
+    assertHasNoMember(page.getPager(), "total");
+    assertHasNoMember(page.getPager(), "pageCount");
+  }
+
+  @Test
+  void shouldGetPaginatedItemsWithPagingSetToTrue() {
+    JsonPage page =
+        GET("/potentialDuplicates?paging=true").content(HttpStatus.OK).asA(JsonPage.class);
+
+    JsonList<JsonPotentialDuplicate> list =
+        page.getList("potentialDuplicates", JsonPotentialDuplicate.class);
+    assertContainsOnly(
+        List.of(potentialDuplicate1.getUid(), potentialDuplicate2.getUid()),
+        list.toList(JsonPotentialDuplicate::getUid));
+
+    assertEquals(1, page.getPager().getPage());
+    assertEquals(50, page.getPager().getPageSize());
+    assertHasNoMember(page.getPager(), "total");
+    assertHasNoMember(page.getPager(), "pageCount");
+
+    // assert deprecated fields
+    assertEquals(1, page.getPage());
+    assertEquals(50, page.getPageSize());
+    assertHasNoMember(page, "total");
+    assertHasNoMember(page, "pageCount");
+  }
+
+  @Test
+  void shouldGetNonPaginatedItemsWithSkipPaging() {
+    JsonPage page =
+        GET("/potentialDuplicates?skipPaging=true").content(HttpStatus.OK).asA(JsonPage.class);
+
+    JsonList<JsonPotentialDuplicate> list =
+        page.getList("potentialDuplicates", JsonPotentialDuplicate.class);
+    assertContainsOnly(
+        List.of(potentialDuplicate1.getUid(), potentialDuplicate2.getUid()),
+        list.toList(JsonPotentialDuplicate::getUid));
+    assertHasNoMember(page, "pager");
+
+    // assert deprecated fields
+    assertHasNoMember(page, "page");
+    assertHasNoMember(page, "pageSize");
+    assertHasNoMember(page, "total");
+    assertHasNoMember(page, "pageCount");
+  }
+
+  @Test
+  void shouldGetNonPaginatedItemsWithPagingSetToFalse() {
+    JsonPage page =
+        GET("/potentialDuplicates?paging=false").content(HttpStatus.OK).asA(JsonPage.class);
+
+    JsonList<JsonPotentialDuplicate> list =
+        page.getList("potentialDuplicates", JsonPotentialDuplicate.class);
+    assertContainsOnly(
+        List.of(potentialDuplicate1.getUid(), potentialDuplicate2.getUid()),
+        list.toList(JsonPotentialDuplicate::getUid));
+    assertHasNoMember(page, "pager");
+
+    // assert deprecated fields
+    assertHasNoMember(page, "page");
+    assertHasNoMember(page, "pageSize");
+    assertHasNoMember(page, "total");
+    assertHasNoMember(page, "pageCount");
+  }
+
+  @Test
+  void shouldFailWhenSkipPagingAndPagingAreFalse() {
+    String message =
+        GET("/potentialDuplicates?paging=false&skipPaging=false")
+            .content(HttpStatus.BAD_REQUEST)
+            .getString("message")
+            .string();
+
+    assertStartsWith("Paging can either be enabled or disabled", message);
+  }
+
+  @Test
+  void shouldFailWhenSkipPagingAndPagingAreTrue() {
+    String message =
+        GET("/potentialDuplicates?paging=true&skipPaging=true")
+            .content(HttpStatus.BAD_REQUEST)
+            .getString("message")
+            .string();
+
+    assertStartsWith("Paging can either be enabled or disabled", message);
   }
 
   @Test
@@ -109,7 +244,7 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void shouldThrowPostPotentialDuplicateWhenMissingOriginTeiInPayload() throws Exception {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(null, duplicate.getUid());
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(null, duplicate1.getUid());
     assertStatus(
         HttpStatus.BAD_REQUEST,
         POST(ENDPOINT, objectMapper.writeValueAsString(potentialDuplicate)));
@@ -118,7 +253,7 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest {
   @Test
   void shouldThrowBadRequestWhenPutPotentialDuplicateAlreadyMerged() {
     PotentialDuplicate potentialDuplicate =
-        new PotentialDuplicate(origin.getUid(), duplicate.getUid());
+        new PotentialDuplicate(origin.getUid(), duplicate1.getUid());
     potentialDuplicate.setStatus(DeduplicationStatus.MERGED);
     save(potentialDuplicate);
 
@@ -133,7 +268,8 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void shouldThrowBadRequestWhenPutPotentialDuplicateToMergedStatus() {
-    PotentialDuplicate potentialDuplicate = potentialDuplicate(origin.getUid(), duplicate.getUid());
+    PotentialDuplicate potentialDuplicate =
+        potentialDuplicate(origin.getUid(), duplicate1.getUid());
     assertStatus(
         HttpStatus.BAD_REQUEST,
         PUT(
@@ -145,7 +281,8 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void shouldUpdatePotentialDuplicateWhenPotentialDuplicateExistsAndCorrectStatus() {
-    PotentialDuplicate potentialDuplicate = potentialDuplicate(origin.getUid(), duplicate.getUid());
+    PotentialDuplicate potentialDuplicate =
+        potentialDuplicate(origin.getUid(), duplicate1.getUid());
     assertStatus(
         HttpStatus.OK,
         PUT(
@@ -157,7 +294,8 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void shouldGetPotentialDuplicateByIdWhenPotentialDuplicateExists() {
-    PotentialDuplicate potentialDuplicate = potentialDuplicate(origin.getUid(), duplicate.getUid());
+    PotentialDuplicate potentialDuplicate =
+        potentialDuplicate(origin.getUid(), duplicate1.getUid());
     assertStatus(HttpStatus.OK, GET(ENDPOINT + potentialDuplicate.getUid()));
   }
 

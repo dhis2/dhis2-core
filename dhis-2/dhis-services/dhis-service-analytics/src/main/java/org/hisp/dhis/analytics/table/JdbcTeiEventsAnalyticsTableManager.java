@@ -61,12 +61,12 @@ import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
-import org.hisp.dhis.analytics.AnalyticsTableExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -307,8 +307,6 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
                 + ") < '"
                 + end
                 + "' ";
-
-    validateDimensionColumns(dimensions);
 
     StringBuilder sql = new StringBuilder("insert into " + partition.getTempTableName() + " (");
 

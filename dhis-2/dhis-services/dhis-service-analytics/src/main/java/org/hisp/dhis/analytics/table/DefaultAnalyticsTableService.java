@@ -82,7 +82,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
 
     int tableUpdates = 0;
 
-    log.info(String.format("Analytics table update parameters: %s", params));
+    log.info("Analytics table update parameters: {}", params);
 
     AnalyticsTableType tableType = getAnalyticsTableType();
 

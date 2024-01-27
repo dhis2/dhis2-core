@@ -2156,7 +2156,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "PID0001",
             "Johnson",
             "Sarah",
-            "1988-07-10",
+            "1988-07-10 00:00:00.0",
             "",
             "30",
             "FEMALE",
@@ -2184,7 +2184,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "7hdjdj",
             "Martin",
             "Steve",
-            "1976-02-03",
+            "1976-02-03 00:00:00.0",
             "",
             "43",
             "FEMALE",
@@ -2212,13 +2212,13 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "",
             "",
             "",
-            "1998-02-04",
+            "1998-02-04 00:00:00.0",
             "",
             "21",
             "",
             "",
             "",
-            "[40.41441,-3.71542]"));
+            "SRID=4326;POINT(40.41441 -3.71542)"));
   }
 
   @Test
@@ -2273,7 +2273,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "PID0001",
             "Johnson",
             "Sarah",
-            "1988-07-10",
+            "1988-07-10 00:00:00.0",
             "",
             "30",
             "FEMALE",
@@ -2301,7 +2301,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "7hdjdj",
             "Martin",
             "Steve",
-            "1976-02-03",
+            "1976-02-03 00:00:00.0",
             "",
             "43",
             "FEMALE",
@@ -2329,13 +2329,13 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "",
             "",
             "",
-            "1998-02-04",
+            "1998-02-04 00:00:00.0",
             "",
             "21",
             "",
             "",
             "",
-            "[40.41441,-3.71542]"));
+            "SRID=4326;POINT(40.41441 -3.71542)"));
   }
 
   @Test
@@ -2926,6 +2926,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         new QueryParamsBuilder()
             .add("dimension=IpHINAT79UW.GxdhnY5wmHq")
             .add("headers=IpHINAT79UW.GxdhnY5wmHq")
+            .add("lastupdated=LAST_YEAR")
             .add("asc=lastupdated")
             .add("relativePeriodDate=2016-01-01");
 
@@ -2943,5 +2944,47 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         .body("headers", hasSize(equalTo(1)));
 
     validateRow(response, 0, List.of(""));
+  }
+
+  @Test
+  public void metaContainsFullPrefixWithDimensionName() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=IpHINAT79UW.ZzYYXq4fJie.cYGaxwK615G")
+            .add("headers=IpHINAT79UW.ZzYYXq4fJie.cYGaxwK615G,IpHINAT79UW.enrollmentdate");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("metaData.items['IpHINAT79UW.enrollmentdate'].name", equalTo("Date of enrollment"))
+        .body(
+            "metaData.items['IpHINAT79UW.ZzYYXq4fJie.cYGaxwK615G'].name",
+            equalTo("MCH Infant HIV Test Result"));
+  }
+
+  @Test
+  public void booleanReturns1() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=bJeK4FaRKDS")
+            .add("headers=bJeK4FaRKDS")
+            .add("lastUpdated=LAST_YEAR")
+            .add("desc=lastupdated")
+            .add("relativePeriodDate=2020-01-01")
+            .add("pageSize=1");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("Zy2SEgA61ys", JSON, JSON, params);
+
+    // Then
+    response.validate().statusCode(200);
+
+    validateRow(response, 0, List.of("1"));
   }
 }

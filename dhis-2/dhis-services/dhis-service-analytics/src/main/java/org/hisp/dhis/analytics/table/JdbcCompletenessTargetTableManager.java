@@ -41,12 +41,12 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
-import org.hisp.dhis.analytics.AnalyticsTableExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
@@ -150,8 +150,6 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
 
     List<AnalyticsTableColumn> dimensions = partition.getMasterTable().getDimensionColumns();
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
-
-    validateDimensionColumns(dimensions);
 
     for (AnalyticsTableColumn col : columns) {
       sql += col.getName() + ",";

@@ -39,9 +39,11 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.stream.Stream;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -103,7 +105,7 @@ public final class ImportConflict {
     }
     ErrorCode errorCode = descriptor.getErrorCode();
     String message = MessageFormat.format(errorCode.getMessage(), (Object[]) objects);
-    return new ImportConflict(objectsMap, message, errorCode, property, index);
+    return new ImportConflict(objectsMap, objects, message, errorCode, property, index);
   }
 
   /**
@@ -131,6 +133,8 @@ public final class ImportConflict {
   /** What type of object does {@link #object} refer to? Uses the singular from schema. */
   private final Map<String, String> objects;
 
+  private final List<String> args;
+
   /**
    * A list of indexes pointing out the index of the conflicting element in the set/list of imported
    * elements.
@@ -140,12 +144,13 @@ public final class ImportConflict {
   private int occurrenceCount;
 
   public ImportConflict(String object, String message) {
-    this(getGroupingKey(object, message), object, message, null, null, null, -1);
+    this(getGroupingKey(object, message), object, null, message, null, null, null, -1);
     requireNonNull(message);
   }
 
   public ImportConflict(
       Map<String, String> objects,
+      Object[] args,
       String message,
       ErrorCode errorCode,
       String property,
@@ -153,6 +158,7 @@ public final class ImportConflict {
     this(
         getGroupingKey(errorCode, objects),
         objects.isEmpty() ? null : objects.values().iterator().next(),
+        args,
         message,
         errorCode,
         objects,
@@ -163,6 +169,7 @@ public final class ImportConflict {
   private ImportConflict(
       String groupingKey,
       String object,
+      Object[] args,
       String message,
       ErrorCode errorCode,
       Map<String, String> objects,
@@ -172,6 +179,10 @@ public final class ImportConflict {
     this.errorCode = errorCode;
     this.object = object;
     this.message = message;
+    this.args =
+        args == null
+            ? List.of()
+            : Stream.of(args).map(obj -> obj == null ? null : obj.toString()).toList();
     this.objects = objects;
     this.property = property;
     if (index >= 0) {
@@ -195,6 +206,7 @@ public final class ImportConflict {
     this.groupingKey =
         errorCode == null ? getGroupingKey(object, message) : getGroupingKey(errorCode, objects);
     this.object = object;
+    this.args = null;
     this.objects = objects;
     this.message = message;
     this.property = property;
@@ -209,6 +221,11 @@ public final class ImportConflict {
 
   private static String getGroupingKey(String object, String message) {
     return object + KEY_DELIMITER + message;
+  }
+
+  @JsonIgnore
+  public List<String> getArgs() {
+    return args;
   }
 
   @JsonIgnore
