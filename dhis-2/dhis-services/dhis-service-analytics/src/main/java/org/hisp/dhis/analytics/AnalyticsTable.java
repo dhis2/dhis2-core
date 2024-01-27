@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.analytics;
 
+import static org.hisp.dhis.analytics.table.PartitionUtils.SEP;
+
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -109,7 +111,7 @@ public class AnalyticsTable {
    * @return the table name.
    */
   public static String getTableName(String baseName, Program program) {
-    return baseName + "_" + program.getUid().toLowerCase();
+    return baseName + SEP + program.getUid().toLowerCase();
   }
 
   /**
@@ -120,7 +122,7 @@ public class AnalyticsTable {
    * @return the table name.
    */
   public static String getTableName(String baseName, TrackedEntityType trackedEntityType) {
-    return baseName + "_" + trackedEntityType.getUid().toLowerCase();
+    return baseName + SEP + trackedEntityType.getUid().toLowerCase();
   }
 
   /**
