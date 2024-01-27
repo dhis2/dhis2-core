@@ -140,7 +140,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     sql = TextUtils.removeLastComma(sql) + ") select ";
 
     for (AnalyticsTableColumn col : columns) {
-      sql += col.getAlias() + ",";
+      sql += col.getSelectExpression() + ",";
     }
 
     sql = TextUtils.removeLastComma(sql) + " ";

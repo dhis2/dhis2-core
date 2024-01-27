@@ -317,7 +317,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
     removeLastComma(sql).append(") select distinct ");
 
     for (AnalyticsTableColumn col : dimensions) {
-      sql.append(col.getAlias() + ",");
+      sql.append(col.getSelectExpression() + ",");
     }
 
     removeLastComma(sql)

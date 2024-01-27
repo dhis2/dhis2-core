@@ -311,11 +311,11 @@ class JdbcEventAnalyticsTableManagerTest {
     AnalyticsTableColumn created = getColumn("\"created\"", tables.get(0));
 
     assertThat(
-        lastUpdated.getAlias(),
+        lastUpdated.getSelectExpression(),
         is(
             "CASE WHEN psi.lastupdatedatclient IS NOT NULL THEN psi.lastupdatedatclient ELSE psi.lastupdated END"));
     assertThat(
-        created.getAlias(),
+        created.getSelectExpression(),
         is(
             "CASE WHEN psi.createdatclient IS NOT NULL THEN psi.createdatclient ELSE psi.created END"));
   }
@@ -826,21 +826,21 @@ class JdbcEventAnalyticsTableManagerTest {
   private void match(OrganisationUnitGroupSet ouGroupSet, AnalyticsTableColumn col) {
     String name = quote(ouGroupSet.getUid());
     assertNotNull(col);
-    assertThat(col.getAlias(), is("ougs." + name));
+    assertThat(col.getSelectExpression(), is("ougs." + name));
     match(col);
   }
 
   private void match(OrganisationUnitLevel ouLevel, AnalyticsTableColumn col) {
     String name = quote("uidlevel" + ouLevel.getLevel());
     assertNotNull(col);
-    assertThat(col.getAlias(), is("ous." + name));
+    assertThat(col.getSelectExpression(), is("ous." + name));
     match(col);
   }
 
   private void match(CategoryOptionGroupSet cog, AnalyticsTableColumn col) {
     String name = quote(cog.getUid());
     assertNotNull(col);
-    assertThat(col.getAlias(), is("acs." + name));
+    assertThat(col.getSelectExpression(), is("acs." + name));
     match(col);
   }
 

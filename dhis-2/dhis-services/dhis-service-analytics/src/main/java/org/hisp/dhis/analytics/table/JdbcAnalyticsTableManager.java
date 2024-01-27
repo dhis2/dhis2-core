@@ -281,10 +281,9 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         partition,
         "1",
         "null",
-        Sets.newHashSet(ValueType.BOOLEAN, ValueType.TRUE_ONLY),
+        Set.of(ValueType.BOOLEAN, ValueType.TRUE_ONLY),
         "dv.value = 'true'");
-    populateTable(
-        params, partition, "0", "null", Sets.newHashSet(ValueType.BOOLEAN), "dv.value = 'false'");
+    populateTable(params, partition, "0", "null", Set.of(ValueType.BOOLEAN), "dv.value = 'false'");
     populateTable(
         params,
         partition,
@@ -332,7 +331,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     sql = TextUtils.removeLastComma(sql) + ") select ";
 
     for (AnalyticsTableColumn col : dimensions) {
-      sql += col.getAlias() + ",";
+      sql += col.getSelectExpression() + ",";
     }
 
     sql +=

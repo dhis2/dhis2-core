@@ -363,7 +363,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
     removeLastComma(sql).append(") select ");
 
     for (AnalyticsTableColumn col : dimensions) {
-      sql.append(col.getAlias() + ",");
+      sql.append(col.getSelectExpression() + ",");
     }
 
     TrackedEntityType trackedEntityType = partition.getMasterTable().getTrackedEntityType();
