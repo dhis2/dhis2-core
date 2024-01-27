@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -55,6 +56,11 @@ public class AnalyticsTableColumn {
 
   /** The column collation. */
   private Collation collation;
+  
+  /**
+   * The column analytics value type.
+   */
+  private AnalyticsValueType valueType;
 
   /** Explicit index type, defaults to database default type {@link IndexType#BTREE}. */
   private IndexType indexType = IndexType.BTREE;
@@ -119,6 +125,28 @@ public class AnalyticsTableColumn {
     this.dataType = dataType;
     this.notNull = notNull;
     this.selectExpression = selectExpression;
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param name the analytics table column name.
+   * @param dataType the analytics table column data type.
+   * @param notNull the analytics table column not null constraint.
+   * @param selectExpression the expression to use in the select clause.
+   * @param valueType the analytics value type.
+   */
+  public AnalyticsTableColumn(
+      String name,
+      ColumnDataType dataType,
+      ColumnNotNullConstraint notNull,
+      String selectExpression,
+      AnalyticsValueType valueType) {
+    this.name = name;
+    this.dataType = dataType;
+    this.notNull = notNull;
+    this.selectExpression = selectExpression;
+    this.valueType = valueType;
   }
 
   // -------------------------------------------------------------------------

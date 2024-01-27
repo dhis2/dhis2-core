@@ -30,12 +30,13 @@ package org.hisp.dhis.analytics;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import lombok.Getter;
-import org.hisp.dhis.commons.collection.ListUtils;
+
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.springframework.util.Assert;
+
+import lombok.Getter;
 
 /**
  * Class representing an analytics database table.
@@ -54,10 +55,7 @@ public class AnalyticsTable {
   private AnalyticsTableType tableType;
 
   /** Columns representing dimensions. */
-  private List<AnalyticsTableColumn> dimensionColumns;
-
-  /** Columns representing values. */
-  private List<AnalyticsTableColumn> valueColumns;
+  private List<AnalyticsTableColumn> columns;
 
   /** Program of events in analytics table. */
   private Program program;
@@ -78,40 +76,26 @@ public class AnalyticsTable {
     this.tableName = tableType.getTableName();
     this.tempTableName = tableType.getTempTableName();
     this.tableType = tableType;
-    this.dimensionColumns = dimensionColumns;
-    this.valueColumns = List.of();
+    this.columns = dimensionColumns;
   }
 
   public AnalyticsTable(
-      AnalyticsTableType tableType,
-      List<AnalyticsTableColumn> dimensionColumns,
-      List<AnalyticsTableColumn> valueColumns) {
-    this.tableName = tableType.getTableName();
-    this.tempTableName = tableType.getTempTableName();
-    this.tableType = tableType;
-    this.dimensionColumns = dimensionColumns;
-    this.valueColumns = valueColumns;
-  }
-
-  public AnalyticsTable(
-      AnalyticsTableType tableType, List<AnalyticsTableColumn> dimensionColumns, Program program) {
+      AnalyticsTableType tableType, List<AnalyticsTableColumn> columns, Program program) {
     this.tableName = getTableName(tableType.getTableName(), program);
     this.tempTableName = getTableName(tableType.getTempTableName(), program);
     this.tableType = tableType;
-    this.dimensionColumns = dimensionColumns;
-    this.valueColumns = List.of();
+    this.columns = columns;
     this.program = program;
   }
 
   public AnalyticsTable(
       AnalyticsTableType tableType,
-      List<AnalyticsTableColumn> dimensionColumns,
+      List<AnalyticsTableColumn> columns,
       TrackedEntityType trackedEntityType) {
     this.tableName = getTableName(tableType.getTableName(), trackedEntityType);
     this.tempTableName = getTableName(tableType.getTempTableName(), trackedEntityType);
     this.tableType = tableType;
-    this.dimensionColumns = dimensionColumns;
-    this.valueColumns = List.of();
+    this.columns = columns;
     this.trackedEntityType = trackedEntityType;
   }
 
@@ -142,21 +126,32 @@ public class AnalyticsTable {
   }
 
   /**
-   * Returns a list of all columns including dimension columns and value columns.
-   *
+   * Returns columns of analytics value type dimension.
+   * 
    * @return a list of {@link AnalyticsTableColumn}.
    */
-  public List<AnalyticsTableColumn> getColumns() {
-    return ListUtils.union(getDimensionColumns(), getValueColumns());
+  public List<AnalyticsTableColumn> getDimensionColumns()
+  {
+      return columns.stream().filter( c -> AnalyticsValueType.DIMENSION == c.getValueType() ).toList();
   }
 
+  /**
+   * Returns columns of analytics value type fact.
+   * 
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
+  public List<AnalyticsTableColumn> getFactColumns()
+  {
+      return columns.stream().filter( c -> AnalyticsValueType.FACT == c.getValueType() ).toList();
+  }
+  
   /**
    * Returns the count of all columns.
    *
    * @return the count of all columns.
    */
   public int getColumnCount() {
-    return getColumns().size();
+    return columns.size();
   }
 
   /**

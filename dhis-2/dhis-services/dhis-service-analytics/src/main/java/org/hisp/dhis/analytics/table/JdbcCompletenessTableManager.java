@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -117,9 +118,9 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
     AnalyticsTable table =
         params.isLatestUpdate()
-            ? getLatestAnalyticsTable(params, getDimensionColumns(), List.of())
+            ? getLatestAnalyticsTable(params, getDimensionColumns())
             : getRegularAnalyticsTable(
-                params, getDataYears(params), getDimensionColumns(), List.of());
+                params, getDataYears(params), getDimensionColumns());
 
     return table.hasPartitionTables() ? List.of(table) : List.of();
   }

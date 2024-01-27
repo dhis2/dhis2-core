@@ -39,13 +39,13 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getCollation;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.analytics.AnalyticsIndex;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
@@ -62,7 +62,6 @@ import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -82,6 +81,9 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -412,20 +414,18 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @param params the {@link AnalyticsTableUpdateParams}.
    * @param dataYears the list of years with data.
    * @param dimensionColumns the list of dimension {@link AnalyticsTableColumn}.
-   * @param valueColumns the list of value {@link AnalyticsTableColumn}.
    */
   protected AnalyticsTable getRegularAnalyticsTable(
       AnalyticsTableUpdateParams params,
       List<Integer> dataYears,
-      List<AnalyticsTableColumn> dimensionColumns,
-      List<AnalyticsTableColumn> valueColumns) {
+      List<AnalyticsTableColumn> dimensionColumns) {
 
-    List<Integer> years = ListUtils.mutableCopy(dataYears);
+    List<Integer> years = new ArrayList<>(dataYears);
 
     Collections.sort(years);
 
     AnalyticsTable table =
-        new AnalyticsTable(getAnalyticsTableType(), dimensionColumns, valueColumns);
+        new AnalyticsTable(getAnalyticsTableType(), dimensionColumns);
 
     for (Integer year : years) {
       table.addPartitionTable(year, getStartDate(year), getEndDate(year));
@@ -441,12 +441,10 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    *
    * @param params the {@link AnalyticsTableUpdateParams}.
    * @param dimensionColumns the list of dimension {@link AnalyticsTableColumn}.
-   * @param valueColumns the list of value {@link AnalyticsTableColumn}.
    */
   protected AnalyticsTable getLatestAnalyticsTable(
       AnalyticsTableUpdateParams params,
-      List<AnalyticsTableColumn> dimensionColumns,
-      List<AnalyticsTableColumn> valueColumns) {
+      List<AnalyticsTableColumn> dimensionColumns) {
     Date lastFullTableUpdate =
         systemSettingManager.getDateSetting(SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE);
     Date lastLatestPartitionUpdate =
@@ -462,7 +460,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     boolean hasUpdatedData = hasUpdatedLatestData(lastAnyTableUpdate, endDate);
 
     AnalyticsTable table =
-        new AnalyticsTable(getAnalyticsTableType(), dimensionColumns, valueColumns);
+        new AnalyticsTable(getAnalyticsTableType(), dimensionColumns);
 
     if (hasUpdatedData) {
       table.addPartitionTable(
