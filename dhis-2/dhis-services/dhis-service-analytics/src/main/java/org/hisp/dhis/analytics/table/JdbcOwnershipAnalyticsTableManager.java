@@ -141,7 +141,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
    */
   private List<AnalyticsTable> getRegularAnalyticsTables() {
     return idObjectManager.getAllNoAcl(Program.class).stream()
-        .map(p -> new AnalyticsTable(getAnalyticsTableType(), getDimensionColumns(), p))
+        .map(p -> new AnalyticsTable(getAnalyticsTableType(), getColumns(), p))
         .collect(toList());
   }
 
@@ -172,7 +172,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
 
   private void populateTableInternal(AnalyticsTablePartition partition, String sql) {
     List<String> columnNames =
-        getDimensionColumns().stream().map(AnalyticsTableColumn::getName).collect(toList());
+        getColumns().stream().map(AnalyticsTableColumn::getName).collect(toList());
 
     try (MappingBatchHandler batchHandler =
         MappingBatchHandler.builder()
@@ -207,7 +207,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
 
     StringBuilder sb = new StringBuilder("select ");
 
-    for (AnalyticsTableColumn col : getDimensionColumns()) {
+    for (AnalyticsTableColumn col : getColumns()) {
       sb.append(col.getSelectExpression()).append(",");
     }
 
@@ -274,11 +274,11 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
   }
 
   /**
-   * Returns dimensional analytics table columns.
+   * Returns analytics table columns.
    *
    * @return a list of {@link AnalyticsTableColumn}.
    */
-  private List<AnalyticsTableColumn> getDimensionColumns() {
+  private List<AnalyticsTableColumn> getColumns() {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     columns.addAll(getOrganisationUnitLevelColumns());

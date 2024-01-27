@@ -43,12 +43,13 @@ import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString
 import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL_UNAPPROVED;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
+import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTable;
@@ -86,10 +87,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Sets;
-
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * This class manages the analytics tables. The analytics table is a denormalized table designed for
  * analysis which contains raw data values.
@@ -109,7 +106,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service("org.hisp.dhis.analytics.AnalyticsTableManager")
 public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
-  //TODO Make additional columns NOT_NULL
+  // TODO Make additional columns NOT_NULL
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
           new AnalyticsTableColumn(quote("dx"), CHARACTER_11, NOT_NULL, "de.uid", DIMENSION),
@@ -117,7 +114,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
               .withIndexColumns(List.of(quote("dx"), quote("co"))),
           new AnalyticsTableColumn(quote("ao"), CHARACTER_11, NOT_NULL, "ao.uid", DIMENSION)
               .withIndexColumns(List.of(quote("dx"), quote("ao"))),
-          new AnalyticsTableColumn(quote("pestartdate"), TIMESTAMP, NULL, "pe.startdate", DIMENSION),
+          new AnalyticsTableColumn(
+              quote("pestartdate"), TIMESTAMP, NULL, "pe.startdate", DIMENSION),
           new AnalyticsTableColumn(quote("peenddate"), TIMESTAMP, NULL, "pe.enddate", DIMENSION),
           new AnalyticsTableColumn(quote("year"), INTEGER, NOT_NULL, "ps.year", DIMENSION),
           new AnalyticsTableColumn(quote("pe"), TEXT, NOT_NULL, "ps.iso", DIMENSION),
@@ -167,8 +165,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     AnalyticsTable table =
         params.isLatestUpdate()
             ? getLatestAnalyticsTable(params, getColumns(params))
-            : getRegularAnalyticsTable(
-                params, getDataYears(params), getColumns(params));
+            : getRegularAnalyticsTable(params, getDataYears(params), getColumns(params));
 
     return table.hasPartitionTables() ? List.of(table) : List.of();
   }
@@ -433,8 +430,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     return getColumns(null, params);
   }
 
-  private List<AnalyticsTableColumn> getColumns(
-      Integer year, AnalyticsTableUpdateParams params) {
+  private List<AnalyticsTableColumn> getColumns(Integer year, AnalyticsTableUpdateParams params) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     String idColAlias =
@@ -463,42 +459,66 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     for (DataElementGroupSet groupSet : dataElementGroupSets) {
       columns.add(
           new AnalyticsTableColumn(
-                  quote(groupSet.getUid()), CHARACTER_11, NULL, "degs." + quote(groupSet.getUid()), DIMENSION)
+                  quote(groupSet.getUid()),
+                  CHARACTER_11,
+                  NULL,
+                  "degs." + quote(groupSet.getUid()),
+                  DIMENSION)
               .withCreated(groupSet.getCreated()));
     }
 
     for (OrganisationUnitGroupSet groupSet : orgUnitGroupSets) {
       columns.add(
           new AnalyticsTableColumn(
-                  quote(groupSet.getUid()), CHARACTER_11, NULL, "ougs." + quote(groupSet.getUid()), DIMENSION)
+                  quote(groupSet.getUid()),
+                  CHARACTER_11,
+                  NULL,
+                  "ougs." + quote(groupSet.getUid()),
+                  DIMENSION)
               .withCreated(groupSet.getCreated()));
     }
 
     for (CategoryOptionGroupSet groupSet : disaggregationCategoryOptionGroupSets) {
       columns.add(
           new AnalyticsTableColumn(
-                  quote(groupSet.getUid()), CHARACTER_11, NULL, "dcs." + quote(groupSet.getUid()), DIMENSION)
+                  quote(groupSet.getUid()),
+                  CHARACTER_11,
+                  NULL,
+                  "dcs." + quote(groupSet.getUid()),
+                  DIMENSION)
               .withCreated(groupSet.getCreated()));
     }
 
     for (CategoryOptionGroupSet groupSet : attributeCategoryOptionGroupSets) {
       columns.add(
           new AnalyticsTableColumn(
-                  quote(groupSet.getUid()), CHARACTER_11, NULL, "acs." + quote(groupSet.getUid()), DIMENSION)
+                  quote(groupSet.getUid()),
+                  CHARACTER_11,
+                  NULL,
+                  "acs." + quote(groupSet.getUid()),
+                  DIMENSION)
               .withCreated(groupSet.getCreated()));
     }
 
     for (Category category : disaggregationCategories) {
       columns.add(
           new AnalyticsTableColumn(
-                  quote(category.getUid()), CHARACTER_11, NULL, "dcs." + quote(category.getUid()), DIMENSION)
+                  quote(category.getUid()),
+                  CHARACTER_11,
+                  NULL,
+                  "dcs." + quote(category.getUid()),
+                  DIMENSION)
               .withCreated(category.getCreated()));
     }
 
     for (Category category : attributeCategories) {
       columns.add(
           new AnalyticsTableColumn(
-                  quote(category.getUid()), CHARACTER_11, NULL, "acs." + quote(category.getUid()), DIMENSION)
+                  quote(category.getUid()),
+                  CHARACTER_11,
+                  NULL,
+                  "acs." + quote(category.getUid()),
+                  DIMENSION)
               .withCreated(category.getCreated()));
     }
 
@@ -518,16 +538,18 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
                 + ") as approvallevel "
             : DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST + " as approvallevel";
 
-    columns.add(new AnalyticsTableColumn(quote("approvallevel"), INTEGER, NULL, approvalCol, DIMENSION));
+    columns.add(
+        new AnalyticsTableColumn(quote("approvallevel"), INTEGER, NULL, approvalCol, DIMENSION));
     columns.addAll(getFixedColumns());
     if (!skipOutliers(params)) {
       columns.addAll(getOutlierStatsColumns());
     }
-    columns.addAll( List.of(
-        new AnalyticsTableColumn(quote("daysxvalue"), DOUBLE, NULL, "daysxvalue", FACT),
-        new AnalyticsTableColumn(quote("daysno"), INTEGER, NOT_NULL, "daysno", FACT),
-        new AnalyticsTableColumn(quote("value"), DOUBLE, NULL, "value", FACT),
-        new AnalyticsTableColumn(quote("textvalue"), TEXT, NULL, "textvalue", FACT)) );
+    columns.addAll(
+        List.of(
+            new AnalyticsTableColumn(quote("daysxvalue"), DOUBLE, NULL, "daysxvalue", FACT),
+            new AnalyticsTableColumn(quote("daysno"), INTEGER, NOT_NULL, "daysno", FACT),
+            new AnalyticsTableColumn(quote("value"), DOUBLE, NULL, "value", FACT),
+            new AnalyticsTableColumn(quote("textvalue"), TEXT, NULL, "textvalue", FACT)));
 
     return filterDimensionColumns(columns);
   }
@@ -557,16 +579,26 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         new AnalyticsTableColumn(
             quote("categoryoptioncomboid"), INTEGER, NOT_NULL, "dv.categoryoptioncomboid"),
         new AnalyticsTableColumn(
-            quote("attributeoptioncomboid"), INTEGER, NOT_NULL, "dv.attributeoptioncomboid", DIMENSION),
-        new AnalyticsTableColumn(quote("dataelementid"), INTEGER, NOT_NULL, "dv.dataelementid", DIMENSION)
+            quote("attributeoptioncomboid"),
+            INTEGER,
+            NOT_NULL,
+            "dv.attributeoptioncomboid",
+            DIMENSION),
+        new AnalyticsTableColumn(
+                quote("dataelementid"), INTEGER, NOT_NULL, "dv.dataelementid", DIMENSION)
             .withIndexColumns(List.of(quote("dataelementid"))),
         new AnalyticsTableColumn(quote("petype"), VARCHAR_255, NULL, "pt.name", DIMENSION),
         new AnalyticsTableColumn(quote("path"), VARCHAR_255, NULL, "ou.path", DIMENSION),
         // mean
-        new AnalyticsTableColumn(quote("avg_middle_value"), DOUBLE, NULL, "stats.avg_middle_value", DIMENSION),
+        new AnalyticsTableColumn(
+            quote("avg_middle_value"), DOUBLE, NULL, "stats.avg_middle_value", DIMENSION),
         // median
         new AnalyticsTableColumn(
-            quote("percentile_middle_value"), DOUBLE, NULL, "stats.percentile_middle_value", DIMENSION),
+            quote("percentile_middle_value"),
+            DOUBLE,
+            NULL,
+            "stats.percentile_middle_value",
+            DIMENSION),
         // median of absolute deviations "MAD"
         new AnalyticsTableColumn(quote("mad"), DOUBLE, NULL, "stats.mad", DIMENSION),
         // standard deviation

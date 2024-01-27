@@ -116,7 +116,7 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
     return params.isLatestUpdate()
         ? List.of()
-        : List.of(new AnalyticsTable(getAnalyticsTableType(), getDimensionColumns()));
+        : List.of(new AnalyticsTable(getAnalyticsTableType(), getColumns()));
   }
 
   @Override
@@ -172,7 +172,7 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
     invokeTimeAndLog(sql, String.format("Populate %s", tableName));
   }
 
-  private List<AnalyticsTableColumn> getDimensionColumns() {
+  private List<AnalyticsTableColumn> getColumns() {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     List<OrganisationUnitGroupSet> orgUnitGroupSets =

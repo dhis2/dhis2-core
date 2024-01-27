@@ -30,13 +30,11 @@ package org.hisp.dhis.analytics;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-
+import lombok.Getter;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.springframework.util.Assert;
-
-import lombok.Getter;
 
 /**
  * Class representing an analytics database table.
@@ -127,24 +125,22 @@ public class AnalyticsTable {
 
   /**
    * Returns columns of analytics value type dimension.
-   * 
+   *
    * @return a list of {@link AnalyticsTableColumn}.
    */
-  public List<AnalyticsTableColumn> getDimensionColumns()
-  {
-      return columns.stream().filter( c -> AnalyticsValueType.DIMENSION == c.getValueType() ).toList();
+  public List<AnalyticsTableColumn> getDimensionColumns() {
+    return columns.stream().filter(c -> AnalyticsValueType.DIMENSION == c.getValueType()).toList();
   }
 
   /**
    * Returns columns of analytics value type fact.
-   * 
+   *
    * @return a list of {@link AnalyticsTableColumn}.
    */
-  public List<AnalyticsTableColumn> getFactColumns()
-  {
-      return columns.stream().filter( c -> AnalyticsValueType.FACT == c.getValueType() ).toList();
+  public List<AnalyticsTableColumn> getFactColumns() {
+    return columns.stream().filter(c -> AnalyticsValueType.FACT == c.getValueType()).toList();
   }
-  
+
   /**
    * Returns the count of all columns.
    *

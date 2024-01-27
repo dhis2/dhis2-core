@@ -35,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
@@ -96,7 +95,10 @@ class PartitionUtilsTest {
 
   @Test
   void testGetTablePartitions() {
-    List<AnalyticsTableColumn> columns = List.of(new AnalyticsTableColumn("dx", TEXT, "dx"), new AnalyticsTableColumn("value", DOUBLE, "value"));
+    List<AnalyticsTableColumn> columns =
+        List.of(
+            new AnalyticsTableColumn("dx", TEXT, "dx"),
+            new AnalyticsTableColumn("value", DOUBLE, "value"));
     AnalyticsTable tA = new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns);
     tA.addPartitionTable(
         2010, new DateTime(2010, 1, 1, 0, 0).toDate(), new DateTime(2010, 12, 31, 0, 0).toDate());

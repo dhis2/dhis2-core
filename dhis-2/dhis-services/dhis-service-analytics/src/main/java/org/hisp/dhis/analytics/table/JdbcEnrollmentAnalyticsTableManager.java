@@ -188,7 +188,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
 
     for (Program program : programs) {
       AnalyticsTable table =
-          new AnalyticsTable(getAnalyticsTableType(), getDimensionColumns(program), program);
+          new AnalyticsTable(getAnalyticsTableType(), getColumns(program), program);
 
       tables.add(table);
     }
@@ -227,10 +227,10 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
             + "and pi.occurreddate is not null "
             + "and pi.deleted is false ";
 
-    populateTableInternal(partition, getDimensionColumns(program), fromClause);
+    populateTableInternal(partition, getColumns(program), fromClause);
   }
 
-  private List<AnalyticsTableColumn> getDimensionColumns(Program program) {
+  private List<AnalyticsTableColumn> getColumns(Program program) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     columns.addAll(getOrganisationUnitLevelColumns());

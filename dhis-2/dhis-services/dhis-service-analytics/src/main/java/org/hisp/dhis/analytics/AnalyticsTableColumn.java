@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -56,10 +55,8 @@ public class AnalyticsTableColumn {
 
   /** The column collation. */
   private Collation collation;
-  
-  /**
-   * The column analytics value type.
-   */
+
+  /** The column analytics value type. */
   private AnalyticsValueType valueType;
 
   /** Explicit index type, defaults to database default type {@link IndexType#BTREE}. */

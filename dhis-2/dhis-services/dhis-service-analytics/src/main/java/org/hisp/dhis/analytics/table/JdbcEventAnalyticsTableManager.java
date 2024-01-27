@@ -294,7 +294,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       Collections.sort(yearsForPartitionTables);
 
       AnalyticsTable table =
-          new AnalyticsTable(getAnalyticsTableType(), getDimensionColumns(program), program);
+          new AnalyticsTable(getAnalyticsTableType(), getColumns(program), program);
 
       for (Integer year : yearsForPartitionTables) {
         table.addPartitionTable(
@@ -348,7 +348,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
       if (hasUpdatedData) {
         AnalyticsTable table =
-            new AnalyticsTable(getAnalyticsTableType(), getDimensionColumns(program), program);
+            new AnalyticsTable(getAnalyticsTableType(), getColumns(program), program);
         table.addPartitionTable(AnalyticsTablePartition.LATEST_PARTITION, startDate, endDate);
         tables.add(table);
 
@@ -507,7 +507,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             + ")"
             + "and psi.deleted is false ";
 
-    populateTableInternal(partition, getDimensionColumns(program), fromClause);
+    populateTableInternal(partition, getColumns(program), fromClause);
   }
 
   /**
@@ -516,7 +516,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * @param program the program.
    * @return a list of {@link AnalyticsTableColumn}.
    */
-  private List<AnalyticsTableColumn> getDimensionColumns(Program program) {
+  private List<AnalyticsTableColumn> getColumns(Program program) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     if (program.hasNonDefaultCategoryCombo()) {

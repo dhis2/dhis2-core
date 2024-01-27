@@ -41,7 +41,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -118,9 +117,8 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
     AnalyticsTable table =
         params.isLatestUpdate()
-            ? getLatestAnalyticsTable(params, getDimensionColumns())
-            : getRegularAnalyticsTable(
-                params, getDataYears(params), getDimensionColumns());
+            ? getLatestAnalyticsTable(params, getColumns())
+            : getRegularAnalyticsTable(params, getDataYears(params), getColumns());
 
     return table.hasPartitionTables() ? List.of(table) : List.of();
   }
@@ -240,7 +238,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     invokeTimeAndLog(sql, String.format("Populate %s", tableName));
   }
 
-  private List<AnalyticsTableColumn> getDimensionColumns() {
+  private List<AnalyticsTableColumn> getColumns() {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     String idColAlias = "(ds.uid || '-' || ps.iso || '-' || ou.uid || '-' || ao.uid) as id ";

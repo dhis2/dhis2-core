@@ -45,7 +45,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsIndex;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
@@ -81,9 +82,6 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -424,8 +422,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
     Collections.sort(years);
 
-    AnalyticsTable table =
-        new AnalyticsTable(getAnalyticsTableType(), dimensionColumns);
+    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), dimensionColumns);
 
     for (Integer year : years) {
       table.addPartitionTable(year, getStartDate(year), getEndDate(year));
@@ -443,8 +440,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @param dimensionColumns the list of dimension {@link AnalyticsTableColumn}.
    */
   protected AnalyticsTable getLatestAnalyticsTable(
-      AnalyticsTableUpdateParams params,
-      List<AnalyticsTableColumn> dimensionColumns) {
+      AnalyticsTableUpdateParams params, List<AnalyticsTableColumn> dimensionColumns) {
     Date lastFullTableUpdate =
         systemSettingManager.getDateSetting(SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE);
     Date lastLatestPartitionUpdate =
@@ -459,8 +455,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     Date endDate = params.getStartTime();
     boolean hasUpdatedData = hasUpdatedLatestData(lastAnyTableUpdate, endDate);
 
-    AnalyticsTable table =
-        new AnalyticsTable(getAnalyticsTableType(), dimensionColumns);
+    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), dimensionColumns);
 
     if (hasUpdatedData) {
       table.addPartitionTable(

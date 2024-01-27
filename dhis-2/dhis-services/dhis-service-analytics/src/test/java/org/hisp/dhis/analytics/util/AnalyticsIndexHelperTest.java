@@ -42,7 +42,6 @@ import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexes;
 
 import java.util.Date;
 import java.util.List;
-
 import org.hisp.dhis.analytics.AnalyticsIndex;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
@@ -107,7 +106,7 @@ class AnalyticsIndexHelperTest {
 
   private AnalyticsTable stubAnalyticsTable() {
     List<AnalyticsTableColumn> columns = List.of(stubAnalyticsTableColumn());
-    
+
     return new AnalyticsTable(EVENT, columns);
   }
 

@@ -40,7 +40,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -117,8 +116,7 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
     AnalyticsTable table =
         params.isLatestUpdate()
             ? new AnalyticsTable()
-            : getRegularAnalyticsTable(
-                params, getDataYears(params), getDimensionColumns());
+            : getRegularAnalyticsTable(params, getDataYears(params), getColumns());
 
     return table.hasPartitionTables() ? List.of(table) : List.of();
   }
@@ -213,7 +211,7 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
     return jdbcTemplate.queryForList(sql, Integer.class);
   }
 
-  private List<AnalyticsTableColumn> getDimensionColumns() {
+  private List<AnalyticsTableColumn> getColumns() {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     List<OrganisationUnitGroupSet> orgUnitGroupSets =
