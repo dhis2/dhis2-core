@@ -51,6 +51,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -221,7 +222,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
     removeLastComma(sql).append(") select ");
 
     for (AnalyticsTableColumn col : dimensions) {
-      sql.append(col.getAlias() + ",");
+      sql.append(col.getSelectExpression() + ",");
     }
 
     removeLastComma(sql)

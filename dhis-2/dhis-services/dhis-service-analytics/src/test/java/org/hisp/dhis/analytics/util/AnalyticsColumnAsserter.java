@@ -44,7 +44,7 @@ public class AnalyticsColumnAsserter {
 
   public void verify(AnalyticsTableColumn expected) {
     assertThat("Column name does not match!", expected.getName(), is(actual.getName()));
-    assertThat("Column alias does not match!", expected.getAlias(), is(actual.getAlias()));
+    assertThat("Column alias does not match!", expected.getSelectExpression(), is(actual.getSelectExpression()));
     assertThat(
         "Column creation date does not match!", expected.getCreated(), is(actual.getCreated()));
     assertThat(expected.getDataType(), is(actual.getDataType()));

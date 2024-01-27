@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -49,9 +50,9 @@ public class AnalyticsTableColumn {
 
   /** Column not null constraint, default is to allow null values. */
   private ColumnNotNullConstraint notNull = ColumnNotNullConstraint.NULL;
-
-  /** The column SQL alias. */
-  private final String alias;
+  
+  /** The expression to use in select clauses. */
+  private final String selectExpression;
 
   /** The column collation. */
   private Collation collation;
@@ -82,7 +83,7 @@ public class AnalyticsTableColumn {
   public AnalyticsTableColumn(String name, ColumnDataType dataType, String alias) {
     this.name = name;
     this.dataType = dataType;
-    this.alias = alias;
+    this.selectExpression = alias;
   }
 
   /**
@@ -97,7 +98,7 @@ public class AnalyticsTableColumn {
     this.name = name;
     this.dataType = dataType;
     this.notNull = ColumnNotNullConstraint.NULL;
-    this.alias = alias;
+    this.selectExpression = alias;
     this.collation = collation;
   }
 

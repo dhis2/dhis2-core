@@ -36,11 +36,11 @@ import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
-import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -66,6 +66,8 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+
+import com.google.common.collect.Sets;
 
 /**
  * @author Henning Håkonsen
@@ -171,7 +173,7 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
     String select = "select ";
 
     for (AnalyticsTableColumn col : dimensions) {
-      select += col.getAlias() + ",";
+      select += col.getSelectExpression() + ",";
     }
 
     // Database legacy fix

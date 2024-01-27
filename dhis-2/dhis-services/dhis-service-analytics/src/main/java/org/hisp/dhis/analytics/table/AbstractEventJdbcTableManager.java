@@ -35,6 +35,7 @@ import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
@@ -140,7 +141,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     sql = TextUtils.removeLastComma(sql) + ") select ";
 
     for (AnalyticsTableColumn col : columns) {
-      sql += col.getAlias() + ",";
+      sql += col.getSelectExpression() + ",";
     }
 
     sql = TextUtils.removeLastComma(sql) + " ";
