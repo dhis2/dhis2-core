@@ -117,7 +117,7 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
         params.isLatestUpdate()
             ? new AnalyticsTable()
             : getRegularAnalyticsTable(
-                params, getDataYears(params), getDimensionColumns(), getValueColumns());
+                params, getDataYears(params), getDimensionColumns(), List.of());
 
     return table.hasPartitionTables() ? List.of(table) : List.of();
   }
@@ -156,30 +156,28 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getTempTableName();
 
-    String insert = "insert into " + partition.getTempTableName() + " (";
+    String sql = "insert into " + partition.getTempTableName() + " (";
 
-    List<AnalyticsTableColumn> dimensions = partition.getMasterTable().getDimensionColumns();
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
 
     for (AnalyticsTableColumn col : columns) {
-      insert += col.getName() + ",";
+      sql += col.getName() + ",";
     }
 
-    insert = TextUtils.removeLastComma(insert) + ") ";
+    sql = TextUtils.removeLastComma(sql) + ") select ";
 
-    String select = "select ";
-
-    for (AnalyticsTableColumn col : dimensions) {
-      select += col.getSelectExpression() + ",";
+    for (AnalyticsTableColumn col : columns) {
+      sql += col.getSelectExpression() + ",";
     }
+
+    sql = TextUtils.removeLastComma(sql) + " ";
 
     // Database legacy fix
 
-    select = select.replace("organisationunitid", "sourceid");
+    sql = sql.replace("organisationunitid", "sourceid");
 
-    select +=
-        "vrs.created as value "
-            + "from validationresult vrs "
+    sql +=
+        "from validationresult vrs "
             + "inner join period pe on vrs.periodid=pe.periodid "
             + "inner join _periodstructure ps on vrs.periodid=ps.periodid "
             + "inner join validationrule vr on vr.validationruleid=vrs.validationruleid "
@@ -194,8 +192,6 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
             + getLongDateString(params.getStartTime())
             + "' "
             + "and vrs.created is not null";
-
-    String sql = insert + select;
 
     invokeTimeAndLog(sql, String.format("Populate %s", tableName));
   }
@@ -254,11 +250,9 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
     }
 
     columns.addAll(getFixedColumns());
-    return filterDimensionColumns(columns);
-  }
+    columns.add(new AnalyticsTableColumn(quote("value"), DATE, "vrs.created as value"));
 
-  private List<AnalyticsTableColumn> getValueColumns() {
-    return List.of(new AnalyticsTableColumn(quote("value"), DATE, "value"));
+    return filterDimensionColumns(columns);
   }
 
   @Override
