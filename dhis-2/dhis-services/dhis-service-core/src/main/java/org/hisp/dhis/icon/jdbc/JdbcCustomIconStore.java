@@ -27,8 +27,7 @@
  */
 package org.hisp.dhis.icon.jdbc;
 
-import static org.hisp.dhis.util.DateUtils.getLongDateString;
-
+import java.sql.Types;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -42,12 +41,15 @@ import org.hisp.dhis.icon.IconOperationParams;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 @Repository("org.hisp.dhis.icon.CustomIconStore")
 @RequiredArgsConstructor
 public class JdbcCustomIconStore implements CustomIconStore {
   private final JdbcTemplate jdbcTemplate;
+  private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
   private static final RowMapper<CustomIcon> customIconRowMapper =
       (rs, rowNum) -> {
@@ -91,9 +93,11 @@ public class JdbcCustomIconStore implements CustomIconStore {
                   join userinfo u on u.userinfoid = c.createdby
                   """;
 
-    sql = buildIconQuery(iconOperationParams, sql);
+    MapSqlParameterSource parameterSource = new MapSqlParameterSource();
 
-    return jdbcTemplate.query(sql, customIconRowMapper).stream();
+    sql = buildIconQuery(iconOperationParams, sql, parameterSource);
+
+    return namedParameterJdbcTemplate.query(sql, parameterSource, customIconRowMapper).stream();
   }
 
   @Override
@@ -131,49 +135,45 @@ public class JdbcCustomIconStore implements CustomIconStore {
         customIcon.getKey());
   }
 
-  private String buildIconQuery(IconOperationParams iconOperationParams, String sql) {
+  private String buildIconQuery(
+      IconOperationParams iconOperationParams, String sql, MapSqlParameterSource parameterSource) {
     SqlHelper hlp = new SqlHelper(true);
 
     if (iconOperationParams.hasLastUpdatedStartDate()) {
-      sql +=
-          hlp.whereAnd()
-              + " c.lastupdated >= '"
-              + getLongDateString(iconOperationParams.getLastUpdatedStartDate())
-              + "'";
+      sql += hlp.whereAnd() + " c.lastupdated >= :lastUpdatedStartDate ";
+
+      parameterSource.addValue(
+          ":lastUpdatedStartDate", iconOperationParams.getLastUpdatedStartDate(), Types.TIMESTAMP);
     }
 
     if (iconOperationParams.hasLastUpdatedEndDate()) {
-      sql +=
-          hlp.whereAnd()
-              + " c.lastupdated <= '"
-              + getLongDateString(iconOperationParams.getLastUpdatedEndDate())
-              + "'";
+      sql += hlp.whereAnd() + " c.lastupdated <= :lastUpdatedEndDate ";
+
+      parameterSource.addValue(
+          "lastUpdatedEndDate", iconOperationParams.getLastUpdatedEndDate(), Types.TIMESTAMP);
     }
 
     if (iconOperationParams.hasCreatedStartDate()) {
-      sql +=
-          hlp.whereAnd()
-              + " c.created >= '"
-              + getLongDateString(iconOperationParams.getCreatedStartDate())
-              + "'";
+      sql += hlp.whereAnd() + " c.created >= :createdStartDate";
+
+      parameterSource.addValue(
+          "createdStartDate", iconOperationParams.getCreatedStartDate(), Types.TIMESTAMP);
     }
 
     if (iconOperationParams.hasCreatedEndDate()) {
-      sql +=
-          hlp.whereAnd()
-              + " c.created <= '"
-              + getLongDateString(iconOperationParams.getCreatedEndDate())
-              + "'";
+      sql += hlp.whereAnd() + " c.created <= :createdEndDate ";
+
+      parameterSource.addValue(
+          "createdEndDate", iconOperationParams.getCreatedEndDate(), Types.TIMESTAMP);
     }
 
     if (iconOperationParams.hasKeywords()) {
 
-      sql +=
-          hlp.whereAnd()
-              + " c.keywords @> array["
-              + iconOperationParams.getKeywords().stream()
-                  .collect(Collectors.joining("','", "'", "'"))
-              + "]";
+      sql += hlp.whereAnd() + " keywords @> string_to_array(:keywords,',') ";
+
+      parameterSource.addValue(
+          "keywords",
+          iconOperationParams.getKeywords().stream().collect(Collectors.joining("','", "'", "'")));
     }
 
     return sql;

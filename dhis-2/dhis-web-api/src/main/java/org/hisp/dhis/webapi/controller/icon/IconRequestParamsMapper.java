@@ -61,6 +61,8 @@ public class IconRequestParamsMapper {
   private void validateRequestParams(IconRequestParams iconRequestParams)
       throws BadRequestException {
 
+    validationKeywords(iconRequestParams);
+
     if (iconRequestParams.hasCreatedStartDate()
         && !DateUtils.dateIsValid(
             DateUtils.getMediumDateString(iconRequestParams.getCreatedStartDate()))) {
@@ -95,5 +97,10 @@ public class IconRequestParamsMapper {
               "lastUpdatedEndDate %s is not valid",
               iconRequestParams.getLastUpdatedEndDate().toString()));
     }
+  }
+
+  private void validationKeywords(IconRequestParams requestParams )
+  {
+    
   }
 }
