@@ -116,8 +116,7 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
     AnalyticsTable table =
         params.isLatestUpdate()
             ? new AnalyticsTable()
-            : getRegularAnalyticsTable(
-                params, getDataYears(params), getDimensionColumns(), List.of());
+            : getRegularAnalyticsTable(params, getDataYears(params), getColumns(), List.of());
 
     return table.hasPartitionTables() ? List.of(table) : List.of();
   }
@@ -213,7 +212,7 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
     return jdbcTemplate.queryForList(sql, Integer.class);
   }
 
-  private List<AnalyticsTableColumn> getDimensionColumns() {
+  private List<AnalyticsTableColumn> getColumns() {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     List<OrganisationUnitGroupSet> orgUnitGroupSets =

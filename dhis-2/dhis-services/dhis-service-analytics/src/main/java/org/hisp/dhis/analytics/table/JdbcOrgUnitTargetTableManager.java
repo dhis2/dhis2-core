@@ -105,7 +105,7 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
     return params.isLatestUpdate()
         ? List.of()
-        : List.of(new AnalyticsTable(getAnalyticsTableType(), getDimensionColumns(), List.of()));
+        : List.of(new AnalyticsTable(getAnalyticsTableType(), getColumns(), List.of()));
   }
 
   @Override
@@ -158,7 +158,7 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
     invokeTimeAndLog(sql, tableName);
   }
 
-  private List<AnalyticsTableColumn> getDimensionColumns() {
+  private List<AnalyticsTableColumn> getColumns() {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     List<OrganisationUnitLevel> levels = organisationUnitService.getFilledOrganisationUnitLevels();

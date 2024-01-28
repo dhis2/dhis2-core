@@ -117,9 +117,8 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
     AnalyticsTable table =
         params.isLatestUpdate()
-            ? getLatestAnalyticsTable(params, getDimensionColumns(), List.of())
-            : getRegularAnalyticsTable(
-                params, getDataYears(params), getDimensionColumns(), List.of());
+            ? getLatestAnalyticsTable(params, getColumns(), List.of())
+            : getRegularAnalyticsTable(params, getDataYears(params), getColumns(), List.of());
 
     return table.hasPartitionTables() ? List.of(table) : List.of();
   }
@@ -240,7 +239,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     invokeTimeAndLog(sql, String.format("Populate %s", tableName));
   }
 
-  private List<AnalyticsTableColumn> getDimensionColumns() {
+  private List<AnalyticsTableColumn> getColumns() {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     String idColAlias = "(ds.uid || '-' || ps.iso || '-' || ou.uid || '-' || ao.uid) as id ";
