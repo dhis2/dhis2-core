@@ -43,7 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -69,6 +69,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Populates the analytics_ownership_[programuid] table which is joined for tracker analytics
@@ -166,12 +168,12 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
 
     Timer timer = new SystemTimer().start();
 
-    populateTableInternal(partition, sql);
+    populateOwnershipTableInternal(partition, sql);
 
     log.info("Populate table '{}' in: '{}'", partition.getTempTableName(), timer.stop().toString());
   }
 
-  private void populateTableInternal(AnalyticsTablePartition partition, String sql) {
+  private void populateOwnershipTableInternal(AnalyticsTablePartition partition, String sql) {
     List<String> columnNames =
         getDimensionColumns().stream().map(AnalyticsTableColumn::getName).collect(toList());
 
