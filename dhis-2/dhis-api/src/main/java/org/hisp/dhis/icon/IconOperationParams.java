@@ -33,9 +33,9 @@ import java.util.List;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/** Represents query parameters sent to {@link org.hisp.dhis.icon.IconService}. */
-
 /**
+ * Represents query parameters sent to {@link org.hisp.dhis.icon.IconService}.
+ *
  * @author Zubair Asghar
  */
 @Data
