@@ -77,12 +77,12 @@ public class AnalyticsTableColumn {
    *
    * @param name analytics table column name.
    * @param dataType analytics table column data type.
-   * @param alias source table column alias and name.
+   * @param selectExpression source table select expression.
    */
-  public AnalyticsTableColumn(String name, ColumnDataType dataType, String alias) {
+  public AnalyticsTableColumn(String name, ColumnDataType dataType, String selectExpression) {
     this.name = name;
     this.dataType = dataType;
-    this.selectExpression = alias;
+    this.selectExpression = selectExpression;
   }
 
   /**
@@ -90,14 +90,14 @@ public class AnalyticsTableColumn {
    *
    * @param name analytics table column name.
    * @param dataType analytics table column data type.
-   * @param alias source table column alias and name.
+   * @param selectExpression source table select expression.
    */
   public AnalyticsTableColumn(
-      String name, ColumnDataType dataType, String alias, Collation collation) {
+      String name, ColumnDataType dataType, String selectExpression, Collation collation) {
     this.name = name;
     this.dataType = dataType;
     this.notNull = ColumnNotNullConstraint.NULL;
-    this.selectExpression = alias;
+    this.selectExpression = selectExpression;
     this.collation = collation;
   }
 
@@ -107,11 +107,14 @@ public class AnalyticsTableColumn {
    * @param name analytics table column name.
    * @param dataType analytics table column data type.
    * @param notNull analytics table column not null constraint.
-   * @param alias source table column alias and name.
+   * @param selectExpression source table select expression.
    */
   public AnalyticsTableColumn(
-      String name, ColumnDataType dataType, ColumnNotNullConstraint notNull, String alias) {
-    this(name, dataType, alias);
+      String name,
+      ColumnDataType dataType,
+      ColumnNotNullConstraint notNull,
+      String selectExpression) {
+    this(name, dataType, selectExpression);
     this.notNull = notNull;
   }
 

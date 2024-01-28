@@ -37,7 +37,6 @@ import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.table.PartitionUtils.getLatestTablePartition;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL_UNAPPROVED;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
 import com.google.common.collect.Sets;
@@ -502,12 +501,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
 
     columns.addAll(getPeriodTypeColumns("ps"));
 
-    String approvalCol =
-        isApprovalEnabled(year)
-            ? "coalesce(des.datasetapprovallevel, aon.approvallevel, da.minlevel, "
-                + APPROVAL_LEVEL_UNAPPROVED
-                + ") as approvallevel "
-            : DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST + " as approvallevel";
+    String approvalCol = getApprovalSelectExpression(year);
 
     columns.add(new AnalyticsTableColumn(quote("approvallevel"), INTEGER, approvalCol));
     columns.addAll(FIXED_COLS);
@@ -516,6 +510,22 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     }
 
     return filterDimensionColumns(columns);
+  }
+
+  /**
+   * Returns the approval select expression based on the given year.
+   *
+   * @param year the year.
+   * @return the approval select expression.
+   */
+  private String getApprovalSelectExpression(Integer year) {
+    if (isApprovalEnabled(year)) {
+      return "coalesce(des.datasetapprovallevel, aon.approvallevel, da.minlevel, "
+          + DataApprovalLevelService.APPROVAL_LEVEL_UNAPPROVED
+          + ") as approvallevel ";
+    } else {
+      return DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST + " as approvallevel";
+    }
   }
 
   /**
