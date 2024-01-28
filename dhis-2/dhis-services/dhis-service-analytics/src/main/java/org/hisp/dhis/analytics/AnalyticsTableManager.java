@@ -181,11 +181,4 @@ public interface AnalyticsTableManager {
   default void vacuumTables(AnalyticsTablePartition partition) {
     // NOOP by default
   }
-
-  /**
-   * Returns a list of non-dynamic {@link AnalyticsTableColumn}.
-   *
-   * @return a List of {@link AnalyticsTableColumn}.
-   */
-  List<AnalyticsTableColumn> getFixedColumns();
 }

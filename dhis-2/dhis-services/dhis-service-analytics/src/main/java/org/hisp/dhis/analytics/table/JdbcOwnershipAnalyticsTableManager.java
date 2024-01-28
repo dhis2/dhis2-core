@@ -116,7 +116,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
     this.jdbcConfiguration = jdbcConfiguration;
   }
 
-  private static final List<AnalyticsTableColumn> FIXED_COLS =
+  protected static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
           new AnalyticsTableColumn(quote("teiuid"), CHARACTER_11, "tei.uid"),
           new AnalyticsTableColumn(quote("startdate"), DATE, "a.startdate"),
@@ -288,10 +288,5 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
     columns.addAll(FIXED_COLS);
 
     return filterDimensionColumns(columns);
-  }
-
-  @Override
-  public List<AnalyticsTableColumn> getFixedColumns() {
-    return FIXED_COLS;
   }
 }

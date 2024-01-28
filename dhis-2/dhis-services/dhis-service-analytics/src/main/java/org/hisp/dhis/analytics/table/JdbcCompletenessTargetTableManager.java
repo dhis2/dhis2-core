@@ -213,14 +213,9 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
               .withCreated(category.getCreated()));
     }
 
-    columns.addAll(getFixedColumns());
+    columns.addAll(FIXED_COLS);
     columns.add(new AnalyticsTableColumn(quote("value"), DOUBLE, "1 as value"));
 
     return filterDimensionColumns(columns);
-  }
-
-  @Override
-  public List<AnalyticsTableColumn> getFixedColumns() {
-    return FIXED_COLS;
   }
 }

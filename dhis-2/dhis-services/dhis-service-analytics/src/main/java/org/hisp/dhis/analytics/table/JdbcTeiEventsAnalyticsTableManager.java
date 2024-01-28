@@ -259,16 +259,6 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
   }
 
   /**
-   * Returns a list of non-dynamic {@link AnalyticsTableColumn}.
-   *
-   * @return a List of {@link AnalyticsTableColumn}.
-   */
-  @Override
-  public List<AnalyticsTableColumn> getFixedColumns() {
-    return FIXED_COLS;
-  }
-
-  /**
    * Returns a list of table checks (constraints) for the given analytics table partition.
    *
    * @param partition the {@link AnalyticsTablePartition}.

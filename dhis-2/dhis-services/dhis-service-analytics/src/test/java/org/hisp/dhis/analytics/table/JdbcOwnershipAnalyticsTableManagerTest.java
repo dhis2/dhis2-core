@@ -161,11 +161,17 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
 
     tableA =
         new AnalyticsTable(
-            AnalyticsTableType.OWNERSHIP, target.getFixedColumns(), emptyList(), programA);
+            AnalyticsTableType.OWNERSHIP,
+            JdbcOwnershipAnalyticsTableManager.FIXED_COLS,
+            emptyList(),
+            programA);
 
     tableB =
         new AnalyticsTable(
-            AnalyticsTableType.OWNERSHIP, target.getFixedColumns(), emptyList(), programB);
+            AnalyticsTableType.OWNERSHIP,
+            JdbcOwnershipAnalyticsTableManager.FIXED_COLS,
+            emptyList(),
+            programB);
 
     partitionA = new AnalyticsTablePartition(tableA, 1, new Date(), new Date(), true);
   }
@@ -316,7 +322,7 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
             new AnalyticsTableColumn(quote("enddate"), DATE, "a.enddate"),
             new AnalyticsTableColumn(quote("ou"), CHARACTER_11, NOT_NULL, "ou.uid"));
 
-    assertEquals(expected, target.getFixedColumns());
+    assertEquals(expected, JdbcOwnershipAnalyticsTableManager.FIXED_COLS);
   }
 
   // -------------------------------------------------------------------------

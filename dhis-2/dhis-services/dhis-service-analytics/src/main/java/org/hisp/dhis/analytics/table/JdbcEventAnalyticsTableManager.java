@@ -130,7 +130,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         periodDataProvider);
   }
 
-  private static final List<AnalyticsTableColumn> FIXED_COLS =
+  protected static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
           new AnalyticsTableColumn(quote("psi"), CHARACTER_11, NOT_NULL, "psi.uid"),
           new AnalyticsTableColumn(quote("pi"), CHARACTER_11, NOT_NULL, "pi.uid"),
@@ -424,11 +424,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
       invokeTimeAndLog(sql, format("Remove updated events for table: '%s'", table.getTableName()));
     }
-  }
-
-  @Override
-  public List<AnalyticsTableColumn> getFixedColumns() {
-    return FIXED_COLS;
   }
 
   @Override
