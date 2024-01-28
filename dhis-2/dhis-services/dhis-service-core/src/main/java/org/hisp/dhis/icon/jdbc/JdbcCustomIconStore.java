@@ -173,7 +173,7 @@ public class JdbcCustomIconStore implements CustomIconStore {
 
       parameterSource.addValue(
           "keywords",
-          iconOperationParams.getKeywords().stream().collect(Collectors.joining("','", "", "")));
+          iconOperationParams.getKeywords().stream().collect(Collectors.joining(",", "", "")));
     }
 
     return sql;
