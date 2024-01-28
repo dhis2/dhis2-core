@@ -55,11 +55,19 @@ public class IconRequestParams {
 
   private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
 
-  public boolean hasCreated() {
+  public boolean hasCreatedStartDate() {
     return createdStartDate != null;
   }
 
-  public boolean hasLastUpdated() {
+  public boolean hasCreatedEndDate() {
+    return createdEndDate != null;
+  }
+
+  public boolean hasLastUpdatedStartDate() {
     return lastUpdatedStartDate != null;
+  }
+
+  public boolean hasLastUpdatedEndDate() {
+    return lastUpdatedEndDate != null;
   }
 }

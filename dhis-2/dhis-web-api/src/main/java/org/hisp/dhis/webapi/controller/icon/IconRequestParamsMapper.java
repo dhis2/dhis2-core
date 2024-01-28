@@ -43,7 +43,7 @@ public class IconRequestParamsMapper {
 
   public IconOperationParams map(IconRequestParams iconRequestParams) throws BadRequestException {
 
-    validate(iconRequestParams);
+    validateRequestParams(iconRequestParams);
     IconOperationParams operationParams = new IconOperationParams();
     operationParams.setKeywords(
         iconRequestParams.getKeywords() != null
@@ -58,23 +58,42 @@ public class IconRequestParamsMapper {
     return operationParams;
   }
 
-  private void validate(IconRequestParams iconRequestParams) throws BadRequestException {
+  private void validateRequestParams(IconRequestParams iconRequestParams)
+      throws BadRequestException {
 
-    if (iconRequestParams.hasCreated()
+    if (iconRequestParams.hasCreatedStartDate()
         && !DateUtils.dateIsValid(
             DateUtils.getMediumDateString(iconRequestParams.getCreatedStartDate()))) {
       throw new BadRequestException(
           String.format(
-              "created date %s is not valid", iconRequestParams.getCreatedStartDate().toString()));
+              "createdStartDate %s is not valid",
+              iconRequestParams.getCreatedStartDate().toString()));
     }
 
-    if (iconRequestParams.hasLastUpdated()
+    if (iconRequestParams.hasCreatedEndDate()
+        && !DateUtils.dateIsValid(
+            DateUtils.getMediumDateString(iconRequestParams.getCreatedEndDate()))) {
+      throw new BadRequestException(
+          String.format(
+              "createdEndDate %s is not valid", iconRequestParams.getCreatedEndDate().toString()));
+    }
+
+    if (iconRequestParams.hasLastUpdatedStartDate()
         && !DateUtils.dateIsValid(
             DateUtils.getMediumDateString(iconRequestParams.getLastUpdatedStartDate()))) {
       throw new BadRequestException(
           String.format(
-              "lastupdated date %s is not valid",
+              "lastUpdatedStartDate %s is not valid",
               iconRequestParams.getLastUpdatedStartDate().toString()));
+    }
+
+    if (iconRequestParams.hasLastUpdatedEndDate()
+        && !DateUtils.dateIsValid(
+            DateUtils.getMediumDateString(iconRequestParams.getLastUpdatedEndDate()))) {
+      throw new BadRequestException(
+          String.format(
+              "lastUpdatedEndDate %s is not valid",
+              iconRequestParams.getLastUpdatedEndDate().toString()));
     }
   }
 }

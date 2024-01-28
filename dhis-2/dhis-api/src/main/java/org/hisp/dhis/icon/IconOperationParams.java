@@ -49,12 +49,20 @@ public class IconOperationParams {
   private Date lastUpdatedStartDate;
   private Date lastUpdatedEndDate;
 
-  public boolean hasLastUpdated() {
+  public boolean hasLastUpdatedStartDate() {
     return lastUpdatedStartDate != null;
   }
 
-  public boolean hasCreated() {
+  public boolean hasLastUpdatedEndDate() {
+    return lastUpdatedEndDate != null;
+  }
+
+  public boolean hasCreatedStartDate() {
     return createdStartDate != null;
+  }
+
+  public boolean hasCreatedEndDate() {
+    return createdEndDate != null;
   }
 
   public boolean hasKeywords() {

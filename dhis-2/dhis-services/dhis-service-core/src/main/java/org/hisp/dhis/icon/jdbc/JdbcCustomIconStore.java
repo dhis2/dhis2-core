@@ -134,7 +134,7 @@ public class JdbcCustomIconStore implements CustomIconStore {
   private String buildIconQuery(IconOperationParams iconOperationParams, String sql) {
     SqlHelper hlp = new SqlHelper(true);
 
-    if (iconOperationParams.hasLastUpdated()) {
+    if (iconOperationParams.hasLastUpdatedStartDate()) {
       sql +=
           hlp.whereAnd()
               + " c.lastupdated >= '"
@@ -142,13 +142,30 @@ public class JdbcCustomIconStore implements CustomIconStore {
               + "'";
     }
 
-    if (iconOperationParams.hasCreated()) {
+    if (iconOperationParams.hasLastUpdatedEndDate()) {
+      sql +=
+          hlp.whereAnd()
+              + " c.lastupdated <= '"
+              + getLongDateString(iconOperationParams.getLastUpdatedEndDate())
+              + "'";
+    }
+
+    if (iconOperationParams.hasCreatedStartDate()) {
       sql +=
           hlp.whereAnd()
               + " c.created >= '"
               + getLongDateString(iconOperationParams.getCreatedStartDate())
               + "'";
     }
+
+    if (iconOperationParams.hasCreatedEndDate()) {
+      sql +=
+          hlp.whereAnd()
+              + " c.created <= '"
+              + getLongDateString(iconOperationParams.getCreatedEndDate())
+              + "'";
+    }
+
     if (iconOperationParams.hasKeywords()) {
 
       sql +=
