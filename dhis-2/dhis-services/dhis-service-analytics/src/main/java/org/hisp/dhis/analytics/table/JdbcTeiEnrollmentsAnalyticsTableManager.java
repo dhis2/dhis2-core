@@ -158,8 +158,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
   @Transactional
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
     return trackedEntityTypeService.getAllTrackedEntityType().stream()
-        .map(
-            tet -> new AnalyticsTable(getAnalyticsTableType(), getTableColumns(), emptyList(), tet))
+        .map(tet -> new AnalyticsTable(getAnalyticsTableType(), getTableColumns(), List.of(), tet))
         .collect(Collectors.toList());
   }
 
@@ -209,7 +208,6 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
   @Override
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
-    List<AnalyticsTableColumn> dimensions = partition.getMasterTable().getDimensionColumns();
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
 
     StringBuilder sql = new StringBuilder("insert into " + partition.getTempTableName() + " (");
@@ -220,7 +218,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
 
     removeLastComma(sql).append(") select ");
 
-    for (AnalyticsTableColumn col : dimensions) {
+    for (AnalyticsTableColumn col : columns) {
       sql.append(col.getSelectExpression() + ",");
     }
 

@@ -509,7 +509,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             + ")"
             + "and psi.deleted is false ";
 
-    populateTableInternal(partition, getDimensionColumns(program), fromClause);
+    populateTableInternal(partition, fromClause);
   }
 
   /**

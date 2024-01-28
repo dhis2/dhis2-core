@@ -124,12 +124,12 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    * Populates the given analytics table partition using the given columns and join statement.
    *
    * @param partition the {@link AnalyticsTablePartition}.
-   * @param columns the list of {@link AnalyticsTableColumn}.
    * @param fromClause the SQL from clause.
    */
-  protected void populateTableInternal(
-      AnalyticsTablePartition partition, List<AnalyticsTableColumn> columns, String fromClause) {
+  protected void populateTableInternal(AnalyticsTablePartition partition, String fromClause) {
     String tableName = partition.getTempTableName();
+
+    List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
 
     String sql = "insert into " + partition.getTempTableName() + " (";
 

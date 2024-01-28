@@ -166,12 +166,12 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
 
     Timer timer = new SystemTimer().start();
 
-    populateTableInternal(partition, sql);
+    populateOwnershipTableInternal(partition, sql);
 
     log.info("Populate table '{}' in: '{}'", partition.getTempTableName(), timer.stop().toString());
   }
 
-  private void populateTableInternal(AnalyticsTablePartition partition, String sql) {
+  private void populateOwnershipTableInternal(AnalyticsTablePartition partition, String sql) {
     List<String> columnNames =
         getDimensionColumns().stream().map(AnalyticsTableColumn::getName).collect(toList());
 

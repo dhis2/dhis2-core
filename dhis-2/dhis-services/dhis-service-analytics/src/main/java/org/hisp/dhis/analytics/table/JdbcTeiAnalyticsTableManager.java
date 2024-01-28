@@ -228,7 +228,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
         .map(
             tet ->
                 new AnalyticsTable(
-                    getAnalyticsTableType(), getTableColumns(params, tet), emptyList(), tet))
+                    getAnalyticsTableType(), getTableColumns(params, tet), List.of(), tet))
         .toList();
   }
 
@@ -351,7 +351,6 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
   @SuppressWarnings("unchecked")
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
-    List<AnalyticsTableColumn> dimensions = partition.getMasterTable().getDimensionColumns();
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
 
     StringBuilder sql = new StringBuilder("insert into " + partition.getTempTableName() + " (");
@@ -362,7 +361,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
 
     removeLastComma(sql).append(") select ");
 
-    for (AnalyticsTableColumn col : dimensions) {
+    for (AnalyticsTableColumn col : columns) {
       sql.append(col.getSelectExpression() + ",");
     }
 

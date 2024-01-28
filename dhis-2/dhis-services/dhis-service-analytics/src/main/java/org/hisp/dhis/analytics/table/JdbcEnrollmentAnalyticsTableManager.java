@@ -228,7 +228,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
             + "and pi.occurreddate is not null "
             + "and pi.deleted is false ";
 
-    populateTableInternal(partition, getDimensionColumns(program), fromClause);
+    populateTableInternal(partition, fromClause);
   }
 
   private List<AnalyticsTableColumn> getDimensionColumns(Program program) {
