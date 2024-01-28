@@ -324,6 +324,12 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     List<AnalyticsTableColumn> dimensions = partition.getMasterTable().getDimensionColumns();
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
 
+    System.out.println("----ANALYTICS START----");
+    System.out.println(
+        "DIM FROM MASTER: " + partition.getMasterTable().getDimensionColumns().size());
+    System.out.println("DIM FROM METHOD: " + getDimensionColumns(params).size());
+    System.out.println("----ANALYTICS END----");
+
     for (AnalyticsTableColumn col : columns) {
       sql += col.getName() + ",";
     }
