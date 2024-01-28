@@ -98,6 +98,4 @@ public class IconRequestParamsMapper {
               iconRequestParams.getLastUpdatedEndDate().toString()));
     }
   }
-
-  private void validationKeywords(IconRequestParams requestParams) {}
 }
