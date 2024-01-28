@@ -162,13 +162,13 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
 
     String sql = getInputSql(program);
 
-    log.debug("Populate {} with SQL: '{}'", partition.getTempTableName(), sql);
+    log.debug("Populate table '{}' with SQL: '{}'", partition.getTempTableName(), sql);
 
     Timer timer = new SystemTimer().start();
 
     populateTableInternal(partition, sql);
 
-    log.info("Populate {} in: {}", partition.getTempTableName(), timer.stop().toString());
+    log.info("Populate table '{}' in: '{}'", partition.getTempTableName(), timer.stop().toString());
   }
 
   private void populateTableInternal(AnalyticsTablePartition partition, String sql) {
@@ -194,7 +194,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
           });
 
       log.info(
-          "OwnershipAnalytics query row count was {} for {}",
+          "OwnershipAnalytics query row count was {} for table '{}'",
           queryRowCount,
           partition.getTempTableName());
       batchHandler.flush();
@@ -209,7 +209,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
     StringBuilder sb = new StringBuilder("select ");
 
     for (AnalyticsTableColumn col : getDimensionColumns()) {
-      sb.append(col.getAlias()).append(",");
+      sb.append(col.getSelectExpression()).append(",");
     }
 
     sb.deleteCharAt(sb.length() - 1); // Remove the final ','.

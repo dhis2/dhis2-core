@@ -37,7 +37,6 @@ import static org.hisp.dhis.analytics.table.PartitionUtils.getLatestTablePartiti
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
-import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -127,7 +126,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
 
   @Override
   public Set<String> getExistingDatabaseTables() {
-    return Sets.newHashSet(getTableName());
+    return Set.of(getTableName());
   }
 
   @Override
@@ -205,8 +204,6 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     List<AnalyticsTableColumn> dimensions = partition.getMasterTable().getDimensionColumns();
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
 
-    validateDimensionColumns(dimensions);
-
     for (AnalyticsTableColumn col : columns) {
       insert += col.getName() + ",";
     }
@@ -216,7 +213,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     String select = "select ";
 
     for (AnalyticsTableColumn col : dimensions) {
-      select += col.getAlias() + ",";
+      select += col.getSelectExpression() + ",";
     }
 
     // Database legacy fix

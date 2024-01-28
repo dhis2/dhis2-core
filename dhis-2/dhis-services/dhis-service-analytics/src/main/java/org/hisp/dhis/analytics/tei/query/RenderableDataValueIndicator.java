@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2004, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,49 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.util;
+package org.hisp.dhis.analytics.tei.query;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
-import org.hisp.dhis.analytics.AnalyticsTableColumn;
+import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.analytics.common.query.BaseRenderable;
+import org.hisp.dhis.analytics.common.query.Field;
 
-/**
- * @author Luciano Fiandesio
- */
-public class AnalyticsColumnAsserter {
-  private AnalyticsTableColumn actual;
+@RequiredArgsConstructor(staticName = "of")
+public class RenderableDataValueIndicator extends BaseRenderable {
+  private final String alias;
+  private final String dataValue;
 
-  private void setActual(AnalyticsTableColumn actual) {
-    this.actual = actual;
-  }
-
-  public void verify(AnalyticsTableColumn expected) {
-    assertThat("Column name does not match!", expected.getName(), is(actual.getName()));
-    assertThat(
-        "Column alias does not match!",
-        expected.getSelectExpression(),
-        is(actual.getSelectExpression()));
-    assertThat(
-        "Column creation date does not match!", expected.getCreated(), is(actual.getCreated()));
-    assertThat(expected.getDataType(), is(actual.getDataType()));
-    assertThat(
-        String.format("Index type for column %s does not match!", expected.getName()),
-        expected.getIndexType(),
-        is(actual.getIndexType()));
-  }
-
-  public static class Builder {
-    AnalyticsTableColumn _column;
-
-    public Builder(AnalyticsTableColumn column) {
-      _column = column;
-    }
-
-    public AnalyticsColumnAsserter build() {
-      AnalyticsColumnAsserter asserter = new AnalyticsColumnAsserter();
-      asserter.setActual(_column);
-      return asserter;
-    }
+  @Override
+  @Nonnull
+  public String render() {
+    return Field.of(alias, () -> "eventdatavalues", EMPTY).render()
+        + " ::jsonb ?? '"
+        + dataValue
+        + "'";
   }
 }

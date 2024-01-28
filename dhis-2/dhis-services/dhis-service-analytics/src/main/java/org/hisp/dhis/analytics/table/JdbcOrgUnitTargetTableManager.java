@@ -32,7 +32,6 @@ import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
 import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 
-import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -112,7 +111,7 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
 
   @Override
   public Set<String> getExistingDatabaseTables() {
-    return Sets.newHashSet(getTableName());
+    return Set.of(getTableName());
   }
 
   @Override
@@ -140,8 +139,6 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
     List<AnalyticsTableColumn> dimensions = partition.getMasterTable().getDimensionColumns();
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
 
-    validateDimensionColumns(dimensions);
-
     for (AnalyticsTableColumn col : columns) {
       sql += col.getName() + ",";
     }
@@ -149,7 +146,7 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
     sql = TextUtils.removeLastComma(sql) + ") select ";
 
     for (AnalyticsTableColumn col : dimensions) {
-      sql += col.getAlias() + ",";
+      sql += col.getSelectExpression() + ",";
     }
 
     sql +=

@@ -36,6 +36,7 @@ import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
+import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
@@ -53,7 +54,7 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
         List.of(
             new Column("id", DataType.BIGINT, Nullable.NOT_NULL),
             new Column("data", DataType.CHARACTER_11, Nullable.NOT_NULL),
-            new Column("period", DataType.VARCHAR_50, Nullable.NOT_NULL, Collation.C),
+            new Column("period", DataType.VARCHAR_50, Nullable.NOT_NULL),
             new Column("created", DataType.TIMESTAMP),
             new Column("value", DataType.DOUBLE));
 
@@ -62,13 +63,25 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
     List<Index> indexes =
         List.of(
             new Index("in_immunization_data", List.of("data")),
-            new Index("in_immunization_peroid", List.of("period")));
+            new Index("in_immunization_period", List.of("period", "created")));
 
     return new Table("immunization", columns, primaryKey, indexes);
   }
 
+  private Table getTableB() {
+    List<Column> columns =
+        List.of(
+            new Column("id", DataType.INTEGER, Nullable.NOT_NULL),
+            new Column("facility_type", DataType.VARCHAR_255, Nullable.NULL, Collation.C),
+            new Column("bcg_doses", DataType.DOUBLE));
+
+    List<String> checks = List.of("\"id\">0", "\"bcg_doses\">0");
+
+    return new Table("vaccination", columns, List.of(), List.of(), checks, Logged.UNLOGGED);
+  }
+
   @Test
-  void testCreateAndDropTable() {
+  void testCreateAndDropTableA() {
     Table table = getTableA();
 
     execute(sqlBuilder.createTable(table));
@@ -82,6 +95,17 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
     jdbcTemplate.execute(sqlBuilder.dropTableIfExists(table));
 
     assertFalse(tableExists(table.getName()));
+  }
+
+  @Test
+  void testCreateAndDropTableB() {
+    Table table = getTableB();
+
+    execute(sqlBuilder.createTable(table));
+
+    assertTrue(tableExists(table.getName()));
+
+    jdbcTemplate.execute(sqlBuilder.dropTableIfExists(table));
   }
 
   @Test
