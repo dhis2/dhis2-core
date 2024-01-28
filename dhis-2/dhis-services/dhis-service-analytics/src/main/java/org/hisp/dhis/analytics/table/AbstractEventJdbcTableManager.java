@@ -35,7 +35,6 @@ import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
@@ -127,11 +126,11 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    * @param partition the {@link AnalyticsTablePartition}.
    * @param fromClause the SQL from clause.
    */
-  protected void populateTableInternal( AnalyticsTablePartition partition, String fromClause) {
+  protected void populateTableInternal(AnalyticsTablePartition partition, String fromClause) {
     String tableName = partition.getTempTableName();
 
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
-    
+
     String sql = "insert into " + partition.getTempTableName() + " (";
 
     for (AnalyticsTableColumn col : columns) {
