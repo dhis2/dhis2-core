@@ -242,7 +242,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
   }
 
   private List<AnalyticsTableColumn> getTableColumns() {
-    List<AnalyticsTableColumn> analyticsTableColumnList = new ArrayList<>(getFixedColumns());
+    List<AnalyticsTableColumn> analyticsTableColumnList = new ArrayList<>(FIXED_COLS);
     analyticsTableColumnList.add(getOrganisationUnitNameHierarchyColumn());
 
     return analyticsTableColumnList;

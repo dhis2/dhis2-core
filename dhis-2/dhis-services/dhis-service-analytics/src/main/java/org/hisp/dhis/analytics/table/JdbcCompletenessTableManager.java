@@ -117,9 +117,9 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
     AnalyticsTable table =
         params.isLatestUpdate()
-            ? getLatestAnalyticsTable(params, getDimensionColumns(), getValueColumns())
+            ? getLatestAnalyticsTable(params, getDimensionColumns(), List.of())
             : getRegularAnalyticsTable(
-                params, getDataYears(params), getDimensionColumns(), getValueColumns());
+                params, getDataYears(params), getDimensionColumns(), List.of());
 
     return table.hasPartitionTables() ? List.of(table) : List.of();
   }
@@ -199,30 +199,28 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             ? "and cdr.lastupdated >= '" + getLongDateString(partition.getStartDate()) + "' "
             : "and ps.year = " + partition.getYear() + " ";
 
-    String insert = "insert into " + partition.getTempTableName() + " (";
+    String sql = "insert into " + partition.getTempTableName() + " (";
 
-    List<AnalyticsTableColumn> dimensions = partition.getMasterTable().getDimensionColumns();
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
 
     for (AnalyticsTableColumn col : columns) {
-      insert += col.getName() + ",";
+      sql += col.getName() + ",";
     }
 
-    insert = TextUtils.removeLastComma(insert) + ") ";
+    sql = TextUtils.removeLastComma(sql) + ") select ";
 
-    String select = "select ";
-
-    for (AnalyticsTableColumn col : dimensions) {
-      select += col.getSelectExpression() + ",";
+    for (AnalyticsTableColumn col : columns) {
+      sql += col.getSelectExpression() + ",";
     }
+
+    sql = TextUtils.removeLastComma(sql) + " ";
 
     // Database legacy fix
 
-    select = select.replace("organisationunitid", "sourceid");
+    sql = sql.replace("organisationunitid", "sourceid");
 
-    select +=
-        "cdr.date as value "
-            + "from completedatasetregistration cdr "
+    sql +=
+        "from completedatasetregistration cdr "
             + "inner join dataset ds on cdr.datasetid=ds.datasetid "
             + "inner join period pe on cdr.periodid=pe.periodid "
             + "inner join _periodstructure ps on cdr.periodid=ps.periodid "
@@ -238,8 +236,6 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             + getLongDateString(params.getStartTime())
             + "' "
             + "and cdr.completed = true";
-
-    String sql = insert + select;
 
     invokeTimeAndLog(sql, String.format("Populate %s", tableName));
   }
@@ -294,12 +290,9 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     String timelyAlias = "(select (" + timelyDateDiff + ") <= ds.timelydays) as timely";
 
     columns.add(new AnalyticsTableColumn(quote("timely"), BOOLEAN, timelyAlias));
-    columns.addAll(getFixedColumns());
+    columns.addAll(FIXED_COLS);
+    columns.add(new AnalyticsTableColumn(quote("value"), DATE, "cdr.date as value"));
     return filterDimensionColumns(columns);
-  }
-
-  private List<AnalyticsTableColumn> getValueColumns() {
-    return List.of(new AnalyticsTableColumn(quote("value"), DATE, "value"));
   }
 
   private List<Integer> getDataYears(AnalyticsTableUpdateParams params) {

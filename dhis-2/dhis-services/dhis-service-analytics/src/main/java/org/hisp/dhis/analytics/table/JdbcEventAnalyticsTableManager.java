@@ -574,7 +574,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             .flatMap(Collection::stream)
             .collect(toList()));
 
-    columns.addAll(getFixedColumns());
+    columns.addAll(FIXED_COLS);
 
     if (program.isRegistration()) {
       columns.add(new AnalyticsTableColumn(quote("tei"), CHARACTER_11, "tei.uid"));

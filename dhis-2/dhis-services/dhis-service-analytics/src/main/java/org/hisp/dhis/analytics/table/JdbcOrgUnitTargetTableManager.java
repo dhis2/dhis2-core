@@ -105,8 +105,7 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
     return params.isLatestUpdate()
         ? List.of()
-        : List.of(
-            new AnalyticsTable(getAnalyticsTableType(), getDimensionColumns(), getValueColumns()));
+        : List.of(new AnalyticsTable(getAnalyticsTableType(), getDimensionColumns(), List.of()));
   }
 
   @Override
@@ -136,7 +135,6 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
 
     String sql = "insert into " + partition.getTempTableName() + " (";
 
-    List<AnalyticsTableColumn> dimensions = partition.getMasterTable().getDimensionColumns();
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
 
     for (AnalyticsTableColumn col : columns) {
@@ -145,13 +143,14 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
 
     sql = TextUtils.removeLastComma(sql) + ") select ";
 
-    for (AnalyticsTableColumn col : dimensions) {
+    for (AnalyticsTableColumn col : columns) {
       sql += col.getSelectExpression() + ",";
     }
 
+    sql = TextUtils.removeLastComma(sql) + " ";
+
     sql +=
-        "1 as value "
-            + "from orgunitgroupmembers ougm "
+        "from orgunitgroupmembers ougm "
             + "inner join orgunitgroup oug on ougm.orgunitgroupid=oug.orgunitgroupid "
             + "left join _orgunitstructure ous on ougm.organisationunitid=ous.organisationunitid "
             + "left join _organisationunitgroupsetstructure ougs on ougm.organisationunitid=ougs.organisationunitid";
@@ -171,13 +170,10 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
               .withCreated(level.getCreated()));
     }
 
-    columns.addAll(getFixedColumns());
+    columns.addAll(FIXED_COLS);
+    columns.add(new AnalyticsTableColumn(quote("value"), DOUBLE, "1 as value"));
 
     return filterDimensionColumns(columns);
-  }
-
-  private List<AnalyticsTableColumn> getValueColumns() {
-    return List.of(new AnalyticsTableColumn(quote("value"), DOUBLE, "value"));
   }
 
   @Override
