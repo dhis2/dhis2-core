@@ -290,7 +290,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     String timelyAlias = "(select (" + timelyDateDiff + ") <= ds.timelydays) as timely";
 
     columns.add(new AnalyticsTableColumn(quote("timely"), BOOLEAN, timelyAlias));
-    columns.addAll(getFixedColumns());
+    columns.addAll(FIXED_COLS);
     columns.add(new AnalyticsTableColumn(quote("value"), DATE, "cdr.date as value"));
     return filterDimensionColumns(columns);
   }

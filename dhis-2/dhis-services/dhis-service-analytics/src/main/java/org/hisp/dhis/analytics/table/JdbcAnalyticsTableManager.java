@@ -510,7 +510,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             : DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST + " as approvallevel";
 
     columns.add(new AnalyticsTableColumn(quote("approvallevel"), INTEGER, approvalCol));
-    columns.addAll(getFixedColumns());
+    columns.addAll(FIXED_COLS);
     if (!skipOutliers(params)) {
       columns.addAll(getOutlierStatsColumns());
     }

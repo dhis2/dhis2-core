@@ -285,7 +285,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
     columns.addAll(getOrganisationUnitLevelColumns());
     columns.addAll(getOrganisationUnitGroupSetColumns());
 
-    columns.addAll(getFixedColumns());
+    columns.addAll(FIXED_COLS);
 
     return filterDimensionColumns(columns);
   }

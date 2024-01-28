@@ -170,7 +170,7 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
               .withCreated(level.getCreated()));
     }
 
-    columns.addAll(getFixedColumns());
+    columns.addAll(FIXED_COLS);
     columns.add(new AnalyticsTableColumn(quote("value"), DOUBLE, "1 as value"));
 
     return filterDimensionColumns(columns);

@@ -239,7 +239,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
     columns.addAll(getOrganisationUnitGroupSetColumns());
     columns.addAll(getPeriodTypeColumns("dps"));
     columns.addAll(addTrackedEntityAttributes(program));
-    columns.addAll(getFixedColumns());
+    columns.addAll(FIXED_COLS);
 
     if (program.isRegistration()) {
       columns.add(new AnalyticsTableColumn(quote("tei"), CHARACTER_11, "tei.uid"));

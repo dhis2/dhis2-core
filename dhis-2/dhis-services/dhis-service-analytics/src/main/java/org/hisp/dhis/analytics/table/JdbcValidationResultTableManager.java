@@ -249,7 +249,7 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
       columns.add(new AnalyticsTableColumn(column, TEXT, "ps." + column));
     }
 
-    columns.addAll(getFixedColumns());
+    columns.addAll(FIXED_COLS);
     columns.add(new AnalyticsTableColumn(quote("value"), DATE, "vrs.created as value"));
 
     return filterDimensionColumns(columns);
