@@ -99,8 +99,5 @@ public class IconRequestParamsMapper {
     }
   }
 
-  private void validationKeywords(IconRequestParams requestParams )
-  {
-    
-  }
+  private void validationKeywords(IconRequestParams requestParams) {}
 }
