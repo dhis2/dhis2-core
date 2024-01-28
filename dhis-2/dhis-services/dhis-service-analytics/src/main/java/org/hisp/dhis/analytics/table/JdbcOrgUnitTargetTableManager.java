@@ -175,9 +175,4 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
 
     return filterDimensionColumns(columns);
   }
-
-  @Override
-  public List<AnalyticsTableColumn> getFixedColumns() {
-    return FIXED_COLS;
-  }
 }

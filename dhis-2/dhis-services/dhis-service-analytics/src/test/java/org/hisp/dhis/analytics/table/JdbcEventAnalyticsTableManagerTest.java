@@ -275,7 +275,7 @@ class JdbcEventAnalyticsTableManagerTest {
         .withTableType(AnalyticsTableType.EVENT)
         .withTableName(TABLE_PREFIX + program.getUid().toLowerCase())
         .withColumnSize(56 + OU_NAME_HIERARCHY_COUNT)
-        .withDefaultColumns(subject.getFixedColumns())
+        .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
         .addColumns(periodColumns)
         .addColumn(categoryA.getUid(), CHARACTER_11, "acs.", categoryA.getCreated())
         .addColumn(categoryB.getUid(), CHARACTER_11, "acs.", categoryB.getCreated())
@@ -457,7 +457,7 @@ class JdbcEventAnalyticsTableManagerTest {
             d5.getUid() + "_geom", GEOMETRY, toAlias(aliasD5_geo, d5.getUid()), IndexType.GIST)
         // element d5 also creates a Name column
         .addColumn(d5.getUid() + "_name", TEXT, toAlias(aliasD5_name, d5.getUid() + "_name"))
-        .withDefaultColumns(subject.getFixedColumns())
+        .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
         .build()
         .verify();
   }
@@ -527,7 +527,7 @@ class JdbcEventAnalyticsTableManagerTest {
             tea1.getUid() + "_name",
             TEXT,
             String.format(aliasTea1, "ou.name", tea1.getId(), tea1.getUid()))
-        .withDefaultColumns(subject.getFixedColumns())
+        .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
         .build()
         .verify();
   }
@@ -724,13 +724,13 @@ class JdbcEventAnalyticsTableManagerTest {
         .withTableName(TABLE_PREFIX + programA.getUid().toLowerCase())
         .withTableType(AnalyticsTableType.EVENT)
         .withColumnSize(
-            subject.getFixedColumns().size()
+            JdbcEventAnalyticsTableManager.FIXED_COLS.size()
                 + PeriodType.getAvailablePeriodTypes().size()
                 + ouLevels.size()
                 + (programA.isRegistration() ? 1 : 0)
                 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
-        .withDefaultColumns(subject.getFixedColumns())
+        .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
         .addColumn(
             quote("uidlevel" + ouLevels.get(0).getLevel()), col -> match(ouLevels.get(0), col))
         .addColumn(
@@ -768,13 +768,13 @@ class JdbcEventAnalyticsTableManagerTest {
         .withTableName(TABLE_PREFIX + programA.getUid().toLowerCase())
         .withTableType(AnalyticsTableType.EVENT)
         .withColumnSize(
-            subject.getFixedColumns().size()
+            JdbcEventAnalyticsTableManager.FIXED_COLS.size()
                 + PeriodType.getAvailablePeriodTypes().size()
                 + ouGroupSet.size()
                 + (programA.isRegistration() ? 1 : 0)
                 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
-        .withDefaultColumns(subject.getFixedColumns())
+        .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
         .addColumn(quote(ouGroupSet.get(0).getUid()), col -> match(ouGroupSet.get(0), col))
         .addColumn(quote(ouGroupSet.get(1).getUid()), col -> match(ouGroupSet.get(1), col))
         .build()
@@ -810,13 +810,13 @@ class JdbcEventAnalyticsTableManagerTest {
         .withTableName(TABLE_PREFIX + programA.getUid().toLowerCase())
         .withTableType(AnalyticsTableType.EVENT)
         .withColumnSize(
-            subject.getFixedColumns().size()
+            JdbcEventAnalyticsTableManager.FIXED_COLS.size()
                 + PeriodType.getAvailablePeriodTypes().size()
                 + cogs.size()
                 + (programA.isRegistration() ? 1 : 0)
                 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
-        .withDefaultColumns(subject.getFixedColumns())
+        .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
         .addColumn(quote(cogs.get(0).getUid()), col -> match(cogs.get(0), col))
         .addColumn(quote(cogs.get(1).getUid()), col -> match(cogs.get(1), col))
         .build()

@@ -638,11 +638,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     jdbcTemplate.execute(sql);
   }
 
-  @Override
-  public List<AnalyticsTableColumn> getFixedColumns() {
-    return FIXED_COLS;
-  }
-
   /**
    * Indicates whether the system should ignore data which has not been approved in analytics
    * tables.

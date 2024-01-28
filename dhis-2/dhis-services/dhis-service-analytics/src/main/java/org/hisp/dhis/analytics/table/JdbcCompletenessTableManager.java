@@ -311,9 +311,4 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
 
     return jdbcTemplate.queryForList(sql, Integer.class);
   }
-
-  @Override
-  public List<AnalyticsTableColumn> getFixedColumns() {
-    return FIXED_COLS;
-  }
 }
