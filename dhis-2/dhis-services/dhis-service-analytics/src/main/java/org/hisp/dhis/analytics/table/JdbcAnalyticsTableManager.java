@@ -321,7 +321,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
 
     String sql = "insert into " + partition.getTempTableName() + " (";
 
-    List<AnalyticsTableColumn> dimensions = getDimensionColumns(partition.getYear(), params);
+    List<AnalyticsTableColumn> dimensions = getDimensionColumns(params);
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
 
     for (AnalyticsTableColumn col : columns) {
@@ -439,11 +439,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   }
 
   private List<AnalyticsTableColumn> getDimensionColumns(AnalyticsTableUpdateParams params) {
-    return getDimensionColumns(null, params);
-  }
-
-  private List<AnalyticsTableColumn> getDimensionColumns(
-      Integer year, AnalyticsTableUpdateParams params) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     String idColAlias =
