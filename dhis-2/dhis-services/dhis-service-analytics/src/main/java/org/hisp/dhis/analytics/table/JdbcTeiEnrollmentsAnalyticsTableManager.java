@@ -158,11 +158,11 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
   @Transactional
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
     return trackedEntityTypeService.getAllTrackedEntityType().stream()
-        .map(tet -> new AnalyticsTable(getAnalyticsTableType(), getTableColumns(), List.of(), tet))
+        .map(tet -> new AnalyticsTable(getAnalyticsTableType(), getColumns(), List.of(), tet))
         .collect(Collectors.toList());
   }
 
-  private List<AnalyticsTableColumn> getTableColumns() {
+  private List<AnalyticsTableColumn> getColumns() {
     List<AnalyticsTableColumn> analyticsTableColumnList = new ArrayList<>(FIXED_COLUMNS);
     analyticsTableColumnList.add(getOrganisationUnitNameHierarchyColumn());
 

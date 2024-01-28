@@ -184,7 +184,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
       Collections.sort(dataYears);
 
       AnalyticsTable table =
-          new AnalyticsTable(getAnalyticsTableType(), getTableColumns(), List.of(), tet);
+          new AnalyticsTable(getAnalyticsTableType(), getColumns(), List.of(), tet);
 
       for (Integer year : dataYears) {
         table.addPartitionTable(year, getStartDate(calendar, year), getEndDate(calendar, year));
@@ -241,7 +241,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
     return jdbcTemplate.queryForList(sql.toString(), Integer.class);
   }
 
-  private List<AnalyticsTableColumn> getTableColumns() {
+  private List<AnalyticsTableColumn> getColumns() {
     List<AnalyticsTableColumn> analyticsTableColumnList = new ArrayList<>(FIXED_COLS);
     analyticsTableColumnList.add(getOrganisationUnitNameHierarchyColumn());
 

@@ -312,6 +312,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     boolean respectStartEndDates =
         systemSettingManager.getBoolSetting(
             SettingKey.RESPECT_META_DATA_START_END_DATES_IN_ANALYTICS_TABLE_EXPORT);
+    String approvalSelectExpression = getApprovalSelectExpression(partition.getYear());
     String approvalClause = getApprovalJoinClause(partition.getYear());
     String partitionClause =
         partition.isLatestPartition()
@@ -320,7 +321,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
 
     String sql = "insert into " + partition.getTempTableName() + " (";
 
-    List<AnalyticsTableColumn> dimensions = getDimensionColumns(partition.getYear(), params);
+    List<AnalyticsTableColumn> dimensions = getDimensionColumns(params);
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
 
     for (AnalyticsTableColumn col : columns) {
@@ -334,7 +335,9 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     }
 
     sql +=
-        valueExpression
+        approvalSelectExpression
+            + " as approvallevel, "
+            + valueExpression
             + " * ps.daysno as daysxvalue, "
             + "ps.daysno as daysno, "
             + valueExpression
@@ -392,6 +395,22 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   }
 
   /**
+   * Returns the approval select expression based on the given year.
+   *
+   * @param year the year.
+   * @return the approval select expression.
+   */
+  private String getApprovalSelectExpression(Integer year) {
+    if (isApprovalEnabled(year)) {
+      return "coalesce(des.datasetapprovallevel, aon.approvallevel, da.minlevel, "
+          + DataApprovalLevelService.APPROVAL_LEVEL_UNAPPROVED
+          + ")";
+    } else {
+      return String.valueOf(DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST);
+    }
+  }
+
+  /**
    * Returns sub-query for approval level. First looks for approval level in data element resource
    * table which will indicate level 0 (highest) if approval is not required. Then looks for highest
    * level in dataapproval table.
@@ -420,11 +439,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   }
 
   private List<AnalyticsTableColumn> getDimensionColumns(AnalyticsTableUpdateParams params) {
-    return getDimensionColumns(null, params);
-  }
-
-  private List<AnalyticsTableColumn> getDimensionColumns(
-      Integer year, AnalyticsTableUpdateParams params) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     String idColAlias =
@@ -501,9 +515,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
 
     columns.addAll(getPeriodTypeColumns("ps"));
 
-    String approvalCol = getApprovalSelectExpression(year);
-
-    columns.add(new AnalyticsTableColumn(quote("approvallevel"), INTEGER, approvalCol));
     columns.addAll(FIXED_COLS);
     if (!skipOutliers(params)) {
       columns.addAll(getOutlierStatsColumns());
@@ -513,28 +524,13 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   }
 
   /**
-   * Returns the approval select expression based on the given year.
-   *
-   * @param year the year.
-   * @return the approval select expression.
-   */
-  private String getApprovalSelectExpression(Integer year) {
-    if (isApprovalEnabled(year)) {
-      return "coalesce(des.datasetapprovallevel, aon.approvallevel, da.minlevel, "
-          + DataApprovalLevelService.APPROVAL_LEVEL_UNAPPROVED
-          + ") as approvallevel ";
-    } else {
-      return DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST + " as approvallevel";
-    }
-  }
-
-  /**
    * Returns a list of columns representing data value.
    *
    * @return a list of {@link AnalyticsTableColumn}.
    */
   private List<AnalyticsTableColumn> getValueColumns() {
     return List.of(
+        new AnalyticsTableColumn(quote("approvallevel"), INTEGER, "approvallevel"),
         new AnalyticsTableColumn(quote("daysxvalue"), DOUBLE, "daysxvalue"),
         new AnalyticsTableColumn(quote("daysno"), INTEGER, NOT_NULL, "daysno"),
         new AnalyticsTableColumn(quote("value"), DOUBLE, "value"),
