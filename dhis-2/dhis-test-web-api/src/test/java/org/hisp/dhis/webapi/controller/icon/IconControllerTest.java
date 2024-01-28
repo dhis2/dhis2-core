@@ -111,7 +111,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     createCustomIcon(fileResourceId, keywords);
 
     JsonList<JsonIcon> icons =
-        GET("/icons?keywords=m1").content(HttpStatus.OK).asList(JsonIcon.class);
+        GET("/icons?keywords=k1").content(HttpStatus.OK).asList(JsonIcon.class);
 
     assertCustomIcons(icons.get(0), keywords, fileResourceId);
   }
