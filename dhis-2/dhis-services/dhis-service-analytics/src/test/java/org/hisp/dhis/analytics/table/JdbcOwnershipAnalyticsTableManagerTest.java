@@ -173,7 +173,7 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
             emptyList(),
             programB);
 
-    partitionA = new AnalyticsTablePartition(tableA, 1, new Date(), new Date(), true);
+    partitionA = new AnalyticsTablePartition(tableA, 1, new Date(), new Date());
   }
 
   @Test
