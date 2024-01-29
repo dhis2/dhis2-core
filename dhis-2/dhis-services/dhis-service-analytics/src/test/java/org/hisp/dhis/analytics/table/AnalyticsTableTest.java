@@ -83,7 +83,7 @@ class AnalyticsTableTest {
   }
 
   @Test
-  void testGetDimensionColumns() {
+  void testGetDimensionAndFactColumns() {
     List<AnalyticsTableColumn> columns =
         List.of(
             new AnalyticsTableColumn(quote("dx"), CHARACTER_11, NOT_NULL, DIMENSION, "de.uid"),
