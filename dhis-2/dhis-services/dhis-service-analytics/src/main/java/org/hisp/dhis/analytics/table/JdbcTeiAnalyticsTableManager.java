@@ -41,7 +41,6 @@ import static org.hisp.dhis.analytics.table.model.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.TIMESTAMP;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.VARCHAR_255;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.VARCHAR_50;
-import static org.hisp.dhis.analytics.table.model.IndexType.GIST;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
@@ -64,6 +63,7 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.model.IndexType;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -107,7 +107,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
           new AnalyticsTableColumn(
               quote("lastupdatedatclient"), TIMESTAMP, "tei.lastupdatedatclient"),
           new AnalyticsTableColumn(quote("lastsynchronized"), TIMESTAMP, "tei.lastsynchronized"),
-          new AnalyticsTableColumn(quote("geometry"), GEOMETRY, "tei.geometry").withIndexType(GIST),
+          new AnalyticsTableColumn(quote("geometry"), GEOMETRY, "tei.geometry", IndexType.GIST),
           new AnalyticsTableColumn(
               quote("longitude"),
               DOUBLE,

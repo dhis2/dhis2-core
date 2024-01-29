@@ -73,6 +73,21 @@ public class Index {
    * Constructor.
    *
    * @param name the index name.
+   * @param indexType the index type.
+   * @param columns the list of index column names.
+   */
+  public Index(String name, IndexType indexType, List<String> columns) {
+    this.name = name;
+    this.indexType = indexType;
+    this.unique = Unique.NON_UNIQUE;
+    this.columns = columns;
+    this.condition = null;
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param name the index name.
    * @param unique the uniqueness property.
    * @param columns the list of index column names.
    */

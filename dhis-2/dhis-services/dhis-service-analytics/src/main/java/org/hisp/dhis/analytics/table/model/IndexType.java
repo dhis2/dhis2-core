@@ -40,8 +40,6 @@ import lombok.RequiredArgsConstructor;
 public enum IndexType {
   BTREE("btree"),
   GIST("gist"),
-  HASH("hash"),
-  BLOOM("bloom"),
   GIN("gin");
 
   final String keyword;

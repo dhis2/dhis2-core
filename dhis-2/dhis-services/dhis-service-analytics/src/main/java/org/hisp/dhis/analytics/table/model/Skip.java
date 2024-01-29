@@ -25,15 +25,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.db.model;
+package org.hisp.dhis.analytics.table.model;
 
-/**
- * Enumeration of index types.
- *
- * @author Lars Helge Overland
- */
-public enum IndexType {
-  BTREE,
-  GIST,
-  GIN;
+public enum Skip {
+  SKIP,
+  INCLUDE;
 }

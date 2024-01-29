@@ -129,8 +129,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
           new AnalyticsTableColumn(quote("ouname"), TEXT, NOT_NULL, "ou.name"),
           new AnalyticsTableColumn(quote("oucode"), TEXT, "ou.code"),
           new AnalyticsTableColumn(quote("oulevel"), INTEGER, "ous.level"),
-          new AnalyticsTableColumn(quote("pigeometry"), GEOMETRY, "pi.geometry")
-              .withIndexType(IndexType.GIST),
+          new AnalyticsTableColumn(quote("pigeometry"), GEOMETRY, "pi.geometry", IndexType.GIST),
           new AnalyticsTableColumn(
               quote("registrationou"),
               CHARACTER_11,

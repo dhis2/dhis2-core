@@ -514,8 +514,8 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             lv -> {
               String column = quote(PREFIX_ORGUNITLEVEL + lv.getLevel());
-              return new AnalyticsTableColumn(column, CHARACTER_11, "ous." + column)
-                  .withCreated(lv.getCreated());
+              return new AnalyticsTableColumn(
+                  column, CHARACTER_11, "ous." + column, lv.getCreated());
             })
         .collect(Collectors.toList());
   }
@@ -545,8 +545,8 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             ougs -> {
               String column = quote(ougs.getUid());
-              return new AnalyticsTableColumn(column, CHARACTER_11, "ougs." + column)
-                  .withCreated(ougs.getCreated());
+              return new AnalyticsTableColumn(
+                  column, CHARACTER_11, "ougs." + column, ougs.getCreated());
             })
         .collect(Collectors.toList());
   }

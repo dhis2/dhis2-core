@@ -29,6 +29,9 @@ package org.hisp.dhis.analytics.util;
 
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_HEADER_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.BIGINT;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.GEOMETRY_POINT;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.TEXT;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -46,7 +49,6 @@ import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.table.model.ColumnDataType;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -418,10 +420,9 @@ class AnalyticsUtilsTest extends DhisConvenienceTest {
 
   @Test
   void testGetColumnType() {
-    assertEquals(ColumnDataType.BIGINT, AnalyticsUtils.getColumnType(ValueType.INTEGER, true));
-    assertEquals(
-        ColumnDataType.GEOMETRY_POINT, AnalyticsUtils.getColumnType(ValueType.COORDINATE, true));
-    assertEquals(ColumnDataType.TEXT, AnalyticsUtils.getColumnType(ValueType.COORDINATE, false));
+    assertEquals(BIGINT, AnalyticsUtils.getColumnType(ValueType.INTEGER, true));
+    assertEquals(GEOMETRY_POINT, AnalyticsUtils.getColumnType(ValueType.COORDINATE, true));
+    assertEquals(TEXT, AnalyticsUtils.getColumnType(ValueType.COORDINATE, false));
   }
 
   @Test
