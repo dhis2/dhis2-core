@@ -714,4 +714,48 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest {
                     .getTrackedEntityInstance(tei.getTrackedEntityInstance())
                     .getLastUpdatedByUserInfo()));
   }
+
+  @Test
+  void shouldSetLastUpdatedInfoWhenDeleteTe() {
+
+    org.hisp.dhis.trackedentity.TrackedEntityInstance entityBefore =
+        getTrackedEntity(maleA.getUid());
+
+    dbmsManager.clearSession();
+
+    User user = createUser("userDelete", "ALL");
+    injectSecurityContext(user);
+
+    ImportSummary importSummaries =
+        trackedEntityInstanceService.deleteTrackedEntityInstance(maleA.getUid());
+
+    dbmsManager.clearSession();
+
+    org.hisp.dhis.trackedentity.TrackedEntityInstance entityAfter =
+        getTrackedEntity(maleA.getUid());
+
+    assertAll(
+        () -> assertEquals(ImportStatus.SUCCESS, importSummaries.getStatus()),
+        () ->
+            assertEquals(
+                UserInfoSnapshot.from(user),
+                getTrackedEntity(maleA.getUid()).getLastUpdatedByUserInfo()),
+        () ->
+            assertTrue(
+                entityAfter.getLastUpdated().getTime() > entityBefore.getLastUpdated().getTime()));
+  }
+
+  /** Get with the current session because some Store exclude deleted */
+  public org.hisp.dhis.trackedentity.TrackedEntityInstance getTrackedEntity(String uid) {
+
+    return (org.hisp.dhis.trackedentity.TrackedEntityInstance)
+        sessionFactory
+            .getCurrentSession()
+            .createQuery(
+                "SELECT e FROM "
+                    + org.hisp.dhis.trackedentity.TrackedEntityInstance.class.getSimpleName()
+                    + " e WHERE e.uid = :uid")
+            .setParameter("uid", uid)
+            .getSingleResult();
+  }
 }

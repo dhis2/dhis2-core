@@ -1619,10 +1619,7 @@
             <groupId>io.netty</groupId>
             <artifactId>netty-transport-native-kqueue</artifactId>
           </exclusion>
-          <exclusion>
-            <groupId>org.wildfly.common</groupId>
-            <artifactId>wildfly-common</artifactId>
-          </exclusion>
+
         </exclusions>
       </dependency>
       <dependency>
