@@ -757,6 +757,7 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
     assertFalse(filtersNode1.get("repetition").isMember("programStage"));
     assertThat(
         filtersNode1.get("repetition").get("indexes").value().toString(), is(equalTo("[1,2,0]")));
+    assertEquals("[{\"id\":\"deabcdefghP\"}]", response.get("programDimensions").toString());
   }
 
   @Test

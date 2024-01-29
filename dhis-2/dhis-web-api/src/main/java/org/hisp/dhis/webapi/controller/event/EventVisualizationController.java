@@ -41,13 +41,19 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_PNG;
 import static org.jfree.chart.ChartUtils.writeChartAsPNG;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Stream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.eventvisualization.EventVisualization;
@@ -59,6 +65,8 @@ import org.hisp.dhis.legend.LegendSetService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.ChartService;
@@ -92,6 +100,8 @@ public class EventVisualizationController extends AbstractCrudController<EventVi
   private final OrganisationUnitService organisationUnitService;
 
   private final EventVisualizationService eventVisualizationService;
+
+  private final ProgramService programService;
 
   private final ChartService chartService;
 
@@ -174,6 +184,23 @@ public class EventVisualizationController extends AbstractCrudController<EventVi
         period.setName(format.formatPeriod(period));
       }
     }
+
+    List<String> programUidsInDimensions =
+        Stream.of(
+                getPrograms(eventVisualization.getColumns().stream()),
+                getPrograms(eventVisualization.getRows().stream()),
+                getPrograms(eventVisualization.getFilters().stream()))
+            .flatMap(Function.identity())
+            .map(Program::getUid)
+            .distinct()
+            .toList();
+
+    eventVisualization.setProgramDimensions(
+        new ArrayList<>(programService.getPrograms(programUidsInDimensions)));
+  }
+
+  private Stream<Program> getPrograms(Stream<DimensionalObject> dimensionalObjectStream) {
+    return dimensionalObjectStream.map(DimensionalObject::getProgram).filter(Objects::nonNull);
   }
 
   @Override
