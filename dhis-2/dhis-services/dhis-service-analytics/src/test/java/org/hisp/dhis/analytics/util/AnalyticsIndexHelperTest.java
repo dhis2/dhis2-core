@@ -39,7 +39,6 @@ import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexName;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexes;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.db.model.IndexType.BTREE;
-
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.analytics.table.model.AnalyticsIndex;
@@ -65,12 +64,12 @@ class AnalyticsIndexHelperTest {
     assertThat(indexes, hasSize(1));
     assertThat(indexes.get(0).getTable(), is(equalTo("analytics_event_temp_2022")));
     assertThat(indexes.get(0).getColumns(), hasSize(1));
-    assertThat(indexes.get(0).getType(), is(equalTo(BTREE)));
+    assertThat(indexes.get(0).getIndexType(), is(equalTo(BTREE)));
   }
 
   @Test
   void testCreateIndexStatement() {
-    AnalyticsIndex someAnalyticsIndex = new AnalyticsIndex("table", List.of("column"), BTREE);
+    AnalyticsIndex someAnalyticsIndex = new AnalyticsIndex("table", BTREE, List.of("column"));
 
     String statement = createIndexStatement(someAnalyticsIndex, EVENT);
 
@@ -81,7 +80,7 @@ class AnalyticsIndexHelperTest {
 
   @Test
   void testGetIndexName() {
-    AnalyticsIndex someAnalyticsIndex = new AnalyticsIndex("table", List.of("column"), BTREE);
+    AnalyticsIndex someAnalyticsIndex = new AnalyticsIndex("table", BTREE, List.of("column"));
 
     String statement = getIndexName(someAnalyticsIndex, EVENT);
 
@@ -91,7 +90,7 @@ class AnalyticsIndexHelperTest {
   @Test
   void testGetIndexNameWithFunction() {
     AnalyticsIndex someAnalyticsIndex =
-        new AnalyticsIndex("table", List.of("column"), BTREE, LOWER);
+        new AnalyticsIndex("table", BTREE, List.of("column"), LOWER);
 
     String statement = getIndexName(someAnalyticsIndex, EVENT);
 

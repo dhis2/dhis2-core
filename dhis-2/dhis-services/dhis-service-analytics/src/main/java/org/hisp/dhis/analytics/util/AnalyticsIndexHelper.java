@@ -34,7 +34,6 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.removeQuote;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.db.model.DataType.TEXT;
-
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang3.RegExUtils;
@@ -79,7 +78,7 @@ public class AnalyticsIndexHelper {
               col.hasIndexColumns() ? col.getIndexColumns() : List.of(col.getName());
 
           indexes.add(
-              new AnalyticsIndex(partition.getTempTableName(), indexColumns, col.getIndexType()));
+              new AnalyticsIndex(partition.getTempTableName(), col.getIndexType(), indexColumns));
 
           maybeAddTextLowerIndex(indexes, partition.getTempTableName(), col, indexColumns);
         }
@@ -99,7 +98,7 @@ public class AnalyticsIndexHelper {
    */
   public static String createIndexStatement(AnalyticsIndex index, AnalyticsTableType tableType) {
     String indexName = getIndexName(index, tableType);
-    String indexTypeName = SQL_BUILDER.getIndexTypeName(index.getType());
+    String indexTypeName = SQL_BUILDER.getIndexTypeName(index.getIndexType());
     String indexColumns = maybeApplyFunctionToIndex(index, join(index.getColumns(), ","));
 
     return "create index "
@@ -192,7 +191,7 @@ public class AnalyticsIndexHelper {
     boolean isSingleColumn = indexColumns.size() == 1;
 
     if (column.getDataType() == TEXT && isValidUid(columnName) && isSingleColumn) {
-      indexes.add(new AnalyticsIndex(tableName, indexColumns, column.getIndexType(), LOWER));
+      indexes.add(new AnalyticsIndex(tableName, column.getIndexType(), indexColumns, LOWER));
     }
   }
 
