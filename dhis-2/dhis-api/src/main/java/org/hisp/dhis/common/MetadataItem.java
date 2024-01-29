@@ -29,8 +29,6 @@ package org.hisp.dhis.common;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.appendIfMissing;
-import static org.hisp.dhis.common.ValueType.DATE;
-import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.ValueType.TEXT;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -234,7 +232,8 @@ public class MetadataItem implements Serializable {
       }
     } else if (dimensionalItemObject instanceof ExpressionDimensionItem expressionDimensionItem) {
       this.expression = expressionDimensionItem.getExpression();
-    } else if (dimensionalItemObject instanceof ProgramDataElementDimensionItem programDataElementDimensionItem) {
+    } else if (dimensionalItemObject
+        instanceof ProgramDataElementDimensionItem programDataElementDimensionItem) {
       this.valueType = programDataElementDimensionItem.getValueType();
     } else if (dimensionalItemObject instanceof OrganisationUnit) {
       this.valueType = TEXT;
