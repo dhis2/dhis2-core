@@ -661,7 +661,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       columns.add(
           new AnalyticsTableColumn(
               quote(attribute.getUid() + OU_GEOMETRY_COL_SUFFIX),
-              ColumnDataType.GEOMETRY,
+              GEOMETRY,
               geoSql,
               IndexType.GIST));
     }
@@ -693,7 +693,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       columns.add(
           new AnalyticsTableColumn(
               quote(dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX),
-              ColumnDataType.GEOMETRY,
+              GEOMETRY,
               geoSql,
               IndexType.GIST));
     }

@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.analytics.table.model;
 
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.CHARACTER_11;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.DOUBLE;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -39,9 +41,8 @@ class AnalyticsTableColumnTest {
   @Test
   void testIsNotNull() {
     AnalyticsTableColumn colA =
-        new AnalyticsTableColumn("dx", ColumnDataType.CHARACTER_11, Nullable.NOT_NULL, "dx");
-    AnalyticsTableColumn colB =
-        new AnalyticsTableColumn("value", ColumnDataType.DOUBLE, Nullable.NULL, "value");
+        new AnalyticsTableColumn("dx", CHARACTER_11, Nullable.NOT_NULL, "dx");
+    AnalyticsTableColumn colB = new AnalyticsTableColumn("value", DOUBLE, Nullable.NULL, "value");
 
     assertTrue(colA.isNotNull());
     assertFalse(colB.isNotNull());
@@ -50,10 +51,9 @@ class AnalyticsTableColumnTest {
   @Test
   void testHasCollation() {
     AnalyticsTableColumn colA =
-        new AnalyticsTableColumn("dx", ColumnDataType.CHARACTER_11, Collation.DEFAULT, "dx");
-    AnalyticsTableColumn colB =
-        new AnalyticsTableColumn("ou", ColumnDataType.CHARACTER_11, Collation.C, "ou");
-    AnalyticsTableColumn colC = new AnalyticsTableColumn("value", ColumnDataType.DOUBLE, "value");
+        new AnalyticsTableColumn("dx", CHARACTER_11, Collation.DEFAULT, "dx");
+    AnalyticsTableColumn colB = new AnalyticsTableColumn("ou", CHARACTER_11, Collation.C, "ou");
+    AnalyticsTableColumn colC = new AnalyticsTableColumn("value", DOUBLE, "value");
 
     assertFalse(colA.hasCollation());
     assertTrue(colB.hasCollation());
@@ -62,10 +62,8 @@ class AnalyticsTableColumnTest {
 
   @Test
   void testIsSkipIndex() {
-    AnalyticsTableColumn colA =
-        new AnalyticsTableColumn("value", ColumnDataType.DOUBLE, "value", IndexType.NONE);
-    AnalyticsTableColumn colB =
-        new AnalyticsTableColumn("ou", ColumnDataType.CHARACTER_11, "ou", IndexType.BTREE);
+    AnalyticsTableColumn colA = new AnalyticsTableColumn("value", DOUBLE, "value", IndexType.NONE);
+    AnalyticsTableColumn colB = new AnalyticsTableColumn("ou", CHARACTER_11, "ou", IndexType.BTREE);
 
     assertTrue(colA.isSkipIndex());
     assertFalse(colB.isSkipIndex());
