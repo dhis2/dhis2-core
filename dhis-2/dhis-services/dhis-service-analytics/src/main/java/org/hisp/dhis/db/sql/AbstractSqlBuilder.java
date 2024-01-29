@@ -91,16 +91,15 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
             String.format("Unsuported data type: %s", dataType));
     }
   }
-  
+
   /**
    * Returns the database name of the given index type.
-   * 
+   *
    * @param indexType the {@link IndexType}.
    * @return the index type name.
    */
-  public String getIndexTypeName(IndexType indexType)
-  {
-    switch(indexType) {
+  public String getIndexTypeName(IndexType indexType) {
+    switch (indexType) {
       case BTREE:
         return indexTypeBtree();
       case GIST:

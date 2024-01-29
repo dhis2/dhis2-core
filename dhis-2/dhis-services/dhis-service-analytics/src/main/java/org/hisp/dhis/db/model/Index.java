@@ -28,9 +28,9 @@
 package org.hisp.dhis.db.model;
 
 import java.util.List;
-import org.hisp.dhis.db.model.constraint.Unique;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.db.model.constraint.Unique;
 
 /**
  * Represents a database index.

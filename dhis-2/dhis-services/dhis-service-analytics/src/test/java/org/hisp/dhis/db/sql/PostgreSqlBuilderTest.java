@@ -28,6 +28,7 @@
 package org.hisp.dhis.db.sql;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.util.List;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
@@ -166,7 +167,8 @@ class PostgreSqlBuilderTest {
   void testCreateIndexA() {
     Table table = getTableA();
 
-    String expected = "create index \"in_immunization_data\" on \"immunization\" using btree(\"data\");";
+    String expected =
+        "create index \"in_immunization_data\" on \"immunization\" using btree(\"data\");";
 
     assertEquals(expected, sqlBuilder.createIndex(table, table.getIndexes().get(0)));
   }
