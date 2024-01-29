@@ -160,14 +160,14 @@ class PostgreSqlBuilderTest {
 
     String expected = "drop table if exists \"immunization\" cascade;";
 
-    assertEquals(expected, sqlBuilder.dropTableIfExists(table));
+    assertEquals(expected, sqlBuilder.dropTableIfExistsCascade(table));
   }
 
   @Test
   void testDropTableIfExistsCascadeString() {
     String expected = "drop table if exists \"immunization\" cascade;";
 
-    assertEquals(expected, sqlBuilder.dropTableIfExists("immunization"));
+    assertEquals(expected, sqlBuilder.dropTableIfExistsCascade("immunization"));
   }
 
   @Test
