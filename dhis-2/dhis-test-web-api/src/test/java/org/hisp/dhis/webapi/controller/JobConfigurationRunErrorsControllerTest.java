@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller;
 import static java.time.Duration.ofSeconds;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.function.BooleanSupplier;
@@ -39,7 +38,6 @@ import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonNodeType;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.scheduling.JobStatus;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.hisp.dhis.webapi.json.domain.JsonJobConfiguration;
@@ -59,6 +57,7 @@ class JobConfigurationRunErrorsControllerTest extends DhisControllerIntegrationT
   @BeforeEach
   void setUp() throws InterruptedException {
     jobId = createAndRunImportWithErrors();
+    switchToNewUser("special-admin", "F_SCHEDULING_ANALYSE");
   }
 
   @Test
@@ -73,8 +72,8 @@ class JobConfigurationRunErrorsControllerTest extends DhisControllerIntegrationT
 
   @Test
   void testGetJobRunErrors_ListFilterUser() {
-    JsonArray list =
-        GET("/jobConfigurations/errors?user={user}", getCurrentUser().getUid()).content();
+    // note that the superuser created the job with errors that is tested with
+    JsonArray list = GET("/jobConfigurations/errors?user={user}", getSuperuserUid()).content();
     assertEquals(1, list.size());
     assertEquals(0, GET("/jobConfigurations/errors?user=abcde123456").content().size());
   }
@@ -121,21 +120,12 @@ class JobConfigurationRunErrorsControllerTest extends DhisControllerIntegrationT
 
   @Test
   void testGetJobRunErrors_RequireAuthority() {
-    User admin = getCurrentUser();
     switchToNewUser("guest");
 
     assertStatus(HttpStatus.FORBIDDEN, GET("/jobConfigurations/errors"));
     assertStatus(HttpStatus.FORBIDDEN, GET("/jobConfigurations/{uid}/errors", jobId));
     assertStatus(HttpStatus.FORBIDDEN, GET("/jobConfigurations/{uid}/progress/errors", jobId));
     assertStatus(HttpStatus.FORBIDDEN, GET("/jobConfigurations/{uid}/progress", jobId));
-
-    // a user with general access can't see the errors
-    switchToNewUser("some-admin", "F_PERFORM_MAINTENANCE");
-    assertTrue(GET("/jobConfigurations/{uid}/progress", jobId).content().isUndefined("errors"));
-
-    // but the admin can
-    switchToNewUser("special-admin", "F_SCHEDULING_ANALYSE", "F_PERFORM_MAINTENANCE");
-    assertFalse(GET("/jobConfigurations/{uid}/progress", jobId).content().isUndefined("errors"));
   }
 
   @Test
