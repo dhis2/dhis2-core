@@ -57,7 +57,7 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 public class AnalyticsIndexHelper {
   private static final String PREFIX_INDEX = "in_";
 
-  private static final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+  private static final SqlBuilder SQL_BUILDER = new PostgreSqlBuilder();
 
   private AnalyticsIndexHelper() {}
 
@@ -99,7 +99,7 @@ public class AnalyticsIndexHelper {
    */
   public static String createIndexStatement(AnalyticsIndex index, AnalyticsTableType tableType) {
     String indexName = getIndexName(index, tableType);
-    String indexTypeName = sqlBuilder.getIndexTypeName(index.getType());
+    String indexTypeName = SQL_BUILDER.getIndexTypeName(index.getType());
     String indexColumns = maybeApplyFunctionToIndex(index, join(index.getColumns(), ","));
 
     return "create index "
