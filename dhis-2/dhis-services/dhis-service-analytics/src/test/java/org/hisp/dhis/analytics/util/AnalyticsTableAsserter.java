@@ -159,10 +159,7 @@ public class AnalyticsTableAsserter {
 
     public Builder addColumnUnquoted(
         String name, ColumnDataType dataType, String alias, IndexType indexType) {
-      AnalyticsTableColumn col = new AnalyticsTableColumn(name, dataType, alias);
-      if (indexType != null) {
-        col.withIndexType(indexType);
-      }
+      AnalyticsTableColumn col = new AnalyticsTableColumn(name, dataType, alias, indexType);
       this._columns.add(col);
       return this;
     }

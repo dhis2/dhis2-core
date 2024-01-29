@@ -162,8 +162,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               getDisplayName("lastupdatedbyuserinfo", "psi", "lastupdatedbydisplayname")),
           new AnalyticsTableColumn(quote("pistatus"), VARCHAR_50, "pi.status"),
           new AnalyticsTableColumn(quote("psistatus"), VARCHAR_50, "psi.status"),
-          new AnalyticsTableColumn(quote("psigeometry"), GEOMETRY, "psi.geometry")
-              .withIndexType(IndexType.GIST),
+          new AnalyticsTableColumn(quote("psigeometry"), GEOMETRY, "psi.geometry", IndexType.GIST),
           // TODO latitude and longitude deprecated in 2.30, remove in 2.33
           new AnalyticsTableColumn(
               quote("longitude"),
@@ -177,10 +176,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
           new AnalyticsTableColumn(quote("ouname"), TEXT, NOT_NULL, "ou.name"),
           new AnalyticsTableColumn(quote("oucode"), TEXT, "ou.code"),
           new AnalyticsTableColumn(quote("oulevel"), INTEGER, "ous.level"),
-          new AnalyticsTableColumn(quote("ougeometry"), GEOMETRY, "ou.geometry")
-              .withIndexType(IndexType.GIST),
-          new AnalyticsTableColumn(quote("pigeometry"), GEOMETRY, "pi.geometry")
-              .withIndexType(IndexType.GIST),
+          new AnalyticsTableColumn(quote("ougeometry"), GEOMETRY, "ou.geometry", IndexType.GIST),
+          new AnalyticsTableColumn(quote("pigeometry"), GEOMETRY, "pi.geometry", IndexType.GIST),
           new AnalyticsTableColumn(
               quote("registrationou"),
               CHARACTER_11,
@@ -661,10 +658,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               dataClause);
       columns.add(
           new AnalyticsTableColumn(
-                  quote(attribute.getUid() + OU_GEOMETRY_COL_SUFFIX),
-                  ColumnDataType.GEOMETRY,
-                  geoSql)
-              .withIndexType(IndexType.GIST));
+              quote(attribute.getUid() + OU_GEOMETRY_COL_SUFFIX),
+              ColumnDataType.GEOMETRY,
+              geoSql,
+              IndexType.GIST));
     }
 
     // Add org unit name column
@@ -693,10 +690,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
       columns.add(
           new AnalyticsTableColumn(
-                  quote(dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX),
-                  ColumnDataType.GEOMETRY,
-                  geoSql)
-              .withIndexType(IndexType.GIST));
+              quote(dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX),
+              ColumnDataType.GEOMETRY,
+              geoSql,
+              IndexType.GIST));
     }
 
     // Add org unit name column

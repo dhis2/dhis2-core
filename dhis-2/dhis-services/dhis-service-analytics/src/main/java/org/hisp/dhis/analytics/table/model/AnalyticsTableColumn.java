@@ -205,16 +205,6 @@ public class AnalyticsTableColumn {
   }
 
   /**
-   * Sets the index type.
-   *
-   * @param indexType the index type.
-   */
-  public AnalyticsTableColumn withIndexType(IndexType indexType) {
-    this.indexType = indexType;
-    return this;
-  }
-
-  /**
    * Sets the index columns.
    *
    * @param indexColumns columns to index, defaults to this column name.
