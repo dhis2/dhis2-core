@@ -69,6 +69,7 @@ import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
@@ -224,8 +225,12 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
 
     params.addExtraParam("", PROGRAMS_BY_TET_KEY, programsByTetUid);
 
+    Logged logged = analyticsExportSettings.getTableLogged();
+
     return trackedEntityTypeService.getAllTrackedEntityType().stream()
-        .map(tet -> new AnalyticsTable(getAnalyticsTableType(), getColumns(params, tet), tet))
+        .map(
+            tet ->
+                new AnalyticsTable(getAnalyticsTableType(), getColumns(params, tet), logged, tet))
         .toList();
   }
 

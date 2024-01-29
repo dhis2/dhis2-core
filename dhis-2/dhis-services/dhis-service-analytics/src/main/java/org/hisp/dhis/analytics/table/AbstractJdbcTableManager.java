@@ -419,10 +419,11 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
       List<AnalyticsTableColumn> columns) {
 
     List<Integer> years = ListUtils.mutableCopy(dataYears);
+    Logged logged = analyticsExportSettings.getTableLogged();
 
     Collections.sort(years);
 
-    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns);
+    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns, logged);
 
     for (Integer year : years) {
       table.addPartitionTable(year, getStartDate(year), getEndDate(year));
@@ -452,10 +453,11 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         lastFullTableUpdate,
         "A full analytics table update must be run prior to a latest partition update");
 
+    Logged logged = analyticsExportSettings.getTableLogged();
     Date endDate = params.getStartTime();
     boolean hasUpdatedData = hasUpdatedLatestData(lastAnyTableUpdate, endDate);
 
-    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns);
+    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns, logged);
 
     if (hasUpdatedData) {
       table.addPartitionTable(

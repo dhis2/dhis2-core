@@ -79,6 +79,8 @@ public class Column {
   }
 
   /**
+   * Indicates whether the column is not null.
+   *
    * @return true if the column is not null.
    */
   public boolean isNotNull() {

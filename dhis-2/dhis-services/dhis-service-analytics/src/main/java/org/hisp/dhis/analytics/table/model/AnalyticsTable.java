@@ -33,6 +33,7 @@ import java.util.Objects;
 import lombok.Getter;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
+import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.springframework.util.Assert;
@@ -56,6 +57,9 @@ public class AnalyticsTable {
   /** Columns representing dimensions. */
   private final List<AnalyticsTableColumn> columns;
 
+  /** Whether table is logged or unlogged. PostgreSQL-only feature. */
+  private final Logged logged;
+
   /** Program of events in analytics table. */
   private Program program;
 
@@ -69,30 +73,38 @@ public class AnalyticsTable {
   // Constructors
   // -------------------------------------------------------------------------
 
-  public AnalyticsTable(AnalyticsTableType tableType, List<AnalyticsTableColumn> columns) {
+  public AnalyticsTable(
+      AnalyticsTableType tableType, List<AnalyticsTableColumn> columns, Logged logged) {
     this.tableName = tableType.getTableName();
     this.tempTableName = tableType.getTempTableName();
     this.tableType = tableType;
     this.columns = columns;
+    this.logged = logged;
   }
 
   public AnalyticsTable(
-      AnalyticsTableType tableType, List<AnalyticsTableColumn> columns, Program program) {
+      AnalyticsTableType tableType,
+      List<AnalyticsTableColumn> columns,
+      Logged logged,
+      Program program) {
     this.tableName = getTableName(tableType.getTableName(), program);
     this.tempTableName = getTableName(tableType.getTempTableName(), program);
     this.tableType = tableType;
     this.columns = columns;
+    this.logged = logged;
     this.program = program;
   }
 
   public AnalyticsTable(
       AnalyticsTableType tableType,
       List<AnalyticsTableColumn> columns,
+      Logged logged,
       TrackedEntityType trackedEntityType) {
     this.tableName = getTableName(tableType.getTableName(), trackedEntityType);
     this.tempTableName = getTableName(tableType.getTempTableName(), trackedEntityType);
     this.tableType = tableType;
     this.columns = columns;
+    this.logged = logged;
     this.trackedEntityType = trackedEntityType;
   }
 
@@ -147,6 +159,15 @@ public class AnalyticsTable {
    */
   public int getColumnCount() {
     return getColumns().size();
+  }
+
+  /**
+   * Indicates whether the table is unlogged.
+   *
+   * @return true if the table is unlogged.
+   */
+  public boolean isUnlogged() {
+    return Logged.UNLOGGED == logged;
   }
 
   /**
