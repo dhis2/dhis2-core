@@ -294,7 +294,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
                 + end
                 + "' ";
 
-    StringBuilder sql = new StringBuilder("insert into " + partition.getTempTableName() + " (");
+    StringBuilder sql = new StringBuilder("insert into " + partition.getTempName() + " (");
 
     for (AnalyticsTableColumn col : columns) {
       sql.append(col.getName() + ",");
@@ -328,7 +328,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
         .append(" and " + partitionClause)
         .append(" and psi.deleted is false ");
 
-    invokeTimeAndLog(sql.toString(), partition.getTempTableName());
+    invokeTimeAndLog(sql.toString(), partition.getTempName());
   }
 
   /**

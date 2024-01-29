@@ -194,13 +194,13 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
   @Override
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
-    String tableName = partition.getTempTableName();
+    String tableName = partition.getTempName();
     String partitionClause =
         partition.isLatestPartition()
             ? "and cdr.lastupdated >= '" + getLongDateString(partition.getStartDate()) + "' "
             : "and ps.year = " + partition.getYear() + " ";
 
-    String sql = "insert into " + partition.getTempTableName() + " (";
+    String sql = "insert into " + partition.getTempName() + " (";
 
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
 

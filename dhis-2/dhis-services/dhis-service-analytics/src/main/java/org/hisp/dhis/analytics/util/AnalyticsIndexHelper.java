@@ -79,9 +79,9 @@ public class AnalyticsIndexHelper {
               col.hasIndexColumns() ? col.getIndexColumns() : List.of(col.getName());
 
           indexes.add(
-              new AnalyticsIndex(partition.getTempTableName(), col.getIndexType(), indexColumns));
+              new AnalyticsIndex(partition.getTempName(), col.getIndexType(), indexColumns));
 
-          maybeAddTextLowerIndex(indexes, partition.getTempTableName(), col, indexColumns);
+          maybeAddTextLowerIndex(indexes, partition.getTempName(), col, indexColumns);
         }
       }
     }

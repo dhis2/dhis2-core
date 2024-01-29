@@ -213,7 +213,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     progress.runStageInParallel(
         parallelism,
         partitions,
-        AnalyticsTablePartition::getTableName,
+        AnalyticsTablePartition::getName,
         partition -> tableManager.populateTablePartition(params, partition));
   }
 
@@ -243,7 +243,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
         progress.runStageInParallel(
             getParallelJobs(),
             partitions,
-            AnalyticsTablePartition::getTableName,
+            AnalyticsTablePartition::getName,
             partition -> tableManager.applyAggregationLevels(partition, dataElements, level));
 
         aggLevels += dataElements.size();
@@ -258,7 +258,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     progress.runStageInParallel(
         getParallelJobs(),
         partitions,
-        AnalyticsTablePartition::getTableName,
+        AnalyticsTablePartition::getName,
         tableManager::vacuumTables);
   }
 
@@ -277,8 +277,8 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
   private void analyzeTables(List<AnalyticsTablePartition> partitions, JobProgress progress) {
     progress.runStage(
         partitions,
-        AnalyticsTablePartition::getTableName,
-        table -> tableManager.analyzeTable(table.getTempTableName()));
+        AnalyticsTablePartition::getName,
+        table -> tableManager.analyzeTable(table.getTempName()));
   }
 
   /**

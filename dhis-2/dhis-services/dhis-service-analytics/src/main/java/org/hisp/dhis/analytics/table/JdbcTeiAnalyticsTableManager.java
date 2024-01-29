@@ -349,7 +349,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
 
-    StringBuilder sql = new StringBuilder("insert into " + partition.getTempTableName() + " (");
+    StringBuilder sql = new StringBuilder("insert into " + partition.getTempName() + " (");
 
     for (AnalyticsTableColumn col : columns) {
       sql.append(col.getName() + ",");
@@ -399,7 +399,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
         .append(" and tei.created is not null ")
         .append(" and tei.deleted is false");
 
-    invokeTimeAndLog(sql.toString(), partition.getTempTableName());
+    invokeTimeAndLog(sql.toString(), partition.getTempName());
   }
 
   /**

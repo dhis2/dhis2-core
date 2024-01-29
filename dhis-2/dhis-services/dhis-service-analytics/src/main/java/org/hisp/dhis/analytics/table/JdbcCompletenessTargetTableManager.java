@@ -146,7 +146,7 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
   @Override
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
-    String tableName = partition.getTempTableName();
+    String tableName = partition.getTempName();
 
     String sql = "insert into " + tableName + " (";
 

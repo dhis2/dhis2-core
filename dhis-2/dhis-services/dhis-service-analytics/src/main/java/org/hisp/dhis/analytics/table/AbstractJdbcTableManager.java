@@ -201,14 +201,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         tableExists,
         skipMasterTable);
 
-    table.getTablePartitions().stream()
-        .forEach(p -> swapTable(p.getTempTableName(), p.getTableName()));
+    table.getTablePartitions().stream().forEach(p -> swapTable(p.getTempName(), p.getName()));
 
     if (!skipMasterTable) {
       swapTable(table.getTempName(), table.getName());
     } else {
       table.getTablePartitions().stream()
-          .forEach(p -> swapInheritance(p.getTableName(), table.getTempName(), table.getName()));
+          .forEach(p -> swapInheritance(p.getName(), table.getTempName(), table.getName()));
       dropTempTable(table);
     }
   }
@@ -220,7 +219,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   @Override
   public void dropTempTablePartition(AnalyticsTablePartition tablePartition) {
-    dropTableCascade(tablePartition.getTempTableName());
+    dropTableCascade(tablePartition.getTempName());
   }
 
   @Override
@@ -359,7 +358,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @param partition the {@link AnalyticsTablePartition}.
    */
   private void createTempTablePartition(AnalyticsTable table, AnalyticsTablePartition partition) {
-    String tableName = partition.getTempTableName();
+    String tableName = partition.getTempName();
     String unlogged = table.isUnlogged() ? "unlogged" : "";
     List<String> checks = getPartitionChecks(partition);
 

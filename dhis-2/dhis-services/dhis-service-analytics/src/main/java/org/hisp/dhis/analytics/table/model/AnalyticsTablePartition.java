@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.table.model;
 
 import java.util.Date;
 import java.util.Objects;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 /**
@@ -37,14 +38,15 @@ import lombok.Getter;
  * @author Lars Helge Overland
  */
 @Getter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class AnalyticsTablePartition {
   public static final Integer LATEST_PARTITION = 0;
 
   /** Table name. */
-  private String tableName;
+  @EqualsAndHashCode.Include private String name;
 
   /** Temporary table name. */
-  private String tempTableName;
+  private String tempName;
 
   /** The master analytics table for this partition. */
   private AnalyticsTable masterTable;
@@ -63,8 +65,8 @@ public class AnalyticsTablePartition {
 
   public AnalyticsTablePartition(
       AnalyticsTable masterTable, Integer year, Date startDate, Date endDate) {
-    this.tableName = getTableName(masterTable.getName(), year);
-    this.tempTableName = getTableName(masterTable.getTempName(), year);
+    this.name = getTableName(masterTable.getName(), year);
+    this.tempName = getTableName(masterTable.getTempName(), year);
     this.masterTable = masterTable;
     this.year = year;
     this.startDate = startDate;
@@ -91,6 +93,6 @@ public class AnalyticsTablePartition {
 
   @Override
   public String toString() {
-    return tableName;
+    return name;
   }
 }
