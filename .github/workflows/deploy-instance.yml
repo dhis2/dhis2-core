@@ -35,14 +35,14 @@ jobs:
 
       - name: 'Get latest IM tag'
         id: latest-im-tag
-        uses: oprypin/find-latest-tag@v1.1.1
-        with:
-          repository: dhis2-sre/im-manager
+        run: |
+          LATEST_IM_TAG=$(git ls-remote --tags --sort='v:refname' https://github.com/dhis2-sre/im-manager | tail -1 | awk '{print $2}')
+          echo "LATEST_IM_TAG=$LATEST_IM_TAG" >> $GITHUB_ENV
 
       - uses: actions/checkout@v4
         with:
           repository: dhis2-sre/im-manager
-          ref: ${{ steps.latest-im-tag.outputs.tag }}
+          ref: ${{ env.LATEST_IM_TAG }}
           sparse-checkout: scripts/instances
 
       - name: Install HTTPie
