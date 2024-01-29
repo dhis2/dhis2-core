@@ -27,7 +27,11 @@
  */
 package org.hisp.dhis.db.sql;
 
+import static org.hisp.dhis.system.util.SqlUtils.quote;
+
 import org.hisp.dhis.db.model.DataType;
+import org.hisp.dhis.db.model.Index;
+import org.hisp.dhis.db.model.IndexFunction;
 import org.hisp.dhis.db.model.IndexType;
 
 /**
@@ -110,5 +114,35 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
         throw new UnsupportedOperationException(
             String.format("Unsuported index type: %s", indexType));
     }
+  }
+
+  /**
+   * Returns the database name of the given index function.
+   *
+   * @param indexFunction the {@link IndexFunction}.
+   * @return the index function name.
+   */
+  public String getIndexFunctionName(IndexFunction indexFunction) {
+    switch (indexFunction) {
+      case LOWER:
+        return indexFunctionLower();
+      default:
+        throw new UnsupportedOperationException(
+            String.format("Unsuported index function: %s", indexFunction));
+    }
+  }
+
+  /**
+   * Returns a quoted column string. If the index has a function, the quoted column is wrapped in
+   * the function call.
+   *
+   * @param index the {@link Index}.
+   * @param column the column name.
+   * @return an index column string.
+   */
+  protected String toIndexColumn(Index index, String column) {
+    String functionName = index.hasFunction() ? getIndexFunctionName(index.getFunction()) : null;
+    String indexColumn = quote(column);
+    return index.hasFunction() ? String.format("%s(%s)", functionName, indexColumn) : indexColumn;
   }
 }
