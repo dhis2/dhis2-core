@@ -51,6 +51,7 @@ import org.hisp.dhis.analytics.table.model.IndexType;
  * @author Luciano Fiandesio
  */
 public class AnalyticsTableAsserter {
+  /** The analytics table to verify. */
   private AnalyticsTable table;
 
   private int columnsSize;
@@ -149,7 +150,7 @@ public class AnalyticsTableAsserter {
     }
 
     public Builder addColumn(String name, ColumnDataType dataType, String alias) {
-      return addColumnUnquoted(quote(name), dataType, alias, null);
+      return addColumnUnquoted(quote(name), dataType, alias, IndexType.BTREE);
     }
 
     public Builder addColumn(
