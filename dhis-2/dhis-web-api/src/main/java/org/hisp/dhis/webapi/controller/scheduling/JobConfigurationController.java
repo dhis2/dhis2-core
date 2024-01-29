@@ -78,12 +78,13 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
   private final JobConfigurationService jobConfigurationService;
   private final JobSchedulerService jobSchedulerService;
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  @PreAuthorize("hasRole('ALL') or hasRole('F_SCHEDULING_ANALYSE')")
   @GetMapping("/errors")
   public List<JsonObject> getJobRunErrors(JobRunErrorsParams params) {
     return jobConfigurationService.findJobRunErrors(params);
   }
 
+  @PreAuthorize("hasRole('ALL') or hasRole('F_SCHEDULING_ANALYSE')")
   @GetMapping("{uid}/errors")
   public JsonObject getJobRunErrors(
       @PathVariable("uid") @OpenApi.Param({UID.class, JobConfiguration.class}) UID uid,
@@ -146,6 +147,7 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
     return jobSchedulerService.getProgress(uid.getValue());
   }
 
+  @PreAuthorize("hasRole('ALL') or hasRole('F_SCHEDULING_ANALYSE')")
   @GetMapping("{uid}/progress/errors")
   public List<JobProgress.Error> getErrors(@PathVariable("uid") String uid) {
     return jobSchedulerService.getErrors(uid);
