@@ -42,10 +42,10 @@ import org.hisp.dhis.db.model.constraint.Nullable;
  * @author Lars Helge Overland
  */
 @Getter
-@EqualsAndHashCode
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class AnalyticsTableColumn {
   /** Column name. */
-  private final String name;
+  @EqualsAndHashCode.Include private final String name;
 
   /** Column data type. */
   private final DataType dataType;

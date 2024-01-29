@@ -29,10 +29,11 @@ package org.hisp.dhis.analytics.table.model;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
+import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -44,9 +45,10 @@ import org.springframework.util.Assert;
  * @author Lars Helge Overland
  */
 @Getter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class AnalyticsTable {
   /** Table name. */
-  private final String name;
+  @EqualsAndHashCode.Include private final String name;
 
   /** Temporary table name. */
   private final String tempName;
@@ -55,7 +57,7 @@ public class AnalyticsTable {
   private final AnalyticsTableType tableType;
 
   /** Columns representing dimensions. */
-  private final List<AnalyticsTableColumn> columns;
+  private final List<AnalyticsTableColumn> analyticsTableColumns;
 
   /** Whether table is logged or unlogged. PostgreSQL-only feature. */
   private final Logged logged;
@@ -78,7 +80,7 @@ public class AnalyticsTable {
     this.name = tableType.getTableName();
     this.tempName = tableType.getTempTableName();
     this.tableType = tableType;
-    this.columns = columns;
+    this.analyticsTableColumns = columns;
     this.logged = logged;
   }
 
@@ -90,7 +92,7 @@ public class AnalyticsTable {
     this.name = getTableName(tableType.getTableName(), program);
     this.tempName = getTableName(tableType.getTempTableName(), program);
     this.tableType = tableType;
-    this.columns = columns;
+    this.analyticsTableColumns = columns;
     this.logged = logged;
     this.program = program;
   }
@@ -103,7 +105,7 @@ public class AnalyticsTable {
     this.name = getTableName(tableType.getTableName(), trackedEntityType);
     this.tempName = getTableName(tableType.getTempTableName(), trackedEntityType);
     this.tableType = tableType;
-    this.columns = columns;
+    this.analyticsTableColumns = columns;
     this.logged = logged;
     this.trackedEntityType = trackedEntityType;
   }
@@ -111,6 +113,18 @@ public class AnalyticsTable {
   // -------------------------------------------------------------------------
   // Logic
   // -------------------------------------------------------------------------
+
+  /**
+   * Converts the given list of analytics table columns to a list of columns.
+   *
+   * @param columns the list of {@link AnalyticsTableColumn}.
+   * @return a list of {@link Column}.
+   */
+  protected static List<Column> toColumns(List<AnalyticsTableColumn> columns) {
+    return columns.stream()
+        .map(c -> new Column(c.getName(), c.getDataType(), c.getNullable(), c.getCollation()))
+        .toList();
+  }
 
   /**
    * Returns a table name.
@@ -140,7 +154,9 @@ public class AnalyticsTable {
    * @return a list of {@link AnalyticsTableColumn}.
    */
   public List<AnalyticsTableColumn> getDimensionColumns() {
-    return columns.stream().filter(c -> AnalyticsValueType.DIMENSION == c.getValueType()).toList();
+    return analyticsTableColumns.stream()
+        .filter(c -> AnalyticsValueType.DIMENSION == c.getValueType())
+        .toList();
   }
 
   /**
@@ -149,7 +165,9 @@ public class AnalyticsTable {
    * @return a list of {@link AnalyticsTableColumn}.
    */
   public List<AnalyticsTableColumn> getFactColumns() {
-    return columns.stream().filter(c -> AnalyticsValueType.FACT == c.getValueType()).toList();
+    return analyticsTableColumns.stream()
+        .filter(c -> AnalyticsValueType.FACT == c.getValueType())
+        .toList();
   }
 
   /**
@@ -158,7 +176,7 @@ public class AnalyticsTable {
    * @return the count of all columns.
    */
   public int getColumnCount() {
-    return getColumns().size();
+    return getAnalyticsTableColumns().size();
   }
 
   /**
@@ -189,14 +207,20 @@ public class AnalyticsTable {
     return this;
   }
 
-  public String getBaseName() {
-    return tableType.getTableName();
-  }
-
+  /**
+   * Indicates whether this analytics table has any partitions.
+   *
+   * @return true if this analytics table has any partitions.
+   */
   public boolean hasPartitionTables() {
     return !tablePartitions.isEmpty();
   }
 
+  /**
+   * Returns the latest partition, or null if no latest partition exists.
+   *
+   * @return a {@link AnalyticsTablePartition} or null.
+   */
   public AnalyticsTablePartition getLatestPartition() {
     return tablePartitions.stream()
         .filter(AnalyticsTablePartition::isLatestPartition)
@@ -204,36 +228,8 @@ public class AnalyticsTable {
         .orElse(null);
   }
 
-  // -------------------------------------------------------------------------
-  // hashCode, equals, toString
-  // -------------------------------------------------------------------------
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(name, tableType);
-  }
-
-  @Override
-  public boolean equals(Object object) {
-    if (this == object) {
-      return true;
-    }
-
-    if (object == null) {
-      return false;
-    }
-
-    if (getClass() != object.getClass()) {
-      return false;
-    }
-
-    AnalyticsTable other = (AnalyticsTable) object;
-
-    return Objects.equals(name, other.name) && Objects.equals(tableType, other.tableType);
-  }
-
   @Override
   public String toString() {
-    return "[Table name: " + name + ", partitions: " + tablePartitions + "]";
+    return "[Table name: " + getName() + ", partitions: " + tablePartitions + "]";
   }
 }

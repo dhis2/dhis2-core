@@ -79,9 +79,9 @@ public class AnalyticsIndexHelper {
               col.hasIndexColumns() ? col.getIndexColumns() : List.of(col.getName());
 
           indexes.add(
-              new AnalyticsIndex(partition.getTempTableName(), indexColumns, col.getIndexType()));
+              new AnalyticsIndex(partition.getTempName(), col.getIndexType(), indexColumns));
 
-          maybeAddTextLowerIndex(indexes, partition.getTempTableName(), col, indexColumns);
+          maybeAddTextLowerIndex(indexes, partition.getTempName(), col, indexColumns);
         }
       }
     }
@@ -99,7 +99,7 @@ public class AnalyticsIndexHelper {
    */
   public static String createIndexStatement(AnalyticsIndex index, AnalyticsTableType tableType) {
     String indexName = getIndexName(index, tableType);
-    String indexTypeName = SQL_BUILDER.getIndexTypeName(index.getType());
+    String indexTypeName = SQL_BUILDER.getIndexTypeName(index.getIndexType());
     String indexColumns = maybeApplyFunctionToIndex(index, join(index.getColumns(), ","));
 
     return "create index "
@@ -192,7 +192,7 @@ public class AnalyticsIndexHelper {
     boolean isSingleColumn = indexColumns.size() == 1;
 
     if (column.getDataType() == TEXT && isValidUid(columnName) && isSingleColumn) {
-      indexes.add(new AnalyticsIndex(tableName, indexColumns, column.getIndexType(), LOWER));
+      indexes.add(new AnalyticsIndex(tableName, column.getIndexType(), indexColumns, LOWER));
     }
   }
 

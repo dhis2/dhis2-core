@@ -126,10 +126,10 @@ class AnalyticsTableTest {
     AnalyticsTablePartition partitionB = tableA.getTablePartitions().get(1);
     assertNotNull(partitionA);
     assertNotNull(partitionB);
-    assertEquals("analytics_event_uida_2014", partitionA.getTableName());
-    assertEquals("analytics_event_uida_2015", partitionB.getTableName());
-    assertEquals("analytics_event_temp_uida_2014", partitionA.getTempTableName());
-    assertEquals("analytics_event_temp_uida_2015", partitionB.getTempTableName());
+    assertEquals("analytics_event_uida_2014", partitionA.getName());
+    assertEquals("analytics_event_uida_2015", partitionB.getName());
+    assertEquals("analytics_event_temp_uida_2014", partitionA.getTempName());
+    assertEquals("analytics_event_temp_uida_2015", partitionB.getTempName());
   }
 
   @Test
