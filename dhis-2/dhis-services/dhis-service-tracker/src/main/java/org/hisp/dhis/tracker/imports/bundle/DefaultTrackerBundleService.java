@@ -27,11 +27,12 @@
  */
 package org.hisp.dhis.tracker.imports.bundle;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.program.UserInfoSnapshot;
@@ -40,6 +41,7 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.ParamsConverter;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.bundle.persister.CommitService;
+import org.hisp.dhis.tracker.imports.bundle.persister.PersistenceException;
 import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
@@ -72,6 +74,8 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
   private final TrackerObjectDeletionService deletionService;
 
   private final TrackedEntityService trackedEntityService;
+
+  private final ObjectMapper mapper;
 
   private List<SideEffectHandlerService> sideEffectHandlers = new ArrayList<>();
 
@@ -130,11 +134,16 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
   }
 
   private void updateTrackedEntitiesLastUpdated(TrackerBundle bundle) {
-    Optional.ofNullable(bundle.getUpdatedTrackedEntities())
-        .filter(ut -> !ut.isEmpty())
-        .ifPresent(
-            trackedEntities ->
-                trackedEntityService.updateTrackedEntityLastUpdated(trackedEntities, new Date()));
+    if (!bundle.getUpdatedTrackedEntities().isEmpty()) {
+      try {
+        trackedEntityService.updateTrackedEntityLastUpdated(
+            bundle.getUpdatedTrackedEntities(),
+            new Date(),
+            mapper.writeValueAsString(bundle.getUserInfo()));
+      } catch (JsonProcessingException e) {
+        throw new PersistenceException(e);
+      }
+    }
   }
 
   @Override
