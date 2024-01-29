@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.bundle.persister;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -97,7 +98,7 @@ public abstract class AbstractTrackerPersister<
     //
     List<T> dtos = getByType(getType(), bundle);
 
-    Set<String> updatedTrackedEntities = bundle.getUpdatedTrackedEntities();
+    Set<String> updatedTrackedEntities = new HashSet<>(bundle.getUpdatedTrackedEntities());
 
     for (T trackerDto : dtos) {
       TrackerObjectReport objectReport =
