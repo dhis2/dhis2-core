@@ -61,14 +61,14 @@ public class AnalyticsTableColumn {
   /** The expression to use in select clauses. */
   private final String selectExpression;
 
-  /** Date of creation of the underlying data dimension. */
-  private Date created;
-
-  /** Explicit index type, defaults to database default type {@link IndexType#BTREE}. */
-  private IndexType indexType = IndexType.BTREE;
+  /** Column index type, defaults to database default type {@link IndexType#BTREE}. */
+  private final IndexType indexType;
 
   /** Explicit index column names, defaults to column name. */
   private List<String> indexColumns = new ArrayList<>();
+
+  /** Date of creation of the underlying data dimension. */
+  private Date created;
 
   // -------------------------------------------------------------------------
   // Constructor
@@ -88,6 +88,7 @@ public class AnalyticsTableColumn {
     this.collation = Collation.DEFAULT;
     this.valueType = AnalyticsValueType.DIMENSION;
     this.selectExpression = selectExpression;
+    this.indexType = IndexType.BTREE;
   }
 
   /**
@@ -106,6 +107,7 @@ public class AnalyticsTableColumn {
     this.collation = collation;
     this.valueType = AnalyticsValueType.DIMENSION;
     this.selectExpression = selectExpression;
+    this.indexType = IndexType.BTREE;
   }
 
   /**
@@ -122,8 +124,9 @@ public class AnalyticsTableColumn {
     this.dataType = dataType;
     this.nullable = notNull;
     this.collation = Collation.DEFAULT;
-    this.selectExpression = selectExpression;
     this.valueType = AnalyticsValueType.DIMENSION;
+    this.selectExpression = selectExpression;
+    this.indexType = IndexType.BTREE;
   }
 
   /**
@@ -164,6 +167,7 @@ public class AnalyticsTableColumn {
     this.collation = Collation.DEFAULT;
     this.valueType = valueType;
     this.selectExpression = selectExpression;
+    this.indexType = IndexType.BTREE;
   }
 
   // -------------------------------------------------------------------------
