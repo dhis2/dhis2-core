@@ -42,7 +42,8 @@ public enum IndexType {
   GIST("gist"),
   HASH("hash"),
   BLOOM("bloom"),
-  GIN("gin");
+  GIN("gin"),
+  NONE("");
 
   final String keyword;
 }
