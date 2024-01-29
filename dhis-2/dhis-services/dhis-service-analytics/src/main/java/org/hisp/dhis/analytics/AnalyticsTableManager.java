@@ -149,11 +149,18 @@ public interface AnalyticsTableManager {
   void dropTableCascade(String tableName);
 
   /**
-   * Performs an analyze operation on the given table name.
+   * Performs an analyze operation on the given table.
    *
    * @param tableName the table name.
    */
   void analyzeTable(String tableName);
+
+  /**
+   * Performs a vacuum operation on the given table.
+   *
+   * @param tableName the table name.
+   */
+  void vacuumTable(String tableName);
 
   /**
    * Applies aggregation level logic to the analytics table by setting the organisation unit level
