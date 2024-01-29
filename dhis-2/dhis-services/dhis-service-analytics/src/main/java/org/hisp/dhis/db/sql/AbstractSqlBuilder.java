@@ -142,9 +142,7 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
    */
   protected String toIndexColumn(Index index, String column) {
     String functionName = index.hasFunction() ? getIndexFunctionName(index.getFunction()) : null;
-
     String indexColumn = quote(column);
-
     return index.hasFunction() ? String.format("%s(%s)", functionName, indexColumn) : indexColumn;
   }
 }
