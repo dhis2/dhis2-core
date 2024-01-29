@@ -42,6 +42,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class IconOperationParams {
 
+  private List<String> keys = new ArrayList<>();
   private IconTypeFilter iconTypeFilter = IconTypeFilter.ALL;
   private List<String> keywords = new ArrayList<>();
   private Date createdStartDate;
@@ -67,5 +68,9 @@ public class IconOperationParams {
 
   public boolean hasKeywords() {
     return !keywords.isEmpty();
+  }
+
+  public boolean hasKeys() {
+    return !keys.isEmpty();
   }
 }

@@ -46,6 +46,7 @@ public class IconRequestParams {
   static final String DEFAULT_FIELDS_PARAM =
       "key,keywords,description,fileResourceUid,createdByUserUid,href";
 
+  private List<String> keys = new ArrayList<>();
   private List<String> keywords = new ArrayList<>();
   private IconTypeFilter type = IconTypeFilter.ALL;
   private Date createdStartDate;

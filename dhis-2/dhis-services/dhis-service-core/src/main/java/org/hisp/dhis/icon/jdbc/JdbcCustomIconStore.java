@@ -176,6 +176,12 @@ public class JdbcCustomIconStore implements CustomIconStore {
           iconOperationParams.getKeywords().stream().collect(Collectors.joining(",", "", "")));
     }
 
+    if (iconOperationParams.hasKeys()) {
+      sql += hlp.whereAnd() + " c.key IN (:keys )";
+
+      parameterSource.addValue("keys", iconOperationParams.getKeys());
+    }
+
     return sql;
   }
 }
