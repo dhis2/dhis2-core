@@ -31,6 +31,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexName;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.QUOTE;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.util.List;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.db.model.IndexType;
@@ -42,7 +43,8 @@ class AnalyticsIndexTest {
     AnalyticsIndex indexA =
         new AnalyticsIndex("analytics_2017_temp", IndexType.BTREE, List.of(quote("quarterly")));
     AnalyticsIndex indexB =
-        new AnalyticsIndex("analytics_2018_temp", IndexType.BTREE, List.of(quote("ax"), quote("co")));
+        new AnalyticsIndex(
+            "analytics_2018_temp", IndexType.BTREE, List.of(quote("ax"), quote("co")));
     AnalyticsIndex indexC =
         new AnalyticsIndex("analytics_2019_temp", IndexType.BTREE, List.of(quote("YtbsuPPo010")));
 

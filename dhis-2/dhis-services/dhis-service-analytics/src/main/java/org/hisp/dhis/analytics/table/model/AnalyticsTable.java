@@ -29,7 +29,7 @@ package org.hisp.dhis.analytics.table.model;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
@@ -44,9 +44,10 @@ import org.springframework.util.Assert;
  * @author Lars Helge Overland
  */
 @Getter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class AnalyticsTable {
   /** Table name. */
-  private final String name;
+  @EqualsAndHashCode.Include private final String name;
 
   /** Temporary table name. */
   private final String tempName;
@@ -204,36 +205,8 @@ public class AnalyticsTable {
         .orElse(null);
   }
 
-  // -------------------------------------------------------------------------
-  // hashCode, equals, toString
-  // -------------------------------------------------------------------------
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(name, tableType);
-  }
-
-  @Override
-  public boolean equals(Object object) {
-    if (this == object) {
-      return true;
-    }
-
-    if (object == null) {
-      return false;
-    }
-
-    if (getClass() != object.getClass()) {
-      return false;
-    }
-
-    AnalyticsTable other = (AnalyticsTable) object;
-
-    return Objects.equals(name, other.name) && Objects.equals(tableType, other.tableType);
-  }
-
   @Override
   public String toString() {
-    return "[Table name: " + name + ", partitions: " + tablePartitions + "]";
+    return "[Table name: " + getName() + ", partitions: " + tablePartitions + "]";
   }
 }

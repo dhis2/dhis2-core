@@ -39,6 +39,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexName;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexes;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.db.model.IndexType.BTREE;
+
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.analytics.table.model.AnalyticsIndex;
