@@ -468,50 +468,61 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     for (DataElementGroupSet groupSet : dataElementGroupSets) {
       columns.add(
           new AnalyticsTableColumn(
-                  quote(groupSet.getUid()), CHARACTER_11, "degs." + quote(groupSet.getUid()))
-              .withCreated(groupSet.getCreated()));
+              quote(groupSet.getUid()),
+              CHARACTER_11,
+              "degs." + quote(groupSet.getUid()),
+              groupSet.getCreated()));
     }
 
     for (OrganisationUnitGroupSet groupSet : orgUnitGroupSets) {
       columns.add(
           new AnalyticsTableColumn(
-                  quote(groupSet.getUid()), CHARACTER_11, "ougs." + quote(groupSet.getUid()))
-              .withCreated(groupSet.getCreated()));
+              quote(groupSet.getUid()),
+              CHARACTER_11,
+              "ougs." + quote(groupSet.getUid()),
+              groupSet.getCreated()));
     }
 
     for (CategoryOptionGroupSet groupSet : disaggregationCategoryOptionGroupSets) {
       columns.add(
           new AnalyticsTableColumn(
-                  quote(groupSet.getUid()), CHARACTER_11, "dcs." + quote(groupSet.getUid()))
-              .withCreated(groupSet.getCreated()));
+              quote(groupSet.getUid()),
+              CHARACTER_11,
+              "dcs." + quote(groupSet.getUid()),
+              groupSet.getCreated()));
     }
 
     for (CategoryOptionGroupSet groupSet : attributeCategoryOptionGroupSets) {
       columns.add(
           new AnalyticsTableColumn(
-                  quote(groupSet.getUid()), CHARACTER_11, "acs." + quote(groupSet.getUid()))
-              .withCreated(groupSet.getCreated()));
+              quote(groupSet.getUid()),
+              CHARACTER_11,
+              "acs." + quote(groupSet.getUid()),
+              groupSet.getCreated()));
     }
 
     for (Category category : disaggregationCategories) {
       columns.add(
           new AnalyticsTableColumn(
-                  quote(category.getUid()), CHARACTER_11, "dcs." + quote(category.getUid()))
-              .withCreated(category.getCreated()));
+              quote(category.getUid()),
+              CHARACTER_11,
+              "dcs." + quote(category.getUid()),
+              category.getCreated()));
     }
 
     for (Category category : attributeCategories) {
       columns.add(
           new AnalyticsTableColumn(
-                  quote(category.getUid()), CHARACTER_11, "acs." + quote(category.getUid()))
-              .withCreated(category.getCreated()));
+              quote(category.getUid()),
+              CHARACTER_11,
+              "acs." + quote(category.getUid()),
+              category.getCreated()));
     }
 
     for (OrganisationUnitLevel level : levels) {
       String column = quote(PREFIX_ORGUNITLEVEL + level.getLevel());
       columns.add(
-          new AnalyticsTableColumn(column, CHARACTER_11, "ous." + column)
-              .withCreated(level.getCreated()));
+          new AnalyticsTableColumn(column, CHARACTER_11, "ous." + column, level.getCreated()));
     }
 
     columns.addAll(getPeriodTypeColumns("ps"));

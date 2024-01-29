@@ -511,8 +511,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         if (category.isDataDimension()) {
           columns.add(
               new AnalyticsTableColumn(
-                      quote(category.getUid()), CHARACTER_11, "acs." + quote(category.getUid()))
-                  .withCreated(category.getCreated()));
+                  quote(category.getUid()),
+                  CHARACTER_11,
+                  "acs." + quote(category.getUid()),
+                  category.getCreated()));
         }
       }
     }
@@ -827,7 +829,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   }
 
   private AnalyticsTableColumn toCharColumn(String name, String prefix, Date created) {
-    return new AnalyticsTableColumn(name, CHARACTER_11, prefix + "." + name).withCreated(created);
+    return new AnalyticsTableColumn(name, CHARACTER_11, prefix + "." + name, created);
   }
 
   /**

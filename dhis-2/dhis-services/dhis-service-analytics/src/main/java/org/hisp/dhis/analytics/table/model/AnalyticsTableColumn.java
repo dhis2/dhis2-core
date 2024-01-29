@@ -156,6 +156,27 @@ public class AnalyticsTableColumn {
    *
    * @param name analytics table column name.
    * @param dataType analytics table column data type.
+   * @param selectExpression source table select expression.
+   * @param created the created date.
+   */
+  public AnalyticsTableColumn(
+      String name, ColumnDataType dataType, String selectExpression, Date created) {
+    this.name = name;
+    this.dataType = dataType;
+    this.nullable = Nullable.NULL;
+    this.collation = Collation.DEFAULT;
+    this.selectExpression = selectExpression;
+    this.valueType = AnalyticsValueType.DIMENSION;
+    this.indexType = IndexType.BTREE;
+    this.indexColumns = List.of();
+    this.created = created;
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param name analytics table column name.
+   * @param dataType analytics table column data type.
    * @param nullable analytics table column not null constraint.
    * @param selectExpression source table select expression.
    * @param indexColumns index column names.
@@ -221,19 +242,5 @@ public class AnalyticsTableColumn {
   /** Indicates whether an index should not be created for this column. */
   public boolean isSkipIndex() {
     return IndexType.NONE == indexType;
-  }
-
-  // -------------------------------------------------------------------------
-  // Builder methods
-  // -------------------------------------------------------------------------
-
-  /**
-   * Sets the created date.
-   *
-   * @param created the created date of the underlying dimension.
-   */
-  public AnalyticsTableColumn withCreated(Date created) {
-    this.created = created;
-    return this;
   }
 }

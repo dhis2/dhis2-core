@@ -143,8 +143,7 @@ public class AnalyticsTableAsserter {
 
     public Builder addColumn(String name, ColumnDataType dataType, String alias, Date created) {
       AnalyticsTableColumn col =
-          new AnalyticsTableColumn(quote(name), dataType, alias + quote(name));
-      col.withCreated(created);
+          new AnalyticsTableColumn(quote(name), dataType, alias + quote(name), created);
       this._columns.add(col);
       return this;
     }
