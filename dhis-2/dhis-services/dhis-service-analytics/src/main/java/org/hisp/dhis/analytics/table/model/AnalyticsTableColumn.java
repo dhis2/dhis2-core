@@ -50,7 +50,7 @@ public class AnalyticsTableColumn {
   private final ColumnDataType dataType;
 
   /** Column not null constraint, default is to allow null values. */
-  private Nullable nullable = Nullable.NULL;
+  private final Nullable nullable;
 
   /** Column collation. */
   private Collation collation;
@@ -87,6 +87,7 @@ public class AnalyticsTableColumn {
   public AnalyticsTableColumn(String name, ColumnDataType dataType, String selectExpression) {
     this.name = name;
     this.dataType = dataType;
+    this.nullable = Nullable.NULL;
     this.valueType = AnalyticsValueType.DIMENSION;
     this.selectExpression = selectExpression;
   }
@@ -103,8 +104,8 @@ public class AnalyticsTableColumn {
       String name, ColumnDataType dataType, Collation collation, String selectExpression) {
     this.name = name;
     this.dataType = dataType;
-    this.valueType = AnalyticsValueType.DIMENSION;
     this.nullable = Nullable.NULL;
+    this.valueType = AnalyticsValueType.DIMENSION;
     this.selectExpression = selectExpression;
     this.collation = collation;
   }
@@ -121,9 +122,9 @@ public class AnalyticsTableColumn {
       String name, ColumnDataType dataType, Nullable notNull, String selectExpression) {
     this.name = name;
     this.dataType = dataType;
+    this.nullable = notNull;
     this.selectExpression = selectExpression;
     this.valueType = AnalyticsValueType.DIMENSION;
-    this.nullable = notNull;
   }
 
   /**
