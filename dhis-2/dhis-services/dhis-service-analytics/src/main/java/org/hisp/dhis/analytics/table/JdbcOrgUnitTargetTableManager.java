@@ -27,11 +27,12 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.CHARACTER_11;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.DOUBLE;
 import static org.hisp.dhis.analytics.table.model.ColumnNotNullConstraint.NOT_NULL;
+import static org.hisp.dhis.analytics.table.model.ColumnNotNullConstraint.NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -171,7 +172,7 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
     }
 
     columns.addAll(FIXED_COLS);
-    columns.add(new AnalyticsTableColumn(quote("value"), DOUBLE, "1 as value"));
+    columns.add(new AnalyticsTableColumn(quote("value"), DOUBLE, NULL, FACT, "1 as value"));
 
     return filterDimensionColumns(columns);
   }

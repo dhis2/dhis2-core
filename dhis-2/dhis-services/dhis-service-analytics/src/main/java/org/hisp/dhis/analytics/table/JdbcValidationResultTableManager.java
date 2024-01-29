@@ -27,15 +27,16 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.CHARACTER_11;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.DATE;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.INTEGER;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.TIMESTAMP;
 import static org.hisp.dhis.analytics.table.model.ColumnNotNullConstraint.NOT_NULL;
+import static org.hisp.dhis.analytics.table.model.ColumnNotNullConstraint.NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -249,7 +250,7 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
     }
 
     columns.addAll(FIXED_COLS);
-    columns.add(new AnalyticsTableColumn(quote("value"), DATE, "vrs.created as value"));
+    columns.add(new AnalyticsTableColumn(quote("value"), DATE, NULL, FACT, "vrs.created as value"));
 
     return filterDimensionColumns(columns);
   }

@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.analytics.table.PartitionUtils.getLatestTablePartition;
+import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.CHARACTER_11;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.DOUBLE;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.INTEGER;
@@ -35,17 +36,15 @@ import static org.hisp.dhis.analytics.table.model.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.TIMESTAMP;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.VARCHAR_255;
 import static org.hisp.dhis.analytics.table.model.ColumnNotNullConstraint.NOT_NULL;
+import static org.hisp.dhis.analytics.table.model.ColumnNotNullConstraint.NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
-
-import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -82,6 +81,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.google.common.collect.Sets;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * This class manages the analytics tables. The analytics table is a denormalized table designed for
@@ -530,11 +531,11 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
    */
   private List<AnalyticsTableColumn> getValueColumns() {
     return List.of(
-        new AnalyticsTableColumn(quote("approvallevel"), INTEGER, "approvallevel"),
-        new AnalyticsTableColumn(quote("daysxvalue"), DOUBLE, "daysxvalue"),
-        new AnalyticsTableColumn(quote("daysno"), INTEGER, NOT_NULL, "daysno"),
-        new AnalyticsTableColumn(quote("value"), DOUBLE, "value"),
-        new AnalyticsTableColumn(quote("textvalue"), TEXT, "textvalue"));
+        new AnalyticsTableColumn(quote("approvallevel"), INTEGER, NULL, FACT, "approvallevel"),
+        new AnalyticsTableColumn(quote("daysxvalue"), DOUBLE, NULL, FACT, "daysxvalue"),
+        new AnalyticsTableColumn(quote("daysno"), INTEGER, NOT_NULL, FACT, "daysno"),
+        new AnalyticsTableColumn(quote("value"), DOUBLE, NULL, "value"),
+        new AnalyticsTableColumn(quote("textvalue"), TEXT, NULL, FACT, "textvalue"));
   }
 
   /**
