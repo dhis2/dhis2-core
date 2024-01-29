@@ -58,7 +58,6 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
-import org.hisp.dhis.analytics.table.model.ColumnDataType;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.category.Category;
@@ -107,10 +106,10 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
           new AnalyticsTableColumn(quote("dx"), CHARACTER_11, NOT_NULL, "de.uid"),
-          new AnalyticsTableColumn(quote("co"), CHARACTER_11, NOT_NULL, "co.uid")
-              .withIndexColumns(List.of(quote("dx"), quote("co"))),
-          new AnalyticsTableColumn(quote("ao"), CHARACTER_11, NOT_NULL, "ao.uid")
-              .withIndexColumns(List.of(quote("dx"), quote("ao"))),
+          new AnalyticsTableColumn(
+              quote("co"), CHARACTER_11, NOT_NULL, "co.uid", List.of(quote("dx"), quote("co"))),
+          new AnalyticsTableColumn(
+              quote("ao"), CHARACTER_11, NOT_NULL, "ao.uid", List.of(quote("dx"), quote("ao"))),
           new AnalyticsTableColumn(quote("pestartdate"), TIMESTAMP, "pe.startdate"),
           new AnalyticsTableColumn(quote("peenddate"), TIMESTAMP, "pe.enddate"),
           new AnalyticsTableColumn(quote("year"), INTEGER, NOT_NULL, "ps.year"),
@@ -444,7 +443,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
 
     String idColAlias =
         "(de.uid || '-' || ps.iso || '-' || ou.uid || '-' || co.uid || '-' || ao.uid) as id ";
-    columns.add(new AnalyticsTableColumn(quote("id"), ColumnDataType.TEXT, idColAlias));
+    columns.add(new AnalyticsTableColumn(quote("id"), TEXT, idColAlias));
 
     List<DataElementGroupSet> dataElementGroupSets =
         idObjectManager.getDataDimensionsNoAcl(DataElementGroupSet.class);
@@ -468,50 +467,61 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     for (DataElementGroupSet groupSet : dataElementGroupSets) {
       columns.add(
           new AnalyticsTableColumn(
-                  quote(groupSet.getUid()), CHARACTER_11, "degs." + quote(groupSet.getUid()))
-              .withCreated(groupSet.getCreated()));
+              quote(groupSet.getUid()),
+              CHARACTER_11,
+              "degs." + quote(groupSet.getUid()),
+              groupSet.getCreated()));
     }
 
     for (OrganisationUnitGroupSet groupSet : orgUnitGroupSets) {
       columns.add(
           new AnalyticsTableColumn(
-                  quote(groupSet.getUid()), CHARACTER_11, "ougs." + quote(groupSet.getUid()))
-              .withCreated(groupSet.getCreated()));
+              quote(groupSet.getUid()),
+              CHARACTER_11,
+              "ougs." + quote(groupSet.getUid()),
+              groupSet.getCreated()));
     }
 
     for (CategoryOptionGroupSet groupSet : disaggregationCategoryOptionGroupSets) {
       columns.add(
           new AnalyticsTableColumn(
-                  quote(groupSet.getUid()), CHARACTER_11, "dcs." + quote(groupSet.getUid()))
-              .withCreated(groupSet.getCreated()));
+              quote(groupSet.getUid()),
+              CHARACTER_11,
+              "dcs." + quote(groupSet.getUid()),
+              groupSet.getCreated()));
     }
 
     for (CategoryOptionGroupSet groupSet : attributeCategoryOptionGroupSets) {
       columns.add(
           new AnalyticsTableColumn(
-                  quote(groupSet.getUid()), CHARACTER_11, "acs." + quote(groupSet.getUid()))
-              .withCreated(groupSet.getCreated()));
+              quote(groupSet.getUid()),
+              CHARACTER_11,
+              "acs." + quote(groupSet.getUid()),
+              groupSet.getCreated()));
     }
 
     for (Category category : disaggregationCategories) {
       columns.add(
           new AnalyticsTableColumn(
-                  quote(category.getUid()), CHARACTER_11, "dcs." + quote(category.getUid()))
-              .withCreated(category.getCreated()));
+              quote(category.getUid()),
+              CHARACTER_11,
+              "dcs." + quote(category.getUid()),
+              category.getCreated()));
     }
 
     for (Category category : attributeCategories) {
       columns.add(
           new AnalyticsTableColumn(
-                  quote(category.getUid()), CHARACTER_11, "acs." + quote(category.getUid()))
-              .withCreated(category.getCreated()));
+              quote(category.getUid()),
+              CHARACTER_11,
+              "acs." + quote(category.getUid()),
+              category.getCreated()));
     }
 
     for (OrganisationUnitLevel level : levels) {
       String column = quote(PREFIX_ORGUNITLEVEL + level.getLevel());
       columns.add(
-          new AnalyticsTableColumn(column, CHARACTER_11, "ous." + column)
-              .withCreated(level.getCreated()));
+          new AnalyticsTableColumn(column, CHARACTER_11, "ous." + column, level.getCreated()));
     }
 
     columns.addAll(getPeriodTypeColumns("ps"));

@@ -40,6 +40,7 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.model.ColumnDataType;
+import org.hisp.dhis.analytics.table.model.IndexType;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -97,6 +98,10 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
 
   protected final boolean skipIndex(ValueType valueType, boolean hasOptionSet) {
     return NO_INDEX_VAL_TYPES.contains(valueType) && !hasOptionSet;
+  }
+
+  protected IndexType getIndexType(ValueType valueType, boolean hasOptionSet) {
+    return skipIndex(valueType, hasOptionSet) ? IndexType.NONE : IndexType.BTREE;
   }
 
   @Override
@@ -160,7 +165,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
               ? getNumericClause()
               : attribute.isDateType() ? getDateClause() : "";
       String select = getSelectClause(attribute.getValueType(), "value");
-      boolean skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
+      IndexType indexType = getIndexType(attribute.getValueType(), attribute.hasOptionSet());
 
       String sql =
           "(select "
@@ -175,9 +180,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
               + " as "
               + quote(attribute.getUid());
 
-      columns.add(
-          new AnalyticsTableColumn(quote(attribute.getUid()), dataType, sql)
-              .withSkipIndex(skipIndex));
+      columns.add(new AnalyticsTableColumn(quote(attribute.getUid()), dataType, sql, indexType));
     }
 
     return columns;

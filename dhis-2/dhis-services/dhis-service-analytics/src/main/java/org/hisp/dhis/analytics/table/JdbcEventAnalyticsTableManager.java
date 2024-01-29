@@ -38,6 +38,7 @@ import static org.hisp.dhis.analytics.table.model.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.TIMESTAMP;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.VARCHAR_255;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.VARCHAR_50;
+import static org.hisp.dhis.analytics.table.model.IndexType.NONE;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
@@ -103,34 +104,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
   static final String[] EXPORTABLE_EVENT_STATUSES = {"'COMPLETED'", "'ACTIVE'", "'SCHEDULE'"};
 
-  public JdbcEventAnalyticsTableManager(
-      IdentifiableObjectManager idObjectManager,
-      OrganisationUnitService organisationUnitService,
-      CategoryService categoryService,
-      SystemSettingManager systemSettingManager,
-      DataApprovalLevelService dataApprovalLevelService,
-      ResourceTableService resourceTableService,
-      AnalyticsTableHookService tableHookService,
-      PartitionManager partitionManager,
-      DatabaseInfoProvider databaseInfoProvider,
-      @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
-      AnalyticsTableExportSettings analyticsExportSettings,
-      PeriodDataProvider periodDataProvider) {
-    super(
-        idObjectManager,
-        organisationUnitService,
-        categoryService,
-        systemSettingManager,
-        dataApprovalLevelService,
-        resourceTableService,
-        tableHookService,
-        partitionManager,
-        databaseInfoProvider,
-        jdbcTemplate,
-        analyticsExportSettings,
-        periodDataProvider);
-  }
-
   protected static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
           new AnalyticsTableColumn(quote("psi"), CHARACTER_11, NOT_NULL, "psi.uid"),
@@ -142,7 +115,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
           new AnalyticsTableColumn(quote("occurreddate"), TIMESTAMP, "psi.occurreddate"),
           new AnalyticsTableColumn(quote("scheduleddate"), TIMESTAMP, "psi.scheduleddate"),
           new AnalyticsTableColumn(quote("completeddate"), TIMESTAMP, "psi.completeddate"),
-
           /*
            * DHIS2-14981: Use the client-side timestamp if available, otherwise
            * the server-side timestamp. Applies to both created and lastupdated.
@@ -190,8 +162,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               getDisplayName("lastupdatedbyuserinfo", "psi", "lastupdatedbydisplayname")),
           new AnalyticsTableColumn(quote("pistatus"), VARCHAR_50, "pi.status"),
           new AnalyticsTableColumn(quote("psistatus"), VARCHAR_50, "psi.status"),
-          new AnalyticsTableColumn(quote("psigeometry"), GEOMETRY, "psi.geometry")
-              .withIndexType(IndexType.GIST),
+          new AnalyticsTableColumn(quote("psigeometry"), GEOMETRY, "psi.geometry", IndexType.GIST),
           // TODO latitude and longitude deprecated in 2.30, remove in 2.33
           new AnalyticsTableColumn(
               quote("longitude"),
@@ -205,10 +176,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
           new AnalyticsTableColumn(quote("ouname"), TEXT, NOT_NULL, "ou.name"),
           new AnalyticsTableColumn(quote("oucode"), TEXT, "ou.code"),
           new AnalyticsTableColumn(quote("oulevel"), INTEGER, "ous.level"),
-          new AnalyticsTableColumn(quote("ougeometry"), GEOMETRY, "ou.geometry")
-              .withIndexType(IndexType.GIST),
-          new AnalyticsTableColumn(quote("pigeometry"), GEOMETRY, "pi.geometry")
-              .withIndexType(IndexType.GIST),
+          new AnalyticsTableColumn(quote("ougeometry"), GEOMETRY, "ou.geometry", IndexType.GIST),
+          new AnalyticsTableColumn(quote("pigeometry"), GEOMETRY, "pi.geometry", IndexType.GIST),
           new AnalyticsTableColumn(
               quote("registrationou"),
               CHARACTER_11,
@@ -217,16 +186,32 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
           new AnalyticsTableColumn(
               quote("enrollmentou"), CHARACTER_11, NOT_NULL, "coalesce(enrollmentou.uid,ou.uid)"));
 
-  /**
-   * Returns a SQL expression that returns the first argument if it is not null, otherwise the
-   * second argument.
-   *
-   * @param first the first argument
-   * @param second the second argument
-   * @return a SQL expression
-   */
-  private static String firstIfNotNullOrElse(String first, String second) {
-    return "CASE WHEN " + first + " IS NOT NULL THEN " + first + " ELSE " + second + " END";
+  public JdbcEventAnalyticsTableManager(
+      IdentifiableObjectManager idObjectManager,
+      OrganisationUnitService organisationUnitService,
+      CategoryService categoryService,
+      SystemSettingManager systemSettingManager,
+      DataApprovalLevelService dataApprovalLevelService,
+      ResourceTableService resourceTableService,
+      AnalyticsTableHookService tableHookService,
+      PartitionManager partitionManager,
+      DatabaseInfoProvider databaseInfoProvider,
+      @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
+      AnalyticsTableExportSettings analyticsExportSettings,
+      PeriodDataProvider periodDataProvider) {
+    super(
+        idObjectManager,
+        organisationUnitService,
+        categoryService,
+        systemSettingManager,
+        dataApprovalLevelService,
+        resourceTableService,
+        tableHookService,
+        partitionManager,
+        databaseInfoProvider,
+        jdbcTemplate,
+        analyticsExportSettings,
+        periodDataProvider);
   }
 
   @Override
@@ -526,8 +511,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         if (category.isDataDimension()) {
           columns.add(
               new AnalyticsTableColumn(
-                      quote(category.getUid()), CHARACTER_11, "acs." + quote(category.getUid()))
-                  .withCreated(category.getCreated()));
+                  quote(category.getUid()),
+                  CHARACTER_11,
+                  "acs." + quote(category.getUid()),
+                  category.getCreated()));
         }
       }
     }
@@ -594,15 +581,13 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         attribute.isNumericType() ? numericClause : attribute.isDateType() ? dateClause : "";
     String select = getSelectClause(attribute.getValueType(), "value");
     String sql = selectForInsert(attribute, select, dataClause);
-    boolean skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
+    IndexType indexType = getIndexType(attribute.getValueType(), attribute.hasOptionSet());
 
     if (attribute.getValueType().isOrganisationUnit()) {
       columns.addAll(getColumnsFromOrgUnitTrackedEntityAttribute(attribute, dataClause));
     }
 
-    columns.add(
-        new AnalyticsTableColumn(quote(attribute.getUid()), dataType, sql)
-            .withSkipIndex(skipIndex));
+    columns.add(new AnalyticsTableColumn(quote(attribute.getUid()), dataType, sql, indexType));
 
     return withLegendSet
         ? getColumnFromTrackedEntityAttributeWithLegendSet(attribute, numericClause)
@@ -650,15 +635,13 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String columnName = "eventdatavalues #>> '{" + dataElement.getUid() + ", value}'";
     String select = getSelectClause(dataElement.getValueType(), columnName);
     String sql = selectForInsert(dataElement, select, dataClause);
-    boolean skipIndex = skipIndex(dataElement.getValueType(), dataElement.hasOptionSet());
+    IndexType indexType = getIndexType(dataElement.getValueType(), dataElement.hasOptionSet());
 
     if (dataElement.getValueType().isOrganisationUnit()) {
       columns.addAll(getColumnFromOrgUnitDataElement(dataElement, dataClause));
     }
 
-    columns.add(
-        new AnalyticsTableColumn(quote(dataElement.getUid()), dataType, sql)
-            .withSkipIndex(skipIndex));
+    columns.add(new AnalyticsTableColumn(quote(dataElement.getUid()), dataType, sql, indexType));
 
     return withLegendSet
         ? getColumnFromDataElementWithLegendSet(dataElement, select, dataClause)
@@ -677,10 +660,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               dataClause);
       columns.add(
           new AnalyticsTableColumn(
-                  quote(attribute.getUid() + OU_GEOMETRY_COL_SUFFIX),
-                  ColumnDataType.GEOMETRY,
-                  geoSql)
-              .withIndexType(IndexType.GIST));
+              quote(attribute.getUid() + OU_GEOMETRY_COL_SUFFIX),
+              GEOMETRY,
+              geoSql,
+              IndexType.GIST));
     }
 
     // Add org unit name column
@@ -688,8 +671,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String ouNameSql = selectForInsert(attribute, fromTypeSql, dataClause);
 
     columns.add(
-        new AnalyticsTableColumn(quote(attribute.getUid() + OU_NAME_COL_SUFFIX), TEXT, ouNameSql)
-            .withSkipIndex(true));
+        new AnalyticsTableColumn(
+            quote(attribute.getUid() + OU_NAME_COL_SUFFIX), TEXT, ouNameSql, NONE));
 
     return columns;
   }
@@ -709,10 +692,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
       columns.add(
           new AnalyticsTableColumn(
-                  quote(dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX),
-                  ColumnDataType.GEOMETRY,
-                  geoSql)
-              .withIndexType(IndexType.GIST));
+              quote(dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX),
+              GEOMETRY,
+              geoSql,
+              IndexType.GIST));
     }
 
     // Add org unit name column
@@ -720,10 +703,22 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String ouNameSql = selectForInsert(dataElement, fromTypeSql, dataClause);
 
     columns.add(
-        new AnalyticsTableColumn(quote(dataElement.getUid() + OU_NAME_COL_SUFFIX), TEXT, ouNameSql)
-            .withSkipIndex(true));
+        new AnalyticsTableColumn(
+            quote(dataElement.getUid() + OU_NAME_COL_SUFFIX), TEXT, ouNameSql, NONE));
 
     return columns;
+  }
+
+  /**
+   * Returns a SQL expression that returns the first argument if it is not null, otherwise the
+   * second argument.
+   *
+   * @param first the first argument
+   * @param second the second argument
+   * @return a SQL expression
+   */
+  private static String firstIfNotNullOrElse(String first, String second) {
+    return "CASE WHEN " + first + " IS NOT NULL THEN " + first + " ELSE " + second + " END";
   }
 
   private String selectForInsert(DataElement dataElement, String fromType, String dataClause) {
@@ -834,7 +829,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   }
 
   private AnalyticsTableColumn toCharColumn(String name, String prefix, Date created) {
-    return new AnalyticsTableColumn(name, CHARACTER_11, prefix + "." + name).withCreated(created);
+    return new AnalyticsTableColumn(name, CHARACTER_11, prefix + "." + name, created);
   }
 
   /**

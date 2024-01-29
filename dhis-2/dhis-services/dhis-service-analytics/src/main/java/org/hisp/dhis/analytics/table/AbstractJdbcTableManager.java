@@ -79,7 +79,6 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
 
@@ -294,27 +293,12 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   /**
-   * Indicates whether the given table exists and has at least one row.
-   *
-   * @param tableName the table name.
-   */
-  protected boolean hasRows(String tableName) {
-    String sql = "select * from " + tableName + " limit 1";
-
-    try {
-      return jdbcTemplate.queryForRowSet(sql).next();
-    } catch (BadSqlGrammarException ex) {
-      return false;
-    }
-  }
-
-  /**
    * Executes a SQL statement "safely" (without throwing any exception). Instead, exceptions are
    * simply logged.
    *
    * @param sql the SQL statement.
    */
-  protected void executeSafely(String sql) {
+  private void executeSafely(String sql) {
     try {
       jdbcTemplate.execute(sql);
     } catch (DataAccessException ex) {
@@ -327,7 +311,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    *
    * @param table the {@link AnalyticsTable}.
    */
-  protected void createTempTable(AnalyticsTable table) {
+  private void createTempTable(AnalyticsTable table) {
     StringBuilder sql = new StringBuilder();
 
     String tableName = table.getTempTableName();
@@ -361,7 +345,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    *
    * @param table the {@link AnalyticsTable}.
    */
-  protected void createTempTablePartitions(AnalyticsTable table) {
+  private void createTempTablePartitions(AnalyticsTable table) {
     for (AnalyticsTablePartition partition : table.getTablePartitions()) {
       createTempTablePartition(table, partition);
     }
@@ -397,11 +381,6 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     log.debug("Create table SQL: '{}'", sql);
 
     jdbcTemplate.execute(sql.toString());
-  }
-
-  /** Returns a table options SQL statement. */
-  private String getTableOptions() {
-    return WITH_AUTOVACUUM_ENABLED_FALSE;
   }
 
   /**
@@ -535,8 +514,8 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             lv -> {
               String column = quote(PREFIX_ORGUNITLEVEL + lv.getLevel());
-              return new AnalyticsTableColumn(column, CHARACTER_11, "ous." + column)
-                  .withCreated(lv.getCreated());
+              return new AnalyticsTableColumn(
+                  column, CHARACTER_11, "ous." + column, lv.getCreated());
             })
         .collect(Collectors.toList());
   }
@@ -566,8 +545,8 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             ougs -> {
               String column = quote(ougs.getUid());
-              return new AnalyticsTableColumn(column, CHARACTER_11, "ougs." + column)
-                  .withCreated(ougs.getCreated());
+              return new AnalyticsTableColumn(
+                  column, CHARACTER_11, "ougs." + column, ougs.getCreated());
             })
         .collect(Collectors.toList());
   }
@@ -604,6 +583,11 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   // -------------------------------------------------------------------------
   // Private supportive methods
   // -------------------------------------------------------------------------
+
+  /** Returns a table options SQL statement. */
+  private String getTableOptions() {
+    return WITH_AUTOVACUUM_ENABLED_FALSE;
+  }
 
   /**
    * Swaps a database table, meaning drops the real table and renames the temporary table to become

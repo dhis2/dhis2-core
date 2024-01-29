@@ -25,15 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.db.model;
+package org.hisp.dhis.analytics.table.model;
 
-/**
- * Enumeration of index types.
- *
- * @author Lars Helge Overland
- */
-public enum IndexType {
-  BTREE,
-  GIST,
-  GIN;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.CHARACTER_11;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.DOUBLE;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.hisp.dhis.db.model.Collation;
+import org.hisp.dhis.db.model.constraint.Nullable;
+import org.junit.jupiter.api.Test;
+
+class AnalyticsTableColumnTest {
+
+  @Test
+  void testIsNotNull() {
+    AnalyticsTableColumn colA =
+        new AnalyticsTableColumn("dx", CHARACTER_11, Nullable.NOT_NULL, "dx");
+    AnalyticsTableColumn colB = new AnalyticsTableColumn("value", DOUBLE, Nullable.NULL, "value");
+
+    assertTrue(colA.isNotNull());
+    assertFalse(colB.isNotNull());
+  }
+
+  @Test
+  void testHasCollation() {
+    AnalyticsTableColumn colA =
+        new AnalyticsTableColumn("dx", CHARACTER_11, Collation.DEFAULT, "dx");
+    AnalyticsTableColumn colB = new AnalyticsTableColumn("ou", CHARACTER_11, Collation.C, "ou");
+    AnalyticsTableColumn colC = new AnalyticsTableColumn("value", DOUBLE, "value");
+
+    assertFalse(colA.hasCollation());
+    assertTrue(colB.hasCollation());
+    assertFalse(colC.hasCollation());
+  }
+
+  @Test
+  void testIsSkipIndex() {
+    AnalyticsTableColumn colA = new AnalyticsTableColumn("value", DOUBLE, "value", IndexType.NONE);
+    AnalyticsTableColumn colB = new AnalyticsTableColumn("ou", CHARACTER_11, "ou", IndexType.BTREE);
+
+    assertTrue(colA.isSkipIndex());
+    assertFalse(colB.isSkipIndex());
+  }
 }

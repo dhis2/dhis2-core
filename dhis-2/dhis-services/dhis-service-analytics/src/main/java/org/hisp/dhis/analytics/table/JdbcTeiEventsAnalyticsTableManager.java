@@ -43,7 +43,6 @@ import static org.hisp.dhis.analytics.table.model.ColumnDataType.JSONB;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.TIMESTAMP;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.VARCHAR_255;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.VARCHAR_50;
-import static org.hisp.dhis.analytics.table.model.IndexType.GIST;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
@@ -52,7 +51,6 @@ import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
-import static org.springframework.util.Assert.notNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -65,6 +63,7 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.model.IndexType;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
@@ -86,6 +85,38 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Component("org.hisp.dhis.analytics.TeiEventsAnalyticsTableManager")
 public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager {
+  private static final List<AnalyticsTableColumn> FIXED_COLS =
+      List.of(
+          new AnalyticsTableColumn(
+              quote("trackedentityinstanceuid"), CHARACTER_11, NOT_NULL, "tei.uid"),
+          new AnalyticsTableColumn(quote("programuid"), CHARACTER_11, NULL, "p.uid"),
+          new AnalyticsTableColumn(quote("programinstanceuid"), CHARACTER_11, NULL, "pi.uid"),
+          new AnalyticsTableColumn(quote("programstageuid"), CHARACTER_11, NULL, "ps.uid"),
+          new AnalyticsTableColumn(quote("programstageinstanceuid"), CHARACTER_11, NULL, "psi.uid"),
+          new AnalyticsTableColumn(quote("occurreddate"), TIMESTAMP, "psi.occurreddate"),
+          new AnalyticsTableColumn(quote("lastupdated"), TIMESTAMP, "psi.lastupdated"),
+          new AnalyticsTableColumn(quote("created"), TIMESTAMP, "psi.created"),
+          new AnalyticsTableColumn(quote("scheduleddate"), TIMESTAMP, "psi.scheduleddate"),
+          new AnalyticsTableColumn(quote("status"), VARCHAR_50, "psi.status"),
+          new AnalyticsTableColumn(quote("psigeometry"), GEOMETRY, "psi.geometry", IndexType.GIST),
+          new AnalyticsTableColumn(
+              quote("psilongitude"),
+              DOUBLE,
+              "case when 'POINT' = GeometryType(psi.geometry) then ST_X(psi.geometry) end"),
+          new AnalyticsTableColumn(
+              quote("psilatitude"),
+              DOUBLE,
+              "case when 'POINT' = GeometryType(psi.geometry) then ST_Y(psi.geometry) end"),
+          new AnalyticsTableColumn(quote("uidlevel1"), CHARACTER_11, NULL, "ous.uidlevel1"),
+          new AnalyticsTableColumn(quote("uidlevel2"), CHARACTER_11, NULL, "ous.uidlevel2"),
+          new AnalyticsTableColumn(quote("uidlevel3"), CHARACTER_11, NULL, "ous.uidlevel3"),
+          new AnalyticsTableColumn(quote("uidlevel4"), CHARACTER_11, NULL, "ous.uidlevel4"),
+          new AnalyticsTableColumn(quote("ou"), CHARACTER_11, NULL, "ou.uid"),
+          new AnalyticsTableColumn(quote("ouname"), VARCHAR_255, NULL, "ou.name"),
+          new AnalyticsTableColumn(quote("oucode"), CHARACTER_32, NULL, "ou.code"),
+          new AnalyticsTableColumn(quote("oulevel"), INTEGER, NULL, "ous.level"),
+          new AnalyticsTableColumn(quote("eventdatavalues"), JSONB, "psi.eventdatavalues"));
+
   private static final String AND = " and (";
 
   private final TrackedEntityTypeService trackedEntityTypeService;
@@ -117,43 +148,8 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
         jdbcTemplate,
         settings,
         periodDataProvider);
-
-    notNull(trackedEntityTypeService, "trackedEntityTypeService cannot be null");
     this.trackedEntityTypeService = trackedEntityTypeService;
   }
-
-  private static final List<AnalyticsTableColumn> FIXED_COLS =
-      List.of(
-          new AnalyticsTableColumn(
-              quote("trackedentityinstanceuid"), CHARACTER_11, NOT_NULL, "tei.uid"),
-          new AnalyticsTableColumn(quote("programuid"), CHARACTER_11, NULL, "p.uid"),
-          new AnalyticsTableColumn(quote("programinstanceuid"), CHARACTER_11, NULL, "pi.uid"),
-          new AnalyticsTableColumn(quote("programstageuid"), CHARACTER_11, NULL, "ps.uid"),
-          new AnalyticsTableColumn(quote("programstageinstanceuid"), CHARACTER_11, NULL, "psi.uid"),
-          new AnalyticsTableColumn(quote("occurreddate"), TIMESTAMP, "psi.occurreddate"),
-          new AnalyticsTableColumn(quote("lastupdated"), TIMESTAMP, "psi.lastupdated"),
-          new AnalyticsTableColumn(quote("created"), TIMESTAMP, "psi.created"),
-          new AnalyticsTableColumn(quote("scheduleddate"), TIMESTAMP, "psi.scheduleddate"),
-          new AnalyticsTableColumn(quote("status"), VARCHAR_50, "psi.status"),
-          new AnalyticsTableColumn(quote("psigeometry"), GEOMETRY, "psi.geometry")
-              .withIndexType(GIST),
-          new AnalyticsTableColumn(
-              quote("psilongitude"),
-              DOUBLE,
-              "case when 'POINT' = GeometryType(psi.geometry) then ST_X(psi.geometry) end"),
-          new AnalyticsTableColumn(
-              quote("psilatitude"),
-              DOUBLE,
-              "case when 'POINT' = GeometryType(psi.geometry) then ST_Y(psi.geometry) end"),
-          new AnalyticsTableColumn(quote("uidlevel1"), CHARACTER_11, NULL, "ous.uidlevel1"),
-          new AnalyticsTableColumn(quote("uidlevel2"), CHARACTER_11, NULL, "ous.uidlevel2"),
-          new AnalyticsTableColumn(quote("uidlevel3"), CHARACTER_11, NULL, "ous.uidlevel3"),
-          new AnalyticsTableColumn(quote("uidlevel4"), CHARACTER_11, NULL, "ous.uidlevel4"),
-          new AnalyticsTableColumn(quote("ou"), CHARACTER_11, NULL, "ou.uid"),
-          new AnalyticsTableColumn(quote("ouname"), VARCHAR_255, NULL, "ou.name"),
-          new AnalyticsTableColumn(quote("oucode"), CHARACTER_32, NULL, "ou.code"),
-          new AnalyticsTableColumn(quote("oulevel"), INTEGER, NULL, "ous.level"),
-          new AnalyticsTableColumn(quote("eventdatavalues"), JSONB, "psi.eventdatavalues"));
 
   /**
    * Returns the {@link AnalyticsTableType} of analytics table which this manager handles.

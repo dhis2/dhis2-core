@@ -87,6 +87,13 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
   // Must be later than the dummy HISTORY_TABLE_ID for SQL query order.
   private static final String TEI_OWN_TABLE_ID = "2002-02-02";
 
+  protected static final List<AnalyticsTableColumn> FIXED_COLS =
+      List.of(
+          new AnalyticsTableColumn(quote("teiuid"), CHARACTER_11, "tei.uid"),
+          new AnalyticsTableColumn(quote("startdate"), DATE, "a.startdate"),
+          new AnalyticsTableColumn(quote("enddate"), DATE, "a.enddate"),
+          new AnalyticsTableColumn(quote("ou"), CHARACTER_11, NOT_NULL, "ou.uid"));
+
   public JdbcOwnershipAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,
@@ -116,13 +123,6 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
         periodDataProvider);
     this.jdbcConfiguration = jdbcConfiguration;
   }
-
-  protected static final List<AnalyticsTableColumn> FIXED_COLS =
-      List.of(
-          new AnalyticsTableColumn(quote("teiuid"), CHARACTER_11, "tei.uid"),
-          new AnalyticsTableColumn(quote("startdate"), DATE, "a.startdate"),
-          new AnalyticsTableColumn(quote("enddate"), DATE, "a.enddate"),
-          new AnalyticsTableColumn(quote("ou"), CHARACTER_11, NOT_NULL, "ou.uid"));
 
   @Override
   public AnalyticsTableType getAnalyticsTableType() {
