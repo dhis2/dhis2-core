@@ -59,4 +59,15 @@ class AnalyticsTableColumnTest {
     assertTrue(colB.hasCollation());
     assertFalse(colC.hasCollation());
   }
+
+  @Test
+  void testIsSkipIndex() {
+    AnalyticsTableColumn colA =
+        new AnalyticsTableColumn("value", ColumnDataType.DOUBLE, "value", IndexType.NONE);
+    AnalyticsTableColumn colB =
+        new AnalyticsTableColumn("ou", ColumnDataType.CHARACTER_11, "ou", IndexType.BTREE);
+
+    assertTrue(colA.isSkipIndex());
+    assertFalse(colB.isSkipIndex());
+  }
 }
