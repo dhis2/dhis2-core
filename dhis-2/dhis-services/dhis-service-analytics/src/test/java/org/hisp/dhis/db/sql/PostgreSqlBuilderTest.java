@@ -80,7 +80,7 @@ class PostgreSqlBuilderTest {
 
   @Test
   void testIndexType() {
-    assertEquals("bin", sqlBuilder.indexTypeBtree());
+    assertEquals("btree", sqlBuilder.indexTypeBtree());
     assertEquals("gist", sqlBuilder.indexTypeGist());
   }
   
