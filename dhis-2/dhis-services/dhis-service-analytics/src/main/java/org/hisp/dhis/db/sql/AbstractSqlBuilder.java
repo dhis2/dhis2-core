@@ -28,7 +28,6 @@
 package org.hisp.dhis.db.sql;
 
 import static org.hisp.dhis.system.util.SqlUtils.quote;
-
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.IndexFunction;
@@ -46,6 +45,7 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
    * @param dataType the {@link DataType}.
    * @return the data type name.
    */
+  @Override
   public String getDataTypeName(DataType dataType) {
     switch (dataType) {
       case SMALLINT:
@@ -102,6 +102,7 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
    * @param indexType the {@link IndexType}.
    * @return the index type name.
    */
+  @Override
   public String getIndexTypeName(IndexType indexType) {
     switch (indexType) {
       case BTREE:
@@ -122,6 +123,7 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
    * @param indexFunction the {@link IndexFunction}.
    * @return the index function name.
    */
+  @Override
   public String getIndexFunctionName(IndexFunction indexFunction) {
     switch (indexFunction) {
       case LOWER:
