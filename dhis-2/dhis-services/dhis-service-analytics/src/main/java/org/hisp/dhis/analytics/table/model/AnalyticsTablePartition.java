@@ -63,8 +63,8 @@ public class AnalyticsTablePartition {
 
   public AnalyticsTablePartition(
       AnalyticsTable masterTable, Integer year, Date startDate, Date endDate) {
-    this.tableName = getTableName(masterTable.getTableName(), year);
-    this.tempTableName = getTableName(masterTable.getTempTableName(), year);
+    this.tableName = getTableName(masterTable.getName(), year);
+    this.tempTableName = getTableName(masterTable.getTempName(), year);
     this.masterTable = masterTable;
     this.year = year;
     this.startDate = startDate;

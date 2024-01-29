@@ -46,10 +46,10 @@ import org.springframework.util.Assert;
 @Getter
 public class AnalyticsTable {
   /** Table name. */
-  private final String tableName;
+  private final String name;
 
   /** Temporary table name. */
-  private final String tempTableName;
+  private final String tempName;
 
   /** Analytics table type. */
   private final AnalyticsTableType tableType;
@@ -75,8 +75,8 @@ public class AnalyticsTable {
 
   public AnalyticsTable(
       AnalyticsTableType tableType, List<AnalyticsTableColumn> columns, Logged logged) {
-    this.tableName = tableType.getTableName();
-    this.tempTableName = tableType.getTempTableName();
+    this.name = tableType.getTableName();
+    this.tempName = tableType.getTempTableName();
     this.tableType = tableType;
     this.columns = columns;
     this.logged = logged;
@@ -87,8 +87,8 @@ public class AnalyticsTable {
       List<AnalyticsTableColumn> columns,
       Logged logged,
       Program program) {
-    this.tableName = getTableName(tableType.getTableName(), program);
-    this.tempTableName = getTableName(tableType.getTempTableName(), program);
+    this.name = getTableName(tableType.getTableName(), program);
+    this.tempName = getTableName(tableType.getTempTableName(), program);
     this.tableType = tableType;
     this.columns = columns;
     this.logged = logged;
@@ -100,8 +100,8 @@ public class AnalyticsTable {
       List<AnalyticsTableColumn> columns,
       Logged logged,
       TrackedEntityType trackedEntityType) {
-    this.tableName = getTableName(tableType.getTableName(), trackedEntityType);
-    this.tempTableName = getTableName(tableType.getTempTableName(), trackedEntityType);
+    this.name = getTableName(tableType.getTableName(), trackedEntityType);
+    this.tempName = getTableName(tableType.getTempTableName(), trackedEntityType);
     this.tableType = tableType;
     this.columns = columns;
     this.logged = logged;
@@ -210,7 +210,7 @@ public class AnalyticsTable {
 
   @Override
   public int hashCode() {
-    return Objects.hash(tableName, tableType);
+    return Objects.hash(name, tableType);
   }
 
   @Override
@@ -229,11 +229,11 @@ public class AnalyticsTable {
 
     AnalyticsTable other = (AnalyticsTable) object;
 
-    return Objects.equals(tableName, other.tableName) && Objects.equals(tableType, other.tableType);
+    return Objects.equals(name, other.name) && Objects.equals(tableType, other.tableType);
   }
 
   @Override
   public String toString() {
-    return "[Table name: " + tableName + ", partitions: " + tablePartitions + "]";
+    return "[Table name: " + name + ", partitions: " + tablePartitions + "]";
   }
 }

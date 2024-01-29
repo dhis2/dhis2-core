@@ -192,7 +192,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   @Override
   public void swapTable(AnalyticsTableUpdateParams params, AnalyticsTable table) {
-    boolean tableExists = partitionManager.tableExists(table.getTableName());
+    boolean tableExists = partitionManager.tableExists(table.getName());
     boolean skipMasterTable =
         params.isPartialUpdate() && tableExists && table.getTableType().hasLatestPartition();
 
@@ -205,20 +205,17 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .forEach(p -> swapTable(p.getTempTableName(), p.getTableName()));
 
     if (!skipMasterTable) {
-      swapTable(table.getTempTableName(), table.getTableName());
+      swapTable(table.getTempName(), table.getName());
     } else {
       table.getTablePartitions().stream()
-          .forEach(
-              p ->
-                  swapInheritance(
-                      p.getTableName(), table.getTempTableName(), table.getTableName()));
+          .forEach(p -> swapInheritance(p.getTableName(), table.getTempName(), table.getName()));
       dropTempTable(table);
     }
   }
 
   @Override
   public void dropTempTable(AnalyticsTable table) {
-    dropTableCascade(table.getTempTableName());
+    dropTableCascade(table.getTempName());
   }
 
   @Override
@@ -318,7 +315,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   private void createTempTable(AnalyticsTable table) {
     StringBuilder sql = new StringBuilder();
 
-    String tableName = table.getTempTableName();
+    String tableName = table.getTempName();
     String unlogged = table.isUnlogged() ? "unlogged" : "";
 
     sql.append("create ").append(unlogged).append(" table ").append(tableName).append(" (");
@@ -376,10 +373,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
       sql.append(TextUtils.removeLastComma(sqlCheck.toString()));
     }
 
-    sql.append(") inherits (")
-        .append(table.getTempTableName())
-        .append(") ")
-        .append(getTableOptions());
+    sql.append(") inherits (").append(table.getTempName()).append(") ").append(getTableOptions());
 
     log.info("Creating partition table: '{}'", tableName);
     log.debug("Create table SQL: '{}'", sql);
