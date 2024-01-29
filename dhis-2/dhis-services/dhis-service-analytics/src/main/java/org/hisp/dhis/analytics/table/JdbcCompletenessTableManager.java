@@ -76,6 +76,11 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service("org.hisp.dhis.analytics.CompletenessTableManager")
 public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
+  private static final List<AnalyticsTableColumn> FIXED_COLS =
+      List.of(
+          new AnalyticsTableColumn(quote("dx"), CHARACTER_11, NOT_NULL, "ds.uid"),
+          new AnalyticsTableColumn(quote("year"), INTEGER, NOT_NULL, "ps.year"));
+
   public JdbcCompletenessTableManager(
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,
@@ -103,11 +108,6 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
         analyticsExportSettings,
         periodDataProvider);
   }
-
-  private static final List<AnalyticsTableColumn> FIXED_COLS =
-      List.of(
-          new AnalyticsTableColumn(quote("dx"), CHARACTER_11, NOT_NULL, "ds.uid"),
-          new AnalyticsTableColumn(quote("year"), INTEGER, NOT_NULL, "ps.year"));
 
   @Override
   public AnalyticsTableType getAnalyticsTableType() {

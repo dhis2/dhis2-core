@@ -67,6 +67,9 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service("org.hisp.dhis.analytics.OrgUnitTargetTableManager")
 public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
+  private static final List<AnalyticsTableColumn> FIXED_COLS =
+      List.of(new AnalyticsTableColumn(quote("oug"), CHARACTER_11, NOT_NULL, "oug.uid"));
+
   public JdbcOrgUnitTargetTableManager(
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,
@@ -94,9 +97,6 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
         analyticsExportSettings,
         periodDataProvider);
   }
-
-  private static final List<AnalyticsTableColumn> FIXED_COLS =
-      List.of(new AnalyticsTableColumn(quote("oug"), CHARACTER_11, NOT_NULL, "oug.uid"));
 
   @Override
   public AnalyticsTableType getAnalyticsTableType() {
