@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.db.model;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.db.model.constraint.Nullable;
@@ -38,9 +39,10 @@ import org.hisp.dhis.db.model.constraint.Nullable;
  */
 @Getter
 @RequiredArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Column {
   /** Column name. Required. */
-  private final String name;
+  @EqualsAndHashCode.Include private final String name;
 
   /** Column data type. Required. */
   private final DataType dataType;

@@ -28,12 +28,12 @@
 package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
-import static org.hisp.dhis.analytics.table.model.ColumnDataType.CHARACTER_11;
-import static org.hisp.dhis.analytics.table.model.ColumnDataType.DATE;
-import static org.hisp.dhis.analytics.table.model.ColumnDataType.INTEGER;
-import static org.hisp.dhis.analytics.table.model.ColumnDataType.TEXT;
-import static org.hisp.dhis.analytics.table.model.ColumnDataType.TIMESTAMP;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
+import static org.hisp.dhis.db.model.DataType.DATE;
+import static org.hisp.dhis.db.model.DataType.INTEGER;
+import static org.hisp.dhis.db.model.DataType.TEXT;
+import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
@@ -156,11 +156,11 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
   @Override
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
-    String tableName = partition.getTempTableName();
+    String tableName = partition.getTempName();
 
-    String sql = "insert into " + partition.getTempTableName() + " (";
+    String sql = "insert into " + partition.getTempName() + " (";
 
-    List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
+    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
     for (AnalyticsTableColumn col : columns) {
       sql += col.getName() + ",";

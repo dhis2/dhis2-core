@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.db.sql;
 
+import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Table;
@@ -131,6 +132,12 @@ public interface SqlBuilder {
    */
   String dataTypeJsonb();
 
+  /**
+   * @param dataType the {@link DataType}.
+   * @return the data type name.
+   */
+  String getDataTypeName(DataType dataType);
+
   // Index types
 
   /**
@@ -204,6 +211,18 @@ public interface SqlBuilder {
    * @return a drop table if exists statement.
    */
   String dropTableIfExists(String name);
+
+  /**
+   * @param table the {@link Table}.
+   * @return a drop table if exists cascade statement.
+   */
+  String dropTableIfExistsCascade(Table table);
+
+  /**
+   * @param name the table name.
+   * @return a drop table if exists cascade statement.
+   */
+  String dropTableIfExistsCascade(String name);
 
   /**
    * @param name the table name.
