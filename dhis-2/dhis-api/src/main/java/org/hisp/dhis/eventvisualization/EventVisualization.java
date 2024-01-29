@@ -521,7 +521,7 @@ public class EventVisualization extends BaseAnalyticalObject
   }
 
   public void setEventRepetitions(List<EventRepetition> eventRepetitions) {
-    this.eventRepetitions = eventRepetitions;
+    if (eventRepetitions != null) this.eventRepetitions = eventRepetitions;
   }
 
   @Override
