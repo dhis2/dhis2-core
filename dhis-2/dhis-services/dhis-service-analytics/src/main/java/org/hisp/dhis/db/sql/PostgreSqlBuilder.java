@@ -49,93 +49,110 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   // Data types
 
   @Override
-  public String typeSmallInt() {
+  public String dataTypeSmallInt() {
     return "smallint";
   }
 
   @Override
-  public String typeInteger() {
+  public String dataTypeInteger() {
     return "integer";
   }
 
   @Override
-  public String typeBigInt() {
+  public String dataTypeBigInt() {
     return "bigint";
   }
 
   @Override
-  public String typeNumeric() {
+  public String dataTypeNumeric() {
     return "numeric(18,6)";
   }
 
   @Override
-  public String typeReal() {
+  public String dataTypeReal() {
     return "real";
   }
 
   @Override
-  public String typeDouble() {
+  public String dataTypeDouble() {
     return "double precision";
   }
 
   @Override
-  public String typeBoolean() {
+  public String dataTypeBoolean() {
     return "boolean";
   }
 
   @Override
-  public String typeCharacter(int length) {
+  public String dataTypeCharacter(int length) {
     return String.format("char(%d)", length);
   }
 
   @Override
-  public String typeVarchar(int length) {
+  public String dataTypeVarchar(int length) {
     return String.format("varchar(%d)", length);
   }
 
   @Override
-  public String typeText() {
+  public String dataTypeText() {
     return "text";
   }
 
   @Override
-  public String typeDate() {
+  public String dataTypeDate() {
     return "date";
   }
 
   @Override
-  public String typeTimestamp() {
+  public String dataTypeTimestamp() {
     return "timestamp";
   }
 
   @Override
-  public String typeTimestampTz() {
+  public String dataTypeTimestampTz() {
     return "timestamptz";
   }
 
   @Override
-  public String typeTime() {
+  public String dataTypeTime() {
     return "time";
   }
 
   @Override
-  public String typeTimeTz() {
+  public String dataTypeTimeTz() {
     return "timetz";
   }
 
   @Override
-  public String typeGeometry() {
+  public String dataTypeGeometry() {
     return "geometry";
   }
 
   @Override
-  public String typeGeometryPoint() {
+  public String dataTypeGeometryPoint() {
     return "geometry(Point, 4326)";
   }
 
   @Override
-  public String typeJsonb() {
+  public String dataTypeJsonb() {
     return "jsonb";
+  }
+
+  // Index types
+
+  @Override
+  public String indexTypeBtree() {
+    return "btree";
+  }
+
+  @Override
+  public String indexTypeGist() {
+    return "gist";
+  }
+
+  @Override
+  public String indexTypeGin() {
+    return "gin";
   }
 
   // Capabilities
@@ -233,12 +250,13 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   @Override
   public String createIndex(Table table, Index index) {
     String unique = index.getUnique() == Unique.UNIQUE ? "unique " : "";
+    String typeName = getIndexTypeName(index.getIndexType());
 
     String columns =
         index.getColumns().stream().map(c -> quote(c)).collect(Collectors.joining(", "));
 
     return String.format(
-        "create %sindex %s on %s (%s);",
-        unique, quote(index.getName()), quote(table.getName()), columns);
+        "create %sindex %s on %s using %s(%s);",
+        unique, quote(index.getName()), quote(table.getName()), typeName, columns);
   }
 }
