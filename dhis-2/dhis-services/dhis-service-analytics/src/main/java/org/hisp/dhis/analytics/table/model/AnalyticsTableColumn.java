@@ -33,6 +33,7 @@ import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.hisp.dhis.db.model.Collation;
+import org.hisp.dhis.db.model.constraint.Nullable;
 
 /**
  * Class representing an analytics database table column.
@@ -49,7 +50,7 @@ public class AnalyticsTableColumn {
   private final ColumnDataType dataType;
 
   /** Column not null constraint, default is to allow null values. */
-  private ColumnNotNullConstraint notNull = ColumnNotNullConstraint.NULL;
+  private Nullable notNull = Nullable.NULL;
 
   /** Column collation. */
   private Collation collation;
@@ -103,7 +104,7 @@ public class AnalyticsTableColumn {
     this.name = name;
     this.dataType = dataType;
     this.valueType = AnalyticsValueType.DIMENSION;
-    this.notNull = ColumnNotNullConstraint.NULL;
+    this.notNull = Nullable.NULL;
     this.selectExpression = selectExpression;
     this.collation = collation;
   }
@@ -117,10 +118,7 @@ public class AnalyticsTableColumn {
    * @param selectExpression source table select expression.
    */
   public AnalyticsTableColumn(
-      String name,
-      ColumnDataType dataType,
-      ColumnNotNullConstraint notNull,
-      String selectExpression) {
+      String name, ColumnDataType dataType, Nullable notNull, String selectExpression) {
     this.name = name;
     this.dataType = dataType;
     this.selectExpression = selectExpression;
@@ -138,7 +136,7 @@ public class AnalyticsTableColumn {
   public AnalyticsTableColumn(
       String name,
       ColumnDataType dataType,
-      ColumnNotNullConstraint notNull,
+      Nullable notNull,
       AnalyticsValueType valueType,
       String selectExpression) {
     this.name = name;

@@ -35,10 +35,10 @@ import static org.hisp.dhis.analytics.table.model.ColumnDataType.INTEGER;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.TIMESTAMP;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.VARCHAR_255;
-import static org.hisp.dhis.analytics.table.model.ColumnNotNullConstraint.NOT_NULL;
-import static org.hisp.dhis.analytics.table.model.ColumnNotNullConstraint.NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
+import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
 import com.google.common.collect.Sets;

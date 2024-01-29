@@ -50,6 +50,7 @@ import static org.hisp.dhis.analytics.table.model.ColumnDataType.GEOMETRY_POINT;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.INTEGER;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.TIMESTAMP;
+import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
@@ -74,7 +75,6 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
-import org.hisp.dhis.analytics.table.model.ColumnNotNullConstraint;
 import org.hisp.dhis.analytics.table.model.IndexType;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.analytics.util.AnalyticsTableAsserter;
@@ -848,7 +848,7 @@ class JdbcEventAnalyticsTableManagerTest {
     assertNotNull(col.getCreated());
     assertThat(col.getDataType(), is(CHARACTER_11));
     assertThat(col.isSkipIndex(), is(false));
-    assertThat(col.getNotNull(), is(ColumnNotNullConstraint.NULL));
+    assertThat(col.getNotNull(), is(NULL));
     assertThat(col.getIndexColumns(), hasSize(0));
   }
 
