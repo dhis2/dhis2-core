@@ -34,9 +34,16 @@ jobs:
     if: (github.event.action == 'closed' && contains(github.event.pull_request.labels.*.name, 'deploy')) || needs.check-deploy-label.outputs.removed
     runs-on: ubuntu-latest
     steps:
+      - name: 'Get latest IM tag'
+        id: latest-im-tag
+        uses: oprypin/find-latest-tag@v1.1.1
+        with:
+          repository: dhis2-sre/im-manager
+
       - uses: actions/checkout@v4
         with:
           repository: dhis2-sre/im-manager
+          ref: ${{ steps.latest-im-tag.outputs.tag }}
           sparse-checkout: scripts/instances
 
       - name: Install HTTPie
