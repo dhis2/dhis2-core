@@ -32,7 +32,6 @@ import java.util.Date;
 import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import org.hisp.dhis.analytics.Collation;
 
 /**
  * Class representing an analytics database table column.
