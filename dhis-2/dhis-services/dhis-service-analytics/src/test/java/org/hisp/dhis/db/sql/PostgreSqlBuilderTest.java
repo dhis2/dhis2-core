@@ -33,6 +33,7 @@ import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
+import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
@@ -55,7 +56,8 @@ class PostgreSqlBuilderTest {
     List<Index> indexes =
         List.of(
             new Index("in_immunization_data", List.of("data")),
-            new Index("in_immunization_period", List.of("period", "created")));
+            new Index("in_immunization_period", List.of("period", "created")),
+            new Index("in_immunization_value", IndexType.GIST, List.of("value")));
 
     return new Table("immunization", columns, primaryKey, indexes);
   }
@@ -83,7 +85,7 @@ class PostgreSqlBuilderTest {
     assertEquals("btree", sqlBuilder.indexTypeBtree());
     assertEquals("gist", sqlBuilder.indexTypeGist());
   }
-  
+
   @Test
   void testCreateTableA() {
     Table table = getTableA();
@@ -164,7 +166,7 @@ class PostgreSqlBuilderTest {
   void testCreateIndexA() {
     Table table = getTableA();
 
-    String expected = "create index \"in_immunization_data\" on \"immunization\" (\"data\");";
+    String expected = "create index \"in_immunization_data\" on \"immunization\" using btree(\"data\");";
 
     assertEquals(expected, sqlBuilder.createIndex(table, table.getIndexes().get(0)));
   }
@@ -174,8 +176,18 @@ class PostgreSqlBuilderTest {
     Table table = getTableA();
 
     String expected =
-        "create index \"in_immunization_period\" on \"immunization\" (\"period\", \"created\");";
+        "create index \"in_immunization_period\" on \"immunization\" using btree(\"period\", \"created\");";
 
     assertEquals(expected, sqlBuilder.createIndex(table, table.getIndexes().get(1)));
+  }
+
+  @Test
+  void testCreateIndexC() {
+    Table table = getTableA();
+
+    String expected =
+        "create index \"in_immunization_value\" on \"immunization\" using gist(\"value\");";
+
+    assertEquals(expected, sqlBuilder.createIndex(table, table.getIndexes().get(2)));
   }
 }

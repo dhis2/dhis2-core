@@ -136,9 +136,8 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   public String dataTypeJsonb() {
     return "jsonb";
   }
-  
+
   // Index types
-  
 
   @Override
   public String indexTypeBtree() {
@@ -250,12 +249,13 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   @Override
   public String createIndex(Table table, Index index) {
     String unique = index.getUnique() == Unique.UNIQUE ? "unique " : "";
+    String typeName = getIndexTypeName(index.getIndexType());
 
     String columns =
         index.getColumns().stream().map(c -> quote(c)).collect(Collectors.joining(", "));
 
     return String.format(
-        "create %sindex %s on %s (%s);",
-        unique, quote(index.getName()), quote(table.getName()), columns);
+        "create %sindex %s on %s using %s(%s);",
+        unique, quote(index.getName()), quote(table.getName()), typeName, columns);
   }
 }

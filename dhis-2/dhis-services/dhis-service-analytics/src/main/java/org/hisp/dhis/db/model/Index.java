@@ -28,9 +28,9 @@
 package org.hisp.dhis.db.model;
 
 import java.util.List;
+import org.hisp.dhis.db.model.constraint.Unique;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.db.model.constraint.Unique;
 
 /**
  * Represents a database index.
@@ -64,6 +64,21 @@ public class Index {
   public Index(String name, List<String> columns) {
     this.name = name;
     this.indexType = IndexType.BTREE;
+    this.unique = Unique.NON_UNIQUE;
+    this.columns = columns;
+    this.condition = null;
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param name the index name.
+   * @param indexType the index type.
+   * @param columns the list of index column names.
+   */
+  public Index(String name, IndexType indexType, List<String> columns) {
+    this.name = name;
+    this.indexType = indexType;
     this.unique = Unique.NON_UNIQUE;
     this.columns = columns;
     this.condition = null;

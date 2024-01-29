@@ -28,6 +28,7 @@
 package org.hisp.dhis.db.sql;
 
 import org.hisp.dhis.db.model.DataType;
+import org.hisp.dhis.db.model.IndexType;
 
 /**
  * Abstract SQL builder class.
@@ -88,6 +89,27 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
       default:
         throw new UnsupportedOperationException(
             String.format("Unsuported data type: %s", dataType));
+    }
+  }
+  
+  /**
+   * Returns the database name of the given index type.
+   * 
+   * @param indexType the {@link IndexType}.
+   * @return the index type name.
+   */
+  public String getIndexTypeName(IndexType indexType)
+  {
+    switch(indexType) {
+      case BTREE:
+        return indexTypeBtree();
+      case GIST:
+        return indexTypeGist();
+      case GIN:
+        return indexTypeGin();
+      default:
+        throw new UnsupportedOperationException(
+            String.format("Unsuported index type: %s", indexType));
     }
   }
 }

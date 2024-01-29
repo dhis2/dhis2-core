@@ -131,7 +131,7 @@ public interface SqlBuilder {
   String dataTypeJsonb();
 
   // Index types
-  
+
   /**
    * @return the name of the B-Tree index type.
    */
@@ -146,7 +146,7 @@ public interface SqlBuilder {
    * @return the name of the GIN index type.
    */
   String indexTypeGin();
-  
+
   // Capabilities
 
   /**
