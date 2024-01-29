@@ -89,6 +89,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
@@ -639,6 +640,66 @@ class EventImportTest extends TransactionalIntegrationTest {
     List<String> fetchedUids =
         programStageInstanceService.getProgramStageInstanceUidsIncludingDeleted(uids);
     assertTrue(Sets.difference(new HashSet<>(uids), new HashSet<>(fetchedUids)).isEmpty());
+  }
+
+  @Test
+  void shouldUpdateTrackedEntityAndDeleteEventWhenEventIsDeleted() throws IOException {
+    String entityLastUpdateDateBefore =
+        trackedEntityInstanceService
+            .getTrackedEntityInstance(trackedEntityInstanceMaleA.getTrackedEntityInstance())
+            .getLastUpdated();
+    Enrollment enrollment =
+        createEnrollment(programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance());
+    ImportSummary importSummary = enrollmentService.addEnrollment(enrollment, null, null);
+    assertEquals(ImportStatus.SUCCESS, importSummary.getStatus());
+    InputStream is =
+        createEventJsonInputStream(
+            programA.getUid(),
+            programStageA.getUid(),
+            organisationUnitA.getUid(),
+            trackedEntityInstanceMaleA.getTrackedEntityInstance(),
+            dataElementA,
+            "10");
+    ImportSummaries importSummaries = eventService.addEventsJson(is, null);
+    assertEquals(ImportStatus.SUCCESS, importSummaries.getStatus());
+
+    Date eventLastUpdatedBefore =
+        getEvent(importSummaries.getImportSummaries().get(0).getReference()).getLastUpdated();
+
+    dbmsManager.clearSession();
+
+    User user = createAndAddUser("userDelete", organisationUnitA, "ALL");
+    injectSecurityContext(user);
+
+    eventService.deleteEvent(importSummaries.getImportSummaries().get(0).getReference());
+    manager.flush();
+
+    org.hisp.dhis.program.ProgramStageInstance ev =
+        getEvent(importSummaries.getImportSummaries().get(0).getReference());
+
+    TrackedEntityInstance entityAfter =
+        trackedEntityInstanceService.getTrackedEntityInstance(
+            enrollment.getTrackedEntityInstance());
+
+    assertTrue(ev.isDeleted());
+    assertTrue(ev.getLastUpdated().getTime() > eventLastUpdatedBefore.getTime());
+    assertTrue(entityAfter.getLastUpdated().compareTo(entityLastUpdateDateBefore) > 0);
+    assertEquals(entityAfter.getLastUpdatedByUserInfo(), UserInfoSnapshot.from(user));
+    assertEquals(ev.getLastUpdatedByUserInfo(), UserInfoSnapshot.from(user));
+  }
+
+  /** Get with the current session because some Store exclude deleted */
+  public org.hisp.dhis.program.ProgramStageInstance getEvent(String uid) {
+
+    return (org.hisp.dhis.program.ProgramStageInstance)
+        sessionFactory
+            .getCurrentSession()
+            .createQuery(
+                "SELECT e FROM "
+                    + ProgramStageInstance.class.getSimpleName()
+                    + " e WHERE e.uid = :uid")
+            .setParameter("uid", uid)
+            .getSingleResult();
   }
 
   @Test

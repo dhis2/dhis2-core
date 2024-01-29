@@ -118,6 +118,7 @@ import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.SchemaService;
@@ -132,6 +133,7 @@ import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
@@ -850,20 +852,24 @@ public abstract class AbstractEventService implements EventService {
       ProgramStageInstance programStageInstance =
           programStageInstanceService.getProgramStageInstance(uid);
 
+      User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
       List<String> errors =
-          trackerAccessManager.canDelete(
-              currentUserService.getCurrentUser(), programStageInstance, false);
+          trackerAccessManager.canDelete(currentUser, programStageInstance, false);
 
       if (!errors.isEmpty()) {
         return new ImportSummary(ImportStatus.ERROR, errors.toString()).incrementIgnored();
       }
 
       programStageInstance.setAutoFields();
+      programStageInstance.setLastUpdatedByUserInfo(UserInfoSnapshot.from(currentUser));
       programStageInstanceService.deleteProgramStageInstance(programStageInstance);
 
       if (programStageInstance.getProgramStage().getProgram().isRegistration()) {
-        entityInstanceService.updateTrackedEntityInstance(
-            programStageInstance.getProgramInstance().getEntityInstance());
+        TrackedEntityInstance entity =
+            programStageInstance.getProgramInstance().getEntityInstance();
+        entity.setLastUpdatedByUserInfo(UserInfoSnapshot.from(currentUser));
+        entityInstanceService.updateTrackedEntityInstance(entity);
       }
 
       ImportSummary importSummary =
@@ -871,6 +877,7 @@ public abstract class AbstractEventService implements EventService {
               .incrementDeleted();
       importSummary.setReference(uid);
       return importSummary;
+
     } else {
       return new ImportSummary(
               ImportStatus.SUCCESS,
