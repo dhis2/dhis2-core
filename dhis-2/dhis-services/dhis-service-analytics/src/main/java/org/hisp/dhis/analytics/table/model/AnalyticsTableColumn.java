@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.table.model;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import lombok.EqualsAndHashCode;
@@ -61,11 +60,11 @@ public class AnalyticsTableColumn {
   /** The expression to use in select clauses. */
   private final String selectExpression;
 
-  /** Column index type, defaults to database default type {@link IndexType#BTREE}. */
+  /** Index type, defaults to database default type {@link IndexType#BTREE}. */
   private final IndexType indexType;
 
-  /** Explicit index column names, defaults to column name. */
-  private List<String> indexColumns = new ArrayList<>();
+  /** Index column names, defaults to column name. */
+  private final List<String> indexColumns;
 
   /** Date of creation of the underlying data dimension. */
   private Date created;
@@ -89,6 +88,7 @@ public class AnalyticsTableColumn {
     this.valueType = AnalyticsValueType.DIMENSION;
     this.selectExpression = selectExpression;
     this.indexType = IndexType.BTREE;
+    this.indexColumns = List.of();
   }
 
   /**
@@ -108,6 +108,7 @@ public class AnalyticsTableColumn {
     this.valueType = AnalyticsValueType.DIMENSION;
     this.selectExpression = selectExpression;
     this.indexType = IndexType.BTREE;
+    this.indexColumns = List.of();
   }
 
   /**
@@ -115,18 +116,19 @@ public class AnalyticsTableColumn {
    *
    * @param name analytics table column name.
    * @param dataType analytics table column data type.
-   * @param notNull analytics table column not null constraint.
+   * @param nullable analytics table column not null constraint.
    * @param selectExpression source table select expression.
    */
   public AnalyticsTableColumn(
-      String name, ColumnDataType dataType, Nullable notNull, String selectExpression) {
+      String name, ColumnDataType dataType, Nullable nullable, String selectExpression) {
     this.name = name;
     this.dataType = dataType;
-    this.nullable = notNull;
+    this.nullable = nullable;
     this.collation = Collation.DEFAULT;
     this.valueType = AnalyticsValueType.DIMENSION;
     this.selectExpression = selectExpression;
     this.indexType = IndexType.BTREE;
+    this.indexColumns = List.of();
   }
 
   /**
@@ -146,6 +148,32 @@ public class AnalyticsTableColumn {
     this.selectExpression = selectExpression;
     this.valueType = AnalyticsValueType.DIMENSION;
     this.indexType = indexType;
+    this.indexColumns = List.of();
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param name analytics table column name.
+   * @param dataType analytics table column data type.
+   * @param nullable analytics table column not null constraint.
+   * @param selectExpression source table select expression.
+   * @param indexColumns index column names.
+   */
+  public AnalyticsTableColumn(
+      String name,
+      ColumnDataType dataType,
+      Nullable nullable,
+      String selectExpression,
+      List<String> indexColumns) {
+    this.name = name;
+    this.dataType = dataType;
+    this.nullable = nullable;
+    this.collation = Collation.DEFAULT;
+    this.selectExpression = selectExpression;
+    this.valueType = AnalyticsValueType.DIMENSION;
+    this.indexType = IndexType.BTREE;
+    this.indexColumns = indexColumns;
   }
 
   /**
@@ -168,6 +196,7 @@ public class AnalyticsTableColumn {
     this.valueType = valueType;
     this.selectExpression = selectExpression;
     this.indexType = IndexType.BTREE;
+    this.indexColumns = List.of();
   }
 
   // -------------------------------------------------------------------------
@@ -205,16 +234,6 @@ public class AnalyticsTableColumn {
    */
   public AnalyticsTableColumn withCreated(Date created) {
     this.created = created;
-    return this;
-  }
-
-  /**
-   * Sets the index columns.
-   *
-   * @param indexColumns columns to index, defaults to this column name.
-   */
-  public AnalyticsTableColumn withIndexColumns(List<String> indexColumns) {
-    this.indexColumns = indexColumns;
     return this;
   }
 }

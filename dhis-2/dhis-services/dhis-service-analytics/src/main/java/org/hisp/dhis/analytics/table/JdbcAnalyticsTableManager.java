@@ -107,10 +107,10 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
           new AnalyticsTableColumn(quote("dx"), CHARACTER_11, NOT_NULL, "de.uid"),
-          new AnalyticsTableColumn(quote("co"), CHARACTER_11, NOT_NULL, "co.uid")
-              .withIndexColumns(List.of(quote("dx"), quote("co"))),
-          new AnalyticsTableColumn(quote("ao"), CHARACTER_11, NOT_NULL, "ao.uid")
-              .withIndexColumns(List.of(quote("dx"), quote("ao"))),
+          new AnalyticsTableColumn(
+              quote("co"), CHARACTER_11, NOT_NULL, "co.uid", List.of(quote("dx"), quote("co"))),
+          new AnalyticsTableColumn(
+              quote("ao"), CHARACTER_11, NOT_NULL, "ao.uid", List.of(quote("dx"), quote("ao"))),
           new AnalyticsTableColumn(quote("pestartdate"), TIMESTAMP, "pe.startdate"),
           new AnalyticsTableColumn(quote("peenddate"), TIMESTAMP, "pe.enddate"),
           new AnalyticsTableColumn(quote("year"), INTEGER, NOT_NULL, "ps.year"),
