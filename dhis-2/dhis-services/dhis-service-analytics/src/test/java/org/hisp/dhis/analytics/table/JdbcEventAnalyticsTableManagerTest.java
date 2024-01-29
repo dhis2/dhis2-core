@@ -76,6 +76,7 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.model.IndexType;
+import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.analytics.util.AnalyticsTableAsserter;
 import org.hisp.dhis.category.Category;
@@ -444,8 +445,7 @@ class JdbcEventAnalyticsTableManagerTest {
         .withTableType(AnalyticsTableType.EVENT)
         .withColumnSize(63 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
-        .addColumn(
-            d1.getUid(), TEXT, toAlias(aliasD1, d1.getUid()), IndexType.NONE) // ValueType.TEXT
+        .addColumn(d1.getUid(), TEXT, toAlias(aliasD1, d1.getUid()), Skip.SKIP) // ValueType.TEXT
         .addColumn(
             d2.getUid(),
             DOUBLE,
@@ -478,10 +478,7 @@ class JdbcEventAnalyticsTableManagerTest {
             d5.getUid() + "_geom", GEOMETRY, toAlias(aliasD5_geo, d5.getUid()), IndexType.GIST)
         // element d5 also creates a Name column
         .addColumn(
-            d5.getUid() + "_name",
-            TEXT,
-            toAlias(aliasD5_name, d5.getUid() + "_name"),
-            IndexType.NONE)
+            d5.getUid() + "_name", TEXT, toAlias(aliasD5_name, d5.getUid() + "_name"), Skip.SKIP)
         .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
         .build()
         .verify();
@@ -539,8 +536,7 @@ class JdbcEventAnalyticsTableManagerTest {
         .withTableType(AnalyticsTableType.EVENT)
         .withColumnSize(58 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
-        .addColumn(
-            d1.getUid(), TEXT, toAlias(aliasD1, d1.getUid()), IndexType.NONE) // ValueType.TEXT
+        .addColumn(d1.getUid(), TEXT, toAlias(aliasD1, d1.getUid()), Skip.SKIP) // ValueType.TEXT
         .addColumn(
             tea1.getUid(), TEXT, String.format(aliasTea1, "ou.uid", tea1.getId(), tea1.getUid()))
         // Second Geometry column created from the OU column above
@@ -553,7 +549,7 @@ class JdbcEventAnalyticsTableManagerTest {
             tea1.getUid() + "_name",
             TEXT,
             String.format(aliasTea1, "ou.name", tea1.getId(), tea1.getUid()),
-            IndexType.NONE)
+            Skip.SKIP)
         .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
         .build()
         .verify();
