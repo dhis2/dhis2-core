@@ -57,8 +57,8 @@ class PostgreSqlBuilderTest {
     List<Index> indexes =
         List.of(
             new Index("in_immunization_data", List.of("data")),
-            new Index("in_immunization_period", List.of("period", "created")),
-            new Index("in_immunization_value", IndexType.GIST, List.of("value")));
+            new Index("in_immunization_period_created", List.of("period", "created")),
+            new Index("in_immunization_period", IndexType.GIST, List.of("period")));
 
     return new Table("immunization", columns, primaryKey, indexes);
   }
@@ -178,7 +178,7 @@ class PostgreSqlBuilderTest {
     Table table = getTableA();
 
     String expected =
-        "create index \"in_immunization_period\" on \"immunization\" using btree(\"period\", \"created\");";
+        "create index \"in_immunization_period_created\" on \"immunization\" using btree(\"period\", \"created\");";
 
     assertEquals(expected, sqlBuilder.createIndex(table, table.getIndexes().get(1)));
   }
@@ -188,7 +188,7 @@ class PostgreSqlBuilderTest {
     Table table = getTableA();
 
     String expected =
-        "create index \"in_immunization_value\" on \"immunization\" using gist(\"value\");";
+        "create index \"in_immunization_period\" on \"immunization\" using gist(\"period\");";
 
     assertEquals(expected, sqlBuilder.createIndex(table, table.getIndexes().get(2)));
   }
