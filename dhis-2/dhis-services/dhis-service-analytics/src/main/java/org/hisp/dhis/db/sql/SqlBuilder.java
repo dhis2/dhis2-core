@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.db.sql;
 
+import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Table;
@@ -130,6 +131,12 @@ public interface SqlBuilder {
    * @return the name of the JSONB data type.
    */
   String dataTypeJsonb();
+
+  /**
+   * @param dataType the {@link DataType}.
+   * @return the data type name.
+   */
+  String getDataTypeName(DataType dataType);
 
   // Index types
 

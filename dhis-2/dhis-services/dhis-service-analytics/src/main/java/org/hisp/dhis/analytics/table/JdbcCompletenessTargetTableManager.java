@@ -29,10 +29,10 @@ package org.hisp.dhis.analytics.table;
 
 import static java.util.Collections.emptyList;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
-import static org.hisp.dhis.analytics.table.model.ColumnDataType.CHARACTER_11;
-import static org.hisp.dhis.analytics.table.model.ColumnDataType.DATE;
-import static org.hisp.dhis.analytics.table.model.ColumnDataType.DOUBLE;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
+import static org.hisp.dhis.db.model.DataType.DATE;
+import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 
