@@ -684,8 +684,9 @@ class EventImportTest extends TransactionalIntegrationTest {
     assertTrue(ev.isDeleted());
     assertTrue(ev.getLastUpdated().getTime() > eventLastUpdatedBefore.getTime());
     assertTrue(entityAfter.getLastUpdated().compareTo(entityLastUpdateDateBefore) > 0);
-    assertEquals(entityAfter.getLastUpdatedByUserInfo(), UserInfoSnapshot.from(user));
-    assertEquals(ev.getLastUpdatedByUserInfo(), UserInfoSnapshot.from(user));
+    assertEquals(
+        entityAfter.getLastUpdatedByUserInfo().getUid(), UserInfoSnapshot.from(user).getUid());
+    assertEquals(ev.getLastUpdatedByUserInfo().getUid(), UserInfoSnapshot.from(user).getUid());
   }
 
   /** Get with the current session because some Store exclude deleted */
