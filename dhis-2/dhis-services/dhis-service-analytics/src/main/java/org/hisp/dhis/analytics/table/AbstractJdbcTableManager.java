@@ -331,8 +331,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     StringBuilder sql = new StringBuilder();
 
     String tableName = table.getTempTableName();
-    Logged logged = analyticsExportSettings.getTableLogged();
-    String unlogged = logged == Logged.UNLOGGED ? "unlogged" : "";
+    String unlogged = table.isUnlogged() ? "unlogged" : "";
 
     sql.append("create ").append(unlogged).append(" table ").append(tableName).append(" (");
 
@@ -376,8 +375,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    */
   private void createTempTablePartition(AnalyticsTable table, AnalyticsTablePartition partition) {
     String tableName = partition.getTempTableName();
-    Logged logged = analyticsExportSettings.getTableLogged();
-    String unlogged = logged == Logged.UNLOGGED ? "unlogged" : "";
+    String unlogged = table.isUnlogged() ? "unlogged" : "";
     List<String> checks = getPartitionChecks(partition);
 
     StringBuilder sql = new StringBuilder();
