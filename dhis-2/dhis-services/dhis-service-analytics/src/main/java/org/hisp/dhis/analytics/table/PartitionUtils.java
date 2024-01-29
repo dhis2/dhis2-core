@@ -213,7 +213,7 @@ public class PartitionUtils {
       } else {
         // Fake partition representing the master table
 
-        partitions.add(new AnalyticsTablePartition(table, null, null, null, false));
+        partitions.add(new AnalyticsTablePartition(table, null, null, null));
       }
     }
 

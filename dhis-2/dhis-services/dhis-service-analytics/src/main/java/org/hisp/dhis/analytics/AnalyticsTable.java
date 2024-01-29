@@ -167,7 +167,7 @@ public class AnalyticsTable {
     Assert.notNull(year, "Year must be specified");
 
     AnalyticsTablePartition tablePartition =
-        new AnalyticsTablePartition(this, year, startDate, endDate, false);
+        new AnalyticsTablePartition(this, year, startDate, endDate);
 
     this.tablePartitions.add(tablePartition);
 

@@ -50,20 +50,20 @@ public class AnalyticsTableColumn {
   /** Column not null constraint, default is to allow null values. */
   private ColumnNotNullConstraint notNull = ColumnNotNullConstraint.NULL;
 
+  /** The column collation. */
+  private Collation collation;
+
   /** The expression to use in select clauses. */
   private final String selectExpression;
 
-  /** The column collation. */
-  private Collation collation;
+  /** Date of creation of the underlying data dimension. */
+  private Date created;
 
   /** Explicit index type, defaults to database default type {@link IndexType#BTREE}. */
   private IndexType indexType = IndexType.BTREE;
 
   /** Whether to skip building an index for this column. */
   private boolean skipIndex = false;
-
-  /** Date of creation of the underlying data dimension. */
-  private Date created;
 
   /** Explicit index column names, defaults to column name. */
   private List<String> indexColumns = new ArrayList<>();
@@ -90,10 +90,11 @@ public class AnalyticsTableColumn {
    *
    * @param name analytics table column name.
    * @param dataType analytics table column data type.
+   * @param collation the analytics table column collation.
    * @param selectExpression source table select expression.
    */
   public AnalyticsTableColumn(
-      String name, ColumnDataType dataType, String selectExpression, Collation collation) {
+      String name, ColumnDataType dataType, Collation collation, String selectExpression) {
     this.name = name;
     this.dataType = dataType;
     this.notNull = ColumnNotNullConstraint.NULL;
