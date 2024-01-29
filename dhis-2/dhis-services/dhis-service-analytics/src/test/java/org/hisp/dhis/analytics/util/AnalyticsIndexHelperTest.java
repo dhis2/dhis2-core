@@ -33,23 +33,25 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.analytics.AnalyticsTableType.EVENT;
-import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
-import static org.hisp.dhis.analytics.IndexFunction.LOWER;
-import static org.hisp.dhis.analytics.IndexType.BTREE;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.TEXT;
+import static org.hisp.dhis.analytics.table.model.IndexFunction.LOWER;
+import static org.hisp.dhis.analytics.table.model.IndexType.BTREE;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.createIndexStatement;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexName;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexes;
 
 import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.analytics.AnalyticsIndex;
-import org.hisp.dhis.analytics.AnalyticsTable;
-import org.hisp.dhis.analytics.AnalyticsTableColumn;
-import org.hisp.dhis.analytics.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.model.AnalyticsIndex;
+import org.hisp.dhis.analytics.table.model.AnalyticsTable;
+import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.model.IndexType;
+import org.hisp.dhis.db.model.Logged;
 import org.junit.jupiter.api.Test;
 
 /**
- * Unit tests for {@link org.hisp.dhis.analytics.AnalyticsIndex}
+ * Unit tests for {@link org.hisp.dhis.analytics.table.model.AnalyticsIndex}
  *
  * @author maikel arabori
  */
@@ -99,19 +101,18 @@ class AnalyticsIndexHelperTest {
 
   private AnalyticsTablePartition stubAnalyticsTablePartition() {
     AnalyticsTablePartition analyticsTablePartitionStub =
-        new AnalyticsTablePartition(stubAnalyticsTable(), 2022, new Date(), new Date(), false);
+        new AnalyticsTablePartition(stubAnalyticsTable(), 2022, new Date(), new Date());
 
     return analyticsTablePartitionStub;
   }
 
   private AnalyticsTable stubAnalyticsTable() {
-    List<AnalyticsTableColumn> dimensionColumns = List.of(stubAnalyticsTableColumn());
-    List<AnalyticsTableColumn> valueColumns = List.of(stubAnalyticsTableColumn());
+    List<AnalyticsTableColumn> columns = List.of(stubAnalyticsTableColumn());
 
-    return new AnalyticsTable(EVENT, dimensionColumns, valueColumns);
+    return new AnalyticsTable(EVENT, columns, Logged.UNLOGGED);
   }
 
   private AnalyticsTableColumn stubAnalyticsTableColumn() {
-    return new AnalyticsTableColumn("column", TEXT, "c").withIndexType(BTREE);
+    return new AnalyticsTableColumn("column", TEXT, "c", IndexType.BTREE);
   }
 }

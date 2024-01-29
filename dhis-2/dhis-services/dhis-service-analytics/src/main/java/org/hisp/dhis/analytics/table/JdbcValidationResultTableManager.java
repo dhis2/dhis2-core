@@ -27,33 +27,35 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
-import static org.hisp.dhis.analytics.ColumnDataType.DATE;
-import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
-import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
-import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
-import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
+import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.CHARACTER_11;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.DATE;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.INTEGER;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.TEXT;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.TIMESTAMP;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
+import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
-import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.analytics.AnalyticsTable;
-import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
-import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.table.model.AnalyticsTable;
+import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -116,16 +118,15 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
     AnalyticsTable table =
         params.isLatestUpdate()
-            ? new AnalyticsTable()
-            : getRegularAnalyticsTable(
-                params, getDataYears(params), getDimensionColumns(), getValueColumns());
+            ? new AnalyticsTable(AnalyticsTableType.VALIDATION_RESULT, List.of(), Logged.LOGGED)
+            : getRegularAnalyticsTable(params, getDataYears(params), getColumns());
 
     return table.hasPartitionTables() ? List.of(table) : List.of();
   }
 
   @Override
   public Set<String> getExistingDatabaseTables() {
-    return Sets.newHashSet(getTableName());
+    return Set.of(getTableName());
   }
 
   @Override
@@ -157,32 +158,28 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getTempTableName();
 
-    String insert = "insert into " + partition.getTempTableName() + " (";
+    String sql = "insert into " + partition.getTempTableName() + " (";
 
-    List<AnalyticsTableColumn> dimensions = partition.getMasterTable().getDimensionColumns();
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
 
-    validateDimensionColumns(dimensions);
+    for (AnalyticsTableColumn col : columns) {
+      sql += col.getName() + ",";
+    }
+
+    sql = TextUtils.removeLastComma(sql) + ") select ";
 
     for (AnalyticsTableColumn col : columns) {
-      insert += col.getName() + ",";
+      sql += col.getSelectExpression() + ",";
     }
 
-    insert = TextUtils.removeLastComma(insert) + ") ";
-
-    String select = "select ";
-
-    for (AnalyticsTableColumn col : dimensions) {
-      select += col.getAlias() + ",";
-    }
+    sql = TextUtils.removeLastComma(sql) + " ";
 
     // Database legacy fix
 
-    select = select.replace("organisationunitid", "sourceid");
+    sql = sql.replace("organisationunitid", "sourceid");
 
-    select +=
-        "vrs.created as value "
-            + "from validationresult vrs "
+    sql +=
+        "from validationresult vrs "
             + "inner join period pe on vrs.periodid=pe.periodid "
             + "inner join _periodstructure ps on vrs.periodid=ps.periodid "
             + "inner join validationrule vr on vr.validationruleid=vrs.validationruleid "
@@ -197,8 +194,6 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
             + getLongDateString(params.getStartTime())
             + "' "
             + "and vrs.created is not null";
-
-    String sql = insert + select;
 
     invokeTimeAndLog(sql, String.format("Populate %s", tableName));
   }
@@ -220,7 +215,7 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
     return jdbcTemplate.queryForList(sql, Integer.class);
   }
 
-  private List<AnalyticsTableColumn> getDimensionColumns() {
+  private List<AnalyticsTableColumn> getColumns() {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     List<OrganisationUnitGroupSet> orgUnitGroupSets =
@@ -233,22 +228,25 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
     for (OrganisationUnitGroupSet groupSet : orgUnitGroupSets) {
       columns.add(
           new AnalyticsTableColumn(
-                  quote(groupSet.getUid()), CHARACTER_11, "ougs." + quote(groupSet.getUid()))
-              .withCreated(groupSet.getCreated()));
+              quote(groupSet.getUid()),
+              CHARACTER_11,
+              "ougs." + quote(groupSet.getUid()),
+              groupSet.getCreated()));
     }
 
     for (OrganisationUnitLevel level : levels) {
       String column = quote(PREFIX_ORGUNITLEVEL + level.getLevel());
       columns.add(
-          new AnalyticsTableColumn(column, CHARACTER_11, "ous." + column)
-              .withCreated(level.getCreated()));
+          new AnalyticsTableColumn(column, CHARACTER_11, "ous." + column, level.getCreated()));
     }
 
     for (Category category : attributeCategories) {
       columns.add(
           new AnalyticsTableColumn(
-                  quote(category.getUid()), CHARACTER_11, "acs." + quote(category.getUid()))
-              .withCreated(category.getCreated()));
+              quote(category.getUid()),
+              CHARACTER_11,
+              "acs." + quote(category.getUid()),
+              category.getCreated()));
     }
 
     for (PeriodType periodType : PeriodType.getAvailablePeriodTypes()) {
@@ -256,16 +254,9 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
       columns.add(new AnalyticsTableColumn(column, TEXT, "ps." + column));
     }
 
-    columns.addAll(getFixedColumns());
+    columns.addAll(FIXED_COLS);
+    columns.add(new AnalyticsTableColumn(quote("value"), DATE, NULL, FACT, "vrs.created as value"));
+
     return filterDimensionColumns(columns);
-  }
-
-  private List<AnalyticsTableColumn> getValueColumns() {
-    return List.of(new AnalyticsTableColumn(quote("value"), DATE, "value"));
-  }
-
-  @Override
-  public List<AnalyticsTableColumn> getFixedColumns() {
-    return FIXED_COLS;
   }
 }

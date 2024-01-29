@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,16 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.db.model;
 
 /**
+ * Enumeration of database data types.
+ *
  * @author Lars Helge Overland
  */
-public enum ColumnNotNullConstraint {
-  NULL,
-  NOT_NULL;
-
-  public boolean isNotNull() {
-    return this == NOT_NULL;
-  }
+public enum DataType {
+  SMALLINT,
+  BIGINT,
+  INTEGER,
+  NUMERIC,
+  REAL,
+  DOUBLE,
+  BOOLEAN,
+  CHARACTER_11,
+  CHARACTER_32,
+  VARCHAR_50,
+  VARCHAR_255,
+  VARCHAR_1200,
+  TEXT,
+  DATE,
+  TIMESTAMP,
+  TIMESTAMPTZ,
+  TIME,
+  TIMETZ,
+  GEOMETRY,
+  GEOMETRY_POINT,
+  JSONB;
 }

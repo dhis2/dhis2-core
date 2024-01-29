@@ -30,6 +30,9 @@ package org.hisp.dhis.analytics;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.analytics.table.model.AnalyticsIndex;
+import org.hisp.dhis.analytics.table.model.AnalyticsTable;
+import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 
 /**
  * Manager for the analytics database tables.
@@ -37,8 +40,6 @@ import java.util.Set;
  * @author Lars Helge Overland
  */
 public interface AnalyticsTableManager {
-  String TABLE_TEMP_SUFFIX = "_temp";
-
   /**
    * Returns the {@link AnalyticsTableType} of analytics table which this manager handles.
    *
@@ -170,9 +171,7 @@ public interface AnalyticsTableManager {
    * @param aggregationLevel the aggregation level.
    */
   default void applyAggregationLevels(
-      AnalyticsTablePartition partition, Collection<String> dataElements, int aggregationLevel) {
-    // NOOP by default
-  }
+      AnalyticsTablePartition partition, Collection<String> dataElements, int aggregationLevel) {}
 
   /**
    * Performs vacuum or optimization of the given table. The type of operation performed is
@@ -180,14 +179,5 @@ public interface AnalyticsTableManager {
    *
    * @param partition the analytics table partition.
    */
-  default void vacuumTables(AnalyticsTablePartition partition) {
-    // NOOP by default
-  }
-
-  /**
-   * Returns a list of non-dynamic {@link AnalyticsTableColumn}.
-   *
-   * @return a List of {@link AnalyticsTableColumn}.
-   */
-  List<AnalyticsTableColumn> getFixedColumns();
+  default void vacuumTables(AnalyticsTablePartition partition) {}
 }

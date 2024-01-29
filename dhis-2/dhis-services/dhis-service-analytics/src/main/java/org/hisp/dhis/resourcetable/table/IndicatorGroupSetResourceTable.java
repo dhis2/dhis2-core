@@ -27,12 +27,18 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
+import static org.hisp.dhis.db.model.Table.toStaging;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Optional;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.db.model.Column;
+import org.hisp.dhis.db.model.DataType;
+import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.model.Table;
+import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
@@ -40,12 +46,41 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 /**
  * @author Lars Helge Overland
  */
-public class IndicatorGroupSetResourceTable extends ResourceTable<IndicatorGroupSet> {
-  private final String tableType;
+public class IndicatorGroupSetResourceTable implements ResourceTable {
+  private static final String TABLE_NAME = "_indicatorgroupsetstructure";
 
-  public IndicatorGroupSetResourceTable(List<IndicatorGroupSet> objects, String tableType) {
-    super(objects);
-    this.tableType = tableType;
+  private final List<IndicatorGroupSet> groupSets;
+
+  private final Logged logged;
+
+  public IndicatorGroupSetResourceTable(List<IndicatorGroupSet> groupSets, Logged logged) {
+    this.groupSets = groupSets;
+    this.logged = logged;
+  }
+
+  @Override
+  public Table getTable() {
+    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), List.of(), logged);
+  }
+
+  private List<Column> getColumns() {
+    List<Column> columns =
+        Lists.newArrayList(
+            new Column("indicatorid", DataType.BIGINT, Nullable.NOT_NULL),
+            new Column("indicatorname", DataType.VARCHAR_255, Nullable.NOT_NULL));
+
+    for (IndicatorGroupSet groupSet : groupSets) {
+      columns.addAll(
+          List.of(
+              new Column(groupSet.getShortName(), DataType.VARCHAR_255),
+              new Column(groupSet.getUid(), DataType.CHARACTER_11)));
+    }
+
+    return columns;
+  }
+
+  private List<String> getPrimaryKey() {
+    return List.of("indicatorid");
   }
 
   @Override
@@ -54,35 +89,14 @@ public class IndicatorGroupSetResourceTable extends ResourceTable<IndicatorGroup
   }
 
   @Override
-  public String getCreateTempTableStatement() {
-    String statement =
-        "create "
-            + tableType
-            + " table "
-            + getTempTableName()
-            + " ("
-            + "indicatorid bigint not null, "
-            + "indicatorname varchar(230), ";
-
-    for (IndicatorGroupSet groupSet : objects) {
-      statement += quote(groupSet.getShortName()) + " varchar(230), ";
-      statement += quote(groupSet.getUid()) + " character(11), ";
-    }
-
-    statement += "primary key (indicatorid))";
-
-    return statement;
-  }
-
-  @Override
   public Optional<String> getPopulateTempTableStatement() {
     String sql =
         "insert into "
-            + getTempTableName()
+            + toStaging(TABLE_NAME)
             + " "
             + "select i.indicatorid as indicatorid, i.name as indicatorname, ";
 
-    for (IndicatorGroupSet groupSet : objects) {
+    for (IndicatorGroupSet groupSet : groupSets) {
       sql +=
           "("
               + "select ig.name from indicatorgroup ig "
@@ -120,10 +134,5 @@ public class IndicatorGroupSetResourceTable extends ResourceTable<IndicatorGroup
   @Override
   public Optional<List<Object[]>> getPopulateTempTableContent() {
     return Optional.empty();
-  }
-
-  @Override
-  public List<String> getCreateIndexStatements() {
-    return Lists.newArrayList();
   }
 }

@@ -33,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dxf2.adx.AdxDataService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
+import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.fileresource.FileResource;
@@ -96,6 +97,12 @@ public class DataValueSetImportJob implements Job {
         progress.failedProcess("Import failed, no summary available");
         return;
       }
+
+      if (summary.hasConflicts()) {
+        for (ImportConflict c : summary.getConflicts())
+          progress.addError(c.getErrorCode(), c.getObject(), c.getGroupingKey(), c.getArgs());
+      }
+
       ImportCount count = summary.getImportCount();
       progress.completedProcess(
           "Import complete with status %s, %d created, %d updated, %d deleted, %d ignored"

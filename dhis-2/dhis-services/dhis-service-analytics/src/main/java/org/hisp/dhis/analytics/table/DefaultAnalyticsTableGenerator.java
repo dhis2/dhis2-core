@@ -105,7 +105,7 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
       AnalyticsTableType tableType = service.getAnalyticsTableType();
 
       if (!skipTypes.contains(tableType)) {
-        service.update(params, progress);
+        service.create(params, progress);
       }
     }
 

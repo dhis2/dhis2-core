@@ -25,26 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.analytics.table.model;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import java.io.IOException;
-import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
-import org.junit.jupiter.api.Test;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * Represents SQL functions that can be used by indexes.
+ *
+ * @author maikel arabori
  */
-class LoginControllerTest extends DhisControllerIntegrationTest {
+@Getter
+@RequiredArgsConstructor
+public enum IndexFunction {
+  LOWER("lower");
 
-  private static final String iconKey = "iconKey";
-
-  @Test
-  void shouldGetLoginConfig() throws IOException {
-    JsonObject response = GET("/loginConfig").content();
-    assertEquals("DHIS 2", response.getString("applicationTitle").string());
-    assertEquals("en", response.getString("uiLocale").string());
-  }
+  private final String value;
 }

@@ -27,50 +27,49 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.String.join;
 import static java.util.Collections.emptyList;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS;
-import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
-import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_32;
-import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
-import static org.hisp.dhis.analytics.ColumnDataType.GEOMETRY;
-import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
-import static org.hisp.dhis.analytics.ColumnDataType.JSONB;
-import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
-import static org.hisp.dhis.analytics.ColumnDataType.VARCHAR_255;
-import static org.hisp.dhis.analytics.ColumnDataType.VARCHAR_50;
-import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
-import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NULL;
-import static org.hisp.dhis.analytics.IndexType.GIST;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.getDateLinkedToStatus;
 import static org.hisp.dhis.analytics.table.PartitionUtils.getEndDate;
 import static org.hisp.dhis.analytics.table.PartitionUtils.getStartDate;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.CHARACTER_11;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.CHARACTER_32;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.DOUBLE;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.GEOMETRY;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.INTEGER;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.JSONB;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.TIMESTAMP;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.VARCHAR_255;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.VARCHAR_50;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
+import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
+import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
-import static org.springframework.util.Assert.notNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.analytics.AnalyticsTable;
-import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
-import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.table.model.AnalyticsTable;
+import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.model.IndexType;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.period.PeriodType;
@@ -86,6 +85,38 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Component("org.hisp.dhis.analytics.TeiEventsAnalyticsTableManager")
 public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager {
+  private static final List<AnalyticsTableColumn> FIXED_COLS =
+      List.of(
+          new AnalyticsTableColumn(
+              quote("trackedentityinstanceuid"), CHARACTER_11, NOT_NULL, "tei.uid"),
+          new AnalyticsTableColumn(quote("programuid"), CHARACTER_11, NULL, "p.uid"),
+          new AnalyticsTableColumn(quote("programinstanceuid"), CHARACTER_11, NULL, "pi.uid"),
+          new AnalyticsTableColumn(quote("programstageuid"), CHARACTER_11, NULL, "ps.uid"),
+          new AnalyticsTableColumn(quote("programstageinstanceuid"), CHARACTER_11, NULL, "psi.uid"),
+          new AnalyticsTableColumn(quote("occurreddate"), TIMESTAMP, "psi.occurreddate"),
+          new AnalyticsTableColumn(quote("lastupdated"), TIMESTAMP, "psi.lastupdated"),
+          new AnalyticsTableColumn(quote("created"), TIMESTAMP, "psi.created"),
+          new AnalyticsTableColumn(quote("scheduleddate"), TIMESTAMP, "psi.scheduleddate"),
+          new AnalyticsTableColumn(quote("status"), VARCHAR_50, "psi.status"),
+          new AnalyticsTableColumn(quote("psigeometry"), GEOMETRY, "psi.geometry", IndexType.GIST),
+          new AnalyticsTableColumn(
+              quote("psilongitude"),
+              DOUBLE,
+              "case when 'POINT' = GeometryType(psi.geometry) then ST_X(psi.geometry) end"),
+          new AnalyticsTableColumn(
+              quote("psilatitude"),
+              DOUBLE,
+              "case when 'POINT' = GeometryType(psi.geometry) then ST_Y(psi.geometry) end"),
+          new AnalyticsTableColumn(quote("uidlevel1"), CHARACTER_11, NULL, "ous.uidlevel1"),
+          new AnalyticsTableColumn(quote("uidlevel2"), CHARACTER_11, NULL, "ous.uidlevel2"),
+          new AnalyticsTableColumn(quote("uidlevel3"), CHARACTER_11, NULL, "ous.uidlevel3"),
+          new AnalyticsTableColumn(quote("uidlevel4"), CHARACTER_11, NULL, "ous.uidlevel4"),
+          new AnalyticsTableColumn(quote("ou"), CHARACTER_11, NULL, "ou.uid"),
+          new AnalyticsTableColumn(quote("ouname"), VARCHAR_255, NULL, "ou.name"),
+          new AnalyticsTableColumn(quote("oucode"), CHARACTER_32, NULL, "ou.code"),
+          new AnalyticsTableColumn(quote("oulevel"), INTEGER, NULL, "ous.level"),
+          new AnalyticsTableColumn(quote("eventdatavalues"), JSONB, "psi.eventdatavalues"));
+
   private static final String AND = " and (";
 
   private final TrackedEntityTypeService trackedEntityTypeService;
@@ -117,43 +148,8 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
         jdbcTemplate,
         settings,
         periodDataProvider);
-
-    notNull(trackedEntityTypeService, "trackedEntityTypeService cannot be null");
     this.trackedEntityTypeService = trackedEntityTypeService;
   }
-
-  private static final List<AnalyticsTableColumn> FIXED_COLS =
-      List.of(
-          new AnalyticsTableColumn(
-              quote("trackedentityinstanceuid"), CHARACTER_11, NOT_NULL, "tei.uid"),
-          new AnalyticsTableColumn(quote("programuid"), CHARACTER_11, NULL, "p.uid"),
-          new AnalyticsTableColumn(quote("programinstanceuid"), CHARACTER_11, NULL, "pi.uid"),
-          new AnalyticsTableColumn(quote("programstageuid"), CHARACTER_11, NULL, "ps.uid"),
-          new AnalyticsTableColumn(quote("programstageinstanceuid"), CHARACTER_11, NULL, "psi.uid"),
-          new AnalyticsTableColumn(quote("occurreddate"), TIMESTAMP, "psi.occurreddate"),
-          new AnalyticsTableColumn(quote("lastupdated"), TIMESTAMP, "psi.lastupdated"),
-          new AnalyticsTableColumn(quote("created"), TIMESTAMP, "psi.created"),
-          new AnalyticsTableColumn(quote("scheduleddate"), TIMESTAMP, "psi.scheduleddate"),
-          new AnalyticsTableColumn(quote("status"), VARCHAR_50, "psi.status"),
-          new AnalyticsTableColumn(quote("psigeometry"), GEOMETRY, "psi.geometry")
-              .withIndexType(GIST),
-          new AnalyticsTableColumn(
-              quote("psilongitude"),
-              DOUBLE,
-              "case when 'POINT' = GeometryType(psi.geometry) then ST_X(psi.geometry) end"),
-          new AnalyticsTableColumn(
-              quote("psilatitude"),
-              DOUBLE,
-              "case when 'POINT' = GeometryType(psi.geometry) then ST_Y(psi.geometry) end"),
-          new AnalyticsTableColumn(quote("uidlevel1"), CHARACTER_11, NULL, "ous.uidlevel1"),
-          new AnalyticsTableColumn(quote("uidlevel2"), CHARACTER_11, NULL, "ous.uidlevel2"),
-          new AnalyticsTableColumn(quote("uidlevel3"), CHARACTER_11, NULL, "ous.uidlevel3"),
-          new AnalyticsTableColumn(quote("uidlevel4"), CHARACTER_11, NULL, "ous.uidlevel4"),
-          new AnalyticsTableColumn(quote("ou"), CHARACTER_11, NULL, "ou.uid"),
-          new AnalyticsTableColumn(quote("ouname"), VARCHAR_255, NULL, "ou.name"),
-          new AnalyticsTableColumn(quote("oucode"), CHARACTER_32, NULL, "ou.code"),
-          new AnalyticsTableColumn(quote("oulevel"), INTEGER, NULL, "ous.level"),
-          new AnalyticsTableColumn(quote("eventdatavalues"), JSONB, "psi.eventdatavalues"));
 
   /**
    * Returns the {@link AnalyticsTableType} of analytics table which this manager handles.
@@ -179,13 +175,14 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
 
     List<AnalyticsTable> tables = new ArrayList<>();
 
+    Logged logged = analyticsExportSettings.getTableLogged();
+
     for (TrackedEntityType tet : trackedEntityTypes) {
       List<Integer> dataYears = getDataYears(params, tet);
 
       Collections.sort(dataYears);
 
-      AnalyticsTable table =
-          new AnalyticsTable(getAnalyticsTableType(), getTableColumns(), newArrayList(), tet);
+      AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), getColumns(), logged, tet);
 
       for (Integer year : dataYears) {
         table.addPartitionTable(year, getStartDate(calendar, year), getEndDate(calendar, year));
@@ -242,8 +239,8 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
     return jdbcTemplate.queryForList(sql.toString(), Integer.class);
   }
 
-  private List<AnalyticsTableColumn> getTableColumns() {
-    List<AnalyticsTableColumn> analyticsTableColumnList = new ArrayList<>(getFixedColumns());
+  private List<AnalyticsTableColumn> getColumns() {
+    List<AnalyticsTableColumn> analyticsTableColumnList = new ArrayList<>(FIXED_COLS);
     analyticsTableColumnList.add(getOrganisationUnitNameHierarchyColumn());
 
     return analyticsTableColumnList;
@@ -257,16 +254,6 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
   @Override
   public String validState() {
     return null;
-  }
-
-  /**
-   * Returns a list of non-dynamic {@link AnalyticsTableColumn}.
-   *
-   * @return a List of {@link AnalyticsTableColumn}.
-   */
-  @Override
-  public List<AnalyticsTableColumn> getFixedColumns() {
-    return FIXED_COLS;
   }
 
   /**
@@ -288,7 +275,6 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
   @Override
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
-    List<AnalyticsTableColumn> dimensions = partition.getMasterTable().getDimensionColumns();
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
 
     String start = getLongDateString(partition.getStartDate());
@@ -308,8 +294,6 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
                 + end
                 + "' ";
 
-    validateDimensionColumns(dimensions);
-
     StringBuilder sql = new StringBuilder("insert into " + partition.getTempTableName() + " (");
 
     for (AnalyticsTableColumn col : columns) {
@@ -318,8 +302,8 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
 
     removeLastComma(sql).append(") select distinct ");
 
-    for (AnalyticsTableColumn col : dimensions) {
-      sql.append(col.getAlias() + ",");
+    for (AnalyticsTableColumn col : columns) {
+      sql.append(col.getSelectExpression() + ",");
     }
 
     removeLastComma(sql)

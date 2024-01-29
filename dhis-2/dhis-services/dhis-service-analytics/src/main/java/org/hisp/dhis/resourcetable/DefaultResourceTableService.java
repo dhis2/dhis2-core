@@ -107,10 +107,9 @@ public class DefaultResourceTableService implements ResourceTableService {
   public void generateOrganisationUnitStructureTable() {
     resourceTableStore.generateResourceTable(
         new OrganisationUnitStructureResourceTable(
-            null,
             organisationUnitService,
             organisationUnitService.getNumberOfOrganisationalLevels(),
-            analyticsExportSettings.getTableParameters()));
+            analyticsExportSettings.getTableLogged()));
   }
 
   @Override
@@ -120,7 +119,7 @@ public class DefaultResourceTableService implements ResourceTableService {
         new DataSetOrganisationUnitCategoryResourceTable(
             idObjectManager.getAllNoAcl(DataSet.class),
             categoryService.getDefaultCategoryOptionCombo(),
-            analyticsExportSettings.getTableParameters()));
+            analyticsExportSettings.getTableLogged()));
   }
 
   @Override
@@ -129,7 +128,7 @@ public class DefaultResourceTableService implements ResourceTableService {
     resourceTableStore.generateResourceTable(
         new CategoryOptionComboNameResourceTable(
             idObjectManager.getAllNoAcl(CategoryCombo.class),
-            analyticsExportSettings.getTableParameters()));
+            analyticsExportSettings.getTableLogged()));
   }
 
   @Override
@@ -138,7 +137,7 @@ public class DefaultResourceTableService implements ResourceTableService {
     resourceTableStore.generateResourceTable(
         new DataElementGroupSetResourceTable(
             idObjectManager.getDataDimensionsNoAcl(DataElementGroupSet.class),
-            analyticsExportSettings.getTableParameters()));
+            analyticsExportSettings.getTableLogged()));
   }
 
   @Override
@@ -147,7 +146,7 @@ public class DefaultResourceTableService implements ResourceTableService {
     resourceTableStore.generateResourceTable(
         new IndicatorGroupSetResourceTable(
             idObjectManager.getAllNoAcl(IndicatorGroupSet.class),
-            analyticsExportSettings.getTableParameters()));
+            analyticsExportSettings.getTableLogged()));
   }
 
   @Override
@@ -157,7 +156,7 @@ public class DefaultResourceTableService implements ResourceTableService {
         new OrganisationUnitGroupSetResourceTable(
             idObjectManager.getDataDimensionsNoAcl(OrganisationUnitGroupSet.class),
             organisationUnitService.getNumberOfOrganisationalLevels(),
-            analyticsExportSettings.getTableParameters()));
+            analyticsExportSettings.getTableLogged()));
   }
 
   @Override
@@ -167,7 +166,7 @@ public class DefaultResourceTableService implements ResourceTableService {
         new CategoryResourceTable(
             idObjectManager.getDataDimensionsNoAcl(Category.class),
             idObjectManager.getDataDimensionsNoAcl(CategoryOptionGroupSet.class),
-            analyticsExportSettings.getTableParameters()));
+            analyticsExportSettings.getTableLogged()));
   }
 
   @Override
@@ -176,7 +175,7 @@ public class DefaultResourceTableService implements ResourceTableService {
     resourceTableStore.generateResourceTable(
         new DataElementResourceTable(
             idObjectManager.getAllNoAcl(DataElement.class),
-            analyticsExportSettings.getTableParameters()));
+            analyticsExportSettings.getTableLogged()));
   }
 
   @Override
@@ -188,7 +187,39 @@ public class DefaultResourceTableService implements ResourceTableService {
     checkYearsOffset(availableYears);
 
     resourceTableStore.generateResourceTable(
-        new DatePeriodResourceTable(availableYears, analyticsExportSettings.getTableParameters()));
+        new DatePeriodResourceTable(availableYears, analyticsExportSettings.getTableLogged()));
+  }
+
+  @Override
+  public void generatePeriodTable() {
+    resourceTableStore.generateResourceTable(
+        new PeriodResourceTable(
+            periodService.getAllPeriods(), analyticsExportSettings.getTableLogged()));
+  }
+
+  @Override
+  @Transactional
+  public void generateCategoryOptionComboTable() {
+    resourceTableStore.generateResourceTable(
+        new CategoryOptionComboResourceTable(analyticsExportSettings.getTableLogged()));
+  }
+
+  @Override
+  public void generateDataApprovalRemapLevelTable() {
+    resourceTableStore.generateResourceTable(
+        new DataApprovalRemapLevelResourceTable(analyticsExportSettings.getTableLogged()));
+  }
+
+  @Override
+  public void generateDataApprovalMinLevelTable() {
+    List<OrganisationUnitLevel> orgUnitLevels =
+        Lists.newArrayList(dataApprovalLevelService.getOrganisationUnitApprovalLevels());
+
+    if (!orgUnitLevels.isEmpty()) {
+      resourceTableStore.generateResourceTable(
+          new DataApprovalMinLevelResourceTable(
+              orgUnitLevels, analyticsExportSettings.getTableLogged()));
+    }
   }
 
   /**
@@ -230,39 +261,6 @@ public class DefaultResourceTableService implements ResourceTableService {
         log.warn(errorMessage);
         throw new RuntimeException(errorMessage);
       }
-    }
-  }
-
-  @Override
-  public void generatePeriodTable() {
-    resourceTableStore.generateResourceTable(
-        new PeriodResourceTable(
-            periodService.getAllPeriods(), analyticsExportSettings.getTableParameters()));
-  }
-
-  @Override
-  @Transactional
-  public void generateCategoryOptionComboTable() {
-    resourceTableStore.generateResourceTable(
-        new CategoryOptionComboResourceTable(null, analyticsExportSettings.getTableParameters()));
-  }
-
-  @Override
-  public void generateDataApprovalRemapLevelTable() {
-    resourceTableStore.generateResourceTable(
-        new DataApprovalRemapLevelResourceTable(
-            null, analyticsExportSettings.getTableParameters()));
-  }
-
-  @Override
-  public void generateDataApprovalMinLevelTable() {
-    List<OrganisationUnitLevel> orgUnitLevels =
-        Lists.newArrayList(dataApprovalLevelService.getOrganisationUnitApprovalLevels());
-
-    if (!orgUnitLevels.isEmpty()) {
-      resourceTableStore.generateResourceTable(
-          new DataApprovalMinLevelResourceTable(
-              orgUnitLevels, analyticsExportSettings.getTableParameters()));
     }
   }
 
