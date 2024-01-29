@@ -45,16 +45,16 @@ import org.springframework.util.Assert;
 @Getter
 public class AnalyticsTable {
   /** Table name. */
-  private String tableName;
+  private final String tableName;
 
   /** Temporary table name. */
-  private String tempTableName;
+  private final String tempTableName;
 
   /** Analytics table type. */
-  private AnalyticsTableType tableType;
+  private final AnalyticsTableType tableType;
 
   /** Columns representing dimensions. */
-  private List<AnalyticsTableColumn> columns;
+  private final List<AnalyticsTableColumn> columns;
 
   /** Program of events in analytics table. */
   private Program program;
@@ -69,7 +69,12 @@ public class AnalyticsTable {
   // Constructors
   // -------------------------------------------------------------------------
 
-  public AnalyticsTable() {}
+  public AnalyticsTable() {
+    this.tableName = null;
+    this.tempTableName = null;
+    this.tableType = null;
+    this.columns = List.of();
+  }
 
   public AnalyticsTable(AnalyticsTableType tableType, List<AnalyticsTableColumn> columns) {
     this.tableName = tableType.getTableName();
