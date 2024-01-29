@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.table.model;
 
-import java.util.ArrayList;
 import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -42,13 +41,13 @@ import org.hisp.dhis.db.model.IndexType;
 @EqualsAndHashCode
 public class AnalyticsIndex {
   /** Table name. */
-  private String table;
+  private final String table;
 
   /** Index type. */
-  private IndexType indexType;
+  private final IndexType indexType;
 
   /** Table column names. */
-  private List<String> columns = new ArrayList<>();
+  private final List<String> columns;
 
   /** Function to be used by the index. Optional. */
   private IndexFunction function;
@@ -58,7 +57,7 @@ public class AnalyticsIndex {
    *
    * @param table the table name.
    * @param indexType the index type.
-   * @param columns the column name.
+   * @param columns the index column names.
    */
   public AnalyticsIndex(String table, IndexType indexType, List<String> columns) {
     this.table = table;
@@ -71,7 +70,7 @@ public class AnalyticsIndex {
    *
    * @param table the table name.
    * @param indexType the index type.
-   * @param columns the column name.
+   * @param columns the index column names.
    * @param function the index function.
    */
   public AnalyticsIndex(
