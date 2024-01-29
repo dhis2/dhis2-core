@@ -30,7 +30,6 @@ package org.hisp.dhis.db.sql;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
-
 import java.util.stream.Collectors;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
@@ -136,6 +135,24 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   @Override
   public String dataTypeJsonb() {
     return "jsonb";
+  }
+  
+  // Index types
+  
+
+  @Override
+  public String indexTypeBtree() {
+    return "btree";
+  }
+
+  @Override
+  public String indexTypeGist() {
+    return "gist";
+  }
+
+  @Override
+  public String indexTypeGin() {
+    return "gin";
   }
 
   // Capabilities
