@@ -395,7 +395,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
       String sql =
           "delete from "
-              + quote(table.getTableName())
+              + quote(table.getName())
               + " ax "
               + "where ax.psi in ("
               + "select psi.uid "
@@ -411,7 +411,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               + getLongDateString(partition.getEndDate())
               + "')";
 
-      invokeTimeAndLog(sql, format("Remove updated events for table: '%s'", table.getTableName()));
+      invokeTimeAndLog(sql, format("Remove updated events for table: '%s'", table.getName()));
     }
   }
 

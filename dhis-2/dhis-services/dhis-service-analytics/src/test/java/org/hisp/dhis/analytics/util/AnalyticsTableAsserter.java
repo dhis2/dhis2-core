@@ -73,7 +73,7 @@ public class AnalyticsTableAsserter {
     // verify column size
     assertThat(table.getDimensionColumns(), hasSize(columnsSize));
     assertThat(table.getTableType(), is(tableType));
-    assertThat(table.getTableName(), is(name));
+    assertThat(table.getName(), is(name));
     // verify default columns
     Map<String, AnalyticsTableColumn> tableColumnMap =
         Stream.concat(table.getDimensionColumns().stream(), table.getFactColumns().stream())
