@@ -536,7 +536,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         new AnalyticsTableColumn(quote("approvallevel"), INTEGER, NULL, FACT, "approvallevel"),
         new AnalyticsTableColumn(quote("daysxvalue"), DOUBLE, NULL, FACT, "daysxvalue"),
         new AnalyticsTableColumn(quote("daysno"), INTEGER, NOT_NULL, FACT, "daysno"),
-        new AnalyticsTableColumn(quote("value"), DOUBLE, NULL, "value"),
+        new AnalyticsTableColumn(quote("value"), DOUBLE, NULL, FACT, "value"),
         new AnalyticsTableColumn(quote("textvalue"), TEXT, NULL, FACT, "textvalue"));
   }
 

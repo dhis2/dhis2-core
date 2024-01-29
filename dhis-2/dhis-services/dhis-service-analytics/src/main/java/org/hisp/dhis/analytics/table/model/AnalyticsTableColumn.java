@@ -144,7 +144,7 @@ public class AnalyticsTableColumn {
     this.name = name;
     this.dataType = dataType;
     this.notNull = notNull;
-    this.valueType = AnalyticsValueType.DIMENSION;
+    this.valueType = valueType;
     this.selectExpression = selectExpression;
   }
 

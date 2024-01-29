@@ -27,13 +27,23 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.DIMENSION;
+import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.CHARACTER_11;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.DOUBLE;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.TEXT;
+import static org.hisp.dhis.analytics.table.model.ColumnNotNullConstraint.NOT_NULL;
+import static org.hisp.dhis.analytics.table.model.ColumnNotNullConstraint.NULL;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.List;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
+import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.model.AnalyticsValueType;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.YearlyPeriodType;
@@ -70,6 +80,31 @@ class AnalyticsTableTest {
         new AnalyticsTable(AnalyticsTableType.ENROLLMENT, List.of(), trackedEntityType);
     assertEquals("analytics_enrollment_k7gfrbe3rt5", table.getTableName());
     assertEquals("analytics_enrollment_temp_k7gfrbe3rt5", table.getTempTableName());
+  }
+
+  @Test
+  void testGetDimensionColumns() {
+    List<AnalyticsTableColumn> columns =
+        List.of(
+            new AnalyticsTableColumn(quote("dx"), CHARACTER_11, NOT_NULL, DIMENSION, "de.uid"),
+            new AnalyticsTableColumn(quote("co"), CHARACTER_11, NOT_NULL, "co.uid"),
+            new AnalyticsTableColumn(quote("ou"), CHARACTER_11, NOT_NULL, "ou.uid"),
+            new AnalyticsTableColumn(quote("value"), DOUBLE, NULL, FACT, "value"),
+            new AnalyticsTableColumn(quote("textvalue"), TEXT, NULL, FACT, "textvalue"));
+
+    AnalyticsTable table = new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns);
+
+    assertEquals(3, table.getDimensionColumns().size());
+    assertEquals(quote("dx"), table.getDimensionColumns().get(0).getName());
+    assertEquals(AnalyticsValueType.DIMENSION, table.getDimensionColumns().get(0).getValueType());
+    assertEquals(quote("co"), table.getDimensionColumns().get(1).getName());
+    assertEquals(AnalyticsValueType.DIMENSION, table.getDimensionColumns().get(1).getValueType());
+
+    assertEquals(2, table.getFactColumns().size());
+    assertEquals(quote("value"), table.getFactColumns().get(0).getName());
+    assertEquals(AnalyticsValueType.FACT, table.getFactColumns().get(0).getValueType());
+    assertEquals(quote("textvalue"), table.getFactColumns().get(1).getName());
+    assertEquals(AnalyticsValueType.FACT, table.getFactColumns().get(1).getValueType());
   }
 
   @Test
