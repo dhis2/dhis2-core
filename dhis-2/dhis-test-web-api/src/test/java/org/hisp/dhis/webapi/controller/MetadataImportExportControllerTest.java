@@ -427,6 +427,22 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
+  @DisplayName("Export user metadata with skipSharing option returns expected fields")
+  void exportUserWithSkipSharing() {
+    // when users are exported including the skipSharing option
+    JsonObject user =
+        GET("/metadata.json?skipSharing=true&download=true&users=true")
+            .content(HttpStatus.OK)
+            .getArray("users")
+            .getObject(0);
+
+    // then the returned users should have the following fields present
+    assertTrue(user.exists());
+    assertTrue(user.getString("username").exists());
+    assertTrue(user.getString("userRoles").exists());
+  }
+
+  @Test
   @DisplayName(
       "Should return error in import report if deleting object is referenced by other object")
   void testDeleteWithException() {

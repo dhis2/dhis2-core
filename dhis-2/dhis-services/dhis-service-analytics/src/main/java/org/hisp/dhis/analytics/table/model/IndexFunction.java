@@ -25,36 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.analytics.table.model;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
- * @author Lars Helge Overland
+ * Represents SQL functions that can be used by indexes.
+ *
+ * @author maikel arabori
  */
 @Getter
-public enum ColumnDataType {
-  CHARACTER_11("character(11)"),
-  CHARACTER_32("character(32)"),
-  VARCHAR_50("varchar(50)"),
-  VARCHAR_255("varchar(255)"),
-  VARCHAR_1200("varchar(1200)"),
-  TEXT("text"),
-  DATE("date"),
-  TIMESTAMP("timestamp"),
-  INTEGER("integer"),
-  SMALLINT("smallint"),
-  BIGINT("bigint"),
-  DOUBLE("double precision"),
-  NUMERIC("numeric"),
-  BOOLEAN("boolean"),
-  GEOMETRY("geometry"),
-  GEOMETRY_POINT("geometry(Point, 4326)"),
-  JSONB("jsonb");
+@RequiredArgsConstructor
+public enum IndexFunction {
+  LOWER("lower");
 
-  final String value;
-
-  ColumnDataType(String value) {
-    this.value = value;
-  }
+  private final String value;
 }

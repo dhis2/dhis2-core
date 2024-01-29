@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,105 +29,39 @@ package org.hisp.dhis.resourcetable;
 
 import java.util.List;
 import java.util.Optional;
-import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.db.model.Table;
 
 /**
+ * Represents a resource database table.
+ *
  * @author Lars Helge Overland
  */
-public abstract class ResourceTable<T> {
-  protected static final String TEMP_TABLE_SUFFIX = "_temp";
-
-  protected List<T> objects;
-
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
-
-  protected ResourceTable() {}
-
-  protected ResourceTable(List<T> objects) {
-    this.objects = objects;
-  }
-
-  // -------------------------------------------------------------------------
-  // Public methods
-  // -------------------------------------------------------------------------
-
+public interface ResourceTable {
   /**
-   * Provides the name of the resource database table.
+   * Returns the table definition.
    *
-   * @return the name of the resource database table.
+   * @return the {@link Table}.
    */
-  public String getTableName() {
-    return getTableType().getTableName();
-  }
+  Table getTable();
 
   /**
-   * Provides the temporary name of the resource database table.
-   *
-   * @return the temporary name of the resource database table.
-   */
-  public final String getTempTableName() {
-    return getTableName() + TEMP_TABLE_SUFFIX;
-  }
-
-  public final String getDropTableIfExistsStatement() {
-    return "drop table if exists " + getTableName() + " cascade;";
-  }
-
-  public final String getDropTempTableIfExistsStatement() {
-    return "drop table if exists " + getTempTableName() + ";";
-  }
-
-  public final String getRenameTempTableStatement() {
-    return "alter table " + getTempTableName() + " rename to " + getTableName() + ";";
-  }
-
-  // -------------------------------------------------------------------------
-  // Protected methods
-  // -------------------------------------------------------------------------
-
-  protected String getRandomSuffix() {
-    return CodeGenerator.generateCode(5);
-  }
-
-  // -------------------------------------------------------------------------
-  // Abstract methods
-  // -------------------------------------------------------------------------
-
-  /**
-   * Returns the {@link ResourceTableType} of this resource table.
+   * Returns the resource table type.
    *
    * @return the {@link ResourceTableType}.
    */
-  public abstract ResourceTableType getTableType();
+  ResourceTableType getTableType();
 
   /**
-   * Provides a create table SQL statement for the temporary resource table.
+   * Returns an optional SQL statement for populating the resource table.
    *
-   * @return a create table statement.
+   * @return an optional SQL statement, may be empty.
    */
-  public abstract String getCreateTempTableStatement();
+  Optional<String> getPopulateTempTableStatement();
 
   /**
-   * Provides an insert into select from SQL statement for populating the temporary resource table.
+   * Returns the content of a resource table as an optional list of objects arrays.
    *
-   * @return an insert into select from SQL statement.
+   * @return an optional list of object arrays, may be empty.
    */
-  public abstract Optional<String> getPopulateTempTableStatement();
-
-  /**
-   * Provides content for the temporary resource table as a list of object arrays.
-   *
-   * @return content for the temporary resource table.
-   */
-  public abstract Optional<List<Object[]>> getPopulateTempTableContent();
-
-  /**
-   * Returns SQL create index statements for the temporary table. Note that the indexes name must
-   * have a random component to avoid uniqueness conflicts.
-   *
-   * @return a list of SQL create index statements.
-   */
-  public abstract List<String> getCreateIndexStatements();
+  Optional<List<Object[]>> getPopulateTempTableContent();
 }

@@ -42,14 +42,14 @@ import static org.hisp.dhis.DhisConvenienceTest.createProgramStage;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramTrackedEntityAttribute;
 import static org.hisp.dhis.DhisConvenienceTest.createTrackedEntityAttribute;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
-import static org.hisp.dhis.analytics.ColumnDataType.BIGINT;
-import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
-import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
-import static org.hisp.dhis.analytics.ColumnDataType.GEOMETRY;
-import static org.hisp.dhis.analytics.ColumnDataType.GEOMETRY_POINT;
-import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
-import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
-import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.BIGINT;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.CHARACTER_11;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.DOUBLE;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.GEOMETRY;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.GEOMETRY_POINT;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.INTEGER;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.TEXT;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.TIMESTAMP;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
@@ -67,15 +67,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.AnalyticsTable;
-import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
-import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
-import org.hisp.dhis.analytics.ColumnNotNullConstraint;
-import org.hisp.dhis.analytics.IndexType;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.table.model.AnalyticsTable;
+import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.model.ColumnNotNullConstraint;
+import org.hisp.dhis.analytics.table.model.IndexType;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.analytics.util.AnalyticsTableAsserter;
 import org.hisp.dhis.category.Category;
@@ -275,7 +275,7 @@ class JdbcEventAnalyticsTableManagerTest {
         .withTableType(AnalyticsTableType.EVENT)
         .withTableName(TABLE_PREFIX + program.getUid().toLowerCase())
         .withColumnSize(56 + OU_NAME_HIERARCHY_COUNT)
-        .withDefaultColumns(subject.getFixedColumns())
+        .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
         .addColumns(periodColumns)
         .addColumn(categoryA.getUid(), CHARACTER_11, "acs.", categoryA.getCreated())
         .addColumn(categoryB.getUid(), CHARACTER_11, "acs.", categoryB.getCreated())
@@ -311,11 +311,11 @@ class JdbcEventAnalyticsTableManagerTest {
     AnalyticsTableColumn created = getColumn("\"created\"", tables.get(0));
 
     assertThat(
-        lastUpdated.getAlias(),
+        lastUpdated.getSelectExpression(),
         is(
             "CASE WHEN psi.lastupdatedatclient IS NOT NULL THEN psi.lastupdatedatclient ELSE psi.lastupdated END"));
     assertThat(
-        created.getAlias(),
+        created.getSelectExpression(),
         is(
             "CASE WHEN psi.createdatclient IS NOT NULL THEN psi.createdatclient ELSE psi.created END"));
   }
@@ -457,7 +457,7 @@ class JdbcEventAnalyticsTableManagerTest {
             d5.getUid() + "_geom", GEOMETRY, toAlias(aliasD5_geo, d5.getUid()), IndexType.GIST)
         // element d5 also creates a Name column
         .addColumn(d5.getUid() + "_name", TEXT, toAlias(aliasD5_name, d5.getUid() + "_name"))
-        .withDefaultColumns(subject.getFixedColumns())
+        .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
         .build()
         .verify();
   }
@@ -527,7 +527,7 @@ class JdbcEventAnalyticsTableManagerTest {
             tea1.getUid() + "_name",
             TEXT,
             String.format(aliasTea1, "ou.name", tea1.getId(), tea1.getUid()))
-        .withDefaultColumns(subject.getFixedColumns())
+        .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
         .build()
         .verify();
   }
@@ -724,13 +724,13 @@ class JdbcEventAnalyticsTableManagerTest {
         .withTableName(TABLE_PREFIX + programA.getUid().toLowerCase())
         .withTableType(AnalyticsTableType.EVENT)
         .withColumnSize(
-            subject.getFixedColumns().size()
+            JdbcEventAnalyticsTableManager.FIXED_COLS.size()
                 + PeriodType.getAvailablePeriodTypes().size()
                 + ouLevels.size()
                 + (programA.isRegistration() ? 1 : 0)
                 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
-        .withDefaultColumns(subject.getFixedColumns())
+        .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
         .addColumn(
             quote("uidlevel" + ouLevels.get(0).getLevel()), col -> match(ouLevels.get(0), col))
         .addColumn(
@@ -768,13 +768,13 @@ class JdbcEventAnalyticsTableManagerTest {
         .withTableName(TABLE_PREFIX + programA.getUid().toLowerCase())
         .withTableType(AnalyticsTableType.EVENT)
         .withColumnSize(
-            subject.getFixedColumns().size()
+            JdbcEventAnalyticsTableManager.FIXED_COLS.size()
                 + PeriodType.getAvailablePeriodTypes().size()
                 + ouGroupSet.size()
                 + (programA.isRegistration() ? 1 : 0)
                 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
-        .withDefaultColumns(subject.getFixedColumns())
+        .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
         .addColumn(quote(ouGroupSet.get(0).getUid()), col -> match(ouGroupSet.get(0), col))
         .addColumn(quote(ouGroupSet.get(1).getUid()), col -> match(ouGroupSet.get(1), col))
         .build()
@@ -810,13 +810,13 @@ class JdbcEventAnalyticsTableManagerTest {
         .withTableName(TABLE_PREFIX + programA.getUid().toLowerCase())
         .withTableType(AnalyticsTableType.EVENT)
         .withColumnSize(
-            subject.getFixedColumns().size()
+            JdbcEventAnalyticsTableManager.FIXED_COLS.size()
                 + PeriodType.getAvailablePeriodTypes().size()
                 + cogs.size()
                 + (programA.isRegistration() ? 1 : 0)
                 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
-        .withDefaultColumns(subject.getFixedColumns())
+        .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
         .addColumn(quote(cogs.get(0).getUid()), col -> match(cogs.get(0), col))
         .addColumn(quote(cogs.get(1).getUid()), col -> match(cogs.get(1), col))
         .build()
@@ -826,21 +826,21 @@ class JdbcEventAnalyticsTableManagerTest {
   private void match(OrganisationUnitGroupSet ouGroupSet, AnalyticsTableColumn col) {
     String name = quote(ouGroupSet.getUid());
     assertNotNull(col);
-    assertThat(col.getAlias(), is("ougs." + name));
+    assertThat(col.getSelectExpression(), is("ougs." + name));
     match(col);
   }
 
   private void match(OrganisationUnitLevel ouLevel, AnalyticsTableColumn col) {
     String name = quote("uidlevel" + ouLevel.getLevel());
     assertNotNull(col);
-    assertThat(col.getAlias(), is("ous." + name));
+    assertThat(col.getSelectExpression(), is("ous." + name));
     match(col);
   }
 
   private void match(CategoryOptionGroupSet cog, AnalyticsTableColumn col) {
     String name = quote(cog.getUid());
     assertNotNull(col);
-    assertThat(col.getAlias(), is("acs." + name));
+    assertThat(col.getSelectExpression(), is("acs." + name));
     match(col);
   }
 

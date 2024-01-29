@@ -46,6 +46,7 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.PartitionUtils;
+import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.period.Period;
@@ -98,7 +99,7 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
   public EventQueryParams planEnrollmentQuery(EventQueryParams params) {
     return new EventQueryParams.Builder(params)
         .withTableName(
-            PartitionUtils.getTableName(
+            AnalyticsTable.getTableName(
                 AnalyticsTableType.ENROLLMENT.getTableName(), params.getProgram()))
         .build();
   }
@@ -124,7 +125,7 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
             ? AnalyticsTableType.ENROLLMENT.getTableName()
             : AnalyticsTableType.EVENT.getTableName();
 
-    String tableName = PartitionUtils.getTableName(baseName, params.getProgram());
+    String tableName = AnalyticsTable.getTableName(baseName, params.getProgram());
 
     if (params.getCurrentUser() != null) {
       partitionManager.filterNonExistingPartitions(partitions, tableName);

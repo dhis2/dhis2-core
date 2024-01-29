@@ -28,11 +28,21 @@
 package org.hisp.dhis.resourcetable.table;
 
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
+import static org.hisp.dhis.db.model.Table.toStaging;
+import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Optional;
+import org.hisp.dhis.db.model.Column;
+import org.hisp.dhis.db.model.DataType;
+import org.hisp.dhis.db.model.Index;
+import org.hisp.dhis.db.model.IndexType;
+import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.model.Table;
+import org.hisp.dhis.db.model.constraint.Nullable;
+import org.hisp.dhis.db.model.constraint.Unique;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
@@ -40,16 +50,62 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 /**
  * @author Lars Helge Overland
  */
-public class OrganisationUnitGroupSetResourceTable extends ResourceTable<OrganisationUnitGroupSet> {
+public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
+  private static final String TABLE_NAME = "_organisationunitgroupsetstructure";
+
+  private final List<OrganisationUnitGroupSet> groupSets;
+
   private final int organisationUnitLevels;
 
-  private final String tableType;
+  private final Logged logged;
 
   public OrganisationUnitGroupSetResourceTable(
-      List<OrganisationUnitGroupSet> objects, int organisationUnitLevels, String tableType) {
-    super(objects);
+      List<OrganisationUnitGroupSet> groupSets, int organisationUnitLevels, Logged logged) {
+    this.groupSets = groupSets;
     this.organisationUnitLevels = organisationUnitLevels;
-    this.tableType = tableType;
+    this.logged = logged;
+  }
+
+  @Override
+  public Table getTable() {
+    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), getIndexes(), logged);
+  }
+
+  private List<Column> getColumns() {
+    List<Column> columns =
+        Lists.newArrayList(
+            new Column("organisationunitid", DataType.BIGINT, Nullable.NOT_NULL),
+            new Column("organisationunitname", DataType.VARCHAR_255, Nullable.NOT_NULL),
+            new Column("startdate", DataType.DATE));
+
+    for (OrganisationUnitGroupSet groupSet : groupSets) {
+      columns.addAll(
+          List.of(
+              new Column(groupSet.getShortName(), DataType.VARCHAR_255),
+              new Column(groupSet.getUid(), DataType.CHARACTER_11)));
+    }
+
+    return columns;
+  }
+
+  private List<String> getPrimaryKey() {
+    return List.of("organisationunitid");
+  }
+
+  public List<Index> getIndexes() {
+    return List.of(
+        new Index(
+            appendRandom("in_orgunitgroupsetstructure_not_null"),
+            IndexType.BTREE,
+            Unique.NON_UNIQUE,
+            List.of("organisationunitid", "startdate"),
+            "startdate is not null"),
+        new Index(
+            appendRandom("in_orgunitgroupsetstructure_null"),
+            IndexType.BTREE,
+            Unique.NON_UNIQUE,
+            List.of("organisationunitid", "startdate"),
+            "startdate is null"));
   }
 
   @Override
@@ -58,34 +114,14 @@ public class OrganisationUnitGroupSetResourceTable extends ResourceTable<Organis
   }
 
   @Override
-  public String getCreateTempTableStatement() {
-    String statement =
-        "create "
-            + tableType
-            + " table "
-            + getTempTableName()
-            + " ("
-            + "organisationunitid bigint not null, "
-            + "organisationunitname varchar(230), "
-            + "startdate date, ";
-
-    for (OrganisationUnitGroupSet groupSet : objects) {
-      statement += quote(groupSet.getShortName()) + " varchar(230), ";
-      statement += quote(groupSet.getUid()) + " character(11), ";
-    }
-
-    return removeLastComma(statement) + ")";
-  }
-
-  @Override
   public Optional<String> getPopulateTempTableStatement() {
     String sql =
         "insert into "
-            + getTempTableName()
+            + toStaging(TABLE_NAME)
             + " "
             + "select ou.organisationunitid as organisationunitid, ou.name as organisationunitname, null as startdate, ";
 
-    for (OrganisationUnitGroupSet groupSet : objects) {
+    for (OrganisationUnitGroupSet groupSet : groupSets) {
       if (!groupSet.isIncludeSubhierarchyInAnalytics()) {
         sql +=
             "("
@@ -170,30 +206,5 @@ public class OrganisationUnitGroupSetResourceTable extends ResourceTable<Organis
   @Override
   public Optional<List<Object[]>> getPopulateTempTableContent() {
     return Optional.empty();
-  }
-
-  @Override
-  public List<String> getCreateIndexStatements() {
-    String nameA = "in_orgunitgroupsetstructure_not_null_" + getRandomSuffix();
-    String nameB = "in_orgunitgroupsetstructure_null_" + getRandomSuffix();
-
-    // Two partial indexes as start date can be null
-
-    String indexA =
-        "create index "
-            + nameA
-            + " on "
-            + getTempTableName()
-            + "(organisationunitid, startdate) "
-            + "where startdate is not null";
-    String indexB =
-        "create index "
-            + nameB
-            + " on "
-            + getTempTableName()
-            + "(organisationunitid, startdate) "
-            + "where startdate is null";
-
-    return Lists.newArrayList(indexA, indexB);
   }
 }

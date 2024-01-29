@@ -156,15 +156,13 @@ public class ValidationHelper {
    * @param response
    * @param rowIndex
    * @param colIndex
-   * @param repeatableStageValueStatus
+   * @param valueStatus
    */
   public static void validateRowContext(
-      ApiResponse response, int rowIndex, int colIndex, String repeatableStageValueStatus) {
+      ApiResponse response, int rowIndex, int colIndex, String valueStatus) {
     response
         .validate()
-        .body(
-            "rowContext." + rowIndex + "." + colIndex + ".valueStatus",
-            equalTo(repeatableStageValueStatus));
+        .body("rowContext." + rowIndex + "." + colIndex + ".valueStatus", equalTo(valueStatus));
   }
 
   /**

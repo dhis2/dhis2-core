@@ -25,24 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
-
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+package org.hisp.dhis.analytics.table.model;
 
 /**
- * Index type.
- *
  * @author Lars Helge Overland
  */
-@Getter
-@RequiredArgsConstructor
-public enum IndexType {
-  BTREE("btree"),
-  GIST("gist"),
-  HASH("hash"),
-  BLOOM("bloom"),
-  GIN("gin");
+public enum ColumnNotNullConstraint {
+  NULL,
+  NOT_NULL;
 
-  final String keyword;
+  public boolean isNotNull() {
+    return this == NOT_NULL;
+  }
 }

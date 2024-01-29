@@ -25,13 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.analytics.table.model;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import org.hisp.dhis.analytics.Collation;
 
 /**
  * Class representing an analytics database table column.
@@ -41,29 +42,32 @@ import lombok.Getter;
 @Getter
 @EqualsAndHashCode
 public class AnalyticsTableColumn {
-  /** The column name. */
+  /** Column name. */
   private final String name;
 
-  /** The column data type. */
+  /** Column data type. */
   private final ColumnDataType dataType;
 
   /** Column not null constraint, default is to allow null values. */
   private ColumnNotNullConstraint notNull = ColumnNotNullConstraint.NULL;
 
-  /** The column SQL alias. */
-  private final String alias;
-
-  /** The column collation. */
+  /** Column collation. */
   private Collation collation;
+
+  /** Column analytics value type, i.e. dimension or fact. */
+  private final AnalyticsValueType valueType;
+
+  /** The expression to use in select clauses. */
+  private final String selectExpression;
+
+  /** Date of creation of the underlying data dimension. */
+  private Date created;
 
   /** Explicit index type, defaults to database default type {@link IndexType#BTREE}. */
   private IndexType indexType = IndexType.BTREE;
 
   /** Whether to skip building an index for this column. */
   private boolean skipIndex = false;
-
-  /** Date of creation of the underlying data dimension. */
-  private Date created;
 
   /** Explicit index column names, defaults to column name. */
   private List<String> indexColumns = new ArrayList<>();
@@ -77,12 +81,13 @@ public class AnalyticsTableColumn {
    *
    * @param name analytics table column name.
    * @param dataType analytics table column data type.
-   * @param alias source table column alias and name.
+   * @param selectExpression source table select expression.
    */
-  public AnalyticsTableColumn(String name, ColumnDataType dataType, String alias) {
+  public AnalyticsTableColumn(String name, ColumnDataType dataType, String selectExpression) {
     this.name = name;
     this.dataType = dataType;
-    this.alias = alias;
+    this.valueType = AnalyticsValueType.DIMENSION;
+    this.selectExpression = selectExpression;
   }
 
   /**
@@ -90,14 +95,16 @@ public class AnalyticsTableColumn {
    *
    * @param name analytics table column name.
    * @param dataType analytics table column data type.
-   * @param alias source table column alias and name.
+   * @param collation the analytics table column collation.
+   * @param selectExpression source table select expression.
    */
   public AnalyticsTableColumn(
-      String name, ColumnDataType dataType, String alias, Collation collation) {
+      String name, ColumnDataType dataType, Collation collation, String selectExpression) {
     this.name = name;
     this.dataType = dataType;
+    this.valueType = AnalyticsValueType.DIMENSION;
     this.notNull = ColumnNotNullConstraint.NULL;
-    this.alias = alias;
+    this.selectExpression = selectExpression;
     this.collation = collation;
   }
 
@@ -107,12 +114,38 @@ public class AnalyticsTableColumn {
    * @param name analytics table column name.
    * @param dataType analytics table column data type.
    * @param notNull analytics table column not null constraint.
-   * @param alias source table column alias and name.
+   * @param selectExpression source table select expression.
    */
   public AnalyticsTableColumn(
-      String name, ColumnDataType dataType, ColumnNotNullConstraint notNull, String alias) {
-    this(name, dataType, alias);
+      String name,
+      ColumnDataType dataType,
+      ColumnNotNullConstraint notNull,
+      String selectExpression) {
+    this.name = name;
+    this.dataType = dataType;
+    this.selectExpression = selectExpression;
+    this.valueType = AnalyticsValueType.DIMENSION;
     this.notNull = notNull;
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param name analytics table column name.
+   * @param dataType analytics table column data type.
+   * @param selectExpression source table select expression.
+   */
+  public AnalyticsTableColumn(
+      String name,
+      ColumnDataType dataType,
+      ColumnNotNullConstraint notNull,
+      AnalyticsValueType valueType,
+      String selectExpression) {
+    this.name = name;
+    this.dataType = dataType;
+    this.notNull = notNull;
+    this.valueType = valueType;
+    this.selectExpression = selectExpression;
   }
 
   // -------------------------------------------------------------------------

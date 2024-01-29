@@ -73,9 +73,9 @@ public class OutlierRequestValidator {
 
     if (errorMessage != null) {
       log.warn(
-          String.format(
-              "Outlier detection request validation failed, code: '%s', message: '%s'",
-              errorMessage.getErrorCode(), errorMessage.getMessage()));
+          "Outlier detection request validation failed, code: '{}', message: '{}'",
+          errorMessage.getErrorCode(),
+          errorMessage.getMessage());
 
       throw new IllegalQueryException(errorMessage);
     }

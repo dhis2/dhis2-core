@@ -37,7 +37,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
-import org.hisp.dhis.analytics.table.PartitionUtils;
+import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -136,7 +136,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
     String baseTableName = ANALYTICS_TABLE_NAME + "_" + pi.getAnalyticsType().getValue();
 
     return " FROM "
-        + PartitionUtils.getTableName(baseTableName, pi.getProgram())
+        + AnalyticsTable.getTableName(baseTableName, pi.getProgram())
         + " as "
         + SUBQUERY_TABLE_ALIAS;
   }

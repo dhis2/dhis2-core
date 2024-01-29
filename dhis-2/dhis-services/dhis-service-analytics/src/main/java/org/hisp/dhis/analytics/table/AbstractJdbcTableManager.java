@@ -27,20 +27,18 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
-import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
-import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.table.PartitionUtils.getEndDate;
 import static org.hisp.dhis.analytics.table.PartitionUtils.getStartDate;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.CHARACTER_11;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.createIndexStatement;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexName;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getCollation;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
-import com.google.common.base.Preconditions;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -48,18 +46,18 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.analytics.AnalyticsIndex;
-import org.hisp.dhis.analytics.AnalyticsTable;
-import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableManager;
-import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTablePhase;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.Collation;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.table.model.AnalyticsIndex;
+import org.hisp.dhis.analytics.table.model.AnalyticsTable;
+import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -69,6 +67,7 @@ import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -329,33 +328,31 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @param table the {@link AnalyticsTable}.
    */
   protected void createTempTable(AnalyticsTable table) {
-    validateDimensionColumns(table.getDimensionColumns());
-
     StringBuilder sql = new StringBuilder();
 
     String tableName = table.getTempTableName();
-    String parameters = analyticsExportSettings.getTableParameters();
+    Logged logged = analyticsExportSettings.getTableLogged();
+    String unlogged = logged == Logged.UNLOGGED ? "unlogged" : "";
 
-    sql.append("create ").append(parameters).append(" table ").append(tableName).append(" (");
+    sql.append("create ").append(unlogged).append(" table ").append(tableName).append(" (");
 
     for (AnalyticsTableColumn col : table.getColumns()) {
       String dataType = col.getDataType().getValue();
-      String nullConstraint = col.getNotNull().isNotNull() ? " not null" : " null";
+      String nullable = col.getNotNull().isNotNull() ? " not null" : " null";
       String collation = col.hasCollation() ? getCollation(col.getCollation().name()) : EMPTY;
 
       sql.append(col.getName())
           .append(SPACE)
           .append(dataType)
           .append(collation)
-          .append(nullConstraint)
+          .append(nullable)
           .append(",");
     }
 
     TextUtils.removeLastComma(sql).append(") ").append(getTableOptions());
 
     log.info("Creating table: '{}', columns: '{}'", tableName, table.getColumnCount());
-
-    log.debug("Create table SQL: {}", sql);
+    log.debug("Create table SQL: '{}'", sql);
 
     jdbcTemplate.execute(sql.toString());
   }
@@ -379,12 +376,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    */
   private void createTempTablePartition(AnalyticsTable table, AnalyticsTablePartition partition) {
     String tableName = partition.getTempTableName();
-    String parameters = analyticsExportSettings.getTableParameters();
+    Logged logged = analyticsExportSettings.getTableLogged();
+    String unlogged = logged == Logged.UNLOGGED ? "unlogged" : "";
     List<String> checks = getPartitionChecks(partition);
 
     StringBuilder sql = new StringBuilder();
 
-    sql.append("create ").append(parameters).append(" table ").append(tableName).append("(");
+    sql.append("create ").append(unlogged).append(" table ").append(tableName).append("(");
 
     if (!checks.isEmpty()) {
       StringBuilder sqlCheck = new StringBuilder();
@@ -398,7 +396,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .append(getTableOptions());
 
     log.info("Creating partition table: '{}'", tableName);
-    log.debug("Create SQL: {}", sql);
+    log.debug("Create table SQL: '{}'", sql);
 
     jdbcTemplate.execute(sql.toString());
   }
@@ -413,21 +411,18 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    *
    * @param params the {@link AnalyticsTableUpdateParams}.
    * @param dataYears the list of years with data.
-   * @param dimensionColumns the list of dimension {@link AnalyticsTableColumn}.
-   * @param valueColumns the list of value {@link AnalyticsTableColumn}.
+   * @param columns the list of {@link AnalyticsTableColumn}.
    */
   protected AnalyticsTable getRegularAnalyticsTable(
       AnalyticsTableUpdateParams params,
       List<Integer> dataYears,
-      List<AnalyticsTableColumn> dimensionColumns,
-      List<AnalyticsTableColumn> valueColumns) {
+      List<AnalyticsTableColumn> columns) {
 
     List<Integer> years = ListUtils.mutableCopy(dataYears);
 
     Collections.sort(years);
 
-    AnalyticsTable table =
-        new AnalyticsTable(getAnalyticsTableType(), dimensionColumns, valueColumns);
+    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns);
 
     for (Integer year : years) {
       table.addPartitionTable(year, getStartDate(year), getEndDate(year));
@@ -442,13 +437,10 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * partition is the start time of this analytics table update process.
    *
    * @param params the {@link AnalyticsTableUpdateParams}.
-   * @param dimensionColumns the list of dimension {@link AnalyticsTableColumn}.
-   * @param valueColumns the list of value {@link AnalyticsTableColumn}.
+   * @param columns the list of {@link AnalyticsTableColumn}.
    */
   protected AnalyticsTable getLatestAnalyticsTable(
-      AnalyticsTableUpdateParams params,
-      List<AnalyticsTableColumn> dimensionColumns,
-      List<AnalyticsTableColumn> valueColumns) {
+      AnalyticsTableUpdateParams params, List<AnalyticsTableColumn> columns) {
     Date lastFullTableUpdate =
         systemSettingManager.getDateSetting(SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE);
     Date lastLatestPartitionUpdate =
@@ -463,8 +455,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     Date endDate = params.getStartTime();
     boolean hasUpdatedData = hasUpdatedLatestData(lastAnyTableUpdate, endDate);
 
-    AnalyticsTable table =
-        new AnalyticsTable(getAnalyticsTableType(), dimensionColumns, valueColumns);
+    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns);
 
     if (hasUpdatedData) {
       table.addPartitionTable(
@@ -481,29 +472,6 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     }
 
     return table;
-  }
-
-  /**
-   * Checks whether the given list of columns are valid.
-   *
-   * @param columns the list of {@link AnalyticsTableColumn}.
-   * @throws IllegalArgumentException if not valid.
-   */
-  protected void validateDimensionColumns(List<AnalyticsTableColumn> columns) {
-    if (isEmpty(columns)) {
-      throw new IllegalStateException("Analytics table dimensions cannot be empty");
-    }
-
-    List<String> columnNames =
-        columns.stream().map(AnalyticsTableColumn::getName).collect(Collectors.toList());
-
-    Set<String> duplicates = ListUtils.getDuplicates(columnNames);
-
-    boolean columnsAreUnique = duplicates.isEmpty();
-
-    Preconditions.checkArgument(
-        columnsAreUnique,
-        String.format("Analytics table dimensions contain duplicates: %s", duplicates));
   }
 
   /**
@@ -579,13 +547,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @return a table column {@link AnalyticsTableColumn}
    */
   protected AnalyticsTableColumn getOrganisationUnitNameHierarchyColumn() {
-    String columnAlias =
+    String columnExpression =
         "concat_ws(' / ',"
             + organisationUnitService.getFilledOrganisationUnitLevels().stream()
                 .map(lv -> "ous." + PREFIX_ORGUNITNAMELEVEL + lv.getLevel())
                 .collect(Collectors.joining(","))
             + ") as ounamehierarchy";
-    return new AnalyticsTableColumn("ounamehierarchy", TEXT, columnAlias, Collation.C);
+    return new AnalyticsTableColumn("ounamehierarchy", TEXT, Collation.C, columnExpression);
   }
 
   /**
@@ -602,6 +570,35 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
                   .withCreated(ougs.getCreated());
             })
         .collect(Collectors.toList());
+  }
+
+  /**
+   * Returns the select clause, potentially with a cast statement, based on the given value type.
+   *
+   * @param valueType the value type to represent as database column type.
+   */
+  protected String getSelectClause(ValueType valueType, String columnName) {
+    if (valueType.isDecimal()) {
+      return "cast(" + columnName + " as double precision)";
+    } else if (valueType.isInteger()) {
+      return "cast(" + columnName + " as bigint)";
+    } else if (valueType.isBoolean()) {
+      return "case when "
+          + columnName
+          + " = 'true' then 1 when "
+          + columnName
+          + " = 'false' then 0 else null end";
+    } else if (valueType.isDate()) {
+      return "cast(" + columnName + " as timestamp)";
+    } else if (valueType.isGeo() && isSpatialSupport()) {
+      return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || ("
+          + columnName
+          + ") || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
+    } else if (valueType.isOrganisationUnit()) {
+      return "ou.uid from organisationunit ou where ou.uid = (select " + columnName;
+    } else {
+      return columnName;
+    }
   }
 
   // -------------------------------------------------------------------------

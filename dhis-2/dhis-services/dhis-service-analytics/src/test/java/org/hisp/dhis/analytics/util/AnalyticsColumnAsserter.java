@@ -30,7 +30,7 @@ package org.hisp.dhis.analytics.util;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-import org.hisp.dhis.analytics.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 
 /**
  * @author Luciano Fiandesio
@@ -44,7 +44,10 @@ public class AnalyticsColumnAsserter {
 
   public void verify(AnalyticsTableColumn expected) {
     assertThat("Column name does not match!", expected.getName(), is(actual.getName()));
-    assertThat("Column alias does not match!", expected.getAlias(), is(actual.getAlias()));
+    assertThat(
+        "Column alias does not match!",
+        expected.getSelectExpression(),
+        is(actual.getSelectExpression()));
     assertThat(
         "Column creation date does not match!", expected.getCreated(), is(actual.getCreated()));
     assertThat(expected.getDataType(), is(actual.getDataType()));

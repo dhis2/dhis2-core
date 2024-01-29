@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,26 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.db.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.io.IOException;
-import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.junit.jupiter.api.Test;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-class LoginControllerTest extends DhisControllerIntegrationTest {
-
-  private static final String iconKey = "iconKey";
+class TableTest {
+  @Test
+  void testToStagingTable() {
+    assertEquals("_categorystructure_staging", Table.toStaging("_categorystructure"));
+    assertEquals("analytics_staging", Table.toStaging("analytics"));
+  }
 
   @Test
-  void shouldGetLoginConfig() throws IOException {
-    JsonObject response = GET("/loginConfig").content();
-    assertEquals("DHIS 2", response.getString("applicationTitle").string());
-    assertEquals("en", response.getString("uiLocale").string());
+  void testFromStagingTable() {
+    assertEquals("_categorystructure", Table.fromStaging("_categorystructure_staging"));
+    assertEquals("analytics", Table.fromStaging("analytics_staging"));
   }
 }

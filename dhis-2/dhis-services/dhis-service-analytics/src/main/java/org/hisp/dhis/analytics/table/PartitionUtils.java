@@ -33,17 +33,16 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.analytics.AnalyticsTable;
-import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.Partitions;
+import org.hisp.dhis.analytics.table.model.AnalyticsTable;
+import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.program.Program;
 import org.springframework.util.Assert;
 
 /**
@@ -98,17 +97,6 @@ public class PartitionUtils {
   public static Date getEndDate(Integer year) {
     Integer nextYear = year + 1;
     return getStartDate(nextYear);
-  }
-
-  /**
-   * Returns the table name of the table with the given base name and program.
-   *
-   * @param baseName the table base name.
-   * @param program the program.
-   * @return the table name.
-   */
-  public static String getTableName(String baseName, Program program) {
-    return baseName + SEP + program.getUid().toLowerCase();
   }
 
   /**
@@ -225,7 +213,7 @@ public class PartitionUtils {
       } else {
         // Fake partition representing the master table
 
-        partitions.add(new AnalyticsTablePartition(table, null, null, null, false));
+        partitions.add(new AnalyticsTablePartition(table, null, null, null));
       }
     }
 

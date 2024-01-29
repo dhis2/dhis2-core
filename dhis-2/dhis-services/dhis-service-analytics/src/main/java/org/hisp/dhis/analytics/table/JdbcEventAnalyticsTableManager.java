@@ -30,15 +30,15 @@ package org.hisp.dhis.analytics.table;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
-import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
-import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
-import static org.hisp.dhis.analytics.ColumnDataType.GEOMETRY;
-import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
-import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
-import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
-import static org.hisp.dhis.analytics.ColumnDataType.VARCHAR_255;
-import static org.hisp.dhis.analytics.ColumnDataType.VARCHAR_50;
-import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.CHARACTER_11;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.DOUBLE;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.GEOMETRY;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.INTEGER;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.TEXT;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.TIMESTAMP;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.VARCHAR_255;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.VARCHAR_50;
+import static org.hisp.dhis.analytics.table.model.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
@@ -56,15 +56,15 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.analytics.AnalyticsTable;
-import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
-import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
-import org.hisp.dhis.analytics.ColumnDataType;
-import org.hisp.dhis.analytics.IndexType;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.table.model.AnalyticsTable;
+import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.model.ColumnDataType;
+import org.hisp.dhis.analytics.table.model.IndexType;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.Category;
@@ -130,7 +130,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         periodDataProvider);
   }
 
-  private static final List<AnalyticsTableColumn> FIXED_COLS =
+  protected static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
           new AnalyticsTableColumn(quote("psi"), CHARACTER_11, NOT_NULL, "psi.uid"),
           new AnalyticsTableColumn(quote("pi"), CHARACTER_11, NOT_NULL, "pi.uid"),
@@ -237,9 +237,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   @Transactional
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
     log.info(
-        format(
-            "Get tables using earliest: %s, spatial support: %b",
-            params.getFromDate(), isSpatialSupport()));
+        "Get tables using earliest: {}, spatial support: {}",
+        params.getFromDate(),
+        isSpatialSupport());
 
     List<Integer> availableDataYears =
         periodDataProvider.getAvailableYears(
@@ -294,8 +294,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       Collections.sort(yearsForPartitionTables);
 
       AnalyticsTable table =
-          new AnalyticsTable(
-              getAnalyticsTableType(), getDimensionColumns(program), List.of(), program);
+          new AnalyticsTable(getAnalyticsTableType(), getColumns(program), program);
 
       for (Integer year : yearsForPartitionTables) {
         table.addPartitionTable(
@@ -349,22 +348,21 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
       if (hasUpdatedData) {
         AnalyticsTable table =
-            new AnalyticsTable(
-                getAnalyticsTableType(), getDimensionColumns(program), List.of(), program);
+            new AnalyticsTable(getAnalyticsTableType(), getColumns(program), program);
         table.addPartitionTable(AnalyticsTablePartition.LATEST_PARTITION, startDate, endDate);
         tables.add(table);
 
         log.info(
-            format(
-                "Added latest event analytics partition for program: '%s' with start: '%s' and end: '%s'",
-                program.getUid(), getLongDateString(startDate), getLongDateString(endDate)));
+            "Added latest event analytics partition for program: '{}' with start: '{}' and end: '{}'",
+            program.getUid(),
+            getLongDateString(startDate),
+            getLongDateString(endDate));
       } else {
         log.info(
-            format(
-                "No updated latest event data found for program: '%s' with start: '%s' and end: '%s",
-                program.getUid(),
-                getLongDateString(lastAnyTableUpdate),
-                getLongDateString(endDate)));
+            "No updated latest event data found for program: '{}' with start: '{}' and end: '{}",
+            program.getUid(),
+            getLongDateString(lastAnyTableUpdate),
+            getLongDateString(endDate));
       }
     }
 
@@ -424,11 +422,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
       invokeTimeAndLog(sql, format("Remove updated events for table: '%s'", table.getTableName()));
     }
-  }
-
-  @Override
-  public List<AnalyticsTableColumn> getFixedColumns() {
-    return FIXED_COLS;
   }
 
   @Override
@@ -509,7 +502,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             + ")"
             + "and psi.deleted is false ";
 
-    populateTableInternal(partition, getDimensionColumns(program), fromClause);
+    populateTableInternal(partition, fromClause);
   }
 
   /**
@@ -518,7 +511,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * @param program the program.
    * @return a list of {@link AnalyticsTableColumn}.
    */
-  private List<AnalyticsTableColumn> getDimensionColumns(Program program) {
+  private List<AnalyticsTableColumn> getColumns(Program program) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     if (program.hasNonDefaultCategoryCombo()) {
@@ -574,7 +567,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             .flatMap(Collection::stream)
             .collect(toList()));
 
-    columns.addAll(getFixedColumns());
+    columns.addAll(FIXED_COLS);
 
     if (program.isRegistration()) {
       columns.add(new AnalyticsTableColumn(quote("tei"), CHARACTER_11, "tei.uid"));

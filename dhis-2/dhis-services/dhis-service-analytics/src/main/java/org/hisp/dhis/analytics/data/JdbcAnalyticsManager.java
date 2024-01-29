@@ -191,8 +191,6 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
 
       String sql = getSql(params, tableType);
 
-      log.debug(sql);
-
       final DataQueryParams immutableParams = DataQueryParams.newBuilder(params).build();
 
       if (params.analyzeOnly()) {
@@ -922,7 +920,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
   private Map<String, Object> getKeyValueMap(DataQueryParams params, String sql, int maxLimit) {
     Map<String, Object> map = new HashMap<>();
 
-    log.debug(String.format("Analytics SQL: %s", sql));
+    log.debug("Analytics query SQL: '{}'", sql);
 
     SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
 

@@ -267,9 +267,9 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
         paramsBuilder.withDataApprovalLevels(approvalLevels);
 
         log.debug(
-            String.format(
-                "User: '%s' constrained by data approval levels: '%s'",
-                currentUser.getUsername(), approvalLevels.values()));
+            "User: '{}' constrained by data approval levels: '{}'",
+            currentUser.getUsername(),
+            approvalLevels.values());
       }
     }
 
@@ -337,9 +337,7 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
 
     builder.addFilter(constraint);
 
-    log.debug(
-        String.format(
-            "User: '%s' constrained by data view organisation units", currentUser.getUsername()));
+    log.debug("User: '{}' constrained by data view organisation units", currentUser.getUsername());
   }
 
   /**
@@ -417,9 +415,9 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
       builder.addFilter(constraint);
 
       log.debug(
-          String.format(
-              "User: '%s' constrained by dimension: '%s'",
-              currentUser.getUsername(), constraint.getDimension()));
+          "User: '{}' constrained by dimension: '{}'",
+          currentUser.getUsername(),
+          constraint.getDimension());
     }
   }
 }

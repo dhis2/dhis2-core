@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,34 +25,62 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
-
-import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexName;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.QUOTE;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+package org.hisp.dhis.db.model;
 
 import java.util.List;
-import org.junit.jupiter.api.Test;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.db.model.constraint.Unique;
 
-class AnalyticsIndexTest {
-  @Test
-  void testGetIndexName() {
-    AnalyticsIndex indexA =
-        new AnalyticsIndex("analytics_2017_temp", List.of(quote("quarterly")), null);
-    AnalyticsIndex indexB =
-        new AnalyticsIndex("analytics_2018_temp", List.of(quote("ax"), quote("co")), null);
-    AnalyticsIndex indexC =
-        new AnalyticsIndex("analytics_2019_temp", List.of(quote("YtbsuPPo010")), null);
+/**
+ * Represents a database index.
+ *
+ * @author Lars Helge Overland
+ */
+@Getter
+@RequiredArgsConstructor
+public class Index {
+  /** Index name. Required. */
+  private final String name;
 
-    assertTrue(
-        getIndexName(indexA, AnalyticsTableType.DATA_VALUE)
-            .startsWith(QUOTE + "in_quarterly_ax_2017_"));
-    assertTrue(
-        getIndexName(indexB, AnalyticsTableType.DATA_VALUE)
-            .startsWith(QUOTE + "in_ax_co_ax_2018_"));
-    assertTrue(
-        getIndexName(indexC, AnalyticsTableType.DATA_VALUE)
-            .startsWith(QUOTE + "in_YtbsuPPo010_ax_2019_"));
+  /** Index type, defaults to {@link IndexType.BTREE}. Required. */
+  private final IndexType indexType;
+
+  /** Index uniqueness constraint. Required. */
+  private final Unique unique;
+
+  /** Index column names. Required. */
+  private final List<String> columns;
+
+  /** SQL {©code where} condition for index. Optional. */
+  private final String condition;
+
+  /**
+   * Constructor.
+   *
+   * @param name the index name.
+   * @param columns the list of index column names.
+   */
+  public Index(String name, List<String> columns) {
+    this.name = name;
+    this.indexType = IndexType.BTREE;
+    this.unique = Unique.NON_UNIQUE;
+    this.columns = columns;
+    this.condition = null;
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param name the index name.
+   * @param unique the uniqueness property.
+   * @param columns the list of index column names.
+   */
+  public Index(String name, Unique unique, List<String> columns) {
+    this.name = name;
+    this.indexType = IndexType.BTREE;
+    this.unique = unique;
+    this.columns = columns;
+    this.condition = null;
   }
 }

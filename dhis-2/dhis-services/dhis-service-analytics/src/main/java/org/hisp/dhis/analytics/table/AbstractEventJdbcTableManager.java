@@ -35,11 +35,11 @@ import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
-import org.hisp.dhis.analytics.AnalyticsTablePartition;
-import org.hisp.dhis.analytics.ColumnDataType;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.model.ColumnDataType;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -99,35 +99,6 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     return NO_INDEX_VAL_TYPES.contains(valueType) && !hasOptionSet;
   }
 
-  /**
-   * Returns the select clause, potentially with a cast statement, based on the given value type.
-   *
-   * @param valueType the value type to represent as database column type.
-   */
-  protected String getSelectClause(ValueType valueType, String columnName) {
-    if (valueType.isDecimal()) {
-      return "cast(" + columnName + " as double precision)";
-    } else if (valueType.isInteger()) {
-      return "cast(" + columnName + " as bigint)";
-    } else if (valueType.isBoolean()) {
-      return "case when "
-          + columnName
-          + " = 'true' then 1 when "
-          + columnName
-          + " = 'false' then 0 else null end";
-    } else if (valueType.isDate()) {
-      return "cast(" + columnName + " as timestamp)";
-    } else if (valueType.isGeo() && isSpatialSupport()) {
-      return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || ("
-          + columnName
-          + ") || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
-    } else if (valueType.isOrganisationUnit()) {
-      return "ou.uid from organisationunit ou where ou.uid = (select " + columnName;
-    } else {
-      return columnName;
-    }
-  }
-
   @Override
   public String validState() {
     // Data values might be '{}' / empty object if data values existed
@@ -153,16 +124,14 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    * Populates the given analytics table partition using the given columns and join statement.
    *
    * @param partition the {@link AnalyticsTablePartition}.
-   * @param columns the list of {@link AnalyticsTableColumn}.
    * @param fromClause the SQL from clause.
    */
-  protected void populateTableInternal(
-      AnalyticsTablePartition partition, List<AnalyticsTableColumn> columns, String fromClause) {
+  protected void populateTableInternal(AnalyticsTablePartition partition, String fromClause) {
     String tableName = partition.getTempTableName();
 
-    String sql = "insert into " + partition.getTempTableName() + " (";
+    List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
 
-    validateDimensionColumns(columns);
+    String sql = "insert into " + partition.getTempTableName() + " (";
 
     for (AnalyticsTableColumn col : columns) {
       sql += col.getName() + ",";
@@ -171,7 +140,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     sql = TextUtils.removeLastComma(sql) + ") select ";
 
     for (AnalyticsTableColumn col : columns) {
-      sql += col.getAlias() + ",";
+      sql += col.getSelectExpression() + ",";
     }
 
     sql = TextUtils.removeLastComma(sql) + " ";

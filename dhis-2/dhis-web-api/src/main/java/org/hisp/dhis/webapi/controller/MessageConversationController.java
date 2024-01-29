@@ -45,6 +45,7 @@ import java.util.Map;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.configuration.ConfigurationService;
@@ -83,13 +84,11 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.hisp.dhis.webapi.webdomain.MessageConversation;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -113,23 +112,16 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @OpenApi.Tags("messaging")
 @Controller
 @RequestMapping(value = MessageConversationSchemaDescriptor.API_ENDPOINT)
+@RequiredArgsConstructor
 public class MessageConversationController
     extends AbstractCrudController<org.hisp.dhis.message.MessageConversation> {
-  @Autowired private MessageService messageService;
-
-  @Autowired private OrganisationUnitService organisationUnitService;
-
-  @Autowired private UserService userService;
-
-  @Autowired private UserGroupService userGroupService;
-
-  @Autowired private ConfigurationService configurationService;
-
-  @Autowired private FileResourceUtils fileResourceUtils;
-
-  @Autowired private FileResourceService fileResourceService;
-
-  @Autowired private DhisConfigurationProvider dhisConfig;
+  private final MessageService messageService;
+  private final OrganisationUnitService organisationUnitService;
+  private final UserGroupService userGroupService;
+  private final ConfigurationService configurationService;
+  private final FileResourceUtils fileResourceUtils;
+  private final FileResourceService fileResourceService;
+  private final DhisConfigurationProvider dhisConfig;
 
   @Override
   protected void postProcessResponseEntity(
@@ -420,7 +412,7 @@ public class MessageConversationController
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void addRecipientsToMessageConversation(
       @PathVariable("uid") String uid, @RequestBody MessageConversation messageConversation)
-      throws Exception {
+      throws WebMessageException, ConflictException, NotFoundException {
     org.hisp.dhis.message.MessageConversation conversation =
         messageService.getMessageConversation(uid);
 
@@ -1061,7 +1053,7 @@ public class MessageConversationController
    * @param msgUid the message UID.
    * @param userDetails the user.
    * @return a {@link Message}.
-   * @throws WebMessageException
+   * @throws WebMessageException exception
    */
   private Message getMessage(String mcUid, String msgUid, UserDetails userDetails)
       throws WebMessageException {

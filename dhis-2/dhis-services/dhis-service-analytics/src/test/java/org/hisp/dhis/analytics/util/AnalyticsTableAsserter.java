@@ -41,11 +41,11 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.hisp.dhis.analytics.AnalyticsTable;
-import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableType;
-import org.hisp.dhis.analytics.ColumnDataType;
-import org.hisp.dhis.analytics.IndexType;
+import org.hisp.dhis.analytics.table.model.AnalyticsTable;
+import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.table.model.ColumnDataType;
+import org.hisp.dhis.analytics.table.model.IndexType;
 
 /**
  * @author Luciano Fiandesio
@@ -74,7 +74,7 @@ public class AnalyticsTableAsserter {
     assertThat(table.getTableName(), is(name));
     // verify default columns
     Map<String, AnalyticsTableColumn> tableColumnMap =
-        Stream.concat(table.getDimensionColumns().stream(), table.getValueColumns().stream())
+        Stream.concat(table.getDimensionColumns().stream(), table.getFactColumns().stream())
             .collect(Collectors.toMap(AnalyticsTableColumn::getName, c -> c));
     for (AnalyticsTableColumn col : defaultColumns) {
       if (!tableColumnMap.containsKey(col.getName())) {
