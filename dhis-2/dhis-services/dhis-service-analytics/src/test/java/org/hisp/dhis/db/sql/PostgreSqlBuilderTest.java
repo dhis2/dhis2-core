@@ -75,8 +75,8 @@ class PostgreSqlBuilderTest {
 
   @Test
   void testDataType() {
-    assertEquals("double precision", sqlBuilder.typeDouble());
-    assertEquals("geometry", sqlBuilder.typeGeometry());
+    assertEquals("double precision", sqlBuilder.dataTypeDouble());
+    assertEquals("geometry", sqlBuilder.dataTypeGeometry());
   }
 
   @Test
