@@ -57,6 +57,7 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
             new Column("data", DataType.CHARACTER_11, Nullable.NOT_NULL),
             new Column("period", DataType.VARCHAR_50, Nullable.NOT_NULL),
             new Column("created", DataType.TIMESTAMP),
+            new Column("user", DataType.JSONB),
             new Column("value", DataType.DOUBLE));
 
     List<String> primaryKey = List.of("id");
@@ -65,7 +66,7 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
         List.of(
             new Index("in_immunization_data", List.of("data")),
             new Index("in_immunization_period_created", List.of("period", "created")),
-            new Index("in_immunization_period", IndexType.BTREE, List.of("period")));
+            new Index("in_immunization_user", IndexType.GIN, List.of("user")));
 
     return new Table("immunization", columns, primaryKey, indexes);
   }
