@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.analytics.table.PartitionUtils.getLatestTablePartition;
+import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.CHARACTER_11;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.DOUBLE;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.INTEGER;
@@ -35,6 +36,7 @@ import static org.hisp.dhis.analytics.table.model.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.TIMESTAMP;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.VARCHAR_255;
 import static org.hisp.dhis.analytics.table.model.ColumnNotNullConstraint.NOT_NULL;
+import static org.hisp.dhis.analytics.table.model.ColumnNotNullConstraint.NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
@@ -158,9 +160,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
     AnalyticsTable table =
         params.isLatestUpdate()
-            ? getLatestAnalyticsTable(params, getDimensionColumns(params), getValueColumns())
-            : getRegularAnalyticsTable(
-                params, getDataYears(params), getDimensionColumns(params), getValueColumns());
+            ? getLatestAnalyticsTable(params, getColumns(params))
+            : getRegularAnalyticsTable(params, getDataYears(params), getColumns(params));
 
     return table.hasPartitionTables() ? List.of(table) : List.of();
   }
@@ -438,7 +439,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     return StringUtils.EMPTY;
   }
 
-  private List<AnalyticsTableColumn> getDimensionColumns(AnalyticsTableUpdateParams params) {
+  private List<AnalyticsTableColumn> getColumns(AnalyticsTableUpdateParams params) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     String idColAlias =
@@ -520,21 +521,23 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
       columns.addAll(getOutlierStatsColumns());
     }
 
+    columns.addAll(getFactColumns());
+
     return filterDimensionColumns(columns);
   }
 
   /**
-   * Returns a list of columns representing data value.
+   * Returns a list of columns representing facts.
    *
    * @return a list of {@link AnalyticsTableColumn}.
    */
-  private List<AnalyticsTableColumn> getValueColumns() {
+  private List<AnalyticsTableColumn> getFactColumns() {
     return List.of(
-        new AnalyticsTableColumn(quote("approvallevel"), INTEGER, "approvallevel"),
-        new AnalyticsTableColumn(quote("daysxvalue"), DOUBLE, "daysxvalue"),
-        new AnalyticsTableColumn(quote("daysno"), INTEGER, NOT_NULL, "daysno"),
-        new AnalyticsTableColumn(quote("value"), DOUBLE, "value"),
-        new AnalyticsTableColumn(quote("textvalue"), TEXT, "textvalue"));
+        new AnalyticsTableColumn(quote("approvallevel"), INTEGER, NULL, FACT, "approvallevel"),
+        new AnalyticsTableColumn(quote("daysxvalue"), DOUBLE, NULL, FACT, "daysxvalue"),
+        new AnalyticsTableColumn(quote("daysno"), INTEGER, NOT_NULL, FACT, "daysno"),
+        new AnalyticsTableColumn(quote("value"), DOUBLE, NULL, FACT, "value"),
+        new AnalyticsTableColumn(quote("textvalue"), TEXT, NULL, FACT, "textvalue"));
   }
 
   /**

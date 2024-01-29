@@ -74,7 +74,7 @@ public class AnalyticsTableAsserter {
     assertThat(table.getTableName(), is(name));
     // verify default columns
     Map<String, AnalyticsTableColumn> tableColumnMap =
-        Stream.concat(table.getDimensionColumns().stream(), table.getValueColumns().stream())
+        Stream.concat(table.getDimensionColumns().stream(), table.getFactColumns().stream())
             .collect(Collectors.toMap(AnalyticsTableColumn::getName, c -> c));
     for (AnalyticsTableColumn col : defaultColumns) {
       if (!tableColumnMap.containsKey(col.getName())) {

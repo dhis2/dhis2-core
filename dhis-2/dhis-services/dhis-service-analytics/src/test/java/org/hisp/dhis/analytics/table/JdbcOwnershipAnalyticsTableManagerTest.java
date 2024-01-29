@@ -161,17 +161,11 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
 
     tableA =
         new AnalyticsTable(
-            AnalyticsTableType.OWNERSHIP,
-            JdbcOwnershipAnalyticsTableManager.FIXED_COLS,
-            emptyList(),
-            programA);
+            AnalyticsTableType.OWNERSHIP, JdbcOwnershipAnalyticsTableManager.FIXED_COLS, programA);
 
     tableB =
         new AnalyticsTable(
-            AnalyticsTableType.OWNERSHIP,
-            JdbcOwnershipAnalyticsTableManager.FIXED_COLS,
-            emptyList(),
-            programB);
+            AnalyticsTableType.OWNERSHIP, JdbcOwnershipAnalyticsTableManager.FIXED_COLS, programB);
 
     partitionA = new AnalyticsTablePartition(tableA, 1, new Date(), new Date());
   }

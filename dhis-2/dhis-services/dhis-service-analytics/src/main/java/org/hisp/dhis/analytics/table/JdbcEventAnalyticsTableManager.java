@@ -294,7 +294,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       Collections.sort(yearsForPartitionTables);
 
       AnalyticsTable table =
-          new AnalyticsTable(getAnalyticsTableType(), getColumns(program), List.of(), program);
+          new AnalyticsTable(getAnalyticsTableType(), getColumns(program), program);
 
       for (Integer year : yearsForPartitionTables) {
         table.addPartitionTable(
@@ -348,7 +348,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
       if (hasUpdatedData) {
         AnalyticsTable table =
-            new AnalyticsTable(getAnalyticsTableType(), getColumns(program), List.of(), program);
+            new AnalyticsTable(getAnalyticsTableType(), getColumns(program), program);
         table.addPartitionTable(AnalyticsTablePartition.LATEST_PARTITION, startDate, endDate);
         tables.add(table);
 

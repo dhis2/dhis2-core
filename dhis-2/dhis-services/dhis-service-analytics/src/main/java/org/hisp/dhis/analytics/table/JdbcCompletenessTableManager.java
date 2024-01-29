@@ -29,11 +29,13 @@ package org.hisp.dhis.analytics.table;
 
 import static java.util.Collections.emptyList;
 import static org.hisp.dhis.analytics.table.PartitionUtils.getLatestTablePartition;
+import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.BOOLEAN;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.CHARACTER_11;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.DATE;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.INTEGER;
 import static org.hisp.dhis.analytics.table.model.ColumnNotNullConstraint.NOT_NULL;
+import static org.hisp.dhis.analytics.table.model.ColumnNotNullConstraint.NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
@@ -117,8 +119,8 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
     AnalyticsTable table =
         params.isLatestUpdate()
-            ? getLatestAnalyticsTable(params, getColumns(), List.of())
-            : getRegularAnalyticsTable(params, getDataYears(params), getColumns(), List.of());
+            ? getLatestAnalyticsTable(params, getColumns())
+            : getRegularAnalyticsTable(params, getDataYears(params), getColumns());
 
     return table.hasPartitionTables() ? List.of(table) : List.of();
   }
@@ -290,7 +292,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
 
     columns.add(new AnalyticsTableColumn(quote("timely"), BOOLEAN, timelyAlias));
     columns.addAll(FIXED_COLS);
-    columns.add(new AnalyticsTableColumn(quote("value"), DATE, "cdr.date as value"));
+    columns.add(new AnalyticsTableColumn(quote("value"), DATE, NULL, FACT, "cdr.date as value"));
     return filterDimensionColumns(columns);
   }
 

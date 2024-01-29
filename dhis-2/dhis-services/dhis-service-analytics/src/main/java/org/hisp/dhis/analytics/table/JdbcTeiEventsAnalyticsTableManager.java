@@ -183,8 +183,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
 
       Collections.sort(dataYears);
 
-      AnalyticsTable table =
-          new AnalyticsTable(getAnalyticsTableType(), getColumns(), List.of(), tet);
+      AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), getColumns(), tet);
 
       for (Integer year : dataYears) {
         table.addPartitionTable(year, getStartDate(calendar, year), getEndDate(calendar, year));

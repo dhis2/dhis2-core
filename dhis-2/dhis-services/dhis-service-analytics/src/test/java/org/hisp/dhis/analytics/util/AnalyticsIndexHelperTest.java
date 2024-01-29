@@ -105,10 +105,9 @@ class AnalyticsIndexHelperTest {
   }
 
   private AnalyticsTable stubAnalyticsTable() {
-    List<AnalyticsTableColumn> dimensionColumns = List.of(stubAnalyticsTableColumn());
-    List<AnalyticsTableColumn> valueColumns = List.of(stubAnalyticsTableColumn());
+    List<AnalyticsTableColumn> columns = List.of(stubAnalyticsTableColumn());
 
-    return new AnalyticsTable(EVENT, dimensionColumns, valueColumns);
+    return new AnalyticsTable(EVENT, columns);
   }
 
   private AnalyticsTableColumn stubAnalyticsTableColumn() {

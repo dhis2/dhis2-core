@@ -28,10 +28,12 @@
 package org.hisp.dhis.analytics.table;
 
 import static java.util.Collections.emptyList;
+import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.CHARACTER_11;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.DATE;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.DOUBLE;
 import static org.hisp.dhis.analytics.table.model.ColumnNotNullConstraint.NOT_NULL;
+import static org.hisp.dhis.analytics.table.model.ColumnNotNullConstraint.NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 
 import java.util.ArrayList;
@@ -116,7 +118,7 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
     return params.isLatestUpdate()
         ? List.of()
-        : List.of(new AnalyticsTable(getAnalyticsTableType(), getColumns(), List.of()));
+        : List.of(new AnalyticsTable(getAnalyticsTableType(), getColumns()));
   }
 
   @Override
@@ -214,7 +216,7 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
     }
 
     columns.addAll(FIXED_COLS);
-    columns.add(new AnalyticsTableColumn(quote("value"), DOUBLE, "1 as value"));
+    columns.add(new AnalyticsTableColumn(quote("value"), DOUBLE, NULL, FACT, "1 as value"));
 
     return filterDimensionColumns(columns);
   }
