@@ -253,59 +253,6 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     return hooks.size();
   }
 
-  // -------------------------------------------------------------------------
-  // Abstract methods
-  // -------------------------------------------------------------------------
-
-  /**
-   * Returns a list of table checks (constraints) for the given analytics table partition.
-   *
-   * @param partition the {@link AnalyticsTablePartition}.
-   */
-  protected abstract List<String> getPartitionChecks(AnalyticsTablePartition partition);
-
-  /**
-   * Populates the given analytics table.
-   *
-   * @param params the {@link AnalyticsTableUpdateParams}.
-   * @param partition the {@link AnalyticsTablePartition} to populate.
-   */
-  protected abstract void populateTable(
-      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition);
-
-  /**
-   * Indicates whether data was created or updated for the given time range since last successful
-   * "latest" table partition update.
-   *
-   * @param startDate the start date.
-   * @param endDate the end date.
-   * @return true if updated data exists.
-   */
-  protected abstract boolean hasUpdatedLatestData(Date startDate, Date endDate);
-
-  // -------------------------------------------------------------------------
-  // Protected supportive methods
-  // -------------------------------------------------------------------------
-
-  /** Returns the analytics table name. */
-  protected String getTableName() {
-    return getAnalyticsTableType().getTableName();
-  }
-
-  /**
-   * Executes a SQL statement "safely" (without throwing any exception). Instead, exceptions are
-   * simply logged.
-   *
-   * @param sql the SQL statement.
-   */
-  private void executeSafely(String sql) {
-    try {
-      jdbcTemplate.execute(sql);
-    } catch (DataAccessException ex) {
-      log.error(ex.getMessage());
-    }
-  }
-
   /**
    * Drops and creates the given analytics table.
    *
@@ -378,6 +325,79 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     log.debug("Create table SQL: '{}'", sql);
 
     jdbcTemplate.execute(sql.toString());
+  }
+
+  /**
+   * Swaps a database table, meaning drops the real table and renames the temporary table to become
+   * the real table.
+   *
+   * @param tempTableName the temporary table name.
+   * @param realTableName the real table name.
+   */
+  private void swapTable(String tempTableName, String realTableName) {
+    String[] sqlSteps = {
+      "drop table if exists " + realTableName + " cascade",
+      "alter table " + tempTableName + " rename to " + realTableName
+    };
+
+    executeSafely(sqlSteps, true);
+  }
+
+  /**
+   * Updates table inheritance of a table partition from the temp master table to the real master
+   * table.
+   *
+   * @param partitionTableName the partition table name.
+   * @param tempMasterTableName the temporary master table name.
+   * @param realMasterTableName the real master table name.
+   */
+  private void swapInheritance(
+      String partitionTableName, String tempMasterTableName, String realMasterTableName) {
+    String[] sqlSteps = {
+      "alter table " + partitionTableName + " inherit " + realMasterTableName,
+      "alter table " + partitionTableName + " no inherit " + tempMasterTableName
+    };
+
+    executeSafely(sqlSteps, true);
+  }
+
+  // -------------------------------------------------------------------------
+  // Abstract methods
+  // -------------------------------------------------------------------------
+
+  /**
+   * Returns a list of table checks (constraints) for the given analytics table partition.
+   *
+   * @param partition the {@link AnalyticsTablePartition}.
+   */
+  protected abstract List<String> getPartitionChecks(AnalyticsTablePartition partition);
+
+  /**
+   * Populates the given analytics table.
+   *
+   * @param params the {@link AnalyticsTableUpdateParams}.
+   * @param partition the {@link AnalyticsTablePartition} to populate.
+   */
+  protected abstract void populateTable(
+      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition);
+
+  /**
+   * Indicates whether data was created or updated for the given time range since last successful
+   * "latest" table partition update.
+   *
+   * @param startDate the start date.
+   * @param endDate the end date.
+   * @return true if updated data exists.
+   */
+  protected abstract boolean hasUpdatedLatestData(Date startDate, Date endDate);
+
+  // -------------------------------------------------------------------------
+  // Protected supportive methods
+  // -------------------------------------------------------------------------
+
+  /** Returns the analytics table name. */
+  protected String getTableName() {
+    return getAnalyticsTableType().getTableName();
   }
 
   /**
@@ -587,37 +607,17 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   /**
-   * Swaps a database table, meaning drops the real table and renames the temporary table to become
-   * the real table.
+   * Executes a SQL statement "safely" (without throwing any exception). Instead, exceptions are
+   * simply logged.
    *
-   * @param tempTableName the temporary table name.
-   * @param realTableName the real table name.
+   * @param sql the SQL statement.
    */
-  private void swapTable(String tempTableName, String realTableName) {
-    String[] sqlSteps = {
-      "drop table if exists " + realTableName + " cascade",
-      "alter table " + tempTableName + " rename to " + realTableName
-    };
-
-    executeSafely(sqlSteps, true);
-  }
-
-  /**
-   * Updates table inheritance of a table partition from the temp master table to the real master
-   * table.
-   *
-   * @param partitionTableName the partition table name.
-   * @param tempMasterTableName the temporary master table name.
-   * @param realMasterTableName the real master table name.
-   */
-  private void swapInheritance(
-      String partitionTableName, String tempMasterTableName, String realMasterTableName) {
-    String[] sqlSteps = {
-      "alter table " + partitionTableName + " inherit " + realMasterTableName,
-      "alter table " + partitionTableName + " no inherit " + tempMasterTableName
-    };
-
-    executeSafely(sqlSteps, true);
+  private void executeSafely(String sql) {
+    try {
+      jdbcTemplate.execute(sql);
+    } catch (DataAccessException ex) {
+      log.error(ex.getMessage());
+    }
   }
 
   /**
