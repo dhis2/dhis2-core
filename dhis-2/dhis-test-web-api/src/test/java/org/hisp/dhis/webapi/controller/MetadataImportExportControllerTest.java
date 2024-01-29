@@ -447,7 +447,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
       "Should return error in import report if deleting object is referenced by other object")
   void testDeleteWithException() {
     POST(
-            "/metadata?importStrategy=CREATE_AND_UPDATE",
+            "/metadata",
             "{\"optionSets\":"
                 + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\"}]"
                 + ",\"dataElements\":"
