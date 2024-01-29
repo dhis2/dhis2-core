@@ -33,5 +33,6 @@ package org.hisp.dhis.db.model;
  * @author Maikel Arabori
  */
 public enum IndexFunction {
-  LOWER;
+  LOWER,
+  UPPER;
 }

@@ -158,6 +158,11 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   // Index functions
 
   @Override
+  public String indexFunctionUpper() {
+    return "upper";
+  }
+
+  @Override
   public String indexFunctionLower() {
     return "lower";
   }

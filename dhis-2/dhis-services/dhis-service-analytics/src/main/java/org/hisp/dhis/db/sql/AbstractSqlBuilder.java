@@ -28,6 +28,7 @@
 package org.hisp.dhis.db.sql;
 
 import static org.hisp.dhis.system.util.SqlUtils.quote;
+
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.IndexFunction;
@@ -126,6 +127,8 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
   @Override
   public String getIndexFunctionName(IndexFunction indexFunction) {
     switch (indexFunction) {
+      case UPPER:
+        return indexFunctionUpper();
       case LOWER:
         return indexFunctionLower();
       default:

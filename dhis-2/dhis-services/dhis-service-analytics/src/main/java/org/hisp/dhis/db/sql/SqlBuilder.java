@@ -165,6 +165,11 @@ public interface SqlBuilder {
   // Index functions
 
   /**
+   * @return the name of the upper index function.
+   */
+  String indexFunctionUpper();
+
+  /**
    * @return the name of the lower index function.
    */
   String indexFunctionLower();
