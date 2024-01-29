@@ -411,21 +411,18 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    *
    * @param params the {@link AnalyticsTableUpdateParams}.
    * @param dataYears the list of years with data.
-   * @param dimensionColumns the list of dimension {@link AnalyticsTableColumn}.
-   * @param valueColumns the list of value {@link AnalyticsTableColumn}.
+   * @param columns the list of {@link AnalyticsTableColumn}.
    */
   protected AnalyticsTable getRegularAnalyticsTable(
       AnalyticsTableUpdateParams params,
       List<Integer> dataYears,
-      List<AnalyticsTableColumn> dimensionColumns,
-      List<AnalyticsTableColumn> valueColumns) {
+      List<AnalyticsTableColumn> columns) {
 
     List<Integer> years = ListUtils.mutableCopy(dataYears);
 
     Collections.sort(years);
 
-    AnalyticsTable table =
-        new AnalyticsTable(getAnalyticsTableType(), dimensionColumns, valueColumns);
+    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns);
 
     for (Integer year : years) {
       table.addPartitionTable(year, getStartDate(year), getEndDate(year));
@@ -440,13 +437,10 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * partition is the start time of this analytics table update process.
    *
    * @param params the {@link AnalyticsTableUpdateParams}.
-   * @param dimensionColumns the list of dimension {@link AnalyticsTableColumn}.
-   * @param valueColumns the list of value {@link AnalyticsTableColumn}.
+   * @param columns the list of {@link AnalyticsTableColumn}.
    */
   protected AnalyticsTable getLatestAnalyticsTable(
-      AnalyticsTableUpdateParams params,
-      List<AnalyticsTableColumn> dimensionColumns,
-      List<AnalyticsTableColumn> valueColumns) {
+      AnalyticsTableUpdateParams params, List<AnalyticsTableColumn> columns) {
     Date lastFullTableUpdate =
         systemSettingManager.getDateSetting(SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE);
     Date lastLatestPartitionUpdate =
@@ -461,8 +455,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     Date endDate = params.getStartTime();
     boolean hasUpdatedData = hasUpdatedLatestData(lastAnyTableUpdate, endDate);
 
-    AnalyticsTable table =
-        new AnalyticsTable(getAnalyticsTableType(), dimensionColumns, valueColumns);
+    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns);
 
     if (hasUpdatedData) {
       table.addPartitionTable(

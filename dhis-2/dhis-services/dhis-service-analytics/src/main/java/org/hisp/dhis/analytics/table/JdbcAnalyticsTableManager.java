@@ -40,11 +40,14 @@ import static org.hisp.dhis.analytics.table.model.ColumnNotNullConstraint.NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
+
+import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -81,8 +84,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.google.common.collect.Sets;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * This class manages the analytics tables. The analytics table is a denormalized table designed for
@@ -159,9 +160,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
     AnalyticsTable table =
         params.isLatestUpdate()
-            ? getLatestAnalyticsTable(params, getDimensionColumns(params), getValueColumns())
-            : getRegularAnalyticsTable(
-                params, getDataYears(params), getDimensionColumns(params), getValueColumns());
+            ? getLatestAnalyticsTable(params, getColumns(params))
+            : getRegularAnalyticsTable(params, getDataYears(params), getColumns(params));
 
     return table.hasPartitionTables() ? List.of(table) : List.of();
   }
@@ -439,7 +439,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     return StringUtils.EMPTY;
   }
 
-  private List<AnalyticsTableColumn> getDimensionColumns(AnalyticsTableUpdateParams params) {
+  private List<AnalyticsTableColumn> getColumns(AnalyticsTableUpdateParams params) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     String idColAlias =
@@ -521,15 +521,17 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
       columns.addAll(getOutlierStatsColumns());
     }
 
+    columns.addAll(getFactColumns());
+
     return filterDimensionColumns(columns);
   }
 
   /**
-   * Returns a list of columns representing data value.
+   * Returns a list of columns representing facts.
    *
    * @return a list of {@link AnalyticsTableColumn}.
    */
-  private List<AnalyticsTableColumn> getValueColumns() {
+  private List<AnalyticsTableColumn> getFactColumns() {
     return List.of(
         new AnalyticsTableColumn(quote("approvallevel"), INTEGER, NULL, FACT, "approvallevel"),
         new AnalyticsTableColumn(quote("daysxvalue"), DOUBLE, NULL, FACT, "daysxvalue"),
