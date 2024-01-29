@@ -30,7 +30,6 @@ package org.hisp.dhis.db.sql;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
-
 import java.util.stream.Collectors;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
@@ -231,12 +230,22 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String dropTableIfExists(Table table) {
-    return String.format("drop table if exists %s;", quote(table.getName()));
+    return dropTableIfExists(table.getName());
   }
 
   @Override
   public String dropTableIfExists(String name) {
     return String.format("drop table if exists %s;", quote(name));
+  }
+
+  @Override
+  public String dropTableIfExistsCascade(Table table) {
+    return dropTableIfExistsCascade(table.getName());
+  }
+
+  @Override
+  public String dropTableIfExistsCascade(String name) {
+    return String.format("drop table if exists %s cascade;", quote(name));
   }
 
   @Override

@@ -28,7 +28,6 @@
 package org.hisp.dhis.db.sql;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import java.util.List;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
@@ -151,6 +150,22 @@ class PostgreSqlBuilderTest {
   @Test
   void testDropTableIfExistsString() {
     String expected = "drop table if exists \"immunization\";";
+
+    assertEquals(expected, sqlBuilder.dropTableIfExists("immunization"));
+  }
+
+  @Test
+  void testDropTableIfExistsCascade() {
+    Table table = getTableA();
+
+    String expected = "drop table if exists \"immunization\" cascade;";
+
+    assertEquals(expected, sqlBuilder.dropTableIfExists(table));
+  }
+
+  @Test
+  void testDropTableIfExistsCascadeString() {
+    String expected = "drop table if exists \"immunization\" cascade;";
 
     assertEquals(expected, sqlBuilder.dropTableIfExists("immunization"));
   }
