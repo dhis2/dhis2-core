@@ -205,9 +205,9 @@ public class EventTrackerConverterService
           !StringUtils.isEmpty(event.getEvent()) ? event.getEvent() : event.getUid());
       programStageInstance.setCreated(now);
       programStageInstance.setStoredBy(event.getStoredBy());
-      programStageInstance.setCreatedByUserInfo(UserInfoSnapshot.from(preheat.getUser()));
+      programStageInstance.setCreatedByUserInfo(preheat.getUserInfo());
     }
-    programStageInstance.setLastUpdatedByUserInfo(UserInfoSnapshot.from(preheat.getUser()));
+    programStageInstance.setLastUpdatedByUserInfo(preheat.getUserInfo());
     programStageInstance.setLastUpdated(now);
     programStageInstance.setDeleted(false);
     programStageInstance.setCreatedAtClient(DateUtils.fromInstant(event.getCreatedAtClient()));
@@ -263,8 +263,8 @@ public class EventTrackerConverterService
       // dataElementIdSchemes are supported
       DataElement dataElement = preheat.getDataElement(dataValue.getDataElement());
       eventDataValue.setDataElement(dataElement.getUid());
-      eventDataValue.setLastUpdatedByUserInfo(UserInfoSnapshot.from(preheat.getUser()));
-      eventDataValue.setCreatedByUserInfo(UserInfoSnapshot.from(preheat.getUser()));
+      eventDataValue.setLastUpdatedByUserInfo(preheat.getUserInfo());
+      eventDataValue.setCreatedByUserInfo(preheat.getUserInfo());
 
       programStageInstance.getEventDataValues().add(eventDataValue);
     }
