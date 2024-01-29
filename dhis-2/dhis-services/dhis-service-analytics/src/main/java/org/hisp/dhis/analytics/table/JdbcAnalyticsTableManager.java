@@ -40,14 +40,11 @@ import static org.hisp.dhis.analytics.table.model.ColumnNotNullConstraint.NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
-
-import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -84,6 +81,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.google.common.collect.Sets;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * This class manages the analytics tables. The analytics table is a denormalized table designed for
@@ -566,8 +565,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             quote("categoryoptioncomboid"), INTEGER, NOT_NULL, "dv.categoryoptioncomboid"),
         new AnalyticsTableColumn(
             quote("attributeoptioncomboid"), INTEGER, NOT_NULL, "dv.attributeoptioncomboid"),
-        new AnalyticsTableColumn(quote("dataelementid"), INTEGER, NOT_NULL, "dv.dataelementid")
-            .withIndexColumns(List.of(quote("dataelementid"))),
+        new AnalyticsTableColumn(quote("dataelementid"), INTEGER, NOT_NULL, "dv.dataelementid"),
         new AnalyticsTableColumn(quote("petype"), VARCHAR_255, "pt.name"),
         new AnalyticsTableColumn(quote("path"), VARCHAR_255, "ou.path"),
         // mean
