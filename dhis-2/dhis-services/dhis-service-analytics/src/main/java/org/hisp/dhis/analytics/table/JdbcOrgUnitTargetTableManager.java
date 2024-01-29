@@ -30,9 +30,9 @@ package org.hisp.dhis.analytics.table;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.CHARACTER_11;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.DOUBLE;
-import static org.hisp.dhis.analytics.table.model.ColumnNotNullConstraint.NOT_NULL;
-import static org.hisp.dhis.analytics.table.model.ColumnNotNullConstraint.NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
+import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -50,6 +50,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
@@ -66,6 +67,9 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service("org.hisp.dhis.analytics.OrgUnitTargetTableManager")
 public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
+  private static final List<AnalyticsTableColumn> FIXED_COLS =
+      List.of(new AnalyticsTableColumn(quote("oug"), CHARACTER_11, NOT_NULL, "oug.uid"));
+
   public JdbcOrgUnitTargetTableManager(
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,
@@ -94,9 +98,6 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
         periodDataProvider);
   }
 
-  private static final List<AnalyticsTableColumn> FIXED_COLS =
-      List.of(new AnalyticsTableColumn(quote("oug"), CHARACTER_11, NOT_NULL, "oug.uid"));
-
   @Override
   public AnalyticsTableType getAnalyticsTableType() {
     return AnalyticsTableType.ORG_UNIT_TARGET;
@@ -105,9 +106,10 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
   @Override
   @Transactional
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
+    Logged logged = analyticsExportSettings.getTableLogged();
     return params.isLatestUpdate()
         ? List.of()
-        : List.of(new AnalyticsTable(getAnalyticsTableType(), getColumns()));
+        : List.of(new AnalyticsTable(getAnalyticsTableType(), getColumns(), logged));
   }
 
   @Override
@@ -168,8 +170,7 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
     for (OrganisationUnitLevel level : levels) {
       String column = quote(PREFIX_ORGUNITLEVEL + level.getLevel());
       columns.add(
-          new AnalyticsTableColumn(column, CHARACTER_11, "ous." + column)
-              .withCreated(level.getCreated()));
+          new AnalyticsTableColumn(column, CHARACTER_11, "ous." + column, level.getCreated()));
     }
 
     columns.addAll(FIXED_COLS);

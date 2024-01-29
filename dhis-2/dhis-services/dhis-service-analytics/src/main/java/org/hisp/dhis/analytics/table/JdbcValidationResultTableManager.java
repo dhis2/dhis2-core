@@ -33,9 +33,9 @@ import static org.hisp.dhis.analytics.table.model.ColumnDataType.DATE;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.INTEGER;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.TIMESTAMP;
-import static org.hisp.dhis.analytics.table.model.ColumnNotNullConstraint.NOT_NULL;
-import static org.hisp.dhis.analytics.table.model.ColumnNotNullConstraint.NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
+import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
 import java.util.ArrayList;
@@ -55,6 +55,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -117,7 +118,7 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
     AnalyticsTable table =
         params.isLatestUpdate()
-            ? new AnalyticsTable()
+            ? new AnalyticsTable(AnalyticsTableType.VALIDATION_RESULT, List.of(), Logged.LOGGED)
             : getRegularAnalyticsTable(params, getDataYears(params), getColumns());
 
     return table.hasPartitionTables() ? List.of(table) : List.of();
@@ -227,22 +228,25 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
     for (OrganisationUnitGroupSet groupSet : orgUnitGroupSets) {
       columns.add(
           new AnalyticsTableColumn(
-                  quote(groupSet.getUid()), CHARACTER_11, "ougs." + quote(groupSet.getUid()))
-              .withCreated(groupSet.getCreated()));
+              quote(groupSet.getUid()),
+              CHARACTER_11,
+              "ougs." + quote(groupSet.getUid()),
+              groupSet.getCreated()));
     }
 
     for (OrganisationUnitLevel level : levels) {
       String column = quote(PREFIX_ORGUNITLEVEL + level.getLevel());
       columns.add(
-          new AnalyticsTableColumn(column, CHARACTER_11, "ous." + column)
-              .withCreated(level.getCreated()));
+          new AnalyticsTableColumn(column, CHARACTER_11, "ous." + column, level.getCreated()));
     }
 
     for (Category category : attributeCategories) {
       columns.add(
           new AnalyticsTableColumn(
-                  quote(category.getUid()), CHARACTER_11, "acs." + quote(category.getUid()))
-              .withCreated(category.getCreated()));
+              quote(category.getUid()),
+              CHARACTER_11,
+              "acs." + quote(category.getUid()),
+              category.getCreated()));
     }
 
     for (PeriodType periodType : PeriodType.getAvailablePeriodTypes()) {

@@ -77,7 +77,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
   }
 
   @Override
-  public void update(AnalyticsTableUpdateParams params, JobProgress progress) {
+  public void create(AnalyticsTableUpdateParams params, JobProgress progress) {
     int parallelJobs = getParallelJobs();
 
     int tableUpdates = 0;

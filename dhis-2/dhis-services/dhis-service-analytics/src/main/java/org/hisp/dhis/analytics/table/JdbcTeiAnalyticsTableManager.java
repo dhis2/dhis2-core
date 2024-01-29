@@ -41,15 +41,13 @@ import static org.hisp.dhis.analytics.table.model.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.TIMESTAMP;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.VARCHAR_255;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.VARCHAR_50;
-import static org.hisp.dhis.analytics.table.model.ColumnNotNullConstraint.NOT_NULL;
-import static org.hisp.dhis.analytics.table.model.ColumnNotNullConstraint.NULL;
-import static org.hisp.dhis.analytics.table.model.IndexType.GIST;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
+import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
+import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
-import static org.springframework.util.Assert.notNull;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -69,6 +67,8 @@ import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.db.model.IndexType;
+import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
@@ -94,43 +94,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
 
   private final TrackedEntityAttributeService trackedEntityAttributeService;
 
-  public JdbcTeiAnalyticsTableManager(
-      IdentifiableObjectManager idObjectManager,
-      OrganisationUnitService organisationUnitService,
-      CategoryService categoryService,
-      SystemSettingManager systemSettingManager,
-      DataApprovalLevelService dataApprovalLevelService,
-      ResourceTableService resourceTableService,
-      AnalyticsTableHookService tableHookService,
-      PartitionManager partitionManager,
-      DatabaseInfoProvider databaseInfoProvider,
-      @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
-      TrackedEntityTypeService trackedEntityTypeService,
-      TrackedEntityAttributeService trackedEntityAttributeService,
-      AnalyticsTableExportSettings settings,
-      PeriodDataProvider periodDataProvider) {
-    super(
-        idObjectManager,
-        organisationUnitService,
-        categoryService,
-        systemSettingManager,
-        dataApprovalLevelService,
-        resourceTableService,
-        tableHookService,
-        partitionManager,
-        databaseInfoProvider,
-        jdbcTemplate,
-        settings,
-        periodDataProvider);
-
-    notNull(trackedEntityAttributeService, "trackedEntityAttributeService cannot be null");
-    this.trackedEntityAttributeService = trackedEntityAttributeService;
-
-    notNull(trackedEntityTypeService, "trackedEntityTypeService cannot be null");
-    this.trackedEntityTypeService = trackedEntityTypeService;
-  }
-
-  private static final List<AnalyticsTableColumn> GROUP_BY_COLS =
+  private static final List<AnalyticsTableColumn> FIXED_GROUP_BY_COLS =
       List.of(
           new AnalyticsTableColumn(
               quote("trackedentityid"), INTEGER, NOT_NULL, "tei.trackedentityid"),
@@ -143,7 +107,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
           new AnalyticsTableColumn(
               quote("lastupdatedatclient"), TIMESTAMP, "tei.lastupdatedatclient"),
           new AnalyticsTableColumn(quote("lastsynchronized"), TIMESTAMP, "tei.lastsynchronized"),
-          new AnalyticsTableColumn(quote("geometry"), GEOMETRY, "tei.geometry").withIndexType(GIST),
+          new AnalyticsTableColumn(quote("geometry"), GEOMETRY, "tei.geometry", IndexType.GIST),
           new AnalyticsTableColumn(
               quote("longitude"),
               DOUBLE,
@@ -166,7 +130,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
           new AnalyticsTableColumn(quote("oucode"), VARCHAR_50, NULL, "ou.code"),
           new AnalyticsTableColumn(quote("oulevel"), INTEGER, NULL, "ous.level"));
 
-  private static final List<AnalyticsTableColumn> NON_GROUP_BY_COLS =
+  private static final List<AnalyticsTableColumn> FIXED_NON_GROUP_BY_COLS =
       List.of(
           new AnalyticsTableColumn(
               quote("createdbyusername"),
@@ -201,6 +165,38 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
               VARCHAR_255,
               getDisplayName("lastupdatedbyuserinfo", "tei", "lastupdatedbydisplayname")));
 
+  public JdbcTeiAnalyticsTableManager(
+      IdentifiableObjectManager idObjectManager,
+      OrganisationUnitService organisationUnitService,
+      CategoryService categoryService,
+      SystemSettingManager systemSettingManager,
+      DataApprovalLevelService dataApprovalLevelService,
+      ResourceTableService resourceTableService,
+      AnalyticsTableHookService tableHookService,
+      PartitionManager partitionManager,
+      DatabaseInfoProvider databaseInfoProvider,
+      @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
+      TrackedEntityTypeService trackedEntityTypeService,
+      TrackedEntityAttributeService trackedEntityAttributeService,
+      AnalyticsTableExportSettings settings,
+      PeriodDataProvider periodDataProvider) {
+    super(
+        idObjectManager,
+        organisationUnitService,
+        categoryService,
+        systemSettingManager,
+        dataApprovalLevelService,
+        resourceTableService,
+        tableHookService,
+        partitionManager,
+        databaseInfoProvider,
+        jdbcTemplate,
+        settings,
+        periodDataProvider);
+    this.trackedEntityAttributeService = trackedEntityAttributeService;
+    this.trackedEntityTypeService = trackedEntityTypeService;
+  }
+
   /**
    * Returns the {@link AnalyticsTableType} of analytics table which this manager handles.
    *
@@ -224,8 +220,12 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
 
     params.addExtraParam("", PROGRAMS_BY_TET_KEY, programsByTetUid);
 
+    Logged logged = analyticsExportSettings.getTableLogged();
+
     return trackedEntityTypeService.getAllTrackedEntityType().stream()
-        .map(tet -> new AnalyticsTable(getAnalyticsTableType(), getColumns(params, tet), tet))
+        .map(
+            tet ->
+                new AnalyticsTable(getAnalyticsTableType(), getColumns(params, tet), logged, tet))
         .toList();
   }
 
@@ -320,9 +320,9 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
    * @return a List of {@link AnalyticsTableColumn}.
    */
   private List<AnalyticsTableColumn> getFixedColumns() {
-    List<AnalyticsTableColumn> allFixedColumns = new ArrayList<>(GROUP_BY_COLS);
+    List<AnalyticsTableColumn> allFixedColumns = new ArrayList<>(FIXED_GROUP_BY_COLS);
     allFixedColumns.add(getOrganisationUnitNameHierarchyColumn());
-    allFixedColumns.addAll(NON_GROUP_BY_COLS);
+    allFixedColumns.addAll(FIXED_NON_GROUP_BY_COLS);
 
     return allFixedColumns;
   }

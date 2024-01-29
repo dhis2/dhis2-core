@@ -50,6 +50,7 @@ import static org.hisp.dhis.analytics.table.model.ColumnDataType.GEOMETRY_POINT;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.INTEGER;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.TIMESTAMP;
+import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
@@ -74,8 +75,7 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
-import org.hisp.dhis.analytics.table.model.ColumnNotNullConstraint;
-import org.hisp.dhis.analytics.table.model.IndexType;
+import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.analytics.util.AnalyticsTableAsserter;
 import org.hisp.dhis.category.Category;
@@ -86,6 +86,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -444,19 +445,40 @@ class JdbcEventAnalyticsTableManagerTest {
         .withTableType(AnalyticsTableType.EVENT)
         .withColumnSize(63 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
-        .addColumn(d1.getUid(), TEXT, toAlias(aliasD1, d1.getUid())) // ValueType.TEXT
-        .addColumn(d2.getUid(), DOUBLE, toAlias(aliasD2, d2.getUid())) // ValueType.PERCENTAGE
-        .addColumn(d3.getUid(), INTEGER, toAlias(aliasD3, d3.getUid())) // ValueType.BOOLEAN
-        .addColumn(d4.getUid(), TIMESTAMP, toAlias(aliasD4, d4.getUid())) // ValueType.DATE
-        .addColumn(d5.getUid(), TEXT, toAlias(aliasD5, d5.getUid())) // ValueType.ORGANISATION_UNIT
-        .addColumn(d6.getUid(), BIGINT, toAlias(aliasD6, d6.getUid())) // ValueType.INTEGER
+        .addColumn(d1.getUid(), TEXT, toAlias(aliasD1, d1.getUid()), Skip.SKIP) // ValueType.TEXT
+        .addColumn(
+            d2.getUid(),
+            DOUBLE,
+            toAlias(aliasD2, d2.getUid()),
+            IndexType.BTREE) // ValueType.PERCENTAGE
+        .addColumn(
+            d3.getUid(),
+            INTEGER,
+            toAlias(aliasD3, d3.getUid()),
+            IndexType.BTREE) // ValueType.BOOLEAN
+        .addColumn(
+            d4.getUid(),
+            TIMESTAMP,
+            toAlias(aliasD4, d4.getUid()),
+            IndexType.BTREE) // ValueType.DATE
+        .addColumn(
+            d5.getUid(),
+            TEXT,
+            toAlias(aliasD5, d5.getUid()),
+            IndexType.BTREE) // ValueType.ORGANISATION_UNIT
+        .addColumn(
+            d6.getUid(),
+            BIGINT,
+            toAlias(aliasD6, d6.getUid()),
+            IndexType.BTREE) // ValueType.INTEGER
         .addColumn(
             d7.getUid(), GEOMETRY_POINT, toAlias(aliasD7, d7.getUid())) // ValueType.COORDINATES
         // element d5 also creates a Geo column
         .addColumn(
             d5.getUid() + "_geom", GEOMETRY, toAlias(aliasD5_geo, d5.getUid()), IndexType.GIST)
         // element d5 also creates a Name column
-        .addColumn(d5.getUid() + "_name", TEXT, toAlias(aliasD5_name, d5.getUid() + "_name"))
+        .addColumn(
+            d5.getUid() + "_name", TEXT, toAlias(aliasD5_name, d5.getUid() + "_name"), Skip.SKIP)
         .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
         .build()
         .verify();
@@ -514,7 +536,7 @@ class JdbcEventAnalyticsTableManagerTest {
         .withTableType(AnalyticsTableType.EVENT)
         .withColumnSize(58 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
-        .addColumn(d1.getUid(), TEXT, toAlias(aliasD1, d1.getUid())) // ValueType.TEXT
+        .addColumn(d1.getUid(), TEXT, toAlias(aliasD1, d1.getUid()), Skip.SKIP) // ValueType.TEXT
         .addColumn(
             tea1.getUid(), TEXT, String.format(aliasTea1, "ou.uid", tea1.getId(), tea1.getUid()))
         // Second Geometry column created from the OU column above
@@ -526,7 +548,8 @@ class JdbcEventAnalyticsTableManagerTest {
         .addColumn(
             tea1.getUid() + "_name",
             TEXT,
-            String.format(aliasTea1, "ou.name", tea1.getId(), tea1.getUid()))
+            String.format(aliasTea1, "ou.name", tea1.getId(), tea1.getUid()),
+            Skip.SKIP)
         .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
         .build()
         .verify();
@@ -848,7 +871,7 @@ class JdbcEventAnalyticsTableManagerTest {
     assertNotNull(col.getCreated());
     assertThat(col.getDataType(), is(CHARACTER_11));
     assertThat(col.isSkipIndex(), is(false));
-    assertThat(col.getNotNull(), is(ColumnNotNullConstraint.NULL));
+    assertThat(col.getNullable(), is(NULL));
     assertThat(col.getIndexColumns(), hasSize(0));
   }
 

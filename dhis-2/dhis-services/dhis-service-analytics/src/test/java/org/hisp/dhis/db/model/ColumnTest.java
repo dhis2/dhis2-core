@@ -25,8 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.db.model;
 
-public enum Collation {
-  C;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.hisp.dhis.db.model.constraint.Nullable;
+import org.junit.jupiter.api.Test;
+
+class ColumnTest {
+
+  @Test
+  void testIsNotNull() {
+    Column colA = new Column("dx", DataType.CHARACTER_11, Nullable.NOT_NULL);
+    Column colB = new Column("value", DataType.DOUBLE, Nullable.NULL);
+
+    assertTrue(colA.isNotNull());
+    assertFalse(colB.isNotNull());
+  }
+
+  @Test
+  void testHasCollation() {
+    Column colA = new Column("dx", DataType.CHARACTER_11, Nullable.NOT_NULL, Collation.DEFAULT);
+    Column colB = new Column("ou", DataType.CHARACTER_11, Nullable.NOT_NULL, Collation.C);
+    Column colC = new Column("value", DataType.DOUBLE, Nullable.NULL);
+
+    assertFalse(colA.hasCollation());
+    assertTrue(colB.hasCollation());
+    assertFalse(colC.hasCollation());
+  }
 }

@@ -52,7 +52,6 @@ import org.hisp.dhis.analytics.AnalyticsTableManager;
 import org.hisp.dhis.analytics.AnalyticsTablePhase;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
-import org.hisp.dhis.analytics.Collation;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsIndex;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
@@ -67,6 +66,7 @@ import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -79,7 +79,6 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
 
@@ -294,27 +293,12 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   /**
-   * Indicates whether the given table exists and has at least one row.
-   *
-   * @param tableName the table name.
-   */
-  protected boolean hasRows(String tableName) {
-    String sql = "select * from " + tableName + " limit 1";
-
-    try {
-      return jdbcTemplate.queryForRowSet(sql).next();
-    } catch (BadSqlGrammarException ex) {
-      return false;
-    }
-  }
-
-  /**
    * Executes a SQL statement "safely" (without throwing any exception). Instead, exceptions are
    * simply logged.
    *
    * @param sql the SQL statement.
    */
-  protected void executeSafely(String sql) {
+  private void executeSafely(String sql) {
     try {
       jdbcTemplate.execute(sql);
     } catch (DataAccessException ex) {
@@ -327,18 +311,17 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    *
    * @param table the {@link AnalyticsTable}.
    */
-  protected void createTempTable(AnalyticsTable table) {
+  private void createTempTable(AnalyticsTable table) {
     StringBuilder sql = new StringBuilder();
 
     String tableName = table.getTempTableName();
-    Logged logged = analyticsExportSettings.getTableLogged();
-    String unlogged = logged == Logged.UNLOGGED ? "unlogged" : "";
+    String unlogged = table.isUnlogged() ? "unlogged" : "";
 
     sql.append("create ").append(unlogged).append(" table ").append(tableName).append(" (");
 
     for (AnalyticsTableColumn col : table.getColumns()) {
       String dataType = col.getDataType().getValue();
-      String nullable = col.getNotNull().isNotNull() ? " not null" : " null";
+      String nullable = col.isNotNull() ? " not null" : " null";
       String collation = col.hasCollation() ? getCollation(col.getCollation().name()) : EMPTY;
 
       sql.append(col.getName())
@@ -362,7 +345,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    *
    * @param table the {@link AnalyticsTable}.
    */
-  protected void createTempTablePartitions(AnalyticsTable table) {
+  private void createTempTablePartitions(AnalyticsTable table) {
     for (AnalyticsTablePartition partition : table.getTablePartitions()) {
       createTempTablePartition(table, partition);
     }
@@ -376,8 +359,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    */
   private void createTempTablePartition(AnalyticsTable table, AnalyticsTablePartition partition) {
     String tableName = partition.getTempTableName();
-    Logged logged = analyticsExportSettings.getTableLogged();
-    String unlogged = logged == Logged.UNLOGGED ? "unlogged" : "";
+    String unlogged = table.isUnlogged() ? "unlogged" : "";
     List<String> checks = getPartitionChecks(partition);
 
     StringBuilder sql = new StringBuilder();
@@ -401,11 +383,6 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     jdbcTemplate.execute(sql.toString());
   }
 
-  /** Returns a table options SQL statement. */
-  private String getTableOptions() {
-    return WITH_AUTOVACUUM_ENABLED_FALSE;
-  }
-
   /**
    * Creates a {@link AnalyticsTable} with partitions based on a list of years with data.
    *
@@ -419,10 +396,11 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
       List<AnalyticsTableColumn> columns) {
 
     List<Integer> years = ListUtils.mutableCopy(dataYears);
+    Logged logged = analyticsExportSettings.getTableLogged();
 
     Collections.sort(years);
 
-    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns);
+    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns, logged);
 
     for (Integer year : years) {
       table.addPartitionTable(year, getStartDate(year), getEndDate(year));
@@ -452,10 +430,11 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         lastFullTableUpdate,
         "A full analytics table update must be run prior to a latest partition update");
 
+    Logged logged = analyticsExportSettings.getTableLogged();
     Date endDate = params.getStartTime();
     boolean hasUpdatedData = hasUpdatedLatestData(lastAnyTableUpdate, endDate);
 
-    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns);
+    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns, logged);
 
     if (hasUpdatedData) {
       table.addPartitionTable(
@@ -535,8 +514,8 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             lv -> {
               String column = quote(PREFIX_ORGUNITLEVEL + lv.getLevel());
-              return new AnalyticsTableColumn(column, CHARACTER_11, "ous." + column)
-                  .withCreated(lv.getCreated());
+              return new AnalyticsTableColumn(
+                  column, CHARACTER_11, "ous." + column, lv.getCreated());
             })
         .collect(Collectors.toList());
   }
@@ -566,8 +545,8 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             ougs -> {
               String column = quote(ougs.getUid());
-              return new AnalyticsTableColumn(column, CHARACTER_11, "ougs." + column)
-                  .withCreated(ougs.getCreated());
+              return new AnalyticsTableColumn(
+                  column, CHARACTER_11, "ougs." + column, ougs.getCreated());
             })
         .collect(Collectors.toList());
   }
@@ -604,6 +583,11 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   // -------------------------------------------------------------------------
   // Private supportive methods
   // -------------------------------------------------------------------------
+
+  /** Returns a table options SQL statement. */
+  private String getTableOptions() {
+    return WITH_AUTOVACUUM_ENABLED_FALSE;
+  }
 
   /**
    * Swaps a database table, meaning drops the real table and renames the temporary table to become
