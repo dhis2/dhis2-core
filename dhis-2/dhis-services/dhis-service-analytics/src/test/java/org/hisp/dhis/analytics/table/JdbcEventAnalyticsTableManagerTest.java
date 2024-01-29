@@ -848,7 +848,7 @@ class JdbcEventAnalyticsTableManagerTest {
     assertNotNull(col.getCreated());
     assertThat(col.getDataType(), is(CHARACTER_11));
     assertThat(col.isSkipIndex(), is(false));
-    assertThat(col.getNotNull(), is(NULL));
+    assertThat(col.getNullable(), is(NULL));
     assertThat(col.getIndexColumns(), hasSize(0));
   }
 

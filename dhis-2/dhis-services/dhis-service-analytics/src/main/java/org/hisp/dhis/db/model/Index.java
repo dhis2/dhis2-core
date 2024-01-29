@@ -83,4 +83,11 @@ public class Index {
     this.columns = columns;
     this.condition = null;
   }
+
+  /**
+   * @return true if the index is unique.
+   */
+  public boolean isUnique() {
+    return Unique.UNIQUE == unique;
+  }
 }

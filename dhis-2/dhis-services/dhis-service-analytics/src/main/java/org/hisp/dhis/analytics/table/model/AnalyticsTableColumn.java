@@ -50,7 +50,7 @@ public class AnalyticsTableColumn {
   private final ColumnDataType dataType;
 
   /** Column not null constraint, default is to allow null values. */
-  private Nullable notNull = Nullable.NULL;
+  private Nullable nullable = Nullable.NULL;
 
   /** Column collation. */
   private Collation collation;
@@ -104,7 +104,7 @@ public class AnalyticsTableColumn {
     this.name = name;
     this.dataType = dataType;
     this.valueType = AnalyticsValueType.DIMENSION;
-    this.notNull = Nullable.NULL;
+    this.nullable = Nullable.NULL;
     this.selectExpression = selectExpression;
     this.collation = collation;
   }
@@ -123,7 +123,7 @@ public class AnalyticsTableColumn {
     this.dataType = dataType;
     this.selectExpression = selectExpression;
     this.valueType = AnalyticsValueType.DIMENSION;
-    this.notNull = notNull;
+    this.nullable = notNull;
   }
 
   /**
@@ -141,7 +141,7 @@ public class AnalyticsTableColumn {
       String selectExpression) {
     this.name = name;
     this.dataType = dataType;
-    this.notNull = notNull;
+    this.nullable = notNull;
     this.valueType = valueType;
     this.selectExpression = selectExpression;
   }
@@ -150,16 +150,17 @@ public class AnalyticsTableColumn {
   // Logic
   // -------------------------------------------------------------------------
 
+  /** Indicates whether this column is not null. */
+  public boolean isNotNull() {
+    return Nullable.NOT_NULL == nullable;
+  }
+
   /** Indicates whether explicit index columns are specified, defaults to this column name. */
   public boolean hasIndexColumns() {
     return !indexColumns.isEmpty();
   }
 
-  /**
-   * Indicates whether a collation is specified.
-   *
-   * @return
-   */
+  /** Indicates whether a collation is specified. */
   public boolean hasCollation() {
     return collation != null;
   }
