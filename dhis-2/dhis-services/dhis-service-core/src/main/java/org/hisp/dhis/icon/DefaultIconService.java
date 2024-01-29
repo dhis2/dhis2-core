@@ -74,7 +74,7 @@ public class DefaultIconService implements IconService {
   public List<Icon> getIcons(IconOperationParams iconOperationParams) {
     if (IconTypeFilter.DEFAULT == iconOperationParams.getIconTypeFilter()) {
       return defaultIcons.values().stream()
-          .filter(icon -> iconOperationParams.getKeys().contains(icon.getKey()))
+          .filter(icon -> Set.of(icon.getKeywords()).containsAll(iconOperationParams.getKeywords()))
           .collect(Collectors.toList());
     }
 
@@ -84,7 +84,9 @@ public class DefaultIconService implements IconService {
 
     return Stream.concat(
             defaultIcons.values().stream()
-                .filter(icon -> iconOperationParams.getKeys().contains(icon.getKey()))
+                .filter(
+                    icon ->
+                        Set.of(icon.getKeywords()).containsAll(iconOperationParams.getKeywords()))
                 .toList()
                 .stream(),
             customIconStore.getIcons(iconOperationParams))
