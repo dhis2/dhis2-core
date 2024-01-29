@@ -50,7 +50,7 @@ public class AnalyticsIndex {
   /** Table column names. */
   private List<String> columns = new ArrayList<>();
 
-  /** Function to be used by the index, if any */
+  /** Function to be used by the index. Optional. */
   private IndexFunction function;
 
   /**
