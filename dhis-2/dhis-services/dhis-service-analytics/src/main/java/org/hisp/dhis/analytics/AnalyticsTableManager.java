@@ -142,13 +142,6 @@ public interface AnalyticsTableManager {
   void dropTempTablePartition(AnalyticsTablePartition tablePartition);
 
   /**
-   * Drops the given table.
-   *
-   * @param tableName the table name.
-   */
-  void dropTable(String tableName);
-
-  /**
    * Drops the given table and all potential partitions.
    *
    * @param tableName the table name.

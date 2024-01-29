@@ -223,11 +223,6 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   @Override
-  public void dropTable(String tableName) {
-    executeSafely("drop table if exists " + tableName);
-  }
-
-  @Override
   public void dropTableCascade(String tableName) {
     executeSafely("drop table if exists " + tableName + " cascade");
   }
