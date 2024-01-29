@@ -213,6 +213,18 @@ public interface SqlBuilder {
   String dropTableIfExists(String name);
 
   /**
+   * @param table the {@link Table}.
+   * @return a drop table if exists cascade statement.
+   */
+  String dropTableIfExistsCascade(Table table);
+
+  /**
+   * @param name the table name.
+   * @return a drop table if exists cascade statement.
+   */
+  String dropTableIfExistsCascade(String name);
+
+  /**
    * @param name the table name.
    * @return a statement which will return a single row with a single column with the table name if
    *     the table exists.

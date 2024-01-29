@@ -156,6 +156,22 @@ class PostgreSqlBuilderTest {
   }
 
   @Test
+  void testDropTableIfExistsCascade() {
+    Table table = getTableA();
+
+    String expected = "drop table if exists \"immunization\" cascade;";
+
+    assertEquals(expected, sqlBuilder.dropTableIfExistsCascade(table));
+  }
+
+  @Test
+  void testDropTableIfExistsCascadeString() {
+    String expected = "drop table if exists \"immunization\" cascade;";
+
+    assertEquals(expected, sqlBuilder.dropTableIfExistsCascade("immunization"));
+  }
+
+  @Test
   void testTableExists() {
     String expected =
         "select t.table_name from information_schema.tables t "
