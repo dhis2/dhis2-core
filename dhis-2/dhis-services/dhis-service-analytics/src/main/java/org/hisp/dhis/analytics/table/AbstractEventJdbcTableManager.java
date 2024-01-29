@@ -35,11 +35,11 @@ import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
-import org.hisp.dhis.analytics.AnalyticsTablePartition;
-import org.hisp.dhis.analytics.ColumnDataType;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.model.ColumnDataType;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -124,12 +124,12 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    * Populates the given analytics table partition using the given columns and join statement.
    *
    * @param partition the {@link AnalyticsTablePartition}.
-   * @param columns the list of {@link AnalyticsTableColumn}.
    * @param fromClause the SQL from clause.
    */
-  protected void populateTableInternal(
-      AnalyticsTablePartition partition, List<AnalyticsTableColumn> columns, String fromClause) {
+  protected void populateTableInternal(AnalyticsTablePartition partition, String fromClause) {
     String tableName = partition.getTempTableName();
+
+    List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
 
     String sql = "insert into " + partition.getTempTableName() + " (";
 

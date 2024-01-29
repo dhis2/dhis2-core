@@ -27,26 +27,25 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.String.join;
 import static java.util.Collections.emptyList;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS;
-import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
-import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_32;
-import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
-import static org.hisp.dhis.analytics.ColumnDataType.GEOMETRY;
-import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
-import static org.hisp.dhis.analytics.ColumnDataType.JSONB;
-import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
-import static org.hisp.dhis.analytics.ColumnDataType.VARCHAR_255;
-import static org.hisp.dhis.analytics.ColumnDataType.VARCHAR_50;
-import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
-import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NULL;
-import static org.hisp.dhis.analytics.IndexType.GIST;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.getDateLinkedToStatus;
 import static org.hisp.dhis.analytics.table.PartitionUtils.getEndDate;
 import static org.hisp.dhis.analytics.table.PartitionUtils.getStartDate;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.CHARACTER_11;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.CHARACTER_32;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.DOUBLE;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.GEOMETRY;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.INTEGER;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.JSONB;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.TIMESTAMP;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.VARCHAR_255;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.VARCHAR_50;
+import static org.hisp.dhis.analytics.table.model.ColumnNotNullConstraint.NOT_NULL;
+import static org.hisp.dhis.analytics.table.model.ColumnNotNullConstraint.NULL;
+import static org.hisp.dhis.analytics.table.model.IndexType.GIST;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
@@ -59,13 +58,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.analytics.AnalyticsTable;
-import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
-import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.table.model.AnalyticsTable;
+import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
@@ -185,7 +184,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
       Collections.sort(dataYears);
 
       AnalyticsTable table =
-          new AnalyticsTable(getAnalyticsTableType(), getTableColumns(), newArrayList(), tet);
+          new AnalyticsTable(getAnalyticsTableType(), getColumns(), List.of(), tet);
 
       for (Integer year : dataYears) {
         table.addPartitionTable(year, getStartDate(calendar, year), getEndDate(calendar, year));
@@ -242,8 +241,8 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
     return jdbcTemplate.queryForList(sql.toString(), Integer.class);
   }
 
-  private List<AnalyticsTableColumn> getTableColumns() {
-    List<AnalyticsTableColumn> analyticsTableColumnList = new ArrayList<>(getFixedColumns());
+  private List<AnalyticsTableColumn> getColumns() {
+    List<AnalyticsTableColumn> analyticsTableColumnList = new ArrayList<>(FIXED_COLS);
     analyticsTableColumnList.add(getOrganisationUnitNameHierarchyColumn());
 
     return analyticsTableColumnList;
@@ -257,16 +256,6 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
   @Override
   public String validState() {
     return null;
-  }
-
-  /**
-   * Returns a list of non-dynamic {@link AnalyticsTableColumn}.
-   *
-   * @return a List of {@link AnalyticsTableColumn}.
-   */
-  @Override
-  public List<AnalyticsTableColumn> getFixedColumns() {
-    return FIXED_COLS;
   }
 
   /**
@@ -288,7 +277,6 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
   @Override
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
-    List<AnalyticsTableColumn> dimensions = partition.getMasterTable().getDimensionColumns();
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
 
     String start = getLongDateString(partition.getStartDate());
@@ -316,7 +304,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
 
     removeLastComma(sql).append(") select distinct ");
 
-    for (AnalyticsTableColumn col : dimensions) {
+    for (AnalyticsTableColumn col : columns) {
       sql.append(col.getSelectExpression() + ",");
     }
 

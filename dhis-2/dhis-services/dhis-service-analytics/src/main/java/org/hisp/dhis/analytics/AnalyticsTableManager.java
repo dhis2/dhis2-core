@@ -30,6 +30,9 @@ package org.hisp.dhis.analytics;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.analytics.table.model.AnalyticsIndex;
+import org.hisp.dhis.analytics.table.model.AnalyticsTable;
+import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 
 /**
  * Manager for the analytics database tables.
@@ -181,11 +184,4 @@ public interface AnalyticsTableManager {
   default void vacuumTables(AnalyticsTablePartition partition) {
     // NOOP by default
   }
-
-  /**
-   * Returns a list of non-dynamic {@link AnalyticsTableColumn}.
-   *
-   * @return a List of {@link AnalyticsTableColumn}.
-   */
-  List<AnalyticsTableColumn> getFixedColumns();
 }

@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.analytics.table.model;
 
 import java.util.Date;
 import java.util.Objects;
@@ -61,22 +61,14 @@ public class AnalyticsTablePartition {
   /** The end date for which this partition may contain data, exclusive. */
   private Date endDate;
 
-  /** Indicates whether data approval applies to this partition. */
-  private boolean dataApproval;
-
   public AnalyticsTablePartition(
-      AnalyticsTable masterTable,
-      Integer year,
-      Date startDate,
-      Date endDate,
-      boolean dataApproval) {
+      AnalyticsTable masterTable, Integer year, Date startDate, Date endDate) {
     this.tableName = getTableName(masterTable.getTableName(), year);
     this.tempTableName = getTableName(masterTable.getTempTableName(), year);
     this.masterTable = masterTable;
     this.year = year;
     this.startDate = startDate;
     this.endDate = endDate;
-    this.dataApproval = dataApproval;
   }
 
   // -------------------------------------------------------------------------

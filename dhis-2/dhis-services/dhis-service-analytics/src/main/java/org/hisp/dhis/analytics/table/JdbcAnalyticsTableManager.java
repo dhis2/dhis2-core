@@ -27,17 +27,16 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
-import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
-import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
-import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
-import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
-import static org.hisp.dhis.analytics.ColumnDataType.VARCHAR_255;
-import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.table.PartitionUtils.getLatestTablePartition;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.CHARACTER_11;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.DOUBLE;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.INTEGER;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.TEXT;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.TIMESTAMP;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.VARCHAR_255;
+import static org.hisp.dhis.analytics.table.model.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL_UNAPPROVED;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
 import com.google.common.collect.Sets;
@@ -49,15 +48,15 @@ import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.AnalyticsTable;
-import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
-import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
-import org.hisp.dhis.analytics.ColumnDataType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.table.model.AnalyticsTable;
+import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.model.ColumnDataType;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.category.Category;
@@ -313,6 +312,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     boolean respectStartEndDates =
         systemSettingManager.getBoolSetting(
             SettingKey.RESPECT_META_DATA_START_END_DATES_IN_ANALYTICS_TABLE_EXPORT);
+    String approvalSelectExpression = getApprovalSelectExpression(partition.getYear());
     String approvalClause = getApprovalJoinClause(partition.getYear());
     String partitionClause =
         partition.isLatestPartition()
@@ -321,7 +321,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
 
     String sql = "insert into " + partition.getTempTableName() + " (";
 
-    List<AnalyticsTableColumn> dimensions = getDimensionColumns(partition.getYear(), params);
+    List<AnalyticsTableColumn> dimensions = partition.getMasterTable().getDimensionColumns();
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
 
     for (AnalyticsTableColumn col : columns) {
@@ -335,7 +335,9 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     }
 
     sql +=
-        valueExpression
+        approvalSelectExpression
+            + " as approvallevel, "
+            + valueExpression
             + " * ps.daysno as daysxvalue, "
             + "ps.daysno as daysno, "
             + valueExpression
@@ -393,6 +395,22 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   }
 
   /**
+   * Returns the approval select expression based on the given year.
+   *
+   * @param year the year.
+   * @return the approval select expression.
+   */
+  private String getApprovalSelectExpression(Integer year) {
+    if (isApprovalEnabled(year)) {
+      return "coalesce(des.datasetapprovallevel, aon.approvallevel, da.minlevel, "
+          + DataApprovalLevelService.APPROVAL_LEVEL_UNAPPROVED
+          + ")";
+    } else {
+      return String.valueOf(DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST);
+    }
+  }
+
+  /**
    * Returns sub-query for approval level. First looks for approval level in data element resource
    * table which will indicate level 0 (highest) if approval is not required. Then looks for highest
    * level in dataapproval table.
@@ -421,11 +439,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   }
 
   private List<AnalyticsTableColumn> getDimensionColumns(AnalyticsTableUpdateParams params) {
-    return getDimensionColumns(null, params);
-  }
-
-  private List<AnalyticsTableColumn> getDimensionColumns(
-      Integer year, AnalyticsTableUpdateParams params) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     String idColAlias =
@@ -502,15 +515,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
 
     columns.addAll(getPeriodTypeColumns("ps"));
 
-    String approvalCol =
-        isApprovalEnabled(year)
-            ? "coalesce(des.datasetapprovallevel, aon.approvallevel, da.minlevel, "
-                + APPROVAL_LEVEL_UNAPPROVED
-                + ") as approvallevel "
-            : DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST + " as approvallevel";
-
-    columns.add(new AnalyticsTableColumn(quote("approvallevel"), INTEGER, approvalCol));
-    columns.addAll(getFixedColumns());
+    columns.addAll(FIXED_COLS);
     if (!skipOutliers(params)) {
       columns.addAll(getOutlierStatsColumns());
     }
@@ -525,6 +530,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
    */
   private List<AnalyticsTableColumn> getValueColumns() {
     return List.of(
+        new AnalyticsTableColumn(quote("approvallevel"), INTEGER, "approvallevel"),
         new AnalyticsTableColumn(quote("daysxvalue"), DOUBLE, "daysxvalue"),
         new AnalyticsTableColumn(quote("daysno"), INTEGER, NOT_NULL, "daysno"),
         new AnalyticsTableColumn(quote("value"), DOUBLE, "value"),
@@ -626,11 +632,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     log.debug("Vacuum table SQL: '{}'", sql);
 
     jdbcTemplate.execute(sql);
-  }
-
-  @Override
-  public List<AnalyticsTableColumn> getFixedColumns() {
-    return FIXED_COLS;
   }
 
   /**

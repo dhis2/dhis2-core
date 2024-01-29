@@ -25,20 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.analytics.table.model;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Represents SQL functions that can be used by indexes.
+ * Index type.
  *
- * @author maikel arabori
+ * @author Lars Helge Overland
  */
 @Getter
 @RequiredArgsConstructor
-public enum IndexFunction {
-  LOWER("lower");
+public enum IndexType {
+  BTREE("btree"),
+  GIST("gist"),
+  HASH("hash"),
+  BLOOM("bloom"),
+  GIN("gin");
 
-  private final String value;
+  final String keyword;
 }
