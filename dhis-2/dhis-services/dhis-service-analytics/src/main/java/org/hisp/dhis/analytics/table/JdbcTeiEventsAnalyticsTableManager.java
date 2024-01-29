@@ -52,7 +52,6 @@ import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
-import static org.springframework.util.Assert.notNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -86,42 +85,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Component("org.hisp.dhis.analytics.TeiEventsAnalyticsTableManager")
 public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager {
-  private static final String AND = " and (";
-
-  private final TrackedEntityTypeService trackedEntityTypeService;
-
-  public JdbcTeiEventsAnalyticsTableManager(
-      IdentifiableObjectManager idObjectManager,
-      OrganisationUnitService organisationUnitService,
-      CategoryService categoryService,
-      SystemSettingManager systemSettingManager,
-      DataApprovalLevelService dataApprovalLevelService,
-      ResourceTableService resourceTableService,
-      AnalyticsTableHookService tableHookService,
-      PartitionManager partitionManager,
-      DatabaseInfoProvider databaseInfoProvider,
-      @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
-      TrackedEntityTypeService trackedEntityTypeService,
-      AnalyticsTableExportSettings settings,
-      PeriodDataProvider periodDataProvider) {
-    super(
-        idObjectManager,
-        organisationUnitService,
-        categoryService,
-        systemSettingManager,
-        dataApprovalLevelService,
-        resourceTableService,
-        tableHookService,
-        partitionManager,
-        databaseInfoProvider,
-        jdbcTemplate,
-        settings,
-        periodDataProvider);
-
-    notNull(trackedEntityTypeService, "trackedEntityTypeService cannot be null");
-    this.trackedEntityTypeService = trackedEntityTypeService;
-  }
-
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
           new AnalyticsTableColumn(
@@ -154,6 +117,40 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
           new AnalyticsTableColumn(quote("oucode"), CHARACTER_32, NULL, "ou.code"),
           new AnalyticsTableColumn(quote("oulevel"), INTEGER, NULL, "ous.level"),
           new AnalyticsTableColumn(quote("eventdatavalues"), JSONB, "psi.eventdatavalues"));
+
+  private static final String AND = " and (";
+
+  private final TrackedEntityTypeService trackedEntityTypeService;
+
+  public JdbcTeiEventsAnalyticsTableManager(
+      IdentifiableObjectManager idObjectManager,
+      OrganisationUnitService organisationUnitService,
+      CategoryService categoryService,
+      SystemSettingManager systemSettingManager,
+      DataApprovalLevelService dataApprovalLevelService,
+      ResourceTableService resourceTableService,
+      AnalyticsTableHookService tableHookService,
+      PartitionManager partitionManager,
+      DatabaseInfoProvider databaseInfoProvider,
+      @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
+      TrackedEntityTypeService trackedEntityTypeService,
+      AnalyticsTableExportSettings settings,
+      PeriodDataProvider periodDataProvider) {
+    super(
+        idObjectManager,
+        organisationUnitService,
+        categoryService,
+        systemSettingManager,
+        dataApprovalLevelService,
+        resourceTableService,
+        tableHookService,
+        partitionManager,
+        databaseInfoProvider,
+        jdbcTemplate,
+        settings,
+        periodDataProvider);
+    this.trackedEntityTypeService = trackedEntityTypeService;
+  }
 
   /**
    * Returns the {@link AnalyticsTableType} of analytics table which this manager handles.
