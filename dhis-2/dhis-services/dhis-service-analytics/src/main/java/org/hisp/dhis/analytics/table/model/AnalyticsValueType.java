@@ -27,6 +27,12 @@
  */
 package org.hisp.dhis.analytics.table.model;
 
+/**
+ * Represents an analytics value type for tables and columns, i.e. whether a table or column is a
+ * dimension or fact.
+ *
+ * @author Lars Helge Overland
+ */
 public enum AnalyticsValueType {
   DIMENSION,
   FACT;
