@@ -35,6 +35,7 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.tracker.ParamsConverter;
@@ -80,8 +81,14 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
 
   @Override
   public TrackerBundle create(TrackerImportParams params) {
-    TrackerBundle trackerBundle = ParamsConverter.convert(params);
+    UserInfoSnapshot userInfo = UserInfoSnapshot.from(params.getUser());
+
     TrackerPreheat preheat = trackerPreheatService.preheat(params);
+    preheat.setUserInfo(userInfo);
+
+    TrackerBundle trackerBundle = ParamsConverter.convert(params);
+
+    trackerBundle.setUserInfo(userInfo);
     trackerBundle.setPreheat(preheat);
 
     return trackerBundle;
@@ -120,11 +127,11 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
 
   @Override
   public void postCommit(TrackerBundle bundle) {
-    updateTeisLastUpdated(bundle);
+    updateTrackedEntitiesLastUpdated(bundle);
   }
 
-  private void updateTeisLastUpdated(TrackerBundle bundle) {
-    Optional.ofNullable(bundle.getUpdatedTeis())
+  private void updateTrackedEntitiesLastUpdated(TrackerBundle bundle) {
+    Optional.ofNullable(bundle.getUpdatedTrackedEntities())
         .filter(ut -> !ut.isEmpty())
         .ifPresent(
             teis ->

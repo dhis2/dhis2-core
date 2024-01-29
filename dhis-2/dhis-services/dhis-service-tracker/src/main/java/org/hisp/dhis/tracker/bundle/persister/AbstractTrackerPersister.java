@@ -99,7 +99,7 @@ public abstract class AbstractTrackerPersister<
     //
     List<T> dtos = getByType(getType(), bundle);
 
-    Set<String> updatedTeiList = bundle.getUpdatedTeis();
+    Set<String> updatedTrackedEntities = bundle.getUpdatedTrackedEntities();
 
     for (T trackerDto : dtos) {
       TrackerObjectReport objectReport =
@@ -138,7 +138,7 @@ public abstract class AbstractTrackerPersister<
             typeReport.getStats().incUpdated();
             typeReport.addObjectReport(objectReport);
             Optional.ofNullable(getUpdatedTrackedEntity(convertedDto))
-                .ifPresent(updatedTeiList::add);
+                .ifPresent(updatedTrackedEntities::add);
           } else {
             typeReport.getStats().incIgnored();
           }
@@ -157,7 +157,7 @@ public abstract class AbstractTrackerPersister<
           sideEffectDataBundles.add(handleSideEffects(bundle, convertedDto));
         }
 
-        bundle.setUpdatedTeis(updatedTeiList);
+        bundle.setUpdatedTrackedEntities(updatedTrackedEntities);
       } catch (Exception e) {
         final String msg =
             "A Tracker Entity of type '"
