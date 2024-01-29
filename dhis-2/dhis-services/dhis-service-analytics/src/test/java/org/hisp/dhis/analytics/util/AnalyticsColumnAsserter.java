@@ -50,7 +50,9 @@ public class AnalyticsColumnAsserter {
         expected.getSelectExpression(),
         is(actual.getSelectExpression()));
     assertThat(
-        "Column skip index does not match", expected.getSkipIndex(), is(actual.getSkipIndex()));
+        String.format("Column %s skip index does not match", expected.getName()),
+        expected.getSkipIndex(),
+        is(actual.getSkipIndex()));
     assertThat(
         "Column creation date does not match", expected.getCreated(), is(actual.getCreated()));
     assertThat(expected.getDataType(), is(actual.getDataType()));

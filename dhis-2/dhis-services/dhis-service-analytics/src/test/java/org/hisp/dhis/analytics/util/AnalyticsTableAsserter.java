@@ -164,7 +164,10 @@ public class AnalyticsTableAsserter {
 
     public Builder addColumnUnquoted(
         String name, ColumnDataType dataType, String alias, Skip skipIndex, IndexType indexType) {
-      AnalyticsTableColumn col = new AnalyticsTableColumn(name, dataType, alias, indexType);
+      AnalyticsTableColumn col =
+          Skip.SKIP == skipIndex
+              ? new AnalyticsTableColumn(name, dataType, alias, skipIndex)
+              : new AnalyticsTableColumn(name, dataType, alias, indexType);
       this._columns.add(col);
       return this;
     }
