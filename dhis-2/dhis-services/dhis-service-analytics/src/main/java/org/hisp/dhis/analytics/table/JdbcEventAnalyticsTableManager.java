@@ -38,6 +38,7 @@ import static org.hisp.dhis.analytics.table.model.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.TIMESTAMP;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.VARCHAR_255;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.VARCHAR_50;
+import static org.hisp.dhis.analytics.table.model.IndexType.NONE;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
@@ -581,15 +582,13 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         attribute.isNumericType() ? numericClause : attribute.isDateType() ? dateClause : "";
     String select = getSelectClause(attribute.getValueType(), "value");
     String sql = selectForInsert(attribute, select, dataClause);
-    boolean skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
+    IndexType indexType = getIndexType(attribute.getValueType(), attribute.hasOptionSet());
 
     if (attribute.getValueType().isOrganisationUnit()) {
       columns.addAll(getColumnsFromOrgUnitTrackedEntityAttribute(attribute, dataClause));
     }
 
-    columns.add(
-        new AnalyticsTableColumn(quote(attribute.getUid()), dataType, sql)
-            .withSkipIndex(skipIndex));
+    columns.add(new AnalyticsTableColumn(quote(attribute.getUid()), dataType, sql, indexType));
 
     return withLegendSet
         ? getColumnFromTrackedEntityAttributeWithLegendSet(attribute, numericClause)
@@ -637,15 +636,13 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String columnName = "eventdatavalues #>> '{" + dataElement.getUid() + ", value}'";
     String select = getSelectClause(dataElement.getValueType(), columnName);
     String sql = selectForInsert(dataElement, select, dataClause);
-    boolean skipIndex = skipIndex(dataElement.getValueType(), dataElement.hasOptionSet());
+    IndexType indexType = getIndexType(dataElement.getValueType(), dataElement.hasOptionSet());
 
     if (dataElement.getValueType().isOrganisationUnit()) {
       columns.addAll(getColumnFromOrgUnitDataElement(dataElement, dataClause));
     }
 
-    columns.add(
-        new AnalyticsTableColumn(quote(dataElement.getUid()), dataType, sql)
-            .withSkipIndex(skipIndex));
+    columns.add(new AnalyticsTableColumn(quote(dataElement.getUid()), dataType, sql, indexType));
 
     return withLegendSet
         ? getColumnFromDataElementWithLegendSet(dataElement, select, dataClause)
@@ -675,8 +672,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String ouNameSql = selectForInsert(attribute, fromTypeSql, dataClause);
 
     columns.add(
-        new AnalyticsTableColumn(quote(attribute.getUid() + OU_NAME_COL_SUFFIX), TEXT, ouNameSql)
-            .withSkipIndex(true));
+        new AnalyticsTableColumn(
+            quote(attribute.getUid() + OU_NAME_COL_SUFFIX), TEXT, ouNameSql, NONE));
 
     return columns;
   }
@@ -707,8 +704,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String ouNameSql = selectForInsert(dataElement, fromTypeSql, dataClause);
 
     columns.add(
-        new AnalyticsTableColumn(quote(dataElement.getUid() + OU_NAME_COL_SUFFIX), TEXT, ouNameSql)
-            .withSkipIndex(true));
+        new AnalyticsTableColumn(
+            quote(dataElement.getUid() + OU_NAME_COL_SUFFIX), TEXT, ouNameSql, NONE));
 
     return columns;
   }

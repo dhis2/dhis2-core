@@ -67,9 +67,6 @@ public class AnalyticsTableColumn {
   /** Explicit index type, defaults to database default type {@link IndexType#BTREE}. */
   private IndexType indexType = IndexType.BTREE;
 
-  /** Whether to skip building an index for this column. */
-  private boolean skipIndex = false;
-
   /** Explicit index column names, defaults to column name. */
   private List<String> indexColumns = new ArrayList<>();
 
@@ -135,6 +132,25 @@ public class AnalyticsTableColumn {
    * @param name analytics table column name.
    * @param dataType analytics table column data type.
    * @param selectExpression source table select expression.
+   * @param indexType the index type.
+   */
+  public AnalyticsTableColumn(
+      String name, ColumnDataType dataType, String selectExpression, IndexType indexType) {
+    this.name = name;
+    this.dataType = dataType;
+    this.nullable = Nullable.NULL;
+    this.collation = Collation.DEFAULT;
+    this.selectExpression = selectExpression;
+    this.valueType = AnalyticsValueType.DIMENSION;
+    this.indexType = indexType;
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param name analytics table column name.
+   * @param dataType analytics table column data type.
+   * @param selectExpression source table select expression.
    */
   public AnalyticsTableColumn(
       String name,
@@ -169,6 +185,11 @@ public class AnalyticsTableColumn {
     return collation != null && Collation.DEFAULT != collation;
   }
 
+  /** Indicates whether an index should not be created for this column. */
+  public boolean isSkipIndex() {
+    return IndexType.NONE == indexType;
+  }
+
   // -------------------------------------------------------------------------
   // Builder methods
   // -------------------------------------------------------------------------
@@ -190,16 +211,6 @@ public class AnalyticsTableColumn {
    */
   public AnalyticsTableColumn withIndexType(IndexType indexType) {
     this.indexType = indexType;
-    return this;
-  }
-
-  /**
-   * Sets whether to skip indexes.
-   *
-   * @param skipIndex indicates whether to skip indexing this column.
-   */
-  public AnalyticsTableColumn withSkipIndex(boolean skipIndex) {
-    this.skipIndex = skipIndex;
     return this;
   }
 
