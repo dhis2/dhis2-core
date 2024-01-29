@@ -38,11 +38,11 @@ import static org.hisp.dhis.analytics.table.model.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.TIMESTAMP;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.VARCHAR_255;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.VARCHAR_50;
-import static org.hisp.dhis.analytics.table.model.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
+import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
@@ -675,7 +675,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                   quote(attribute.getUid() + OU_GEOMETRY_COL_SUFFIX),
                   ColumnDataType.GEOMETRY,
                   geoSql)
-              .withSkipIndex(false)
               .withIndexType(IndexType.GIST));
     }
 
@@ -708,7 +707,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                   quote(dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX),
                   ColumnDataType.GEOMETRY,
                   geoSql)
-              .withSkipIndex(false)
               .withIndexType(IndexType.GIST));
     }
 

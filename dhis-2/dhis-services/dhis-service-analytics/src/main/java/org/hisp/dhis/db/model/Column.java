@@ -77,4 +77,11 @@ public class Column {
     this.nullable = nullable;
     this.collation = Collation.DEFAULT;
   }
+
+  /**
+   * @return true if the column is not null.
+   */
+  public boolean isNotNull() {
+    return Nullable.NOT_NULL == nullable;
+  }
 }

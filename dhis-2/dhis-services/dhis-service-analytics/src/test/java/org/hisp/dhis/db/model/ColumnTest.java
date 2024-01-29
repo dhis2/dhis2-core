@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,16 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.table.model;
+package org.hisp.dhis.db.model;
 
-/**
- * @author Lars Helge Overland
- */
-public enum ColumnNotNullConstraint {
-  NULL,
-  NOT_NULL;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-  public boolean isNotNull() {
-    return this == NOT_NULL;
+import org.hisp.dhis.db.model.constraint.Nullable;
+import org.junit.jupiter.api.Test;
+
+class ColumnTest {
+
+  @Test
+  void testIsNotNull() {
+    Column colA = new Column("dx", DataType.CHARACTER_11, Nullable.NOT_NULL);
+    Column colB = new Column("value", DataType.DOUBLE, Nullable.NULL);
+
+    assertTrue(colA.isNotNull());
+    assertFalse(colB.isNotNull());
   }
 }

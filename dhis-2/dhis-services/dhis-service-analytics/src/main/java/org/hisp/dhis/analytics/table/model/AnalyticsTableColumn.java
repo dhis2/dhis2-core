@@ -32,7 +32,8 @@ import java.util.Date;
 import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import org.hisp.dhis.analytics.Collation;
+import org.hisp.dhis.db.model.Collation;
+import org.hisp.dhis.db.model.constraint.Nullable;
 
 /**
  * Class representing an analytics database table column.
@@ -49,7 +50,7 @@ public class AnalyticsTableColumn {
   private final ColumnDataType dataType;
 
   /** Column not null constraint, default is to allow null values. */
-  private ColumnNotNullConstraint notNull = ColumnNotNullConstraint.NULL;
+  private final Nullable nullable;
 
   /** Column collation. */
   private Collation collation;
@@ -86,6 +87,7 @@ public class AnalyticsTableColumn {
   public AnalyticsTableColumn(String name, ColumnDataType dataType, String selectExpression) {
     this.name = name;
     this.dataType = dataType;
+    this.nullable = Nullable.NULL;
     this.valueType = AnalyticsValueType.DIMENSION;
     this.selectExpression = selectExpression;
   }
@@ -102,8 +104,8 @@ public class AnalyticsTableColumn {
       String name, ColumnDataType dataType, Collation collation, String selectExpression) {
     this.name = name;
     this.dataType = dataType;
+    this.nullable = Nullable.NULL;
     this.valueType = AnalyticsValueType.DIMENSION;
-    this.notNull = ColumnNotNullConstraint.NULL;
     this.selectExpression = selectExpression;
     this.collation = collation;
   }
@@ -117,15 +119,12 @@ public class AnalyticsTableColumn {
    * @param selectExpression source table select expression.
    */
   public AnalyticsTableColumn(
-      String name,
-      ColumnDataType dataType,
-      ColumnNotNullConstraint notNull,
-      String selectExpression) {
+      String name, ColumnDataType dataType, Nullable notNull, String selectExpression) {
     this.name = name;
     this.dataType = dataType;
+    this.nullable = notNull;
     this.selectExpression = selectExpression;
     this.valueType = AnalyticsValueType.DIMENSION;
-    this.notNull = notNull;
   }
 
   /**
@@ -138,12 +137,12 @@ public class AnalyticsTableColumn {
   public AnalyticsTableColumn(
       String name,
       ColumnDataType dataType,
-      ColumnNotNullConstraint notNull,
+      Nullable notNull,
       AnalyticsValueType valueType,
       String selectExpression) {
     this.name = name;
     this.dataType = dataType;
-    this.notNull = notNull;
+    this.nullable = notNull;
     this.valueType = valueType;
     this.selectExpression = selectExpression;
   }
@@ -152,16 +151,17 @@ public class AnalyticsTableColumn {
   // Logic
   // -------------------------------------------------------------------------
 
+  /** Indicates whether this column is not null. */
+  public boolean isNotNull() {
+    return Nullable.NOT_NULL == nullable;
+  }
+
   /** Indicates whether explicit index columns are specified, defaults to this column name. */
   public boolean hasIndexColumns() {
     return !indexColumns.isEmpty();
   }
 
-  /**
-   * Indicates whether a collation is specified.
-   *
-   * @return
-   */
+  /** Indicates whether a collation is specified. */
   public boolean hasCollation() {
     return collation != null;
   }
