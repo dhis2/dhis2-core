@@ -45,8 +45,8 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.ColumnDataType;
-import org.hisp.dhis.analytics.table.model.IndexType;
 import org.hisp.dhis.analytics.table.model.Skip;
+import org.hisp.dhis.db.model.IndexType;
 
 /**
  * @author Luciano Fiandesio

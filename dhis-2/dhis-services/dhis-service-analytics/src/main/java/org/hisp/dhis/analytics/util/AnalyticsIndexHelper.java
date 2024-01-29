@@ -45,6 +45,8 @@ import org.hisp.dhis.analytics.table.model.AnalyticsIndex;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.db.sql.SqlBuilder;
 
 /**
  * Helper class that encapsulates methods responsible for supporting the creation of analytics
@@ -54,6 +56,8 @@ import org.hisp.dhis.common.CodeGenerator;
  */
 public class AnalyticsIndexHelper {
   private static final String PREFIX_INDEX = "in_";
+
+  private static final SqlBuilder SQL_BUILDER = new PostgreSqlBuilder();
 
   private AnalyticsIndexHelper() {}
 
@@ -95,6 +99,7 @@ public class AnalyticsIndexHelper {
    */
   public static String createIndexStatement(AnalyticsIndex index, AnalyticsTableType tableType) {
     String indexName = getIndexName(index, tableType);
+    String indexTypeName = SQL_BUILDER.getIndexTypeName(index.getType());
     String indexColumns = maybeApplyFunctionToIndex(index, join(index.getColumns(), ","));
 
     return "create index "
@@ -104,7 +109,7 @@ public class AnalyticsIndexHelper {
         + index.getTable()
         + " "
         + "using "
-        + index.getType().getKeyword()
+        + indexTypeName
         + " ("
         + indexColumns
         + ");";
