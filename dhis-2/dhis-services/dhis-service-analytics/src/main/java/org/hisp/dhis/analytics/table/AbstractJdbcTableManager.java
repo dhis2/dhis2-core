@@ -232,6 +232,10 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     executeSafely("analyze " + tableName);
   }
 
+  public void vacuumTable(String tableName) {
+    executeSafely("vacuum " + tableName);
+  }
+
   @Override
   public void populateTablePartition(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {

@@ -639,11 +639,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
 
   @Override
   public void vacuumTables(AnalyticsTablePartition partition) {
-    String sql = "vacuum " + partition.getTempName();
-
-    log.debug("Vacuum table SQL: '{}'", sql);
-
-    jdbcTemplate.execute(sql);
+    vacuumTable(partition.getTempName());
   }
 
   /**
