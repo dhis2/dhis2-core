@@ -65,7 +65,7 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
         List.of(
             new Index("in_immunization_data", List.of("data")),
             new Index("in_immunization_period_created", List.of("period", "created")),
-            new Index("in_immunization_period", IndexType.GIST, List.of("period")));
+            new Index("in_immunization_period", IndexType.BTREE, List.of("period")));
 
     return new Table("immunization", columns, primaryKey, indexes);
   }
