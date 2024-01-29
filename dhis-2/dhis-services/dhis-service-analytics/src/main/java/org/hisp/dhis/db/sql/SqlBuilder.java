@@ -29,6 +29,7 @@ package org.hisp.dhis.db.sql;
 
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
+import org.hisp.dhis.db.model.IndexFunction;
 import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Table;
 
@@ -160,6 +161,19 @@ public interface SqlBuilder {
    * @return the index type name.
    */
   String getIndexTypeName(IndexType indexType);
+
+  // Index functions
+
+  /**
+   * @return the name of the lower index function.
+   */
+  String indexFunctionLower();
+
+  /**
+   * @param indexFunction the {@link IndexFunction}.
+   * @return the index function name.
+   */
+  String getIndexFunctionName(IndexFunction indexFunction);
 
   // Capabilities
 
