@@ -232,6 +232,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     executeSafely("analyze " + tableName);
   }
 
+  @Override
   public void vacuumTable(String tableName) {
     executeSafely("vacuum " + tableName);
   }
