@@ -45,7 +45,6 @@ import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
-import static org.springframework.util.Assert.notNull;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -134,8 +133,6 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
         jdbcTemplate,
         settings,
         periodDataProvider);
-
-    notNull(trackedEntityTypeService, "trackedEntityTypeService cannot be null");
     this.trackedEntityTypeService = trackedEntityTypeService;
   }
 

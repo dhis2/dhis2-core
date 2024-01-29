@@ -216,18 +216,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         periodDataProvider);
   }
 
-  /**
-   * Returns a SQL expression that returns the first argument if it is not null, otherwise the
-   * second argument.
-   *
-   * @param first the first argument
-   * @param second the second argument
-   * @return a SQL expression
-   */
-  private static String firstIfNotNullOrElse(String first, String second) {
-    return "CASE WHEN " + first + " IS NOT NULL THEN " + first + " ELSE " + second + " END";
-  }
-
   @Override
   public AnalyticsTableType getAnalyticsTableType() {
     return AnalyticsTableType.EVENT;
@@ -723,6 +711,18 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             .withSkipIndex(true));
 
     return columns;
+  }
+
+  /**
+   * Returns a SQL expression that returns the first argument if it is not null, otherwise the
+   * second argument.
+   *
+   * @param first the first argument
+   * @param second the second argument
+   * @return a SQL expression
+   */
+  private static String firstIfNotNullOrElse(String first, String second) {
+    return "CASE WHEN " + first + " IS NOT NULL THEN " + first + " ELSE " + second + " END";
   }
 
   private String selectForInsert(DataElement dataElement, String fromType, String dataClause) {
