@@ -121,6 +121,15 @@ public class Table {
   }
 
   /**
+   * Indicates whether the table is unlogged.
+   *
+   * @return true if the table is unlogged.
+   */
+  public boolean isUnlogged() {
+    return Logged.UNLOGGED == logged;
+  }
+
+  /**
    * Converts the given table name to a staging table name.
    *
    * @param tableName the table name.

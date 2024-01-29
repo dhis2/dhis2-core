@@ -74,6 +74,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.period.PeriodType;
@@ -276,6 +277,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     Calendar calendar = PeriodType.getCalendar();
 
+    Logged logged = analyticsExportSettings.getTableLogged();
+
     List<Program> programs =
         params.isSkipPrograms()
             ? idObjectManager.getAllNoAcl(Program.class)
@@ -294,7 +297,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       Collections.sort(yearsForPartitionTables);
 
       AnalyticsTable table =
-          new AnalyticsTable(getAnalyticsTableType(), getColumns(program), program);
+          new AnalyticsTable(getAnalyticsTableType(), getColumns(program), logged, program);
 
       for (Integer year : yearsForPartitionTables) {
         table.addPartitionTable(
@@ -336,6 +339,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     List<AnalyticsTable> tables = new ArrayList<>();
 
+    Logged logged = analyticsExportSettings.getTableLogged();
+
     List<Program> programs =
         params.isSkipPrograms()
             ? idObjectManager.getAllNoAcl(Program.class).stream()
@@ -348,7 +353,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
       if (hasUpdatedData) {
         AnalyticsTable table =
-            new AnalyticsTable(getAnalyticsTableType(), getColumns(program), program);
+            new AnalyticsTable(getAnalyticsTableType(), getColumns(program), logged, program);
         table.addPartitionTable(AnalyticsTablePartition.LATEST_PARTITION, startDate, endDate);
         tables.add(table);
 

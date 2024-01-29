@@ -85,6 +85,8 @@ public class Index {
   }
 
   /**
+   * Indicates whether the index is unique.
+   *
    * @return true if the index is unique.
    */
   public boolean isUnique() {

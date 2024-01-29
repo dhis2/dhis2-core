@@ -79,9 +79,16 @@ public class Column {
   }
 
   /**
+   * Indicates whether the column is not null.
+   *
    * @return true if the column is not null.
    */
   public boolean isNotNull() {
     return Nullable.NOT_NULL == nullable;
+  }
+
+  /** Indicates whether the collation is set to a non-default value. */
+  public boolean hasCollation() {
+    return collation != null && Collation.DEFAULT != collation;
   }
 }

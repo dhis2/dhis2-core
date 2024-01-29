@@ -43,4 +43,15 @@ class ColumnTest {
     assertTrue(colA.isNotNull());
     assertFalse(colB.isNotNull());
   }
+
+  @Test
+  void testHasCollation() {
+    Column colA = new Column("dx", DataType.CHARACTER_11, Nullable.NOT_NULL, Collation.DEFAULT);
+    Column colB = new Column("ou", DataType.CHARACTER_11, Nullable.NOT_NULL, Collation.C);
+    Column colC = new Column("value", DataType.DOUBLE, Nullable.NULL);
+
+    assertFalse(colA.hasCollation());
+    assertTrue(colB.hasCollation());
+    assertFalse(colC.hasCollation());
+  }
 }
