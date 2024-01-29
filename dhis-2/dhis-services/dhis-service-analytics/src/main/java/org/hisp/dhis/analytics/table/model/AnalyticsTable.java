@@ -207,14 +207,20 @@ public class AnalyticsTable {
     return this;
   }
 
-  public String getBaseName() {
-    return tableType.getTableName();
-  }
-
+  /**
+   * Indicates whether this analytics table has any partitions.
+   *
+   * @return true if this analytics table has any partitions.
+   */
   public boolean hasPartitionTables() {
     return !tablePartitions.isEmpty();
   }
 
+  /**
+   * Returns the latest partition, or null if no latest partition exists.
+   *
+   * @return a {@link AnalyticsTablePartition} or null.
+   */
   public AnalyticsTablePartition getLatestPartition() {
     return tablePartitions.stream()
         .filter(AnalyticsTablePartition::isLatestPartition)
