@@ -53,7 +53,7 @@ public class AnalyticsTableColumn {
   private final Nullable nullable;
 
   /** Column collation. */
-  private Collation collation;
+  private final Collation collation;
 
   /** Column analytics value type, i.e. dimension or fact. */
   private final AnalyticsValueType valueType;
@@ -88,6 +88,7 @@ public class AnalyticsTableColumn {
     this.name = name;
     this.dataType = dataType;
     this.nullable = Nullable.NULL;
+    this.collation = Collation.DEFAULT;
     this.valueType = AnalyticsValueType.DIMENSION;
     this.selectExpression = selectExpression;
   }
@@ -105,9 +106,9 @@ public class AnalyticsTableColumn {
     this.name = name;
     this.dataType = dataType;
     this.nullable = Nullable.NULL;
+    this.collation = collation;
     this.valueType = AnalyticsValueType.DIMENSION;
     this.selectExpression = selectExpression;
-    this.collation = collation;
   }
 
   /**
@@ -123,6 +124,7 @@ public class AnalyticsTableColumn {
     this.name = name;
     this.dataType = dataType;
     this.nullable = notNull;
+    this.collation = Collation.DEFAULT;
     this.selectExpression = selectExpression;
     this.valueType = AnalyticsValueType.DIMENSION;
   }
@@ -143,6 +145,7 @@ public class AnalyticsTableColumn {
     this.name = name;
     this.dataType = dataType;
     this.nullable = notNull;
+    this.collation = Collation.DEFAULT;
     this.valueType = valueType;
     this.selectExpression = selectExpression;
   }
@@ -161,9 +164,9 @@ public class AnalyticsTableColumn {
     return !indexColumns.isEmpty();
   }
 
-  /** Indicates whether a collation is specified. */
+  /** Indicates whether the collation is set to a non-default value. */
   public boolean hasCollation() {
-    return collation != null;
+    return collation != null && Collation.DEFAULT != collation;
   }
 
   // -------------------------------------------------------------------------
