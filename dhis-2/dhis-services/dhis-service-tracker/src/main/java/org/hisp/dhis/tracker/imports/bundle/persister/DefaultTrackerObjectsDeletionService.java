@@ -27,10 +27,8 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
-import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
@@ -78,20 +76,23 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
       Entity objectReport = new Entity(TrackerType.ENROLLMENT, uid);
 
       Enrollment enrollment = enrollmentService.getEnrollment(uid);
+      enrollment.setLastUpdatedByUserInfo(bundle.getUserInfo());
 
       List<org.hisp.dhis.tracker.imports.domain.Event> events =
           eventTrackerConverterService.to(
-              Lists.newArrayList(
-                  enrollment.getEvents().stream()
-                      .filter(event -> !event.isDeleted())
-                      .collect(Collectors.toList())));
+              enrollment.getEvents().stream().filter(event -> !event.isDeleted()).toList());
 
       TrackerBundle trackerBundle =
-          TrackerBundle.builder().events(events).user(bundle.getUser()).build();
+          TrackerBundle.builder()
+              .events(events)
+              .user(bundle.getUser())
+              .userInfo(bundle.getUserInfo())
+              .build();
 
       deleteEvents(trackerBundle);
 
       TrackedEntity te = enrollment.getTrackedEntity();
+      te.setLastUpdatedByUserInfo(bundle.getUserInfo());
       te.getEnrollments().remove(enrollment);
 
       enrollmentService.deleteEnrollment(enrollment);
@@ -116,13 +117,18 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
       Entity objectReport = new Entity(TrackerType.EVENT, uid);
 
       Event event = eventService.getEvent(uid);
-
-      Enrollment enrollment = event.getEnrollment();
+      event.setLastUpdatedByUserInfo(bundle.getUserInfo());
 
       eventService.deleteEvent(event);
 
       if (event.getProgramStage().getProgram().isRegistration()) {
-        teService.updateTrackedEntity(event.getEnrollment().getTrackedEntity());
+        TrackedEntity entity = event.getEnrollment().getTrackedEntity();
+        entity.setLastUpdatedByUserInfo(bundle.getUserInfo());
+
+        teService.updateTrackedEntity(entity);
+
+        Enrollment enrollment = event.getEnrollment();
+        enrollment.setLastUpdatedByUserInfo(bundle.getUserInfo());
 
         enrollment.getEvents().remove(event);
         enrollmentService.updateEnrollment(enrollment);
@@ -147,21 +153,25 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
       Entity objectReport = new Entity(TrackerType.TRACKED_ENTITY, uid);
 
-      TrackedEntity daoEntityInstance = teService.getTrackedEntity(uid);
+      TrackedEntity entity = teService.getTrackedEntity(uid);
+      entity.setLastUpdatedByUserInfo(bundle.getUserInfo());
 
-      Set<Enrollment> daoEnrollments = daoEntityInstance.getEnrollments();
+      Set<Enrollment> daoEnrollments = entity.getEnrollments();
 
       List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments =
           enrollmentTrackerConverterService.to(
-              Lists.newArrayList(
-                  daoEnrollments.stream().filter(enrollment -> !enrollment.isDeleted()).toList()));
+              daoEnrollments.stream().filter(enrollment -> !enrollment.isDeleted()).toList());
 
       TrackerBundle trackerBundle =
-          TrackerBundle.builder().enrollments(enrollments).user(bundle.getUser()).build();
+          TrackerBundle.builder()
+              .enrollments(enrollments)
+              .user(bundle.getUser())
+              .userInfo(bundle.getUserInfo())
+              .build();
 
       deleteEnrollments(trackerBundle);
 
-      teService.deleteTrackedEntity(daoEntityInstance);
+      teService.deleteTrackedEntity(entity);
 
       typeReport.getStats().incDeleted();
       typeReport.addEntity(objectReport);

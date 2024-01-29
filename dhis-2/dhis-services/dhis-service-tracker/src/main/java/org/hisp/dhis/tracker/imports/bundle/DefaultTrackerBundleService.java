@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Optional;
 import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.ParamsConverter;
@@ -49,6 +50,7 @@ import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.imports.sideeffect.SideEffectHandlerService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -81,9 +83,14 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
   @Override
   public TrackerBundle create(
       TrackerImportParams params, TrackerObjects trackerObjects, User user) {
-    TrackerBundle trackerBundle = ParamsConverter.convert(params, trackerObjects, user);
+    UserInfoSnapshot userInfo = UserInfoSnapshot.from(UserDetails.fromUser(user));
+
     TrackerPreheat preheat =
         trackerPreheatService.preheat(trackerObjects, params.getIdSchemes(), user);
+    preheat.setUserInfo(userInfo);
+
+    TrackerBundle trackerBundle = ParamsConverter.convert(params, trackerObjects, user);
+    trackerBundle.setUserInfo(userInfo);
     trackerBundle.setPreheat(preheat);
 
     return trackerBundle;
@@ -119,11 +126,11 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
 
   @Override
   public void postCommit(TrackerBundle bundle) {
-    updateTeisLastUpdated(bundle);
+    updateTrackedEntitiesLastUpdated(bundle);
   }
 
-  private void updateTeisLastUpdated(TrackerBundle bundle) {
-    Optional.ofNullable(bundle.getUpdatedTeis())
+  private void updateTrackedEntitiesLastUpdated(TrackerBundle bundle) {
+    Optional.ofNullable(bundle.getUpdatedTrackedEntities())
         .filter(ut -> !ut.isEmpty())
         .ifPresent(
             trackedEntities ->
