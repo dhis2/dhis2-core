@@ -262,11 +262,12 @@ public abstract class AbstractSchedulingManager implements SchedulingManager {
     // OBS: we cannot use computeIfAbsent since we have no way of
     // atomically create and find out if there was a value before
     // so we need to pay the price of creating the progress up front
-    if (runningLocally.putIfAbsent(type, progress) != null) {
+    if (type != JobType.LEADER_ELECTION && runningLocally.putIfAbsent(type, progress) != null) {
       whenAlreadyRunning(configuration);
       return false;
     }
-    if (!runningRemotely.putIfAbsent(type.name(), progress.getProcesses())) {
+    if (!type.isRunOnAllNodes()
+        && !runningRemotely.putIfAbsent(type.name(), progress.getProcesses())) {
       runningLocally.remove(type);
       whenAlreadyRunning(configuration);
       return false;
@@ -321,7 +322,7 @@ public abstract class AbstractSchedulingManager implements SchedulingManager {
       return false;
     } finally {
       completedLocally.put(type, runningLocally.remove(type));
-      runningRemotely.invalidate(type.name());
+      if (!type.isRunOnAllNodes()) runningRemotely.invalidate(type.name());
       whenRunIsDone(configuration, clock);
       MDC.remove("sessionId");
     }
