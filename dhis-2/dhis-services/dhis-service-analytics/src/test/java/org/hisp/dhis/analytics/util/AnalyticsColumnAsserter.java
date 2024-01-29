@@ -36,6 +36,7 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
  * @author Luciano Fiandesio
  */
 public class AnalyticsColumnAsserter {
+  /** The analytics table column to verify. */
   private AnalyticsTableColumn actual;
 
   private void setActual(AnalyticsTableColumn actual) {

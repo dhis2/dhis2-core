@@ -51,6 +51,7 @@ import org.hisp.dhis.analytics.table.model.IndexType;
  * @author Luciano Fiandesio
  */
 public class AnalyticsTableAsserter {
+  /** The analytics table to verify. */
   private AnalyticsTable table;
 
   private int columnsSize;
@@ -142,14 +143,13 @@ public class AnalyticsTableAsserter {
 
     public Builder addColumn(String name, ColumnDataType dataType, String alias, Date created) {
       AnalyticsTableColumn col =
-          new AnalyticsTableColumn(quote(name), dataType, alias + quote(name));
-      col.withCreated(created);
+          new AnalyticsTableColumn(quote(name), dataType, alias + quote(name), created);
       this._columns.add(col);
       return this;
     }
 
     public Builder addColumn(String name, ColumnDataType dataType, String alias) {
-      return addColumnUnquoted(quote(name), dataType, alias, null);
+      return addColumnUnquoted(quote(name), dataType, alias, IndexType.BTREE);
     }
 
     public Builder addColumn(
@@ -159,10 +159,7 @@ public class AnalyticsTableAsserter {
 
     public Builder addColumnUnquoted(
         String name, ColumnDataType dataType, String alias, IndexType indexType) {
-      AnalyticsTableColumn col = new AnalyticsTableColumn(name, dataType, alias);
-      if (indexType != null) {
-        col.withIndexType(indexType);
-      }
+      AnalyticsTableColumn col = new AnalyticsTableColumn(name, dataType, alias, indexType);
       this._columns.add(col);
       return this;
     }
