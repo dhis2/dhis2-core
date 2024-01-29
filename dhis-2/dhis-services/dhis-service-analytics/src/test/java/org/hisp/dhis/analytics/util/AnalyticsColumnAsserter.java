@@ -44,16 +44,18 @@ public class AnalyticsColumnAsserter {
   }
 
   public void verify(AnalyticsTableColumn expected) {
-    assertThat("Column name does not match!", expected.getName(), is(actual.getName()));
+    assertThat("Column name does not match", expected.getName(), is(actual.getName()));
     assertThat(
         "Column alias does not match!",
         expected.getSelectExpression(),
         is(actual.getSelectExpression()));
     assertThat(
-        "Column creation date does not match!", expected.getCreated(), is(actual.getCreated()));
+        "Column skip index does not match", expected.getSkipIndex(), is(actual.getSkipIndex()));
+    assertThat(
+        "Column creation date does not match", expected.getCreated(), is(actual.getCreated()));
     assertThat(expected.getDataType(), is(actual.getDataType()));
     assertThat(
-        String.format("Index type for column %s does not match!", expected.getName()),
+        String.format("Column %s index type does not match", expected.getName()),
         expected.getIndexType(),
         is(actual.getIndexType()));
   }
