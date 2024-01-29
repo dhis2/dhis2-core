@@ -69,13 +69,6 @@ public class AnalyticsTable {
   // Constructors
   // -------------------------------------------------------------------------
 
-  public AnalyticsTable() {
-    this.tableName = null;
-    this.tempTableName = null;
-    this.tableType = null;
-    this.columns = List.of();
-  }
-
   public AnalyticsTable(AnalyticsTableType tableType, List<AnalyticsTableColumn> columns) {
     this.tableName = tableType.getTableName();
     this.tempTableName = tableType.getTempTableName();
