@@ -42,10 +42,10 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.hisp.dhis.analytics.AnalyticsTable;
-import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableType;
-import org.hisp.dhis.analytics.ColumnDataType;
-import org.hisp.dhis.analytics.IndexType;
+import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.table.model.ColumnDataType;
+import org.hisp.dhis.analytics.table.model.IndexType;
 
 /**
  * @author Luciano Fiandesio

@@ -31,6 +31,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import lombok.Getter;
+import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.program.Program;

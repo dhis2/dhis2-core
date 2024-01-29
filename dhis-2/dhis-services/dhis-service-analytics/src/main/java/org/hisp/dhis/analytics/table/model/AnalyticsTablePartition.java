@@ -25,11 +25,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.analytics.table.model;
 
 import java.util.Date;
 import java.util.Objects;
 import lombok.Getter;
+import org.hisp.dhis.analytics.AnalyticsTable;
 
 /**
  * Class representing an analytics database table partition.

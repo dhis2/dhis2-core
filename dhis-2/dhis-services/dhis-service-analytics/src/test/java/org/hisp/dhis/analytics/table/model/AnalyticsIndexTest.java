@@ -25,16 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.analytics.table.model;
 
-/**
- * @author Lars Helge Overland
- */
-public enum ColumnNotNullConstraint {
-  NULL,
-  NOT_NULL;
+import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexName;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.QUOTE;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-  public boolean isNotNull() {
-    return this == NOT_NULL;
+import java.util.List;
+import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.junit.jupiter.api.Test;
+
+class AnalyticsIndexTest {
+  @Test
+  void testGetIndexName() {
+    AnalyticsIndex indexA =
+        new AnalyticsIndex("analytics_2017_temp", List.of(quote("quarterly")), null);
+    AnalyticsIndex indexB =
+        new AnalyticsIndex("analytics_2018_temp", List.of(quote("ax"), quote("co")), null);
+    AnalyticsIndex indexC =
+        new AnalyticsIndex("analytics_2019_temp", List.of(quote("YtbsuPPo010")), null);
+
+    assertTrue(
+        getIndexName(indexA, AnalyticsTableType.DATA_VALUE)
+            .startsWith(QUOTE + "in_quarterly_ax_2017_"));
+    assertTrue(
+        getIndexName(indexB, AnalyticsTableType.DATA_VALUE)
+            .startsWith(QUOTE + "in_ax_co_ax_2018_"));
+    assertTrue(
+        getIndexName(indexC, AnalyticsTableType.DATA_VALUE)
+            .startsWith(QUOTE + "in_YtbsuPPo010_ax_2019_"));
   }
 }

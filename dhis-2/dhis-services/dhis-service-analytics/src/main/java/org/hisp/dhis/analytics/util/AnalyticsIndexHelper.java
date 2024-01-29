@@ -29,8 +29,8 @@ package org.hisp.dhis.analytics.util;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.join;
-import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
-import static org.hisp.dhis.analytics.IndexFunction.LOWER;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.TEXT;
+import static org.hisp.dhis.analytics.table.model.IndexFunction.LOWER;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.removeQuote;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
@@ -41,10 +41,10 @@ import java.util.List;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsConstants;
-import org.hisp.dhis.analytics.AnalyticsIndex;
-import org.hisp.dhis.analytics.AnalyticsTableColumn;
-import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.table.model.AnalyticsIndex;
+import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.common.CodeGenerator;
 
 /**
