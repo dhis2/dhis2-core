@@ -34,6 +34,8 @@ package org.hisp.dhis.db.model;
  */
 public enum IndexType {
   BTREE,
+  GIST,
   GIN,
-  GIST
+  HASH,
+  BLOOM;
 }
