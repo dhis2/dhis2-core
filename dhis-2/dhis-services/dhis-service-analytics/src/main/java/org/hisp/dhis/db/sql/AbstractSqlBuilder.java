@@ -42,7 +42,7 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
    * @param dataType the {@link DataType}.
    * @return the data type name.
    */
-  protected String getDataTypeName(DataType dataType) {
+  public String getDataTypeName(DataType dataType) {
     switch (dataType) {
       case SMALLINT:
         return dataTypeSmallInt();

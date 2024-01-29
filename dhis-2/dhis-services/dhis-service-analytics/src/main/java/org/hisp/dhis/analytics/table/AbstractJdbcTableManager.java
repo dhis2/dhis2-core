@@ -31,12 +31,12 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.hisp.dhis.analytics.table.PartitionUtils.getEndDate;
 import static org.hisp.dhis.analytics.table.PartitionUtils.getStartDate;
-import static org.hisp.dhis.analytics.table.model.ColumnDataType.CHARACTER_11;
-import static org.hisp.dhis.analytics.table.model.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.createIndexStatement;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexName;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getCollation;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
+import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
 import java.util.Collections;
@@ -68,6 +68,8 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -111,6 +113,8 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   protected static final String PREFIX_ORGUNITNAMELEVEL = "namelevel";
 
+  private static final String WITH_AUTOVACUUM_ENABLED_FALSE = "with(autovacuum_enabled = false)";
+
   protected final IdentifiableObjectManager idObjectManager;
 
   protected final OrganisationUnitService organisationUnitService;
@@ -127,9 +131,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   protected final PartitionManager partitionManager;
 
-  private final DatabaseInfoProvider databaseInfoProvider;
-
-  protected Boolean spatialSupport;
+  protected final DatabaseInfoProvider databaseInfoProvider;
 
   protected final JdbcTemplate jdbcTemplate;
 
@@ -137,7 +139,9 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   protected final PeriodDataProvider periodDataProvider;
 
-  private static final String WITH_AUTOVACUUM_ENABLED_FALSE = "with(autovacuum_enabled = false)";
+  protected final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+
+  protected Boolean spatialSupport;
 
   protected boolean isSpatialSupport() {
     if (spatialSupport == null)
@@ -320,7 +324,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     sql.append("create ").append(unlogged).append(" table ").append(tableName).append(" (");
 
     for (AnalyticsTableColumn col : table.getColumns()) {
-      String dataType = col.getDataType().getValue();
+      String dataType = sqlBuilder.getDataTypeName(col.getDataType());
       String nullable = col.isNotNull() ? " not null" : " null";
       String collation = col.hasCollation() ? getCollation(col.getCollation().name()) : EMPTY;
 
