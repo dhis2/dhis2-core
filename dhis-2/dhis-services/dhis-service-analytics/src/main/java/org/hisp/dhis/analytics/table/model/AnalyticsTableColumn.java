@@ -32,6 +32,7 @@ import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.hisp.dhis.db.model.Collation;
+import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.constraint.Nullable;
 
 /**

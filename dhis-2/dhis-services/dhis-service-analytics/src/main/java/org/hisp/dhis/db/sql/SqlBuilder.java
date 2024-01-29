@@ -28,6 +28,7 @@
 package org.hisp.dhis.db.sql;
 
 import org.hisp.dhis.db.model.Index;
+import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Table;
 
 /**
@@ -146,6 +147,12 @@ public interface SqlBuilder {
    * @return the name of the GIN index type.
    */
   String indexTypeGin();
+
+  /**
+   * @param indexType the {@link IndexType}.
+   * @return the index type name.
+   */
+  String getIndexTypeName(IndexType indexType);
 
   // Capabilities
 
