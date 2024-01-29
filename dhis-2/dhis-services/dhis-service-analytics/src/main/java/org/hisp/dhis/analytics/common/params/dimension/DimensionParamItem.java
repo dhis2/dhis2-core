@@ -36,7 +36,7 @@ import static org.hisp.dhis.feedback.ErrorCode.E2035;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -46,6 +46,17 @@ import org.hisp.dhis.common.QueryOperator;
 @Getter
 @RequiredArgsConstructor(access = PRIVATE)
 public class DimensionParamItem {
+
+  /* special cases for which we want to use the negated operator directly rather than the negate method */
+  private static final Map<QueryOperator, QueryOperator> NEGATIVE_OPERATOR_MAP =
+      Map.of(
+          QueryOperator.EQ, QueryOperator.NEQ,
+          QueryOperator.NEQ, QueryOperator.EQ,
+          QueryOperator.LIKE, QueryOperator.NLIKE,
+          QueryOperator.NLIKE, QueryOperator.LIKE,
+          QueryOperator.ILIKE, QueryOperator.NILIKE,
+          QueryOperator.NILIKE, QueryOperator.ILIKE);
+
   private final AnalyticsQueryOperator operator;
 
   private final List<String> values;
@@ -62,17 +73,34 @@ public class DimensionParamItem {
       AnalyticsQueryOperator queryOperator = getOperator(parts[0].trim());
       return singletonList(
           new DimensionParamItem(
-              queryOperator,
-              Stream.concat(Stream.of(parts[1]), items.stream().skip(1))
-                  .collect(Collectors.toList())));
+              queryOperator, Stream.concat(Stream.of(parts[1]), items.stream().skip(1)).toList()));
     } else {
       return singletonList(new DimensionParamItem(null, items));
     }
   }
 
+  /**
+   * Returns the operator for the given string.
+   *
+   * @param operator the operator string
+   * @return the operator
+   */
   private static AnalyticsQueryOperator getOperator(String operator) {
+    // If the operator starts with !, will call this method again removing the ! and then negate the
+    // result.
+    if (operator.startsWith("!!")) {
+      throw new IllegalQueryException(E2035, operator);
+    }
     if (operator.startsWith("!")) {
-      return getOperator(operator.substring(1)).negate();
+      AnalyticsQueryOperator parsedOperator = getOperator(operator.substring(1)).negate();
+      /* returns from the negate map if present */
+      if (NEGATIVE_OPERATOR_MAP.containsKey(parsedOperator.getQueryOperator())) {
+        return AnalyticsQueryOperator.of(
+            NEGATIVE_OPERATOR_MAP.get(parsedOperator.getQueryOperator()));
+      } else {
+        /* otherwise, return the negated operator */
+        return parsedOperator;
+      }
     }
     return Arrays.stream(QueryOperator.values())
         .filter(queryOperator -> equalsIgnoreCase(queryOperator.name(), operator))
