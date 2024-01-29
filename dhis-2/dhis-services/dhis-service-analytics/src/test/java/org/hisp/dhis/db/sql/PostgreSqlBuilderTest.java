@@ -50,6 +50,7 @@ class PostgreSqlBuilderTest {
             new Column("data", DataType.CHARACTER_11, Nullable.NOT_NULL),
             new Column("period", DataType.VARCHAR_50, Nullable.NOT_NULL),
             new Column("created", DataType.TIMESTAMP),
+            new Column("user", DataType.JSONB),
             new Column("value", DataType.DOUBLE));
 
     List<String> primaryKey = List.of("id");
@@ -57,8 +58,8 @@ class PostgreSqlBuilderTest {
     List<Index> indexes =
         List.of(
             new Index("in_immunization_data", List.of("data")),
-            new Index("in_immunization_period", List.of("period", "created")),
-            new Index("in_immunization_value", IndexType.GIST, List.of("value")));
+            new Index("in_immunization_period_created", List.of("period", "created")),
+            new Index("in_immunization_user", IndexType.GIN, List.of("user")));
 
     return new Table("immunization", columns, primaryKey, indexes);
   }
@@ -93,7 +94,7 @@ class PostgreSqlBuilderTest {
 
     String expected =
         "create table \"immunization\" (\"id\" bigint not null, \"data\" char(11) not null, "
-            + "\"period\" varchar(50) not null, \"created\" timestamp null, "
+            + "\"period\" varchar(50) not null, \"created\" timestamp null, \"user\" jsonb null, "
             + "\"value\" double precision null, primary key (\"id\"));";
 
     assertEquals(expected, sqlBuilder.createTable(table));
@@ -178,7 +179,7 @@ class PostgreSqlBuilderTest {
     Table table = getTableA();
 
     String expected =
-        "create index \"in_immunization_period\" on \"immunization\" using btree(\"period\", \"created\");";
+        "create index \"in_immunization_period_created\" on \"immunization\" using btree(\"period\", \"created\");";
 
     assertEquals(expected, sqlBuilder.createIndex(table, table.getIndexes().get(1)));
   }
@@ -188,7 +189,7 @@ class PostgreSqlBuilderTest {
     Table table = getTableA();
 
     String expected =
-        "create index \"in_immunization_value\" on \"immunization\" using gist(\"value\");";
+        "create index \"in_immunization_user\" on \"immunization\" using gin(\"user\");";
 
     assertEquals(expected, sqlBuilder.createIndex(table, table.getIndexes().get(2)));
   }

@@ -62,8 +62,8 @@ class AnalyticsTableColumnTest {
 
   @Test
   void testIsSkipIndex() {
-    AnalyticsTableColumn colA = new AnalyticsTableColumn("value", DOUBLE, "value", IndexType.NONE);
-    AnalyticsTableColumn colB = new AnalyticsTableColumn("ou", CHARACTER_11, "ou", IndexType.BTREE);
+    AnalyticsTableColumn colA = new AnalyticsTableColumn("value", DOUBLE, "value", Skip.SKIP);
+    AnalyticsTableColumn colB = new AnalyticsTableColumn("ou", CHARACTER_11, "ou", Skip.INCLUDE);
 
     assertTrue(colA.isSkipIndex());
     assertFalse(colB.isSkipIndex());

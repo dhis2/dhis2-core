@@ -60,6 +60,9 @@ public class AnalyticsTableColumn {
   /** The expression to use in select clauses. */
   private final String selectExpression;
 
+  /** Whether to skip or include an index for column. */
+  private final Skip skipIndex;
+
   /** Index type, defaults to database default type {@link IndexType#BTREE}. */
   private final IndexType indexType;
 
@@ -87,6 +90,7 @@ public class AnalyticsTableColumn {
     this.collation = Collation.DEFAULT;
     this.valueType = AnalyticsValueType.DIMENSION;
     this.selectExpression = selectExpression;
+    this.skipIndex = Skip.INCLUDE;
     this.indexType = IndexType.BTREE;
     this.indexColumns = List.of();
   }
@@ -107,6 +111,7 @@ public class AnalyticsTableColumn {
     this.collation = collation;
     this.valueType = AnalyticsValueType.DIMENSION;
     this.selectExpression = selectExpression;
+    this.skipIndex = Skip.INCLUDE;
     this.indexType = IndexType.BTREE;
     this.indexColumns = List.of();
   }
@@ -127,6 +132,28 @@ public class AnalyticsTableColumn {
     this.collation = Collation.DEFAULT;
     this.valueType = AnalyticsValueType.DIMENSION;
     this.selectExpression = selectExpression;
+    this.skipIndex = Skip.INCLUDE;
+    this.indexType = IndexType.BTREE;
+    this.indexColumns = List.of();
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param name analytics table column name.
+   * @param dataType analytics table column data type.
+   * @param selectExpression source table select expression.
+   * @param indexType the index type.
+   */
+  public AnalyticsTableColumn(
+      String name, ColumnDataType dataType, String selectExpression, Skip skipIndex) {
+    this.name = name;
+    this.dataType = dataType;
+    this.nullable = Nullable.NULL;
+    this.collation = Collation.DEFAULT;
+    this.valueType = AnalyticsValueType.DIMENSION;
+    this.selectExpression = selectExpression;
+    this.skipIndex = skipIndex;
     this.indexType = IndexType.BTREE;
     this.indexColumns = List.of();
   }
@@ -145,8 +172,9 @@ public class AnalyticsTableColumn {
     this.dataType = dataType;
     this.nullable = Nullable.NULL;
     this.collation = Collation.DEFAULT;
-    this.selectExpression = selectExpression;
     this.valueType = AnalyticsValueType.DIMENSION;
+    this.selectExpression = selectExpression;
+    this.skipIndex = Skip.INCLUDE;
     this.indexType = indexType;
     this.indexColumns = List.of();
   }
@@ -165,8 +193,9 @@ public class AnalyticsTableColumn {
     this.dataType = dataType;
     this.nullable = Nullable.NULL;
     this.collation = Collation.DEFAULT;
-    this.selectExpression = selectExpression;
     this.valueType = AnalyticsValueType.DIMENSION;
+    this.selectExpression = selectExpression;
+    this.skipIndex = Skip.INCLUDE;
     this.indexType = IndexType.BTREE;
     this.indexColumns = List.of();
     this.created = created;
@@ -191,8 +220,9 @@ public class AnalyticsTableColumn {
     this.dataType = dataType;
     this.nullable = nullable;
     this.collation = Collation.DEFAULT;
-    this.selectExpression = selectExpression;
     this.valueType = AnalyticsValueType.DIMENSION;
+    this.selectExpression = selectExpression;
+    this.skipIndex = Skip.INCLUDE;
     this.indexType = IndexType.BTREE;
     this.indexColumns = indexColumns;
   }
@@ -215,6 +245,7 @@ public class AnalyticsTableColumn {
     this.nullable = notNull;
     this.collation = Collation.DEFAULT;
     this.valueType = valueType;
+    this.skipIndex = Skip.INCLUDE;
     this.selectExpression = selectExpression;
     this.indexType = IndexType.BTREE;
     this.indexColumns = List.of();
@@ -241,6 +272,6 @@ public class AnalyticsTableColumn {
 
   /** Indicates whether an index should not be created for this column. */
   public boolean isSkipIndex() {
-    return IndexType.NONE == indexType;
+    return Skip.SKIP == skipIndex;
   }
 }

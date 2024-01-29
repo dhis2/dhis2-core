@@ -46,6 +46,7 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.ColumnDataType;
 import org.hisp.dhis.analytics.table.model.IndexType;
+import org.hisp.dhis.analytics.table.model.Skip;
 
 /**
  * @author Luciano Fiandesio
@@ -149,17 +150,24 @@ public class AnalyticsTableAsserter {
     }
 
     public Builder addColumn(String name, ColumnDataType dataType, String alias) {
-      return addColumnUnquoted(quote(name), dataType, alias, IndexType.BTREE);
+      return addColumnUnquoted(quote(name), dataType, alias, Skip.INCLUDE, IndexType.BTREE);
     }
 
     public Builder addColumn(
         String name, ColumnDataType dataType, String alias, IndexType indexType) {
-      return addColumnUnquoted(quote(name), dataType, alias, indexType);
+      return addColumnUnquoted(quote(name), dataType, alias, Skip.INCLUDE, indexType);
+    }
+
+    public Builder addColumn(String name, ColumnDataType dataType, String alias, Skip skipIndex) {
+      return addColumnUnquoted(quote(name), dataType, alias, skipIndex, IndexType.BTREE);
     }
 
     public Builder addColumnUnquoted(
-        String name, ColumnDataType dataType, String alias, IndexType indexType) {
-      AnalyticsTableColumn col = new AnalyticsTableColumn(name, dataType, alias, indexType);
+        String name, ColumnDataType dataType, String alias, Skip skipIndex, IndexType indexType) {
+      AnalyticsTableColumn col =
+          Skip.SKIP == skipIndex
+              ? new AnalyticsTableColumn(name, dataType, alias, skipIndex)
+              : new AnalyticsTableColumn(name, dataType, alias, indexType);
       this._columns.add(col);
       return this;
     }

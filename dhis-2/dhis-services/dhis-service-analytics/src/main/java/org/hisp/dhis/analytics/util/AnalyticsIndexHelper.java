@@ -39,13 +39,11 @@ import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.analytics.AnalyticsConstants;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.table.model.AnalyticsIndex;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
-import org.hisp.dhis.analytics.table.model.IndexType;
 import org.hisp.dhis.common.CodeGenerator;
 
 /**
@@ -73,7 +71,6 @@ public class AnalyticsIndexHelper {
 
       for (AnalyticsTableColumn col : columns) {
         if (!col.isSkipIndex()) {
-          Validate.isTrue(IndexType.NONE != col.getIndexType());
           List<String> indexColumns =
               col.hasIndexColumns() ? col.getIndexColumns() : List.of(col.getName());
 
