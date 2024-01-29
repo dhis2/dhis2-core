@@ -171,9 +171,7 @@ public interface AnalyticsTableManager {
    * @param aggregationLevel the aggregation level.
    */
   default void applyAggregationLevels(
-      AnalyticsTablePartition partition, Collection<String> dataElements, int aggregationLevel) {
-    // NOOP by default
-  }
+      AnalyticsTablePartition partition, Collection<String> dataElements, int aggregationLevel) {}
 
   /**
    * Performs vacuum or optimization of the given table. The type of operation performed is
@@ -181,7 +179,5 @@ public interface AnalyticsTableManager {
    *
    * @param partition the analytics table partition.
    */
-  default void vacuumTables(AnalyticsTablePartition partition) {
-    // NOOP by default
-  }
+  default void vacuumTables(AnalyticsTablePartition partition) {}
 }

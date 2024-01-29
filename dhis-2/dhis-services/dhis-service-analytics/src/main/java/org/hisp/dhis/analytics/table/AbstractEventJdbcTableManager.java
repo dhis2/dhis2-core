@@ -40,6 +40,7 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.model.ColumnDataType;
+import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -95,8 +96,9 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     return " and value ~* '" + DATE_REGEXP + "'";
   }
 
-  protected final boolean skipIndex(ValueType valueType, boolean hasOptionSet) {
-    return NO_INDEX_VAL_TYPES.contains(valueType) && !hasOptionSet;
+  protected Skip skipIndex(ValueType valueType, boolean hasOptionSet) {
+    boolean skipIndex = NO_INDEX_VAL_TYPES.contains(valueType) && !hasOptionSet;
+    return skipIndex ? Skip.SKIP : Skip.INCLUDE;
   }
 
   @Override
@@ -160,7 +162,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
               ? getNumericClause()
               : attribute.isDateType() ? getDateClause() : "";
       String select = getSelectClause(attribute.getValueType(), "value");
-      boolean skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
+      Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
       String sql =
           "(select "
@@ -175,9 +177,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
               + " as "
               + quote(attribute.getUid());
 
-      columns.add(
-          new AnalyticsTableColumn(quote(attribute.getUid()), dataType, sql)
-              .withSkipIndex(skipIndex));
+      columns.add(new AnalyticsTableColumn(quote(attribute.getUid()), dataType, sql, skipIndex));
     }
 
     return columns;

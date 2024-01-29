@@ -36,9 +36,9 @@ import static org.hisp.dhis.analytics.table.model.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.TIMESTAMP;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.VARCHAR_255;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.VARCHAR_50;
-import static org.hisp.dhis.analytics.table.model.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
+import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
 import java.util.ArrayList;
@@ -56,6 +56,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
@@ -72,34 +73,6 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service("org.hisp.dhis.analytics.EnrollmentAnalyticsTableManager")
 public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableManager {
-  public JdbcEnrollmentAnalyticsTableManager(
-      IdentifiableObjectManager idObjectManager,
-      OrganisationUnitService organisationUnitService,
-      CategoryService categoryService,
-      SystemSettingManager systemSettingManager,
-      DataApprovalLevelService dataApprovalLevelService,
-      ResourceTableService resourceTableService,
-      AnalyticsTableHookService tableHookService,
-      PartitionManager partitionManager,
-      DatabaseInfoProvider databaseInfoProvider,
-      @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
-      AnalyticsTableExportSettings analyticsExportSettings,
-      PeriodDataProvider periodDataProvider) {
-    super(
-        idObjectManager,
-        organisationUnitService,
-        categoryService,
-        systemSettingManager,
-        dataApprovalLevelService,
-        resourceTableService,
-        tableHookService,
-        partitionManager,
-        databaseInfoProvider,
-        jdbcTemplate,
-        analyticsExportSettings,
-        periodDataProvider);
-  }
-
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
           new AnalyticsTableColumn(quote("pi"), CHARACTER_11, NOT_NULL, "pi.uid"),
@@ -156,13 +129,40 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
           new AnalyticsTableColumn(quote("ouname"), TEXT, NOT_NULL, "ou.name"),
           new AnalyticsTableColumn(quote("oucode"), TEXT, "ou.code"),
           new AnalyticsTableColumn(quote("oulevel"), INTEGER, "ous.level"),
-          new AnalyticsTableColumn(quote("pigeometry"), GEOMETRY, "pi.geometry")
-              .withIndexType(IndexType.GIST),
+          new AnalyticsTableColumn(quote("pigeometry"), GEOMETRY, "pi.geometry", IndexType.GIST),
           new AnalyticsTableColumn(
               quote("registrationou"),
               CHARACTER_11,
               NOT_NULL,
               "coalesce(registrationou.uid,ou.uid)"));
+
+  public JdbcEnrollmentAnalyticsTableManager(
+      IdentifiableObjectManager idObjectManager,
+      OrganisationUnitService organisationUnitService,
+      CategoryService categoryService,
+      SystemSettingManager systemSettingManager,
+      DataApprovalLevelService dataApprovalLevelService,
+      ResourceTableService resourceTableService,
+      AnalyticsTableHookService tableHookService,
+      PartitionManager partitionManager,
+      DatabaseInfoProvider databaseInfoProvider,
+      @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
+      AnalyticsTableExportSettings analyticsExportSettings,
+      PeriodDataProvider periodDataProvider) {
+    super(
+        idObjectManager,
+        organisationUnitService,
+        categoryService,
+        systemSettingManager,
+        dataApprovalLevelService,
+        resourceTableService,
+        tableHookService,
+        partitionManager,
+        databaseInfoProvider,
+        jdbcTemplate,
+        analyticsExportSettings,
+        periodDataProvider);
+  }
 
   @Override
   public AnalyticsTableType getAnalyticsTableType() {
@@ -184,11 +184,12 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
   private List<AnalyticsTable> getRegularAnalyticsTables(AnalyticsTableUpdateParams params) {
     List<AnalyticsTable> tables = new UniqueArrayList<>();
 
+    Logged logged = analyticsExportSettings.getTableLogged();
     List<Program> programs = idObjectManager.getAllNoAcl(Program.class);
 
     for (Program program : programs) {
       AnalyticsTable table =
-          new AnalyticsTable(getAnalyticsTableType(), getColumns(program), program);
+          new AnalyticsTable(getAnalyticsTableType(), getColumns(program), logged, program);
 
       tables.add(table);
     }

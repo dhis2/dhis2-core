@@ -46,6 +46,8 @@ import org.hisp.dhis.analytics.table.model.AnalyticsIndex;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.model.IndexType;
+import org.hisp.dhis.db.model.Logged;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -107,10 +109,10 @@ class AnalyticsIndexHelperTest {
   private AnalyticsTable stubAnalyticsTable() {
     List<AnalyticsTableColumn> columns = List.of(stubAnalyticsTableColumn());
 
-    return new AnalyticsTable(EVENT, columns);
+    return new AnalyticsTable(EVENT, columns, Logged.UNLOGGED);
   }
 
   private AnalyticsTableColumn stubAnalyticsTableColumn() {
-    return new AnalyticsTableColumn("column", TEXT, "c").withIndexType(BTREE);
+    return new AnalyticsTableColumn("column", TEXT, "c", IndexType.BTREE);
   }
 }

@@ -32,8 +32,8 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.CHARACTER_11;
 import static org.hisp.dhis.analytics.table.model.ColumnDataType.DATE;
-import static org.hisp.dhis.analytics.table.model.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.program.ProgramType.WITHOUT_REGISTRATION;
 
 import java.sql.ResultSet;
@@ -57,6 +57,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.jdbc.batchhandler.MappingBatchHandler;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
@@ -85,6 +86,13 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
 
   // Must be later than the dummy HISTORY_TABLE_ID for SQL query order.
   private static final String TEI_OWN_TABLE_ID = "2002-02-02";
+
+  protected static final List<AnalyticsTableColumn> FIXED_COLS =
+      List.of(
+          new AnalyticsTableColumn(quote("teiuid"), CHARACTER_11, "tei.uid"),
+          new AnalyticsTableColumn(quote("startdate"), DATE, "a.startdate"),
+          new AnalyticsTableColumn(quote("enddate"), DATE, "a.enddate"),
+          new AnalyticsTableColumn(quote("ou"), CHARACTER_11, NOT_NULL, "ou.uid"));
 
   public JdbcOwnershipAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -116,13 +124,6 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
     this.jdbcConfiguration = jdbcConfiguration;
   }
 
-  protected static final List<AnalyticsTableColumn> FIXED_COLS =
-      List.of(
-          new AnalyticsTableColumn(quote("teiuid"), CHARACTER_11, "tei.uid"),
-          new AnalyticsTableColumn(quote("startdate"), DATE, "a.startdate"),
-          new AnalyticsTableColumn(quote("enddate"), DATE, "a.enddate"),
-          new AnalyticsTableColumn(quote("ou"), CHARACTER_11, NOT_NULL, "ou.uid"));
-
   @Override
   public AnalyticsTableType getAnalyticsTableType() {
     return AnalyticsTableType.OWNERSHIP;
@@ -140,8 +141,9 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
    * @return a list of {@link AnalyticsTableUpdateParams}.
    */
   private List<AnalyticsTable> getRegularAnalyticsTables() {
+    Logged logged = analyticsExportSettings.getTableLogged();
     return idObjectManager.getAllNoAcl(Program.class).stream()
-        .map(pr -> new AnalyticsTable(getAnalyticsTableType(), getColumns(), pr))
+        .map(pr -> new AnalyticsTable(getAnalyticsTableType(), getColumns(), logged, pr))
         .collect(toList());
   }
 
