@@ -275,7 +275,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
   @Override
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
-    List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
+    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
     String start = getLongDateString(partition.getStartDate());
     String end = getLongDateString(partition.getEndDate());

@@ -131,7 +131,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
   protected void populateTableInternal(AnalyticsTablePartition partition, String fromClause) {
     String tableName = partition.getTempName();
 
-    List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
+    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
     String sql = "insert into " + partition.getTempName() + " (";
 

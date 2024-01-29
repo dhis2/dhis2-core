@@ -347,7 +347,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
   @SuppressWarnings("unchecked")
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
-    List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
+    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
     StringBuilder sql = new StringBuilder("insert into " + partition.getTempName() + " (");
 

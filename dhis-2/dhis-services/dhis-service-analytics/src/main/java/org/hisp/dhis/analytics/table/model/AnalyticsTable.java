@@ -33,6 +33,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
+import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -56,7 +57,7 @@ public class AnalyticsTable {
   private final AnalyticsTableType tableType;
 
   /** Columns representing dimensions. */
-  private final List<AnalyticsTableColumn> columns;
+  private final List<AnalyticsTableColumn> analyticsTableColumns;
 
   /** Whether table is logged or unlogged. PostgreSQL-only feature. */
   private final Logged logged;
@@ -79,7 +80,7 @@ public class AnalyticsTable {
     this.name = tableType.getTableName();
     this.tempName = tableType.getTempTableName();
     this.tableType = tableType;
-    this.columns = columns;
+    this.analyticsTableColumns = columns;
     this.logged = logged;
   }
 
@@ -91,7 +92,7 @@ public class AnalyticsTable {
     this.name = getTableName(tableType.getTableName(), program);
     this.tempName = getTableName(tableType.getTempTableName(), program);
     this.tableType = tableType;
-    this.columns = columns;
+    this.analyticsTableColumns = columns;
     this.logged = logged;
     this.program = program;
   }
@@ -104,7 +105,7 @@ public class AnalyticsTable {
     this.name = getTableName(tableType.getTableName(), trackedEntityType);
     this.tempName = getTableName(tableType.getTempTableName(), trackedEntityType);
     this.tableType = tableType;
-    this.columns = columns;
+    this.analyticsTableColumns = columns;
     this.logged = logged;
     this.trackedEntityType = trackedEntityType;
   }
@@ -112,6 +113,18 @@ public class AnalyticsTable {
   // -------------------------------------------------------------------------
   // Logic
   // -------------------------------------------------------------------------
+
+  /**
+   * Converts the given list of analytics table columns to a list of columns.
+   *
+   * @param columns the list of {@link AnalyticsTableColumn}.
+   * @return a list of {@link Column}.
+   */
+  protected static List<Column> toColumns(List<AnalyticsTableColumn> columns) {
+    return columns.stream()
+        .map(c -> new Column(c.getName(), c.getDataType(), c.getNullable(), c.getCollation()))
+        .toList();
+  }
 
   /**
    * Returns a table name.
@@ -141,7 +154,9 @@ public class AnalyticsTable {
    * @return a list of {@link AnalyticsTableColumn}.
    */
   public List<AnalyticsTableColumn> getDimensionColumns() {
-    return columns.stream().filter(c -> AnalyticsValueType.DIMENSION == c.getValueType()).toList();
+    return analyticsTableColumns.stream()
+        .filter(c -> AnalyticsValueType.DIMENSION == c.getValueType())
+        .toList();
   }
 
   /**
@@ -150,7 +165,9 @@ public class AnalyticsTable {
    * @return a list of {@link AnalyticsTableColumn}.
    */
   public List<AnalyticsTableColumn> getFactColumns() {
-    return columns.stream().filter(c -> AnalyticsValueType.FACT == c.getValueType()).toList();
+    return analyticsTableColumns.stream()
+        .filter(c -> AnalyticsValueType.FACT == c.getValueType())
+        .toList();
   }
 
   /**
@@ -159,7 +176,7 @@ public class AnalyticsTable {
    * @return the count of all columns.
    */
   public int getColumnCount() {
-    return getColumns().size();
+    return getAnalyticsTableColumns().size();
   }
 
   /**

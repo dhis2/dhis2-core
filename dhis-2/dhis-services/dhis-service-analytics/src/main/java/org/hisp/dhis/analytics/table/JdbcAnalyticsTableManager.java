@@ -322,7 +322,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     String sql = "insert into " + partition.getTempName() + " (";
 
     List<AnalyticsTableColumn> dimensions = partition.getMasterTable().getDimensionColumns();
-    List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
+    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
     for (AnalyticsTableColumn col : columns) {
       sql += col.getName() + ",";

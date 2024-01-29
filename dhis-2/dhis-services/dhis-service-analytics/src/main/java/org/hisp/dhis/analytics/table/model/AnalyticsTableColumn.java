@@ -32,7 +32,6 @@ import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.hisp.dhis.db.model.Collation;
-import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.constraint.Nullable;
@@ -257,18 +256,6 @@ public class AnalyticsTableColumn {
   // -------------------------------------------------------------------------
   // Logic
   // -------------------------------------------------------------------------
-
-  /**
-   * Converts the given list of analytics table columns to a list of columns.
-   *
-   * @param columns the list of {@link AnalyticsTableColumn}.
-   * @return a list of {@link Column}.
-   */
-  protected static List<Column> toColumns(List<AnalyticsTableColumn> columns) {
-    return columns.stream()
-        .map(c -> new Column(c.getName(), c.getDataType(), c.getNullable(), c.getCollation()))
-        .toList();
-  }
 
   /** Indicates whether this column is not null. */
   public boolean isNotNull() {

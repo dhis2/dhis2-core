@@ -319,7 +319,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
     sql.append("create ").append(unlogged).append(" table ").append(tableName).append(" (");
 
-    for (AnalyticsTableColumn col : table.getColumns()) {
+    for (AnalyticsTableColumn col : table.getAnalyticsTableColumns()) {
       String dataType = sqlBuilder.getDataTypeName(col.getDataType());
       String nullable = col.isNotNull() ? " not null" : " null";
       String collation = col.hasCollation() ? getCollation(col.getCollation().name()) : EMPTY;
