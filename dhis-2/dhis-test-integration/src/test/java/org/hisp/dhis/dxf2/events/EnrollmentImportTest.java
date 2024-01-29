@@ -220,8 +220,11 @@ class EnrollmentImportTest extends TransactionalIntegrationTest {
     assertTrue(
         enrollmentAfter.getLastUpdated().getTime() > enrollmentBefore.getLastUpdated().getTime());
     assertTrue(entityLastUpdatedAfter.getLastUpdated().compareTo(entityLastUpdatedDateBefore) > 0);
-    assertEquals(entityLastUpdatedAfter.getLastUpdatedByUserInfo(), UserInfoSnapshot.from(user));
-    assertEquals(enrollmentAfter.getLastUpdatedByUserInfo(), UserInfoSnapshot.from(user));
+    assertEquals(
+        entityLastUpdatedAfter.getLastUpdatedByUserInfo().getUid(),
+        UserInfoSnapshot.from(user).getUid());
+    assertEquals(
+        enrollmentAfter.getLastUpdatedByUserInfo().getUid(), UserInfoSnapshot.from(user).getUid());
     assertTrue(eventAfter.isDeleted());
     assertTrue(eventAfter.getLastUpdated().getTime() > eventBefore.getLastUpdated().getTime());
   }

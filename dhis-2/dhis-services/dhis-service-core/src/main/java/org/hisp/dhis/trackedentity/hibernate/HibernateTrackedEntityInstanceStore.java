@@ -1391,7 +1391,7 @@ public class HibernateTrackedEntityInstanceStore
 
   @Override
   public void updateTrackedEntityInstancesLastUpdated(
-      Set<String> trackedEntityInstanceUIDs, Date lastUpdated) {
+      Set<String> trackedEntityInstanceUIDs, Date lastUpdated, String infoSnapshot) {
     List<List<String>> uidsPartitions =
         Lists.partition(Lists.newArrayList(trackedEntityInstanceUIDs), 20000);
 
@@ -1400,9 +1400,10 @@ public class HibernateTrackedEntityInstanceStore
         .forEach(
             teis ->
                 getSession()
-                    .getNamedQuery("updateTeisLastUpdated")
+                    .getNamedQuery("updateTrackedEntitiesLastUpdated")
                     .setParameter("trackedEntityInstances", teis)
                     .setParameter("lastUpdated", lastUpdated)
+                    .setParameter("lastupdatedbyuserinfo", infoSnapshot)
                     .executeUpdate());
   }
 

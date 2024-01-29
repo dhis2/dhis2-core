@@ -208,8 +208,13 @@ public interface TrackedEntityInstanceService {
   void updateTrackedEntityInstancesSyncTimestamp(
       List<String> trackedEntityInstanceUIDs, Date lastSynchronized);
 
-  void updateTrackedEntityInstanceLastUpdated(
-      Set<String> trackedEntityInstanceUIDs, Date lastUpdated);
+  /**
+   * @param trackedEntityUIDs
+   * @param lastUpdated
+   * @param userInfoSnapshot
+   */
+  void updateTrackedEntityInstancesLastUpdated(
+      Set<String> trackedEntityUIDs, Date lastUpdated, String userInfoSnapshot);
 
   /**
    * Returns a {@link TrackedEntityInstance}.
