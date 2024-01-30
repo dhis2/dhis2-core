@@ -28,12 +28,14 @@
 package org.hisp.dhis.analytics.common.params.dimension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryOperator;
 import org.junit.jupiter.api.Test;
 
-class DimensionParamItemTest {
+class AnalyticsQueryOperatorTest {
 
   @Test
   void testOperator() {
@@ -48,5 +50,28 @@ class DimensionParamItemTest {
   void genericTest(String operator, QueryOperator expectedOperator) {
     DimensionParamItem item = DimensionParamItem.ofStrings(List.of(operator + ":1")).get(0);
     assertEquals(expectedOperator, item.getOperator().getQueryOperator());
+  }
+
+  @Test
+  void doubleExclamationMarkThrowsException() {
+    List<String> dimensionParamString = List.of("!!EQ:1");
+    IllegalQueryException thrown =
+        assertThrows(
+            IllegalQueryException.class,
+            () -> {
+              DimensionParamItem.ofStrings(dimensionParamString);
+            });
+
+    assertEquals("Invalid operator: !!EQ", thrown.getMessage());
+  }
+
+  @Test
+  void invalidOperatorThrowsException() {
+    List<String> dimensionParamString = List.of("INVALID:1");
+    IllegalQueryException thrown =
+        assertThrows(
+            IllegalQueryException.class, () -> DimensionParamItem.ofStrings(dimensionParamString));
+
+    assertEquals("Invalid operator: INVALID", thrown.getMessage());
   }
 }
