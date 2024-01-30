@@ -29,11 +29,11 @@ package org.hisp.dhis.analytics.util;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.join;
-import static org.hisp.dhis.analytics.table.model.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.table.model.IndexFunction.LOWER;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.removeQuote;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
+import static org.hisp.dhis.db.model.DataType.TEXT;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +45,8 @@ import org.hisp.dhis.analytics.table.model.AnalyticsIndex;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.db.sql.SqlBuilder;
 
 /**
  * Helper class that encapsulates methods responsible for supporting the creation of analytics
@@ -54,6 +56,8 @@ import org.hisp.dhis.common.CodeGenerator;
  */
 public class AnalyticsIndexHelper {
   private static final String PREFIX_INDEX = "in_";
+
+  private static final SqlBuilder SQL_BUILDER = new PostgreSqlBuilder();
 
   private AnalyticsIndexHelper() {}
 
@@ -75,9 +79,9 @@ public class AnalyticsIndexHelper {
               col.hasIndexColumns() ? col.getIndexColumns() : List.of(col.getName());
 
           indexes.add(
-              new AnalyticsIndex(partition.getTempTableName(), indexColumns, col.getIndexType()));
+              new AnalyticsIndex(partition.getTempName(), col.getIndexType(), indexColumns));
 
-          maybeAddTextLowerIndex(indexes, partition.getTempTableName(), col, indexColumns);
+          maybeAddTextLowerIndex(indexes, partition.getTempName(), col, indexColumns);
         }
       }
     }
@@ -95,6 +99,7 @@ public class AnalyticsIndexHelper {
    */
   public static String createIndexStatement(AnalyticsIndex index, AnalyticsTableType tableType) {
     String indexName = getIndexName(index, tableType);
+    String indexTypeName = SQL_BUILDER.getIndexTypeName(index.getIndexType());
     String indexColumns = maybeApplyFunctionToIndex(index, join(index.getColumns(), ","));
 
     return "create index "
@@ -104,7 +109,7 @@ public class AnalyticsIndexHelper {
         + index.getTable()
         + " "
         + "using "
-        + index.getType().getKeyword()
+        + indexTypeName
         + " ("
         + indexColumns
         + ");";
@@ -187,7 +192,7 @@ public class AnalyticsIndexHelper {
     boolean isSingleColumn = indexColumns.size() == 1;
 
     if (column.getDataType() == TEXT && isValidUid(columnName) && isSingleColumn) {
-      indexes.add(new AnalyticsIndex(tableName, indexColumns, column.getIndexType(), LOWER));
+      indexes.add(new AnalyticsIndex(tableName, column.getIndexType(), indexColumns, LOWER));
     }
   }
 
