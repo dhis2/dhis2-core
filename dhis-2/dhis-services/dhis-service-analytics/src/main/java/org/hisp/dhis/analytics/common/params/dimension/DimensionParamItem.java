@@ -29,23 +29,18 @@ package org.hisp.dhis.analytics.common.params.dimension;
 
 import static java.util.Collections.singletonList;
 import static lombok.AccessLevel.PRIVATE;
-import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
-import static org.hisp.dhis.feedback.ErrorCode.E2035;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.QueryOperator;
 
 @Getter
 @RequiredArgsConstructor(access = PRIVATE)
 public class DimensionParamItem {
+
   private final AnalyticsQueryOperator operator;
 
   private final List<String> values;
@@ -59,25 +54,12 @@ public class DimensionParamItem {
 
     if (firstElement.contains(DIMENSION_NAME_SEP)) { // Has operator.
       String[] parts = firstElement.split(DIMENSION_NAME_SEP);
-      AnalyticsQueryOperator queryOperator = getOperator(parts[0].trim());
+      AnalyticsQueryOperator queryOperator = AnalyticsQueryOperator.ofString(parts[0].trim());
       return singletonList(
           new DimensionParamItem(
-              queryOperator,
-              Stream.concat(Stream.of(parts[1]), items.stream().skip(1))
-                  .collect(Collectors.toList())));
+              queryOperator, Stream.concat(Stream.of(parts[1]), items.stream().skip(1)).toList()));
     } else {
       return singletonList(new DimensionParamItem(null, items));
     }
-  }
-
-  private static AnalyticsQueryOperator getOperator(String operator) {
-    if (operator.startsWith("!")) {
-      return getOperator(operator.substring(1)).negate();
-    }
-    return Arrays.stream(QueryOperator.values())
-        .filter(queryOperator -> equalsIgnoreCase(queryOperator.name(), operator))
-        .findFirst()
-        .map(AnalyticsQueryOperator::of)
-        .orElseThrow(() -> new IllegalQueryException(E2035, operator));
   }
 }
