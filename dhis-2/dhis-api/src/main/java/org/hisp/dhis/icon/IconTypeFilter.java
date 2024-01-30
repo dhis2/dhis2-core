@@ -27,55 +27,30 @@
  */
 package org.hisp.dhis.icon;
 
-import java.util.Set;
-import java.util.stream.Stream;
-import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.user.UserDetails;
+import java.util.Optional;
 
-public interface CustomIconStore {
-  /**
-   * Returns a custom icon that contains a given key
-   *
-   * @param key of the icon
-   * @return the custom icon matching the key, or null instead
-   */
-  CustomIcon getIconByKey(String key);
+/**
+ * @author Zubair Asghar
+ */
+public enum IconTypeFilter {
+  ALL("all"),
+  CUSTOM("custom"),
+  DEFAULT("default");
 
-  /**
-   * Returns a list of custom icons that contain all the specified keywords
-   *
-   * @param iconOperationParams contains query params for CustomIcon
-   * @return the list of custom icons that contain all the keywords
-   */
-  Stream<CustomIcon> getIcons(IconOperationParams iconOperationParams);
+  private String type;
 
-  /**
-   * Returns a list with all the custom icon keywords
-   *
-   * @return a list with all the custom icon keywords
-   */
-  Set<String> getKeywords();
+  IconTypeFilter(String type) {
 
-  /**
-   * Persists a custom icon to the database
-   *
-   * @param customIcon Icon to be saved
-   * @param fileResource file resource linked to the custom icon
-   * @param createdByUser user that created the custom icon
-   */
-  void save(CustomIcon customIcon, FileResource fileResource, UserDetails createdByUser);
+    this.type = type;
+  }
 
-  /**
-   * Deletes a custom icon from the database
-   *
-   * @param customIconKey Key of the icon to be deleted
-   */
-  void delete(String customIconKey);
+  public static Optional<IconTypeFilter> from(String iconType) {
+    for (IconTypeFilter type : IconTypeFilter.values()) {
+      if (type.type.equals(iconType)) {
+        return Optional.of(type);
+      }
+    }
 
-  /**
-   * Updates a custom icon from the database
-   *
-   * @param customIcon Icon to be updated
-   */
-  void update(CustomIcon customIcon);
+    return Optional.empty();
+  }
 }

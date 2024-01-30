@@ -27,55 +27,50 @@
  */
 package org.hisp.dhis.icon;
 
-import java.util.Set;
-import java.util.stream.Stream;
-import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.user.UserDetails;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public interface CustomIconStore {
-  /**
-   * Returns a custom icon that contains a given key
-   *
-   * @param key of the icon
-   * @return the custom icon matching the key, or null instead
-   */
-  CustomIcon getIconByKey(String key);
+/**
+ * Represents query parameters sent to {@link org.hisp.dhis.icon.IconService}.
+ *
+ * @author Zubair Asghar
+ */
+@Data
+@NoArgsConstructor
+public class IconOperationParams {
 
-  /**
-   * Returns a list of custom icons that contain all the specified keywords
-   *
-   * @param iconOperationParams contains query params for CustomIcon
-   * @return the list of custom icons that contain all the keywords
-   */
-  Stream<CustomIcon> getIcons(IconOperationParams iconOperationParams);
+  private List<String> keys = new ArrayList<>();
+  private IconTypeFilter iconTypeFilter = IconTypeFilter.ALL;
+  private List<String> keywords = new ArrayList<>();
+  private Date createdStartDate;
+  private Date createdEndDate;
+  private Date lastUpdatedStartDate;
+  private Date lastUpdatedEndDate;
 
-  /**
-   * Returns a list with all the custom icon keywords
-   *
-   * @return a list with all the custom icon keywords
-   */
-  Set<String> getKeywords();
+  public boolean hasLastUpdatedStartDate() {
+    return lastUpdatedStartDate != null;
+  }
 
-  /**
-   * Persists a custom icon to the database
-   *
-   * @param customIcon Icon to be saved
-   * @param fileResource file resource linked to the custom icon
-   * @param createdByUser user that created the custom icon
-   */
-  void save(CustomIcon customIcon, FileResource fileResource, UserDetails createdByUser);
+  public boolean hasLastUpdatedEndDate() {
+    return lastUpdatedEndDate != null;
+  }
 
-  /**
-   * Deletes a custom icon from the database
-   *
-   * @param customIconKey Key of the icon to be deleted
-   */
-  void delete(String customIconKey);
+  public boolean hasCreatedStartDate() {
+    return createdStartDate != null;
+  }
 
-  /**
-   * Updates a custom icon from the database
-   *
-   * @param customIcon Icon to be updated
-   */
-  void update(CustomIcon customIcon);
+  public boolean hasCreatedEndDate() {
+    return createdEndDate != null;
+  }
+
+  public boolean hasKeywords() {
+    return !keywords.isEmpty();
+  }
+
+  public boolean hasKeys() {
+    return !keys.isEmpty();
+  }
 }
