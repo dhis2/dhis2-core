@@ -27,14 +27,16 @@
  */
 package org.hisp.dhis.tracker.bundle;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.tracker.ParamsConverter;
@@ -42,6 +44,7 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerProgramRuleService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.persister.CommitService;
+import org.hisp.dhis.tracker.bundle.persister.PersistenceException;
 import org.hisp.dhis.tracker.bundle.persister.TrackerObjectDeletionService;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
@@ -71,6 +74,8 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
 
   private final TrackedEntityInstanceService trackedEntityInstanceService;
 
+  private final ObjectMapper mapper;
+
   private List<SideEffectHandlerService> sideEffectHandlers = new ArrayList<>();
 
   @Autowired(required = false)
@@ -80,8 +85,14 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
 
   @Override
   public TrackerBundle create(TrackerImportParams params) {
-    TrackerBundle trackerBundle = ParamsConverter.convert(params);
+    UserInfoSnapshot userInfo = UserInfoSnapshot.from(params.getUser());
+
     TrackerPreheat preheat = trackerPreheatService.preheat(params);
+    preheat.setUserInfo(userInfo);
+
+    TrackerBundle trackerBundle = ParamsConverter.convert(params);
+
+    trackerBundle.setUserInfo(userInfo);
     trackerBundle.setPreheat(preheat);
 
     return trackerBundle;
@@ -120,16 +131,20 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
 
   @Override
   public void postCommit(TrackerBundle bundle) {
-    updateTeisLastUpdated(bundle);
+    updateTrackedEntitiesLastUpdated(bundle);
   }
 
-  private void updateTeisLastUpdated(TrackerBundle bundle) {
-    Optional.ofNullable(bundle.getUpdatedTeis())
-        .filter(ut -> !ut.isEmpty())
-        .ifPresent(
-            teis ->
-                trackedEntityInstanceService.updateTrackedEntityInstanceLastUpdated(
-                    teis, new Date()));
+  private void updateTrackedEntitiesLastUpdated(TrackerBundle bundle) {
+    if (!bundle.getUpdatedTrackedEntities().isEmpty()) {
+      try {
+        trackedEntityInstanceService.updateTrackedEntityInstancesLastUpdated(
+            bundle.getUpdatedTrackedEntities(),
+            new Date(),
+            mapper.writeValueAsString(bundle.getUserInfo()));
+      } catch (JsonProcessingException e) {
+        throw new PersistenceException(e);
+      }
+    }
   }
 
   @Override

@@ -30,20 +30,27 @@ package org.hisp.dhis.dxf2.events;
 import static org.hisp.dhis.user.UserRole.AUTHORITY_ALL;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
+import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.UserInfoSnapshot;
@@ -62,6 +69,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 class EnrollmentImportTest extends TransactionalIntegrationTest {
   @Autowired private TrackedEntityTypeService trackedEntityTypeService;
 
+  @Autowired private TrackedEntityInstanceService trackedEntityInstanceService;
+
   @Autowired private EnrollmentService enrollmentService;
 
   @Autowired private IdentifiableObjectManager manager;
@@ -69,6 +78,8 @@ class EnrollmentImportTest extends TransactionalIntegrationTest {
   @Autowired private UserService _userService;
 
   private TrackedEntityInstance trackedEntityInstance;
+
+  @Autowired private SessionFactory sessionFactory;
 
   private OrganisationUnit organisationUnitA;
 
@@ -157,13 +168,99 @@ class EnrollmentImportTest extends TransactionalIntegrationTest {
                     .getLastUpdatedByUserInfo()));
   }
 
+  @Test
+  void shouldUpdateLastUpdatedAndCascadeEventDeleteWhenDeleteEnrollments() {
+    String entityLastUpdatedDateBefore =
+        trackedEntityInstanceService
+            .getTrackedEntityInstance(trackedEntityInstance.getUid())
+            .getLastUpdated();
+
+    org.hisp.dhis.program.ProgramInstance enrollmentBefore =
+        getEntityJpql(
+            org.hisp.dhis.program.ProgramInstance.class.getSimpleName(),
+            this.programInstance.getUid());
+
+    ProgramStage programStage = createProgramStage('x', program);
+    manager.save(programStage);
+
+    ProgramStageInstance eventBefore =
+        createEvent(programStage, this.programInstance, organisationUnitA);
+    manager.save(eventBefore);
+
+    dbmsManager.clearSession();
+
+    Enrollment enrollment = new Enrollment();
+    Event event = new Event();
+    event.setEvent(eventBefore.getUid());
+    enrollment.setEnrollment(this.programInstance.getUid());
+
+    User user = createAndAddUser("userDelete", organisationUnitA, "ALL");
+    injectSecurityContext(user);
+
+    ImportSummaries importSummaries =
+        enrollmentService.deleteEnrollments(
+            List.of(enrollment), new ImportOptions().setUser(user), true);
+    assertEquals(ImportStatus.SUCCESS, importSummaries.getStatus());
+
+    dbmsManager.clearSession();
+
+    org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance entityLastUpdatedAfter =
+        trackedEntityInstanceService.getTrackedEntityInstance(trackedEntityInstance.getUid());
+
+    org.hisp.dhis.program.ProgramInstance enrollmentAfter =
+        getEntityJpql(
+            org.hisp.dhis.program.ProgramInstance.class.getSimpleName(),
+            this.programInstance.getUid());
+
+    org.hisp.dhis.program.ProgramStageInstance eventAfter =
+        getEntityJpql(
+            org.hisp.dhis.program.ProgramStageInstance.class.getSimpleName(), eventBefore.getUid());
+
+    assertTrue(enrollmentAfter.isDeleted());
+    assertTrue(
+        enrollmentAfter.getLastUpdated().getTime() > enrollmentBefore.getLastUpdated().getTime());
+    assertTrue(entityLastUpdatedAfter.getLastUpdated().compareTo(entityLastUpdatedDateBefore) > 0);
+    assertEquals(
+        entityLastUpdatedAfter.getLastUpdatedByUserInfo().getUid(),
+        UserInfoSnapshot.from(user).getUid());
+    assertEquals(
+        enrollmentAfter.getLastUpdatedByUserInfo().getUid(), UserInfoSnapshot.from(user).getUid());
+    assertTrue(eventAfter.isDeleted());
+    assertTrue(eventAfter.getLastUpdated().getTime() > eventBefore.getLastUpdated().getTime());
+  }
+
+  /** Get with the current session because some Store exclude deleted */
+  @SuppressWarnings("unchecked")
+  public <T extends SoftDeletableObject> T getEntityJpql(String entity, String uid) {
+
+    return (T)
+        sessionFactory
+            .getCurrentSession()
+            .createQuery("SELECT e FROM " + entity + " e WHERE e.uid = :uid")
+            .setParameter("uid", uid)
+            .getSingleResult();
+  }
+
   private Enrollment enrollment(String orgUnit, String program, String trackedEntity) {
     Enrollment enrollment = new Enrollment();
+
     enrollment.setOrgUnit(orgUnit);
     enrollment.setProgram(program);
     enrollment.setTrackedEntityInstance(trackedEntity);
     enrollment.setEnrollmentDate(new Date());
     enrollment.setIncidentDate(new Date());
     return enrollment;
+  }
+
+  public static ProgramStageInstance createEvent(
+      ProgramStage programStage, ProgramInstance enrollment, OrganisationUnit organisationUnit) {
+    ProgramStageInstance event = new ProgramStageInstance();
+    event.setAutoFields();
+
+    event.setProgramStage(programStage);
+    event.setProgramInstance(enrollment);
+    event.setOrganisationUnit(organisationUnit);
+
+    return event;
   }
 }
