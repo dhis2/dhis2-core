@@ -130,8 +130,8 @@ public class EmbeddedObjectObjectBundleHook extends AbstractObjectBundleHook<Ide
         if (ReflectionUtils.isSharingProperty(property) && bundle.isSkipSharing()) {
           continue;
         }
-
-        ((Collection<?>) ReflectionUtils.invokeMethod(object, property.getGetterMethod())).clear();
+        Collection<?> objects = ReflectionUtils.invokeMethod(object, property.getGetterMethod());
+        if (objects != null) objects.clear();
       } else {
         ReflectionUtils.invokeMethod(object, property.getSetterMethod(), (Object) null);
       }
