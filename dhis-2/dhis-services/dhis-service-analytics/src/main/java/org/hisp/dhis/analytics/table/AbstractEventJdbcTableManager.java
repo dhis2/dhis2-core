@@ -39,13 +39,14 @@ import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
-import org.hisp.dhis.analytics.table.model.ColumnDataType;
+import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
@@ -95,8 +96,9 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     return " and value ~* '" + DATE_REGEXP + "'";
   }
 
-  protected final boolean skipIndex(ValueType valueType, boolean hasOptionSet) {
-    return NO_INDEX_VAL_TYPES.contains(valueType) && !hasOptionSet;
+  protected Skip skipIndex(ValueType valueType, boolean hasOptionSet) {
+    boolean skipIndex = NO_INDEX_VAL_TYPES.contains(valueType) && !hasOptionSet;
+    return skipIndex ? Skip.SKIP : Skip.INCLUDE;
   }
 
   @Override
@@ -127,11 +129,11 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    * @param fromClause the SQL from clause.
    */
   protected void populateTableInternal(AnalyticsTablePartition partition, String fromClause) {
-    String tableName = partition.getTempTableName();
+    String tableName = partition.getTempName();
 
-    List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
+    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
-    String sql = "insert into " + partition.getTempTableName() + " (";
+    String sql = "insert into " + partition.getTempName() + " (";
 
     for (AnalyticsTableColumn col : columns) {
       sql += col.getName() + ",";
@@ -154,13 +156,13 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     for (TrackedEntityAttribute attribute : program.getNonConfidentialTrackedEntityAttributes()) {
-      ColumnDataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
+      DataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
       String dataClause =
           attribute.isNumericType()
               ? getNumericClause()
               : attribute.isDateType() ? getDateClause() : "";
       String select = getSelectClause(attribute.getValueType(), "value");
-      boolean skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
+      Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
       String sql =
           "(select "
@@ -175,9 +177,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
               + " as "
               + quote(attribute.getUid());
 
-      columns.add(
-          new AnalyticsTableColumn(quote(attribute.getUid()), dataType, sql)
-              .withSkipIndex(skipIndex));
+      columns.add(new AnalyticsTableColumn(quote(attribute.getUid()), dataType, sql, skipIndex));
     }
 
     return columns;

@@ -142,13 +142,6 @@ public interface AnalyticsTableManager {
   void dropTempTablePartition(AnalyticsTablePartition tablePartition);
 
   /**
-   * Drops the given table.
-   *
-   * @param tableName the table name.
-   */
-  void dropTable(String tableName);
-
-  /**
    * Drops the given table and all potential partitions.
    *
    * @param tableName the table name.
@@ -156,11 +149,18 @@ public interface AnalyticsTableManager {
   void dropTableCascade(String tableName);
 
   /**
-   * Performs an analyze operation on the given table name.
+   * Performs an analyze operation on the given table.
    *
    * @param tableName the table name.
    */
   void analyzeTable(String tableName);
+
+  /**
+   * Performs a vacuum operation on the given table.
+   *
+   * @param tableName the table name.
+   */
+  void vacuumTable(String tableName);
 
   /**
    * Applies aggregation level logic to the analytics table by setting the organisation unit level
@@ -171,9 +171,7 @@ public interface AnalyticsTableManager {
    * @param aggregationLevel the aggregation level.
    */
   default void applyAggregationLevels(
-      AnalyticsTablePartition partition, Collection<String> dataElements, int aggregationLevel) {
-    // NOOP by default
-  }
+      AnalyticsTablePartition partition, Collection<String> dataElements, int aggregationLevel) {}
 
   /**
    * Performs vacuum or optimization of the given table. The type of operation performed is
@@ -181,7 +179,5 @@ public interface AnalyticsTableManager {
    *
    * @param partition the analytics table partition.
    */
-  default void vacuumTables(AnalyticsTablePartition partition) {
-    // NOOP by default
-  }
+  default void vacuumTables(AnalyticsTablePartition partition) {}
 }

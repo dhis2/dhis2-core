@@ -34,9 +34,12 @@ import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
+import org.hisp.dhis.db.model.IndexFunction;
+import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
+import org.hisp.dhis.db.model.constraint.Unique;
 import org.junit.jupiter.api.Test;
 
 class PostgreSqlBuilderTest {
@@ -49,6 +52,7 @@ class PostgreSqlBuilderTest {
             new Column("data", DataType.CHARACTER_11, Nullable.NOT_NULL),
             new Column("period", DataType.VARCHAR_50, Nullable.NOT_NULL),
             new Column("created", DataType.TIMESTAMP),
+            new Column("user", DataType.JSONB),
             new Column("value", DataType.DOUBLE));
 
     List<String> primaryKey = List.of("id");
@@ -56,7 +60,13 @@ class PostgreSqlBuilderTest {
     List<Index> indexes =
         List.of(
             new Index("in_immunization_data", List.of("data")),
-            new Index("in_immunization_period", List.of("period", "created")));
+            new Index("in_immunization_period_created", List.of("period", "created")),
+            new Index("in_immunization_user", IndexType.GIN, List.of("user")),
+            new Index(
+                "in_immunization_data_period",
+                Unique.NON_UNIQUE,
+                List.of("data", "period"),
+                IndexFunction.LOWER));
 
     return new Table("immunization", columns, primaryKey, indexes);
   }
@@ -75,8 +85,14 @@ class PostgreSqlBuilderTest {
 
   @Test
   void testDataType() {
-    assertEquals("double precision", sqlBuilder.typeDouble());
-    assertEquals("geometry", sqlBuilder.typeGeometry());
+    assertEquals("double precision", sqlBuilder.dataTypeDouble());
+    assertEquals("geometry", sqlBuilder.dataTypeGeometry());
+  }
+
+  @Test
+  void testIndexType() {
+    assertEquals("btree", sqlBuilder.indexTypeBtree());
+    assertEquals("gist", sqlBuilder.indexTypeGist());
   }
 
   @Test
@@ -85,7 +101,7 @@ class PostgreSqlBuilderTest {
 
     String expected =
         "create table \"immunization\" (\"id\" bigint not null, \"data\" char(11) not null, "
-            + "\"period\" varchar(50) not null, \"created\" timestamp null, "
+            + "\"period\" varchar(50) not null, \"created\" timestamp null, \"user\" jsonb null, "
             + "\"value\" double precision null, primary key (\"id\"));";
 
     assertEquals(expected, sqlBuilder.createTable(table));
@@ -147,6 +163,22 @@ class PostgreSqlBuilderTest {
   }
 
   @Test
+  void testDropTableIfExistsCascade() {
+    Table table = getTableA();
+
+    String expected = "drop table if exists \"immunization\" cascade;";
+
+    assertEquals(expected, sqlBuilder.dropTableIfExistsCascade(table));
+  }
+
+  @Test
+  void testDropTableIfExistsCascadeString() {
+    String expected = "drop table if exists \"immunization\" cascade;";
+
+    assertEquals(expected, sqlBuilder.dropTableIfExistsCascade("immunization"));
+  }
+
+  @Test
   void testTableExists() {
     String expected =
         "select t.table_name from information_schema.tables t "
@@ -159,7 +191,8 @@ class PostgreSqlBuilderTest {
   void testCreateIndexA() {
     Table table = getTableA();
 
-    String expected = "create index \"in_immunization_data\" on \"immunization\" (\"data\");";
+    String expected =
+        "create index \"in_immunization_data\" on \"immunization\" using btree(\"data\");";
 
     assertEquals(expected, sqlBuilder.createIndex(table, table.getIndexes().get(0)));
   }
@@ -169,8 +202,28 @@ class PostgreSqlBuilderTest {
     Table table = getTableA();
 
     String expected =
-        "create index \"in_immunization_period\" on \"immunization\" (\"period\", \"created\");";
+        "create index \"in_immunization_period_created\" on \"immunization\" using btree(\"period\", \"created\");";
 
     assertEquals(expected, sqlBuilder.createIndex(table, table.getIndexes().get(1)));
+  }
+
+  @Test
+  void testCreateIndexC() {
+    Table table = getTableA();
+
+    String expected =
+        "create index \"in_immunization_user\" on \"immunization\" using gin(\"user\");";
+
+    assertEquals(expected, sqlBuilder.createIndex(table, table.getIndexes().get(2)));
+  }
+
+  @Test
+  void testCreateIndexD() {
+    Table table = getTableA();
+
+    String expected =
+        "create index \"in_immunization_data_period\" on \"immunization\" using btree(lower(\"data\"), lower(\"period\"));";
+
+    assertEquals(expected, sqlBuilder.createIndex(table, table.getIndexes().get(3)));
   }
 }

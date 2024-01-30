@@ -35,10 +35,10 @@ import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.ENDDATE;
 import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.OU;
 import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.STARTDATE;
 import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.TEIUID;
-import static org.hisp.dhis.analytics.table.model.ColumnDataType.CHARACTER_11;
-import static org.hisp.dhis.analytics.table.model.ColumnDataType.DATE;
-import static org.hisp.dhis.analytics.table.model.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
+import static org.hisp.dhis.db.model.DataType.DATE;
+import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -70,6 +70,7 @@ import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
@@ -163,14 +164,14 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
         new AnalyticsTable(
             AnalyticsTableType.OWNERSHIP,
             JdbcOwnershipAnalyticsTableManager.FIXED_COLS,
-            emptyList(),
+            Logged.UNLOGGED,
             programA);
 
     tableB =
         new AnalyticsTable(
             AnalyticsTableType.OWNERSHIP,
             JdbcOwnershipAnalyticsTableManager.FIXED_COLS,
-            emptyList(),
+            Logged.UNLOGGED,
             programB);
 
     partitionA = new AnalyticsTablePartition(tableA, 1, new Date(), new Date());

@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.db.sql;
 
+import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
+import org.hisp.dhis.db.model.IndexFunction;
+import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Table;
 
 /**
@@ -41,94 +44,141 @@ public interface SqlBuilder {
   /**
    * @return the name of the small integer data type.
    */
-  String typeSmallInt();
+  String dataTypeSmallInt();
 
   /**
    * @return the name of the integer data type.
    */
-  String typeInteger();
+  String dataTypeInteger();
 
   /**
    * @return the name of the big integer data type.
    */
-  String typeBigInt();
+  String dataTypeBigInt();
 
   /**
    * @return the name of the numeric data type.
    */
-  String typeNumeric();
+  String dataTypeNumeric();
 
   /**
    * @return the name of the real data type.
    */
-  String typeReal();
+  String dataTypeReal();
 
   /**
    * @return the name of the double data type.
    */
-  String typeDouble();
+  String dataTypeDouble();
 
   /**
    * @return the name of the boolean data type.
    */
-  String typeBoolean();
+  String dataTypeBoolean();
 
   /**
    * @param length the character length.
    * @return the name of the character data type.
    */
-  String typeCharacter(int length);
+  String dataTypeCharacter(int length);
 
   /**
    * @param length the character length.
    * @return the name of the character varying data type.
    */
-  String typeVarchar(int length);
+  String dataTypeVarchar(int length);
 
   /**
    * @return the name of the text data type.
    */
-  String typeText();
+  String dataTypeText();
 
   /**
    * @return the name of the date data type.
    */
-  String typeDate();
+  String dataTypeDate();
 
   /**
    * @return the name of the timestamp data type.
    */
-  String typeTimestamp();
+  String dataTypeTimestamp();
 
   /**
    * @return the name of the timestamp with time zone data type.
    */
-  String typeTimestampTz();
+  String dataTypeTimestampTz();
 
   /**
    * @return the name of the time data type.
    */
-  String typeTime();
+  String dataTypeTime();
 
   /**
    * @return the name of the time with time zone data type.
    */
-  String typeTimeTz();
+  String dataTypeTimeTz();
 
   /**
    * @return the name of the geometry data type.
    */
-  String typeGeometry();
+  String dataTypeGeometry();
 
   /**
    * @return the name of the geometry point data type.
    */
-  String typeGeometryPoint();
+  String dataTypeGeometryPoint();
 
   /**
    * @return the name of the JSONB data type.
    */
-  String typeJsonb();
+  String dataTypeJsonb();
+
+  /**
+   * @param dataType the {@link DataType}.
+   * @return the data type name.
+   */
+  String getDataTypeName(DataType dataType);
+
+  // Index types
+
+  /**
+   * @return the name of the B-Tree index type.
+   */
+  String indexTypeBtree();
+
+  /**
+   * @return the name of the GiST index type.
+   */
+  String indexTypeGist();
+
+  /**
+   * @return the name of the GIN index type.
+   */
+  String indexTypeGin();
+
+  /**
+   * @param indexType the {@link IndexType}.
+   * @return the index type name.
+   */
+  String getIndexTypeName(IndexType indexType);
+
+  // Index functions
+
+  /**
+   * @return the name of the upper index function.
+   */
+  String indexFunctionUpper();
+
+  /**
+   * @return the name of the lower index function.
+   */
+  String indexFunctionLower();
+
+  /**
+   * @param indexFunction the {@link IndexFunction}.
+   * @return the index function name.
+   */
+  String getIndexFunctionName(IndexFunction indexFunction);
 
   // Capabilities
 
@@ -180,6 +230,18 @@ public interface SqlBuilder {
    * @return a drop table if exists statement.
    */
   String dropTableIfExists(String name);
+
+  /**
+   * @param table the {@link Table}.
+   * @return a drop table if exists cascade statement.
+   */
+  String dropTableIfExistsCascade(Table table);
+
+  /**
+   * @param name the table name.
+   * @return a drop table if exists cascade statement.
+   */
+  String dropTableIfExistsCascade(String name);
 
   /**
    * @param name the table name.

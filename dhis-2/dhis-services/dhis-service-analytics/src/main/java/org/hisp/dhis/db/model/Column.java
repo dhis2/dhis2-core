@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.db.model;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.db.model.constraint.Nullable;
@@ -38,9 +39,10 @@ import org.hisp.dhis.db.model.constraint.Nullable;
  */
 @Getter
 @RequiredArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Column {
   /** Column name. Required. */
-  private final String name;
+  @EqualsAndHashCode.Include private final String name;
 
   /** Column data type. Required. */
   private final DataType dataType;
@@ -76,5 +78,19 @@ public class Column {
     this.dataType = dataType;
     this.nullable = nullable;
     this.collation = Collation.DEFAULT;
+  }
+
+  /**
+   * Indicates whether the column is not null.
+   *
+   * @return true if the column is not null.
+   */
+  public boolean isNotNull() {
+    return Nullable.NOT_NULL == nullable;
+  }
+
+  /** Indicates whether the collation is set to a non-default value. */
+  public boolean hasCollation() {
+    return collation != null && Collation.DEFAULT != collation;
   }
 }

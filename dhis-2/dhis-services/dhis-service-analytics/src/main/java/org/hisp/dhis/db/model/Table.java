@@ -28,6 +28,7 @@
 package org.hisp.dhis.db.model;
 
 import java.util.List;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RegExUtils;
@@ -39,13 +40,14 @@ import org.apache.commons.lang3.RegExUtils;
  */
 @Getter
 @RequiredArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Table {
   private static final String STAGING_TABLE_SUFFIX = "_staging";
 
   private static final String STAGING_TABLE_SUFFIX_RGX = "\\_staging$";
 
   /** Table name. Required. */
-  private final String name;
+  @EqualsAndHashCode.Include private final String name;
 
   /** Table columns. At least one column required. */
   private final List<Column> columns;
@@ -56,7 +58,7 @@ public class Table {
   /** Table indexes. Optional. */
   private final List<Index> indexes;
 
-  /** Table checks. PostgreSQL-only featre. Optional. */
+  /** Table checks. PostgreSQL-only feature. Optional. */
   private final List<String> checks;
 
   /** Whether table is logged or unlogged. PostgreSQL-only feature. */
@@ -118,6 +120,15 @@ public class Table {
    */
   public boolean hasChecks() {
     return !checks.isEmpty();
+  }
+
+  /**
+   * Indicates whether the table is unlogged.
+   *
+   * @return true if the table is unlogged.
+   */
+  public boolean isUnlogged() {
+    return Logged.UNLOGGED == logged;
   }
 
   /**

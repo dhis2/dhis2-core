@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,34 +27,7 @@
  */
 package org.hisp.dhis.analytics.table.model;
 
-import lombok.Getter;
-
-/**
- * @author Lars Helge Overland
- */
-@Getter
-public enum ColumnDataType {
-  CHARACTER_11("character(11)"),
-  CHARACTER_32("character(32)"),
-  VARCHAR_50("varchar(50)"),
-  VARCHAR_255("varchar(255)"),
-  VARCHAR_1200("varchar(1200)"),
-  TEXT("text"),
-  DATE("date"),
-  TIMESTAMP("timestamp"),
-  INTEGER("integer"),
-  SMALLINT("smallint"),
-  BIGINT("bigint"),
-  DOUBLE("double precision"),
-  NUMERIC("numeric"),
-  BOOLEAN("boolean"),
-  GEOMETRY("geometry"),
-  GEOMETRY_POINT("geometry(Point, 4326)"),
-  JSONB("jsonb");
-
-  final String value;
-
-  ColumnDataType(String value) {
-    this.value = value;
-  }
+public enum Skip {
+  SKIP,
+  INCLUDE;
 }

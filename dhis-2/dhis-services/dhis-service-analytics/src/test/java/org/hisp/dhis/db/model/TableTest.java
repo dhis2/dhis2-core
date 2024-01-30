@@ -28,10 +28,27 @@
 package org.hisp.dhis.db.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
+import org.hisp.dhis.db.model.constraint.Nullable;
 import org.junit.jupiter.api.Test;
 
 class TableTest {
+  @Test
+  void testIsUnlogged() {
+    Column colA = new Column("dx", DataType.CHARACTER_11, Nullable.NOT_NULL);
+    Column colB = new Column("value", DataType.DOUBLE, Nullable.NULL);
+    List<Column> columns = List.of(colA, colB);
+
+    Table tableA = new Table("analytics", columns, List.of(), List.of(), Logged.UNLOGGED);
+    Table tableB = new Table("analytics", columns, List.of(), List.of(), Logged.LOGGED);
+
+    assertTrue(tableA.isUnlogged());
+    assertFalse(tableB.isUnlogged());
+  }
+
   @Test
   void testToStagingTable() {
     assertEquals("_categorystructure_staging", Table.toStaging("_categorystructure"));

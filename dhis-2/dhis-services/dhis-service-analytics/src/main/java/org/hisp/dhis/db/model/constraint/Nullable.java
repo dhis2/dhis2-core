@@ -34,5 +34,5 @@ package org.hisp.dhis.db.model.constraint;
  */
 public enum Nullable {
   NULL,
-  NOT_NULL
+  NOT_NULL;
 }
