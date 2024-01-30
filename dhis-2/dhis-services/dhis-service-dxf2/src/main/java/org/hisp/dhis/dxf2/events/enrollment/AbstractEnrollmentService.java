@@ -106,6 +106,7 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -1059,8 +1060,13 @@ public abstract class AbstractEnrollmentService implements EnrollmentService {
         }
       }
 
+      programInstance.setLastUpdatedByUserInfo(UserInfoSnapshot.from(importOptions.getUser()));
       programInstanceService.deleteProgramInstance(programInstance);
-      teiService.updateTrackedEntityInstance(programInstance.getEntityInstance());
+
+      TrackedEntityInstance entity = programInstance.getEntityInstance();
+      entity.setLastUpdatedByUserInfo(UserInfoSnapshot.from(importOptions.getUser()));
+
+      teiService.updateTrackedEntityInstance(entity);
 
       importSummary.setReference(uid);
       importSummary.setStatus(ImportStatus.SUCCESS);
