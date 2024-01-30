@@ -62,7 +62,7 @@ class AnalyticsQueryOperatorTest {
               DimensionParamItem.ofStrings(dimensionParamString);
             });
 
-    assertEquals("Invalid operator: !!EQ", thrown.getMessage());
+    assertEquals("Operator not supported: `!EQ`", thrown.getMessage());
   }
 
   @Test
@@ -72,6 +72,6 @@ class AnalyticsQueryOperatorTest {
         assertThrows(
             IllegalQueryException.class, () -> DimensionParamItem.ofStrings(dimensionParamString));
 
-    assertEquals("Invalid operator: INVALID", thrown.getMessage());
+    assertEquals("Operator not supported: `INVALID`", thrown.getMessage());
   }
 }
