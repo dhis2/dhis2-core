@@ -46,6 +46,7 @@ import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.MapMap;
+import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -96,6 +97,9 @@ public class ExpressionParams {
    * parse).
    */
   @ToString.Include @EqualsAndHashCode.Include private final DataType dataType;
+
+  /** Initial query modifiers (if any) to start parsing the expression with */
+  @Builder.Default private final QueryModifiers initialQueryMods = null;
 
   /** A map from a parsed {@see DimensionalItemId} to its equivalent {@see DimensionalItemObject} */
   @Builder.Default
