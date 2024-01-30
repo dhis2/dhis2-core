@@ -25,57 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.icon;
+package org.hisp.dhis.webapi.json.domain;
 
-import java.util.Set;
-import java.util.stream.Stream;
-import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.user.UserDetails;
+import java.time.LocalDateTime;
+import java.util.List;
+import org.hisp.dhis.jsontree.JsonDate;
+import org.hisp.dhis.jsontree.JsonObject;
 
-public interface CustomIconStore {
-  /**
-   * Returns a custom icon that contains a given key
-   *
-   * @param key of the icon
-   * @return the custom icon matching the key, or null instead
-   */
-  CustomIcon getIconByKey(String key);
+/**
+ * @author Zubair Asghar
+ */
+public interface JsonIcon extends JsonObject {
 
-  /**
-   * Returns a list of custom icons that contain all the specified keywords
-   *
-   * @param iconOperationParams contains query params for CustomIcon
-   * @return the list of custom icons that contain all the keywords
-   */
-  Stream<CustomIcon> getIcons(IconOperationParams iconOperationParams);
+  default String getKey() {
+    return getString("key").string();
+  }
 
-  /**
-   * Returns a list with all the custom icon keywords
-   *
-   * @return a list with all the custom icon keywords
-   */
-  Set<String> getKeywords();
+  default String getHref() {
+    return getString("href").string();
+  }
 
-  /**
-   * Persists a custom icon to the database
-   *
-   * @param customIcon Icon to be saved
-   * @param fileResource file resource linked to the custom icon
-   * @param createdByUser user that created the custom icon
-   */
-  void save(CustomIcon customIcon, FileResource fileResource, UserDetails createdByUser);
+  default LocalDateTime getCreated() {
+    return get("created", JsonDate.class).date();
+  }
 
-  /**
-   * Deletes a custom icon from the database
-   *
-   * @param customIconKey Key of the icon to be deleted
-   */
-  void delete(String customIconKey);
+  default LocalDateTime getLastUpdated() {
+    return get("lastUpdated", JsonDate.class).date();
+  }
 
-  /**
-   * Updates a custom icon from the database
-   *
-   * @param customIcon Icon to be updated
-   */
-  void update(CustomIcon customIcon);
+  default String getUserUid() {
+    return getString("userUid").string();
+  }
+
+  default String getFileResourceUid() {
+    return getString("fileResourceUid").string();
+  }
+
+  default List<String> getKeywords() {
+    return getArray("keywords").stringValues();
+  }
+
+  default String getDescription() {
+    return getString("description").string();
+  }
 }
