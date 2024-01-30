@@ -307,7 +307,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
       String textValueExpression,
       Set<ValueType> valueTypes,
       String whereClause) {
-    String tableName = partition.getTempTableName();
+    String tableName = partition.getTempName();
     String valTypes = TextUtils.getQuotedCommaDelimitedString(ObjectUtils.asStringList(valueTypes));
     boolean respectStartEndDates =
         systemSettingManager.getBoolSetting(
@@ -319,10 +319,10 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             ? "and dv.lastupdated >= '" + getLongDateString(partition.getStartDate()) + "' "
             : "and ps.year = " + partition.getYear() + " ";
 
-    String sql = "insert into " + partition.getTempTableName() + " (";
+    String sql = "insert into " + partition.getTempName() + " (";
 
     List<AnalyticsTableColumn> dimensions = partition.getMasterTable().getDimensionColumns();
-    List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
+    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
     for (AnalyticsTableColumn col : columns) {
       sql += col.getName() + ",";
@@ -617,7 +617,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   @Override
   public void applyAggregationLevels(
       AnalyticsTablePartition partition, Collection<String> dataElements, int aggregationLevel) {
-    StringBuilder sql = new StringBuilder("update " + partition.getTempTableName() + " set ");
+    StringBuilder sql = new StringBuilder("update " + partition.getTempName() + " set ");
 
     for (int i = 0; i < aggregationLevel; i++) {
       int level = i + 1;
@@ -639,11 +639,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
 
   @Override
   public void vacuumTables(AnalyticsTablePartition partition) {
-    String sql = "vacuum " + partition.getTempTableName();
-
-    log.debug("Vacuum table SQL: '{}'", sql);
-
-    jdbcTemplate.execute(sql);
+    vacuumTable(partition.getTempName());
   }
 
   /**

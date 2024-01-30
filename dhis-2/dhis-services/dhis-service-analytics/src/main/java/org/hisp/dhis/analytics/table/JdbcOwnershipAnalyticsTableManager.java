@@ -163,13 +163,13 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
 
     String sql = getInputSql(program);
 
-    log.debug("Populate table '{}' with SQL: '{}'", partition.getTempTableName(), sql);
+    log.debug("Populate table '{}' with SQL: '{}'", partition.getTempName(), sql);
 
     Timer timer = new SystemTimer().start();
 
     populateOwnershipTableInternal(partition, sql);
 
-    log.info("Populate table '{}' in: '{}'", partition.getTempTableName(), timer.stop().toString());
+    log.info("Populate table '{}' in: '{}'", partition.getTempName(), timer.stop().toString());
   }
 
   private void populateOwnershipTableInternal(AnalyticsTablePartition partition, String sql) {
@@ -179,7 +179,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
     try (MappingBatchHandler batchHandler =
         MappingBatchHandler.builder()
             .jdbcConfiguration(jdbcConfiguration)
-            .tableName(partition.getTempTableName())
+            .tableName(partition.getTempName())
             .columns(columnNames)
             .build()) {
       batchHandler.init();
@@ -197,7 +197,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
       log.info(
           "OwnershipAnalytics query row count was {} for table '{}'",
           queryRowCount,
-          partition.getTempTableName());
+          partition.getTempName());
       batchHandler.flush();
     } catch (Exception ex) {
       log.error("Failed to alter table ownership: ", ex);

@@ -61,8 +61,8 @@ class AnalyticsTableTest {
   void testGetTableName() {
     AnalyticsTable table =
         new AnalyticsTable(AnalyticsTableType.COMPLETENESS, List.of(), Logged.UNLOGGED);
-    assertEquals("analytics_completeness", table.getTableName());
-    assertEquals("analytics_completeness_temp", table.getTempTableName());
+    assertEquals("analytics_completeness", table.getName());
+    assertEquals("analytics_completeness_temp", table.getTempName());
   }
 
   @Test
@@ -71,8 +71,8 @@ class AnalyticsTableTest {
     program.setUid("rfT56YbgFeK");
     AnalyticsTable table =
         new AnalyticsTable(AnalyticsTableType.EVENT, List.of(), Logged.UNLOGGED, program);
-    assertEquals("analytics_event_rft56ybgfek", table.getTableName());
-    assertEquals("analytics_event_temp_rft56ybgfek", table.getTempTableName());
+    assertEquals("analytics_event_rft56ybgfek", table.getName());
+    assertEquals("analytics_event_temp_rft56ybgfek", table.getTempName());
   }
 
   @Test
@@ -82,8 +82,8 @@ class AnalyticsTableTest {
     AnalyticsTable table =
         new AnalyticsTable(
             AnalyticsTableType.ENROLLMENT, List.of(), Logged.UNLOGGED, trackedEntityType);
-    assertEquals("analytics_enrollment_k7gfrbe3rt5", table.getTableName());
-    assertEquals("analytics_enrollment_temp_k7gfrbe3rt5", table.getTempTableName());
+    assertEquals("analytics_enrollment_k7gfrbe3rt5", table.getName());
+    assertEquals("analytics_enrollment_temp_k7gfrbe3rt5", table.getTempName());
   }
 
   @Test
@@ -126,10 +126,10 @@ class AnalyticsTableTest {
     AnalyticsTablePartition partitionB = tableA.getTablePartitions().get(1);
     assertNotNull(partitionA);
     assertNotNull(partitionB);
-    assertEquals("analytics_event_uida_2014", partitionA.getTableName());
-    assertEquals("analytics_event_uida_2015", partitionB.getTableName());
-    assertEquals("analytics_event_temp_uida_2014", partitionA.getTempTableName());
-    assertEquals("analytics_event_temp_uida_2015", partitionB.getTempTableName());
+    assertEquals("analytics_event_uida_2014", partitionA.getName());
+    assertEquals("analytics_event_uida_2015", partitionB.getName());
+    assertEquals("analytics_event_temp_uida_2014", partitionA.getTempName());
+    assertEquals("analytics_event_temp_uida_2015", partitionB.getTempName());
   }
 
   @Test

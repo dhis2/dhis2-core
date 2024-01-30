@@ -196,9 +196,9 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
   @Override
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
-    List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
+    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
-    StringBuilder sql = new StringBuilder("insert into " + partition.getTempTableName() + " (");
+    StringBuilder sql = new StringBuilder("insert into " + partition.getTempName() + " (");
 
     for (AnalyticsTableColumn col : columns) {
       sql.append(col.getName() + ",");
@@ -231,7 +231,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
         .append(" and pi.occurreddate is not null ")
         .append(" and pi.deleted is false");
 
-    invokeTimeAndLog(sql.toString(), partition.getTempTableName());
+    invokeTimeAndLog(sql.toString(), partition.getTempName());
   }
 
   /**
