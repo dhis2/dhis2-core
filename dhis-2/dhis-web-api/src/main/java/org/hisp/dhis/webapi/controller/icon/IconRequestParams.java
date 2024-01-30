@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,65 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common.params.dimension;
+package org.hisp.dhis.webapi.controller.icon;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-
-import java.util.Objects;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.UidObject;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
+import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.icon.IconTypeFilter;
 
 /**
- * Encapsulates and element T with its offset.
- *
- * @param <T> the dimension type.
+ * @author Zubair Asghar
  */
 @Data
-@RequiredArgsConstructor(staticName = "of")
-public class ElementWithOffset<T extends UidObject> {
-  @SuppressWarnings("rawtypes")
-  private static final ElementWithOffset EMPTY_ELEMENT_WITH_OFFSET =
-      ElementWithOffset.of(null, null);
+@NoArgsConstructor
+public class IconRequestParams {
 
-  private final T element;
+  static final String DEFAULT_FIELDS_PARAM =
+      "key,keywords,description,fileResourceUid,createdByUserUid,href";
 
-  private final Integer offset;
+  private List<String> keys = new ArrayList<>();
+  private List<String> keywords = new ArrayList<>();
+  private IconTypeFilter type = IconTypeFilter.ALL;
+  private Date createdStartDate;
+  private Date createdEndDate;
+  private Date lastUpdatedStartDate;
+  private Date lastUpdatedEndDate;
 
-  public static <T extends UidObject> ElementWithOffset<T> of(T element) {
-    return ElementWithOffset.of(element, null);
+  private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
+
+  public boolean hasCreatedStartDate() {
+    return createdStartDate != null;
   }
 
-  public boolean hasOffset() {
-    return Objects.nonNull(offset);
+  public boolean hasCreatedEndDate() {
+    return createdEndDate != null;
   }
 
-  @SuppressWarnings("unchecked")
-  public static <R extends UidObject> ElementWithOffset<R> emptyElementWithOffset() {
-    return EMPTY_ELEMENT_WITH_OFFSET;
+  public boolean hasLastUpdatedStartDate() {
+    return lastUpdatedStartDate != null;
   }
 
-  /**
-   * Returns the current offset. If there is none, the number "0" (zero) is returned.
-   *
-   * @return the current offset, or "0" (zero) as default value.
-   */
-  public Integer getOffsetWithDefault() {
-    return hasOffset() ? offset : 0;
-  }
-
-  public boolean isPresent() {
-    return Objects.nonNull(element);
-  }
-
-  @Override
-  public String toString() {
-    if (isPresent()) {
-      if (hasOffset()) {
-        return element.getUid() + "[" + offset + "]";
-      }
-      return element.getUid();
-    }
-    return EMPTY;
+  public boolean hasLastUpdatedEndDate() {
+    return lastUpdatedEndDate != null;
   }
 }

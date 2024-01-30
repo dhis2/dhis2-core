@@ -25,65 +25,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common.params.dimension;
+package org.hisp.dhis.icon;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-
-import java.util.Objects;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.UidObject;
+import lombok.NoArgsConstructor;
 
 /**
- * Encapsulates and element T with its offset.
+ * Represents query parameters sent to {@link org.hisp.dhis.icon.IconService}.
  *
- * @param <T> the dimension type.
+ * @author Zubair Asghar
  */
 @Data
-@RequiredArgsConstructor(staticName = "of")
-public class ElementWithOffset<T extends UidObject> {
-  @SuppressWarnings("rawtypes")
-  private static final ElementWithOffset EMPTY_ELEMENT_WITH_OFFSET =
-      ElementWithOffset.of(null, null);
+@NoArgsConstructor
+public class IconOperationParams {
 
-  private final T element;
+  private List<String> keys = new ArrayList<>();
+  private IconTypeFilter iconTypeFilter = IconTypeFilter.ALL;
+  private List<String> keywords = new ArrayList<>();
+  private Date createdStartDate;
+  private Date createdEndDate;
+  private Date lastUpdatedStartDate;
+  private Date lastUpdatedEndDate;
 
-  private final Integer offset;
-
-  public static <T extends UidObject> ElementWithOffset<T> of(T element) {
-    return ElementWithOffset.of(element, null);
+  public boolean hasLastUpdatedStartDate() {
+    return lastUpdatedStartDate != null;
   }
 
-  public boolean hasOffset() {
-    return Objects.nonNull(offset);
+  public boolean hasLastUpdatedEndDate() {
+    return lastUpdatedEndDate != null;
   }
 
-  @SuppressWarnings("unchecked")
-  public static <R extends UidObject> ElementWithOffset<R> emptyElementWithOffset() {
-    return EMPTY_ELEMENT_WITH_OFFSET;
+  public boolean hasCreatedStartDate() {
+    return createdStartDate != null;
   }
 
-  /**
-   * Returns the current offset. If there is none, the number "0" (zero) is returned.
-   *
-   * @return the current offset, or "0" (zero) as default value.
-   */
-  public Integer getOffsetWithDefault() {
-    return hasOffset() ? offset : 0;
+  public boolean hasCreatedEndDate() {
+    return createdEndDate != null;
   }
 
-  public boolean isPresent() {
-    return Objects.nonNull(element);
+  public boolean hasKeywords() {
+    return !keywords.isEmpty();
   }
 
-  @Override
-  public String toString() {
-    if (isPresent()) {
-      if (hasOffset()) {
-        return element.getUid() + "[" + offset + "]";
-      }
-      return element.getUid();
-    }
-    return EMPTY;
+  public boolean hasKeys() {
+    return !keys.isEmpty();
   }
 }

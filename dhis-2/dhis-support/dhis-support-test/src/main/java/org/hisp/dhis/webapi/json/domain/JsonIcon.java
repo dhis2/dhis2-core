@@ -25,65 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common.params.dimension;
+package org.hisp.dhis.webapi.json.domain;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-
-import java.util.Objects;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.UidObject;
+import java.time.LocalDateTime;
+import java.util.List;
+import org.hisp.dhis.jsontree.JsonDate;
+import org.hisp.dhis.jsontree.JsonObject;
 
 /**
- * Encapsulates and element T with its offset.
- *
- * @param <T> the dimension type.
+ * @author Zubair Asghar
  */
-@Data
-@RequiredArgsConstructor(staticName = "of")
-public class ElementWithOffset<T extends UidObject> {
-  @SuppressWarnings("rawtypes")
-  private static final ElementWithOffset EMPTY_ELEMENT_WITH_OFFSET =
-      ElementWithOffset.of(null, null);
+public interface JsonIcon extends JsonObject {
 
-  private final T element;
-
-  private final Integer offset;
-
-  public static <T extends UidObject> ElementWithOffset<T> of(T element) {
-    return ElementWithOffset.of(element, null);
+  default String getKey() {
+    return getString("key").string();
   }
 
-  public boolean hasOffset() {
-    return Objects.nonNull(offset);
+  default String getHref() {
+    return getString("href").string();
   }
 
-  @SuppressWarnings("unchecked")
-  public static <R extends UidObject> ElementWithOffset<R> emptyElementWithOffset() {
-    return EMPTY_ELEMENT_WITH_OFFSET;
+  default LocalDateTime getCreated() {
+    return get("created", JsonDate.class).date();
   }
 
-  /**
-   * Returns the current offset. If there is none, the number "0" (zero) is returned.
-   *
-   * @return the current offset, or "0" (zero) as default value.
-   */
-  public Integer getOffsetWithDefault() {
-    return hasOffset() ? offset : 0;
+  default LocalDateTime getLastUpdated() {
+    return get("lastUpdated", JsonDate.class).date();
   }
 
-  public boolean isPresent() {
-    return Objects.nonNull(element);
+  default String getUserUid() {
+    return getString("userUid").string();
   }
 
-  @Override
-  public String toString() {
-    if (isPresent()) {
-      if (hasOffset()) {
-        return element.getUid() + "[" + offset + "]";
-      }
-      return element.getUid();
-    }
-    return EMPTY;
+  default String getFileResourceUid() {
+    return getString("fileResourceUid").string();
+  }
+
+  default List<String> getKeywords() {
+    return getArray("keywords").stringValues();
+  }
+
+  default String getDescription() {
+    return getString("description").string();
   }
 }

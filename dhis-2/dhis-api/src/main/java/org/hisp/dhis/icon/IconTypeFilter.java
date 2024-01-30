@@ -25,65 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common.params.dimension;
+package org.hisp.dhis.icon;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-
-import java.util.Objects;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.UidObject;
+import java.util.Optional;
 
 /**
- * Encapsulates and element T with its offset.
- *
- * @param <T> the dimension type.
+ * @author Zubair Asghar
  */
-@Data
-@RequiredArgsConstructor(staticName = "of")
-public class ElementWithOffset<T extends UidObject> {
-  @SuppressWarnings("rawtypes")
-  private static final ElementWithOffset EMPTY_ELEMENT_WITH_OFFSET =
-      ElementWithOffset.of(null, null);
+public enum IconTypeFilter {
+  ALL("all"),
+  CUSTOM("custom"),
+  DEFAULT("default");
 
-  private final T element;
+  private String type;
 
-  private final Integer offset;
+  IconTypeFilter(String type) {
 
-  public static <T extends UidObject> ElementWithOffset<T> of(T element) {
-    return ElementWithOffset.of(element, null);
+    this.type = type;
   }
 
-  public boolean hasOffset() {
-    return Objects.nonNull(offset);
-  }
-
-  @SuppressWarnings("unchecked")
-  public static <R extends UidObject> ElementWithOffset<R> emptyElementWithOffset() {
-    return EMPTY_ELEMENT_WITH_OFFSET;
-  }
-
-  /**
-   * Returns the current offset. If there is none, the number "0" (zero) is returned.
-   *
-   * @return the current offset, or "0" (zero) as default value.
-   */
-  public Integer getOffsetWithDefault() {
-    return hasOffset() ? offset : 0;
-  }
-
-  public boolean isPresent() {
-    return Objects.nonNull(element);
-  }
-
-  @Override
-  public String toString() {
-    if (isPresent()) {
-      if (hasOffset()) {
-        return element.getUid() + "[" + offset + "]";
+  public static Optional<IconTypeFilter> from(String iconType) {
+    for (IconTypeFilter type : IconTypeFilter.values()) {
+      if (type.type.equals(iconType)) {
+        return Optional.of(type);
       }
-      return element.getUid();
     }
-    return EMPTY;
+
+    return Optional.empty();
   }
 }
