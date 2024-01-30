@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,44 +27,31 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.function.UnaryOperator;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
-import org.hisp.dhis.analytics.common.query.BaseRenderable;
-import org.hisp.dhis.analytics.common.query.Field;
-import org.hisp.dhis.analytics.common.query.Renderable;
+import org.junit.jupiter.api.Test;
 
-@RequiredArgsConstructor(staticName = "of")
-public class RenderableDataValue extends BaseRenderable {
-  private final String alias;
+public class RenderableDataValueTest {
 
-  private final String dataValue;
-
-  private final ValueTypeMapping valueTypeMapping;
-
-  public Renderable transformedIfNecessary() {
-    return transformedIfNecessary(valueTypeMapping.getSelectTransformer());
+  @Test
+  void testRender() {
+    RenderableDataValue renderableDataValue =
+        RenderableDataValue.of("alias", "dataValue", ValueTypeMapping.STRING);
+    String result = renderableDataValue.transformedIfNecessary().render();
+    assertEquals("(alias.\"eventdatavalues\" -> 'dataValue' ->> 'value')::STRING", result);
   }
 
-  public Renderable transformedIfNecessary(UnaryOperator<String> dataValueTransformer) {
-    RenderableDataValue withoutAsAlias = RenderableDataValue.of(alias, dataValue, valueTypeMapping);
-
-    return Field.ofUnquoted(
-        EMPTY, () -> dataValueTransformer.apply(withoutAsAlias.render()), EMPTY);
-  }
-
-  @Override
-  public String render() {
-    String rendered =
-        "("
-            + Field.of(alias, () -> "eventdatavalues", EMPTY).render()
-            + " -> '"
-            + dataValue
-            + "' ->> 'value')::"
-            + valueTypeMapping.name();
-
-    return rendered;
+  @Test
+  void testRenderBoolean() {
+    RenderableDataValue renderableDataValue =
+        RenderableDataValue.of("alias", "dataValue", ValueTypeMapping.BOOLEAN);
+    String result = renderableDataValue.transformedIfNecessary().render();
+    assertEquals(
+        "case when"
+            + " (alias.\"eventdatavalues\" -> 'dataValue' ->> 'value')::BOOLEAN = 'true' then 1"
+            + " when (alias.\"eventdatavalues\" -> 'dataValue' ->> 'value')::BOOLEAN = 'false' then 0"
+            + " end",
+        result);
   }
 }
