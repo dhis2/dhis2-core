@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
 import org.junit.jupiter.api.Test;
 
-public class RenderableDataValueTest {
+class RenderableDataValueTest {
 
   @Test
   void testRender() {
