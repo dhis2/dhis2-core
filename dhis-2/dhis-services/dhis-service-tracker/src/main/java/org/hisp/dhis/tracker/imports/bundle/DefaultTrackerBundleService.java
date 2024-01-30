@@ -27,18 +27,21 @@
  */
 package org.hisp.dhis.tracker.imports.bundle;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.ParamsConverter;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.bundle.persister.CommitService;
+import org.hisp.dhis.tracker.imports.bundle.persister.PersistenceException;
 import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
@@ -49,6 +52,7 @@ import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.imports.sideeffect.SideEffectHandlerService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,6 +75,8 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
 
   private final TrackedEntityService trackedEntityService;
 
+  private final ObjectMapper mapper;
+
   private List<SideEffectHandlerService> sideEffectHandlers = new ArrayList<>();
 
   @Autowired(required = false)
@@ -81,9 +87,14 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
   @Override
   public TrackerBundle create(
       TrackerImportParams params, TrackerObjects trackerObjects, User user) {
-    TrackerBundle trackerBundle = ParamsConverter.convert(params, trackerObjects, user);
+    UserInfoSnapshot userInfo = UserInfoSnapshot.from(UserDetails.fromUser(user));
+
     TrackerPreheat preheat =
         trackerPreheatService.preheat(trackerObjects, params.getIdSchemes(), user);
+    preheat.setUserInfo(userInfo);
+
+    TrackerBundle trackerBundle = ParamsConverter.convert(params, trackerObjects, user);
+    trackerBundle.setUserInfo(userInfo);
     trackerBundle.setPreheat(preheat);
 
     return trackerBundle;
@@ -119,15 +130,20 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
 
   @Override
   public void postCommit(TrackerBundle bundle) {
-    updateTeisLastUpdated(bundle);
+    updateTrackedEntitiesLastUpdated(bundle);
   }
 
-  private void updateTeisLastUpdated(TrackerBundle bundle) {
-    Optional.ofNullable(bundle.getUpdatedTeis())
-        .filter(ut -> !ut.isEmpty())
-        .ifPresent(
-            trackedEntities ->
-                trackedEntityService.updateTrackedEntityLastUpdated(trackedEntities, new Date()));
+  private void updateTrackedEntitiesLastUpdated(TrackerBundle bundle) {
+    if (!bundle.getUpdatedTrackedEntities().isEmpty()) {
+      try {
+        trackedEntityService.updateTrackedEntityLastUpdated(
+            bundle.getUpdatedTrackedEntities(),
+            new Date(),
+            mapper.writeValueAsString(bundle.getUserInfo()));
+      } catch (JsonProcessingException e) {
+        throw new PersistenceException(e);
+      }
+    }
   }
 
   @Override
