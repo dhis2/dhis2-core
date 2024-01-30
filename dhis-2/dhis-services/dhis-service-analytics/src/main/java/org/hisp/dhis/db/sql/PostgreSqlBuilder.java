@@ -155,6 +155,18 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
     return "gin";
   }
 
+  // Index functions
+
+  @Override
+  public String indexFunctionUpper() {
+    return "upper";
+  }
+
+  @Override
+  public String indexFunctionLower() {
+    return "lower";
+  }
+
   // Capabilities
 
   @Override
@@ -231,12 +243,22 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String dropTableIfExists(Table table) {
-    return String.format("drop table if exists %s;", quote(table.getName()));
+    return dropTableIfExists(table.getName());
   }
 
   @Override
   public String dropTableIfExists(String name) {
     return String.format("drop table if exists %s;", quote(name));
+  }
+
+  @Override
+  public String dropTableIfExistsCascade(Table table) {
+    return dropTableIfExistsCascade(table.getName());
+  }
+
+  @Override
+  public String dropTableIfExistsCascade(String name) {
+    return String.format("drop table if exists %s cascade;", quote(name));
   }
 
   @Override
@@ -253,7 +275,9 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
     String typeName = getIndexTypeName(index.getIndexType());
 
     String columns =
-        index.getColumns().stream().map(c -> quote(c)).collect(Collectors.joining(", "));
+        index.getColumns().stream()
+            .map(c -> toIndexColumn(index, c))
+            .collect(Collectors.joining(", "));
 
     return String.format(
         "create %sindex %s on %s using %s(%s);",

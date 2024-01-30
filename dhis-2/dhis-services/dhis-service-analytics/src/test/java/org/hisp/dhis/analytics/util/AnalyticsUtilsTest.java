@@ -29,11 +29,11 @@ package org.hisp.dhis.analytics.util;
 
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_HEADER_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
-import static org.hisp.dhis.analytics.table.model.ColumnDataType.BIGINT;
-import static org.hisp.dhis.analytics.table.model.ColumnDataType.GEOMETRY_POINT;
-import static org.hisp.dhis.analytics.table.model.ColumnDataType.TEXT;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
+import static org.hisp.dhis.db.model.DataType.BIGINT;
+import static org.hisp.dhis.db.model.DataType.GEOMETRY_POINT;
+import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
