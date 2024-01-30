@@ -58,10 +58,10 @@ public class RenderableDataValue extends BaseRenderable {
   @Override
   public String render() {
     return "("
-            + Field.of(alias, () -> "eventdatavalues", EMPTY).render()
-            + " -> '"
-            + dataValue
-            + "' ->> 'value')::"
-            + valueTypeMapping.name();
+        + Field.of(alias, () -> "eventdatavalues", EMPTY).render()
+        + " -> '"
+        + dataValue
+        + "' ->> 'value')::"
+        + valueTypeMapping.name();
   }
 }
