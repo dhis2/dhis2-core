@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.analytics.table.model;
 
-import static org.hisp.dhis.analytics.table.model.ColumnDataType.CHARACTER_11;
-import static org.hisp.dhis.analytics.table.model.ColumnDataType.DOUBLE;
+import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
+import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -62,8 +62,8 @@ class AnalyticsTableColumnTest {
 
   @Test
   void testIsSkipIndex() {
-    AnalyticsTableColumn colA = new AnalyticsTableColumn("value", DOUBLE, "value", IndexType.NONE);
-    AnalyticsTableColumn colB = new AnalyticsTableColumn("ou", CHARACTER_11, "ou", IndexType.BTREE);
+    AnalyticsTableColumn colA = new AnalyticsTableColumn("value", DOUBLE, "value", Skip.SKIP);
+    AnalyticsTableColumn colB = new AnalyticsTableColumn("ou", CHARACTER_11, "ou", Skip.INCLUDE);
 
     assertTrue(colA.isSkipIndex());
     assertFalse(colB.isSkipIndex());

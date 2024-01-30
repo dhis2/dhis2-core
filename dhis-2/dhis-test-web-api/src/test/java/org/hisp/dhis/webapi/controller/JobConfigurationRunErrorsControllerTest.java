@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.time.Duration.ofSeconds;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -56,6 +57,7 @@ class JobConfigurationRunErrorsControllerTest extends DhisControllerIntegrationT
   @BeforeEach
   void setUp() throws InterruptedException {
     jobId = createAndRunImportWithErrors();
+    switchToNewUser("special-admin", "F_SCHEDULING_ANALYSE");
   }
 
   @Test
@@ -70,8 +72,8 @@ class JobConfigurationRunErrorsControllerTest extends DhisControllerIntegrationT
 
   @Test
   void testGetJobRunErrors_ListFilterUser() {
-    JsonArray list =
-        GET("/jobConfigurations/errors?user={user}", getCurrentUser().getUid()).content();
+    // note that the superuser created the job with errors that is tested with
+    JsonArray list = GET("/jobConfigurations/errors?user={user}", getSuperuserUid()).content();
     assertEquals(1, list.size());
     assertEquals(0, GET("/jobConfigurations/errors?user=abcde123456").content().size());
   }
@@ -114,6 +116,16 @@ class JobConfigurationRunErrorsControllerTest extends DhisControllerIntegrationT
     JsonArray errors = GET("/jobConfigurations/{uid}/progress/errors", jobId).content();
     assertEquals(JsonNodeType.ARRAY, errors.node().getType());
     assertEquals(1, errors.size());
+  }
+
+  @Test
+  void testGetJobRunErrors_RequireAuthority() {
+    switchToNewUser("guest");
+
+    assertStatus(HttpStatus.FORBIDDEN, GET("/jobConfigurations/errors"));
+    assertStatus(HttpStatus.FORBIDDEN, GET("/jobConfigurations/{uid}/errors", jobId));
+    assertStatus(HttpStatus.FORBIDDEN, GET("/jobConfigurations/{uid}/progress/errors", jobId));
+    assertStatus(HttpStatus.FORBIDDEN, GET("/jobConfigurations/{uid}/progress", jobId));
   }
 
   @Test

@@ -34,17 +34,17 @@ import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPOR
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.getDateLinkedToStatus;
 import static org.hisp.dhis.analytics.table.PartitionUtils.getEndDate;
 import static org.hisp.dhis.analytics.table.PartitionUtils.getStartDate;
-import static org.hisp.dhis.analytics.table.model.ColumnDataType.CHARACTER_11;
-import static org.hisp.dhis.analytics.table.model.ColumnDataType.CHARACTER_32;
-import static org.hisp.dhis.analytics.table.model.ColumnDataType.DOUBLE;
-import static org.hisp.dhis.analytics.table.model.ColumnDataType.GEOMETRY;
-import static org.hisp.dhis.analytics.table.model.ColumnDataType.INTEGER;
-import static org.hisp.dhis.analytics.table.model.ColumnDataType.JSONB;
-import static org.hisp.dhis.analytics.table.model.ColumnDataType.TIMESTAMP;
-import static org.hisp.dhis.analytics.table.model.ColumnDataType.VARCHAR_255;
-import static org.hisp.dhis.analytics.table.model.ColumnDataType.VARCHAR_50;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
+import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
+import static org.hisp.dhis.db.model.DataType.CHARACTER_32;
+import static org.hisp.dhis.db.model.DataType.DOUBLE;
+import static org.hisp.dhis.db.model.DataType.GEOMETRY;
+import static org.hisp.dhis.db.model.DataType.INTEGER;
+import static org.hisp.dhis.db.model.DataType.JSONB;
+import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
+import static org.hisp.dhis.db.model.DataType.VARCHAR_255;
+import static org.hisp.dhis.db.model.DataType.VARCHAR_50;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
@@ -63,12 +63,12 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
-import org.hisp.dhis.analytics.table.model.IndexType;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
@@ -275,7 +275,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
   @Override
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
-    List<AnalyticsTableColumn> columns = partition.getMasterTable().getColumns();
+    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
     String start = getLongDateString(partition.getStartDate());
     String end = getLongDateString(partition.getEndDate());
@@ -294,7 +294,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
                 + end
                 + "' ";
 
-    StringBuilder sql = new StringBuilder("insert into " + partition.getTempTableName() + " (");
+    StringBuilder sql = new StringBuilder("insert into " + partition.getTempName() + " (");
 
     for (AnalyticsTableColumn col : columns) {
       sql.append(col.getName() + ",");
@@ -328,7 +328,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
         .append(" and " + partitionClause)
         .append(" and psi.deleted is false ");
 
-    invokeTimeAndLog(sql.toString(), partition.getTempTableName());
+    invokeTimeAndLog(sql.toString(), partition.getTempName());
   }
 
   /**
