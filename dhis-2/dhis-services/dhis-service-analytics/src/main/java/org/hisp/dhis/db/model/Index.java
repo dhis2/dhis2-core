@@ -30,6 +30,7 @@ package org.hisp.dhis.db.model;
 import java.util.List;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.db.model.constraint.Unique;
 
 /**
@@ -52,8 +53,11 @@ public class Index {
   /** Index column names. Required. */
   private final List<String> columns;
 
-  /** SQL {©code where} condition for index. Optional. */
+  /** SQL {©code where} condition for index. Optional, may be null. */
   private final String condition;
+
+  /** SQL function to use for index columns. Optional, may be null. */
+  private final IndexFunction function;
 
   /**
    * Constructor.
@@ -67,6 +71,7 @@ public class Index {
     this.unique = Unique.NON_UNIQUE;
     this.columns = columns;
     this.condition = null;
+    this.function = null;
   }
 
   /**
@@ -82,6 +87,7 @@ public class Index {
     this.unique = Unique.NON_UNIQUE;
     this.columns = columns;
     this.condition = null;
+    this.function = null;
   }
 
   /**
@@ -97,6 +103,42 @@ public class Index {
     this.unique = unique;
     this.columns = columns;
     this.condition = null;
+    this.function = null;
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param name the index name.
+   * @param unique the uniqueness property.
+   * @param columns the list of index column names.
+   * @param function the index function.
+   */
+  public Index(String name, Unique unique, List<String> columns, IndexFunction function) {
+    this.name = name;
+    this.indexType = IndexType.BTREE;
+    this.unique = unique;
+    this.columns = columns;
+    this.condition = null;
+    this.function = function;
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param name the index name.
+   * @param unique the uniqueness property.
+   * @param columns the list of index column names.
+   * @param condition the SQL condition for the index.
+   */
+  public Index(
+      String name, IndexType indexType, Unique unique, List<String> columns, String condition) {
+    this.name = name;
+    this.indexType = indexType;
+    this.unique = unique;
+    this.columns = columns;
+    this.condition = condition;
+    this.function = null;
   }
 
   /**
@@ -106,5 +148,23 @@ public class Index {
    */
   public boolean isUnique() {
     return Unique.UNIQUE == unique;
+  }
+
+  /**
+   * Indicates whether the index has a SQL condition.
+   *
+   * @return true if the index has a SQL condition.
+   */
+  public boolean hasCondition() {
+    return StringUtils.isNotBlank(condition);
+  }
+
+  /**
+   * Indicates whether the index has a function.
+   *
+   * @return true if the index has a function.
+   */
+  public boolean hasFunction() {
+    return function != null;
   }
 }
