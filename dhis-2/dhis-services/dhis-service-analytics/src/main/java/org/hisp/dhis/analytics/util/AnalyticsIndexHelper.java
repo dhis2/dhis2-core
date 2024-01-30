@@ -203,8 +203,8 @@ public class AnalyticsIndexHelper {
    * @param tableType
    */
   private static String shortenTableName(String table, AnalyticsTableType tableType) {
-    table = table.replaceAll(tableType.getTableName(), "ax");
-    table = table.replaceAll(AnalyticsConstants.ANALYTICS_TBL_TEMP_SUFFIX, EMPTY);
+    table = table.replace(tableType.getTableName(), "ax");
+    table = table.replace(AnalyticsConstants.ANALYTICS_TBL_TEMP_SUFFIX, EMPTY);
 
     return table;
   }
