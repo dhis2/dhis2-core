@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.db.sql;
 
+import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
+import org.hisp.dhis.db.model.IndexFunction;
+import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Table;
 
 /**
@@ -130,6 +133,12 @@ public interface SqlBuilder {
    */
   String dataTypeJsonb();
 
+  /**
+   * @param dataType the {@link DataType}.
+   * @return the data type name.
+   */
+  String getDataTypeName(DataType dataType);
+
   // Index types
 
   /**
@@ -146,6 +155,30 @@ public interface SqlBuilder {
    * @return the name of the GIN index type.
    */
   String indexTypeGin();
+
+  /**
+   * @param indexType the {@link IndexType}.
+   * @return the index type name.
+   */
+  String getIndexTypeName(IndexType indexType);
+
+  // Index functions
+
+  /**
+   * @return the name of the upper index function.
+   */
+  String indexFunctionUpper();
+
+  /**
+   * @return the name of the lower index function.
+   */
+  String indexFunctionLower();
+
+  /**
+   * @param indexFunction the {@link IndexFunction}.
+   * @return the index function name.
+   */
+  String getIndexFunctionName(IndexFunction indexFunction);
 
   // Capabilities
 
@@ -197,6 +230,18 @@ public interface SqlBuilder {
    * @return a drop table if exists statement.
    */
   String dropTableIfExists(String name);
+
+  /**
+   * @param table the {@link Table}.
+   * @return a drop table if exists cascade statement.
+   */
+  String dropTableIfExistsCascade(Table table);
+
+  /**
+   * @param name the table name.
+   * @return a drop table if exists cascade statement.
+   */
+  String dropTableIfExistsCascade(String name);
 
   /**
    * @param name the table name.

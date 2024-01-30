@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,21 +27,7 @@
  */
 package org.hisp.dhis.analytics.table.model;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-/**
- * Index type.
- *
- * @author Lars Helge Overland
- */
-@Getter
-@RequiredArgsConstructor
-public enum IndexType {
-  BTREE("btree"),
-  GIST("gist"),
-  GIN("gin"),
-  NONE("");
-
-  final String keyword;
+public enum Skip {
+  SKIP,
+  INCLUDE;
 }
