@@ -29,6 +29,7 @@ package org.hisp.dhis.common;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.appendIfMissing;
+import static org.hisp.dhis.common.ValueType.TEXT;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -51,6 +52,7 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
@@ -227,6 +229,7 @@ public class MetadataItem implements Serializable {
       Period period = (Period) dimensionalItemObject;
       this.startDate = period.getStartDate();
       this.endDate = period.getEndDate();
+      this.valueType = TEXT;
     } else if (dimensionalItemObject instanceof Indicator) {
       Indicator indicator = (Indicator) dimensionalItemObject;
 
@@ -238,6 +241,12 @@ public class MetadataItem implements Serializable {
           (ExpressionDimensionItem) dimensionalItemObject;
 
       this.expression = expressionDimensionItem.getExpression();
+    } else if (dimensionalItemObject instanceof ProgramDataElementDimensionItem) {
+      ProgramDataElementDimensionItem programDataElementDimensionItem =
+          (ProgramDataElementDimensionItem) dimensionalItemObject;
+      this.valueType = programDataElementDimensionItem.getValueType();
+    } else if (dimensionalItemObject instanceof OrganisationUnit) {
+      this.valueType = TEXT;
     }
 
     addIconPathToStyle(getDimensionalItemObjectStyle(dimensionalItemObject));
