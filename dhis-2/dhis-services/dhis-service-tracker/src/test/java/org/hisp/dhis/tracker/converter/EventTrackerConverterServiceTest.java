@@ -316,7 +316,9 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest {
     when(preheat.getUserInfo()).thenReturn(UserInfoSnapshot.from(user));
     when(preheat.get(ProgramStage.class, programStage.getUid())).thenReturn(programStage);
     when(preheat.get(Program.class, program.getUid())).thenReturn(program);
-    when(preheat.get(OrganisationUnit.class, organisationUnit.getUid()));
+    when(preheat.get(OrganisationUnit.class, organisationUnit.getUid()))
+        .thenReturn(organisationUnit);
+    ;
   }
 
   private Event event(DataValue dataValue) {
