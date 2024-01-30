@@ -25,54 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.icon;
+package org.hisp.dhis.icon;
 
-import java.util.ArrayList;
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.List;
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.fieldfiltering.FieldFilterParser;
-import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.icon.IconTypeFilter;
 
 /**
  * @author Zubair Asghar
  */
-@Data
 @NoArgsConstructor
-public class IconRequestParams {
-
-  static final String DEFAULT_FIELDS_PARAM =
-      "key,keywords,description,fileResourceUid,createdByUserUid,href";
-
-  private List<String> keys = new ArrayList<>();
-  private List<String> keywords = new ArrayList<>();
-  private IconTypeFilter type = IconTypeFilter.ALL;
-  private Date createdStartDate;
-  private Date createdEndDate;
-  private Date lastUpdatedStartDate;
-  private Date lastUpdatedEndDate;
-  private boolean paging = true;
-  private int pageSize = Pager.DEFAULT_PAGE_SIZE;
-  private int page;
-
-  private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
-
-  public boolean hasCreatedStartDate() {
-    return createdStartDate != null;
-  }
-
-  public boolean hasCreatedEndDate() {
-    return createdEndDate != null;
-  }
-
-  public boolean hasLastUpdatedStartDate() {
-    return lastUpdatedStartDate != null;
-  }
-
-  public boolean hasLastUpdatedEndDate() {
-    return lastUpdatedEndDate != null;
-  }
+@AllArgsConstructor
+@Getter
+public class PaginatedIconResponse {
+  @JsonProperty private Pager pager;
+  @JsonProperty private List<ObjectNode> icons;
 }

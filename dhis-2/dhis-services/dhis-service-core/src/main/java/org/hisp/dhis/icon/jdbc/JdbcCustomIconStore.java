@@ -33,6 +33,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.icon.CustomIcon;
@@ -96,6 +97,10 @@ public class JdbcCustomIconStore implements CustomIconStore {
     MapSqlParameterSource parameterSource = new MapSqlParameterSource();
 
     sql = buildIconQuery(iconOperationParams, sql, parameterSource);
+
+    if (iconOperationParams.isPaging()) {
+      sql = getPaginatedQuery(iconOperationParams.getPager(), sql, parameterSource);
+    }
 
     return namedParameterJdbcTemplate.query(sql, parameterSource, customIconRowMapper).stream();
   }
@@ -181,6 +186,19 @@ public class JdbcCustomIconStore implements CustomIconStore {
 
       parameterSource.addValue("keys", iconOperationParams.getKeys());
     }
+
+    return sql;
+  }
+
+  private String getPaginatedQuery(
+      Pager pager, String sql, MapSqlParameterSource mapSqlParameterSource) {
+
+    sql = sql + " LIMIT :limit OFFSET :offset ";
+
+    int offset = (pager.getPage() - 1) * pager.getPageSize();
+
+    mapSqlParameterSource.addValue("limit", pager.getPageSize());
+    mapSqlParameterSource.addValue("offset", offset);
 
     return sql;
   }

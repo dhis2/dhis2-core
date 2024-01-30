@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.icon;
 
 import java.util.ArrayList;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.icon.IconOperationParams;
 import org.hisp.dhis.util.DateUtils;
@@ -56,6 +57,11 @@ public class IconRequestParamsMapper {
     operationParams.setCreatedEndDate(iconRequestParams.getCreatedEndDate());
     operationParams.setLastUpdatedStartDate(iconRequestParams.getLastUpdatedStartDate());
     operationParams.setLastUpdatedEndDate(iconRequestParams.getLastUpdatedEndDate());
+    operationParams.setPaging(iconRequestParams.isPaging());
+    operationParams.setPager(
+        iconRequestParams.isPaging()
+            ? new Pager(iconRequestParams.getPage(), 0, iconRequestParams.getPageSize())
+            : null);
 
     return operationParams;
   }
