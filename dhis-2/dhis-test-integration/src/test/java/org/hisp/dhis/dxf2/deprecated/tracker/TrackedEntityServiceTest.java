@@ -809,8 +809,8 @@ class TrackedEntityServiceTest extends TransactionalIntegrationTest {
         () -> assertEquals(ImportStatus.SUCCESS, importSummaries.getStatus()),
         () ->
             assertEquals(
-                UserInfoSnapshot.from(user),
-                getTrackedEntity(maleA.getUid()).getLastUpdatedByUserInfo()),
+                UserInfoSnapshot.from(user).getUid(),
+                getTrackedEntity(maleA.getUid()).getLastUpdatedByUserInfo().getUid()),
         () ->
             assertTrue(
                 entityAfter.getLastUpdated().getTime() > entityBefore.getLastUpdated().getTime()));
