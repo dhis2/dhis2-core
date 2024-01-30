@@ -73,7 +73,7 @@ public class AnalyticsQueryOperator {
     // If the operator starts with !, will call this method again removing the ! and then negate the
     // result.
     if (operator.startsWith("!")) {
-      AnalyticsQueryOperator parsedOperator = _ofString(operator.substring(1)).negate();
+      AnalyticsQueryOperator parsedOperator = ofStringInternal(operator.substring(1)).negate();
       /* returns from the negate map if present */
       if (NEGATIVE_OPERATOR_MAP.containsKey(parsedOperator.getQueryOperator())) {
         return AnalyticsQueryOperator.of(
@@ -82,10 +82,10 @@ public class AnalyticsQueryOperator {
       /* otherwise, return the negated operator */
       return parsedOperator;
     }
-    return _ofString(operator);
+    return ofStringInternal(operator);
   }
 
-  private static AnalyticsQueryOperator _ofString(String operator) {
+  private static AnalyticsQueryOperator ofStringInternal(String operator) {
     return Arrays.stream(QueryOperator.values())
         .filter(queryOperator -> equalsIgnoreCase(queryOperator.name(), operator))
         .findFirst()
