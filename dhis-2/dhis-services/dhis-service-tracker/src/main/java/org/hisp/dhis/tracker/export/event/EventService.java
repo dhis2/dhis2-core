@@ -40,9 +40,8 @@ import org.hisp.dhis.tracker.export.PageParams;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface EventService {
+  /** Get event matching given {@code UID} and params. */
   Event getEvent(String uid, EventParams eventParams) throws NotFoundException, ForbiddenException;
-
-  Event getEvent(Event event, EventParams eventParams) throws ForbiddenException;
 
   /** Get all events matching given params. */
   List<Event> getEvents(EventOperationParams params) throws BadRequestException, ForbiddenException;

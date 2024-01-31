@@ -82,7 +82,6 @@ class DefaultEventService implements EventService {
     return getEvent(event, eventParams);
   }
 
-  @Override
   public Event getEvent(@Nonnull Event event, EventParams eventParams) throws ForbiddenException {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     List<String> errors = trackerAccessManager.canRead(currentUser, event, false);
