@@ -97,10 +97,9 @@ public class AnalyticsIndexHelper {
    * statement for the index creation.
    *
    * @param index the {@link AnalyticsIndex}
-   * @param tableType the {@link AnalyticsTableType}
    * @return the SQL index statement
    */
-  public static String createIndexStatement(AnalyticsIndex index, AnalyticsTableType tableType) {
+  public static String createIndexStatement(AnalyticsIndex index) {
     String indexTypeName = SQL_BUILDER.getIndexTypeName(index.getIndexType());
     String indexColumns = maybeApplyFunctionToIndex(index, join(index.getColumns(), ","));
 

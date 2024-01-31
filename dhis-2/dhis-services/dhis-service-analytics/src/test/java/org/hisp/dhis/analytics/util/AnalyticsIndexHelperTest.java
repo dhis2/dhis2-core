@@ -75,7 +75,7 @@ class AnalyticsIndexHelperTest {
     AnalyticsIndex someAnalyticsIndex =
         new AnalyticsIndex("in_column_table", "table", BTREE, List.of("column"));
 
-    String statement = createIndexStatement(someAnalyticsIndex, EVENT);
+    String statement = createIndexStatement(someAnalyticsIndex);
 
     assertThat(statement, containsString("create index \"in_column_table"));
     assertThat(statement, containsString("on table using"));

@@ -179,7 +179,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   @Override
   public void createIndex(AnalyticsIndex index) {
-    String sql = createIndexStatement(index, getAnalyticsTableType());
+    String sql = createIndexStatement(index);
 
     log.debug("Create index: '{}' with SQL: '{}'", index.getName(), sql);
 
