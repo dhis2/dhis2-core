@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,43 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.webapi.controller.icon;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
+import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.icon.IconTypeFilter;
 
-import java.util.function.UnaryOperator;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.analytics.common.ValueTypeMapping;
-import org.hisp.dhis.analytics.common.query.BaseRenderable;
-import org.hisp.dhis.analytics.common.query.Field;
-import org.hisp.dhis.analytics.common.query.Renderable;
+/**
+ * @author Zubair Asghar
+ */
+@Data
+@NoArgsConstructor
+public class IconRequestParams {
 
-@RequiredArgsConstructor(staticName = "of")
-public class RenderableDataValue extends BaseRenderable {
-  private final String alias;
+  static final String DEFAULT_FIELDS_PARAM =
+      "key,keywords,description,fileResourceUid,createdByUserUid,href";
 
-  private final String dataValue;
+  private List<String> keys = new ArrayList<>();
+  private List<String> keywords = new ArrayList<>();
+  private IconTypeFilter type = IconTypeFilter.ALL;
+  private Date createdStartDate;
+  private Date createdEndDate;
+  private Date lastUpdatedStartDate;
+  private Date lastUpdatedEndDate;
 
-  private final ValueTypeMapping valueTypeMapping;
+  private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
 
-  public Renderable transformedIfNecessary() {
-    return transformedIfNecessary(valueTypeMapping.getSelectTransformer());
+  public boolean hasCreatedStartDate() {
+    return createdStartDate != null;
   }
 
-  public Renderable transformedIfNecessary(UnaryOperator<String> dataValueTransformer) {
-    RenderableDataValue withoutAsAlias = RenderableDataValue.of(alias, dataValue, valueTypeMapping);
-
-    return Field.ofUnquoted(
-        EMPTY, () -> dataValueTransformer.apply(withoutAsAlias.render()), EMPTY);
+  public boolean hasCreatedEndDate() {
+    return createdEndDate != null;
   }
 
-  @Override
-  public String render() {
-    return "("
-        + Field.of(alias, () -> "eventdatavalues", EMPTY).render()
-        + " -> '"
-        + dataValue
-        + "' ->> 'value')::"
-        + valueTypeMapping.name();
+  public boolean hasLastUpdatedStartDate() {
+    return lastUpdatedStartDate != null;
+  }
+
+  public boolean hasLastUpdatedEndDate() {
+    return lastUpdatedEndDate != null;
   }
 }

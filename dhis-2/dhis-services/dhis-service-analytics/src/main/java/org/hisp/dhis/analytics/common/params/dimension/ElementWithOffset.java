@@ -79,7 +79,7 @@ public class ElementWithOffset<T extends UidObject> {
   @Override
   public String toString() {
     if (isPresent()) {
-      if (hasOffset() && offset != 0) {
+      if (hasOffset()) {
         return element.getUid() + "[" + offset + "]";
       }
       return element.getUid();

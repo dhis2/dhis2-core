@@ -86,9 +86,10 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
                 Field.ofUnquoted(
                     StringUtils.EMPTY,
                     RenderableDataValue.of(
-                        doubleQuote(dimensionIdentifier.getPrefix()),
-                        dimensionIdentifier.getDimension().getUid(),
-                        fromValueType(dimensionIdentifier.getDimension().getValueType())),
+                            doubleQuote(dimensionIdentifier.getPrefix()),
+                            dimensionIdentifier.getDimension().getUid(),
+                            fromValueType(dimensionIdentifier.getDimension().getValueType()))
+                        .transformedIfNecessary(),
                     dimensionIdentifier.toString()))
         .forEach(builder::selectField);
     dimensions.stream()

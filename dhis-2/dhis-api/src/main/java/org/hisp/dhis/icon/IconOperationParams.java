@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,48 +25,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.translation;
+package org.hisp.dhis.icon;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * This enum defined a translatable property. The value of this enum is used for mapping this
- * translation with the object property name. The capitol Enum string is used as a key when storing
- * translation in Jsonb format.
+ * Represents query parameters sent to {@link org.hisp.dhis.icon.IconService}.
  *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Zubair Asghar
  */
-public enum TranslationProperty {
-  NAME("name"),
-  SHORT_NAME("shortName"),
-  DESCRIPTION("description"),
-  FORM_NAME("formName"),
-  NUMERATOR_DESCRIPTION("numeratorDescription"),
-  DENOMINATOR_DESCRIPTION("denominatorDescription"),
-  RELATIONSHIP_FROM_TO_NAME("fromToName"),
-  RELATIONSHIP_TO_FROM_NAME("toFromName"),
-  INSTRUCTION("instruction"),
-  INCIDENT_DATE_LABEL("incidentDateLabel"),
-  ENROLLMENT_DATE_LABEL("enrollmentDateLabel"),
-  EXECUTION_DATE_LABEL("executionDateLabel"),
-  DUE_DATE_LABEL("dueDateLabel"),
-  CONTENT("content");
+@Data
+@NoArgsConstructor
+public class IconOperationParams {
 
-  private String name;
+  private List<String> keys = new ArrayList<>();
+  private IconTypeFilter iconTypeFilter = IconTypeFilter.ALL;
+  private List<String> keywords = new ArrayList<>();
+  private Date createdStartDate;
+  private Date createdEndDate;
+  private Date lastUpdatedStartDate;
+  private Date lastUpdatedEndDate;
 
-  TranslationProperty(String name) {
-    this.name = name;
+  public boolean hasLastUpdatedStartDate() {
+    return lastUpdatedStartDate != null;
   }
 
-  public static TranslationProperty fromValue(String value) {
-    for (TranslationProperty type : TranslationProperty.values()) {
-      if (type.getName().equalsIgnoreCase(value)) {
-        return type;
-      }
-    }
-
-    return null;
+  public boolean hasLastUpdatedEndDate() {
+    return lastUpdatedEndDate != null;
   }
 
-  public String getName() {
-    return name;
+  public boolean hasCreatedStartDate() {
+    return createdStartDate != null;
+  }
+
+  public boolean hasCreatedEndDate() {
+    return createdEndDate != null;
+  }
+
+  public boolean hasKeywords() {
+    return !keywords.isEmpty();
+  }
+
+  public boolean hasKeys() {
+    return !keys.isEmpty();
   }
 }

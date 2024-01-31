@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,43 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.webapi.json.domain;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
+import java.time.LocalDateTime;
+import java.util.List;
+import org.hisp.dhis.jsontree.JsonDate;
+import org.hisp.dhis.jsontree.JsonObject;
 
-import java.util.function.UnaryOperator;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.analytics.common.ValueTypeMapping;
-import org.hisp.dhis.analytics.common.query.BaseRenderable;
-import org.hisp.dhis.analytics.common.query.Field;
-import org.hisp.dhis.analytics.common.query.Renderable;
+/**
+ * @author Zubair Asghar
+ */
+public interface JsonIcon extends JsonObject {
 
-@RequiredArgsConstructor(staticName = "of")
-public class RenderableDataValue extends BaseRenderable {
-  private final String alias;
-
-  private final String dataValue;
-
-  private final ValueTypeMapping valueTypeMapping;
-
-  public Renderable transformedIfNecessary() {
-    return transformedIfNecessary(valueTypeMapping.getSelectTransformer());
+  default String getKey() {
+    return getString("key").string();
   }
 
-  public Renderable transformedIfNecessary(UnaryOperator<String> dataValueTransformer) {
-    RenderableDataValue withoutAsAlias = RenderableDataValue.of(alias, dataValue, valueTypeMapping);
-
-    return Field.ofUnquoted(
-        EMPTY, () -> dataValueTransformer.apply(withoutAsAlias.render()), EMPTY);
+  default String getHref() {
+    return getString("href").string();
   }
 
-  @Override
-  public String render() {
-    return "("
-        + Field.of(alias, () -> "eventdatavalues", EMPTY).render()
-        + " -> '"
-        + dataValue
-        + "' ->> 'value')::"
-        + valueTypeMapping.name();
+  default LocalDateTime getCreated() {
+    return get("created", JsonDate.class).date();
+  }
+
+  default LocalDateTime getLastUpdated() {
+    return get("lastUpdated", JsonDate.class).date();
+  }
+
+  default String getUserUid() {
+    return getString("userUid").string();
+  }
+
+  default String getFileResourceUid() {
+    return getString("fileResourceUid").string();
+  }
+
+  default List<String> getKeywords() {
+    return getArray("keywords").stringValues();
+  }
+
+  default String getDescription() {
+    return getString("description").string();
   }
 }

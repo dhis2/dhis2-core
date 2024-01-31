@@ -120,6 +120,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.SchemaService;
@@ -884,10 +885,13 @@ public abstract class AbstractEventService
       }
 
       event.setAutoFields();
+      event.setLastUpdatedByUserInfo(UserInfoSnapshot.from(currentUser));
       eventService.deleteEvent(event);
 
       if (event.getProgramStage().getProgram().isRegistration()) {
-        entityInstanceService.updateTrackedEntity(event.getEnrollment().getTrackedEntity());
+        TrackedEntity entity = event.getEnrollment().getTrackedEntity();
+        entity.setLastUpdatedByUserInfo(UserInfoSnapshot.from(currentUser));
+        entityInstanceService.updateTrackedEntity(entity);
       }
 
       ImportSummary importSummary =

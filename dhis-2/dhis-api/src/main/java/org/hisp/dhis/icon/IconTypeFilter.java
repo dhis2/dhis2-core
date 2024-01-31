@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,43 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.icon;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
+import java.util.Optional;
 
-import java.util.function.UnaryOperator;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.analytics.common.ValueTypeMapping;
-import org.hisp.dhis.analytics.common.query.BaseRenderable;
-import org.hisp.dhis.analytics.common.query.Field;
-import org.hisp.dhis.analytics.common.query.Renderable;
+/**
+ * @author Zubair Asghar
+ */
+public enum IconTypeFilter {
+  ALL("all"),
+  CUSTOM("custom"),
+  DEFAULT("default");
 
-@RequiredArgsConstructor(staticName = "of")
-public class RenderableDataValue extends BaseRenderable {
-  private final String alias;
+  private String type;
 
-  private final String dataValue;
+  IconTypeFilter(String type) {
 
-  private final ValueTypeMapping valueTypeMapping;
-
-  public Renderable transformedIfNecessary() {
-    return transformedIfNecessary(valueTypeMapping.getSelectTransformer());
+    this.type = type;
   }
 
-  public Renderable transformedIfNecessary(UnaryOperator<String> dataValueTransformer) {
-    RenderableDataValue withoutAsAlias = RenderableDataValue.of(alias, dataValue, valueTypeMapping);
+  public static Optional<IconTypeFilter> from(String iconType) {
+    for (IconTypeFilter type : IconTypeFilter.values()) {
+      if (type.type.equals(iconType)) {
+        return Optional.of(type);
+      }
+    }
 
-    return Field.ofUnquoted(
-        EMPTY, () -> dataValueTransformer.apply(withoutAsAlias.render()), EMPTY);
-  }
-
-  @Override
-  public String render() {
-    return "("
-        + Field.of(alias, () -> "eventdatavalues", EMPTY).render()
-        + " -> '"
-        + dataValue
-        + "' ->> 'value')::"
-        + valueTypeMapping.name();
+    return Optional.empty();
   }
 }

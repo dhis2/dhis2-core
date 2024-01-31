@@ -788,4 +788,42 @@ class TrackedEntityServiceTest extends TransactionalIntegrationTest {
                     .getTrackedEntityInstance(tei.getTrackedEntityInstance())
                     .getLastUpdatedByUserInfo()));
   }
+
+  @Test
+  void shouldSetLastUpdatedInfoWhenDeleteTe() {
+
+    TrackedEntity entityBefore = getTrackedEntity(maleA.getUid());
+
+    dbmsManager.clearSession();
+
+    injectSecurityContextUser(user);
+
+    ImportSummary importSummaries =
+        trackedEntityInstanceService.deleteTrackedEntityInstance(maleA.getUid());
+
+    dbmsManager.clearSession();
+
+    TrackedEntity entityAfter = getTrackedEntity(maleA.getUid());
+
+    assertAll(
+        () -> assertEquals(ImportStatus.SUCCESS, importSummaries.getStatus()),
+        () ->
+            assertEquals(
+                UserInfoSnapshot.from(user).getUid(),
+                getTrackedEntity(maleA.getUid()).getLastUpdatedByUserInfo().getUid()),
+        () ->
+            assertTrue(
+                entityAfter.getLastUpdated().getTime() > entityBefore.getLastUpdated().getTime()));
+  }
+
+  /** Get with the entity manager because some Store exclude deleted */
+  public TrackedEntity getTrackedEntity(String uid) {
+
+    return (TrackedEntity)
+        entityManager
+            .createQuery(
+                "SELECT e FROM " + TrackedEntity.class.getSimpleName() + " e WHERE e.uid = :uid")
+            .setParameter("uid", uid)
+            .getSingleResult();
+  }
 }

@@ -114,7 +114,6 @@ class ProgramTest {
     assertEquals(original.getDescription(), copy.getDescription());
     assertEquals(original.getDisplayEnrollmentDateLabel(), copy.getDisplayEnrollmentDateLabel());
     assertEquals(original.getDisplayIncidentDate(), copy.getDisplayIncidentDate());
-    assertEquals(original.getEnrollmentDateLabel(), copy.getEnrollmentDateLabel());
     assertEquals(original.getExpiryDays(), copy.getExpiryDays());
     assertEquals(original.getExpiryPeriodType(), copy.getExpiryPeriodType());
     assertEquals(original.getFeatureType(), copy.getFeatureType());
@@ -135,6 +134,11 @@ class ProgramTest {
     assertEquals(original.getStyle(), copy.getStyle());
     assertEquals(original.getTrackedEntityType(), copy.getTrackedEntityType());
     assertEquals(original.getTranslations(), copy.getTranslations());
+    assertEquals(original.getDisplayEnrollmentLabel(), copy.getDisplayEnrollmentLabel());
+    assertEquals(original.getDisplayFollowUpLabel(), copy.getDisplayFollowUpLabel());
+    assertEquals(original.getDisplayNoteLabel(), copy.getDisplayNoteLabel());
+    assertEquals(original.getDisplayOrgUnitLabel(), copy.getDisplayOrgUnitLabel());
+    assertEquals(original.getDisplayRelationshipLabel(), copy.getDisplayRelationshipLabel());
 
     // check empty
     assertTrue(copy.getProgramAttributes().isEmpty());
@@ -224,7 +228,7 @@ class ProgramTest {
   @Test
   void testExpectedFieldCount() {
     Field[] allClassFieldsIncludingInherited = getAllFields(Program.class);
-    assertEquals(55, allClassFieldsIncludingInherited.length);
+    assertEquals(61, allClassFieldsIncludingInherited.length);
   }
 
   public static boolean notEqualsOrBothNull(String original, String copy) {
@@ -274,6 +278,13 @@ class ProgramTest {
     p.setTrackedEntityType(new TrackedEntityType("TET", "description"));
     p.setUseFirstStageDuringRegistration(false);
     p.setUserRoles(Collections.emptySet());
+    p.setEnrollmentLabel("Enrollment label");
+    p.setNoteLabel("Note label");
+    p.setFollowUpLabel("Follow Up Label");
+    p.setOrgUnitLabel("Org Unit Label");
+    p.setTrackedEntityAttributeLabel("Tracked Entity Attribute Label");
+    p.setRelationshipLabel("Relationship Label");
+
     return p;
   }
 

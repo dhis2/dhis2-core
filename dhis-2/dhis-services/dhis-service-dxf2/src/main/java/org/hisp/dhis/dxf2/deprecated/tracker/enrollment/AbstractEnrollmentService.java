@@ -1083,8 +1083,13 @@ public abstract class AbstractEnrollmentService
         }
       }
 
+      programInstance.setLastUpdatedByUserInfo(UserInfoSnapshot.from(importOptions.getUser()));
       enrollmentService.deleteEnrollment(programInstance);
-      teiService.updateTrackedEntity(programInstance.getTrackedEntity());
+
+      TrackedEntity entity = programInstance.getTrackedEntity();
+      entity.setLastUpdatedByUserInfo(UserInfoSnapshot.from(importOptions.getUser()));
+
+      teiService.updateTrackedEntity(entity);
 
       importSummary.setReference(uid);
       importSummary.setStatus(ImportStatus.SUCCESS);
