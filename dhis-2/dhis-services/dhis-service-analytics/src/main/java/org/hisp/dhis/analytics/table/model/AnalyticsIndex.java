@@ -28,9 +28,11 @@
 package org.hisp.dhis.analytics.table.model;
 
 import java.util.List;
+
+import org.hisp.dhis.db.model.IndexType;
+
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import org.hisp.dhis.db.model.IndexType;
 
 /**
  * Class representing an index on a database table column.
@@ -83,11 +85,6 @@ public class AnalyticsIndex {
   // Logic
   // -------------------------------------------------------------------------
 
-  /**
-   * Indicates whether the index has a function.
-   *
-   * @return true if the index has a function.
-   */
   public boolean hasFunction() {
     return function != null;
   }
