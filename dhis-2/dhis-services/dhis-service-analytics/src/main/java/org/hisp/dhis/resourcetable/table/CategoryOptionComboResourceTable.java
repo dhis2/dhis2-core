@@ -32,6 +32,7 @@ import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
 
 import java.util.List;
 import java.util.Optional;
+
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
@@ -70,6 +71,7 @@ public class CategoryOptionComboResourceTable implements ResourceTable {
     return List.of(
         new Index(
             appendRandom("in_dataelementcategoryoptioncombo"),
+            toStaging(TABLE_NAME),
             List.of("dataelementuid", "categoryoptioncombouid")));
   }
 

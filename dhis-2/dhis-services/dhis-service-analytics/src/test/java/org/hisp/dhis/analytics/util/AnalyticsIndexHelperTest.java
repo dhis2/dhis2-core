@@ -42,6 +42,7 @@ import static org.hisp.dhis.db.model.IndexType.BTREE;
 
 import java.util.Date;
 import java.util.List;
+
 import org.hisp.dhis.analytics.table.model.AnalyticsIndex;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
@@ -63,7 +64,7 @@ class AnalyticsIndexHelperTest {
     List<AnalyticsIndex> indexes = getIndexes(stubPartitions);
 
     assertThat(indexes, hasSize(1));
-    assertThat(indexes.get(0).getTable(), is(equalTo("analytics_event_temp_2022")));
+    assertThat(indexes.get(0).getTableName(), is(equalTo("analytics_event_temp_2022")));
     assertThat(indexes.get(0).getColumns(), hasSize(1));
     assertThat(indexes.get(0).getIndexType(), is(equalTo(BTREE)));
   }

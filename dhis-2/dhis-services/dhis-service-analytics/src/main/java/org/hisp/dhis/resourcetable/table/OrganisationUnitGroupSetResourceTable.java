@@ -32,9 +32,9 @@ import static org.hisp.dhis.db.model.Table.toStaging;
 import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 
-import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Optional;
+
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
@@ -46,6 +46,8 @@ import org.hisp.dhis.db.model.constraint.Unique;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -96,12 +98,14 @@ public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
     return List.of(
         new Index(
             appendRandom("in_orgunitgroupsetstructure_not_null"),
+            toStaging(TABLE_NAME),
             IndexType.BTREE,
             Unique.NON_UNIQUE,
             List.of("organisationunitid", "startdate"),
             "startdate is not null"),
         new Index(
             appendRandom("in_orgunitgroupsetstructure_null"),
+            toStaging(TABLE_NAME),
             IndexType.BTREE,
             Unique.NON_UNIQUE,
             List.of("organisationunitid", "startdate"),

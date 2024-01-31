@@ -37,6 +37,7 @@ import static org.hisp.dhis.db.model.DataType.TEXT;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsConstants;
@@ -106,7 +107,7 @@ public class AnalyticsIndexHelper {
         + indexName
         + " "
         + "on "
-        + index.getTable()
+        + index.getTableName()
         + " "
         + "using "
         + indexTypeName
@@ -131,7 +132,7 @@ public class AnalyticsIndexHelper {
             PREFIX_INDEX
                 + removeQuote(maybeShortenColumnName(columnName))
                 + "_"
-                + shortenTableName(index.getTable(), tableType)
+                + shortenTableName(index.getTableName(), tableType)
                 + "_"
                 + CodeGenerator.generateCode(5));
 
