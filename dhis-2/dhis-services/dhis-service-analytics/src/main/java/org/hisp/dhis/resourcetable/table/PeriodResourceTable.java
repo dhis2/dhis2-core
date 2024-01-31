@@ -95,6 +95,7 @@ public class PeriodResourceTable implements ResourceTable {
     return List.of("periodid");
   }
 
+  @Override
   public List<Index> getIndexes() {
     return List.of(
         new Index(
