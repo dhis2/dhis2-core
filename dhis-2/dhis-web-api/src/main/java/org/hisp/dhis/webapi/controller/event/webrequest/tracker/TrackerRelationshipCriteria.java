@@ -59,6 +59,8 @@ public class TrackerRelationshipCriteria extends PagingAndSortingCriteriaAdapter
 
   private Class<?> identifierClass;
 
+  @Setter @Getter private boolean includeDeleted;
+
   public void setTei(String tei) {
     // this setter is kept for backwards-compatibility
     // query parameter 'tei' should still be allowed, but 'trackedEntity' is
