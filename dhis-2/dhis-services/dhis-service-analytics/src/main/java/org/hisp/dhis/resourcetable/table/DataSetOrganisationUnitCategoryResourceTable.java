@@ -86,6 +86,7 @@ public class DataSetOrganisationUnitCategoryResourceTable implements ResourceTab
         new Column("coenddate", DataType.DATE));
   }
 
+  @Override
   public List<Index> getIndexes() {
     return List.of(
         new Index(

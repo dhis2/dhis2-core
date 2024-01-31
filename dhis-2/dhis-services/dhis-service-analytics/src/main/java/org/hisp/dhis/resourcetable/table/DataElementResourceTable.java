@@ -85,6 +85,7 @@ public class DataElementResourceTable implements ResourceTable {
     return List.of("dataelementid");
   }
 
+  @Override
   public List<Index> getIndexes() {
     return List.of(
         new Index(

@@ -66,6 +66,7 @@ public class CategoryOptionComboResourceTable implements ResourceTable {
         new Column("categoryoptioncombouid", DataType.CHARACTER_11, Nullable.NOT_NULL));
   }
 
+  @Override
   public List<Index> getIndexes() {
     return List.of(
         new Index(

@@ -91,6 +91,7 @@ public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
     return List.of("organisationunitid");
   }
 
+  @Override
   public List<Index> getIndexes() {
     return List.of(
         new Index(
