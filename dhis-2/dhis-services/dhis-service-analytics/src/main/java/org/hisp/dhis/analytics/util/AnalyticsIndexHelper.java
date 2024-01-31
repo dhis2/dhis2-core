@@ -37,14 +37,17 @@ import static org.hisp.dhis.db.model.DataType.TEXT;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsConstants;
 import org.hisp.dhis.analytics.AnalyticsTableType;
-import org.hisp.dhis.analytics.table.model.AnalyticsIndex;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.db.model.Index;
+import org.hisp.dhis.db.model.IndexFunction;
+import org.hisp.dhis.db.model.constraint.Unique;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 
@@ -67,8 +70,8 @@ public class AnalyticsIndexHelper {
    * @param partitions the list of {@link AnalyticsTablePartition}.
    * @return a {@link java.util.concurrent.ConcurrentLinkedQueue} of indexes.
    */
-  public static List<AnalyticsIndex> getIndexes(List<AnalyticsTablePartition> partitions) {
-    List<AnalyticsIndex> indexes = new ArrayList<>();
+  public static List<Index> getIndexes(List<AnalyticsTablePartition> partitions) {
+    List<Index> indexes = new ArrayList<>();
 
     for (AnalyticsTablePartition partition : partitions) {
       AnalyticsTableType type = partition.getMasterTable().getTableType();
@@ -82,7 +85,7 @@ public class AnalyticsIndexHelper {
               col.hasIndexColumns() ? col.getIndexColumns() : List.of(col.getName());
 
           indexes.add(
-              new AnalyticsIndex(name, partition.getTempName(), col.getIndexType(), columns));
+              new Index(name, partition.getTempName(), col.getIndexType(), columns));
 
           maybeAddTextLowerIndex(indexes, name, partition.getTempName(), col, columns);
         }
@@ -99,7 +102,7 @@ public class AnalyticsIndexHelper {
    * @param index the {@link AnalyticsIndex}
    * @return the SQL index statement
    */
-  public static String createIndexStatement(AnalyticsIndex index) {
+  public static String createIndexStatement(Index index) {
     String indexTypeName = SQL_BUILDER.getIndexTypeName(index.getIndexType());
     String indexColumns = maybeApplyFunctionToIndex(index, join(index.getColumns(), ","));
 
@@ -161,9 +164,10 @@ public class AnalyticsIndexHelper {
    * @param indexColumns the columns to be used in the function
    * @return the columns inside the respective function
    */
-  private static String maybeApplyFunctionToIndex(AnalyticsIndex index, String indexColumns) {
+  private static String maybeApplyFunctionToIndex(Index index, String indexColumns) {
     if (index.hasFunction()) {
-      return index.getFunction().getValue() + "(" + indexColumns + ")";
+        String functionName = SQL_BUILDER.getIndexFunctionName( index.getFunction() );
+      return functionName + "(" + indexColumns + ")";
     }
 
     return indexColumns;
@@ -183,7 +187,7 @@ public class AnalyticsIndexHelper {
    * @param indexColumns the columns to be used in the function
    */
   private static void maybeAddTextLowerIndex(
-      List<AnalyticsIndex> indexes,
+      List<Index> indexes,
       String indexName,
       String tableName,
       AnalyticsTableColumn column,
@@ -194,7 +198,7 @@ public class AnalyticsIndexHelper {
 
     if (column.getDataType() == TEXT && isValidUid(columnName) && isSingleColumn) {
       String name = indexName + "_" + LOWER.getValue();
-      indexes.add(new AnalyticsIndex(name, tableName, column.getIndexType(), indexColumns, LOWER));
+      indexes.add(new Index(name, tableName, column.getIndexType(), Unique.NON_UNIQUE, indexColumns, null, IndexFunction.LOWER));
     }
   }
 
