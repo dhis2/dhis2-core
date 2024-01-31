@@ -101,12 +101,11 @@ public class AnalyticsIndexHelper {
    * @return the SQL index statement
    */
   public static String createIndexStatement(AnalyticsIndex index, AnalyticsTableType tableType) {
-    String indexName = index.getName();
     String indexTypeName = SQL_BUILDER.getIndexTypeName(index.getIndexType());
     String indexColumns = maybeApplyFunctionToIndex(index, join(index.getColumns(), ","));
 
     return "create index "
-        + indexName
+        + index.getName()
         + " "
         + "on "
         + index.getTableName()
