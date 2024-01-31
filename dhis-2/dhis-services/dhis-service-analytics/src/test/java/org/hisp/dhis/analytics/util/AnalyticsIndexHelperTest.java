@@ -44,7 +44,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
 import java.util.List;
-
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.table.model.AnalyticsIndex;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
@@ -78,8 +77,8 @@ class AnalyticsIndexHelperTest {
         new AnalyticsIndex("in_column_table", "table", BTREE, List.of("column"));
 
     String statement = createIndexStatement(someAnalyticsIndex, EVENT);
-    
-    System.out.println( "STAT " + statement );
+
+    System.out.println("STAT " + statement);
 
     assertThat(statement, containsString("create index \"in_column_table"));
     assertThat(statement, containsString("on table using"));
