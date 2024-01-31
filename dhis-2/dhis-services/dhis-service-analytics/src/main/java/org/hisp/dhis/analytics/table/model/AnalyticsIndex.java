@@ -59,8 +59,8 @@ public class AnalyticsIndex {
    * @param indexType the index type.
    * @param columns the index column names.
    */
-  public AnalyticsIndex(String table, IndexType indexType, List<String> columns) {
-    this.tableName = table;
+  public AnalyticsIndex(String tableName, IndexType indexType, List<String> columns) {
+    this.tableName = tableName;
     this.indexType = indexType;
     this.columns = columns;
   }
@@ -74,8 +74,8 @@ public class AnalyticsIndex {
    * @param function the index function.
    */
   public AnalyticsIndex(
-      String table, IndexType indexType, List<String> columns, IndexFunction function) {
-    this(table, indexType, columns);
+      String tableName, IndexType indexType, List<String> columns, IndexFunction function) {
+    this(tableName, indexType, columns);
     this.function = function;
   }
 
