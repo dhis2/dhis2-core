@@ -33,7 +33,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.analytics.AnalyticsTableType.EVENT;
-import static org.hisp.dhis.analytics.table.model.IndexFunction.LOWER;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.createIndexStatement;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexName;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexes;
@@ -70,7 +69,8 @@ class AnalyticsIndexHelperTest {
 
   @Test
   void testCreateIndexStatement() {
-    AnalyticsIndex someAnalyticsIndex = new AnalyticsIndex("table", BTREE, List.of("column"));
+    AnalyticsIndex someAnalyticsIndex =
+        new AnalyticsIndex("in_column_table", "table", BTREE, List.of("column"));
 
     String statement = createIndexStatement(someAnalyticsIndex, EVENT);
 
@@ -81,22 +81,9 @@ class AnalyticsIndexHelperTest {
 
   @Test
   void testGetIndexName() {
-    AnalyticsIndex someAnalyticsIndex = new AnalyticsIndex("table", BTREE, List.of("column"));
-
-    String statement = getIndexName(someAnalyticsIndex, EVENT);
+    String statement = getIndexName("table", List.of("column"), EVENT);
 
     assertThat(statement, containsString("\"in_column_table"));
-  }
-
-  @Test
-  void testGetIndexNameWithFunction() {
-    AnalyticsIndex someAnalyticsIndex =
-        new AnalyticsIndex("table", BTREE, List.of("column"), LOWER);
-
-    String statement = getIndexName(someAnalyticsIndex, EVENT);
-
-    assertThat(statement, containsString("\"in_column_table"));
-    assertThat(statement, containsString("_lower\""));
   }
 
   private AnalyticsTablePartition stubAnalyticsTablePartition() {

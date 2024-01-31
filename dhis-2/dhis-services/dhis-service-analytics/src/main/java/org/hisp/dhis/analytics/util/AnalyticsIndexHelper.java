@@ -71,17 +71,20 @@ public class AnalyticsIndexHelper {
     List<AnalyticsIndex> indexes = new ArrayList<>();
 
     for (AnalyticsTablePartition partition : partitions) {
+      AnalyticsTableType type = partition.getMasterTable().getTableType();
       List<AnalyticsTableColumn> dimensionColumns =
           partition.getMasterTable().getDimensionColumns();
 
       for (AnalyticsTableColumn col : dimensionColumns) {
         if (!col.isSkipIndex()) {
+          String name = getIndexName(partition.getName(), col.getIndexColumns(), type);
           List<String> columns =
               col.hasIndexColumns() ? col.getIndexColumns() : List.of(col.getName());
 
-          indexes.add(new AnalyticsIndex(partition.getTempName(), col.getIndexType(), columns));
+          indexes.add(
+              new AnalyticsIndex(name, partition.getTempName(), col.getIndexType(), columns));
 
-          maybeAddTextLowerIndex(indexes, partition.getTempName(), col, columns);
+          maybeAddTextLowerIndex(indexes, name, partition.getTempName(), col, columns);
         }
       }
     }
@@ -98,7 +101,7 @@ public class AnalyticsIndexHelper {
    * @return the SQL index statement
    */
   public static String createIndexStatement(AnalyticsIndex index, AnalyticsTableType tableType) {
-    String indexName = getIndexName(index, tableType);
+    String indexName = getIndexName(index.getTableName(), index.getColumns(), tableType);
     String indexTypeName = SQL_BUILDER.getIndexTypeName(index.getIndexType());
     String indexColumns = maybeApplyFunctionToIndex(index, join(index.getColumns(), ","));
 
@@ -119,21 +122,21 @@ public class AnalyticsIndexHelper {
    * Returns index name for column. Purpose of code suffix is to avoid uniqueness collision between
    * indexes for temporary and real tables.
    *
-   * @param index the {@link AnalyticsIndex}
+   * @param tableName the index table name.
+   * @param columns the index column names.
    * @param tableType the {@link AnalyticsTableType}
    */
-  public static String getIndexName(AnalyticsIndex index, AnalyticsTableType tableType) {
-    String columnName = join(index.getColumns(), "_");
+  public static String getIndexName(
+      String tableName, List<String> columns, AnalyticsTableType tableType) {
+    String columnName = join(columns, "_");
 
     String indexName =
-        maybeSuffixIndexName(
-            index,
-            PREFIX_INDEX
-                + removeQuote(maybeShortenColumnName(columnName))
-                + "_"
-                + shortenTableName(index.getTableName(), tableType)
-                + "_"
-                + CodeGenerator.generateCode(5));
+        PREFIX_INDEX
+            + removeQuote(maybeShortenColumnName(columnName))
+            + "_"
+            + shortenTableName(tableName, tableType)
+            + "_"
+            + CodeGenerator.generateCode(5);
 
     return quote(indexName);
   }
@@ -179,20 +182,24 @@ public class AnalyticsIndexHelper {
    * valid UID.
    *
    * @param indexes list of {@link AnalyticsIndex}
+   * @param indexName the name of the original index
    * @param tableName the table name of the index
    * @param column the {@link AnalyticsTableColumn}
    * @param indexColumns the columns to be used in the function
    */
   private static void maybeAddTextLowerIndex(
       List<AnalyticsIndex> indexes,
+      String indexName,
       String tableName,
       AnalyticsTableColumn column,
       List<String> indexColumns) {
+
     String columnName = RegExUtils.removeAll(column.getName(), "\"");
     boolean isSingleColumn = indexColumns.size() == 1;
 
     if (column.getDataType() == TEXT && isValidUid(columnName) && isSingleColumn) {
-      indexes.add(new AnalyticsIndex(tableName, column.getIndexType(), indexColumns, LOWER));
+      String name = indexName + "_" + LOWER.getValue();
+      indexes.add(new AnalyticsIndex(name, tableName, column.getIndexType(), indexColumns, LOWER));
     }
   }
 
@@ -207,21 +214,5 @@ public class AnalyticsIndexHelper {
     table = table.replace(AnalyticsConstants.ANALYTICS_TBL_TEMP_SUFFIX, EMPTY);
 
     return table;
-  }
-
-  /**
-   * If the current index object has an associated function, this method will add a suffix using the
-   * function name.
-   *
-   * @param index
-   * @param indexName
-   * @return the index name plus the function suffix if any
-   */
-  private static String maybeSuffixIndexName(AnalyticsIndex index, String indexName) {
-    if (index.hasFunction()) {
-      return indexName + "_" + index.getFunction().getValue();
-    }
-
-    return indexName;
   }
 }

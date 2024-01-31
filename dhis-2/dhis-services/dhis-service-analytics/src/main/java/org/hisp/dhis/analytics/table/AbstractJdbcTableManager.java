@@ -32,7 +32,6 @@ import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.hisp.dhis.analytics.table.PartitionUtils.getEndDate;
 import static org.hisp.dhis.analytics.table.PartitionUtils.getStartDate;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.createIndexStatement;
-import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexName;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getCollation;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
@@ -180,14 +179,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   @Override
   public void createIndex(AnalyticsIndex index) {
-    String indexName = getIndexName(index, getAnalyticsTableType());
     String sql = createIndexStatement(index, getAnalyticsTableType());
 
-    log.debug("Create index: '{}' with SQL: '{}'", indexName, sql);
+    log.debug("Create index: '{}' with SQL: '{}'", index.getName(), sql);
 
     jdbcTemplate.execute(sql);
 
-    log.debug("Created index: '{}'", indexName);
+    log.debug("Created index: '{}'", index.getName());
   }
 
   @Override
