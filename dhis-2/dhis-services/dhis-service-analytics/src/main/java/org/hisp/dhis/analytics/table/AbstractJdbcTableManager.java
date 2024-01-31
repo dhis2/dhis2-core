@@ -32,7 +32,6 @@ import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.hisp.dhis.analytics.table.PartitionUtils.getEndDate;
 import static org.hisp.dhis.analytics.table.PartitionUtils.getStartDate;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.createIndexStatement;
-import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexName;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getCollation;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
@@ -44,8 +43,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableManager;
@@ -83,6 +81,9 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -180,14 +181,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   @Override
   public void createIndex(AnalyticsIndex index) {
-    String indexName = getIndexName(index, getAnalyticsTableType());
     String sql = createIndexStatement(index, getAnalyticsTableType());
 
-    log.debug("Create index: '{}' with SQL: '{}'", indexName, sql);
+    log.debug("Create index: '{}' with SQL: '{}'", index.getName(), sql);
 
     jdbcTemplate.execute(sql);
 
-    log.debug("Created index: '{}'", indexName);
+    log.debug("Created index: '{}'", index.getName());
   }
 
   @Override

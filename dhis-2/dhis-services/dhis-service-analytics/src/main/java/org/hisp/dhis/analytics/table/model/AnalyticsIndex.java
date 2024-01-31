@@ -28,9 +28,11 @@
 package org.hisp.dhis.analytics.table.model;
 
 import java.util.List;
+
+import org.hisp.dhis.db.model.IndexType;
+
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import org.hisp.dhis.db.model.IndexType;
 
 /**
  * Class representing an index on a database table column.
@@ -40,6 +42,10 @@ import org.hisp.dhis.db.model.IndexType;
 @Getter
 @EqualsAndHashCode
 public class AnalyticsIndex {
+  /**
+   * Index name.
+   */
+  private final String name;
   /** Table name. */
   private final String tableName;
 
@@ -55,11 +61,13 @@ public class AnalyticsIndex {
   /**
    * Constructor.
    *
+   * @param name the index name.
    * @param tableName the table name.
    * @param indexType the index type.
    * @param columns the index column names.
    */
-  public AnalyticsIndex(String tableName, IndexType indexType, List<String> columns) {
+  public AnalyticsIndex(String name, String tableName, IndexType indexType, List<String> columns) {
+    this.name = name;
     this.tableName = tableName;
     this.indexType = indexType;
     this.columns = columns;
@@ -68,14 +76,15 @@ public class AnalyticsIndex {
   /**
    * Constructor.
    *
+   * @param name the index name.
    * @param tableName the table name.
    * @param indexType the index type.
    * @param columns the index column names.
    * @param function the index function.
    */
-  public AnalyticsIndex(
+  public AnalyticsIndex(String name, 
       String tableName, IndexType indexType, List<String> columns, IndexFunction function) {
-    this(tableName, indexType, columns);
+    this(name, tableName, indexType, columns);
     this.function = function;
   }
 
