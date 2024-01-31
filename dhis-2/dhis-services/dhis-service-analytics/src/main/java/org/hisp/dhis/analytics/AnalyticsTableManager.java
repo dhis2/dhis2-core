@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.db.model.Index;

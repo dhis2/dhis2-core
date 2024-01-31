@@ -43,7 +43,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
 import java.util.List;
-
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
@@ -73,8 +72,7 @@ class AnalyticsIndexHelperTest {
 
   @Test
   void testCreateIndexStatement() {
-    Index someAnalyticsIndex =
-        new Index("in_column_table", "table", BTREE, List.of("column"));
+    Index someAnalyticsIndex = new Index("in_column_table", "table", BTREE, List.of("column"));
 
     String statement = createIndexStatement(someAnalyticsIndex);
 

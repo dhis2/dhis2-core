@@ -37,7 +37,6 @@ import static org.hisp.dhis.db.model.DataType.TEXT;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsConstants;
@@ -84,8 +83,7 @@ public class AnalyticsIndexHelper {
           List<String> columns =
               col.hasIndexColumns() ? col.getIndexColumns() : List.of(col.getName());
 
-          indexes.add(
-              new Index(name, partition.getTempName(), col.getIndexType(), columns));
+          indexes.add(new Index(name, partition.getTempName(), col.getIndexType(), columns));
 
           maybeAddTextLowerIndex(indexes, name, partition.getTempName(), col, columns);
         }
@@ -166,7 +164,7 @@ public class AnalyticsIndexHelper {
    */
   private static String maybeApplyFunctionToIndex(Index index, String indexColumns) {
     if (index.hasFunction()) {
-        String functionName = SQL_BUILDER.getIndexFunctionName( index.getFunction() );
+      String functionName = SQL_BUILDER.getIndexFunctionName(index.getFunction());
       return functionName + "(" + indexColumns + ")";
     }
 
@@ -198,7 +196,14 @@ public class AnalyticsIndexHelper {
 
     if (column.getDataType() == TEXT && isValidUid(columnName) && isSingleColumn) {
       String name = indexName + "_" + LOWER.getValue();
-      indexes.add(new Index(name, tableName, column.getIndexType(), Unique.NON_UNIQUE, indexColumns, null, IndexFunction.LOWER));
+      indexes.add(
+          new Index(
+              name,
+              tableName,
+              column.getIndexType(),
+              Unique.NON_UNIQUE,
+              indexColumns,
+              IndexFunction.LOWER));
     }
   }
 
