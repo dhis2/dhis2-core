@@ -41,7 +41,6 @@ import static org.hisp.dhis.db.model.IndexType.BTREE;
 
 import java.util.Date;
 import java.util.List;
-
 import org.hisp.dhis.analytics.table.model.AnalyticsIndex;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
@@ -70,7 +69,8 @@ class AnalyticsIndexHelperTest {
 
   @Test
   void testCreateIndexStatement() {
-    AnalyticsIndex someAnalyticsIndex = new AnalyticsIndex("in_column_table", "table", BTREE, List.of("column"));
+    AnalyticsIndex someAnalyticsIndex =
+        new AnalyticsIndex("in_column_table", "table", BTREE, List.of("column"));
 
     String statement = createIndexStatement(someAnalyticsIndex, EVENT);
 

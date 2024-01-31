@@ -37,7 +37,6 @@ import static org.hisp.dhis.db.model.DataType.TEXT;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsConstants;
@@ -72,17 +71,18 @@ public class AnalyticsIndexHelper {
     List<AnalyticsIndex> indexes = new ArrayList<>();
 
     for (AnalyticsTablePartition partition : partitions) {
-        AnalyticsTableType type = partition.getMasterTable().getTableType();
+      AnalyticsTableType type = partition.getMasterTable().getTableType();
       List<AnalyticsTableColumn> dimensionColumns =
           partition.getMasterTable().getDimensionColumns();
 
       for (AnalyticsTableColumn col : dimensionColumns) {
         if (!col.isSkipIndex()) {
-            String name = getIndexName( partition.getName(), col.getIndexColumns(), type);
+          String name = getIndexName(partition.getName(), col.getIndexColumns(), type);
           List<String> columns =
               col.hasIndexColumns() ? col.getIndexColumns() : List.of(col.getName());
 
-          indexes.add(new AnalyticsIndex(name, partition.getTempName(), col.getIndexType(), columns));
+          indexes.add(
+              new AnalyticsIndex(name, partition.getTempName(), col.getIndexType(), columns));
 
           maybeAddTextLowerIndex(indexes, name, partition.getTempName(), col, columns);
         }
@@ -126,16 +126,17 @@ public class AnalyticsIndexHelper {
    * @param columns the index column names.
    * @param tableType the {@link AnalyticsTableType}
    */
-  public static String getIndexName(String tableName, List<String> columns, AnalyticsTableType tableType) {
+  public static String getIndexName(
+      String tableName, List<String> columns, AnalyticsTableType tableType) {
     String columnName = join(columns, "_");
 
     String indexName =
-            PREFIX_INDEX
-                + removeQuote(maybeShortenColumnName(columnName))
-                + "_"
-                + shortenTableName(tableName, tableType)
-                + "_"
-                + CodeGenerator.generateCode(5);
+        PREFIX_INDEX
+            + removeQuote(maybeShortenColumnName(columnName))
+            + "_"
+            + shortenTableName(tableName, tableType)
+            + "_"
+            + CodeGenerator.generateCode(5);
 
     return quote(indexName);
   }
@@ -192,12 +193,12 @@ public class AnalyticsIndexHelper {
       String tableName,
       AnalyticsTableColumn column,
       List<String> indexColumns) {
-    
+
     String columnName = RegExUtils.removeAll(column.getName(), "\"");
     boolean isSingleColumn = indexColumns.size() == 1;
 
     if (column.getDataType() == TEXT && isValidUid(columnName) && isSingleColumn) {
-        String name = indexName + "_" + LOWER.getValue();
+      String name = indexName + "_" + LOWER.getValue();
       indexes.add(new AnalyticsIndex(name, tableName, column.getIndexType(), indexColumns, LOWER));
     }
   }
