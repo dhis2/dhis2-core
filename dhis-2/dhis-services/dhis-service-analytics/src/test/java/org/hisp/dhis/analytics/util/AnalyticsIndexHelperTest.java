@@ -93,7 +93,6 @@ class AnalyticsIndexHelperTest {
 
   @Test
   void testGetIndexNameB() {
-
     String nameA =
         getIndexName(
             "analytics_2017_temp", List.of(quote("quarterly")), AnalyticsTableType.DATA_VALUE);
