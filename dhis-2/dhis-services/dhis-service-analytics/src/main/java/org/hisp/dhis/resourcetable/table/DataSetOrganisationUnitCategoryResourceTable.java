@@ -30,13 +30,13 @@ package org.hisp.dhis.resourcetable.table;
 import static org.hisp.dhis.db.model.Table.toStaging;
 import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
 
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -52,8 +52,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.hisp.dhis.util.DateUtils;
-
-import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland

@@ -34,7 +34,6 @@ import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.db.model.Column;
@@ -93,10 +92,22 @@ public class DataElementResourceTable implements ResourceTable {
             toStaging(TABLE_NAME),
             Unique.UNIQUE,
             List.of("dataelementuid")),
-        new Index(appendRandom("in_dataelementstructure_datasetid"), toStaging(TABLE_NAME), List.of("datasetid")),
-        new Index(appendRandom("in_dataelementstructure_datasetuid"), toStaging(TABLE_NAME), List.of("datasetuid")),
-        new Index(appendRandom("in_dataelementstructure_periodtypeid"), toStaging(TABLE_NAME), List.of("periodtypeid")),
-        new Index(appendRandom("in_dataelementstructure_workflowid"), toStaging(TABLE_NAME), List.of("workflowid")));
+        new Index(
+            appendRandom("in_dataelementstructure_datasetid"),
+            toStaging(TABLE_NAME),
+            List.of("datasetid")),
+        new Index(
+            appendRandom("in_dataelementstructure_datasetuid"),
+            toStaging(TABLE_NAME),
+            List.of("datasetuid")),
+        new Index(
+            appendRandom("in_dataelementstructure_periodtypeid"),
+            toStaging(TABLE_NAME),
+            List.of("periodtypeid")),
+        new Index(
+            appendRandom("in_dataelementstructure_workflowid"),
+            toStaging(TABLE_NAME),
+            List.of("workflowid")));
   }
 
   @Override

@@ -42,7 +42,6 @@ import static org.hisp.dhis.db.model.IndexType.BTREE;
 
 import java.util.Date;
 import java.util.List;
-
 import org.hisp.dhis.analytics.table.model.AnalyticsIndex;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;

@@ -28,12 +28,10 @@
 package org.hisp.dhis.db.model;
 
 import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.db.model.constraint.Unique;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.db.model.constraint.Unique;
 
 /**
  * Represents a database index.
@@ -45,10 +43,8 @@ import lombok.RequiredArgsConstructor;
 public class Index {
   /** Index name. Required. */
   private final String name;
-  
-  /**
-   * Name of index table. Required.
-   */
+
+  /** Name of index table. Required. */
   private final String tableName;
 
   /** Index type, defaults to {@link IndexType.BTREE}. Required. */
@@ -123,11 +119,13 @@ public class Index {
    * Constructor.
    *
    * @param name the index name.
+   * @param tableName the index table name.
    * @param unique the uniqueness property.
    * @param columns the list of index column names.
    * @param function the index function.
    */
-  public Index(String name, String tableName, Unique unique, List<String> columns, IndexFunction function) {
+  public Index(
+      String name, String tableName, Unique unique, List<String> columns, IndexFunction function) {
     this.name = name;
     this.tableName = tableName;
     this.indexType = IndexType.BTREE;
@@ -141,15 +139,16 @@ public class Index {
    * Constructor.
    *
    * @param name the index name.
+   * @param tableName the index table name.
    * @param unique the uniqueness property.
    * @param columns the list of index column names.
    * @param condition the SQL condition for the index.
    */
   public Index(
-      String name, String tableName, IndexType indexType, Unique unique, List<String> columns, String condition) {
+      String name, String tableName, Unique unique, List<String> columns, String condition) {
     this.name = name;
     this.tableName = tableName;
-    this.indexType = indexType;
+    this.indexType = IndexType.BTREE;
     this.unique = unique;
     this.columns = columns;
     this.condition = condition;
