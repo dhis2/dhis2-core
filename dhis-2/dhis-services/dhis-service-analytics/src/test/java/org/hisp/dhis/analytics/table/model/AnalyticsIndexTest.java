@@ -52,7 +52,6 @@ class AnalyticsIndexTest {
         getIndexName(
             "analytics_2019_temp", List.of(quote("YtbsuPPo010")), AnalyticsTableType.DATA_VALUE);
 
-    System.out.println("B: " + nameB);
     assertTrue(nameA.startsWith(QUOTE + "in_quarterly_ax_2017_"));
     assertTrue(nameB.startsWith(QUOTE + "in_ax_co_ax_2018_"));
     assertTrue(nameC.startsWith(QUOTE + "in_YtbsuPPo010_ax_2019_"));
