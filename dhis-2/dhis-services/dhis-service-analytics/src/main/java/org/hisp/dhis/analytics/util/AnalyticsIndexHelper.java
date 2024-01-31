@@ -37,6 +37,7 @@ import static org.hisp.dhis.db.model.DataType.TEXT;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsConstants;
@@ -105,7 +106,7 @@ public class AnalyticsIndexHelper {
     String indexColumns = maybeApplyFunctionToIndex(index, join(index.getColumns(), ","));
 
     return "create index "
-        + index.getName()
+        + quote(index.getName())
         + " "
         + "on "
         + index.getTableName()
