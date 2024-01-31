@@ -77,8 +77,6 @@ class AnalyticsIndexHelperTest {
 
     String statement = createIndexStatement(someAnalyticsIndex, EVENT);
 
-    System.out.println("STAT " + statement);
-
     assertThat(statement, containsString("create index \"in_column_table"));
     assertThat(statement, containsString("on table using"));
     assertThat(statement, containsString("btree (column)"));
