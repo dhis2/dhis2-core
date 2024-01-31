@@ -37,6 +37,7 @@ import static org.hisp.dhis.db.model.DataType.TEXT;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsConstants;
@@ -101,7 +102,7 @@ public class AnalyticsIndexHelper {
    * @return the SQL index statement
    */
   public static String createIndexStatement(AnalyticsIndex index, AnalyticsTableType tableType) {
-    String indexName = getIndexName(index.getTableName(), index.getColumns(), tableType);
+    String indexName = index.getName();
     String indexTypeName = SQL_BUILDER.getIndexTypeName(index.getIndexType());
     String indexColumns = maybeApplyFunctionToIndex(index, join(index.getColumns(), ","));
 
