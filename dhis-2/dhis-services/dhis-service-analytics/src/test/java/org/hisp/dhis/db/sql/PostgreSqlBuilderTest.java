@@ -30,6 +30,7 @@ package org.hisp.dhis.db.sql;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
+
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
@@ -66,6 +67,7 @@ class PostgreSqlBuilderTest {
             new Index(
                 "in_immunization_data_period",
                 "immunization",
+                IndexType.BTREE,
                 Unique.NON_UNIQUE,
                 List.of("data", "period"),
                 IndexFunction.LOWER));

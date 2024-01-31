@@ -30,9 +30,10 @@ package org.hisp.dhis.analytics;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.analytics.table.model.AnalyticsIndex;
+
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.db.model.Index;
 
 /**
  * Manager for the analytics database tables.
@@ -97,7 +98,7 @@ public interface AnalyticsTableManager {
    *
    * @param index the analytics index.
    */
-  void createIndex(AnalyticsIndex index);
+  void createIndex(Index index);
 
   /**
    * Attempts to drop the analytics table with partitions and rename the temporary table with

@@ -28,10 +28,12 @@
 package org.hisp.dhis.db.model;
 
 import java.util.List;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.db.model.constraint.Unique;
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Represents a database index.
@@ -120,15 +122,16 @@ public class Index {
    *
    * @param name the index name.
    * @param tableName the index table name.
+   * @param indexType the index type.
    * @param unique the uniqueness property.
    * @param columns the list of index column names.
    * @param function the index function.
    */
   public Index(
-      String name, String tableName, Unique unique, List<String> columns, IndexFunction function) {
+      String name, String tableName, IndexType indexType, Unique unique, List<String> columns, IndexFunction function) {
     this.name = name;
     this.tableName = tableName;
-    this.indexType = IndexType.BTREE;
+    this.indexType = indexType;
     this.unique = unique;
     this.columns = columns;
     this.condition = null;
