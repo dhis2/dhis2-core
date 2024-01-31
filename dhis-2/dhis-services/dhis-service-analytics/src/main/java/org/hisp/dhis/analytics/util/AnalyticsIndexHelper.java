@@ -118,8 +118,8 @@ public class AnalyticsIndexHelper {
   }
 
   /**
-   * Returns index name for column. Purpose of code suffix is to avoid uniqueness collision between
-   * indexes for temporary and real tables.
+   * Returns non-quoted index name for column. Purpose of code suffix is to avoid uniqueness
+   * collision between indexes for temporary and real tables.
    *
    * @param tableName the index table name.
    * @param columns the index column names.
@@ -129,15 +129,12 @@ public class AnalyticsIndexHelper {
       String tableName, List<String> columns, AnalyticsTableType tableType) {
     String columnName = join(columns, "_");
 
-    String indexName =
-        PREFIX_INDEX
-            + removeQuote(maybeShortenColumnName(columnName))
-            + "_"
-            + shortenTableName(tableName, tableType)
-            + "_"
-            + CodeGenerator.generateCode(5);
-
-    return quote(indexName);
+    return PREFIX_INDEX
+        + removeQuote(maybeShortenColumnName(columnName))
+        + "_"
+        + shortenTableName(tableName, tableType)
+        + "_"
+        + CodeGenerator.generateCode(5);
   }
 
   /**

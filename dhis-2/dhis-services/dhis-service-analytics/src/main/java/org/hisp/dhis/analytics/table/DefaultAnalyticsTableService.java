@@ -264,10 +264,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
   /** Creates indexes on the given analytics tables. */
   private void createIndexes(List<AnalyticsIndex> indexes, JobProgress progress) {
     progress.runStageInParallel(
-        getParallelJobs(),
-        indexes,
-        index -> index.getName().replace("\"", ""),
-        tableManager::createIndex);
+        getParallelJobs(), indexes, index -> index.getName(), tableManager::createIndex);
   }
 
   /** Analyzes the given analytics tables. */

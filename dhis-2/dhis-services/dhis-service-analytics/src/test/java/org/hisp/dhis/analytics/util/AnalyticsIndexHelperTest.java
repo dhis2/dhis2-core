@@ -36,7 +36,6 @@ import static org.hisp.dhis.analytics.AnalyticsTableType.EVENT;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.createIndexStatement;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexName;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexes;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.QUOTE;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.db.model.IndexType.BTREE;
@@ -89,7 +88,7 @@ class AnalyticsIndexHelperTest {
   void testGetIndexNameA() {
     String statement = getIndexName("table", List.of("column"), EVENT);
 
-    assertThat(statement, containsString("\"in_column_table"));
+    assertThat(statement, containsString("in_column_table"));
   }
 
   @Test
@@ -107,9 +106,9 @@ class AnalyticsIndexHelperTest {
         getIndexName(
             "analytics_2019_temp", List.of(quote("YtbsuPPo010")), AnalyticsTableType.DATA_VALUE);
 
-    assertTrue(nameA.startsWith(QUOTE + "in_quarterly_ax_2017_"));
-    assertTrue(nameB.startsWith(QUOTE + "in_ax_co_ax_2018_"));
-    assertTrue(nameC.startsWith(QUOTE + "in_YtbsuPPo010_ax_2019_"));
+    assertTrue(nameA.startsWith("in_quarterly_ax_2017_"), nameA);
+    assertTrue(nameB.startsWith("in_ax_co_ax_2018_"), nameB);
+    assertTrue(nameC.startsWith("in_YtbsuPPo010_ax_2019_"), nameC);
   }
 
   private AnalyticsTablePartition stubAnalyticsTablePartition() {
