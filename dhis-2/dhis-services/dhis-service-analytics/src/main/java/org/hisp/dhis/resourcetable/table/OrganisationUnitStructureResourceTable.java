@@ -69,7 +69,7 @@ public class OrganisationUnitStructureResourceTable implements ResourceTable {
 
   @Override
   public Table getTable() {
-    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), getIndexes(), logged);
+    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);
   }
 
   private List<Column> getColumns() {
@@ -94,7 +94,8 @@ public class OrganisationUnitStructureResourceTable implements ResourceTable {
     return List.of("organisationunitid");
   }
 
-  private List<Index> getIndexes() {
+  @Override
+  public List<Index> getIndexes() {
     return List.of(
         new Index(
             appendRandom("in_orgunitstructure_organisationunituid"),

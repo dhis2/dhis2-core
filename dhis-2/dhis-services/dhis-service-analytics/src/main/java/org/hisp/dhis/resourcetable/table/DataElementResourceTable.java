@@ -64,7 +64,7 @@ public class DataElementResourceTable implements ResourceTable {
 
   @Override
   public Table getTable() {
-    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), getIndexes(), logged);
+    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);
   }
 
   private List<Column> getColumns() {
@@ -85,7 +85,7 @@ public class DataElementResourceTable implements ResourceTable {
     return List.of("dataelementid");
   }
 
-  private List<Index> getIndexes() {
+  public List<Index> getIndexes() {
     return List.of(
         new Index(
             appendRandom("in_dataelementstructure_dataelementuid"),

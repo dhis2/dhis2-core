@@ -55,9 +55,6 @@ public class Table {
   /** Table primary key column name(s). Optional. */
   private final List<String> primaryKey;
 
-  /** Table indexes. Optional. */
-  private final List<Index> indexes;
-
   /** Table checks. PostgreSQL-only feature. Optional. */
   private final List<String> checks;
 
@@ -72,11 +69,10 @@ public class Table {
    * @param primaryKey the primary key.
    * @param indexes the list of {@link Index}.
    */
-  public Table(String name, List<Column> columns, List<String> primaryKey, List<Index> indexes) {
+  public Table(String name, List<Column> columns, List<String> primaryKey) {
     this.name = name;
     this.columns = columns;
     this.primaryKey = primaryKey;
-    this.indexes = indexes;
     this.checks = List.of();
     this.logged = Logged.LOGGED;
   }
@@ -90,16 +86,10 @@ public class Table {
    * @param indexes the list of {@link Index}.
    * @param logged the {@link Logged} parameter.
    */
-  public Table(
-      String name,
-      List<Column> columns,
-      List<String> primaryKey,
-      List<Index> indexes,
-      Logged logged) {
+  public Table(String name, List<Column> columns, List<String> primaryKey, Logged logged) {
     this.name = name;
     this.columns = columns;
     this.primaryKey = primaryKey;
-    this.indexes = indexes;
     this.checks = List.of();
     this.logged = logged;
   }

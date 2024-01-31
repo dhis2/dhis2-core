@@ -55,7 +55,7 @@ public class CategoryOptionComboResourceTable implements ResourceTable {
 
   @Override
   public Table getTable() {
-    return new Table(toStaging(TABLE_NAME), getColumns(), List.of(), getIndexes(), logged);
+    return new Table(toStaging(TABLE_NAME), getColumns(), List.of(), logged);
   }
 
   private List<Column> getColumns() {
@@ -66,7 +66,7 @@ public class CategoryOptionComboResourceTable implements ResourceTable {
         new Column("categoryoptioncombouid", DataType.CHARACTER_11, Nullable.NOT_NULL));
   }
 
-  private List<Index> getIndexes() {
+  public List<Index> getIndexes() {
     return List.of(
         new Index(
             appendRandom("in_dataelementcategoryoptioncombo"),

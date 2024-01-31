@@ -74,7 +74,7 @@ public class DataSetOrganisationUnitCategoryResourceTable implements ResourceTab
 
   @Override
   public Table getTable() {
-    return new Table(toStaging(TABLE_NAME), getColumns(), List.of(), getIndexes(), logged);
+    return new Table(toStaging(TABLE_NAME), getColumns(), List.of(), logged);
   }
 
   private List<Column> getColumns() {
@@ -86,7 +86,7 @@ public class DataSetOrganisationUnitCategoryResourceTable implements ResourceTab
         new Column("coenddate", DataType.DATE));
   }
 
-  private List<Index> getIndexes() {
+  public List<Index> getIndexes() {
     return List.of(
         new Index(
             appendRandom("_datasetorganisationunitcategory"),
