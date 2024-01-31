@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,22 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.db.model;
+package org.hisp.dhis.webapi.json.domain;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
+import java.time.LocalDateTime;
 import java.util.List;
-import org.hisp.dhis.db.model.constraint.Unique;
-import org.junit.jupiter.api.Test;
+import org.hisp.dhis.jsontree.JsonDate;
+import org.hisp.dhis.jsontree.JsonObject;
 
-class IndexTest {
-  @Test
-  void testIsUnique() {
-    Index indexA = new Index("in_analytics_id", "analytics", Unique.UNIQUE, List.of("id"));
-    Index indexB = new Index("in_analytics_dx", "analytics", Unique.NON_UNIQUE, List.of("dx"));
+/**
+ * @author Zubair Asghar
+ */
+public interface JsonIcon extends JsonObject {
 
-    assertTrue(indexA.isUnique());
-    assertFalse(indexB.isUnique());
+  default String getKey() {
+    return getString("key").string();
+  }
+
+  default String getHref() {
+    return getString("href").string();
+  }
+
+  default LocalDateTime getCreated() {
+    return get("created", JsonDate.class).date();
+  }
+
+  default LocalDateTime getLastUpdated() {
+    return get("lastUpdated", JsonDate.class).date();
+  }
+
+  default String getUserUid() {
+    return getString("userUid").string();
+  }
+
+  default String getFileResourceUid() {
+    return getString("fileResourceUid").string();
+  }
+
+  default List<String> getKeywords() {
+    return getArray("keywords").stringValues();
+  }
+
+  default String getDescription() {
+    return getString("description").string();
   }
 }

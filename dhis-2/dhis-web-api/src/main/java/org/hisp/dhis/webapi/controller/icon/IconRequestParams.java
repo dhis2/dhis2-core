@@ -25,47 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.table.model;
+package org.hisp.dhis.webapi.controller.icon;
 
-import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
-import static org.hisp.dhis.db.model.DataType.DOUBLE;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
+import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.icon.IconTypeFilter;
 
-import org.hisp.dhis.db.model.Collation;
-import org.hisp.dhis.db.model.constraint.Nullable;
-import org.junit.jupiter.api.Test;
+/**
+ * @author Zubair Asghar
+ */
+@Data
+@NoArgsConstructor
+public class IconRequestParams {
 
-class AnalyticsTableColumnTest {
+  static final String DEFAULT_FIELDS_PARAM =
+      "key,keywords,description,fileResourceUid,createdByUserUid,href";
 
-  @Test
-  void testIsNotNull() {
-    AnalyticsTableColumn colA =
-        new AnalyticsTableColumn("dx", CHARACTER_11, Nullable.NOT_NULL, "dx");
-    AnalyticsTableColumn colB = new AnalyticsTableColumn("value", DOUBLE, Nullable.NULL, "value");
+  private List<String> keys = new ArrayList<>();
+  private List<String> keywords = new ArrayList<>();
+  private IconTypeFilter type = IconTypeFilter.ALL;
+  private Date createdStartDate;
+  private Date createdEndDate;
+  private Date lastUpdatedStartDate;
+  private Date lastUpdatedEndDate;
 
-    assertTrue(colA.isNotNull());
-    assertFalse(colB.isNotNull());
+  private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
+
+  public boolean hasCreatedStartDate() {
+    return createdStartDate != null;
   }
 
-  @Test
-  void testHasCollation() {
-    AnalyticsTableColumn colA =
-        new AnalyticsTableColumn("dx", CHARACTER_11, Collation.DEFAULT, "dx");
-    AnalyticsTableColumn colB = new AnalyticsTableColumn("ou", CHARACTER_11, Collation.C, "ou");
-    AnalyticsTableColumn colC = new AnalyticsTableColumn("value", DOUBLE, "value");
-
-    assertFalse(colA.hasCollation());
-    assertTrue(colB.hasCollation());
-    assertFalse(colC.hasCollation());
+  public boolean hasCreatedEndDate() {
+    return createdEndDate != null;
   }
 
-  @Test
-  void testIsSkipIndex() {
-    AnalyticsTableColumn colA = new AnalyticsTableColumn("value", DOUBLE, "value", Skip.SKIP);
-    AnalyticsTableColumn colB = new AnalyticsTableColumn("ou", CHARACTER_11, "ou", Skip.INCLUDE);
+  public boolean hasLastUpdatedStartDate() {
+    return lastUpdatedStartDate != null;
+  }
 
-    assertTrue(colA.isSkipIndex());
-    assertFalse(colB.isSkipIndex());
+  public boolean hasLastUpdatedEndDate() {
+    return lastUpdatedEndDate != null;
   }
 }

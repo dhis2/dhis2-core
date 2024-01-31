@@ -904,6 +904,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         }
       }
 
+      daoEntityInstance.setLastUpdatedByUserInfo(UserInfoSnapshot.from(importOptions.getUser()));
       teiService.deleteTrackedEntity(daoEntityInstance);
 
       importSummary.setStatus(ImportStatus.SUCCESS);

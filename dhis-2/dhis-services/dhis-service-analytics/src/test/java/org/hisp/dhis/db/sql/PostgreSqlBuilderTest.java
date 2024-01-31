@@ -34,10 +34,12 @@ import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
+import org.hisp.dhis.db.model.IndexFunction;
 import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
+import org.hisp.dhis.db.model.constraint.Unique;
 import org.junit.jupiter.api.Test;
 
 class PostgreSqlBuilderTest {
@@ -57,9 +59,16 @@ class PostgreSqlBuilderTest {
 
     List<Index> indexes =
         List.of(
-            new Index("in_immunization_data", List.of("data")),
-            new Index("in_immunization_period_created", List.of("period", "created")),
-            new Index("in_immunization_user", IndexType.GIN, List.of("user")));
+            new Index("in_immunization_data", "immunization", List.of("data")),
+            new Index(
+                "in_immunization_period_created", "immunization", List.of("period", "created")),
+            new Index("in_immunization_user", "immunization", IndexType.GIN, List.of("user")),
+            new Index(
+                "in_immunization_data_period",
+                "immunization",
+                Unique.NON_UNIQUE,
+                List.of("data", "period"),
+                IndexFunction.LOWER));
 
     return new Table("immunization", columns, primaryKey, indexes);
   }
@@ -156,6 +165,22 @@ class PostgreSqlBuilderTest {
   }
 
   @Test
+  void testDropTableIfExistsCascade() {
+    Table table = getTableA();
+
+    String expected = "drop table if exists \"immunization\" cascade;";
+
+    assertEquals(expected, sqlBuilder.dropTableIfExistsCascade(table));
+  }
+
+  @Test
+  void testDropTableIfExistsCascadeString() {
+    String expected = "drop table if exists \"immunization\" cascade;";
+
+    assertEquals(expected, sqlBuilder.dropTableIfExistsCascade("immunization"));
+  }
+
+  @Test
   void testTableExists() {
     String expected =
         "select t.table_name from information_schema.tables t "
@@ -192,5 +217,15 @@ class PostgreSqlBuilderTest {
         "create index \"in_immunization_user\" on \"immunization\" using gin(\"user\");";
 
     assertEquals(expected, sqlBuilder.createIndex(table, table.getIndexes().get(2)));
+  }
+
+  @Test
+  void testCreateIndexD() {
+    Table table = getTableA();
+
+    String expected =
+        "create index \"in_immunization_data_period\" on \"immunization\" using btree(lower(\"data\"), lower(\"period\"));";
+
+    assertEquals(expected, sqlBuilder.createIndex(table, table.getIndexes().get(3)));
   }
 }

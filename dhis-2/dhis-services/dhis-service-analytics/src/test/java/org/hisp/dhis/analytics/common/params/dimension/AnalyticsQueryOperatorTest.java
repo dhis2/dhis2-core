@@ -25,47 +25,53 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.table.model;
+package org.hisp.dhis.analytics.common.params.dimension;
 
-import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
-import static org.hisp.dhis.db.model.DataType.DOUBLE;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import org.hisp.dhis.db.model.Collation;
-import org.hisp.dhis.db.model.constraint.Nullable;
+import java.util.List;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.QueryOperator;
 import org.junit.jupiter.api.Test;
 
-class AnalyticsTableColumnTest {
+class AnalyticsQueryOperatorTest {
 
   @Test
-  void testIsNotNull() {
-    AnalyticsTableColumn colA =
-        new AnalyticsTableColumn("dx", CHARACTER_11, Nullable.NOT_NULL, "dx");
-    AnalyticsTableColumn colB = new AnalyticsTableColumn("value", DOUBLE, Nullable.NULL, "value");
+  void testOperator() {
+    genericTest("!EQ", QueryOperator.NEQ);
+    genericTest("!NEQ", QueryOperator.EQ);
+    genericTest("!LIKE", QueryOperator.NLIKE);
+    genericTest("!NLIKE", QueryOperator.LIKE);
+    genericTest("!ILIKE", QueryOperator.NILIKE);
+    genericTest("!NILIKE", QueryOperator.ILIKE);
+  }
 
-    assertTrue(colA.isNotNull());
-    assertFalse(colB.isNotNull());
+  void genericTest(String operator, QueryOperator expectedOperator) {
+    DimensionParamItem item = DimensionParamItem.ofStrings(List.of(operator + ":1")).get(0);
+    assertEquals(expectedOperator, item.getOperator().getQueryOperator());
   }
 
   @Test
-  void testHasCollation() {
-    AnalyticsTableColumn colA =
-        new AnalyticsTableColumn("dx", CHARACTER_11, Collation.DEFAULT, "dx");
-    AnalyticsTableColumn colB = new AnalyticsTableColumn("ou", CHARACTER_11, Collation.C, "ou");
-    AnalyticsTableColumn colC = new AnalyticsTableColumn("value", DOUBLE, "value");
+  void doubleExclamationMarkThrowsException() {
+    List<String> dimensionParamString = List.of("!!EQ:1");
+    IllegalQueryException thrown =
+        assertThrows(
+            IllegalQueryException.class,
+            () -> {
+              DimensionParamItem.ofStrings(dimensionParamString);
+            });
 
-    assertFalse(colA.hasCollation());
-    assertTrue(colB.hasCollation());
-    assertFalse(colC.hasCollation());
+    assertEquals("Operator not supported: `!EQ`", thrown.getMessage());
   }
 
   @Test
-  void testIsSkipIndex() {
-    AnalyticsTableColumn colA = new AnalyticsTableColumn("value", DOUBLE, "value", Skip.SKIP);
-    AnalyticsTableColumn colB = new AnalyticsTableColumn("ou", CHARACTER_11, "ou", Skip.INCLUDE);
+  void invalidOperatorThrowsException() {
+    List<String> dimensionParamString = List.of("INVALID:1");
+    IllegalQueryException thrown =
+        assertThrows(
+            IllegalQueryException.class, () -> DimensionParamItem.ofStrings(dimensionParamString));
 
-    assertTrue(colA.isSkipIndex());
-    assertFalse(colB.isSkipIndex());
+    assertEquals("Operator not supported: `INVALID`", thrown.getMessage());
   }
 }

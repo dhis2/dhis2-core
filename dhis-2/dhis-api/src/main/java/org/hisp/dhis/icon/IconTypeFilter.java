@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,22 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.db.model;
+package org.hisp.dhis.icon;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.util.Optional;
 
-import java.util.List;
-import org.hisp.dhis.db.model.constraint.Unique;
-import org.junit.jupiter.api.Test;
+/**
+ * @author Zubair Asghar
+ */
+public enum IconTypeFilter {
+  ALL("all"),
+  CUSTOM("custom"),
+  DEFAULT("default");
 
-class IndexTest {
-  @Test
-  void testIsUnique() {
-    Index indexA = new Index("in_analytics_id", "analytics", Unique.UNIQUE, List.of("id"));
-    Index indexB = new Index("in_analytics_dx", "analytics", Unique.NON_UNIQUE, List.of("dx"));
+  private String type;
 
-    assertTrue(indexA.isUnique());
-    assertFalse(indexB.isUnique());
+  IconTypeFilter(String type) {
+
+    this.type = type;
+  }
+
+  public static Optional<IconTypeFilter> from(String iconType) {
+    for (IconTypeFilter type : IconTypeFilter.values()) {
+      if (type.type.equals(iconType)) {
+        return Optional.of(type);
+      }
+    }
+
+    return Optional.empty();
   }
 }
