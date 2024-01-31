@@ -63,7 +63,7 @@ class AnalyticsIndexHelperTest {
     List<AnalyticsIndex> indexes = getIndexes(stubPartitions);
 
     assertThat(indexes, hasSize(1));
-    assertThat(indexes.get(0).getTable(), is(equalTo("analytics_event_temp_2022")));
+    assertThat(indexes.get(0).getTableName(), is(equalTo("analytics_event_temp_2022")));
     assertThat(indexes.get(0).getColumns(), hasSize(1));
     assertThat(indexes.get(0).getIndexType(), is(equalTo(BTREE)));
   }

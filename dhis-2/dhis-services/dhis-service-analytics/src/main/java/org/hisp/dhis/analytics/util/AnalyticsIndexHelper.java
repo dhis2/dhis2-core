@@ -71,17 +71,17 @@ public class AnalyticsIndexHelper {
     List<AnalyticsIndex> indexes = new ArrayList<>();
 
     for (AnalyticsTablePartition partition : partitions) {
-      List<AnalyticsTableColumn> columns = partition.getMasterTable().getDimensionColumns();
+      List<AnalyticsTableColumn> dimensionColumns =
+          partition.getMasterTable().getDimensionColumns();
 
-      for (AnalyticsTableColumn col : columns) {
+      for (AnalyticsTableColumn col : dimensionColumns) {
         if (!col.isSkipIndex()) {
-          List<String> indexColumns =
+          List<String> columns =
               col.hasIndexColumns() ? col.getIndexColumns() : List.of(col.getName());
 
-          indexes.add(
-              new AnalyticsIndex(partition.getTempName(), col.getIndexType(), indexColumns));
+          indexes.add(new AnalyticsIndex(partition.getTempName(), col.getIndexType(), columns));
 
-          maybeAddTextLowerIndex(indexes, partition.getTempName(), col, indexColumns);
+          maybeAddTextLowerIndex(indexes, partition.getTempName(), col, columns);
         }
       }
     }
@@ -106,7 +106,7 @@ public class AnalyticsIndexHelper {
         + indexName
         + " "
         + "on "
-        + index.getTable()
+        + index.getTableName()
         + " "
         + "using "
         + indexTypeName
@@ -131,7 +131,7 @@ public class AnalyticsIndexHelper {
             PREFIX_INDEX
                 + removeQuote(maybeShortenColumnName(columnName))
                 + "_"
-                + shortenTableName(index.getTable(), tableType)
+                + shortenTableName(index.getTableName(), tableType)
                 + "_"
                 + CodeGenerator.generateCode(5));
 
@@ -148,7 +148,7 @@ public class AnalyticsIndexHelper {
    * @param columnName the column name to be used in the index name
    */
   private static String maybeShortenColumnName(String columnName) {
-    // some analytics indexes for jsonb columns are using to long names
+    // some analytics indexes for jsonb columns are using too long names
     // based on casting
     String shortenName = StringUtils.substringBetween(columnName, "'");
 
@@ -203,8 +203,8 @@ public class AnalyticsIndexHelper {
    * @param tableType
    */
   private static String shortenTableName(String table, AnalyticsTableType tableType) {
-    table = table.replaceAll(tableType.getTableName(), "ax");
-    table = table.replaceAll(AnalyticsConstants.ANALYTICS_TBL_TEMP_SUFFIX, EMPTY);
+    table = table.replace(tableType.getTableName(), "ax");
+    table = table.replace(AnalyticsConstants.ANALYTICS_TBL_TEMP_SUFFIX, EMPTY);
 
     return table;
   }

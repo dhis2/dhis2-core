@@ -70,6 +70,7 @@ public class CategoryOptionComboResourceTable implements ResourceTable {
     return List.of(
         new Index(
             appendRandom("in_dataelementcategoryoptioncombo"),
+            toStaging(TABLE_NAME),
             List.of("dataelementuid", "categoryoptioncombouid")));
   }
 

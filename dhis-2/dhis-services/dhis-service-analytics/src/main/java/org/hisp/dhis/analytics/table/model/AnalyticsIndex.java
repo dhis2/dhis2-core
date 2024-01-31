@@ -41,7 +41,7 @@ import org.hisp.dhis.db.model.IndexType;
 @EqualsAndHashCode
 public class AnalyticsIndex {
   /** Table name. */
-  private final String table;
+  private final String tableName;
 
   /** Index type. */
   private final IndexType indexType;
@@ -55,12 +55,12 @@ public class AnalyticsIndex {
   /**
    * Constructor.
    *
-   * @param table the table name.
+   * @param tableName the table name.
    * @param indexType the index type.
    * @param columns the index column names.
    */
-  public AnalyticsIndex(String table, IndexType indexType, List<String> columns) {
-    this.table = table;
+  public AnalyticsIndex(String tableName, IndexType indexType, List<String> columns) {
+    this.tableName = tableName;
     this.indexType = indexType;
     this.columns = columns;
   }
@@ -68,14 +68,14 @@ public class AnalyticsIndex {
   /**
    * Constructor.
    *
-   * @param table the table name.
+   * @param tableName the table name.
    * @param indexType the index type.
    * @param columns the index column names.
    * @param function the index function.
    */
   public AnalyticsIndex(
-      String table, IndexType indexType, List<String> columns, IndexFunction function) {
-    this(table, indexType, columns);
+      String tableName, IndexType indexType, List<String> columns, IndexFunction function) {
+    this(tableName, indexType, columns);
     this.function = function;
   }
 

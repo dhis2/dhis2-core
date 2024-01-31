@@ -90,6 +90,7 @@ public class DataSetOrganisationUnitCategoryResourceTable implements ResourceTab
     return List.of(
         new Index(
             appendRandom("_datasetorganisationunitcategory"),
+            toStaging(TABLE_NAME),
             Unique.UNIQUE,
             List.of("datasetid", "organisationunitid", "attributeoptioncomboid")));
   }

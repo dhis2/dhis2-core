@@ -98,6 +98,7 @@ public class OrganisationUnitStructureResourceTable implements ResourceTable {
     return List.of(
         new Index(
             appendRandom("in_orgunitstructure_organisationunituid"),
+            toStaging(TABLE_NAME),
             Unique.UNIQUE,
             List.of("organisationunituid")));
   }

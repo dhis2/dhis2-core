@@ -97,7 +97,11 @@ public class PeriodResourceTable implements ResourceTable {
 
   private List<Index> getIndexes() {
     return List.of(
-        new Index(appendRandom("in_periodstructure_iso"), Unique.UNIQUE, List.of("iso")));
+        new Index(
+            appendRandom("in_periodstructure_iso"),
+            toStaging(TABLE_NAME),
+            Unique.UNIQUE,
+            List.of("iso")));
   }
 
   @Override
