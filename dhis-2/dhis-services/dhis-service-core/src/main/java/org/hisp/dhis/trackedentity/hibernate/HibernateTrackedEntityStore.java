@@ -1364,7 +1364,8 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
   }
 
   @Override
-  public void updateTrackedEntityLastUpdated(Set<String> trackedEntityUIDs, Date lastUpdated) {
+  public void updateTrackedEntityLastUpdated(
+      Set<String> trackedEntityUIDs, Date lastUpdated, String infoSnapshot) {
     List<List<String>> uidsPartitions =
         Lists.partition(Lists.newArrayList(trackedEntityUIDs), 20000);
 
@@ -1373,9 +1374,10 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
         .forEach(
             trackedEntities ->
                 getSession()
-                    .getNamedQuery("updateTeisLastUpdated")
+                    .getNamedQuery("updateTrackedEntitiesLastUpdated")
                     .setParameter("trackedEntities", trackedEntities)
                     .setParameter("lastUpdated", lastUpdated)
+                    .setParameter("lastupdatedbyuserinfo", infoSnapshot)
                     .executeUpdate());
   }
 

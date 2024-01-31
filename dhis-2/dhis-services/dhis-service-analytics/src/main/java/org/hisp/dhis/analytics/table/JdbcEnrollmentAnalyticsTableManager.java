@@ -28,16 +28,16 @@
 package org.hisp.dhis.analytics.table;
 
 import static java.util.Collections.emptyList;
-import static org.hisp.dhis.analytics.table.model.ColumnDataType.CHARACTER_11;
-import static org.hisp.dhis.analytics.table.model.ColumnDataType.DOUBLE;
-import static org.hisp.dhis.analytics.table.model.ColumnDataType.GEOMETRY;
-import static org.hisp.dhis.analytics.table.model.ColumnDataType.INTEGER;
-import static org.hisp.dhis.analytics.table.model.ColumnDataType.TEXT;
-import static org.hisp.dhis.analytics.table.model.ColumnDataType.TIMESTAMP;
-import static org.hisp.dhis.analytics.table.model.ColumnDataType.VARCHAR_255;
-import static org.hisp.dhis.analytics.table.model.ColumnDataType.VARCHAR_50;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
+import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
+import static org.hisp.dhis.db.model.DataType.DOUBLE;
+import static org.hisp.dhis.db.model.DataType.GEOMETRY;
+import static org.hisp.dhis.db.model.DataType.INTEGER;
+import static org.hisp.dhis.db.model.DataType.TEXT;
+import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
+import static org.hisp.dhis.db.model.DataType.VARCHAR_255;
+import static org.hisp.dhis.db.model.DataType.VARCHAR_50;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
@@ -50,12 +50,12 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
-import org.hisp.dhis.analytics.table.model.IndexType;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;

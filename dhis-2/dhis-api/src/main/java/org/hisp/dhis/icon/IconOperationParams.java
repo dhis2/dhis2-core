@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,23 +25,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.table.model;
+package org.hisp.dhis.icon;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * Index type.
+ * Represents query parameters sent to {@link org.hisp.dhis.icon.IconService}.
  *
- * @author Lars Helge Overland
+ * @author Zubair Asghar
  */
-@Getter
-@RequiredArgsConstructor
-public enum IndexType {
-  BTREE("btree"),
-  GIST("gist"),
-  GIN("gin"),
-  NONE("");
+@Data
+@NoArgsConstructor
+public class IconOperationParams {
 
-  final String keyword;
+  private List<String> keys = new ArrayList<>();
+  private IconTypeFilter iconTypeFilter = IconTypeFilter.ALL;
+  private List<String> keywords = new ArrayList<>();
+  private Date createdStartDate;
+  private Date createdEndDate;
+  private Date lastUpdatedStartDate;
+  private Date lastUpdatedEndDate;
+
+  public boolean hasLastUpdatedStartDate() {
+    return lastUpdatedStartDate != null;
+  }
+
+  public boolean hasLastUpdatedEndDate() {
+    return lastUpdatedEndDate != null;
+  }
+
+  public boolean hasCreatedStartDate() {
+    return createdStartDate != null;
+  }
+
+  public boolean hasCreatedEndDate() {
+    return createdEndDate != null;
+  }
+
+  public boolean hasKeywords() {
+    return !keywords.isEmpty();
+  }
+
+  public boolean hasKeys() {
+    return !keys.isEmpty();
+  }
 }

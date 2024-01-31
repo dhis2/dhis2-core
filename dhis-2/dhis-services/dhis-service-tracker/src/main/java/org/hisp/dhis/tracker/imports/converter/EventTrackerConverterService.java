@@ -55,7 +55,6 @@ import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.User;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
@@ -197,16 +196,15 @@ public class EventTrackerConverterService
 
     Date now = new Date();
 
-    UserDetails preheatUser = UserDetails.fromUser(preheat.getUser());
     if (isNewEntity(result)) {
       result = new Event();
       result.setUid(!StringUtils.isEmpty(event.getEvent()) ? event.getEvent() : event.getUid());
       result.setCreated(now);
       result.setStoredBy(event.getStoredBy());
-      result.setCreatedByUserInfo(UserInfoSnapshot.from(preheatUser));
+      result.setCreatedByUserInfo(preheat.getUserInfo());
       result.setCreatedAtClient(DateUtils.fromInstant(event.getCreatedAtClient()));
     }
-    result.setLastUpdatedByUserInfo(UserInfoSnapshot.from(preheatUser));
+    result.setLastUpdatedByUserInfo(preheat.getUserInfo());
     result.setLastUpdated(now);
     result.setDeleted(false);
     result.setLastUpdatedAtClient(DateUtils.fromInstant(event.getUpdatedAtClient()));
@@ -258,8 +256,8 @@ public class EventTrackerConverterService
       // dataElementIdSchemes are supported
       DataElement dataElement = preheat.getDataElement(dataValue.getDataElement());
       eventDataValue.setDataElement(dataElement.getUid());
-      eventDataValue.setLastUpdatedByUserInfo(UserInfoSnapshot.from(preheatUser));
-      eventDataValue.setCreatedByUserInfo(UserInfoSnapshot.from(preheatUser));
+      eventDataValue.setLastUpdatedByUserInfo(preheat.getUserInfo());
+      eventDataValue.setCreatedByUserInfo(preheat.getUserInfo());
 
       result.getEventDataValues().add(eventDataValue);
     }

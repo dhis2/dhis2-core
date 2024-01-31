@@ -194,12 +194,12 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
   /** Drops the given temporary analytics tables. */
   private void dropTempTables(List<AnalyticsTable> tables, JobProgress progress) {
 
-    progress.runStage(tables, AnalyticsTable::getTableName, tableManager::dropTempTable);
+    progress.runStage(tables, AnalyticsTable::getName, tableManager::dropTempTable);
   }
 
   /** Creates the given analytics tables. */
   private void createTables(List<AnalyticsTable> tables, JobProgress progress) {
-    progress.runStage(tables, AnalyticsTable::getTableName, tableManager::createTable);
+    progress.runStage(tables, AnalyticsTable::getName, tableManager::createTable);
   }
 
   /** Populates the given analytics tables. */
@@ -213,7 +213,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     progress.runStageInParallel(
         parallelism,
         partitions,
-        AnalyticsTablePartition::getTableName,
+        AnalyticsTablePartition::getName,
         partition -> tableManager.populateTablePartition(params, partition));
   }
 
@@ -243,7 +243,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
         progress.runStageInParallel(
             getParallelJobs(),
             partitions,
-            AnalyticsTablePartition::getTableName,
+            AnalyticsTablePartition::getName,
             partition -> tableManager.applyAggregationLevels(partition, dataElements, level));
 
         aggLevels += dataElements.size();
@@ -258,7 +258,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     progress.runStageInParallel(
         getParallelJobs(),
         partitions,
-        AnalyticsTablePartition::getTableName,
+        AnalyticsTablePartition::getName,
         tableManager::vacuumTables);
   }
 
@@ -277,8 +277,8 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
   private void analyzeTables(List<AnalyticsTablePartition> partitions, JobProgress progress) {
     progress.runStage(
         partitions,
-        AnalyticsTablePartition::getTableName,
-        table -> tableManager.analyzeTable(table.getTempTableName()));
+        AnalyticsTablePartition::getName,
+        table -> tableManager.analyzeTable(table.getTempName()));
   }
 
   /**
@@ -293,7 +293,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
 
     progress.startingStage("Swapping analytics tables " + getAnalyticsTableType(), tables.size());
     progress.runStage(
-        tables, AnalyticsTable::getTableName, table -> tableManager.swapTable(params, table));
+        tables, AnalyticsTable::getName, table -> tableManager.swapTable(params, table));
 
     resourceTableService.createAllSqlViews(progress);
   }

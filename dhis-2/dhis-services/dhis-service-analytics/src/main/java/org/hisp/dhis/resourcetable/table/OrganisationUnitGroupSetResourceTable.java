@@ -38,7 +38,6 @@ import java.util.Optional;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
-import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
@@ -96,13 +95,13 @@ public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
     return List.of(
         new Index(
             appendRandom("in_orgunitgroupsetstructure_not_null"),
-            IndexType.BTREE,
+            toStaging(TABLE_NAME),
             Unique.NON_UNIQUE,
             List.of("organisationunitid", "startdate"),
             "startdate is not null"),
         new Index(
             appendRandom("in_orgunitgroupsetstructure_null"),
-            IndexType.BTREE,
+            toStaging(TABLE_NAME),
             Unique.NON_UNIQUE,
             List.of("organisationunitid", "startdate"),
             "startdate is null"));

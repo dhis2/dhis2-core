@@ -35,7 +35,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.NameableObjectUtils;
@@ -47,17 +46,12 @@ import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.comparator.SectionOrderComparator;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.webapi.webdomain.form.Category;
 import org.hisp.dhis.webapi.webdomain.form.CategoryCombo;
 import org.hisp.dhis.webapi.webdomain.form.Field;
 import org.hisp.dhis.webapi.webdomain.form.Form;
 import org.hisp.dhis.webapi.webdomain.form.Group;
 import org.hisp.dhis.webapi.webdomain.form.Option;
-import org.springframework.util.Assert;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -211,76 +205,6 @@ public class FormUtils {
       return catCombo;
     }
     return null;
-  }
-
-  public static Form fromProgram(Program program) {
-    Assert.notNull(program, "Program cannot be null");
-
-    Form form = new Form();
-    form.setLabel(program.getDisplayName());
-
-    if (!StringUtils.isEmpty(program.getDescription())) {
-      form.getOptions().put("description", program.getDescription());
-    }
-
-    if (!StringUtils.isEmpty(program.getEnrollmentDateLabel())) {
-      form.getOptions().put("dateOfEnrollmentDescription", program.getEnrollmentDateLabel());
-    }
-
-    if (!StringUtils.isEmpty(program.getIncidentDateLabel())) {
-      form.getOptions().put("dateOfIncidentDescription", program.getIncidentDateLabel());
-    }
-
-    form.getOptions().put("type", program.getProgramType().getValue());
-
-    ProgramStage programStage = program.getProgramStageByStage(1);
-
-    if (programStage == null) {
-      if (program.isWithoutRegistration()) {
-        throw new IllegalStateException("Program is without registration");
-      } else {
-        return form;
-      }
-    }
-
-    form.getOptions().put("featureType", programStage.getFeatureType());
-
-    if (programStage.getProgramStageSections().size() > 0) {
-      for (ProgramStageSection section : programStage.getProgramStageSections()) {
-        List<Field> fields = inputFromDataElements(section.getDataElements());
-
-        Group group = new Group();
-        group.setLabel(section.getDisplayName());
-        group.setDataElementCount(section.getDataElements().size());
-        group.setFields(fields);
-        form.getGroups().add(group);
-      }
-    } else {
-      List<Field> fields =
-          inputFromProgramStageDataElements(
-              new ArrayList<>(programStage.getProgramStageDataElements()));
-
-      Group group = new Group();
-      group.setLabel("default");
-      group.setFields(fields);
-      group.setDataElementCount(programStage.getProgramStageDataElements().size());
-      form.getGroups().add(group);
-    }
-
-    return form;
-  }
-
-  private static List<Field> inputFromProgramStageDataElements(
-      List<ProgramStageDataElement> programStageDataElements) {
-    List<DataElement> dataElements = new ArrayList<>();
-    programStageDataElements.stream()
-        .filter(
-            programStageDataElement ->
-                programStageDataElement != null && programStageDataElement.getDataElement() != null)
-        .forEach(
-            programStageDataElement -> dataElements.add(programStageDataElement.getDataElement()));
-
-    return inputFromDataElements(dataElements, new ArrayList<>());
   }
 
   private static List<Field> inputFromDataElements(List<DataElement> dataElements) {

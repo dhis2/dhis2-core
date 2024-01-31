@@ -67,7 +67,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.orgunit.OrgUnitHelper;
-import org.hisp.dhis.analytics.table.model.ColumnDataType;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -93,6 +92,7 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementOperand.TotalType;
+import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.expression.ExpressionService;
@@ -316,21 +316,21 @@ public class AnalyticsUtils {
    *
    * @param valueType the value type to represent as database column type.
    * @param spatialSupport indicates whether spatial data types are enabled.
-   * @return the {@link ColumnDataType}.
+   * @return the {@link DataType}.
    */
-  public static ColumnDataType getColumnType(ValueType valueType, boolean spatialSupport) {
+  public static DataType getColumnType(ValueType valueType, boolean spatialSupport) {
     if (valueType.isDecimal()) {
-      return ColumnDataType.DOUBLE;
+      return DataType.DOUBLE;
     } else if (valueType.isInteger()) {
-      return ColumnDataType.BIGINT;
+      return DataType.BIGINT;
     } else if (valueType.isBoolean()) {
-      return ColumnDataType.INTEGER;
+      return DataType.INTEGER;
     } else if (valueType.isDate()) {
-      return ColumnDataType.TIMESTAMP;
+      return DataType.TIMESTAMP;
     } else if (valueType.isGeo() && spatialSupport) {
-      return ColumnDataType.GEOMETRY_POINT; // TODO consider GEOMETRY
+      return DataType.GEOMETRY_POINT; // TODO consider GEOMETRY
     } else {
-      return ColumnDataType.TEXT;
+      return DataType.TEXT;
     }
   }
 

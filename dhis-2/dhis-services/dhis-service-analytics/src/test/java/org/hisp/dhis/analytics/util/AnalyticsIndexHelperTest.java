@@ -33,12 +33,12 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.analytics.AnalyticsTableType.EVENT;
-import static org.hisp.dhis.analytics.table.model.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.table.model.IndexFunction.LOWER;
-import static org.hisp.dhis.analytics.table.model.IndexType.BTREE;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.createIndexStatement;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexName;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexes;
+import static org.hisp.dhis.db.model.DataType.TEXT;
+import static org.hisp.dhis.db.model.IndexType.BTREE;
 
 import java.util.Date;
 import java.util.List;
@@ -46,7 +46,7 @@ import org.hisp.dhis.analytics.table.model.AnalyticsIndex;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
-import org.hisp.dhis.analytics.table.model.IndexType;
+import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Logged;
 import org.junit.jupiter.api.Test;
 
@@ -63,14 +63,14 @@ class AnalyticsIndexHelperTest {
     List<AnalyticsIndex> indexes = getIndexes(stubPartitions);
 
     assertThat(indexes, hasSize(1));
-    assertThat(indexes.get(0).getTable(), is(equalTo("analytics_event_temp_2022")));
+    assertThat(indexes.get(0).getTableName(), is(equalTo("analytics_event_temp_2022")));
     assertThat(indexes.get(0).getColumns(), hasSize(1));
-    assertThat(indexes.get(0).getType(), is(equalTo(BTREE)));
+    assertThat(indexes.get(0).getIndexType(), is(equalTo(BTREE)));
   }
 
   @Test
   void testCreateIndexStatement() {
-    AnalyticsIndex someAnalyticsIndex = new AnalyticsIndex("table", List.of("column"), BTREE);
+    AnalyticsIndex someAnalyticsIndex = new AnalyticsIndex("table", BTREE, List.of("column"));
 
     String statement = createIndexStatement(someAnalyticsIndex, EVENT);
 
@@ -81,7 +81,7 @@ class AnalyticsIndexHelperTest {
 
   @Test
   void testGetIndexName() {
-    AnalyticsIndex someAnalyticsIndex = new AnalyticsIndex("table", List.of("column"), BTREE);
+    AnalyticsIndex someAnalyticsIndex = new AnalyticsIndex("table", BTREE, List.of("column"));
 
     String statement = getIndexName(someAnalyticsIndex, EVENT);
 
@@ -91,7 +91,7 @@ class AnalyticsIndexHelperTest {
   @Test
   void testGetIndexNameWithFunction() {
     AnalyticsIndex someAnalyticsIndex =
-        new AnalyticsIndex("table", List.of("column"), BTREE, LOWER);
+        new AnalyticsIndex("table", BTREE, List.of("column"), LOWER);
 
     String statement = getIndexName(someAnalyticsIndex, EVENT);
 

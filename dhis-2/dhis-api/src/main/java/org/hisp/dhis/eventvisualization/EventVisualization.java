@@ -120,6 +120,9 @@ public class EventVisualization extends BaseAnalyticalObject
   /** Dimensions to crosstabulate / use as columns. */
   private List<String> columnDimensions = new ArrayList<>();
 
+  /** Programs used in dimensions (columns, rows, filters) */
+  private List<Program> programDimensions = new ArrayList<>();
+
   /** Dimensions to use as rows. */
   private List<String> rowDimensions = new ArrayList<>();
 
@@ -489,6 +492,17 @@ public class EventVisualization extends BaseAnalyticalObject
 
   public void setColumnDimensions(List<String> columnDimensions) {
     this.columnDimensions = columnDimensions;
+  }
+
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "programDimensions", namespace = DXF_2_0)
+  @JacksonXmlProperty(localName = "programDimension", namespace = DXF_2_0)
+  public List<Program> getProgramDimensions() {
+    return programDimensions;
+  }
+
+  public void setProgramDimensions(List<Program> programDimensions) {
+    this.programDimensions = programDimensions;
   }
 
   @JsonProperty

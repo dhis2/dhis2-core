@@ -29,24 +29,24 @@ package org.hisp.dhis.analytics.util;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.join;
-import static org.hisp.dhis.analytics.table.model.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.table.model.IndexFunction.LOWER;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.removeQuote;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
+import static org.hisp.dhis.db.model.DataType.TEXT;
 
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.analytics.AnalyticsConstants;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.table.model.AnalyticsIndex;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
-import org.hisp.dhis.analytics.table.model.IndexType;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.db.sql.SqlBuilder;
 
 /**
  * Helper class that encapsulates methods responsible for supporting the creation of analytics
@@ -56,6 +56,8 @@ import org.hisp.dhis.common.CodeGenerator;
  */
 public class AnalyticsIndexHelper {
   private static final String PREFIX_INDEX = "in_";
+
+  private static final SqlBuilder SQL_BUILDER = new PostgreSqlBuilder();
 
   private AnalyticsIndexHelper() {}
 
@@ -69,18 +71,17 @@ public class AnalyticsIndexHelper {
     List<AnalyticsIndex> indexes = new ArrayList<>();
 
     for (AnalyticsTablePartition partition : partitions) {
-      List<AnalyticsTableColumn> columns = partition.getMasterTable().getDimensionColumns();
+      List<AnalyticsTableColumn> dimensionColumns =
+          partition.getMasterTable().getDimensionColumns();
 
-      for (AnalyticsTableColumn col : columns) {
+      for (AnalyticsTableColumn col : dimensionColumns) {
         if (!col.isSkipIndex()) {
-          Validate.isTrue(IndexType.NONE != col.getIndexType());
-          List<String> indexColumns =
+          List<String> columns =
               col.hasIndexColumns() ? col.getIndexColumns() : List.of(col.getName());
 
-          indexes.add(
-              new AnalyticsIndex(partition.getTempTableName(), indexColumns, col.getIndexType()));
+          indexes.add(new AnalyticsIndex(partition.getTempName(), col.getIndexType(), columns));
 
-          maybeAddTextLowerIndex(indexes, partition.getTempTableName(), col, indexColumns);
+          maybeAddTextLowerIndex(indexes, partition.getTempName(), col, columns);
         }
       }
     }
@@ -98,16 +99,17 @@ public class AnalyticsIndexHelper {
    */
   public static String createIndexStatement(AnalyticsIndex index, AnalyticsTableType tableType) {
     String indexName = getIndexName(index, tableType);
+    String indexTypeName = SQL_BUILDER.getIndexTypeName(index.getIndexType());
     String indexColumns = maybeApplyFunctionToIndex(index, join(index.getColumns(), ","));
 
     return "create index "
         + indexName
         + " "
         + "on "
-        + index.getTable()
+        + index.getTableName()
         + " "
         + "using "
-        + index.getType().getKeyword()
+        + indexTypeName
         + " ("
         + indexColumns
         + ");";
@@ -129,7 +131,7 @@ public class AnalyticsIndexHelper {
             PREFIX_INDEX
                 + removeQuote(maybeShortenColumnName(columnName))
                 + "_"
-                + shortenTableName(index.getTable(), tableType)
+                + shortenTableName(index.getTableName(), tableType)
                 + "_"
                 + CodeGenerator.generateCode(5));
 
@@ -146,7 +148,7 @@ public class AnalyticsIndexHelper {
    * @param columnName the column name to be used in the index name
    */
   private static String maybeShortenColumnName(String columnName) {
-    // some analytics indexes for jsonb columns are using to long names
+    // some analytics indexes for jsonb columns are using too long names
     // based on casting
     String shortenName = StringUtils.substringBetween(columnName, "'");
 
@@ -190,7 +192,7 @@ public class AnalyticsIndexHelper {
     boolean isSingleColumn = indexColumns.size() == 1;
 
     if (column.getDataType() == TEXT && isValidUid(columnName) && isSingleColumn) {
-      indexes.add(new AnalyticsIndex(tableName, indexColumns, column.getIndexType(), LOWER));
+      indexes.add(new AnalyticsIndex(tableName, column.getIndexType(), indexColumns, LOWER));
     }
   }
 
@@ -201,8 +203,8 @@ public class AnalyticsIndexHelper {
    * @param tableType
    */
   private static String shortenTableName(String table, AnalyticsTableType tableType) {
-    table = table.replaceAll(tableType.getTableName(), "ax");
-    table = table.replaceAll(AnalyticsConstants.ANALYTICS_TBL_TEMP_SUFFIX, EMPTY);
+    table = table.replace(tableType.getTableName(), "ax");
+    table = table.replace(AnalyticsConstants.ANALYTICS_TBL_TEMP_SUFFIX, EMPTY);
 
     return table;
   }

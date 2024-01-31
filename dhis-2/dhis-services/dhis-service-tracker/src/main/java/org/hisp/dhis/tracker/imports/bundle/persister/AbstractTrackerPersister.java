@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.imports.bundle.persister;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -100,7 +101,7 @@ public abstract class AbstractTrackerPersister<
     //
     List<T> dtos = getByType(getType(), bundle);
 
-    Set<String> updatedTeiList = bundle.getUpdatedTeis();
+    Set<String> updatedTrackedEntities = new HashSet<>();
 
     for (T trackerDto : dtos) {
 
@@ -139,7 +140,7 @@ public abstract class AbstractTrackerPersister<
             typeReport.getStats().incUpdated();
             typeReport.addEntity(objectReport);
             Optional.ofNullable(getUpdatedTrackedEntity(convertedDto))
-                .ifPresent(updatedTeiList::add);
+                .ifPresent(updatedTrackedEntities::add);
           } else {
             typeReport.getStats().incIgnored();
           }
@@ -158,7 +159,7 @@ public abstract class AbstractTrackerPersister<
           sideEffectDataBundles.add(handleSideEffects(bundle, convertedDto));
         }
 
-        bundle.setUpdatedTeis(updatedTeiList);
+        bundle.setUpdatedTrackedEntities(updatedTrackedEntities);
       } catch (Exception e) {
         final String msg =
             "A Tracker Entity of type '"

@@ -36,10 +36,12 @@ import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
+import org.hisp.dhis.db.model.IndexFunction;
 import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
+import org.hisp.dhis.db.model.constraint.Unique;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,15 +59,23 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
             new Column("data", DataType.CHARACTER_11, Nullable.NOT_NULL),
             new Column("period", DataType.VARCHAR_50, Nullable.NOT_NULL),
             new Column("created", DataType.TIMESTAMP),
+            new Column("user", DataType.JSONB),
             new Column("value", DataType.DOUBLE));
 
     List<String> primaryKey = List.of("id");
 
     List<Index> indexes =
         List.of(
-            new Index("in_immunization_data", List.of("data")),
-            new Index("in_immunization_period", List.of("period", "created")),
-            new Index("in_immunization_value", IndexType.GIST, List.of("value")));
+            new Index("in_immunization_data", "immunization", List.of("data")),
+            new Index(
+                "in_immunization_period_created", "immunization", List.of("period", "created")),
+            new Index("in_immunization_user", "immunization", IndexType.GIN, List.of("user")),
+            new Index(
+                "in_immunization_data_period",
+                "immunization",
+                Unique.NON_UNIQUE,
+                List.of("data", "period"),
+                IndexFunction.LOWER));
 
     return new Table("immunization", columns, primaryKey, indexes);
   }
@@ -108,6 +118,19 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
     assertTrue(tableExists(table.getName()));
 
     jdbcTemplate.execute(sqlBuilder.dropTableIfExists(table));
+  }
+
+  @Test
+  void testCrateAndDropTableCascadeA() {
+    Table table = getTableA();
+
+    execute(sqlBuilder.createTable(table));
+
+    assertTrue(tableExists(table.getName()));
+
+    jdbcTemplate.execute(sqlBuilder.dropTableIfExistsCascade(table));
+
+    assertFalse(tableExists(table.getName()));
   }
 
   @Test
