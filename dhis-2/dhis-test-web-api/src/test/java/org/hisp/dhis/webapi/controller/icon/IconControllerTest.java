@@ -183,7 +183,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     JsonList<JsonIcon> icons = response.getList("icons", JsonIcon.class);
 
     assertFalse(response.has("pager"));
-    assertEquals(icons.size(), 3);
+    assertEquals(3, icons.size());
   }
 
   private String createCustomIcon(String fileResourceId, String keywords, String iconkey) {
