@@ -411,7 +411,7 @@ public class AccountController {
     user.setEmail(userRegistration.getEmail());
     user.setPhoneNumber(userRegistration.getPhoneNumber());
 
-    userService.updateUser(user);
+    userService.updateUser(user, new SystemUser());
 
     log.info("User " + user.getUsername() + " accepted invitation.");
 
