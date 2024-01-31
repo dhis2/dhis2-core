@@ -47,7 +47,7 @@ public class Index {
   /** Name of index table. Required. */
   private final String tableName;
 
-  /** Index type, defaults to {@link IndexType.BTREE}. Required. */
+  /** Index type. Required. */
   private final IndexType indexType;
 
   /** Index uniqueness constraint. Required. */
