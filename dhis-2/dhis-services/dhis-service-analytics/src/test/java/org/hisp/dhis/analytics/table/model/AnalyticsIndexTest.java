@@ -33,20 +33,26 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.junit.jupiter.api.Test;
 
 class AnalyticsIndexTest {
   @Test
   void testGetIndexName() {
-      
-      String nameA = getIndexName(
-          "analytics_2017_temp", List.of(quote("quarterly")), AnalyticsTableType.DATA_VALUE);
-      String nameB = getIndexName("analytics_2018_temp", List.of(quote("ax", "co")), AnalyticsTableType.DATA_VALUE);
-      String nameC = getIndexName("analytics_2019_temp", List.of(quote("YtbsuPPo010")), AnalyticsTableType.DATA_VALUE);
-      
-      System.out.println( "B: " + nameB );
+
+    String nameA =
+        getIndexName(
+            "analytics_2017_temp", List.of(quote("quarterly")), AnalyticsTableType.DATA_VALUE);
+    String nameB =
+        getIndexName(
+            "analytics_2018_temp",
+            List.of(quote("ax"), quote("co")),
+            AnalyticsTableType.DATA_VALUE);
+    String nameC =
+        getIndexName(
+            "analytics_2019_temp", List.of(quote("YtbsuPPo010")), AnalyticsTableType.DATA_VALUE);
+
+    System.out.println("B: " + nameB);
     assertTrue(nameA.startsWith(QUOTE + "in_quarterly_ax_2017_"));
     assertTrue(nameB.startsWith(QUOTE + "in_ax_co_ax_2018_"));
     assertTrue(nameC.startsWith(QUOTE + "in_YtbsuPPo010_ax_2019_"));
