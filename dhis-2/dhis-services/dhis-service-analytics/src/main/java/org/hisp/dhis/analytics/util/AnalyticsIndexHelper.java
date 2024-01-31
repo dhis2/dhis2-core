@@ -126,7 +126,7 @@ public class AnalyticsIndexHelper {
    * @param columns the index column names.
    * @param tableType the {@link AnalyticsTableType}
    */
-  public static String getIndexName(
+  protected static String getIndexName(
       String tableName, List<String> columns, AnalyticsTableType tableType) {
     String columnName = join(columns, "_");
 
