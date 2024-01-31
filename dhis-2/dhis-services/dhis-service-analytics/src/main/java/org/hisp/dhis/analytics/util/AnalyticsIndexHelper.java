@@ -67,7 +67,7 @@ public class AnalyticsIndexHelper {
    * Returns a queue of analytics table indexes.
    *
    * @param partitions the list of {@link AnalyticsTablePartition}.
-   * @return a {@link java.util.concurrent.ConcurrentLinkedQueue} of indexes.
+   * @return a list of indexes.
    */
   public static List<Index> getIndexes(List<AnalyticsTablePartition> partitions) {
     List<Index> indexes = new ArrayList<>();
@@ -97,7 +97,7 @@ public class AnalyticsIndexHelper {
    * Based on the given arguments, this method will apply specific logic and return the correct SQL
    * statement for the index creation.
    *
-   * @param index the {@link AnalyticsIndex}
+   * @param index the {@link Index}
    * @return the SQL index statement
    */
   public static String createIndexStatement(Index index) {
@@ -158,7 +158,7 @@ public class AnalyticsIndexHelper {
    * If the given "index" has an associated function, this method will wrap the given "columns" into
    * the index function.
    *
-   * @param index the {@link AnalyticsIndex}
+   * @param index the {@link Index}
    * @param indexColumns the columns to be used in the function
    * @return the columns inside the respective function
    */
@@ -178,7 +178,7 @@ public class AnalyticsIndexHelper {
    * <p>Column data type is TEXT AND "indexColumns" has ONLY one element AND the column name is a
    * valid UID.
    *
-   * @param indexes list of {@link AnalyticsIndex}
+   * @param indexes the list of {@link Index}
    * @param indexName the name of the original index
    * @param tableName the table name of the index
    * @param column the {@link AnalyticsTableColumn}

@@ -53,8 +53,6 @@ import org.hisp.dhis.db.model.Logged;
 import org.junit.jupiter.api.Test;
 
 /**
- * Unit tests for {@link org.hisp.dhis.analytics.table.model.AnalyticsIndex}
- *
  * @author maikel arabori
  */
 class AnalyticsIndexHelperTest {
@@ -72,9 +70,9 @@ class AnalyticsIndexHelperTest {
 
   @Test
   void testCreateIndexStatement() {
-    Index someAnalyticsIndex = new Index("in_column_table", "table", BTREE, List.of("column"));
+    Index index = new Index("in_column_table", "table", BTREE, List.of("column"));
 
-    String statement = createIndexStatement(someAnalyticsIndex);
+    String statement = createIndexStatement(index);
 
     assertThat(statement, containsString("create index \"in_column_table"));
     assertThat(statement, containsString("on table using"));
