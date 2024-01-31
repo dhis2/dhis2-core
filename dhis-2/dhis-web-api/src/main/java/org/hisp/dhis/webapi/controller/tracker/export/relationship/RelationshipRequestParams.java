@@ -93,4 +93,7 @@ public class RelationshipRequestParams implements PageRequestParams {
 
   @OpenApi.Property(value = String[].class)
   private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
+
+  @OpenApi.Property(defaultValue = "false")
+  private boolean includeDeleted;
 }

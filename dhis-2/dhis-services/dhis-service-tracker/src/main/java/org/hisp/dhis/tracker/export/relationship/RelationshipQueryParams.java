@@ -39,4 +39,6 @@ class RelationshipQueryParams {
   private final IdentifiableObject entity;
 
   private List<Order> order;
+
+  private boolean includeDeleted;
 }

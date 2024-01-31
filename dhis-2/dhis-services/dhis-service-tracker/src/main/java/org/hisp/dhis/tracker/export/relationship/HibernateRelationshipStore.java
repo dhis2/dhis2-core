@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.export.relationship;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -166,18 +167,19 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
         builder.createQuery(Relationship.class);
     Root<Relationship> root = relationshipItemCriteriaQuery.from(Relationship.class);
 
-    setRelationshipItemCriteriaQueryExistsCondition(
-        entity, builder, relationshipItemCriteriaQuery, root);
+    setRelationshipWhereCondition(
+        entity, builder, relationshipItemCriteriaQuery, root, queryParams);
 
     return getRelationshipTypedQuery(
         queryParams, pageParams, builder, relationshipItemCriteriaQuery, root);
   }
 
-  private <T extends IdentifiableObject> void setRelationshipItemCriteriaQueryExistsCondition(
+  private <T extends IdentifiableObject> void setRelationshipWhereCondition(
       T entity,
       CriteriaBuilder builder,
       CriteriaQuery<Relationship> relationshipItemCriteriaQuery,
-      Root<Relationship> root) {
+      Root<Relationship> root,
+      RelationshipQueryParams queryParams) {
     Subquery<RelationshipItem> fromSubQuery =
         relationshipItemCriteriaQuery.subquery(RelationshipItem.class);
     Root<RelationshipItem> fromRoot = fromSubQuery.from(RelationshipItem.class);
@@ -200,8 +202,14 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
 
     toSubQuery.select(toRoot.get("id"));
 
-    relationshipItemCriteriaQuery.where(
-        builder.or(builder.exists(fromSubQuery), builder.exists(toSubQuery)));
+    List<Predicate> predicates = new ArrayList<>();
+    predicates.add(builder.or(builder.exists(fromSubQuery), builder.exists(toSubQuery)));
+
+    if (!queryParams.isIncludeDeleted()) {
+      predicates.add(builder.equal(root.get("deleted"), false));
+    }
+
+    relationshipItemCriteriaQuery.where(predicates.toArray(Predicate[]::new));
 
     relationshipItemCriteriaQuery.select(root);
   }

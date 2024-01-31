@@ -466,6 +466,36 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
+  void shouldNotGetRelationshipsByTrackedEntityWhenRelationshipIsDeleted() {
+    TrackedEntity to = trackedEntity();
+    Enrollment from = enrollment(to);
+    Relationship r = relationship(from, to);
+
+    r.setDeleted(true);
+    manager.update(r);
+
+    assertNoRelationships(
+        GET("/tracker/relationships?trackedEntity={tei}", to.getUid()).content(HttpStatus.OK));
+  }
+
+  @Test
+  void shouldGetRelationshipsByTrackedEntityWhenRelationshipIsDeleted() {
+    TrackedEntity to = trackedEntity();
+    Enrollment from = enrollment(to);
+    Relationship r = relationship(from, to);
+
+    r.setDeleted(true);
+    manager.update(r);
+
+    JsonList<JsonRelationship> relationships =
+        GET("/tracker/relationships?trackedEntity={tei}&includeDeleted=true", to.getUid())
+            .content(HttpStatus.OK)
+            .getList("instances", JsonRelationship.class);
+
+    assertFirstRelationship(r, relationships);
+  }
+
+  @Test
   void getRelationshipsByTe() {
     TrackedEntity to = trackedEntity();
     Enrollment from = enrollment(to);
