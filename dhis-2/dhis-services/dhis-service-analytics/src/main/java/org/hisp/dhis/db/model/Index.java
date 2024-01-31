@@ -28,10 +28,12 @@
 package org.hisp.dhis.db.model;
 
 import java.util.List;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.db.model.constraint.Unique;
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Represents a database index.
@@ -43,6 +45,11 @@ import org.hisp.dhis.db.model.constraint.Unique;
 public class Index {
   /** Index name. Required. */
   private final String name;
+  
+  /**
+   * Name of index table. Required.
+   */
+  private final String tableName;
 
   /** Index type, defaults to {@link IndexType.BTREE}. Required. */
   private final IndexType indexType;
