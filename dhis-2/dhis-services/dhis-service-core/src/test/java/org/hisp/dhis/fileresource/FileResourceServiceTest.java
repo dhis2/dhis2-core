@@ -30,9 +30,11 @@ package org.hisp.dhis.fileresource;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -45,12 +47,16 @@ import org.hisp.dhis.fileresource.events.FileDeletedEvent;
 import org.hisp.dhis.fileresource.events.FileSavedEvent;
 import org.hisp.dhis.fileresource.events.ImageFileSavedEvent;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.util.MimeTypeUtils;
@@ -79,6 +85,8 @@ class FileResourceServiceTest {
   @Captor private ArgumentCaptor<FileDeletedEvent> fileDeletedEventCaptor;
 
   private FileResourceService subject;
+
+  private User user = new User();
 
   @BeforeEach
   public void setUp() {
@@ -159,19 +167,27 @@ class FileResourceServiceTest {
 
     fileResource.setUid("imageUid1");
 
-    subject.asyncSaveFileResource(fileResource, file);
+    try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
 
-    verify(fileResourceStore).save(fileResource);
-    verify(entityManager).flush();
+      userUtilMockedStatic
+          .when(CurrentUserUtil::getCurrentUserDetails)
+          .thenReturn(UserDetails.fromUser(user));
 
-    verify(fileEventPublisher, times(1)).publishEvent(imageFileSavedEventCaptor.capture());
+      subject.asyncSaveFileResource(fileResource, file);
 
-    ImageFileSavedEvent event = imageFileSavedEventCaptor.getValue();
+      verify(fileResourceStore).save(fileResource);
+      verify(entityManager).flush();
 
-    assertThat(event.getFileResource(), is("imageUid1"));
-    assertFalse(event.getImageFiles().isEmpty());
-    assertThat(event.getImageFiles().size(), is(1));
-    assertThat(event.getImageFiles(), hasKey(ImageFileDimension.LARGE));
+      verify(fileEventPublisher, times(1)).publishEvent(imageFileSavedEventCaptor.capture());
+
+      ImageFileSavedEvent event = imageFileSavedEventCaptor.getValue();
+
+      assertThat(event.fileResource(), is("imageUid1"));
+      assertFalse(event.imageFiles().isEmpty());
+      assertThat(event.imageFiles().size(), is(1));
+      assertThat(event.imageFiles(), hasKey(ImageFileDimension.LARGE));
+      assertEquals(user.getUid(), event.userUid());
+    }
   }
 
   @Test
@@ -213,18 +229,26 @@ class FileResourceServiceTest {
 
     fileResource.setUid("imageUid1");
 
-    subject.asyncSaveFileResource(fileResource, file);
+    try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
 
-    verify(fileResourceStore).save(fileResource);
-    verify(entityManager).flush();
+      userUtilMockedStatic
+          .when(CurrentUserUtil::getCurrentUserDetails)
+          .thenReturn(UserDetails.fromUser(user));
 
-    verify(fileEventPublisher, times(1)).publishEvent(imageFileSavedEventCaptor.capture());
+      subject.asyncSaveFileResource(fileResource, file);
 
-    ImageFileSavedEvent event = imageFileSavedEventCaptor.getValue();
+      verify(fileResourceStore).save(fileResource);
+      verify(entityManager).flush();
 
-    assertThat(event.getFileResource(), is("imageUid1"));
-    assertFalse(event.getImageFiles().isEmpty());
-    assertThat(event.getImageFiles().size(), is(1));
-    assertThat(event.getImageFiles(), hasKey(ImageFileDimension.LARGE));
+      verify(fileEventPublisher, times(1)).publishEvent(imageFileSavedEventCaptor.capture());
+
+      ImageFileSavedEvent event = imageFileSavedEventCaptor.getValue();
+
+      assertThat(event.fileResource(), is("imageUid1"));
+      assertFalse(event.imageFiles().isEmpty());
+      assertThat(event.imageFiles().size(), is(1));
+      assertThat(event.imageFiles(), hasKey(ImageFileDimension.LARGE));
+      assertEquals(user.getUid(), event.userUid());
+    }
   }
 }

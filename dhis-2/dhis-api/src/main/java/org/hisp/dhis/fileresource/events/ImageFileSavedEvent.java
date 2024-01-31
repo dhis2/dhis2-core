@@ -29,17 +29,11 @@ package org.hisp.dhis.fileresource.events;
 
 import java.io.File;
 import java.util.Map;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 
 /**
- * @Author Zubair Asghar.
+ * @author Zubair Asghar.
+ * @author Luca Cambi convert to record.
  */
-@Getter
-@RequiredArgsConstructor
-public class ImageFileSavedEvent {
-
-  private final String fileResource;
-  private final Map<ImageFileDimension, File> imageFiles;
-}
+public record ImageFileSavedEvent(
+    String fileResource, Map<ImageFileDimension, File> imageFiles, String userUid) {}
