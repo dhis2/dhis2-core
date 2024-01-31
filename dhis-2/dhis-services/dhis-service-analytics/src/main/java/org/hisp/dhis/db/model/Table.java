@@ -56,7 +56,7 @@ public class Table {
   /** Table indexes. Optional. */
   private final List<Index> indexes;
 
-  /** Table checks. PostgreSQL-only featre. Optional. */
+  /** Table checks. PostgreSQL-only feature. Optional. */
   private final List<String> checks;
 
   /** Whether table is logged or unlogged. PostgreSQL-only feature. */
@@ -118,6 +118,15 @@ public class Table {
    */
   public boolean hasChecks() {
     return !checks.isEmpty();
+  }
+
+  /**
+   * Indicates whether the table is unlogged.
+   *
+   * @return true if the table is unlogged.
+   */
+  public boolean isUnlogged() {
+    return Logged.UNLOGGED == logged;
   }
 
   /**

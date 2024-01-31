@@ -27,13 +27,20 @@
  */
 package org.hisp.dhis.db.model;
 
-/**
- * Enumeration of index types.
- *
- * @author Lars Helge Overland
- */
-public enum IndexType {
-  BTREE,
-  GIST,
-  GIN;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
+import org.hisp.dhis.db.model.constraint.Unique;
+import org.junit.jupiter.api.Test;
+
+class IndexTest {
+  @Test
+  void testIsUnique() {
+    Index indexA = new Index("in_analytics_id", Unique.UNIQUE, List.of("id"));
+    Index indexB = new Index("in_analytics_dx", Unique.NON_UNIQUE, List.of("dx"));
+
+    assertTrue(indexA.isUnique());
+    assertFalse(indexB.isUnique());
+  }
 }

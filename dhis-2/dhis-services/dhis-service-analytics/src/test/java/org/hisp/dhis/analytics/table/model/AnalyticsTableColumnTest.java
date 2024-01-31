@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,22 +27,45 @@
  */
 package org.hisp.dhis.analytics.table.model;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.CHARACTER_11;
+import static org.hisp.dhis.analytics.table.model.ColumnDataType.DOUBLE;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * Index type.
- *
- * @author Lars Helge Overland
- */
-@Getter
-@RequiredArgsConstructor
-public enum IndexType {
-  BTREE("btree"),
-  GIST("gist"),
-  HASH("hash"),
-  BLOOM("bloom"),
-  GIN("gin");
+import org.hisp.dhis.db.model.Collation;
+import org.hisp.dhis.db.model.constraint.Nullable;
+import org.junit.jupiter.api.Test;
 
-  final String keyword;
+class AnalyticsTableColumnTest {
+
+  @Test
+  void testIsNotNull() {
+    AnalyticsTableColumn colA =
+        new AnalyticsTableColumn("dx", CHARACTER_11, Nullable.NOT_NULL, "dx");
+    AnalyticsTableColumn colB = new AnalyticsTableColumn("value", DOUBLE, Nullable.NULL, "value");
+
+    assertTrue(colA.isNotNull());
+    assertFalse(colB.isNotNull());
+  }
+
+  @Test
+  void testHasCollation() {
+    AnalyticsTableColumn colA =
+        new AnalyticsTableColumn("dx", CHARACTER_11, Collation.DEFAULT, "dx");
+    AnalyticsTableColumn colB = new AnalyticsTableColumn("ou", CHARACTER_11, Collation.C, "ou");
+    AnalyticsTableColumn colC = new AnalyticsTableColumn("value", DOUBLE, "value");
+
+    assertFalse(colA.hasCollation());
+    assertTrue(colB.hasCollation());
+    assertFalse(colC.hasCollation());
+  }
+
+  @Test
+  void testIsSkipIndex() {
+    AnalyticsTableColumn colA = new AnalyticsTableColumn("value", DOUBLE, "value", Skip.SKIP);
+    AnalyticsTableColumn colB = new AnalyticsTableColumn("ou", CHARACTER_11, "ou", Skip.INCLUDE);
+
+    assertTrue(colA.isSkipIndex());
+    assertFalse(colB.isSkipIndex());
+  }
 }

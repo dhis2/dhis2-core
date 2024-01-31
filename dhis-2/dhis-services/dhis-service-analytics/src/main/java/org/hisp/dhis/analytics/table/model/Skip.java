@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +27,7 @@
  */
 package org.hisp.dhis.analytics.table.model;
 
-/**
- * @author Lars Helge Overland
- */
-public enum ColumnNotNullConstraint {
-  NULL,
-  NOT_NULL;
-
-  public boolean isNotNull() {
-    return this == NOT_NULL;
-  }
+public enum Skip {
+  SKIP,
+  INCLUDE;
 }
