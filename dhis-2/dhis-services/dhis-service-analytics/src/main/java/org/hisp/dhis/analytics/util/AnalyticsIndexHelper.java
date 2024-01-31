@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.util;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.join;
-import static org.hisp.dhis.analytics.table.model.IndexFunction.LOWER;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.removeQuote;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
@@ -195,7 +194,7 @@ public class AnalyticsIndexHelper {
     boolean isSingleColumn = indexColumns.size() == 1;
 
     if (column.getDataType() == TEXT && isValidUid(columnName) && isSingleColumn) {
-      String name = indexName + "_" + LOWER.getValue();
+      String name = indexName + "_lower";
       indexes.add(
           new Index(
               name,
