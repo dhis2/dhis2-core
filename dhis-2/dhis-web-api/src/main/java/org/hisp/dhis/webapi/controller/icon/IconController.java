@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.icon;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.net.MediaType;
 import java.io.IOException;
 import java.util.List;
@@ -141,8 +142,14 @@ public class IconController {
     List<IconResponse> iconResponses =
         iconService.getIcons(iconOperationParams).stream().map(iconMapper::from).toList();
 
-    return new PaginatedIconResponse(
-        pager, fieldFilterService.toObjectNodes(iconResponses, iconRequestParams.getFields()));
+    List<ObjectNode> objectNodes =
+        fieldFilterService.toObjectNodes(iconResponses, iconRequestParams.getFields());
+
+    if (iconRequestParams.isPaging()) {
+      return PaginatedIconResponse.withPager(pager, objectNodes);
+    }
+
+    return PaginatedIconResponse.withoutPager(objectNodes);
   }
 
   @GetMapping("/keywords")

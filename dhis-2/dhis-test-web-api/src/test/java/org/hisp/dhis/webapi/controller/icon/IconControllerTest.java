@@ -164,7 +164,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     JsonList<JsonIcon> icons = response.getList("icons", JsonIcon.class);
 
     assertTrue(response.has("pager"));
-    assertEquals(icons.size(), pageSize);
+    assertEquals(pageSize, icons.size());
   }
 
   @Test

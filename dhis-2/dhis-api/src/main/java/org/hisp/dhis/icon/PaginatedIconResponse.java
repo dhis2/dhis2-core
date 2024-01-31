@@ -44,4 +44,12 @@ import org.hisp.dhis.common.Pager;
 public class PaginatedIconResponse {
   @JsonProperty private Pager pager;
   @JsonProperty private List<ObjectNode> icons;
+
+  public static PaginatedIconResponse withoutPager(List<ObjectNode> icons) {
+    return new PaginatedIconResponse(null, icons);
+  }
+
+  public static PaginatedIconResponse withPager(Pager pager, List<ObjectNode> icons) {
+    return new PaginatedIconResponse(pager, icons);
+  }
 }
