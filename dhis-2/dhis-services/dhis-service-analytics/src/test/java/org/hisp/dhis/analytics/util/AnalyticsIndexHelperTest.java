@@ -33,15 +33,17 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.analytics.AnalyticsTableType.EVENT;
-import static org.hisp.dhis.analytics.table.model.IndexFunction.LOWER;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.createIndexStatement;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexName;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexes;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.db.model.IndexType.BTREE;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
 import java.util.List;
+import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.table.model.AnalyticsIndex;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
@@ -70,9 +72,10 @@ class AnalyticsIndexHelperTest {
 
   @Test
   void testCreateIndexStatement() {
-    AnalyticsIndex someAnalyticsIndex = new AnalyticsIndex("table", BTREE, List.of("column"));
+    AnalyticsIndex someAnalyticsIndex =
+        new AnalyticsIndex("in_column_table", "table", BTREE, List.of("column"));
 
-    String statement = createIndexStatement(someAnalyticsIndex, EVENT);
+    String statement = createIndexStatement(someAnalyticsIndex);
 
     assertThat(statement, containsString("create index \"in_column_table"));
     assertThat(statement, containsString("on table using"));
@@ -80,23 +83,29 @@ class AnalyticsIndexHelperTest {
   }
 
   @Test
-  void testGetIndexName() {
-    AnalyticsIndex someAnalyticsIndex = new AnalyticsIndex("table", BTREE, List.of("column"));
+  void testGetIndexNameA() {
+    String statement = getIndexName("table", List.of("column"), EVENT);
 
-    String statement = getIndexName(someAnalyticsIndex, EVENT);
-
-    assertThat(statement, containsString("\"in_column_table"));
+    assertThat(statement, containsString("in_column_table"));
   }
 
   @Test
-  void testGetIndexNameWithFunction() {
-    AnalyticsIndex someAnalyticsIndex =
-        new AnalyticsIndex("table", BTREE, List.of("column"), LOWER);
+  void testGetIndexNameB() {
+    String nameA =
+        getIndexName(
+            "analytics_2017_temp", List.of(quote("quarterly")), AnalyticsTableType.DATA_VALUE);
+    String nameB =
+        getIndexName(
+            "analytics_2018_temp",
+            List.of(quote("ax"), quote("co")),
+            AnalyticsTableType.DATA_VALUE);
+    String nameC =
+        getIndexName(
+            "analytics_2019_temp", List.of(quote("YtbsuPPo010")), AnalyticsTableType.DATA_VALUE);
 
-    String statement = getIndexName(someAnalyticsIndex, EVENT);
-
-    assertThat(statement, containsString("\"in_column_table"));
-    assertThat(statement, containsString("_lower\""));
+    assertTrue(nameA.startsWith("in_quarterly_ax_2017_"), nameA);
+    assertTrue(nameB.startsWith("in_ax_co_ax_2018_"), nameB);
+    assertTrue(nameC.startsWith("in_YtbsuPPo010_ax_2019_"), nameC);
   }
 
   private AnalyticsTablePartition stubAnalyticsTablePartition() {

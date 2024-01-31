@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexName;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexes;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
@@ -264,13 +263,8 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
 
   /** Creates indexes on the given analytics tables. */
   private void createIndexes(List<AnalyticsIndex> indexes, JobProgress progress) {
-    AnalyticsTableType type = getAnalyticsTableType();
-
     progress.runStageInParallel(
-        getParallelJobs(),
-        indexes,
-        index -> getIndexName(index, type).replace("\"", ""),
-        tableManager::createIndex);
+        getParallelJobs(), indexes, index -> index.getName(), tableManager::createIndex);
   }
 
   /** Analyzes the given analytics tables. */
