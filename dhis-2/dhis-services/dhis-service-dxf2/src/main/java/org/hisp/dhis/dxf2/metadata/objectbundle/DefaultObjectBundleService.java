@@ -377,19 +377,8 @@ public class DefaultObjectBundleService implements ObjectBundleService {
           ObjectReport objectReport = new ObjectReport(object, bundle);
           objectReport.setDisplayName(IdentifiableObjectUtils.getDisplayName(object));
           typeReport.addObjectReport(objectReport);
-
           hooks.forEach(hook -> hook.preDelete(object, bundle));
-          try {
-            deletionManager.onDeletionWithoutRollBack(new ObjectDeletionRequestedEvent(object));
-            session.delete(object);
-            bundle.getPreheat().remove(bundle.getPreheatIdentifier(), object);
-          } catch (DeleteNotAllowedException ex) {
-            objectReport.addErrorReport(
-                new ErrorReport(klass, new ErrorMessage(ex.getMessage(), ErrorCode.E4030, null)));
-            typeReport.getStats().incIgnored();
-            typeReport.getStats().decDeleted();
-          }
-
+          deleteObject(object, session, bundle, typeReport, objectReport, klass);
           if (log.isDebugEnabled()) {
             String msg =
                 "(%s) Deleted object '%s'"
@@ -419,5 +408,24 @@ public class DefaultObjectBundleService implements ObjectBundleService {
         .map(schema -> (Class<? extends IdentifiableObject>) schema.getKlass())
         .filter(bundle::hasObjects)
         .collect(toList());
+  }
+
+  private void deleteObject(
+      IdentifiableObject object,
+      Session session,
+      ObjectBundle bundle,
+      TypeReport typeReport,
+      ObjectReport objectReport,
+      Class<? extends IdentifiableObject> klass) {
+    try {
+      deletionManager.onDeletionWithoutRollBack(new ObjectDeletionRequestedEvent(object));
+      session.delete(object);
+      bundle.getPreheat().remove(bundle.getPreheatIdentifier(), object);
+    } catch (DeleteNotAllowedException ex) {
+      objectReport.addErrorReport(
+          new ErrorReport(klass, new ErrorMessage(ex.getMessage(), ErrorCode.E4030, null)));
+      typeReport.getStats().incIgnored();
+      typeReport.getStats().decDeleted();
+    }
   }
 }
