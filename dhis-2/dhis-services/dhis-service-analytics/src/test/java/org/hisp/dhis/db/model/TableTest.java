@@ -77,7 +77,7 @@ class TableTest {
   }
 
   @Test
-  void testColumnParentValidation() {
+  void testColumnsParentValidation() {
     assertThrows(
         IllegalArgumentException.class, () -> new Table("analytics", List.of(), List.of()));
     assertThrows(
