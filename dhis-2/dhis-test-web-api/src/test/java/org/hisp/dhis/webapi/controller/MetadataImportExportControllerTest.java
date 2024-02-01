@@ -450,10 +450,10 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
             "/metadata",
             """
                  {'optionSets':
-                 "    [{'name': 'Device category','id': 'RHqFlB1Wm4d','version': 2,'valueType': 'TEXT'}]"
-                 ",'dataElements':"
-                 "[{'name':'test DataElement with OptionSet', 'shortName':'test DataElement', 'aggregationType':'SUM','domainType':'AGGREGATE','categoryCombo':{'id':'bjDvmb4bfuf'},'valueType':'NUMBER','optionSet':{'id':'RHqFlB1Wm4d'}"
-                 "}]}""")
+                     [{'name': 'Device category','id': 'RHqFlB1Wm4d','version': 2,'valueType': 'TEXT'}]
+                 ,'dataElements':
+                 [{'name':'test DataElement with OptionSet', 'shortName':'test DataElement', 'aggregationType':'SUM','domainType':'AGGREGATE','categoryCombo':{'id':'bjDvmb4bfuf'},'valueType':'NUMBER','optionSet':{'id':'RHqFlB1Wm4d'}
+                 }]}""")
         .content(HttpStatus.OK);
     JsonImportSummary report =
         POST(
