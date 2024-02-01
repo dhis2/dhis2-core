@@ -39,7 +39,6 @@ import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
-import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
@@ -81,11 +80,6 @@ public class DatePeriodResourceTable implements ResourceTable {
     }
 
     return columns;
-  }
-
-  @Override
-  public List<Index> getIndexes() {
-    return List.of();
   }
 
   @Override

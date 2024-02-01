@@ -219,8 +219,10 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
     // Checks
 
-    for (String check : table.getChecks()) {
-      sql.append("check(" + check + "), ");
+    if (table.hasChecks()) {
+      for (String check : table.getChecks()) {
+        sql.append("check(" + check + "), ");
+      }
     }
 
     return removeLastComma(sql).append(");").toString();
