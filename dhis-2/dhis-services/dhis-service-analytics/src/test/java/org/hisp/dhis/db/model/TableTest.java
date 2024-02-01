@@ -67,21 +67,30 @@ class TableTest {
 
   @Test
   void testSuccessfulValidation() {
-    assertDoesNotThrow(() -> new Table("analytics", List.of(colA), List.of()));
+    List<Column> columns = List.of(colA);
+    List<String> primaryKey = List.of();
+
+    assertDoesNotThrow(() -> new Table("analytics", columns, primaryKey));
   }
 
   @Test
   void testNameValidation() {
-    assertThrows(NullPointerException.class, () -> new Table(null, List.of(colA), List.of()));
-    assertThrows(IllegalArgumentException.class, () -> new Table("", List.of(colA), List.of()));
+    List<Column> columns = List.of(colA);
+    List<String> primaryKey = List.of();
+
+    assertThrows(NullPointerException.class, () -> new Table(null, columns, primaryKey));
+    assertThrows(IllegalArgumentException.class, () -> new Table("", columns, primaryKey));
   }
 
   @Test
   void testColumnsParentValidation() {
-    assertThrows(
-        IllegalArgumentException.class, () -> new Table("analytics", List.of(), List.of()));
+    List<Column> columns = List.of();
+    List<String> primaryKey = List.of();
+    List<String> checks = List.of();
+
+    assertThrows(IllegalArgumentException.class, () -> new Table("analytics", columns, primaryKey));
     assertThrows(
         IllegalArgumentException.class,
-        () -> new Table("analytics", List.of(), List.of(), List.of(), Logged.UNLOGGED, null));
+        () -> new Table("analytics", columns, primaryKey, checks, Logged.UNLOGGED, null));
   }
 }
