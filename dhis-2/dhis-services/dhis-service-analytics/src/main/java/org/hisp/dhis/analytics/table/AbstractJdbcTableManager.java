@@ -309,7 +309,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
     StringBuilder sql = new StringBuilder();
 
-    sql.append("create ").append(unlogged).append(" table ").append(tableName).append("(");
+    sql.append("create ").append(unlogged).append(" table ").append(tableName).append(" (");
 
     if (!checks.isEmpty()) {
       StringBuilder sqlCheck = new StringBuilder();
