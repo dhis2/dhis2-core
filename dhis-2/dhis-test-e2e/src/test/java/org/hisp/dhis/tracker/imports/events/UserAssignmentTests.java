@@ -104,7 +104,7 @@ public class UserAssignmentTests extends TrackerApiTest {
         trackerImportExportActions
             .get("/events?program=" + programId + "&assignedUserMode=CURRENT&ouMode=ACCESSIBLE")
             .validateStatus(200)
-            .extractJsonObject("instances[0]");
+            .extractJsonObject("events[0]");
 
     assertNotNull(eventBody, "no events matching the query.");
     String eventId = eventBody.get("event").getAsString();
