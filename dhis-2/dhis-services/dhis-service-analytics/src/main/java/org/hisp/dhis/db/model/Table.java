@@ -33,7 +33,6 @@ import static org.hisp.dhis.util.ObjectUtils.notNull;
 import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.Validate;
 
@@ -43,7 +42,6 @@ import org.apache.commons.lang3.Validate;
  * @author Lars Helge Overland
  */
 @Getter
-@RequiredArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Table {
   private static final String STAGING_TABLE_SUFFIX = "_staging";
@@ -126,6 +124,31 @@ public class Table {
     this.checks = checks;
     this.logged = logged;
     this.parent = null;
+    this.validate();
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param name the table name.
+   * @param columns the list of {@link Column}.
+   * @param primaryKey the primary key.
+   * @param logged the {@link Logged} parameter.
+   * @param parent the parent {@link Table}.
+   */
+  public Table(
+      String name,
+      List<Column> columns,
+      List<String> primaryKey,
+      List<String> checks,
+      Logged logged,
+      Table parent) {
+    this.name = name;
+    this.columns = columns;
+    this.primaryKey = primaryKey;
+    this.checks = checks;
+    this.logged = logged;
+    this.parent = parent;
     this.validate();
   }
 

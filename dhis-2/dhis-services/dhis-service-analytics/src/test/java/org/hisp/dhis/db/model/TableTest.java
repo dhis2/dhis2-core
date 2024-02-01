@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.db.model;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -59,5 +61,29 @@ class TableTest {
   void testFromStagingTable() {
     assertEquals("_categorystructure", Table.fromStaging("_categorystructure_staging"));
     assertEquals("analytics", Table.fromStaging("analytics_staging"));
+  }
+
+  @Test
+  void testSuccessfulValidation() {
+    Column colA = new Column("dx", DataType.CHARACTER_11, Nullable.NOT_NULL);
+
+    assertDoesNotThrow(() -> new Table("analytics", List.of(colA), List.of()));
+  }
+
+  @Test
+  void testNameValidation() {
+    Column colA = new Column("dx", DataType.CHARACTER_11, Nullable.NOT_NULL);
+
+    assertThrows(NullPointerException.class, () -> new Table(null, List.of(colA), List.of()));
+    assertThrows(IllegalArgumentException.class, () -> new Table("", List.of(colA), List.of()));
+  }
+
+  @Test
+  void testColumnParentValidation() {
+    assertThrows(
+        IllegalArgumentException.class, () -> new Table("analytics", List.of(), List.of()));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> new Table("analytics", List.of(), List.of(), List.of(), Logged.UNLOGGED, null));
   }
 }
