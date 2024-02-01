@@ -112,8 +112,6 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   protected static final String PREFIX_ORGUNITNAMELEVEL = "namelevel";
 
-  private static final String WITH_AUTOVACUUM_ENABLED_FALSE = "with(autovacuum_enabled = false)";
-
   protected final IdentifiableObjectManager idObjectManager;
 
   protected final OrganisationUnitService organisationUnitService;
@@ -277,7 +275,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
           .append(",");
     }
 
-    TextUtils.removeLastComma(sql).append(") ").append(getTableOptions());
+    TextUtils.removeLastComma(sql).append(")");
 
     log.info("Creating table: '{}', columns: '{}'", tableName, table.getColumnCount());
     log.debug("Create table SQL: '{}'", sql);
@@ -317,7 +315,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
       sql.append(TextUtils.removeLastComma(sqlCheck.toString()));
     }
 
-    sql.append(") inherits (").append(table.getTempName()).append(") ").append(getTableOptions());
+    sql.append(") inherits (").append(table.getTempName()).append(")");
 
     log.info("Creating partition table: '{}'", tableName);
     log.debug("Create table SQL: '{}'", sql);
@@ -598,11 +596,6 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   // -------------------------------------------------------------------------
   // Private supportive methods
   // -------------------------------------------------------------------------
-
-  /** Returns a table options SQL statement. */
-  private String getTableOptions() {
-    return WITH_AUTOVACUUM_ENABLED_FALSE;
-  }
 
   /**
    * Executes a SQL statement "safely" (without throwing any exception). Instead, exceptions are
