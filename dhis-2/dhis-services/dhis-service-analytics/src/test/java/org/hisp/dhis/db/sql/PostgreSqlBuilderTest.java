@@ -86,6 +86,13 @@ class PostgreSqlBuilderTest {
     return new Table("vaccination", columns, List.of(), checks, Logged.UNLOGGED);
   }
 
+  private Table getTableC() {
+    List<Column> columns =
+        List.of(new Column("vitamin_a", DataType.BIGINT), new Column("vitamin_d", DataType.BIGINT));
+
+    return new Table("nutrition", columns, List.of(), List.of(), Logged.LOGGED, getTableB());
+  }
+
   @Test
   void testDataType() {
     assertEquals("double precision", sqlBuilder.dataTypeDouble());
@@ -118,6 +125,17 @@ class PostgreSqlBuilderTest {
         "create unlogged table \"vaccination\" (\"id\" integer not null, "
             + "\"facility_type\" varchar(255) null collate \"C\", \"bcg_doses\" double precision null, "
             + "check(\"id\">0), check(\"bcg_doses\">0));";
+
+    assertEquals(expected, sqlBuilder.createTable(table));
+  }
+
+  @Test
+  void testCreateTableC() {
+    Table table = getTableC();
+
+    String expected =
+        "create table \"nutrition\" (\"vitamin_a\" bigint null, "
+            + "\"vitamin_d\" bigint null) inherits (\"vaccination\");";
 
     assertEquals(expected, sqlBuilder.createTable(table));
   }

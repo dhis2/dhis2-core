@@ -27,11 +27,14 @@
  */
 package org.hisp.dhis.db.model;
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.util.ObjectUtils.notNull;
+
 import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RegExUtils;
+import org.apache.commons.lang3.Validate;
 
 /**
  * Represents a database table.
@@ -39,7 +42,6 @@ import org.apache.commons.lang3.RegExUtils;
  * @author Lars Helge Overland
  */
 @Getter
-@RequiredArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Table {
   private static final String STAGING_TABLE_SUFFIX = "_staging";
@@ -49,7 +51,7 @@ public class Table {
   /** Table name. Required. */
   @EqualsAndHashCode.Include private final String name;
 
-  /** Table columns. At least one column required. */
+  /** Table columns. At least one column required, unless a parent table is specified. */
   private final List<Column> columns;
 
   /** Table primary key column name(s). Optional. */
@@ -62,12 +64,17 @@ public class Table {
   private final Logged logged;
 
   /**
+   * The parent table. This table will inherit from the parent table, if specified. Optional, may be
+   * null.
+   */
+  private final Table parent;
+
+  /**
    * Constructor.
    *
    * @param name the table name.
    * @param columns the list of {@link Column}.
    * @param primaryKey the primary key.
-   * @param indexes the list of {@link Index}.
    */
   public Table(String name, List<Column> columns, List<String> primaryKey) {
     this.name = name;
@@ -75,6 +82,8 @@ public class Table {
     this.primaryKey = primaryKey;
     this.checks = List.of();
     this.logged = Logged.LOGGED;
+    this.parent = null;
+    this.validate();
   }
 
   /**
@@ -83,7 +92,6 @@ public class Table {
    * @param name the table name.
    * @param columns the list of {@link Column}.
    * @param primaryKey the primary key.
-   * @param indexes the list of {@link Index}.
    * @param logged the {@link Logged} parameter.
    */
   public Table(String name, List<Column> columns, List<String> primaryKey, Logged logged) {
@@ -92,6 +100,62 @@ public class Table {
     this.primaryKey = primaryKey;
     this.checks = List.of();
     this.logged = logged;
+    this.parent = null;
+    this.validate();
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param name the table name.
+   * @param columns the list of {@link Column}.
+   * @param primaryKey the primary key.
+   * @param logged the {@link Logged} parameter.
+   */
+  public Table(
+      String name,
+      List<Column> columns,
+      List<String> primaryKey,
+      List<String> checks,
+      Logged logged) {
+    this.name = name;
+    this.columns = columns;
+    this.primaryKey = primaryKey;
+    this.checks = checks;
+    this.logged = logged;
+    this.parent = null;
+    this.validate();
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param name the table name.
+   * @param columns the list of {@link Column}.
+   * @param primaryKey the primary key.
+   * @param logged the {@link Logged} parameter.
+   * @param parent the parent {@link Table}.
+   */
+  public Table(
+      String name,
+      List<Column> columns,
+      List<String> primaryKey,
+      List<String> checks,
+      Logged logged,
+      Table parent) {
+    this.name = name;
+    this.columns = columns;
+    this.primaryKey = primaryKey;
+    this.checks = checks;
+    this.logged = logged;
+    this.parent = parent;
+    this.validate();
+  }
+
+  /** Validates this object. */
+  public void validate() {
+    Validate.notBlank(name);
+    Validate.isTrue(isNotEmpty(columns) || notNull(parent));
   }
 
   /**
@@ -104,9 +168,9 @@ public class Table {
   }
 
   /**
-   * Indicates whether the table has any checks.
+   * Indicates whether the table has at least one check.
    *
-   * @return true if the table has any checks.
+   * @return true if the table has at least one check.
    */
   public boolean hasChecks() {
     return !checks.isEmpty();
@@ -119,6 +183,15 @@ public class Table {
    */
   public boolean isUnlogged() {
     return Logged.UNLOGGED == logged;
+  }
+
+  /**
+   * Indicates whether the table has a parent table.
+   *
+   * @return true if table has a parent table.
+   */
+  public boolean hasParent() {
+    return parent != null;
   }
 
   /**
