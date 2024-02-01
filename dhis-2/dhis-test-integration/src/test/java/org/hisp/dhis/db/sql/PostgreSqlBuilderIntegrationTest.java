@@ -94,6 +94,13 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
     return new Table("vaccination", columns, List.of(), checks, Logged.UNLOGGED);
   }
 
+  private Table getTableC() {
+    List<Column> columns =
+        List.of(new Column("vitamin_a", DataType.BIGINT), new Column("vitamin_d", DataType.BIGINT));
+
+    return new Table("nutrition", columns, List.of(), List.of(), Logged.LOGGED, getTableB());
+  }
+
   @Test
   void testCreateAndDropTableA() {
     Table table = getTableA();
@@ -120,6 +127,25 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
     assertTrue(tableExists(table.getName()));
 
     jdbcTemplate.execute(sqlBuilder.dropTableIfExists(table));
+  }
+
+  @Test
+  void testCreateAndDropTableC() {
+    Table tableB = getTableB();
+
+    execute(sqlBuilder.createTable(tableB));
+
+    assertTrue(tableExists(tableB.getName()));
+
+    Table tableC = getTableC();
+
+    execute(sqlBuilder.createTable(tableC));
+
+    assertTrue(tableExists(tableC.getName()));
+
+    jdbcTemplate.execute(sqlBuilder.dropTableIfExists(tableC));
+
+    jdbcTemplate.execute(sqlBuilder.dropTableIfExists(tableB));
   }
 
   @Test

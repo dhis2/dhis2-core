@@ -30,6 +30,7 @@ package org.hisp.dhis.db.sql;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
+
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
@@ -42,195 +43,226 @@ import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.model.constraint.Unique;
 import org.junit.jupiter.api.Test;
 
-class PostgreSqlBuilderTest {
-  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+class PostgreSqlBuilderTest
+{
+    private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
-  private Table getTableA() {
-    List<Column> columns =
-        List.of(
-            new Column("id", DataType.BIGINT, Nullable.NOT_NULL),
-            new Column("data", DataType.CHARACTER_11, Nullable.NOT_NULL),
-            new Column("period", DataType.VARCHAR_50, Nullable.NOT_NULL),
-            new Column("created", DataType.TIMESTAMP),
-            new Column("user", DataType.JSONB),
-            new Column("value", DataType.DOUBLE));
+    private Table getTableA()
+    {
+        List<Column> columns = List.of(
+            new Column( "id", DataType.BIGINT, Nullable.NOT_NULL ),
+            new Column( "data", DataType.CHARACTER_11, Nullable.NOT_NULL ),
+            new Column( "period", DataType.VARCHAR_50, Nullable.NOT_NULL ),
+            new Column( "created", DataType.TIMESTAMP ),
+            new Column( "user", DataType.JSONB ),
+            new Column( "value", DataType.DOUBLE ) );
 
-    List<String> primaryKey = List.of("id");
+        List<String> primaryKey = List.of( "id" );
 
-    return new Table("immunization", columns, primaryKey);
-  }
+        return new Table( "immunization", columns, primaryKey );
+    }
 
-  private List<Index> getIndexesA() {
-    return List.of(
-        new Index("in_immunization_data", "immunization", List.of("data")),
-        new Index("in_immunization_period_created", "immunization", List.of("period", "created")),
-        new Index("in_immunization_user", "immunization", IndexType.GIN, List.of("user")),
-        new Index(
-            "in_immunization_data_period",
-            "immunization",
-            IndexType.BTREE,
-            Unique.NON_UNIQUE,
-            List.of("data", "period"),
-            IndexFunction.LOWER));
-  }
+    private List<Index> getIndexesA()
+    {
+        return List.of(
+            new Index( "in_immunization_data", "immunization", List.of( "data" ) ),
+            new Index( "in_immunization_period_created", "immunization", List.of( "period", "created" ) ),
+            new Index( "in_immunization_user", "immunization", IndexType.GIN, List.of( "user" ) ),
+            new Index(
+                "in_immunization_data_period",
+                "immunization",
+                IndexType.BTREE,
+                Unique.NON_UNIQUE,
+                List.of( "data", "period" ),
+                IndexFunction.LOWER ) );
+    }
 
-  private Table getTableB() {
-    List<Column> columns =
-        List.of(
-            new Column("id", DataType.INTEGER, Nullable.NOT_NULL),
-            new Column("facility_type", DataType.VARCHAR_255, Nullable.NULL, Collation.C),
-            new Column("bcg_doses", DataType.DOUBLE));
+    private Table getTableB()
+    {
+        List<Column> columns = List.of(
+            new Column( "id", DataType.INTEGER, Nullable.NOT_NULL ),
+            new Column( "facility_type", DataType.VARCHAR_255, Nullable.NULL, Collation.C ),
+            new Column( "bcg_doses", DataType.DOUBLE ) );
 
-    List<String> checks = List.of("\"id\">0", "\"bcg_doses\">0");
+        List<String> checks = List.of( "\"id\">0", "\"bcg_doses\">0" );
 
-    return new Table("vaccination", columns, List.of(), checks, Logged.UNLOGGED);
-  }
+        return new Table( "vaccination", columns, List.of(), checks, Logged.UNLOGGED );
+    }
 
-  @Test
-  void testDataType() {
-    assertEquals("double precision", sqlBuilder.dataTypeDouble());
-    assertEquals("geometry", sqlBuilder.dataTypeGeometry());
-  }
+    private Table getTableC()
+    {
+        List<Column> columns = List.of(
+            new Column( "vitamin_a", DataType.BIGINT ),
+            new Column( "vitamin_d", DataType.BIGINT ) );
 
-  @Test
-  void testIndexType() {
-    assertEquals("btree", sqlBuilder.indexTypeBtree());
-    assertEquals("gist", sqlBuilder.indexTypeGist());
-  }
+        return new Table( "nutrition", columns, List.of(), List.of(), Logged.LOGGED, getTableB() );
+    }
 
-  @Test
-  void testCreateTableA() {
-    Table table = getTableA();
+    @Test
+    void testDataType()
+    {
+        assertEquals( "double precision", sqlBuilder.dataTypeDouble() );
+        assertEquals( "geometry", sqlBuilder.dataTypeGeometry() );
+    }
 
-    String expected =
-        "create table \"immunization\" (\"id\" bigint not null, \"data\" char(11) not null, "
+    @Test
+    void testIndexType()
+    {
+        assertEquals( "btree", sqlBuilder.indexTypeBtree() );
+        assertEquals( "gist", sqlBuilder.indexTypeGist() );
+    }
+
+    @Test
+    void testCreateTableA()
+    {
+        Table table = getTableA();
+
+        String expected = "create table \"immunization\" (\"id\" bigint not null, \"data\" char(11) not null, "
             + "\"period\" varchar(50) not null, \"created\" timestamp null, \"user\" jsonb null, "
             + "\"value\" double precision null, primary key (\"id\"));";
 
-    assertEquals(expected, sqlBuilder.createTable(table));
-  }
+        assertEquals( expected, sqlBuilder.createTable( table ) );
+    }
 
-  @Test
-  void testCreateTableB() {
-    Table table = getTableB();
+    @Test
+    void testCreateTableB()
+    {
+        Table table = getTableB();
 
-    String expected =
-        "create unlogged table \"vaccination\" (\"id\" integer not null, "
+        String expected = "create unlogged table \"vaccination\" (\"id\" integer not null, "
             + "\"facility_type\" varchar(255) null collate \"C\", \"bcg_doses\" double precision null, "
             + "check(\"id\">0), check(\"bcg_doses\">0));";
 
-    assertEquals(expected, sqlBuilder.createTable(table));
-  }
+        assertEquals( expected, sqlBuilder.createTable( table ) );
+    }
 
-  @Test
-  void testAnalyzeTable() {
-    Table table = getTableA();
+    @Test
+    void testCreateTableC()
+    {
+        Table table = getTableC();
 
-    String expected = "analyze \"immunization\";";
+        String expected = "create table \"nutrition\" (\"vitamin_a\" bigint null, " +
+            "\"vitamin_d\" bigint null) inherits (\"vaccination\");";
 
-    assertEquals(expected, sqlBuilder.analyzeTable(table));
-  }
+        assertEquals( expected, sqlBuilder.createTable( table ) );
+    }
 
-  @Test
-  void testVacuumTable() {
-    Table table = getTableA();
+    @Test
+    void testAnalyzeTable()
+    {
+        Table table = getTableA();
 
-    String expected = "vacuum \"immunization\";";
+        String expected = "analyze \"immunization\";";
 
-    assertEquals(expected, sqlBuilder.vacuumTable(table));
-  }
+        assertEquals( expected, sqlBuilder.analyzeTable( table ) );
+    }
 
-  @Test
-  void testRenameTable() {
-    Table table = getTableA();
+    @Test
+    void testVacuumTable()
+    {
+        Table table = getTableA();
 
-    String expected = "alter table \"immunization\" rename to \"vaccination\";";
+        String expected = "vacuum \"immunization\";";
 
-    assertEquals(expected, sqlBuilder.renameTable(table, "vaccination"));
-  }
+        assertEquals( expected, sqlBuilder.vacuumTable( table ) );
+    }
 
-  @Test
-  void testDropTableIfExists() {
-    Table table = getTableA();
+    @Test
+    void testRenameTable()
+    {
+        Table table = getTableA();
 
-    String expected = "drop table if exists \"immunization\";";
+        String expected = "alter table \"immunization\" rename to \"vaccination\";";
 
-    assertEquals(expected, sqlBuilder.dropTableIfExists(table));
-  }
+        assertEquals( expected, sqlBuilder.renameTable( table, "vaccination" ) );
+    }
 
-  @Test
-  void testDropTableIfExistsString() {
-    String expected = "drop table if exists \"immunization\";";
+    @Test
+    void testDropTableIfExists()
+    {
+        Table table = getTableA();
 
-    assertEquals(expected, sqlBuilder.dropTableIfExists("immunization"));
-  }
+        String expected = "drop table if exists \"immunization\";";
 
-  @Test
-  void testDropTableIfExistsCascade() {
-    Table table = getTableA();
+        assertEquals( expected, sqlBuilder.dropTableIfExists( table ) );
+    }
 
-    String expected = "drop table if exists \"immunization\" cascade;";
+    @Test
+    void testDropTableIfExistsString()
+    {
+        String expected = "drop table if exists \"immunization\";";
 
-    assertEquals(expected, sqlBuilder.dropTableIfExistsCascade(table));
-  }
+        assertEquals( expected, sqlBuilder.dropTableIfExists( "immunization" ) );
+    }
 
-  @Test
-  void testDropTableIfExistsCascadeString() {
-    String expected = "drop table if exists \"immunization\" cascade;";
+    @Test
+    void testDropTableIfExistsCascade()
+    {
+        Table table = getTableA();
 
-    assertEquals(expected, sqlBuilder.dropTableIfExistsCascade("immunization"));
-  }
+        String expected = "drop table if exists \"immunization\" cascade;";
 
-  @Test
-  void testTableExists() {
-    String expected =
-        "select t.table_name from information_schema.tables t "
+        assertEquals( expected, sqlBuilder.dropTableIfExistsCascade( table ) );
+    }
+
+    @Test
+    void testDropTableIfExistsCascadeString()
+    {
+        String expected = "drop table if exists \"immunization\" cascade;";
+
+        assertEquals( expected, sqlBuilder.dropTableIfExistsCascade( "immunization" ) );
+    }
+
+    @Test
+    void testTableExists()
+    {
+        String expected = "select t.table_name from information_schema.tables t "
             + "where t.table_schema = 'public' and t.table_name = 'immunization';";
 
-    assertEquals(expected, sqlBuilder.tableExists("immunization"));
-  }
+        assertEquals( expected, sqlBuilder.tableExists( "immunization" ) );
+    }
 
-  @Test
-  void testCreateIndexA() {
-    Table table = getTableA();
-    List<Index> indexes = getIndexesA();
+    @Test
+    void testCreateIndexA()
+    {
+        Table table = getTableA();
+        List<Index> indexes = getIndexesA();
 
-    String expected =
-        "create index \"in_immunization_data\" on \"immunization\" using btree(\"data\");";
+        String expected = "create index \"in_immunization_data\" on \"immunization\" using btree(\"data\");";
 
-    assertEquals(expected, sqlBuilder.createIndex(table, indexes.get(0)));
-  }
+        assertEquals( expected, sqlBuilder.createIndex( table, indexes.get( 0 ) ) );
+    }
 
-  @Test
-  void testCreateIndexB() {
-    Table table = getTableA();
-    List<Index> indexes = getIndexesA();
+    @Test
+    void testCreateIndexB()
+    {
+        Table table = getTableA();
+        List<Index> indexes = getIndexesA();
 
-    String expected =
-        "create index \"in_immunization_period_created\" on \"immunization\" using btree(\"period\", \"created\");";
+        String expected = "create index \"in_immunization_period_created\" on \"immunization\" using btree(\"period\", \"created\");";
 
-    assertEquals(expected, sqlBuilder.createIndex(table, indexes.get(1)));
-  }
+        assertEquals( expected, sqlBuilder.createIndex( table, indexes.get( 1 ) ) );
+    }
 
-  @Test
-  void testCreateIndexC() {
-    Table table = getTableA();
-    List<Index> indexes = getIndexesA();
+    @Test
+    void testCreateIndexC()
+    {
+        Table table = getTableA();
+        List<Index> indexes = getIndexesA();
 
-    String expected =
-        "create index \"in_immunization_user\" on \"immunization\" using gin(\"user\");";
+        String expected = "create index \"in_immunization_user\" on \"immunization\" using gin(\"user\");";
 
-    assertEquals(expected, sqlBuilder.createIndex(table, indexes.get(2)));
-  }
+        assertEquals( expected, sqlBuilder.createIndex( table, indexes.get( 2 ) ) );
+    }
 
-  @Test
-  void testCreateIndexD() {
-    Table table = getTableA();
-    List<Index> indexes = getIndexesA();
+    @Test
+    void testCreateIndexD()
+    {
+        Table table = getTableA();
+        List<Index> indexes = getIndexesA();
 
-    String expected =
-        "create index \"in_immunization_data_period\" on \"immunization\" using btree(lower(\"data\"), lower(\"period\"));";
+        String expected = "create index \"in_immunization_data_period\" on \"immunization\" using btree(lower(\"data\"), lower(\"period\"));";
 
-    assertEquals(expected, sqlBuilder.createIndex(table, indexes.get(3)));
-  }
+        assertEquals( expected, sqlBuilder.createIndex( table, indexes.get( 3 ) ) );
+    }
 }
