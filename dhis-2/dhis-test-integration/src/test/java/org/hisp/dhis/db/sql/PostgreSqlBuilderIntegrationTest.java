@@ -156,7 +156,7 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
   }
 
   @Test
-  void testCrateAndDropTableCascade() {
+  void testCreateAndDropTableCascade() {
     Table table = getTableA();
 
     execute(sqlBuilder.createTable(table));
