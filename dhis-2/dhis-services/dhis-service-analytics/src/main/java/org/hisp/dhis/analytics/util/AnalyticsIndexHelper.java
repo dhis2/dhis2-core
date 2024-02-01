@@ -66,7 +66,7 @@ public class AnalyticsIndexHelper {
    * Returns a queue of analytics table indexes.
    *
    * @param partitions the list of {@link AnalyticsTablePartition}.
-   * @return a list of indexes.
+   * @return a list of {@link Index}
    */
   public static List<Index> getIndexes(List<AnalyticsTablePartition> partitions) {
     List<Index> indexes = new ArrayList<>();
@@ -210,7 +210,7 @@ public class AnalyticsIndexHelper {
    * Shortens the given table name.
    *
    * @param table the table name
-   * @param tableType
+   * @param tableType the {@link AnayticsTableType}
    */
   private static String shortenTableName(String table, AnalyticsTableType tableType) {
     table = table.replace(tableType.getTableName(), "ax");
