@@ -33,8 +33,11 @@ import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.feedback.ErrorCode.E4014;
 import static org.hisp.dhis.feedback.ErrorCode.E7139;
 
+import java.util.List;
+import java.util.function.Consumer;
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.springframework.stereotype.Component;
 
@@ -66,6 +69,25 @@ public class CommonQueryRequestValidator implements Validator<CommonQueryRequest
   }
 
   /**
+   * Validates the given list of dates using the given validator.
+   *
+   * @param dates the list of dates to validate.
+   * @param validator the validator to use.
+   */
+  private void validateDates(List<String> dates, Consumer<String> validator) {
+    CollectionUtils.emptyIfNull(dates).forEach(validator);
+  }
+
+  /**
+   * Validates the given list of event dates.
+   *
+   * @param eventDates the list of event dates to validate.
+   */
+  private void validateEventDate(List<String> eventDates) {
+    validateDates(eventDates, this::validateEventDate);
+  }
+
+  /**
    * The event date should have a format like: "IpHINAT79UW.A03MvHHogjR.LAST_YEAR"
    *
    * @param eventDate the date to validate.
@@ -79,6 +101,15 @@ public class CommonQueryRequestValidator implements Validator<CommonQueryRequest
         throw new IllegalQueryException(new ErrorMessage(E4014, eventDate, "eventDate"));
       }
     }
+  }
+
+  /**
+   * Validates the given list of event dates.
+   *
+   * @param enrollmentDates the list of event dates to validate.
+   */
+  private void validateEnrollmentDate(List<String> enrollmentDates) {
+    validateDates(enrollmentDates, this::validateEnrollmentDate);
   }
 
   /**
