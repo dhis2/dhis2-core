@@ -2987,4 +2987,31 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
 
     validateRow(response, 0, List.of("1"));
   }
+
+  @Test
+  public void multipleEnrollmentDateIsValidRequest() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("enrollmentDate=IpHINAT79UW.LAST_YEAR")
+            .add("enrollmentDate=IpHINAT79UW.2020-01-01")
+            .add("pageSize=1");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response.validate().statusCode(200);
+
+    params =
+        new QueryParamsBuilder()
+            .add("enrollmentDate=IpHINAT79UW.LAST_YEAR,IpHINAT79UW.2020-01-01")
+            .add("pageSize=1");
+
+    // When
+    response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response.validate().statusCode(200);
+  }
 }
