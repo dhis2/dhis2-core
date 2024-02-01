@@ -30,20 +30,21 @@ package org.hisp.dhis.icon;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.List;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.Pager;
 
 /**
  * @author Zubair Asghar
  */
-@NoArgsConstructor
-@AllArgsConstructor
 @Getter
 public class PaginatedIconResponse {
   @JsonProperty private Pager pager;
   @JsonProperty private List<ObjectNode> icons;
+
+  private PaginatedIconResponse(Pager pager, List<ObjectNode> icons) {
+    this.pager = pager;
+    this.icons = icons;
+  }
 
   public static PaginatedIconResponse withoutPager(List<ObjectNode> icons) {
     return new PaginatedIconResponse(null, icons);
