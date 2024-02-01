@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -67,6 +68,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
   public void generateResourceTable(ResourceTable resourceTable) {
     final Clock clock = new Clock().startClock();
     final Table stagingTable = resourceTable.getTable();
+    final List<Index> indexes = resourceTable.getIndexes();
     final String tableName = Table.fromStaging(stagingTable.getName());
     final ResourceTableType tableType = resourceTable.getTableType();
 
@@ -80,9 +82,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
 
     invokeTableHooks(tableType);
 
-    for (Index index : stagingTable.getIndexes()) {
-      jdbcTemplate.execute(sqlBuilder.createIndex(stagingTable, index));
-    }
+    createIndexes(stagingTable, indexes);
 
     jdbcTemplate.execute(sqlBuilder.analyzeTable(stagingTable));
 
@@ -134,6 +134,20 @@ public class JdbcResourceTableStore implements ResourceTableStore {
       analyticsTableHookService.executeAnalyticsTableSqlHooks(hooks);
 
       log.info("Invoked resource table hooks: '{}'", hooks.size());
+    }
+  }
+
+  /**
+   * Creates indexes for the given table.
+   *
+   * @param table the {@link Table}.
+   * @param indexes the list of {@link Index} to create.
+   */
+  private void createIndexes(Table table, List<Index> indexes) {
+    if (CollectionUtils.isNotEmpty(indexes)) {
+      for (Index index : indexes) {
+        jdbcTemplate.execute(sqlBuilder.createIndex(table, index));
+      }
     }
   }
 

@@ -64,20 +64,22 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
 
     List<String> primaryKey = List.of("id");
 
-    List<Index> indexes =
-        List.of(
-            new Index("in_immunization_data", "immunization", List.of("data")),
-            new Index(
-                "in_immunization_period_created", "immunization", List.of("period", "created")),
-            new Index("in_immunization_user", "immunization", IndexType.GIN, List.of("user")),
-            new Index(
-                "in_immunization_data_period",
-                "immunization",
-                Unique.NON_UNIQUE,
-                List.of("data", "period"),
-                IndexFunction.LOWER));
+    return new Table("immunization", columns, primaryKey);
+  }
 
-    return new Table("immunization", columns, primaryKey, indexes);
+  private List<Index> getIndexesA() {
+
+    return List.of(
+        new Index("in_immunization_data", "immunization", List.of("data")),
+        new Index("in_immunization_period_created", "immunization", List.of("period", "created")),
+        new Index("in_immunization_user", "immunization", IndexType.GIN, List.of("user")),
+        new Index(
+            "in_immunization_data_period",
+            "immunization",
+            IndexType.BTREE,
+            Unique.NON_UNIQUE,
+            List.of("data", "period"),
+            IndexFunction.LOWER));
   }
 
   private Table getTableB() {
@@ -89,7 +91,7 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
 
     List<String> checks = List.of("\"id\">0", "\"bcg_doses\">0");
 
-    return new Table("vaccination", columns, List.of(), List.of(), checks, Logged.UNLOGGED);
+    return new Table("vaccination", columns, List.of(), checks, Logged.UNLOGGED);
   }
 
   @Test
@@ -137,13 +139,15 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
   void testCreateIndex() {
     Table table = getTableA();
 
+    List<Index> indexes = getIndexesA();
+
     execute(sqlBuilder.createTable(table));
 
-    assertDoesNotThrow(() -> execute(sqlBuilder.createIndex(table, table.getIndexes().get(0))));
+    assertDoesNotThrow(() -> execute(sqlBuilder.createIndex(table, indexes.get(0))));
 
-    assertDoesNotThrow(() -> execute(sqlBuilder.createIndex(table, table.getIndexes().get(1))));
+    assertDoesNotThrow(() -> execute(sqlBuilder.createIndex(table, indexes.get(1))));
 
-    assertDoesNotThrow(() -> execute(sqlBuilder.createIndex(table, table.getIndexes().get(2))));
+    assertDoesNotThrow(() -> execute(sqlBuilder.createIndex(table, indexes.get(2))));
 
     jdbcTemplate.execute(sqlBuilder.dropTableIfExists(table));
   }

@@ -67,7 +67,7 @@ public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
 
   @Override
   public Table getTable() {
-    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), getIndexes(), logged);
+    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);
   }
 
   private List<Column> getColumns() {
@@ -91,6 +91,7 @@ public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
     return List.of("organisationunitid");
   }
 
+  @Override
   public List<Index> getIndexes() {
     return List.of(
         new Index(

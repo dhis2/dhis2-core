@@ -44,17 +44,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.analytics.AnalyticsTableType;
-import org.hisp.dhis.analytics.table.model.AnalyticsIndex;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Logged;
 import org.junit.jupiter.api.Test;
 
 /**
- * Unit tests for {@link org.hisp.dhis.analytics.table.model.AnalyticsIndex}
- *
  * @author maikel arabori
  */
 class AnalyticsIndexHelperTest {
@@ -62,7 +60,7 @@ class AnalyticsIndexHelperTest {
   void testGetIndexes() {
     List<AnalyticsTablePartition> stubPartitions = List.of(stubAnalyticsTablePartition());
 
-    List<AnalyticsIndex> indexes = getIndexes(stubPartitions);
+    List<Index> indexes = getIndexes(stubPartitions);
 
     assertThat(indexes, hasSize(1));
     assertThat(indexes.get(0).getTableName(), is(equalTo("analytics_event_temp_2022")));
@@ -72,10 +70,9 @@ class AnalyticsIndexHelperTest {
 
   @Test
   void testCreateIndexStatement() {
-    AnalyticsIndex someAnalyticsIndex =
-        new AnalyticsIndex("in_column_table", "table", BTREE, List.of("column"));
+    Index index = new Index("in_column_table", "table", BTREE, List.of("column"));
 
-    String statement = createIndexStatement(someAnalyticsIndex);
+    String statement = createIndexStatement(index);
 
     assertThat(statement, containsString("create index \"in_column_table"));
     assertThat(statement, containsString("on table using"));

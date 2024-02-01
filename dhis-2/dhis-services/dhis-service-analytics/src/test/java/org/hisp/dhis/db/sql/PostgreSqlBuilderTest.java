@@ -57,20 +57,21 @@ class PostgreSqlBuilderTest {
 
     List<String> primaryKey = List.of("id");
 
-    List<Index> indexes =
-        List.of(
-            new Index("in_immunization_data", "immunization", List.of("data")),
-            new Index(
-                "in_immunization_period_created", "immunization", List.of("period", "created")),
-            new Index("in_immunization_user", "immunization", IndexType.GIN, List.of("user")),
-            new Index(
-                "in_immunization_data_period",
-                "immunization",
-                Unique.NON_UNIQUE,
-                List.of("data", "period"),
-                IndexFunction.LOWER));
+    return new Table("immunization", columns, primaryKey);
+  }
 
-    return new Table("immunization", columns, primaryKey, indexes);
+  private List<Index> getIndexesA() {
+    return List.of(
+        new Index("in_immunization_data", "immunization", List.of("data")),
+        new Index("in_immunization_period_created", "immunization", List.of("period", "created")),
+        new Index("in_immunization_user", "immunization", IndexType.GIN, List.of("user")),
+        new Index(
+            "in_immunization_data_period",
+            "immunization",
+            IndexType.BTREE,
+            Unique.NON_UNIQUE,
+            List.of("data", "period"),
+            IndexFunction.LOWER));
   }
 
   private Table getTableB() {
@@ -82,7 +83,7 @@ class PostgreSqlBuilderTest {
 
     List<String> checks = List.of("\"id\">0", "\"bcg_doses\">0");
 
-    return new Table("vaccination", columns, List.of(), List.of(), checks, Logged.UNLOGGED);
+    return new Table("vaccination", columns, List.of(), checks, Logged.UNLOGGED);
   }
 
   @Test
@@ -192,40 +193,44 @@ class PostgreSqlBuilderTest {
   @Test
   void testCreateIndexA() {
     Table table = getTableA();
+    List<Index> indexes = getIndexesA();
 
     String expected =
         "create index \"in_immunization_data\" on \"immunization\" using btree(\"data\");";
 
-    assertEquals(expected, sqlBuilder.createIndex(table, table.getIndexes().get(0)));
+    assertEquals(expected, sqlBuilder.createIndex(table, indexes.get(0)));
   }
 
   @Test
   void testCreateIndexB() {
     Table table = getTableA();
+    List<Index> indexes = getIndexesA();
 
     String expected =
         "create index \"in_immunization_period_created\" on \"immunization\" using btree(\"period\", \"created\");";
 
-    assertEquals(expected, sqlBuilder.createIndex(table, table.getIndexes().get(1)));
+    assertEquals(expected, sqlBuilder.createIndex(table, indexes.get(1)));
   }
 
   @Test
   void testCreateIndexC() {
     Table table = getTableA();
+    List<Index> indexes = getIndexesA();
 
     String expected =
         "create index \"in_immunization_user\" on \"immunization\" using gin(\"user\");";
 
-    assertEquals(expected, sqlBuilder.createIndex(table, table.getIndexes().get(2)));
+    assertEquals(expected, sqlBuilder.createIndex(table, indexes.get(2)));
   }
 
   @Test
   void testCreateIndexD() {
     Table table = getTableA();
+    List<Index> indexes = getIndexesA();
 
     String expected =
         "create index \"in_immunization_data_period\" on \"immunization\" using btree(lower(\"data\"), lower(\"period\"));";
 
-    assertEquals(expected, sqlBuilder.createIndex(table, table.getIndexes().get(3)));
+    assertEquals(expected, sqlBuilder.createIndex(table, indexes.get(3)));
   }
 }
