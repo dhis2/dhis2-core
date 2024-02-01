@@ -106,10 +106,11 @@ public class OrgUnitsRemovalTest extends ApiTest {
         .delete(parentId)
         .validate()
         .statusCode(409)
+        .rootPath("response.errorReports[0]")
+        .body("errorCode", equalTo("E4030"))
         .body(
             "message",
             containsStringIgnoringCase(
-                "Object could not be deleted because it is associated with another object: OrganisationUnit"))
-        .body("errorCode", equalTo("E4030"));
+                "Object could not be deleted because it is associated with another object: OrganisationUnit (TA OU_DELETION_TESTS_OU_CHILD)"));
   }
 }
