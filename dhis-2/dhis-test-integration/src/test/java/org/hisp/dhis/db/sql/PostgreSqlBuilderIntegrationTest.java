@@ -171,11 +171,9 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
   @Test
   void testSetParentTable() {
     Table tableB = getTableB();
-
-    execute(sqlBuilder.createTable(tableB));
-
     Table tableD = getTableD();
 
+    execute(sqlBuilder.createTable(tableB));
     execute(sqlBuilder.createTable(tableD));
 
     execute(sqlBuilder.setParentTable(tableD, "vaccination"));
@@ -184,16 +182,27 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
   @Test
   void testRemoveParentTable() {
     Table tableB = getTableB();
-
-    execute(sqlBuilder.createTable(tableB));
-
     Table tableD = getTableD();
 
+    execute(sqlBuilder.createTable(tableB));
     execute(sqlBuilder.createTable(tableD));
 
     execute(sqlBuilder.setParentTable(tableD, "vaccination"));
 
     execute(sqlBuilder.removeParentTable(tableD, "vaccination"));
+  }
+
+  @Test
+  void testSwapParentTable() {
+    Table tableA = getTableA();
+    Table tableB = getTableB();
+    Table tableC = getTableC();
+
+    execute(sqlBuilder.createTable(tableA));
+    execute(sqlBuilder.createTable(tableB));
+    execute(sqlBuilder.createTable(tableC));
+
+    execute(sqlBuilder.swapParentTable(getTableC(), "vaccination", "immunization"));
   }
 
   @Test
