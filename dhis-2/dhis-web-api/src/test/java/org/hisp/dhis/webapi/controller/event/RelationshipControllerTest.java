@@ -112,7 +112,7 @@ class RelationshipControllerTest {
 
     verify(trackedEntityInstanceService).getTrackedEntityInstance(TEI_ID);
     verify(relationshipService)
-        .getRelationshipsByTrackedEntityInstance(eq(tei), any(), eq(false), false);
+        .getRelationshipsByTrackedEntityInstance(eq(tei), any(), eq(false), eq(false));
   }
 
   @Test
@@ -129,7 +129,7 @@ class RelationshipControllerTest {
 
     verify(programStageInstanceService).getProgramStageInstance(EVENT_ID);
     verify(relationshipService)
-        .getRelationshipsByProgramStageInstance(eq(event), any(), eq(false), false);
+        .getRelationshipsByProgramStageInstance(eq(event), any(), eq(false), eq(false));
   }
 
   @Test
@@ -146,7 +146,7 @@ class RelationshipControllerTest {
 
     verify(programInstanceService).getProgramInstance(ENROLLMENT_ID);
     verify(relationshipService)
-        .getRelationshipsByProgramInstance(eq(enrollment), any(), eq(false), false);
+        .getRelationshipsByProgramInstance(eq(enrollment), any(), eq(false), eq(false));
   }
 
   @Test
