@@ -265,6 +265,14 @@ public interface SqlBuilder {
   String removeParentTable(Table table, String parentName);
 
   /**
+   * @param table the {@link Table}.
+   * @param parentName the name of the current parent table.
+   * @param newParentName the name of the new parent table.
+   * @return a combined table inherit and table no inherit statement.
+   */
+  String swapParentTable(Table table, String parentName, String newParentName);
+
+  /**
    * @param name the table name.
    * @return a statement which will return a single row with a single column with the table name if
    *     the table exists.
