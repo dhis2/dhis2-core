@@ -101,6 +101,13 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
     return new Table("nutrition", columns, List.of(), List.of(), Logged.LOGGED, getTableB());
   }
 
+  private Table getTableD() {
+    List<Column> columns =
+        List.of(new Column("vitamin_b", DataType.BIGINT), new Column("vitamin_e", DataType.BIGINT));
+
+    return new Table("supplement", columns, List.of());
+  }
+
   @Test
   void testCreateAndDropTableA() {
     Table table = getTableA();
@@ -149,7 +156,7 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
   }
 
   @Test
-  void testCrateAndDropTableCascadeA() {
+  void testCrateAndDropTableCascade() {
     Table table = getTableA();
 
     execute(sqlBuilder.createTable(table));
@@ -159,6 +166,34 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
     jdbcTemplate.execute(sqlBuilder.dropTableIfExistsCascade(table));
 
     assertFalse(tableExists(table.getName()));
+  }
+
+  @Test
+  void testSetParentTable() {
+    Table tableB = getTableB();
+
+    execute(sqlBuilder.createTable(tableB));
+
+    Table tableD = getTableD();
+
+    execute(sqlBuilder.createTable(tableD));
+
+    execute(sqlBuilder.setParentTable(tableD, "vaccination"));
+  }
+
+  @Test
+  void testRemoveParentTable() {
+    Table tableB = getTableB();
+
+    execute(sqlBuilder.createTable(tableB));
+
+    Table tableD = getTableD();
+
+    execute(sqlBuilder.createTable(tableD));
+
+    execute(sqlBuilder.setParentTable(tableD, "vaccination"));
+
+    execute(sqlBuilder.removeParentTable(tableD, "vaccination"));
   }
 
   @Test
