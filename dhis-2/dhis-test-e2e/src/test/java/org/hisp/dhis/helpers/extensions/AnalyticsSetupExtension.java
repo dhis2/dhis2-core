@@ -31,6 +31,7 @@ import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.apache.logging.log4j.LogManager.getLogger;
 
 import com.google.gson.JsonObject;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.logging.log4j.Logger;
@@ -38,6 +39,7 @@ import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.ResourceTableActions;
 import org.hisp.dhis.actions.SystemActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.config.TestConfiguration;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
@@ -60,7 +62,10 @@ public class AnalyticsSetupExtension implements BeforeAllCallback {
 
   @Override
   public void beforeAll(ExtensionContext context) {
-    if (run.compareAndSet(false, true)) {
+    boolean shouldRunExport =
+        Optional.ofNullable(TestConfiguration.get().shouldRunAnalyticsExport()).orElse(true);
+
+    if (shouldRunExport && run.compareAndSet(false, true)) {
       logger.info("Starting analytics table export.");
 
       // Login into the current DHIS2 instance.
