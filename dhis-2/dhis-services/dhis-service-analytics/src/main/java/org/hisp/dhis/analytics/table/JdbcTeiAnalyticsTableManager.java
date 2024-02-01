@@ -283,7 +283,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
                     new AnalyticsTableColumn(
                         quote(tea.getUid()),
                         getColumnType(tea.getValueType(), isSpatialSupport()),
-                        getSelectClause(tea.getValueType(), "\"" + tea.getUid() + "\".value")))
+                        castBasedOnType(tea.getValueType(), "\"" + tea.getUid() + "\".value")))
             .toList());
 
     return columns;
@@ -291,10 +291,12 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
 
   /**
    * Returns the select clause, potentially with a cast statement, based on the given value type.
+   * (this method is an adapted version of {@link
+   * JdbcEventAnalyticsTableManager#getSelectClause(ValueType, String)})
    *
    * @param valueType the value type to represent as database column type.
    */
-  private String getSelectClause(ValueType valueType, String columnName) {
+  private String castBasedOnType(ValueType valueType, String columnName) {
     if (valueType.isDecimal()) {
       return "cast(" + columnName + " as double precision)";
     }
