@@ -244,6 +244,13 @@ public interface SqlBuilder {
   String dropTableIfExistsCascade(String name);
 
   /**
+   * @param table the {@link Table}.
+   * @param newName the new name for the table.
+   * @return a combined drop table if exists cascade and rename table statement.
+   */
+  String swapTable(Table table, String newName);
+
+  /**
    * @param name the table name.
    * @return a statement which will return a single row with a single column with the table name if
    *     the table exists.

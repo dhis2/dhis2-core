@@ -270,6 +270,11 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
+  public String swapTable(Table table, String newName) {
+    return String.join(" ", dropTableIfExistsCascade(newName), renameTable(table, newName));
+  }
+
+  @Override
   public String tableExists(String name) {
     return String.format(
         "select t.table_name from information_schema.tables t "

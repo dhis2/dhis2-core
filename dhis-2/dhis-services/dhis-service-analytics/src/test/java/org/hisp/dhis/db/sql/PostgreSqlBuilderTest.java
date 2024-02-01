@@ -200,6 +200,15 @@ class PostgreSqlBuilderTest {
   }
 
   @Test
+  void testSwapTable() {
+    String expected =
+        "drop table if exists \"vaccination\" cascade; "
+            + "alter table \"immunization\" rename to \"vaccination\";";
+
+    assertEquals(expected, sqlBuilder.swapTable(getTableA(), "vaccination"));
+  }
+
+  @Test
   void testTableExists() {
     String expected =
         "select t.table_name from information_schema.tables t "
