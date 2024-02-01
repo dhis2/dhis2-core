@@ -176,7 +176,7 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
     execute(sqlBuilder.createTable(tableB));
     execute(sqlBuilder.createTable(tableD));
 
-    execute(sqlBuilder.setParentTable(tableD, "vaccination"));
+    assertDoesNotThrow(() -> execute(sqlBuilder.setParentTable(tableD, "vaccination")));
   }
 
   @Test
@@ -189,7 +189,7 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
 
     execute(sqlBuilder.setParentTable(tableD, "vaccination"));
 
-    execute(sqlBuilder.removeParentTable(tableD, "vaccination"));
+    assertDoesNotThrow(() -> execute(sqlBuilder.removeParentTable(tableD, "vaccination")));
   }
 
   @Test
@@ -202,7 +202,8 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
     execute(sqlBuilder.createTable(tableB));
     execute(sqlBuilder.createTable(tableC));
 
-    execute(sqlBuilder.swapParentTable(getTableC(), "vaccination", "immunization"));
+    assertDoesNotThrow(
+        () -> execute(sqlBuilder.swapParentTable(getTableC(), "vaccination", "immunization")));
   }
 
   @Test
