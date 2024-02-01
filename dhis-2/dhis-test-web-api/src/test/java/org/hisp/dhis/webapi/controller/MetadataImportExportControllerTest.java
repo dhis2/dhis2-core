@@ -458,8 +458,9 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
     JsonImportSummary report =
         POST(
                 "/metadata?importStrategy=DELETE",
-                "{\"optionSets\":\n"
-                    + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\"}]}")
+                """
+                    {'optionSets':
+                    [{'name': 'Device category','id': 'RHqFlB1Wm4d','version': 2,'valueType': 'TEXT'}]}""")
             .content(HttpStatus.CONFLICT)
             .get("response")
             .as(JsonImportSummary.class);
