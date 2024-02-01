@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.gml;
 
 import static javax.xml.XMLConstants.ACCESS_EXTERNAL_DTD;
 import static javax.xml.XMLConstants.ACCESS_EXTERNAL_STYLESHEET;
-import static javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterators;
@@ -252,7 +251,6 @@ public class DefaultGmlImportService implements GmlImportService {
     // prevent XXE attack
     // sonar vulnerability:
     // https://sonarcloud.io/organizations/dhis2/rules?open=java%3AS2755&rule_key=java%3AS2755
-    tf.setFeature(FEATURE_SECURE_PROCESSING, true);
     tf.setAttribute(ACCESS_EXTERNAL_DTD, "");
     tf.setAttribute(ACCESS_EXTERNAL_STYLESHEET, "");
     tf.newTransformer(xsl).transform(gml, new StreamResult(output));
