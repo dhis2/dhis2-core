@@ -38,7 +38,6 @@ import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
-import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
@@ -97,11 +96,6 @@ public class CategoryResourceTable implements ResourceTable {
 
   private List<String> getPrimaryKey() {
     return List.of("categoryoptioncomboid");
-  }
-
-  @Override
-  public List<Index> getIndexes() {
-    return List.of();
   }
 
   @Override
