@@ -141,7 +141,6 @@ public class JsonPatchManager {
     return clone;
   }
 
-<<<<<<< Updated upstream
   /** Check if all patch paths are valid for the given schema. */
   private void validatePatchPath(JsonPatch patch, Schema schema) throws JsonPatchException {
     for (JsonPatchOperation op : patch.getOperations()) {
@@ -149,24 +148,6 @@ public class JsonPatchManager {
         throw new JsonPatchException(
             "Property "
                 + op.getPath().getMatchingProperty()
-=======
-  /**
-   * Check if all patch paths are valid for the given schema.
-<<<<<<< Updated upstream
-   *
-=======
->>>>>>> Stashed changes
-   * @param patch
-   * @param schema
-   * @throws JsonPatchException
-   */
-  private void validatePatchPath(JsonPatch patch, Schema schema) throws JsonPatchException {
-    for (JsonPatchOperation op : patch.getOperations()) {
-      if (!schema.hasProperty(op.getPath().head().toString())) {
-        throw new JsonPatchException(
-            "Property "
-                + op.getPath().head()
->>>>>>> Stashed changes
                 + " does not exist on "
                 + schema.getClass().getSimpleName());
       }
