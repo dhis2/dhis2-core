@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -46,6 +47,8 @@ import org.hisp.dhis.common.auth.HttpBasicAuth;
 import org.hisp.dhis.eventhook.targets.JmsTarget;
 import org.hisp.dhis.eventhook.targets.KafkaTarget;
 import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.sms.config.ClickatellGatewayConfig;
+import org.hisp.dhis.sms.config.SmsGatewayConfig;
 import org.hisp.dhis.system.util.AnnotationUtils;
 
 /**
@@ -69,15 +72,23 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
    * when you are using JSONB to store the data but still want secrets hidden when doing field
    * filtering.
    */
-  private static final Map<Class<?>, List<String>> IGNORE_LIST =
+  private static final Map<Class<?>, Set<String>> IGNORE_LIST =
       Map.of(
-          HttpBasicAuth.class, List.of("auth.password", "targets.auth.password"),
-          ApiTokenAuth.class, List.of("auth.token", "targets.auth.token"),
-          JmsTarget.class, List.of("targets.password"),
-          KafkaTarget.class, List.of("targets.password"));
+          HttpBasicAuth.class,
+          Set.of("auth.password", "targets.auth.password"),
+          ApiTokenAuth.class,
+          Set.of("auth.token", "targets.auth.token"),
+          JmsTarget.class,
+          Set.of("targets.password"),
+          KafkaTarget.class,
+          Set.of("targets.password"),
+          SmsGatewayConfig.class,
+          Set.of("password"),
+          ClickatellGatewayConfig.class,
+          Set.of("authToken"));
 
   /** Cache that contains true/false for classes that should always be expanded. */
-  private final Map<Class<?>, Boolean> alwaysExpandCache = new ConcurrentHashMap<>();
+  private static final Map<Class<?>, Boolean> ALWAYS_EXPAND_CACHE = new ConcurrentHashMap<>();
 
   @Override
   protected boolean include(final BeanPropertyWriter writer) {
@@ -100,10 +111,7 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
       log.debug(ctx.getCurrentValue().getClass().getSimpleName() + ": " + ctx.getFullPath());
     }
 
-    if (IGNORE_LIST.containsKey(ctx.getCurrentValue().getClass())
-        && StringUtils.equalsAny(
-            ctx.getFullPath(),
-            IGNORE_LIST.get(ctx.getCurrentValue().getClass()).toArray(new String[] {}))) {
+    if (isIgnoredProperty(ctx.getFullPath(), ctx.getCurrentValue().getClass())) {
       return false;
     }
 
@@ -130,6 +138,12 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
     }
 
     return false;
+  }
+
+  private static boolean isIgnoredProperty(String property, Class<?> type) {
+    if (!IGNORE_LIST.containsKey(type))
+      return type != Object.class && isIgnoredProperty(property, type.getSuperclass());
+    return IGNORE_LIST.get(type).contains(property);
   }
 
   private PathContext getPath(PropertyWriter writer, JsonGenerator jgen) {
@@ -177,22 +191,16 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
     }
   }
 
-  private boolean isAlwaysExpandType(Object object) {
+  private static boolean isAlwaysExpandType(Object object) {
     if (object == null) {
       return false;
     }
-
-    Class<?> klass = object.getClass();
-
-    if (!alwaysExpandCache.containsKey(klass)) {
-      alwaysExpandCache.put(
-          klass,
-          Map.class.isAssignableFrom(klass)
-              || JobParameters.class.isAssignableFrom(klass)
-              || AnnotationUtils.isAnnotationPresent(klass, JsonTypeInfo.class));
-    }
-
-    return alwaysExpandCache.get(klass);
+    return ALWAYS_EXPAND_CACHE.computeIfAbsent(
+        object.getClass(),
+        type ->
+            Map.class.isAssignableFrom(type)
+                || JobParameters.class.isAssignableFrom(type)
+                || AnnotationUtils.isAnnotationPresent(type, JsonTypeInfo.class));
   }
 }
 

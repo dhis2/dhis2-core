@@ -58,12 +58,9 @@ class SmsGatewayControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void testSetDefault() {
-    uid =
-        assertStatus(
-            HttpStatus.OK,
-            POST(
-                "/gateways",
-                "{'name':'test', 'username':'user', 'password':'pwd', 'type':'http'}"));
+    String json = "{'name':'test', 'username':'user', 'password':'pwd', 'type':'http'}";
+    uid = assertStatus(HttpStatus.OK, POST("/gateways", json));
+
     assertWebMessage(
         "OK",
         200,

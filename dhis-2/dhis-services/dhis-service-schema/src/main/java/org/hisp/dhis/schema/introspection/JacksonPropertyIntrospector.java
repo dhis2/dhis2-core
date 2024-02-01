@@ -312,6 +312,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector {
     List<Field> fields =
         ReflectionUtils.findFields(klass, f -> f.isAnnotationPresent(JsonProperty.class));
 
+    // FIXME this misses inherited methods
     List<Method> methods =
         ReflectionUtils.findMethods(
             klass,
@@ -319,12 +320,14 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector {
                 AnnotationUtils.findAnnotation(m, JsonProperty.class) != null
                     && m.getParameterTypes().length == 0);
 
+    // FIXME this is used because of potential name overloads but does not make sure
+    // the method that is a getter/setter is actually picked rather just takes the first one
     Multimap<String, Method> multimap = ReflectionUtils.getMethodsMultimap(klass);
 
     Map<String, Property> propertyMap = new HashMap<>();
 
     for (var field : fields) {
-      Property property = new Property(klass, null, null);
+      Property property = new Property(field.getType(), null, null);
       property.setAnnotations(getAnnotations(field.getAnnotations()));
 
       JsonProperty jsonProperty = field.getAnnotation(JsonProperty.class);
@@ -337,6 +340,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector {
 
       property.setName(name);
       property.setFieldName(fieldName);
+      // FIXME fields named isX might have a getter setter isX not getIsX
       property.setSetterMethod(ReflectionUtils.findSetterMethod(fieldName, klass));
       property.setGetterMethod(ReflectionUtils.findGetterMethod(fieldName, klass));
       property.setNamespace(trimToNull(jsonProperty.namespace()));
@@ -357,7 +361,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector {
         continue;
       }
 
-      Property property = new Property(klass, method, null);
+      Property property = new Property(method.getReturnType(), method, null);
       property.setAnnotations(getAnnotations(method.getAnnotations()));
 
       property.setName(name);

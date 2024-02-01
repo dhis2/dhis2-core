@@ -148,7 +148,7 @@ class GatewayAdministrationServiceTest {
   }
 
   @Test
-  void testUpdateDefaultGatewaySuccess() {
+  void testUpdateDefaultGatewaySuccess() throws Exception {
     assertTrue(subject.addGateway(bulkConfig));
     assertEquals(bulkConfig, subject.getDefaultGateway());
     assertEquals(BULKSMS, subject.getDefaultGateway().getName());
@@ -164,7 +164,7 @@ class GatewayAdministrationServiceTest {
   }
 
   @Test
-  void testUpdateGatewaySuccess() {
+  void testUpdateGatewaySuccess() throws Exception {
     assertTrue(subject.addGateway(bulkConfig));
     assertEquals(bulkConfig, subject.getDefaultGateway());
     assertEquals(BULKSMS, subject.getDefaultGateway().getName());
@@ -186,7 +186,7 @@ class GatewayAdministrationServiceTest {
   }
 
   @Test
-  void testNothingShouldBeUpdatedIfNullIsPassed() {
+  void testNothingShouldBeUpdatedIfNullIsPassed() throws Exception {
     bulkConfig.setName(BULKSMS);
     assertTrue(subject.addGateway(bulkConfig));
 
@@ -268,7 +268,7 @@ class GatewayAdministrationServiceTest {
   }
 
   @Test
-  void testUpdateGateway() {
+  void testUpdateGateway() throws Exception {
     assertTrue(subject.addGateway(bulkConfig));
     assertEquals(bulkConfig, subject.getDefaultGateway());
     assertEquals(BULKSMS, subject.getDefaultGateway().getName());

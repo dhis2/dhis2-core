@@ -89,8 +89,8 @@ public class SmsGatewayController {
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonRoot> getGateways(
       @RequestParam(defaultValue = "*") List<String> fields) {
-    SmsConfiguration smsConfiguration = smsConfigurationManager.getSmsConfiguration();
-    FieldFilterParams<?> params = FieldFilterParams.of(smsConfiguration.getGateways(), fields);
+    SmsConfiguration config = smsConfigurationManager.getSmsConfiguration();
+    FieldFilterParams<?> params = FieldFilterParams.of(config.getGateways(), fields);
 
     return ResponseEntity.ok(JsonRoot.of("gateways", fieldFilterService.toObjectNodes(params)));
   }
@@ -135,6 +135,7 @@ public class SmsGatewayController {
       throw new ConflictException("Default gateway already exists");
     }
 
+    updatedConfig.setUid(uid); // just make sure it is set and identical to the path parameter
     gatewayAdminService.updateGateway(config, updatedConfig);
 
     return ok(String.format("Gateway with uid: %s has been updated", uid));
