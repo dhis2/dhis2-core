@@ -163,7 +163,7 @@ public class ReferencesCheck implements ValidationCheck {
                   || "lastUpdatedBy".equals(property.getName())
                   || "createdBy".equals(property.getName()));
 
-      if (!(isUserReference && skipSharing)) {
+      if (!isUserReference) {
         PreheatErrorReport error =
             new PreheatErrorReport(
                 identifier,
