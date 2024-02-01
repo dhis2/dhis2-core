@@ -114,7 +114,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
   @Override
   public Page<Relationship> getByTrackedEntity(
       TrackedEntity trackedEntity,
-      RelationshipQueryParams queryParams,
+      final RelationshipQueryParams queryParams,
       @Nonnull PageParams pageParams) {
     TypedQuery<Relationship> relationshipTypedQuery =
         getRelationshipTypedQuery(trackedEntity, queryParams, pageParams);
@@ -145,15 +145,15 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
 
   private int countRelationships(RelationshipQueryParams queryParams) {
     if (queryParams.getEntity() instanceof TrackedEntity te) {
-      return getByTrackedEntity(te, null).size();
+      return getByTrackedEntity(te, queryParams).size();
     }
 
     if (queryParams.getEntity() instanceof Enrollment en) {
-      return getByEnrollment(en, null).size();
+      return getByEnrollment(en, queryParams).size();
     }
 
     if (queryParams.getEntity() instanceof Event ev) {
-      return getByEvent(ev, null).size();
+      return getByEvent(ev, queryParams).size();
     }
 
     throw new IllegalArgumentException("Unkown type");
