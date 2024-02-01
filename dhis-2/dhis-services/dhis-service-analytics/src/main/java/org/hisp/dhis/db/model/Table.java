@@ -77,7 +77,6 @@ public class Table {
    * @param name the table name.
    * @param columns the list of {@link Column}.
    * @param primaryKey the primary key.
-   * @param indexes the list of {@link Index}.
    */
   public Table(String name, List<Column> columns, List<String> primaryKey) {
     this.name = name;
@@ -95,7 +94,6 @@ public class Table {
    * @param name the table name.
    * @param columns the list of {@link Column}.
    * @param primaryKey the primary key.
-   * @param indexes the list of {@link Index}.
    * @param logged the {@link Logged} parameter.
    */
   public Table(String name, List<Column> columns, List<String> primaryKey, Logged logged) {
@@ -114,7 +112,6 @@ public class Table {
    * @param name the table name.
    * @param columns the list of {@link Column}.
    * @param primaryKey the primary key.
-   * @param indexes the list of {@link Index}.
    * @param logged the {@link Logged} parameter.
    */
   public Table(
