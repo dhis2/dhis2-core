@@ -251,6 +251,20 @@ public interface SqlBuilder {
   String swapTable(Table table, String newName);
 
   /**
+   * @param table the {@link Table}.
+   * @param parentName the parent table name.
+   * @return a table inherit statement.
+   */
+  String setParentTable(Table table, String parentName);
+
+  /**
+   * @param table the {@link Table}.
+   * @param parentName the parent table name.
+   * @return a table no inherit statement.
+   */
+  String removeParentTable(Table table, String parentName);
+
+  /**
    * @param name the table name.
    * @return a statement which will return a single row with a single column with the table name if
    *     the table exists.

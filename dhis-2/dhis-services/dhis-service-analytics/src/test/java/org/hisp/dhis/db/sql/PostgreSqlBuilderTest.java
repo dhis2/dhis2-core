@@ -209,6 +209,20 @@ class PostgreSqlBuilderTest {
   }
 
   @Test
+  void testSetParent() {
+    String expected = "alter table \"immunization\" inherit \"vaccination\";";
+
+    assertEquals(expected, sqlBuilder.setParentTable(getTableA(), "vaccination"));
+  }
+
+  @Test
+  void removeParent() {
+    String expected = "alter table \"immunization\" no inherit \"vaccination\";";
+
+    assertEquals(expected, sqlBuilder.removeParentTable(getTableA(), "vaccination"));
+  }
+
+  @Test
   void testTableExists() {
     String expected =
         "select t.table_name from information_schema.tables t "

@@ -275,6 +275,17 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
+  public String setParentTable(Table table, String parentName) {
+    return String.format("alter table %s inherit %s;", quote(table.getName()), quote(parentName));
+  }
+
+  @Override
+  public String removeParentTable(Table table, String parentName) {
+    return String.format(
+        "alter table %s no inherit %s;", quote(table.getName()), quote(parentName));
+  }
+
+  @Override
   public String tableExists(String name) {
     return String.format(
         "select t.table_name from information_schema.tables t "
