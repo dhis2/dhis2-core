@@ -40,6 +40,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -76,8 +77,6 @@ class TrackerEnrollmentsExportControllerTest extends DhisControllerConvenienceTe
   private ProgramInstance programInstance;
 
   private TrackedEntityAttribute trackedEntityAttribute;
-
-  private Relationship relationship;
 
   private ProgramStage programStage;
 
@@ -162,11 +161,14 @@ class TrackerEnrollmentsExportControllerTest extends DhisControllerConvenienceTe
 
   @Test
   void getEnrollmentByIdWithRelationshipsFields() {
-    manager.save(relationship(programInstance, tei));
+    Relationship relationship = relationship(programInstance, tei);
+
+    manager.save(relationship);
 
     assertWithRelationshipResponse(
         (GET("/tracker/enrollments/{id}?fields=relationships", programInstance.getUid())
-            .content(HttpStatus.OK)));
+            .content(HttpStatus.OK)),
+        relationship);
   }
 
   @Test
@@ -194,6 +196,30 @@ class TrackerEnrollmentsExportControllerTest extends DhisControllerConvenienceTe
                     programInstance.getUid())
                 .content(HttpStatus.OK))
             .isEmpty());
+  }
+
+  @Test
+  void shouldNotGetDeletedEnrollmentsWhenEnrollmentIsInParamRequest() {
+
+    programInstance.setDeleted(true);
+    manager.update(programInstance);
+
+    ProgramInstance instance = new ProgramInstance(program, tei, orgUnit);
+    instance.setAutoFields();
+    instance.setEnrollmentDate(new Date());
+    instance.setIncidentDate(new Date());
+    manager.save(instance);
+
+    JsonArray instances =
+        GET("/tracker/enrollments/?enrollment="
+                + programInstance.getUid()
+                + ";"
+                + instance.getUid())
+            .content(HttpStatus.OK)
+            .getArray("instances");
+
+    assertEquals(1, instances.size());
+    assertEquals(instance.getUid(), instances.get(0).asObject().getString("enrollment").string());
   }
 
   private void saveTrackedEntityAttributeValue() {
@@ -225,7 +251,7 @@ class TrackerEnrollmentsExportControllerTest extends DhisControllerConvenienceTe
   }
 
   private Relationship relationship(ProgramInstance from, TrackedEntityInstance to) {
-    relationship = new Relationship();
+    Relationship relationship = new Relationship();
 
     RelationshipItem fromItem = new RelationshipItem();
     fromItem.setProgramInstance(from);
@@ -279,7 +305,7 @@ class TrackerEnrollmentsExportControllerTest extends DhisControllerConvenienceTe
     assertFalse(event.getBoolean("deleted").booleanValue());
   }
 
-  private void assertWithRelationshipResponse(JsonObject json) {
+  private void assertWithRelationshipResponse(JsonObject json, Relationship relationship) {
     assertTrue(json.isObject());
     assertFalse(json.isEmpty());
     assertHasOnlyMembers(json, "relationships");
