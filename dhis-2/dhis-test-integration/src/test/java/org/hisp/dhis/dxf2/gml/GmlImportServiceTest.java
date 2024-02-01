@@ -156,8 +156,7 @@ class GmlImportServiceTest extends TransactionalIntegrationTest {
     importParams.setUser(UID.of(user));
 
     ImportReport importReport =
-                gmlImportService.importGml(
-                    maliciousInputStream, importParams, NoopJobProgress.INSTANCE);
+        gmlImportService.importGml(maliciousInputStream, importParams, NoopJobProgress.INSTANCE);
 
     ErrorReport errorReport = importReport.getFirstObjectReport().getErrorReports().get(0);
     assertTrue(

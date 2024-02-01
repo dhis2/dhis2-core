@@ -164,9 +164,9 @@ public class DataSetController extends AbstractCrudController<DataSet> {
         new ByteArrayInputStream(xmlMapper.writeValueAsString(metadata).getBytes("UTF-8"));
 
     TransformerFactory tf = TransformerFactory.newInstance();
-    //    // prevent XXE attack
-    //    // sonar vulnerability:
-    //    // https://sonarcloud.io/organizations/dhis2/rules?open=java%3AS2755&rule_key=java%3AS2755
+    // prevent XXE attack
+    // sonar vulnerability:
+    // https://sonarcloud.io/organizations/dhis2/rules?open=java%3AS2755&rule_key=java%3AS2755
     tf.setAttribute(ACCESS_EXTERNAL_DTD, "");
     tf.setAttribute(ACCESS_EXTERNAL_STYLESHEET, "");
 
