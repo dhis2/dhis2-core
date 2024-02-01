@@ -91,9 +91,12 @@ public class FileResourceEventListener {
     if (storageId != null) {
       fileResource.setHasMultipleStorageFiles(true);
 
-      authenticationService.obtainAuthentication(imageFileSavedEvent.userUid());
-
-      fileResourceService.updateFileResource(fileResource);
+      try {
+        authenticationService.obtainAuthentication(imageFileSavedEvent.userUid());
+        fileResourceService.updateFileResource(fileResource);
+      } finally {
+        authenticationService.clearAuthentication();
+      }
     }
 
     Period timeDiff = new Period(startTime, DateTime.now());

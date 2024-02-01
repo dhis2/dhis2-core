@@ -44,6 +44,7 @@ import org.hisp.dhis.fileresource.hibernate.HibernateFileResourceStore;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.DefaultAuthenticationService;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -95,7 +96,7 @@ class FileResourceEventListenerTest extends IntegrationTestBase {
 
     when(fileResourceContentStore.saveFileResourceContent(fileResource, map)).thenReturn("uid");
     when(fileResourceStore.getByUid(fileResource.getUid())).thenReturn(fileResource);
-    doCallRealMethod().when(fileResourceStore).update(any());
+    doCallRealMethod().when(fileResourceStore).update(any(FileResource.class));
 
     assertDoesNotThrow(
         () ->
@@ -103,6 +104,6 @@ class FileResourceEventListenerTest extends IntegrationTestBase {
                 new ImageFileSavedEvent(
                     fileResource.getUid(), map, CurrentUserUtil.getCurrentUserDetails().getUid())));
 
-    verify(fileResourceStore).update(any(), any());
+    verify(fileResourceStore).update(any(FileResource.class), any(UserDetails.class));
   }
 }
