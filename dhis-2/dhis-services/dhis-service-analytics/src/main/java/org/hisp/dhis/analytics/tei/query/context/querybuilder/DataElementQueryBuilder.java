@@ -34,7 +34,6 @@ import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
 import java.util.List;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
@@ -46,6 +45,7 @@ import org.hisp.dhis.analytics.common.query.IndexedOrder;
 import org.hisp.dhis.analytics.common.query.Order;
 import org.hisp.dhis.analytics.tei.query.DataElementCondition;
 import org.hisp.dhis.analytics.tei.query.RenderableDataValue;
+import org.hisp.dhis.analytics.tei.query.RenderableDataValueIndicator;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.tei.query.context.sql.RenderableSqlQuery;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilder;
@@ -56,6 +56,11 @@ import org.springframework.stereotype.Service;
 @Service
 @org.springframework.core.annotation.Order(999)
 public class DataElementQueryBuilder implements SqlQueryBuilder {
+
+  @Getter
+  private final List<Predicate<DimensionIdentifier<DimensionParam>>> headerFilters =
+      List.of(DataElementQueryBuilder::isDataElement);
+
   @Getter
   private final List<Predicate<DimensionIdentifier<DimensionParam>>> dimensionFilters =
       List.of(DataElementQueryBuilder::isDataElement);
@@ -67,24 +72,38 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
   @Override
   public RenderableSqlQuery buildSqlQuery(
       QueryContext queryContext,
+      List<DimensionIdentifier<DimensionParam>> acceptedHeaders,
       List<DimensionIdentifier<DimensionParam>> acceptedDimensions,
       List<AnalyticsSortingParams> acceptedSortingParams) {
     RenderableSqlQuery.RenderableSqlQueryBuilder builder = RenderableSqlQuery.builder();
 
-    Stream.concat(
-            acceptedDimensions.stream(),
-            acceptedSortingParams.stream().map(AnalyticsSortingParams::getOrderBy))
+    // Select fields are the union of headers, dimensions and sorting params
+    List<DimensionIdentifier<DimensionParam>> dimensions =
+        streamDimensions(acceptedHeaders, acceptedDimensions, acceptedSortingParams).toList();
+    dimensions.stream()
         .map(
             dimensionIdentifier ->
                 Field.ofUnquoted(
                     StringUtils.EMPTY,
                     RenderableDataValue.of(
-                        doubleQuote(dimensionIdentifier.getPrefix()),
-                        dimensionIdentifier.getDimension().getUid(),
-                        fromValueType(dimensionIdentifier.getDimension().getValueType())),
+                            doubleQuote(dimensionIdentifier.getPrefix()),
+                            dimensionIdentifier.getDimension().getUid(),
+                            fromValueType(dimensionIdentifier.getDimension().getValueType()))
+                        .transformedIfNecessary(),
                     dimensionIdentifier.toString()))
         .forEach(builder::selectField);
+    dimensions.stream()
+        .map(
+            dimensionIdentifier ->
+                Field.ofUnquoted(
+                    StringUtils.EMPTY,
+                    RenderableDataValueIndicator.of(
+                        doubleQuote(dimensionIdentifier.getPrefix()),
+                        dimensionIdentifier.getDimension().getUid()),
+                    dimensionIdentifier + ".exists"))
+        .forEach(builder::selectField);
 
+    // Groupable conditions comes from dimensions
     acceptedDimensions.stream()
         .filter(SqlQueryBuilders::hasRestrictions)
         .map(
@@ -93,6 +112,7 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
                     dimId.getGroupId(), DataElementCondition.of(queryContext, dimId)))
         .forEach(builder::groupableCondition);
 
+    // Order clause comes from sorting params
     acceptedSortingParams.forEach(
         analyticsSortingParams ->
             builder.orderClause(

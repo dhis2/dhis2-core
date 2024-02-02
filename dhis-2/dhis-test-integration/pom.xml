@@ -147,7 +147,7 @@
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis.rules</groupId>
-      <artifactId>rule-engine</artifactId>
+      <artifactId>rule-engine-jvm</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -187,6 +187,11 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -247,6 +252,11 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-jdbc</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-orm</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>

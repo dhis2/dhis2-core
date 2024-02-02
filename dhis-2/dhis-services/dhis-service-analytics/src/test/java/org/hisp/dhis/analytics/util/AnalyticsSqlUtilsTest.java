@@ -44,6 +44,9 @@ class AnalyticsSqlUtilsTest {
   void testQuote() {
     assertEquals(
         "\"Some \"\"special\"\" value\"", AnalyticsSqlUtils.quote("Some \"special\" value"));
+    assertEquals(
+        "\"Prescribed drug \"\"rx01\"\" to 'John White'\"",
+        AnalyticsSqlUtils.quote("Prescribed drug \"rx01\" to 'John White'"));
     assertEquals("\"Data element\"", AnalyticsSqlUtils.quote("Data element"));
   }
 
@@ -127,9 +130,9 @@ class AnalyticsSqlUtilsTest {
 
   @Test
   void testGetCollate() {
-    assertEquals(" collate \"Posix\" ", AnalyticsSqlUtils.getCollate("Posix"));
-    assertEquals("", AnalyticsSqlUtils.getCollate(null));
-    assertEquals("", AnalyticsSqlUtils.getCollate(""));
-    assertEquals("", AnalyticsSqlUtils.getCollate(" "));
+    assertEquals(" collate \"Posix\" ", AnalyticsSqlUtils.getCollation("Posix"));
+    assertEquals("", AnalyticsSqlUtils.getCollation(null));
+    assertEquals("", AnalyticsSqlUtils.getCollation(""));
+    assertEquals("", AnalyticsSqlUtils.getCollation(" "));
   }
 }

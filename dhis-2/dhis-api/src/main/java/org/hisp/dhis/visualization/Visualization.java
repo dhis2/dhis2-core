@@ -30,6 +30,7 @@ package org.hisp.dhis.visualization;
 import static com.fasterxml.jackson.annotation.JsonProperty.Access.READ_ONLY;
 import static com.google.common.base.Verify.verify;
 import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -64,6 +65,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import org.hisp.dhis.analytics.NumberType;
+import org.hisp.dhis.analytics.Sorting;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.CombinationGenerator;
@@ -142,6 +144,9 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
 
   /** The number type. */
   private NumberType numberType;
+
+  /** Stores the sorting state in the current object. */
+  private List<Sorting> sorting = new ArrayList<>();
 
   /**
    * List of {@link Series}. Refers to the dimension items in the first dimension of the "columns"
@@ -395,6 +400,19 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
 
   public void setIcons(Set<Icon> icons) {
     this.icons = icons;
+  }
+
+  @JsonProperty("sorting")
+  @JacksonXmlElementWrapper(localName = "sorting", namespace = DXF_2_0)
+  @JacksonXmlProperty(localName = "sortingItem", namespace = DXF_2_0)
+  public List<Sorting> getSorting() {
+    return sorting;
+  }
+
+  public void setSorting(List<Sorting> sorting) {
+    if (sorting != null) {
+      this.sorting = sorting.stream().distinct().collect(toList());
+    }
   }
 
   @JsonProperty
@@ -975,8 +993,8 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
     addHeadersForRows(grid);
     addHeadersForReport(grid, reportParamColumns);
 
-    final int startColumnIndex = grid.getHeaders().size();
-    final int numberOfColumns = getGridColumns().size();
+    int startColumnIndex = grid.getHeaders().size();
+    int numberOfColumns = getGridColumns().size();
 
     addHeadersForColumns(grid, displayProperty);
 

@@ -32,18 +32,15 @@ import java.util.Set;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.oust.manager.SelectionTreeManager;
 import org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 
 /**
  * @author Torgeir Lorange Ostby
  * @version $Id: LoggedInAction.java 5649 2008-09-05 20:07:34Z larshelg $
  */
 public class RestrictOrganisationUnitsAction implements Action {
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
-
   private OrganisationUnitSelectionManager selectionManager;
 
   public void setSelectionManager(OrganisationUnitSelectionManager selectionManager) {
@@ -56,10 +53,10 @@ public class RestrictOrganisationUnitsAction implements Action {
     this.selectionTreeManager = selectionTreeManager;
   }
 
-  private CurrentUserService currentUserService;
+  private UserService userService;
 
-  public void setCurrentUserService(CurrentUserService currentUserService) {
-    this.currentUserService = currentUserService;
+  public void setUserService(UserService userService) {
+    this.userService = userService;
   }
 
   // -------------------------------------------------------------------------
@@ -68,15 +65,15 @@ public class RestrictOrganisationUnitsAction implements Action {
 
   @Override
   public String execute() throws Exception {
-    User user = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    if (user != null) {
+    if (currentUser != null) {
       // -----------------------------------------------------------------
       // Initialize ouwt and selection tree
       // -----------------------------------------------------------------
 
-      Set<OrganisationUnit> dataCaptureOrgUnits = user.getOrganisationUnits();
-      Set<OrganisationUnit> dataViewOrgUnits = user.getDataViewOrganisationUnits();
+      Set<OrganisationUnit> dataCaptureOrgUnits = currentUser.getOrganisationUnits();
+      Set<OrganisationUnit> dataViewOrgUnits = currentUser.getDataViewOrganisationUnits();
 
       if (!dataCaptureOrgUnits.isEmpty()) {
         selectionManager.setRootOrganisationUnits(dataCaptureOrgUnits);

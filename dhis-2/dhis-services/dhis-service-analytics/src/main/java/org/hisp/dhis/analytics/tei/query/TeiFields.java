@@ -31,6 +31,9 @@ import static java.lang.String.join;
 import static java.util.Arrays.stream;
 import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension.ENROLLMENTDATE;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension.EXECUTIONDATE;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension.INCIDENTDATE;
 import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.common.ValueType.COORDINATE;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
@@ -47,9 +50,12 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.params.CommonParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension;
+import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.analytics.tei.query.context.TeiStaticField;
@@ -162,7 +168,10 @@ public class TeiFields {
         .map(
             field ->
                 findDimensionParamForField(
-                    field, teiQueryParams.getCommonParams().getDimensionIdentifiers()))
+                    field,
+                    Stream.concat(
+                        teiQueryParams.getCommonParams().getDimensionIdentifiers().stream(),
+                        getEligibleParsedHeaders(teiQueryParams))))
         .filter(Objects::nonNull)
         .map(
             dimIdentifier ->
@@ -171,6 +180,31 @@ public class TeiFields {
         .forEach(g -> headersMap.put(g.getName(), g));
 
     return reorder(headersMap, fields);
+  }
+
+  /**
+   * Since TeiStaticFields are already added to the grid headers, we need to filter them out from
+   * the list of parsed headers.
+   *
+   * @param teiQueryParams the {@link TeiQueryParams}.
+   * @return a {@link Stream} of {@link DimensionIdentifier}.
+   */
+  private static Stream<DimensionIdentifier<DimensionParam>> getEligibleParsedHeaders(
+      TeiQueryParams teiQueryParams) {
+    return teiQueryParams.getCommonParams().getParsedHeaders().stream()
+        .filter(TeiFields::isEligible);
+  }
+
+  /**
+   * Checks if the given {@link DimensionIdentifier} is eligible to be added as a header. It is
+   * eligible if it is a static dimension and it is either an event or enrollment dimension.
+   *
+   * @param parsedHeader the {@link DimensionIdentifier}.
+   * @return true if it is eligible, false otherwise.
+   */
+  private static boolean isEligible(DimensionIdentifier<DimensionParam> parsedHeader) {
+    return parsedHeader.getDimension().isStaticDimension()
+        && (parsedHeader.isEventDimension() || parsedHeader.isEnrollmentDimension());
   }
 
   /**
@@ -221,23 +255,83 @@ public class TeiFields {
           dimIdentifier, d -> d.getDimensionalObject().getDimensionDisplayName());
     } else {
       // It is a static dimension.
-      return getCustomGridHeader(dimIdentifier, d -> d.getStaticDimension().getFullName());
+      return getStaticGridHeader(dimIdentifier);
     }
+  }
+
+  private static GridHeader getStaticGridHeader(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+    if (dimensionIdentifier.hasProgramStage()) {
+      return getStaticGridHeaderForEvent(dimensionIdentifier);
+    }
+    if (dimensionIdentifier.hasProgram()) {
+      return getStaticGridHeaderForEnrollment(dimensionIdentifier);
+    }
+    return getCustomGridHeader(dimensionIdentifier, d -> d.getStaticDimension().getFullName());
+  }
+
+  private static GridHeader getStaticGridHeaderForEnrollment(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+
+    StaticDimension staticDimension = dimensionIdentifier.getDimension().getStaticDimension();
+
+    String dimensionName =
+        Optional.of(dimensionIdentifier)
+            .map(DimensionIdentifier::getProgram)
+            .map(ElementWithOffset::getElement)
+            .map(
+                program -> {
+                  if (ENROLLMENTDATE == staticDimension) {
+                    return program.getEnrollmentDateLabel();
+                  } else if (INCIDENTDATE == staticDimension) {
+                    return program.getIncidentDateLabel();
+                  }
+                  return null;
+                })
+            .filter(StringUtils::isNotBlank)
+            .orElseGet(staticDimension::getHeaderColumnName);
+
+    String program = dimensionIdentifier.getProgram().getElement().getDisplayName();
+    return new GridHeader(
+        dimensionIdentifier.getKey(),
+        join(", ", dimensionName, program).trim(),
+        getValueType(dimensionIdentifier),
+        false,
+        true);
+  }
+
+  private static GridHeader getStaticGridHeaderForEvent(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+
+    StaticDimension staticDimension = dimensionIdentifier.getDimension().getStaticDimension();
+
+    String dimensionName =
+        Optional.of(dimensionIdentifier)
+            .map(DimensionIdentifier::getProgramStage)
+            .map(ElementWithOffset::getElement)
+            .map(
+                programStage -> {
+                  if (EXECUTIONDATE == staticDimension) {
+                    return programStage.getExecutionDateLabel();
+                  }
+                  return null;
+                })
+            .filter(StringUtils::isNotBlank)
+            .orElseGet(staticDimension::getHeaderColumnName);
+
+    String program = dimensionIdentifier.getProgram().getElement().getDisplayName();
+    String programStage = dimensionIdentifier.getProgramStage().getElement().getDisplayName();
+    return new GridHeader(
+        dimensionIdentifier.getKey(),
+        join(", ", dimensionName, program, programStage).trim(),
+        getValueType(dimensionIdentifier),
+        false,
+        true);
   }
 
   private static GridHeader getCustomGridHeader(
       DimensionIdentifier<DimensionParam> dimensionIdentifier,
       Function<DimensionParam, String> dimensionNameProvider) {
-    /*
-     * In some situations the DimensionalObject.valueType can be null. In
-     * such cases, it defaults to ValueType.TEXT.
-     */
-    ValueType valueType =
-        Optional.of(dimensionIdentifier)
-            .map(DimensionIdentifier::getDimension)
-            .map(DimensionParam::getValueType)
-            .orElse(ValueType.TEXT);
-
     return new GridHeader(
         dimensionIdentifier.getKey(),
         join(
@@ -245,7 +339,7 @@ public class TeiFields {
                 getColumnPrefix(dimensionIdentifier),
                 dimensionNameProvider.apply(dimensionIdentifier.getDimension()))
             .trim(),
-        valueType,
+        getValueType(dimensionIdentifier),
         false,
         true);
   }
@@ -258,6 +352,17 @@ public class TeiFields {
     }
 
     return EMPTY;
+  }
+
+  private static ValueType getValueType(DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+    /*
+     * In some situations the DimensionalObject.valueType can be null. In
+     * such cases, it defaults to ValueType.TEXT.
+     */
+    return Optional.of(dimensionIdentifier)
+        .map(DimensionIdentifier::getDimension)
+        .map(DimensionParam::getValueType)
+        .orElse(ValueType.TEXT);
   }
 
   /**
@@ -331,8 +436,8 @@ public class TeiFields {
    * @throws IllegalStateException if nothing is found.
    */
   private static DimensionIdentifier<DimensionParam> findDimensionParamForField(
-      Field field, List<DimensionIdentifier<DimensionParam>> dimensionIdentifiers) {
-    return dimensionIdentifiers.stream()
+      Field field, Stream<DimensionIdentifier<DimensionParam>> dimensionIdentifiers) {
+    return dimensionIdentifiers
         .filter(di -> di.toString().equals(field.getDimensionIdentifier()))
         .findFirst()
         .orElse(null);

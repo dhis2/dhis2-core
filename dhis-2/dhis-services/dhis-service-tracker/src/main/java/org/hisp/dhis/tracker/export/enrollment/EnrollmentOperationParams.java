@@ -37,9 +37,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 
 @Getter
 @Builder(toBuilder = true)

@@ -44,6 +44,7 @@ import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
+import org.hisp.dhis.analytics.cache.OutliersCache;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SettingKey;
@@ -65,6 +66,8 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
   private final SystemSettingManager systemSettingManager;
 
   private final AnalyticsCache analyticsCache;
+
+  private final OutliersCache outliersCache;
 
   // TODO introduce last successful timestamps per table type
 
@@ -102,7 +105,7 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
       AnalyticsTableType tableType = service.getAnalyticsTableType();
 
       if (!skipTypes.contains(tableType)) {
-        service.update(params, progress);
+        service.create(params, progress);
       }
     }
 
@@ -111,6 +114,7 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
 
     progress.startingStage("Invalidate analytics caches", SKIP_STAGE);
     progress.runStage(analyticsCache::invalidateAll);
+    progress.runStage(outliersCache::invalidateAll);
     progress.completedProcess("Analytics tables updated: " + clock.time());
   }
 
@@ -154,13 +158,13 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
     Map<String, Runnable> generators = new LinkedHashMap<>();
     generators.put(
         "generating OrganisationUnit structures",
-        resourceTableService::generateOrganisationUnitStructures);
+        resourceTableService::generateOrganisationUnitStructureTable);
     generators.put(
         "generating DataSetOrganisationUnitCategory table",
         resourceTableService::generateDataSetOrganisationUnitCategoryTable);
     generators.put(
         "generating CategoryOptionCombo names",
-        resourceTableService::generateCategoryOptionComboNames);
+        resourceTableService::generateCategoryOptionComboNameTable);
     generators.put(
         "generating DataElementGroupSet table",
         resourceTableService::generateDataElementGroupSetTable);

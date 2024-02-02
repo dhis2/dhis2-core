@@ -28,7 +28,7 @@
 package org.hisp.dhis.analytics.outlier.data;
 
 import static org.hisp.dhis.analytics.OutlierDetectionAlgorithm.Z_SCORE;
-import static org.hisp.dhis.analytics.outlier.Order.MEAN_ABS_DEV;
+import static org.hisp.dhis.analytics.outlier.Order.ABS_DEV;
 import static org.hisp.dhis.analytics.outlier.data.OutlierRequestValidator.DEFAULT_LIMIT;
 import static org.hisp.dhis.common.OrganisationUnitDescendants.DESCENDANTS;
 
@@ -40,10 +40,13 @@ import lombok.Builder.Default;
 import lombok.Getter;
 import lombok.With;
 import org.hisp.dhis.analytics.OutlierDetectionAlgorithm;
+import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.outlier.Order;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.OrganisationUnitDescendants;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
 
 /**
  * Encapsulation of an outlier detection request.
@@ -54,6 +57,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 @Builder
 @With
 public class OutlierRequest {
+  private List<Period> periods;
 
   private Date startDate;
 
@@ -63,11 +67,15 @@ public class OutlierRequest {
 
   private Date dataEndDate;
 
+  private String queryKey;
+
   @Default private List<DataElement> dataElements = new ArrayList<>();
 
   @Default private List<OrganisationUnit> orgUnits = new ArrayList<>();
 
-  @Default private Order orderBy = MEAN_ABS_DEV;
+  @Default private Order orderBy = ABS_DEV;
+
+  @Default private SortOrder sortOrder = SortOrder.DESC;
 
   @Default private int maxResults = DEFAULT_LIMIT;
 
@@ -77,11 +85,25 @@ public class OutlierRequest {
 
   @Default private double threshold = 3.0d;
 
+  @Default private IdScheme outputIdScheme = IdScheme.UID;
+
+  private boolean analyzeOnly;
+
+  private String explainOrderId;
+
   public List<Long> getDataElementIds() {
     return dataElements.stream().map(DataElement::getId).toList();
   }
 
   public boolean hasDataStartEndDate() {
     return dataStartDate != null && dataEndDate != null;
+  }
+
+  public boolean hasStartEndDate() {
+    return startDate != null && endDate != null;
+  }
+
+  public boolean hasPeriods() {
+    return periods != null && !periods.isEmpty();
   }
 }

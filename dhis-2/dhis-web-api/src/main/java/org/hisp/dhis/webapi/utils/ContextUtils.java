@@ -42,6 +42,7 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.service.WebCache;
 import org.springframework.http.CacheControl;
@@ -59,7 +60,8 @@ import org.springframework.web.servlet.HandlerMapping;
 public class ContextUtils {
   public static final String CONTENT_TYPE_PDF = "application/pdf";
 
-  public static final String CONTENT_TYPE_ZIP = "application/zip";
+  public static final String CONTENT_TYPE_JSON_ZIP = "application/json+zip";
+  public static final String CONTENT_TYPE_JSON_GZIP = "application/json+gzip";
 
   public static final String CONTENT_TYPE_GZIP = "application/gzip";
 
@@ -104,6 +106,8 @@ public class ContextUtils {
   public static final String HEADER_CONTENT_DISPOSITION = "Content-Disposition";
 
   public static final String HEADER_CONTENT_TRANSFER_ENCODING = "Content-Transfer-Encoding";
+
+  public static final String BINARY_HEADER_CONTENT_TRANSFER_ENCODING = "binary";
 
   public static final String HEADER_VALUE_NO_STORE =
       "no-cache, no-store, max-age=0, must-revalidate";
@@ -315,7 +319,7 @@ public class ContextUtils {
    * @param user the {@link User}.
    * @return an ETag string.
    */
-  public static String getEtag(Date lastModified, User user) {
+  public static String getEtag(Date lastModified, UserDetails user) {
     if (lastModified == null || user == null) {
       return null;
     }

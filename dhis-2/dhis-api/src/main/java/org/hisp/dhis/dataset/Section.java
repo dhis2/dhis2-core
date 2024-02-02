@@ -223,4 +223,16 @@ public class Section extends BaseIdentifiableObject implements MetadataObject {
   public void setDisableDataElementAutoGroup(boolean disableDataElementAutoGroup) {
     this.disableDataElementAutoGroup = disableDataElementAutoGroup;
   }
+
+  public void removeIndicator(Indicator i) {
+    this.indicators.remove(i);
+  }
+
+  public boolean addIndicator(Indicator i) {
+    return this.indicators.add(i);
+  }
+
+  public void removeIndicators(List<Indicator> sources) {
+    for (Indicator i : sources) removeIndicator(i);
+  }
 }

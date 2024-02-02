@@ -33,6 +33,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.CodeGenerator;
 import org.springframework.util.Assert;
 
 /**
@@ -50,21 +51,21 @@ public class SqlUtils {
   public static final String OPTION_SEP = ".";
 
   /**
-   * Quotes the given relation (typically a column). Quotes part of the given relation are encoded
-   * (replaced by double quotes that is).
+   * Double quotes the given relation (typically a column). Quotes part of the given relation are
+   * escaped (replaced by two double quotes).
    *
    * @param relation the relation (typically a column).
    * @return the quoted relation.
    */
   public static String quote(String relation) {
-    String rel = relation.replaceAll(QUOTE, (QUOTE + QUOTE));
+    String rel = relation.replace(QUOTE, (QUOTE + QUOTE));
 
     return QUOTE + rel + QUOTE;
   }
 
   /**
-   * Quotes and qualifies the given relation (typically a column). Quotes part of the given relation
-   * are encoded (replaced by double quotes that is). The column name is qualified by the given
+   * Double quotes and qualifies the given relation (typically a column). Quotes part of the given
+   * relation are escaped (replaced by double quotes). The column name is qualified by the given
    * alias.
    *
    * @param relation the relation (typically a column).
@@ -78,8 +79,8 @@ public class SqlUtils {
   }
 
   /**
-   * Single-quotes the given relation (typically a value). Single-quotes part of the given relation
-   * are encoded (replaced by double single-quotes that is).
+   * Single quotes the given relation (typically a value). Single quotes part of the given relation
+   * are encoded (replaced by two single quotes).
    *
    * @param relation the relation (typically a column).
    * @return the single-quoted relation.
@@ -88,6 +89,41 @@ public class SqlUtils {
     String rel = relation.replaceAll(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE));
 
     return SINGLE_QUOTE + rel + SINGLE_QUOTE;
+  }
+
+  /**
+   * Encodes and quotes a value with single quotes to make it suitable in a SQL statement.
+   *
+   * @param value the value to encode.
+   * @return the encoded value.
+   */
+  public static String encode(String value) {
+    return encode(value, true);
+  }
+
+  /**
+   * Encodes a value to make it suitable in a SQL statement.
+   *
+   * @param value the value to encode.
+   * @param quote whether to quote the value with single quotes.
+   * @return the encoded value.
+   */
+  public static String encode(String value, boolean quote) {
+    if (value != null) {
+      value = value.replace("\\", "\\\\").replace(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE));
+    }
+
+    return quote ? (SINGLE_QUOTE + value + SINGLE_QUOTE) : value;
+  }
+
+  /**
+   * Appends an underscore and five character random suffix to the given relation.
+   *
+   * @param relation the relation.
+   * @return the appended relation.
+   */
+  public static String appendRandom(String relation) {
+    return String.format("%s_%s", relation, CodeGenerator.generateCode(5));
   }
 
   /**

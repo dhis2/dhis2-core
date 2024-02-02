@@ -57,8 +57,9 @@ import org.hisp.dhis.dataitem.query.QueryExecutor;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -66,6 +67,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * Unit tests for DataItemServiceFacade.
@@ -75,7 +80,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 @ExtendWith(MockitoExtension.class)
 class DataItemServiceFacadeTest {
 
-  @Mock private CurrentUserService currentUserService;
+  @Mock private UserService userService;
 
   @Mock private QueryExecutor queryExecutor;
 
@@ -83,7 +88,7 @@ class DataItemServiceFacadeTest {
 
   @BeforeEach
   public void setUp() {
-    dataItemServiceFacade = new DataItemServiceFacade(currentUserService, queryExecutor);
+    dataItemServiceFacade = new DataItemServiceFacade(userService, queryExecutor);
   }
 
   @Test
@@ -99,9 +104,12 @@ class DataItemServiceFacadeTest {
     final Set<String> anyOrdering = new HashSet<>(asList("name:desc"));
     final OrderParams anyOrderParams = new OrderParams(anyOrdering);
     final User currentUser = new User();
+    currentUser.setUsername("anyUser");
 
     // When
-    when(currentUserService.getCurrentUser()).thenReturn(currentUser);
+    when(userService.getUserByUsername(currentUser.getUsername())).thenReturn(currentUser);
+    injectSecurityContext(UserDetails.fromUser(currentUser));
+
     when(queryExecutor.find(anySet(), any(MapSqlParameterSource.class)))
         .thenReturn(expectedItemsFound);
     final List<DataItem> actualDimensionalItems =
@@ -112,6 +120,15 @@ class DataItemServiceFacadeTest {
     assertThat(actualDimensionalItems, hasSize(2));
     assertThat(actualDimensionalItems.get(0).getDimensionItemType(), is(INDICATOR));
     assertThat(actualDimensionalItems.get(1).getDimensionItemType(), is(INDICATOR));
+  }
+
+  public static void injectSecurityContext(UserDetails currentUserDetails) {
+    Authentication authentication =
+        new UsernamePasswordAuthenticationToken(
+            currentUserDetails, "", currentUserDetails.getAuthorities());
+    SecurityContext context = SecurityContextHolder.createEmptyContext();
+    context.setAuthentication(authentication);
+    SecurityContextHolder.setContext(context);
   }
 
   @Test

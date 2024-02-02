@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.actions;
 
+import static io.restassured.RestAssured.oauth2;
 import static org.hamcrest.CoreMatchers.equalTo;
 
 import io.restassured.RestAssured;
@@ -91,6 +92,15 @@ public class LoginActions {
   /** Removes authentication header */
   public static void removeAuthenticationHeader() {
     RestAssured.authentication = RestAssured.DEFAULT_AUTH;
+  }
+
+  /**
+   * Logs in with oAuth2 token
+   *
+   * @param token
+   */
+  public void loginWithToken(String token) {
+    RestAssured.authentication = oauth2(token);
   }
 
   public void loginAsAdmin() {

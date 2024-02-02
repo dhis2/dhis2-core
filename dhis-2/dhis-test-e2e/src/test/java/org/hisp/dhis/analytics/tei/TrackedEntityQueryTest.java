@@ -39,6 +39,7 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.IntStream;
 import net.minidev.json.JSONObject;
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.actions.analytics.AnalyticsTeiActions;
@@ -875,11 +876,11 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         true);
 
     // Validate the first three rows, as samples.
-    validateRow(response, 0, List.of("Tambaliabalia MCHP", "", "0.0"));
+    validateRow(response, 0, List.of("Tambaliabalia MCHP", "", "0"));
 
-    validateRow(response, 1, List.of("Kathanta Bana MCHP", "", "0.0"));
+    validateRow(response, 1, List.of("Kathanta Bana MCHP", "", "0"));
 
-    validateRow(response, 2, List.of("Sam Lean's MCHP", "", "0.0"));
+    validateRow(response, 2, List.of("Sam Lean's MCHP", "", "0"));
   }
 
   @Test
@@ -2155,7 +2156,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "PID0001",
             "Johnson",
             "Sarah",
-            "1988-07-10",
+            "1988-07-10 00:00:00.0",
             "",
             "30",
             "FEMALE",
@@ -2183,7 +2184,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "7hdjdj",
             "Martin",
             "Steve",
-            "1976-02-03",
+            "1976-02-03 00:00:00.0",
             "",
             "43",
             "FEMALE",
@@ -2211,13 +2212,13 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "",
             "",
             "",
-            "1998-02-04",
+            "1998-02-04 00:00:00.0",
             "",
             "21",
             "",
             "",
             "",
-            "[40.41441,-3.71542]"));
+            "SRID=4326;POINT(40.41441 -3.71542)"));
   }
 
   @Test
@@ -2272,7 +2273,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "PID0001",
             "Johnson",
             "Sarah",
-            "1988-07-10",
+            "1988-07-10 00:00:00.0",
             "",
             "30",
             "FEMALE",
@@ -2300,7 +2301,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "7hdjdj",
             "Martin",
             "Steve",
-            "1976-02-03",
+            "1976-02-03 00:00:00.0",
             "",
             "43",
             "FEMALE",
@@ -2328,13 +2329,13 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "",
             "",
             "",
-            "1998-02-04",
+            "1998-02-04 00:00:00.0",
             "",
             "21",
             "",
             "",
             "",
-            "[40.41441,-3.71542]"));
+            "SRID=4326;POINT(40.41441 -3.71542)"));
   }
 
   @Test
@@ -2778,5 +2779,239 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Male",
             "",
             "2994.5"));
+  }
+
+  @Test
+  public void headerParamProgramStatus() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("programStatus=IpHINAT79UW.ACTIVE")
+            .add("headers=IpHINAT79UW.programstatus")
+            .add("lastUpdated=LAST_YEAR")
+            .add("relativePeriodDate=2016-01-01");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("rows", hasSize(equalTo(50)))
+        .body("height", equalTo(50))
+        .body("width", equalTo(1))
+        .body("headerWidth", equalTo(1))
+        .body("headers", hasSize(equalTo(1)));
+
+    validateHeader(
+        response,
+        0,
+        "IpHINAT79UW.programstatus",
+        "Program Status, Child Programme",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+
+    IntStream.range(0, 50).forEach(i -> validateRow(response, i, List.of("ACTIVE")));
+  }
+
+  @Test
+  public void headerParamEnrollmentStatus() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("enrollmentStatus=IpHINAT79UW.ACTIVE")
+            .add("headers=IpHINAT79UW.enrollmentstatus")
+            .add("lastUpdated=LAST_YEAR")
+            .add("relativePeriodDate=2016-01-01");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("rows", hasSize(equalTo(50)))
+        .body("height", equalTo(50))
+        .body("width", equalTo(1))
+        .body("headerWidth", equalTo(1))
+        .body("headers", hasSize(equalTo(1)));
+
+    validateHeader(
+        response,
+        0,
+        "IpHINAT79UW.enrollmentstatus",
+        "Enrollment Status, Child Programme",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+
+    IntStream.range(0, 50).forEach(i -> validateRow(response, i, List.of("ACTIVE")));
+  }
+
+  @Test
+  public void headerParamIncidentDate() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("incidentDate=IpHINAT79UW.2022-01-01")
+            .add("headers=IpHINAT79UW.incidentdate")
+            .add("asc=IpHINAT79UW.incidentdate")
+            .add("lastUpdated=LAST_YEAR")
+            .add("relativePeriodDate=2016-01-01");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("rows", hasSize(equalTo(50)))
+        .body("height", equalTo(50))
+        .body("width", equalTo(1))
+        .body("headerWidth", equalTo(1))
+        .body("headers", hasSize(equalTo(1)));
+
+    validateHeader(
+        response,
+        0,
+        "IpHINAT79UW.incidentdate",
+        "Date of birth, Child Programme",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+
+    validateRow(response, 0, List.of("2022-01-01 12:05:00.0"));
+  }
+
+  @Test
+  public void headerParamOunameIsPresent() {
+    // Given
+    QueryParamsBuilder params = new QueryParamsBuilder().add("headers=IpHINAT79UW.ouname");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("rows", hasSize(equalTo(50)))
+        .body("height", equalTo(50))
+        .body("width", equalTo(1))
+        .body("headerWidth", equalTo(1))
+        .body("headers", hasSize(equalTo(1)));
+
+    validateHeader(
+        response,
+        0,
+        "IpHINAT79UW.ouname",
+        "Organisation Unit Name, Child Programme",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+  }
+
+  @Test
+  public void noNaNinRows() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=IpHINAT79UW.GxdhnY5wmHq")
+            .add("headers=IpHINAT79UW.GxdhnY5wmHq")
+            .add("lastupdated=LAST_YEAR")
+            .add("asc=lastupdated")
+            .add("relativePeriodDate=2016-01-01");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("rows", hasSize(equalTo(50)))
+        .body("height", equalTo(50))
+        .body("width", equalTo(1))
+        .body("headerWidth", equalTo(1))
+        .body("headers", hasSize(equalTo(1)));
+
+    validateRow(response, 0, List.of(""));
+  }
+
+  @Test
+  public void metaContainsFullPrefixWithDimensionName() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=IpHINAT79UW.ZzYYXq4fJie.cYGaxwK615G")
+            .add("headers=IpHINAT79UW.ZzYYXq4fJie.cYGaxwK615G,IpHINAT79UW.enrollmentdate");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("metaData.items['IpHINAT79UW.enrollmentdate'].name", equalTo("Date of enrollment"))
+        .body(
+            "metaData.items['IpHINAT79UW.ZzYYXq4fJie.cYGaxwK615G'].name",
+            equalTo("MCH Infant HIV Test Result"));
+  }
+
+  @Test
+  public void booleanReturns1() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=bJeK4FaRKDS")
+            .add("headers=bJeK4FaRKDS")
+            .add("lastUpdated=LAST_YEAR")
+            .add("desc=lastupdated")
+            .add("relativePeriodDate=2020-01-01")
+            .add("pageSize=1");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("Zy2SEgA61ys", JSON, JSON, params);
+
+    // Then
+    response.validate().statusCode(200);
+
+    validateRow(response, 0, List.of("1"));
+  }
+
+  @Test
+  public void multipleEnrollmentDateIsValidRequest() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("enrollmentDate=IpHINAT79UW.LAST_YEAR")
+            .add("enrollmentDate=IpHINAT79UW.2020-01-01")
+            .add("pageSize=1");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response.validate().statusCode(200);
+
+    params =
+        new QueryParamsBuilder()
+            .add("enrollmentDate=IpHINAT79UW.LAST_YEAR,IpHINAT79UW.2020-01-01")
+            .add("pageSize=1");
+
+    // When
+    response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response.validate().statusCode(200);
   }
 }

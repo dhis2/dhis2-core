@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.tracker.TrackerType;
@@ -67,6 +68,8 @@ import org.hisp.dhis.user.User;
 public class TrackerBundle {
   /** User to use for import job. */
   private User user;
+
+  private UserInfoSnapshot userInfo;
 
   /** Should import be imported or just validated. */
   @Builder.Default private TrackerBundleMode importMode = TrackerBundleMode.COMMIT;
@@ -146,7 +149,7 @@ public class TrackerBundle {
     return User.username(user);
   }
 
-  @Builder.Default @JsonIgnore private Set<String> updatedTeis = new HashSet<>();
+  @Builder.Default @JsonIgnore private Set<String> updatedTrackedEntities = new HashSet<>();
 
   public Optional<TrackedEntity> findTrackedEntityByUid(String uid) {
     return findById(this.trackedEntities, uid);
@@ -219,18 +222,11 @@ public class TrackerBundle {
   public boolean exists(TrackerType type, String uid) {
     Objects.requireNonNull(type);
 
-    switch (type) {
-      case TRACKED_ENTITY:
-        return findTrackedEntityByUid(uid).isPresent();
-      case ENROLLMENT:
-        return findEnrollmentByUid(uid).isPresent();
-      case EVENT:
-        return findEventByUid(uid).isPresent();
-      case RELATIONSHIP:
-        return findRelationshipByUid(uid).isPresent();
-      default:
-        // only reached if a new TrackerDto implementation is added
-        throw new IllegalStateException("TrackerType " + type.getName() + " not yet supported.");
-    }
+    return switch (type) {
+      case TRACKED_ENTITY -> findTrackedEntityByUid(uid).isPresent();
+      case ENROLLMENT -> findEnrollmentByUid(uid).isPresent();
+      case EVENT -> findEventByUid(uid).isPresent();
+      case RELATIONSHIP -> findRelationshipByUid(uid).isPresent();
+    };
   }
 }

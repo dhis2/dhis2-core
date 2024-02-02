@@ -92,7 +92,7 @@ class ProgramControllerIntegrationTest extends DhisControllerIntegrationTest {
   void testCopyProgramEnrollments() {
     OrganisationUnit orgUnit = orgUnitService.getOrganisationUnit(ORG_UNIT_UID);
     User user = createAndAddUser(true, "user", Set.of(orgUnit), Set.of(orgUnit));
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     assertStatus(
         HttpStatus.CREATED,
@@ -148,7 +148,7 @@ class ProgramControllerIntegrationTest extends DhisControllerIntegrationTest {
             .as(JsonWebMessage.class);
 
     JsonList<JsonEnrollment> enrollments =
-        enrollmentsForOrgUnit.getList("instances", JsonEnrollment.class);
+        enrollmentsForOrgUnit.getList("enrollments", JsonEnrollment.class);
     Set<JsonEnrollment> originalProgramEnrollments =
         enrollments.stream()
             .filter(enrollment -> enrollment.getProgram().equals(PROGRAM_UID))

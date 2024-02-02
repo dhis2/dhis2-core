@@ -45,14 +45,12 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
-import org.hisp.dhis.webapi.controller.tracker.export.OpenApiExport;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
+import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.ResponseEntity;
@@ -95,50 +93,35 @@ class EnrollmentsExportController {
         "enrollment", EnrollmentMapper.ORDERABLE_FIELDS, enrollmentService.getOrderableFields());
   }
 
-  @OpenApi.Response(status = Status.OK, value = OpenApiExport.ListResponse.class)
+  @OpenApi.Response(status = Status.OK, value = Page.class)
   @GetMapping(produces = APPLICATION_JSON_VALUE)
-  PagingWrapper<ObjectNode> getEnrollments(EnrollmentRequestParams enrollmentRequestParams)
+  Page<ObjectNode> getEnrollments(EnrollmentRequestParams requestParams)
       throws BadRequestException, ForbiddenException {
-    validatePaginationParameters(enrollmentRequestParams);
-    EnrollmentOperationParams operationParams = paramsMapper.map(enrollmentRequestParams);
+    validatePaginationParameters(requestParams);
+    EnrollmentOperationParams operationParams = paramsMapper.map(requestParams);
 
-    if (enrollmentRequestParams.isPaged()) {
+    if (requestParams.isPaged()) {
       PageParams pageParams =
           new PageParams(
-              enrollmentRequestParams.getPage(),
-              enrollmentRequestParams.getPageSize(),
-              enrollmentRequestParams.getTotalPages());
+              requestParams.getPage(), requestParams.getPageSize(), requestParams.getTotalPages());
 
-      Page<org.hisp.dhis.program.Enrollment> enrollmentPage =
+      org.hisp.dhis.tracker.export.Page<org.hisp.dhis.program.Enrollment> enrollmentsPage =
           enrollmentService.getEnrollments(operationParams, pageParams);
-
-      PagingWrapper.Pager.PagerBuilder pagerBuilder =
-          PagingWrapper.Pager.builder()
-              .page(enrollmentPage.getPager().getPage())
-              .pageSize(enrollmentPage.getPager().getPageSize());
-
-      if (enrollmentRequestParams.isPageTotal()) {
-        pagerBuilder
-            .pageCount(enrollmentPage.getPager().getPageCount())
-            .total(enrollmentPage.getPager().getTotal());
-      }
-
-      PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
-      pagingWrapper = pagingWrapper.withPager(pagerBuilder.build());
       List<ObjectNode> objectNodes =
           fieldFilterService.toObjectNodes(
-              ENROLLMENT_MAPPER.fromCollection(enrollmentPage.getItems()),
-              enrollmentRequestParams.getFields());
-      return pagingWrapper.withInstances(objectNodes);
+              ENROLLMENT_MAPPER.fromCollection(enrollmentsPage.getItems()),
+              requestParams.getFields());
+
+      return Page.withPager(ENROLLMENTS, objectNodes, enrollmentsPage);
     }
 
     Collection<org.hisp.dhis.program.Enrollment> enrollments =
         enrollmentService.getEnrollments(operationParams);
     List<ObjectNode> objectNodes =
         fieldFilterService.toObjectNodes(
-            ENROLLMENT_MAPPER.fromCollection(enrollments), enrollmentRequestParams.getFields());
-    PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
-    return pagingWrapper.withInstances(objectNodes);
+            ENROLLMENT_MAPPER.fromCollection(enrollments), requestParams.getFields());
+
+    return Page.withoutPager(ENROLLMENTS, objectNodes);
   }
 
   @OpenApi.Response(OpenApi.EntityType.class)

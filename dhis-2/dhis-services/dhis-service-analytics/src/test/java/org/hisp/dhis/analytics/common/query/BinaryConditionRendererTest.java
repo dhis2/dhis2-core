@@ -31,6 +31,7 @@ import static org.hisp.dhis.analytics.common.query.Field.of;
 import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.GE;
 import static org.hisp.dhis.common.QueryOperator.GT;
+import static org.hisp.dhis.common.QueryOperator.IEQ;
 import static org.hisp.dhis.common.QueryOperator.ILIKE;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.QueryOperator.LE;
@@ -40,16 +41,19 @@ import static org.hisp.dhis.common.QueryOperator.NEQ;
 import static org.hisp.dhis.common.QueryOperator.NILIKE;
 import static org.hisp.dhis.common.QueryOperator.NLIKE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
 import org.hisp.dhis.analytics.common.params.dimension.AnalyticsQueryOperator;
+import org.hisp.dhis.analytics.tei.query.RenderableDataValue;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlParameterManager;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -118,12 +122,32 @@ class BinaryConditionRendererTest {
   }
 
   @Test
+  void testIEqWithSingleValueProduceCorrectSql() {
+    genericTestExecutor(
+        IEQ,
+        List.of("vAlUe"),
+        ValueTypeMapping.STRING,
+        "lower(\"field\") = :1",
+        List.of(getQueryContextAssertEqualsConsumer("value")));
+  }
+
+  @Test
   void testEqWithNVProduceCorrectSql() {
     genericTestExecutor(
         EQ,
         List.of("NV"),
         ValueTypeMapping.STRING,
         "\"field\" is null",
+        List.of(getQueryContextAssertEmptyConsumer()));
+  }
+
+  @Test
+  void testIEqWithNVProduceCorrectSql() {
+    genericTestExecutor(
+        IEQ,
+        List.of("NV"),
+        ValueTypeMapping.STRING,
+        "lower(\"field\") is null",
         List.of(getQueryContextAssertEmptyConsumer()));
   }
 
@@ -138,12 +162,34 @@ class BinaryConditionRendererTest {
   }
 
   @Test
+  void testIEqWithMultipleValueProduceCorrectSql() {
+    genericTestExecutor(
+        IEQ,
+        List.of("V1", "V2"),
+        ValueTypeMapping.STRING,
+        "lower(\"field\") in (:1)",
+        List.of(getQueryContextAssertEqualsConsumer(List.of("v1", "v2"))));
+  }
+
+  @Test
   void testEqWithNVMultipleValueProduceCorrectSql() {
     genericTestExecutor(
         EQ,
         List.of("v1", "NV"),
         ValueTypeMapping.STRING,
         "(\"field\" is null or \"field\" in (:1))",
+        List.of(
+            getQueryContextAssertEqualsConsumer("v1"),
+            queryContext -> assertEquals(1, queryContext.getParametersPlaceHolder().size())));
+  }
+
+  @Test
+  void testIEqWithNVMultipleValueProduceCorrectSql() {
+    genericTestExecutor(
+        IEQ,
+        List.of("V1", "NV"),
+        ValueTypeMapping.STRING,
+        "(lower(\"field\") is null or lower(\"field\") in (:1))",
         List.of(
             getQueryContextAssertEqualsConsumer("v1"),
             queryContext -> assertEquals(1, queryContext.getParametersPlaceHolder().size())));
@@ -346,5 +392,36 @@ class BinaryConditionRendererTest {
     IllegalQueryException exception =
         assertThrows(IllegalQueryException.class, binaryConditionRenderer::render);
     assertEquals("Operator not supported: `EW`", exception.getMessage());
+  }
+
+  @Test
+  void testDataElementWithBooleanParameter() {
+    SqlParameterManager sqlParameterManager = new SqlParameterManager();
+    QueryContext queryContext = QueryContext.of(null, sqlParameterManager);
+    List<String> values = List.of("1", "true", "0", "", "whatever", "TRUE", "TrUe");
+    BinaryConditionRenderer binaryConditionRenderer =
+        BinaryConditionRenderer.of(
+            RenderableDataValue.of("alias", "dataValue", ValueTypeMapping.BOOLEAN),
+            EQ,
+            values,
+            ValueTypeMapping.BOOLEAN,
+            queryContext);
+    String render = binaryConditionRenderer.render();
+
+    assertEquals("(alias.\"eventdatavalues\" -> 'dataValue' ->> 'value')::BOOLEAN in (:1)", render);
+    assertEquals(1, queryContext.getParametersPlaceHolder().size());
+    assertInstanceOf(Collection.class, queryContext.getParametersPlaceHolder().get("1"));
+
+    List<?> parameters =
+        ((Collection) queryContext.getParametersPlaceHolder().get("1")).stream().toList();
+
+    assertEquals(7, ((Collection) queryContext.getParametersPlaceHolder().get("1")).size());
+    assertEquals(Boolean.TRUE, parameters.get(0));
+    assertEquals(Boolean.TRUE, parameters.get(1));
+    assertEquals(Boolean.FALSE, parameters.get(2));
+    assertEquals(Boolean.FALSE, parameters.get(3));
+    assertEquals(Boolean.FALSE, parameters.get(4));
+    assertEquals(Boolean.TRUE, parameters.get(5));
+    assertEquals(Boolean.TRUE, parameters.get(6));
   }
 }

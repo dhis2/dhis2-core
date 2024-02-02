@@ -67,7 +67,7 @@ public class MetadataIdentifier implements Serializable {
   public static final MetadataIdentifier EMPTY_NAME = MetadataIdentifier.ofName((String) null);
 
   /** Represents the idScheme the {@link #identifier} is in. */
-  @JsonProperty private final TrackerIdScheme idScheme;
+  @JsonProperty TrackerIdScheme idScheme;
 
   /**
    * Represents the actual identifier of the metadata. UID for idScheme {@code UID} and {@code
@@ -77,13 +77,13 @@ public class MetadataIdentifier implements Serializable {
    * of which idScheme it is in, which was the source of many bugs. If you are doing equality
    * comparisons use {@link #isEqualTo(IdentifiableObject)} instead.
    */
-  @JsonProperty private final String identifier;
+  @JsonProperty String identifier;
 
   /**
    * Represents the value of a metadata attribute. It is only non-null if idScheme is {@code
    * ATTRIBUTE}.
    */
-  @JsonProperty private final String attributeValue;
+  @JsonProperty String attributeValue;
 
   /**
    * Creates an identifier for metadata. {@code attributeValue} only needs to be set if idScheme is
@@ -196,22 +196,17 @@ public class MetadataIdentifier implements Serializable {
    * @return identifier of given identifiable object
    */
   public <T extends IdentifiableObject> String identifierOf(T metadata) {
-    switch (idScheme) {
-      case UID:
-        return metadata.getUid();
-      case CODE:
-        return metadata.getCode();
-      case NAME:
-        return metadata.getName();
-      case ATTRIBUTE:
-        return metadata.getAttributeValues().stream()
-            .filter(av -> av.getAttribute().getUid().equals(this.identifier))
-            .map(AttributeValue::getValue)
-            .findFirst()
-            .orElse(null);
-    }
-
-    throw new RuntimeException("Unhandled identifier type.");
+    return switch (idScheme) {
+      case UID -> metadata.getUid();
+      case CODE -> metadata.getCode();
+      case NAME -> metadata.getName();
+      case ATTRIBUTE ->
+          metadata.getAttributeValues().stream()
+              .filter(av -> av.getAttribute().getUid().equals(this.identifier))
+              .map(AttributeValue::getValue)
+              .findFirst()
+              .orElse(null);
+    };
   }
 
   /**

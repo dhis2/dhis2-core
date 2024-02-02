@@ -37,7 +37,7 @@ import javax.persistence.criteria.Root;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -53,14 +53,12 @@ public class HibernateProgramNotificationInstanceStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
     super(
         entityManager,
         jdbcTemplate,
         publisher,
         ProgramNotificationInstance.class,
-        currentUserService,
         aclService,
         true);
   }
@@ -76,11 +74,13 @@ public class HibernateProgramNotificationInstanceStore
             .addOrder(root -> builder.desc(root.get("created")));
 
     if (!params.isSkipPaging()) {
+      // javax.persistence.TypedQuery position of the first result is numbered from 0 while
+      // user-facing pagination parameters start at 1
+      int firstResult =
+          ObjectUtils.firstNonNull(params.getPage(), ProgramNotificationInstanceParam.DEFAULT_PAGE)
+              - 1;
       jpaParameters
-          .setFirstResult(
-              params.getPage() != null
-                  ? params.getPage()
-                  : ProgramNotificationInstanceParam.DEFAULT_PAGE)
+          .setFirstResult(firstResult)
           .setMaxResults(
               params.getPageSize() != null
                   ? params.getPageSize()

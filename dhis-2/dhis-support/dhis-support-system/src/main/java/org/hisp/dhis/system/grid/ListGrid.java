@@ -41,6 +41,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -48,9 +49,10 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
+import java.util.regex.Pattern;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRField;
 import org.apache.commons.lang3.StringUtils;
@@ -63,6 +65,7 @@ import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.PerformanceMetrics;
 import org.hisp.dhis.common.Reference;
+import org.hisp.dhis.common.ValueStatus;
 import org.hisp.dhis.common.adapter.JacksonRowDataSerializer;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.system.util.MathUtils;
@@ -76,6 +79,8 @@ public class ListGrid implements Grid, Serializable {
   private static final String REGRESSION_SUFFIX = "_regression";
 
   private static final String CUMULATIVE_SUFFIX = "_cumulative";
+
+  private static final Pattern numberRegex = Pattern.compile("\\d+");
 
   /** The title of the grid. */
   private String title;
@@ -254,12 +259,12 @@ public class ListGrid implements Grid, Serializable {
 
   @Override
   public List<GridHeader> getVisibleHeaders() {
-    return headers.stream().filter(h -> !h.isHidden()).collect(Collectors.toList());
+    return headers.stream().filter(h -> !h.isHidden()).toList();
   }
 
   @Override
   public List<GridHeader> getMetadataHeaders() {
-    return headers.stream().filter(GridHeader::isMeta).collect(Collectors.toList());
+    return headers.stream().filter(GridHeader::isMeta).toList();
   }
 
   @Override
@@ -275,7 +280,7 @@ public class ListGrid implements Grid, Serializable {
   @Override
   @JsonProperty
   public int getHeight() {
-    return grid != null && grid.size() > 0 ? grid.size() : 0;
+    return grid != null && !grid.isEmpty() ? grid.size() : 0;
   }
 
   @Override
@@ -283,7 +288,7 @@ public class ListGrid implements Grid, Serializable {
   public int getWidth() {
     verifyGridState();
 
-    return grid != null && grid.size() > 0 ? grid.get(0).size() : 0;
+    return grid != null && !grid.isEmpty() ? grid.get(0).size() : 0;
   }
 
   @Override
@@ -345,7 +350,7 @@ public class ListGrid implements Grid, Serializable {
   public int getVisibleWidth() {
     verifyGridState();
 
-    return grid != null && grid.size() > 0 ? getVisibleRows().get(0).size() : 0;
+    return grid != null && !grid.isEmpty() ? getVisibleRows().get(0).size() : 0;
   }
 
   @Override
@@ -381,9 +386,7 @@ public class ListGrid implements Grid, Serializable {
   public Grid addValues(Object[] values) {
     List<Object> row = grid.get(currentRowWriteIndex);
 
-    for (Object value : values) {
-      row.add(value);
-    }
+    row.addAll(Arrays.asList(values));
 
     return this;
   }
@@ -447,7 +450,7 @@ public class ListGrid implements Grid, Serializable {
 
     List<List<Object>> tempGrid = new ArrayList<>();
 
-    if (headers != null && headers.size() > 0) {
+    if (headers != null && !headers.isEmpty()) {
       for (List<Object> row : grid) {
         List<Object> tempRow = new ArrayList<>();
 
@@ -535,8 +538,8 @@ public class ListGrid implements Grid, Serializable {
   @Override
   public Grid addAndPopulateColumnsBefore(
       int referenceColumnIndex, Map<Object, List<?>> valueMap, int newColumns) {
-    Validate.inclusiveBetween(0, getWidth() - 1, referenceColumnIndex);
-    Validate.notNull(valueMap);
+    Validate.inclusiveBetween(0, getWidth() - 1L, referenceColumnIndex);
+    Objects.requireNonNull(valueMap);
     verifyGridState();
 
     for (List<Object> row : grid) {
@@ -589,7 +592,7 @@ public class ListGrid implements Grid, Serializable {
   public Grid removeColumn(int columnIndex) {
     verifyGridState();
 
-    if (headers.size() > 0) {
+    if (!headers.isEmpty()) {
       headers.remove(columnIndex);
     }
 
@@ -789,7 +792,7 @@ public class ListGrid implements Grid, Serializable {
   }
 
   @Override
-  public Grid substituteMetaData(Map<? extends Object, ? extends Object> metaDataMap) {
+  public Grid substituteMetaData(Map<?, ?> metaDataMap) {
     if (metaDataMap == null || headers == null || headers.isEmpty()) {
       return this;
     }
@@ -817,9 +820,7 @@ public class ListGrid implements Grid, Serializable {
 
   @Override
   public Grid substituteMetaData(
-      int sourceColumnIndex,
-      int targetColumnIndex,
-      Map<? extends Object, ? extends Object> metaDataMap) {
+      int sourceColumnIndex, int targetColumnIndex, Map<?, ?> metaDataMap) {
     if (metaDataMap == null) {
       return this;
     }
@@ -1008,15 +1009,25 @@ public class ListGrid implements Grid, Serializable {
   public Grid addNamedRows(SqlRowSet rs) {
     String[] cols = headers.stream().map(GridHeader::getName).toArray(String[]::new);
     Set<String> headersSet = new LinkedHashSet<>();
+    rowContext = new HashMap<>();
 
     while (rs.next()) {
       addRow();
+      Map<String, Object> rowContextItem = new HashMap<>();
 
       for (int i = 0; i < cols.length; i++) {
         if (headerExists(cols[i])) {
-          addValue(rs.getObject(cols[i]));
-          headersSet.add(cols[i]);
+          String columnLabel = cols[i];
+
+          Object value = rs.getObject(columnLabel);
+          addValue(value);
+          headersSet.add(columnLabel);
+
+          rowContextItem = getRowContextItem(rs, cols[i], value, i);
         }
+      }
+      if (!rowContextItem.isEmpty()) {
+        rowContext.put(currentRowWriteIndex, rowContextItem);
       }
     }
 
@@ -1115,6 +1126,30 @@ public class ListGrid implements Grid, Serializable {
       row.clear();
       row.addAll(orderedValues);
     }
+
+    // reposition columns in the row context structure
+    Map<Integer, Map<String, Object>> orderedRowContext = new HashMap<>();
+    Map<String, Object> orderedRowContextItems = new HashMap<>();
+
+    for (Map.Entry<Integer, Map<String, Object>> rowContextEntry : rowContext.entrySet()) {
+      Map<String, Object> ctxItem = rowContextEntry.getValue();
+      ctxItem
+          .keySet()
+          .forEach(
+              key -> {
+                if (numberRegex.matcher(key).matches()) {
+                  orderedRowContextItems.put(
+                      columnIndexes.get(Integer.parseInt(key)).toString(), ctxItem.get(key));
+                }
+              });
+      if (!orderedRowContextItems.isEmpty()) {
+        orderedRowContext.put(rowContextEntry.getKey(), orderedRowContextItems);
+      }
+    }
+
+    if (!orderedRowContext.isEmpty()) {
+      setRowContext(orderedRowContext);
+    }
   }
 
   @Override
@@ -1165,6 +1200,46 @@ public class ListGrid implements Grid, Serializable {
     }
   }
 
+  /**
+   * The method retrieves row context content that describes the origin of the data value,
+   * indicating whether it is set, not set, or undefined. The column index is used as the map key,
+   * and the corresponding value contains information about the origin, also known as the value
+   * status.
+   *
+   * @param rs the {@link ResultSet},
+   * @param columnName the {@link String}, grid row column name
+   * @param value the {@link Object}, grid row column value
+   * @param rowIndex, row id
+   * @return Map of column index and value status
+   */
+  private Map<String, Object> getRowContextItem(
+      SqlRowSet rs, String columnName, Object value, int rowIndex) {
+    Map<String, Object> rowContextItem = new HashMap<>();
+    String indicatorColumnLabel = columnName + ".exists";
+
+    if (Arrays.stream(rs.getMetaData().getColumnNames())
+        .anyMatch(n -> n.equalsIgnoreCase(indicatorColumnLabel))) {
+
+      boolean isDefined = rs.getBoolean(indicatorColumnLabel);
+      boolean isSet = isDefined && value != null;
+
+      ValueStatus valueStatus;
+      if (!isDefined) {
+        valueStatus = ValueStatus.NOT_DEFINED;
+      } else {
+        valueStatus = isSet ? ValueStatus.SET : ValueStatus.NOT_SET;
+      }
+
+      if (valueStatus != ValueStatus.SET) {
+        Map<String, String> valueStatusMap = new HashMap<>();
+        valueStatusMap.put("valueStatus", valueStatus.getValue());
+        rowContextItem.put(Integer.toString(rowIndex), valueStatusMap);
+      }
+    }
+
+    return rowContextItem;
+  }
+
   // -------------------------------------------------------------------------
   // toString
   // -------------------------------------------------------------------------
@@ -1173,7 +1248,7 @@ public class ListGrid implements Grid, Serializable {
   public String toString() {
     StringBuilder builder = new StringBuilder("[\n");
 
-    if (headers != null && headers.size() > 0) {
+    if (headers != null && !headers.isEmpty()) {
       List<String> headerNames = new ArrayList<>();
 
       for (GridHeader header : headers) {
@@ -1195,9 +1270,9 @@ public class ListGrid implements Grid, Serializable {
   // -------------------------------------------------------------------------
 
   public static class GridRowComparator implements Comparator<List<Object>> {
-    private int columnIndex;
+    private final int columnIndex;
 
-    private int order;
+    private final int order;
 
     protected GridRowComparator(int columnIndex, int order) {
       this.columnIndex = columnIndex;

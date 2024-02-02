@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.common.processing;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.unmodifiableList;
 import static org.hisp.dhis.analytics.EventOutputType.TRACKED_ENTITY_INSTANCE;
-import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.isStaticDimensionIdentifier;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.DATE_FILTERS;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.DIMENSIONS;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.FILTERS;
@@ -66,6 +65,7 @@ import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.CommonParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParamType;
 import org.hisp.dhis.analytics.common.params.dimension.StringUid;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
@@ -74,11 +74,11 @@ import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.springframework.stereotype.Component;
 
 /**
@@ -144,6 +144,7 @@ public class CommonQueryRequestMapper {
         .orderParams(getSortingParams(request, programs, userOrgUnits))
         .headers(getHeaders(request))
         .dimensionIdentifiers(retrieveDimensionParams(request, programs, userOrgUnits))
+        .parsedHeaders(parseHeaders(request, programs, userOrgUnits))
         .skipMeta(request.isSkipMeta())
         .includeMetadataDetails(request.isIncludeMetadataDetails())
         .hierarchyMeta(request.isHierarchyMeta())
@@ -152,6 +153,14 @@ public class CommonQueryRequestMapper {
         .coordinatesOnly(request.isCoordinatesOnly())
         .geometryOnly(request.isGeometryOnly())
         .build();
+  }
+
+  private Set<DimensionIdentifier<DimensionParam>> parseHeaders(
+      CommonQueryRequest request, List<Program> programs, List<OrganisationUnit> userOrgUnits) {
+
+    return HEADERS.getUidsGetter().apply(request).stream()
+        .map(header -> toDimensionIdentifier(header, HEADERS, request, programs, userOrgUnits))
+        .collect(Collectors.toSet());
   }
 
   /**
@@ -362,8 +371,11 @@ public class CommonQueryRequestMapper {
         dimensionIdentifierConverter.fromString(programs, dimensionId);
     List<String> items = getDimensionItemsFromParam(dimensionOrFilter);
 
+    Optional<StaticDimension> staticDimension =
+        StaticDimension.of(dimensionIdentifier.getDimension().getUid());
+
     // Then we check if it's a static dimension.
-    if (isStaticDimensionIdentifier(dimensionIdentifier.getDimension().getUid())) {
+    if (staticDimension.isPresent()) {
       return parseAsStaticDimension(dimensionParamType, dimensionIdentifier, items);
     }
 

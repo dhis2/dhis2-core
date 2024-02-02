@@ -33,6 +33,8 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getTokens;
+import static org.hisp.dhis.system.util.SqlUtils.encode;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.CREATED_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.DELETED;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.INACTIVE_ID;
@@ -80,7 +82,6 @@ import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.security.acl.AclService;
@@ -89,7 +90,6 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityStore;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
@@ -139,8 +139,6 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
 
   private final OrganisationUnitStore organisationUnitStore;
 
-  private final StatementBuilder statementBuilder;
-
   private final SystemSettingManager systemSettingManager;
 
   // TODO too many arguments in constructor. This needs to be refactored.
@@ -148,25 +146,14 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService,
-      StatementBuilder statementBuilder,
       OrganisationUnitStore organisationUnitStore,
       SystemSettingManager systemSettingManager) {
-    super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        TrackedEntity.class,
-        currentUserService,
-        aclService,
-        false);
+    super(entityManager, jdbcTemplate, publisher, TrackedEntity.class, aclService, false);
 
-    checkNotNull(statementBuilder);
     checkNotNull(organisationUnitStore);
     checkNotNull(systemSettingManager);
 
-    this.statementBuilder = statementBuilder;
     this.organisationUnitStore = organisationUnitStore;
     this.systemSettingManager = systemSettingManager;
   }
@@ -217,9 +204,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
 
   private String encodeAndQuote(Collection<String> elements) {
     return getQuotedCommaDelimitedString(
-        elements.stream()
-            .map(element -> statementBuilder.encode(element, false))
-            .collect(Collectors.toList()));
+        elements.stream().map(element -> encode(element, false)).collect(Collectors.toList()));
   }
 
   @Override
@@ -555,10 +540,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
       } else {
         if (sortableAttributesAndFilters(params).stream()
             .anyMatch(i -> i.getItem().getUid().equals(orderParam.getField()))) {
-          columns.add(
-              statementBuilder.columnQuote(orderParam.getField())
-                  + ".value AS "
-                  + statementBuilder.columnQuote(orderParam.getField()));
+          columns.add(quote(orderParam.getField()) + ".value AS " + quote(orderParam.getField()));
         }
       }
     }
@@ -688,9 +670,9 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
   private String joinAttributeValueWithQueryParameter(TrackedEntityQueryParams params) {
     StringBuilder attributes = new StringBuilder();
 
-    final String regexp = statementBuilder.getRegexpMatch();
-    final String wordStart = statementBuilder.getRegexpWordStart();
-    final String wordEnd = statementBuilder.getRegexpWordEnd();
+    final String regexp = "~*";
+    final String wordStart = "\\m";
+    final String wordEnd = "\\M";
     final String anyChar = "\\.*?";
     final String start = params.getQuery().isOperator(QueryOperator.LIKE) ? anyChar : wordStart;
     final String end = params.getQuery().isOperator(QueryOperator.LIKE) ? anyChar : wordEnd;
@@ -710,7 +692,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
         .append(") AND (");
 
     for (String queryToken : getTokens(params.getQuery().getFilter())) {
-      final String query = statementBuilder.encode(queryToken, false);
+      final String query = encode(queryToken, false);
 
       attributes
           .append(orHlp.or())
@@ -741,7 +723,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
             .collect(Collectors.toList());
 
     for (QueryItem queryItem : filterItems) {
-      String col = statementBuilder.columnQuote(queryItem.getItemId());
+      String col = quote(queryItem.getItemId());
       String teaId = col + ".trackedentityattributeid";
       String teav = "lower(" + col + ".value)";
       String ted = col + ".trackedentityid";
@@ -758,7 +740,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
           .append(" = TE.trackedentityid ");
 
       for (QueryFilter filter : queryItem.getFilters()) {
-        String encodedFilter = statementBuilder.encode(filter.getFilter(), false);
+        String encodedFilter = encode(filter.getFilter(), false);
         attributes
             .append("AND ")
             .append(teav)
@@ -791,12 +773,12 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
 
       joinOrderAttributes
           .append(" LEFT JOIN trackedentityattributevalue AS ")
-          .append(statementBuilder.columnQuote(orderAttribute.getItemId()))
+          .append(quote(orderAttribute.getItemId()))
           .append(" ON ")
-          .append(statementBuilder.columnQuote(orderAttribute.getItemId()))
+          .append(quote(orderAttribute.getItemId()))
           .append(".trackedentityid = TE.trackedentityid ")
           .append("AND ")
-          .append(statementBuilder.columnQuote(orderAttribute.getItemId()))
+          .append(quote(orderAttribute.getItemId()))
           .append(".trackedentityattributeid = ")
           .append(orderAttribute.getItem().getId())
           .append(SPACE);
@@ -1181,10 +1163,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
             .append(params.isIncludeDeleted() ? ", TE.deleted " : "");
 
     for (QueryItem queryItem : sortableAttributesAndFilters(params)) {
-      groupBy
-          .append(", TE.")
-          .append(statementBuilder.columnQuote(queryItem.getItemId()))
-          .append(SPACE);
+      groupBy.append(", TE.").append(quote(queryItem.getItemId())).append(SPACE);
     }
 
     return groupBy.toString();
@@ -1225,8 +1204,8 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
             .anyMatch(i -> i.getItem().getUid().equals(order.getField()))) {
           String orderField =
               innerOrder
-                  ? statementBuilder.columnQuote(order.getField()) + ".value "
-                  : MAIN_QUERY_ALIAS + "." + statementBuilder.columnQuote(order.getField());
+                  ? quote(order.getField()) + ".value "
+                  : MAIN_QUERY_ALIAS + "." + quote(order.getField());
 
           orderFields.add(orderField + SPACE + order.getDirection());
         }
@@ -1385,7 +1364,8 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
   }
 
   @Override
-  public void updateTrackedEntityLastUpdated(Set<String> trackedEntityUIDs, Date lastUpdated) {
+  public void updateTrackedEntityLastUpdated(
+      Set<String> trackedEntityUIDs, Date lastUpdated, String infoSnapshot) {
     List<List<String>> uidsPartitions =
         Lists.partition(Lists.newArrayList(trackedEntityUIDs), 20000);
 
@@ -1394,9 +1374,10 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
         .forEach(
             trackedEntities ->
                 getSession()
-                    .getNamedQuery("updateTeisLastUpdated")
+                    .getNamedQuery("updateTrackedEntitiesLastUpdated")
                     .setParameter("trackedEntities", trackedEntities)
                     .setParameter("lastUpdated", lastUpdated)
+                    .setParameter("lastupdatedbyuserinfo", infoSnapshot)
                     .executeUpdate());
   }
 

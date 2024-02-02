@@ -53,7 +53,6 @@ import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 import org.springframework.context.ApplicationEventPublisher;
@@ -76,16 +75,8 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
-    super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        Relationship.class,
-        currentUserService,
-        aclService,
-        true);
+    super(entityManager, jdbcTemplate, publisher, Relationship.class, aclService, true);
   }
 
   @Override

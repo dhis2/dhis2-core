@@ -36,6 +36,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import javax.annotation.CheckForNull;
@@ -87,6 +88,14 @@ import org.springframework.scheduling.support.SimpleTriggerContext;
 @Setter
 @ToString
 public class JobConfiguration extends BaseIdentifiableObject implements SecondaryMetadataObject {
+
+  /**
+   * A CRON based job may trigger on the same day after it has missed its execution. If time has
+   * passed past this point the execution is skipped, and it will trigger on the intended execution
+   * after that. This is the default value for the setting giving a 4h window to succeed with the
+   * execution for each occurrence.
+   */
+  public static final int MAX_CRON_DELAY_HOURS = 4;
 
   /** The type of job. */
   @JsonProperty(required = true)
@@ -309,8 +318,18 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
   /** Kept for backwards compatibility of the REST API */
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   public Date getNextExecutionTime() {
-    Instant next = nextExecutionTime(Instant.now(), Duration.ofDays(1));
+    // this is a "best guess" because the 4h max delay could have been changed in the settings
+    Instant next = nextExecutionTime(Instant.now(), Duration.ofHours(MAX_CRON_DELAY_HOURS));
     return next == null ? null : Date.from(next);
+  }
+
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  public Date getMaxDelayedExecutionTime() {
+    Duration maxCronDelay = Duration.ofHours(MAX_CRON_DELAY_HOURS);
+    Instant nextExecutionTime = nextExecutionTime(Instant.now(), maxCronDelay);
+    if (nextExecutionTime == null) return null;
+    Instant instant = maxDelayedExecutionTime(this, maxCronDelay, nextExecutionTime);
+    return instant == null ? null : Date.from(instant);
   }
 
   /** Kept for backwards compatibility of the REST API */
@@ -369,28 +388,37 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
    * @return the next time this job should run based on the {@link #getLastExecuted()} time
    */
   public Instant nextExecutionTime(@Nonnull Instant now, @Nonnull Duration maxCronDelay) {
+    return nextExecutionTime(ZoneId.systemDefault(), now, maxCronDelay);
+  }
+
+  Instant nextExecutionTime(
+      @Nonnull ZoneId zone, @Nonnull Instant now, @Nonnull Duration maxCronDelay) {
     // for good measure we offset the last time by 1 second
-    Instant since = lastExecuted == null ? now : lastExecuted.toInstant().plusSeconds(1);
+    boolean isFirstExecution = lastExecuted == null;
+    Instant since = isFirstExecution ? now : lastExecuted.toInstant().plusSeconds(1);
     if (isUsedInQueue() && getQueuePosition() > 0) return null;
     return switch (getSchedulingType()) {
       case ONCE_ASAP -> nextOnceExecutionTime(since);
       case FIXED_DELAY -> nextDelayExecutionTime(since);
-      case CRON -> nextCronExecutionTime(since, now, maxCronDelay);
+      case CRON ->
+          nextCronExecutionTime(
+              zone, isFirstExecution ? since.minus(maxCronDelay) : since, now, maxCronDelay);
     };
   }
 
   private Instant nextCronExecutionTime(
-      @Nonnull Instant since, Instant now, @Nonnull Duration maxDelay) {
+      @Nonnull ZoneId zone, @Nonnull Instant since, Instant now, @Nonnull Duration maxDelay) {
     if (isUndefinedCronExpression(cronExpression)) return null;
-    SimpleTriggerContext context =
-        new SimpleTriggerContext(Clock.fixed(since, ZoneId.systemDefault()));
-    Date next = new CronTrigger(cronExpression).nextExecutionTime(context);
+    // we use a no offset zone for the context as we want the given since value to be taken as is
+    // the zone is not actually used by this is closest to what would be required
+    ZoneOffset noOffsetZone = ZoneOffset.UTC;
+    SimpleTriggerContext context = new SimpleTriggerContext(Clock.fixed(since, noOffsetZone));
+    Date next = new CronTrigger(cronExpression, zone).nextExecutionTime(context);
     if (next == null) return null;
-    if (now.isAfter(next.toInstant().plus(maxDelay))) {
+    while (next != null && now.isAfter(next.toInstant().plus(maxDelay))) {
       context =
-          new SimpleTriggerContext(
-              Clock.fixed(next.toInstant().plusSeconds(1), ZoneId.systemDefault()));
-      next = new CronTrigger(cronExpression).nextExecutionTime(context);
+          new SimpleTriggerContext(Clock.fixed(next.toInstant().plusSeconds(1), noOffsetZone));
+      next = new CronTrigger(cronExpression, zone).nextExecutionTime(context);
     }
     return next == null ? null : next.toInstant();
   }
@@ -405,6 +433,14 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
 
   private Instant nextOnceExecutionTime(@Nonnull Instant since) {
     return since;
+  }
+
+  @CheckForNull
+  public static Instant maxDelayedExecutionTime(
+      JobConfiguration config, Duration maxCronDelay, Instant nextExecutionTime) {
+    return nextExecutionTime == null || config.getSchedulingType() != SchedulingType.CRON
+        ? null
+        : nextExecutionTime.plus(maxCronDelay);
   }
 
   private static boolean isUndefinedCronExpression(String cronExpression) {

@@ -105,8 +105,10 @@ import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.visualization.Visualization;
 import org.springframework.stereotype.Service;
@@ -125,8 +127,6 @@ public class DefaultMetadataExportService implements MetadataExportService {
 
   private final FieldFilterService fieldFilterService;
 
-  private final CurrentUserService currentUserService;
-
   private final ProgramRuleService programRuleService;
 
   private final ProgramRuleVariableService programRuleVariableService;
@@ -137,6 +137,8 @@ public class DefaultMetadataExportService implements MetadataExportService {
 
   private final ObjectMapper objectMapper;
 
+  private final UserService userService;
+
   @Override
   @SuppressWarnings("unchecked")
   @Transactional(readOnly = true)
@@ -146,8 +148,13 @@ public class DefaultMetadataExportService implements MetadataExportService {
     Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadata =
         new HashMap<>();
 
-    if (params.getUser() == null) {
-      params.setUser(currentUserService.getCurrentUser());
+    String username =
+        params.getCurrentUserDetails() != null
+            ? params.getCurrentUserDetails().getUsername()
+            : "system-process";
+
+    if (params.getCurrentUserDetails() == null) {
+      params.setCurrentUserDetails(CurrentUserUtil.getCurrentUserDetails());
     }
 
     if (params.getClasses().isEmpty()) {
@@ -159,7 +166,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
                   params.getClasses().add((Class<? extends IdentifiableObject>) schema.getKlass()));
     }
 
-    log.info("(" + params.getUsername() + ") Export:Start");
+    log.info("(" + username + ") Export:Start");
 
     for (Class<? extends IdentifiableObject> klass : params.getClasses()) {
       Query query;
@@ -175,8 +182,8 @@ public class DefaultMetadataExportService implements MetadataExportService {
                 orderParams.getOrders(schemaService.getDynamicSchema(klass)));
       }
 
-      if (query.getUser() == null) {
-        query.setUser(params.getUser());
+      if (query.getCurrentUserDetails() == null && params.getCurrentUserDetails() != null) {
+        query.setCurrentUserDetails(params.getCurrentUserDetails());
       }
 
       query.setDefaultOrder();
@@ -187,16 +194,17 @@ public class DefaultMetadataExportService implements MetadataExportService {
       if (!objects.isEmpty()) {
         log.info(
             "("
-                + params.getUsername()
+                + username
                 + ") Exported "
                 + objects.size()
                 + " objects of type "
                 + klass.getSimpleName());
+
         metadata.put(klass, objects);
       }
     }
 
-    log.info("(" + params.getUsername() + ") Export:Done took " + timer.toString());
+    log.info("(" + username + ") Export:Done took " + timer.toString());
 
     return metadata;
   }
@@ -251,7 +259,6 @@ public class DefaultMetadataExportService implements MetadataExportService {
 
     Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadata =
         getMetadata(params);
-    User currentUser = currentUserService.getCurrentUser();
 
     try (JsonGenerator generator = objectMapper.getFactory().createGenerator(outputStream)) {
       generator.writeStartObject();
@@ -270,6 +277,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
           continue;
         }
 
+        User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
         FieldFilterParams<?> fieldFilterParams =
             FieldFilterParams.builder()
                 .objects(objects)
@@ -365,14 +373,16 @@ public class DefaultMetadataExportService implements MetadataExportService {
   @Override
   @Transactional(readOnly = true)
   public void validate(MetadataExportParams params) {
-    if (params.getUser() == null) {
-      params.setUser(currentUserService.getCurrentUser());
+    if (params.getCurrentUserDetails() == null) {
+      params.setCurrentUserDetails(CurrentUserUtil.getCurrentUserDetails());
     }
 
-    User user = params.getUser();
+    UserDetails user = params.getCurrentUserDetails();
 
     if (params.getClasses().isEmpty()
-        && !(user == null || user.isSuper() || user.isAuthorized(Authorities.F_METADATA_EXPORT))) {
+        && !(user == null
+            || user.isSuper()
+            || user.isAuthorized(Authorities.F_METADATA_EXPORT.name()))) {
       throw new MetadataExportException(
           "Unfiltered access to metadata export requires super user or 'F_METADATA_EXPORT' authority.");
     }
@@ -380,8 +390,8 @@ public class DefaultMetadataExportService implements MetadataExportService {
     if (params.getClasses().contains(User.class)
         && !(user == null
             || user.isSuper()
-            || user.isAuthorized(Authorities.F_USER_VIEW)
-            || user.isAuthorized(Authorities.F_METADATA_EXPORT))) {
+            || user.isAuthorized(Authorities.F_USER_VIEW.name())
+            || user.isAuthorized(Authorities.F_METADATA_EXPORT.name()))) {
       throw new MetadataExportException(
           "Exporting user metadata requires the 'F_USER_VIEW' authority.");
     }

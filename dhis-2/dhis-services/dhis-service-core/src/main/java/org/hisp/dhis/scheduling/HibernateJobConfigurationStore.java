@@ -45,9 +45,7 @@ import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -65,16 +63,8 @@ public class HibernateJobConfigurationStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
-    super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        JobConfiguration.class,
-        currentUserService,
-        aclService,
-        true);
+    super(entityManager, jdbcTemplate, publisher, JobConfiguration.class, aclService, true);
   }
 
   @Override
@@ -279,9 +269,8 @@ public class HibernateJobConfigurationStore
     List<UID> objectList = params.getObject();
     List<String> errors =
         objectList == null ? List.of() : objectList.stream().map(UID::getValue).toList();
-    List<ErrorCode> codeList = params.getCode();
-    List<String> codes =
-        codeList == null ? List.of() : codeList.stream().map(ErrorCode::name).toList();
+    List<String> codeList = params.getCode();
+    List<String> codes = codeList == null ? List.of() : codeList;
     List<JobType> typeList = params.getType();
     List<String> types =
         typeList == null ? List.of() : typeList.stream().map(JobType::name).toList();
@@ -335,6 +324,7 @@ public class HibernateJobConfigurationStore
         """
         update jobconfiguration j1
         set
+          lastupdated = now(),
           jobstatus = 'RUNNING',
           lastexecuted = now(),
           lastalive = now(),
@@ -360,6 +350,7 @@ public class HibernateJobConfigurationStore
         """
         update jobconfiguration
         set
+          lastupdated = now(),
           cancel = case when jobstatus = 'RUNNING' then true else false end,
           enabled = case
             when queueposition is null and schedulingtype = 'ONCE_ASAP' and cronexpression is null and delay is null then false
@@ -389,6 +380,7 @@ public class HibernateJobConfigurationStore
         """
         update jobconfiguration
         set
+          lastupdated = now(),
           lastexecutedstatus = case when cancel = true then 'STOPPED' else :status end,
           lastfinished = now(),
           lastalive = null,
@@ -421,6 +413,7 @@ public class HibernateJobConfigurationStore
         """
         update jobconfiguration
         set
+          lastupdated = now(),
           lastexecutedstatus = 'NOT_STARTED',
           lastexecuted = now(),
           lastfinished = now(),
@@ -463,7 +456,9 @@ public class HibernateJobConfigurationStore
     String sql =
         """
         update jobconfiguration
-        set jobstatus = 'DISABLED'
+        set
+          lastupdated = now(),
+          jobstatus = 'DISABLED'
         where jobstatus = 'SCHEDULED'
         and enabled = false
         """;
@@ -505,6 +500,7 @@ public class HibernateJobConfigurationStore
         """
         update jobconfiguration
         set
+          lastupdated = now(),
           jobstatus = 'SCHEDULED',
           cancel = false,
           lastexecutedstatus = 'FAILED',

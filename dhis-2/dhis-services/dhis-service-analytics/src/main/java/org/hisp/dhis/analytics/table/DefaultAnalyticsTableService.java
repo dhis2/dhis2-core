@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexName;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexes;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
@@ -38,16 +37,16 @@ import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.analytics.AnalyticsIndex;
-import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableManager;
-import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
+import org.hisp.dhis.analytics.table.model.AnalyticsTable;
+import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -77,12 +76,12 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
   }
 
   @Override
-  public void update(AnalyticsTableUpdateParams params, JobProgress progress) {
+  public void create(AnalyticsTableUpdateParams params, JobProgress progress) {
     int parallelJobs = getParallelJobs();
 
     int tableUpdates = 0;
 
-    log.info(String.format("Analytics table update parameters: %s", params));
+    log.info("Analytics table update parameters: {}", params);
 
     AnalyticsTableType tableType = getAnalyticsTableType();
 
@@ -149,7 +148,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
       clock.logTime("Tables vacuumed");
     }
 
-    List<AnalyticsIndex> indexes = getIndexes(partitions);
+    List<Index> indexes = getIndexes(partitions);
     progress.startingStage("Creating indexes " + tableType, indexes.size(), SKIP_ITEM_OUTLIER);
     createIndexes(indexes, progress);
     clock.logTime("Created indexes");
@@ -194,12 +193,12 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
   /** Drops the given temporary analytics tables. */
   private void dropTempTables(List<AnalyticsTable> tables, JobProgress progress) {
 
-    progress.runStage(tables, AnalyticsTable::getTableName, tableManager::dropTempTable);
+    progress.runStage(tables, AnalyticsTable::getName, tableManager::dropTempTable);
   }
 
   /** Creates the given analytics tables. */
   private void createTables(List<AnalyticsTable> tables, JobProgress progress) {
-    progress.runStage(tables, AnalyticsTable::getTableName, tableManager::createTable);
+    progress.runStage(tables, AnalyticsTable::getName, tableManager::createTable);
   }
 
   /** Populates the given analytics tables. */
@@ -213,7 +212,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     progress.runStageInParallel(
         parallelism,
         partitions,
-        AnalyticsTablePartition::getTableName,
+        AnalyticsTablePartition::getName,
         partition -> tableManager.populateTablePartition(params, partition));
   }
 
@@ -243,7 +242,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
         progress.runStageInParallel(
             getParallelJobs(),
             partitions,
-            AnalyticsTablePartition::getTableName,
+            AnalyticsTablePartition::getName,
             partition -> tableManager.applyAggregationLevels(partition, dataElements, level));
 
         aggLevels += dataElements.size();
@@ -258,27 +257,22 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     progress.runStageInParallel(
         getParallelJobs(),
         partitions,
-        AnalyticsTablePartition::getTableName,
+        AnalyticsTablePartition::getName,
         tableManager::vacuumTables);
   }
 
   /** Creates indexes on the given analytics tables. */
-  private void createIndexes(List<AnalyticsIndex> indexes, JobProgress progress) {
-    AnalyticsTableType type = getAnalyticsTableType();
-
+  private void createIndexes(List<Index> indexes, JobProgress progress) {
     progress.runStageInParallel(
-        getParallelJobs(),
-        indexes,
-        index -> getIndexName(index, type).replace("\"", ""),
-        tableManager::createIndex);
+        getParallelJobs(), indexes, index -> index.getName(), tableManager::createIndex);
   }
 
   /** Analyzes the given analytics tables. */
   private void analyzeTables(List<AnalyticsTablePartition> partitions, JobProgress progress) {
     progress.runStage(
         partitions,
-        AnalyticsTablePartition::getTableName,
-        table -> tableManager.analyzeTable(table.getTempTableName()));
+        AnalyticsTablePartition::getName,
+        table -> tableManager.analyzeTable(table.getTempName()));
   }
 
   /**
@@ -293,7 +287,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
 
     progress.startingStage("Swapping analytics tables " + getAnalyticsTableType(), tables.size());
     progress.runStage(
-        tables, AnalyticsTable::getTableName, table -> tableManager.swapTable(params, table));
+        tables, AnalyticsTable::getName, table -> tableManager.swapTable(params, table));
 
     resourceTableService.createAllSqlViews(progress);
   }

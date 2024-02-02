@@ -238,7 +238,8 @@ public class SmsMessageSender implements MessageSender {
 
   private boolean isQualifiedReceiver(User user) {
     Serializable userSetting =
-        userSettingService.getUserSetting(UserSettingKey.MESSAGE_SMS_NOTIFICATION, user);
+        userSettingService.getUserSetting(
+            UserSettingKey.MESSAGE_SMS_NOTIFICATION, user.getUsername());
 
     return userSetting != null ? (Boolean) userSetting : false;
   }

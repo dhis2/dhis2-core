@@ -36,13 +36,17 @@ import static org.hisp.dhis.common.ValueType.INTEGER_POSITIVE;
 import static org.hisp.dhis.common.ValueType.INTEGER_ZERO_OR_POSITIVE;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TIME;
+import static org.hisp.dhis.common.ValueType.TRUE_ONLY;
 import static org.hisp.dhis.util.DateUtils.getMediumDate;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
+import lombok.Getter;
 import org.hisp.dhis.common.ValueType;
 
 /**
@@ -57,19 +61,53 @@ public enum ValueTypeMapping {
   DECIMAL(BigDecimal::new, NUMBER),
   STRING(s -> s),
   TEXT(s -> s),
-  DATE(ValueTypeMapping::dateConverter, ValueType.DATE, DATETIME, TIME);
+  DATE(ValueTypeMapping::dateConverter, ValueType.DATE, DATETIME, TIME),
+  BOOLEAN(
+      ValueTypeMapping::booleanConverter,
+      ValueTypeMapping::booleanSelectTransformer,
+      ValueType.BOOLEAN,
+      TRUE_ONLY);
 
-  private static Date dateConverter(String dateAsString) {
-    return getMediumDate(dateAsString);
-  }
-
+  private static final UnaryOperator<String> BOOLEAN_SELECT_TRANSFORMER =
+      columnName ->
+          "case when "
+              + columnName
+              + " = 'true' then 1 when "
+              + columnName
+              + " = 'false' then 0 end";
   private final Function<String, Object> converter;
-
+  @Getter private final UnaryOperator<String> selectTransformer;
   private final ValueType[] valueTypes;
 
   ValueTypeMapping(Function<String, Object> converter, ValueType... valueTypes) {
     this.converter = converter;
     this.valueTypes = valueTypes;
+    this.selectTransformer = UnaryOperator.identity();
+  }
+
+  ValueTypeMapping(
+      Function<String, Object> converter,
+      UnaryOperator<String> selectTransformer,
+      ValueType... valueTypes) {
+    this.converter = converter;
+    this.valueTypes = valueTypes;
+    this.selectTransformer = selectTransformer;
+  }
+
+  private static Date dateConverter(String dateAsString) {
+    return getMediumDate(dateAsString);
+  }
+
+  private static Object booleanConverter(String parameterInput) {
+    return Optional.ofNullable(parameterInput).map(ValueTypeMapping::isTrue).orElse(false);
+  }
+
+  private static boolean isTrue(String value) {
+    return "1".equals(value) || "true".equalsIgnoreCase(value);
+  }
+
+  private static String booleanSelectTransformer(String columnName) {
+    return BOOLEAN_SELECT_TRANSFORMER.apply(columnName);
   }
 
   /**

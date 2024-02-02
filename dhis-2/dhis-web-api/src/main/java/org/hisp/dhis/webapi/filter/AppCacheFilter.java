@@ -44,7 +44,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.i18n.ui.locale.UserSettingLocaleManager;
 import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,7 +55,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Slf4j
 @WebFilter(urlPatterns = {"*.appcache"})
 public class AppCacheFilter implements Filter {
-  @Autowired private CurrentUserService currentUserService;
 
   @Autowired private SystemService systemService;
 
@@ -80,7 +79,7 @@ public class AppCacheFilter implements Filter {
 
       writer.print(responseWrapper.toString());
       writer.println("# DHIS2 " + systemInfo.getVersion() + " r" + systemInfo.getRevision());
-      writer.println("# User: " + currentUserService.getCurrentUsername());
+      writer.println("# User: " + CurrentUserUtil.getCurrentUsername());
       writer.println("# User UI Language: " + localeManager.getCurrentLocale());
       writer.println(
           "# User DB Language: " + userSettingService.getUserSetting(UserSettingKey.DB_LOCALE));

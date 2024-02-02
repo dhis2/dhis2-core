@@ -28,14 +28,28 @@
 package org.hisp.dhis.analytics.outlier.data;
 
 import static java.util.stream.Collectors.toList;
+import static org.hisp.dhis.analytics.outlier.Order.getOrderBy;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
+import org.hisp.dhis.analytics.data.DimensionalObjectProducer;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.RelativePeriodEnum;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 
 /** Parse and transform the incoming query params into the OutlierDetectionRequest. */
@@ -43,15 +57,17 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class OutlierQueryParser {
   private final IdentifiableObjectManager idObjectManager;
+  private final DimensionalObjectProducer dimensionalObjectProducer;
+  private final UserService userService;
 
   /**
    * Creates a {@link OutlierRequest} from the given query.
    *
-   * @param query the {@link OutlierQuery}.
+   * @param queryParams the {@link OutlierQueryParams}.
    * @return a {@link OutlierRequest}.
    */
-  public OutlierRequest getFromQuery(OutlierQuery query) {
-    List<DataSet> dataSets = idObjectManager.getByUid(DataSet.class, query.getDs());
+  public OutlierRequest getFromQuery(OutlierQueryParams queryParams, boolean analyzeOnly) {
+    List<DataSet> dataSets = idObjectManager.getByUid(DataSet.class, queryParams.getDs());
 
     // Re-fetch data elements to maintain access control.
     // Only data elements are supported for now.
@@ -63,37 +79,90 @@ public class OutlierQueryParser {
             .map(DataElement::getUid)
             .collect(toList());
 
-    de.addAll(query.getDx());
+    de.addAll(queryParams.getDx());
 
     List<DataElement> dataElements = idObjectManager.getByUid(DataElement.class, de);
-    List<OrganisationUnit> orgUnits =
-        idObjectManager.getByUid(OrganisationUnit.class, query.getOu());
 
     OutlierRequest.OutlierRequestBuilder builder =
         OutlierRequest.builder()
             .dataElements(dataElements)
-            .startDate(query.getStartDate())
-            .endDate(query.getEndDate())
-            .orgUnits(orgUnits)
-            .dataStartDate(query.getDataStartDate())
-            .dataEndDate(query.getDataEndDate());
+            .startDate(queryParams.getStartDate())
+            .endDate(queryParams.getEndDate())
+            .periods(getPeriods(queryParams.getPe(), queryParams.getRelativePeriodDate()))
+            .orgUnits(getOrganisationUnits(queryParams))
+            .analyzeOnly(analyzeOnly)
+            .dataStartDate(queryParams.getDataStartDate())
+            .dataEndDate(queryParams.getDataEndDate())
+            .outputIdScheme(queryParams.getOutputIdScheme())
+            .queryKey(queryParams.queryKey());
 
-    if (query.getAlgorithm() != null) {
-      builder.algorithm(query.getAlgorithm());
+    if (queryParams.getAlgorithm() != null) {
+      builder.algorithm(queryParams.getAlgorithm());
     }
 
-    if (query.getThreshold() != null) {
-      builder.threshold(query.getThreshold());
+    if (queryParams.getThreshold() != null) {
+      builder.threshold(queryParams.getThreshold());
     }
 
-    if (query.getOrderBy() != null) {
-      builder.orderBy(query.getOrderBy());
+    if (queryParams.getOrderBy() != null) {
+      builder.orderBy(getOrderBy(queryParams.getOrderBy()));
     }
 
-    if (query.getMaxResults() != null) {
-      builder.maxResults(query.getMaxResults());
+    if (queryParams.getSortOrder() != null) {
+      builder.sortOrder(queryParams.getSortOrder());
+    }
+
+    if (queryParams.getMaxResults() != null) {
+      builder.maxResults(queryParams.getMaxResults());
+    }
+
+    if (analyzeOnly) {
+      builder.explainOrderId(UUID.randomUUID().toString());
     }
 
     return builder.build();
+  }
+
+  /**
+   * The function retrieves all required organisation units, accepting all forms of ou requirements
+   * like uids, levels, groups, user organisations ...
+   *
+   * @param queryParams the {@link OutlierQueryParams}.
+   * @return a list of the {@link OrganisationUnit}.
+   */
+  private List<OrganisationUnit> getOrganisationUnits(OutlierQueryParams queryParams) {
+
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
+    User currentUser = userService.getUserByUsername(currentUsername);
+
+    Set<OrganisationUnit> organisationUnits =
+        currentUser == null ? Set.of() : currentUser.getOrganisationUnits();
+
+    BaseDimensionalObject baseDimensionalObject =
+        dimensionalObjectProducer.getOrgUnitDimension(
+            queryParams.getOu().stream().toList(),
+            DisplayProperty.NAME,
+            organisationUnits.stream().toList(),
+            IdScheme.UID);
+
+    return baseDimensionalObject.getItems().stream().map(ou -> (OrganisationUnit) ou).toList();
+  }
+
+  /**
+   * The method retrieves the list of the periods
+   *
+   * @param relativePeriod the {@link RelativePeriodEnum}.
+   * @return list of the {@link Period}.
+   */
+  private List<Period> getPeriods(RelativePeriodEnum relativePeriod, Date relativePeriodDate) {
+    if (relativePeriod == null) {
+      return new ArrayList<>();
+    }
+    return dimensionalObjectProducer
+        .getPeriodDimension(List.of(relativePeriod.name()), relativePeriodDate)
+        .getItems()
+        .stream()
+        .map(pe -> (Period) pe)
+        .toList();
   }
 }

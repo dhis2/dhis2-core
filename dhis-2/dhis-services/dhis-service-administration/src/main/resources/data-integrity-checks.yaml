@@ -14,7 +14,9 @@ checks:
   - categories/coc_no_category_combo.yaml
   - categories/category_option_groups_excess_members.yaml
   - categories/category_option_groups_sets_incomplete.yaml
+  - categories/invalid_category_combos.yaml
   - datasets/datasets_empty.yaml
+  - datasets/datasets_not_assigned_to_org_units.yaml
   - orgunits/compulsory_orgunit_groups.yaml
   - orgunits/orgunit_open_date_gt_closed_date.yaml
   - orgunits/orgunits_multiple_spaces.yaml
@@ -31,9 +33,11 @@ checks:
   - option_sets/option_sets_empty.yaml
   - option_sets/unused_option_sets.yaml
   - option_sets/option_sets_wrong_sort_order.yaml
+  - program_indicators/program_indicators_without_expression.yaml
   - program_rules/program_rules_no_action.yaml
-  - program_rules/program_rules_no_expression.yaml
+  - program_rules/program_rules_without_condition.yaml
   - program_rules/program_rules_message_no_template.yaml
+  - program_rules/program_rules_no_priority.yaml
   - analytical_objects/visualizations_not_used_1year.yaml
   - analytical_objects/maps_not_used_1year.yaml
   - analytical_objects/dashboards_not_used_1year.yaml
@@ -51,10 +55,12 @@ checks:
   - indicators/indicator_noanalysis.yaml
   - indicators/indicator_duplicated_terms.yaml
   - indicators/indicator_exact_duplicates.yaml
-  - periods/periods_same_start_end_date.yaml
+  - indicators/indicators_violating_exclusive_group_sets.yaml
+  - periods/periods_same_start_date_period_type.yaml
   - periods/periods_3y_future.yaml
   - periods/periods_distant_past.yaml
   - validation_rules/validation_rules_undefined_missing_value_strategy.yaml
+  - validation_rules/validation_rules_without_groups.yaml
   - groups/group_size_data_element_groups.yaml
   - groups/group_size_indicator_groups.yaml
   - groups/group_size_program_indicator_groups.yaml

@@ -81,6 +81,7 @@ import org.hisp.dhis.common.adapter.JacksonPeriodSerializer;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
 import org.hisp.dhis.eventvisualization.Attribute;
+import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.SimpleDimension;
 import org.hisp.dhis.eventvisualization.SimpleDimension.Type;
 import org.hisp.dhis.eventvisualization.SimpleDimensionHandler;
@@ -101,9 +102,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
 import org.hisp.dhis.translation.Translatable;
-import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.visualization.DefaultValue;
 import org.hisp.dhis.visualization.LegendDefinitions;
 
@@ -480,14 +481,17 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
             .collect(Collectors.toList()));
   }
 
-  /** Returns all indicators in the data dimensions. The returned list is immutable. */
+  /**
+   * Returns all indicators in the data dimensions. The returned set is immutable. Return as
+   * distinct set instead of list as there can be many data dimension items referencing the same
+   * indicator
+   */
   @JsonIgnore
-  public List<Indicator> getIndicators() {
-    return ImmutableList.copyOf(
-        dataDimensionItems.stream()
-            .filter(i -> i.getIndicator() != null)
-            .map(DataDimensionItem::getIndicator)
-            .collect(Collectors.toList()));
+  public Set<Indicator> getIndicators() {
+    return dataDimensionItems.stream()
+        .map(DataDimensionItem::getIndicator)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toUnmodifiableSet());
   }
 
   /**
@@ -686,40 +690,46 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
 
       return Optional.of(new BaseDimensionalObject(dimension, DimensionType.PERIOD, periodList));
     } else if (ORGUNIT_DIM_ID.equals(actualDim)) {
-      List<DimensionalItemObject> ouList = new ArrayList<>();
-      ouList.addAll(organisationUnits);
-      ouList.addAll(transientOrganisationUnits);
+      boolean isMultiProgram =
+          this instanceof EventVisualization
+              && ((EventVisualization) this).getTrackedEntityType() != null;
 
-      if (userOrganisationUnit) {
-        ouList.add(new BaseDimensionalItemObject(KEY_USER_ORGUNIT));
-      }
+      if (!isMultiProgram) {
+        List<DimensionalItemObject> ouList = new ArrayList<>();
+        ouList.addAll(organisationUnits);
+        ouList.addAll(transientOrganisationUnits);
 
-      if (userOrganisationUnitChildren) {
-        ouList.add(new BaseDimensionalItemObject(KEY_USER_ORGUNIT_CHILDREN));
-      }
-
-      if (userOrganisationUnitGrandChildren) {
-        ouList.add(new BaseDimensionalItemObject(KEY_USER_ORGUNIT_GRANDCHILDREN));
-      }
-
-      if (organisationUnitLevels != null && !organisationUnitLevels.isEmpty()) {
-        for (Integer level : organisationUnitLevels) {
-          String id = KEY_LEVEL + level;
-
-          ouList.add(new BaseDimensionalItemObject(id));
+        if (userOrganisationUnit) {
+          ouList.add(new BaseDimensionalItemObject(KEY_USER_ORGUNIT));
         }
-      }
 
-      if (itemOrganisationUnitGroups != null && !itemOrganisationUnitGroups.isEmpty()) {
-        for (OrganisationUnitGroup group : itemOrganisationUnitGroups) {
-          String id = KEY_ORGUNIT_GROUP + group.getUid();
-
-          ouList.add(new BaseDimensionalItemObject(id));
+        if (userOrganisationUnitChildren) {
+          ouList.add(new BaseDimensionalItemObject(KEY_USER_ORGUNIT_CHILDREN));
         }
-      }
 
-      return Optional.of(
-          new BaseDimensionalObject(dimension, DimensionType.ORGANISATION_UNIT, ouList));
+        if (userOrganisationUnitGrandChildren) {
+          ouList.add(new BaseDimensionalItemObject(KEY_USER_ORGUNIT_GRANDCHILDREN));
+        }
+
+        if (organisationUnitLevels != null && !organisationUnitLevels.isEmpty()) {
+          for (Integer level : organisationUnitLevels) {
+            String id = KEY_LEVEL + level;
+
+            ouList.add(new BaseDimensionalItemObject(id));
+          }
+        }
+
+        if (itemOrganisationUnitGroups != null && !itemOrganisationUnitGroups.isEmpty()) {
+          for (OrganisationUnitGroup group : itemOrganisationUnitGroups) {
+            String id = KEY_ORGUNIT_GROUP + group.getUid();
+
+            ouList.add(new BaseDimensionalItemObject(id));
+          }
+        }
+
+        return Optional.of(
+            new BaseDimensionalObject(dimension, DimensionType.ORGANISATION_UNIT, ouList));
+      }
     } else if (CATEGORYOPTIONCOMBO_DIM_ID.equals(actualDim)) {
       return Optional.of(
           new BaseDimensionalObject(
@@ -1655,7 +1665,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public boolean isSubscribed() {
-    CurrentUserDetails user = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails user = CurrentUserUtil.getCurrentUserDetails();
     return (user != null && subscribers != null) && subscribers.contains(user.getUid());
   }
 

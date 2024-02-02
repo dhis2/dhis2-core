@@ -41,6 +41,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.metadata.MetadataValidationException;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.gist.GistParams;
@@ -84,12 +85,13 @@ public class MetadataWorkflowController extends AbstractGistReadOnlyController<M
 
   @GetMapping(value = "/{uid}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonNode> getProposal(@PathVariable("uid") String uid, GistParams params)
-      throws NotFoundException {
+      throws NotFoundException, BadRequestException {
     return getObjectGist(uid, params);
   }
 
   @GetMapping(value = "", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonNode> getProposals(GistParams params, HttpServletRequest request) {
+  public ResponseEntity<JsonNode> getProposals(GistParams params, HttpServletRequest request)
+      throws BadRequestException {
     return getObjectListGist(params, request);
   }
 

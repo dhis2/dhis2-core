@@ -168,11 +168,6 @@
     </dependency>
     <dependency>
       <groupId>org.springframework.security</groupId>
-      <artifactId>spring-security-ldap</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-oauth2-jose</artifactId>
       <scope>test</scope>
     </dependency>
@@ -214,11 +209,6 @@
     <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-core</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.ldap</groupId>
-      <artifactId>spring-ldap-core</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -307,6 +297,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>javax.persistence</groupId>
+      <artifactId>javax.persistence-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.springframework.restdocs</groupId>
       <artifactId>spring-restdocs-mockmvc</artifactId>
       <scope>test</scope>
@@ -351,7 +346,7 @@
     <dependency>
       <groupId>org.openapitools</groupId>
       <artifactId>openapi-generator</artifactId>
-      <version>7.1.0</version>
+      <version>7.2.0</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
@@ -373,7 +368,8 @@
           <ignoredUnusedDeclaredDependencies>
             <ignoredUnusedDeclaredDependency>com.h2database:h2</ignoredUnusedDeclaredDependency>
             // Removing cron-utils dependency is causing
-            // javax.persistence.PersistenceException: org.hibernate.PropertyValueException: not-null property references a null or transient value
+            // javax.persistence.PersistenceException: org.hibernate.PropertyValueException:
+            not-null property references a null or transient value
             // in MapControllerTest.testPutJsonObject()
             // in ApiTokenControllerTest.testListApiTokens()
             // in ApiTokenControllerTest.testListApiTokensNotYours()

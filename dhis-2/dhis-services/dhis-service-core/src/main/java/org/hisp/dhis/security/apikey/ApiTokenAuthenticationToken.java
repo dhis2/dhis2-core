@@ -27,43 +27,39 @@
  */
 package org.hisp.dhis.security.apikey;
 
-import java.io.Serializable;
 import java.util.Collections;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public final class ApiTokenAuthenticationToken extends AbstractAuthenticationToken
-    implements CurrentUserDetails {
+public final class ApiTokenAuthenticationToken extends AbstractAuthenticationToken {
   private String tokenKey;
 
   private ApiToken tokenRef;
 
-  private CurrentUserDetails user;
+  private UserDetails user;
 
   public ApiTokenAuthenticationToken(String tokenKey) {
     super(Collections.emptyList());
     this.tokenKey = tokenKey;
   }
 
-  public ApiTokenAuthenticationToken(ApiToken token, CurrentUserDetails user) {
+  public ApiTokenAuthenticationToken(ApiToken token, UserDetails user) {
     super(user.getAuthorities());
     this.tokenRef = token;
     this.user = user;
   }
 
   @Override
-  public CurrentUserDetails getCredentials() {
+  public UserDetails getCredentials() {
     return this.user;
   }
 
   @Override
-  public CurrentUserDetails getPrincipal() {
+  public UserDetails getPrincipal() {
     return this.user;
   }
 
@@ -77,56 +73,6 @@ public final class ApiTokenAuthenticationToken extends AbstractAuthenticationTok
 
   public ApiToken getToken() {
     return this.tokenRef;
-  }
-
-  @Override
-  public String getPassword() {
-    return user.getPassword();
-  }
-
-  @Override
-  public String getUsername() {
-    return user.getUsername();
-  }
-
-  @Override
-  public boolean isAccountNonExpired() {
-    return user.isAccountNonExpired();
-  }
-
-  @Override
-  public boolean isAccountNonLocked() {
-    return user.isAccountNonLocked();
-  }
-
-  @Override
-  public boolean isCredentialsNonExpired() {
-    return user.isCredentialsNonExpired();
-  }
-
-  @Override
-  public boolean isEnabled() {
-    return user.isEnabled();
-  }
-
-  @Override
-  public boolean isSuper() {
-    return user.isSuper();
-  }
-
-  @Override
-  public String getUid() {
-    return user.getUid();
-  }
-
-  @Override
-  public Set<String> getUserGroupIds() {
-    return user.getUserGroupIds();
-  }
-
-  @Override
-  public Map<String, Serializable> getUserSettings() {
-    return user.getUserSettings();
   }
 
   @Override

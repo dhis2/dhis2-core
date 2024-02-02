@@ -27,12 +27,13 @@
  */
 package org.hisp.dhis.analytics.outlier.data;
 
+import java.io.Serializable;
 import java.util.Date;
 import lombok.Data;
 
 /** Represent the outlier object. */
 @Data
-public class Outlier {
+public class Outlier implements Serializable {
   private String dx;
 
   private String dxName;

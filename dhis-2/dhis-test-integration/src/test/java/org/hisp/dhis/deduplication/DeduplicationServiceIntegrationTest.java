@@ -37,10 +37,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,7 +62,7 @@ class DeduplicationServiceIntegrationTest extends IntegrationTestBase {
   public void setUpTest() {
     super.userService = this.userService;
     User user = createUserWithAuth("testUser");
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
   }
 
   @Test

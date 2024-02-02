@@ -1104,6 +1104,52 @@ class AnalyticsServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
+  void testNestedIndicator() {
+    withIndicator(inA, "#{" + deA.getUid() + "}");
+    withIndicator(inB, "2 * N{" + inA.getUid() + "}");
+
+    assertDataValues(
+        Map.of(
+            "indicatorAA-201701",
+            75.0,
+            "indicatorAA-201702",
+            233.0,
+            "indicatorBB-201701",
+            150.0,
+            "indicatorBB-201702",
+            466.0),
+        DataQueryParams.newBuilder()
+            .withIndicators(List.of(inA, inB))
+            .withAggregationType(AnalyticsAggregationType.SUM)
+            .withPeriods(List.of(peJan, peFeb))
+            .withOutputFormat(OutputFormat.ANALYTICS)
+            .build());
+  }
+
+  @Test
+  void testNestedIndicatorWithPeriodOffset() {
+    withIndicator(inA, "#{" + deA.getUid() + "}");
+    withIndicator(inB, "N{" + inA.getUid() + "} + N{" + inA.getUid() + "}.periodOffset(-1)");
+
+    assertDataValues(
+        Map.of(
+            "indicatorAA-201701",
+            75.0,
+            "indicatorAA-201702",
+            233.0,
+            "indicatorBB-201701",
+            75.0,
+            "indicatorBB-201702",
+            308.0),
+        DataQueryParams.newBuilder()
+            .withIndicators(List.of(inA, inB))
+            .withAggregationType(AnalyticsAggregationType.SUM)
+            .withPeriods(List.of(peJan, peFeb))
+            .withOutputFormat(OutputFormat.ANALYTICS)
+            .build());
+  }
+
+  @Test
   void testIndicatorSubexpressionInteger() {
     withIndicator(inA, "subExpression( #{" + deE.getUid() + "} )");
 

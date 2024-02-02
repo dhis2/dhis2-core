@@ -43,7 +43,6 @@ import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -64,17 +63,9 @@ public class HibernateDataSetStore extends HibernateIdentifiableObjectStore<Data
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService,
       PeriodService periodService) {
-    super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        DataSet.class,
-        currentUserService,
-        aclService,
-        true);
+    super(entityManager, jdbcTemplate, publisher, DataSet.class, aclService, true);
 
     checkNotNull(periodService);
 

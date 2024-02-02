@@ -32,6 +32,7 @@ import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStageDataElement;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -42,7 +43,8 @@ public class TeiAnalyticsPrefixStrategy implements PrefixStrategy {
   @Override
   public String apply(PrefixedDimension pDimension) {
     if (pDimension.getItem() instanceof DataElement
-        || pDimension.getItem() instanceof ProgramStageDataElement) {
+        || pDimension.getItem() instanceof ProgramStageDataElement
+        || pDimension.getItem() instanceof ProgramIndicator) {
       return pDimension.getPrefix();
     }
     return StringUtils.EMPTY;

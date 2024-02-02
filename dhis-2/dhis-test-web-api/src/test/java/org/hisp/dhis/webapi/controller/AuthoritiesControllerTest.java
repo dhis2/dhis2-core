@@ -27,10 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static java.util.stream.IntStream.range;
+import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
+import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
 
@@ -45,22 +48,10 @@ class AuthoritiesControllerTest extends DhisControllerConvenienceTest {
   void testGetAuthorities() {
     JsonArray systemAuthorities = GET("/authorities").content().getArray("systemAuthorities");
     assertTrue(systemAuthorities.size() > 10);
-
-    assertTrue(
-        range(1, systemAuthorities.size())
-            .allMatch(
-                i ->
-                    systemAuthorities
-                            .getObject(i - 1)
-                            .getString("name")
-                            .string()
-                            .toLowerCase()
-                            .compareTo(
-                                systemAuthorities
-                                    .getObject(i)
-                                    .getString("name")
-                                    .string()
-                                    .toLowerCase())
-                        < 0));
+    List<String> listAuthNames =
+        systemAuthorities.asList(JsonObject.class).stream()
+            .map(o -> o.getString("name").string().toLowerCase())
+            .collect(toList());
+    assertTrue(ListUtils.isSorted(listAuthNames, String::compareToIgnoreCase));
   }
 }

@@ -58,9 +58,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.audit.payloads.TrackedEntityAudit;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.AccessLevel;
-import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -73,10 +72,12 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.springframework.context.annotation.Lazy;
@@ -103,51 +104,50 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
 
   private final OrganisationUnitService organisationUnitService;
 
-  private final CurrentUserService currentUserService;
-
   private final AclService aclService;
 
   private final TrackerOwnershipManager trackerOwnershipAccessManager;
 
-  private final TrackedEntityAuditService trackedEntityAuditService;
+  private final TrackedEntityChangeLogService trackedEntityChangeLogService;
 
-  private final TrackedEntityAttributeValueAuditService attributeValueAuditService;
+  private final TrackedEntityAttributeValueChangeLogService attributeValueAuditService;
+
+  private final UserService userService;
 
   // TODO: FIXME luciano using @Lazy here because we have circular
   // dependencies:
   // TrackedEntityService --> TrackerOwnershipManager -->
   // TrackedEntityProgramOwnerService --> TrackedEntityService
   public DefaultTrackedEntityService(
+      UserService userService,
       TrackedEntityStore trackedEntityStore,
       TrackedEntityAttributeValueService attributeValueService,
       TrackedEntityAttributeService attributeService,
       TrackedEntityTypeService trackedEntityTypeService,
       OrganisationUnitService organisationUnitService,
-      CurrentUserService currentUserService,
       AclService aclService,
       @Lazy TrackerOwnershipManager trackerOwnershipAccessManager,
-      @Lazy TrackedEntityAuditService trackedEntityAuditService,
-      @Lazy TrackedEntityAttributeValueAuditService attributeValueAuditService) {
+      @Lazy TrackedEntityChangeLogService trackedEntityChangeLogService,
+      @Lazy TrackedEntityAttributeValueChangeLogService attributeValueAuditService) {
     checkNotNull(trackedEntityStore);
     checkNotNull(attributeValueService);
     checkNotNull(attributeService);
     checkNotNull(trackedEntityTypeService);
     checkNotNull(organisationUnitService);
-    checkNotNull(currentUserService);
     checkNotNull(aclService);
     checkNotNull(trackerOwnershipAccessManager);
-    checkNotNull(trackedEntityAuditService);
+    checkNotNull(trackedEntityChangeLogService);
     checkNotNull(attributeValueAuditService);
 
+    this.userService = userService;
     this.trackedEntityStore = trackedEntityStore;
     this.attributeValueService = attributeValueService;
     this.attributeService = attributeService;
     this.trackedEntityTypeService = trackedEntityTypeService;
     this.organisationUnitService = organisationUnitService;
-    this.currentUserService = currentUserService;
     this.aclService = aclService;
     this.trackerOwnershipAccessManager = trackerOwnershipAccessManager;
-    this.trackedEntityAuditService = trackedEntityAuditService;
+    this.trackedEntityChangeLogService = trackedEntityChangeLogService;
     this.attributeValueAuditService = attributeValueAuditService;
   }
 
@@ -188,10 +188,10 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
             .collect(Collectors.toList());
 
     // Avoiding NullPointerException
-    String accessedBy = user != null ? user.getUsername() : currentUserService.getCurrentUsername();
+    String accessedBy = user != null ? user.getUsername() : CurrentUserUtil.getCurrentUsername();
 
     for (TrackedEntity te : trackedEntities) {
-      addTrackedEntityAudit(te, accessedBy, AuditType.SEARCH);
+      addTrackedEntityAudit(te, accessedBy, ChangeLogType.SEARCH);
     }
 
     return trackedEntities;
@@ -321,7 +321,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     // Grid rows
     // ---------------------------------------------------------------------
 
-    String accessedBy = currentUserService.getCurrentUsername();
+    String accessedBy = CurrentUserUtil.getCurrentUsername();
 
     Map<String, TrackedEntityType> trackedEntityTypes = new HashMap<>();
 
@@ -374,9 +374,10 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
       }
 
       if (te != null && te.isAllowAuditLog() && accessedBy != null) {
-        TrackedEntityAudit trackedEntityAudit =
-            new TrackedEntityAudit(entity.get(TRACKED_ENTITY_ID), accessedBy, AuditType.SEARCH);
-        trackedEntityAuditService.addTrackedEntityAudit(trackedEntityAudit);
+        TrackedEntityChangeLog trackedEntityChangeLog =
+            new TrackedEntityChangeLog(
+                entity.get(TRACKED_ENTITY_ID), accessedBy, ChangeLogType.SEARCH);
+        trackedEntityChangeLogService.addTrackedEntityChangeLog(trackedEntityChangeLog);
       }
 
       for (QueryItem item : params.getAttributes()) {
@@ -440,10 +441,10 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
   @Transactional(readOnly = true)
   public void decideAccess(TrackedEntityQueryParams params) {
     User user = params.isInternalSearch() ? null : params.getUser();
-
     if (params.isOrganisationUnitMode(ALL)
-        && !currentUserService.currentUserIsAuthorized(
-            Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name())
+        && !(user != null
+            && user.isAuthorized(
+                Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()))
         && !params.isInternalSearch()) {
       throw new IllegalQueryException(
           "Current user is not authorized to query across all organisation units");
@@ -581,13 +582,13 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
       throw new IllegalQueryException("Params cannot be null");
     }
 
-    User user = currentUserService.getCurrentUser();
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
 
-    if (user == null) {
+    if (currentUserDetails == null) {
       throw new IllegalQueryException("User cannot be null");
     }
 
-    if (!user.isSuper() && user.getOrganisationUnits().isEmpty()) {
+    if (!currentUserDetails.isSuper() && currentUserDetails.getUserOrgUnitIds().isEmpty()) {
       throw new IllegalQueryException(
           "User need to be associated with at least one organisation unit.");
     }
@@ -599,7 +600,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
       List<String> uniqeAttributeIds =
           attributeService.getAllSystemWideUniqueTrackedEntityAttributes().stream()
               .map(TrackedEntityAttribute::getUid)
-              .collect(Collectors.toList());
+              .toList();
 
       for (String att : params.getAttributeAndFilterIds()) {
         if (!uniqeAttributeIds.contains(att)) {
@@ -609,7 +610,9 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
       }
     }
 
-    if (!isLocalSearch(params, user)) {
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
+    if (!isLocalSearch(params, currentUser)) {
       int maxTeiLimit = 0; // no limit
 
       if (params.hasQuery()) {
@@ -636,7 +639,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
           searchableAttributeIds.addAll(
               attributeService.getAllSystemWideUniqueTrackedEntityAttributes().stream()
                   .map(TrackedEntityAttribute::getUid)
-                  .collect(Collectors.toList()));
+                  .toList());
         }
 
         List<String> violatingAttributes = new ArrayList<>();
@@ -764,7 +767,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
   @Override
   @Transactional
   public void updateTrackedEntity(TrackedEntity trackedEntity, User user) {
-    trackedEntityStore.update(trackedEntity, user);
+    trackedEntityStore.update(trackedEntity, UserDetails.fromUser(user));
   }
 
   @Override
@@ -776,14 +779,16 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
 
   @Override
   @Transactional
-  public void updateTrackedEntityLastUpdated(Set<String> trackedEntityUIDs, Date lastUpdated) {
-    trackedEntityStore.updateTrackedEntityLastUpdated(trackedEntityUIDs, lastUpdated);
+  public void updateTrackedEntityLastUpdated(
+      Set<String> trackedEntityUIDs, Date lastUpdated, String userInfoSnapshot) {
+    trackedEntityStore.updateTrackedEntityLastUpdated(
+        trackedEntityUIDs, lastUpdated, userInfoSnapshot);
   }
 
   @Override
   @Transactional
   public void deleteTrackedEntity(TrackedEntity trackedEntity) {
-    attributeValueAuditService.deleteTrackedEntityAttributeValueAudits(trackedEntity);
+    attributeValueAuditService.deleteTrackedEntityAttributeValueChangeLogs(trackedEntity);
     trackedEntityStore.delete(trackedEntity);
   }
 
@@ -792,7 +797,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
   public TrackedEntity getTrackedEntity(long id) {
     TrackedEntity te = trackedEntityStore.get(id);
 
-    addTrackedEntityAudit(te, currentUserService.getCurrentUsername(), AuditType.READ);
+    addTrackedEntityAudit(te, CurrentUserUtil.getCurrentUsername(), ChangeLogType.READ);
 
     return te;
   }
@@ -801,7 +806,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
   @Transactional
   public TrackedEntity getTrackedEntity(String uid) {
     TrackedEntity te = trackedEntityStore.getByUid(uid);
-    addTrackedEntityAudit(te, currentUserService.getCurrentUsername(), AuditType.READ);
+    addTrackedEntityAudit(te, CurrentUserUtil.getCurrentUsername(), ChangeLogType.READ);
 
     return te;
   }
@@ -809,7 +814,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
   @Override
   public TrackedEntity getTrackedEntity(String uid, User user) {
     TrackedEntity te = trackedEntityStore.getByUid(uid);
-    addTrackedEntityAudit(te, User.username(user), AuditType.READ);
+    addTrackedEntityAudit(te, User.username(user), ChangeLogType.READ);
 
     return te;
   }
@@ -859,14 +864,14 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   private void addTrackedEntityAudit(
-      TrackedEntity trackedEntity, String user, AuditType auditType) {
-    if (user != null
+      TrackedEntity trackedEntity, String username, ChangeLogType changeLogType) {
+    if (username != null
         && trackedEntity != null
         && trackedEntity.getTrackedEntityType() != null
         && trackedEntity.getTrackedEntityType().isAllowAuditLog()) {
-      TrackedEntityAudit trackedEntityAudit =
-          new TrackedEntityAudit(trackedEntity.getUid(), user, auditType);
-      trackedEntityAuditService.addTrackedEntityAudit(trackedEntityAudit);
+      TrackedEntityChangeLog trackedEntityChangeLog =
+          new TrackedEntityChangeLog(trackedEntity.getUid(), username, changeLogType);
+      trackedEntityChangeLogService.addTrackedEntityChangeLog(trackedEntityChangeLog);
     }
   }
 }

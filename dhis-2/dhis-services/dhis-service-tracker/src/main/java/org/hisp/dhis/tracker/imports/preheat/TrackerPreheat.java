@@ -63,6 +63,7 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -84,6 +85,8 @@ import org.hisp.dhis.user.User;
 public class TrackerPreheat {
   /** User to use for import job (important for threaded imports). */
   @Getter @Setter private User user;
+
+  @Getter @Setter private UserInfoSnapshot userInfo;
 
   /**
    * Internal map of all metadata objects mapped by class type => [id] The value of each id can be
@@ -312,6 +315,7 @@ public class TrackerPreheat {
    * @param defaultClass The type of object to retrieve
    * @return The default object of the class provided
    */
+  @SuppressWarnings("unchecked")
   public <T extends IdentifiableObject> T getDefault(Class<T> defaultClass) {
     return (T) this.defaults.get(defaultClass);
   }
@@ -647,19 +651,12 @@ public class TrackerPreheat {
   public boolean exists(TrackerType type, String uid) {
     Objects.requireNonNull(type);
 
-    switch (type) {
-      case TRACKED_ENTITY:
-        return getTrackedEntity(uid) != null;
-      case ENROLLMENT:
-        return getEnrollment(uid) != null;
-      case EVENT:
-        return getEvent(uid) != null;
-      case RELATIONSHIP:
-        return getRelationship(uid) != null;
-      default:
-        // only reached if a new TrackerDto implementation is added
-        throw new IllegalStateException("TrackerType " + type.getName() + " not yet supported.");
-    }
+    return switch (type) {
+      case TRACKED_ENTITY -> getTrackedEntity(uid) != null;
+      case ENROLLMENT -> getEnrollment(uid) != null;
+      case EVENT -> getEvent(uid) != null;
+      case RELATIONSHIP -> getRelationship(uid) != null;
+    };
   }
 
   @Override

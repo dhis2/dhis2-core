@@ -119,6 +119,12 @@ public class DefaultDataEntryFormService implements DataEntryFormService {
 
   @Override
   @Transactional(readOnly = true)
+  public List<DataEntryForm> getDataEntryFormsWithHtmlContaining(String uid) {
+    return dataEntryFormStore.getDataEntryFormsHtmlContaining(uid);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public String prepareDataEntryFormForSave(String htmlCode) {
     if (htmlCode == null) {
       return null;

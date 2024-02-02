@@ -28,16 +28,20 @@
 package org.hisp.dhis.webapi;
 
 import java.time.Duration;
+import java.util.Date;
 import java.util.function.BooleanSupplier;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.hisp.dhis.IntegrationTest;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.config.IntegrationTestConfig;
+import org.hisp.dhis.config.TestContainerPostgresConfig;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,7 +66,7 @@ import org.springframework.web.context.WebApplicationContext;
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
 @ContextConfiguration(
-    classes = {MvcTestConfig.class, WebTestConfiguration.class, IntegrationTestConfig.class})
+    classes = {TestContainerPostgresConfig.class, MvcTestConfig.class, WebTestConfiguration.class})
 @ActiveProfiles(profiles = {"test-postgres"})
 @IntegrationTest
 @Transactional
@@ -72,8 +76,6 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
   @Autowired private WebApplicationContext webApplicationContext;
 
   @Autowired private UserService _userService;
-
-  @Autowired protected CurrentUserService currentUserService;
 
   @Autowired protected IdentifiableObjectManager manager;
 
@@ -88,6 +90,8 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
     userService = _userService;
     clearSecurityContext();
 
+    createAndPersistAdminUserAndRole();
+
     superUser = createAndAddAdminUser("ALL");
 
     mvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
@@ -101,6 +105,43 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
 
     dbmsManager.flushSession();
     dbmsManager.clearSession();
+
+    beforeEach();
+  }
+
+  protected void beforeEach() {}
+
+  protected void lookUpInjectUserSecurityContext(User user) {
+    if (user == null) {
+      clearSecurityContext();
+      return;
+    }
+    hibernateService.flushSession();
+
+    User foundUser = manager.find(User.class, user.getId());
+    injectSecurityContext(UserDetails.fromUser(foundUser));
+  }
+
+  protected User createAndPersistAdminUserAndRole() {
+    UserRole role = createUserRole("Superuser_Test_" + CodeGenerator.generateUid(), "ALL");
+    role.setUid(CodeGenerator.generateUid());
+
+    manager.persist(role);
+
+    User user = new User();
+    user.setUid(CodeGenerator.generateUid());
+    user.setFirstName("Admin");
+    user.setSurname("User");
+    user.setUsername(DEFAULT_USERNAME + "_test_" + CodeGenerator.generateUid());
+    user.setPassword(DEFAULT_ADMIN_PASSWORD);
+    user.getUserRoles().add(role);
+    user.setLastUpdated(new Date());
+    user.setCreated(new Date());
+
+    manager.persist(user);
+    lookUpInjectUserSecurityContext(user);
+
+    return user;
   }
 
   protected void integrationTestBefore() throws Exception {

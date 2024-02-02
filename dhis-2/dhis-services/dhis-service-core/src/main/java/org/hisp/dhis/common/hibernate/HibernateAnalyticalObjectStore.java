@@ -45,7 +45,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.visualization.Visualization;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -60,10 +59,9 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       Class<T> clazz,
-      CurrentUserService currentUserService,
       AclService aclService,
       boolean cacheable) {
-    super(entityManager, jdbcTemplate, publisher, clazz, currentUserService, aclService, cacheable);
+    super(entityManager, jdbcTemplate, publisher, clazz, aclService, cacheable);
   }
 
   @Override
@@ -186,6 +184,19 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     String hql =
         "from " + clazz.getName() + " c where c." + embeddedObject + "legendSet = :legendSet";
     return getQuery(hql).setParameter("legendSet", legendSet).list();
+  }
+
+  @Override
+  public List<T> getVisualizationsBySortingIndicator(List<String> indicators) {
+    // language=sql
+    String sql =
+        """
+    select v.* from visualization v, jsonb_array_elements(sorting) as sort
+    where sort->>'dimension' in :indicators
+    group by v.visualizationid
+    """;
+
+    return getSession().createNativeQuery(sql, clazz).setParameter("indicators", indicators).list();
   }
 
   @Override

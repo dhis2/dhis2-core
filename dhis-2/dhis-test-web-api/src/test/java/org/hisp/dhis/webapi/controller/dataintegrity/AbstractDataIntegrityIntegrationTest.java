@@ -48,7 +48,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest {
   final JsonDataIntegrityDetails getDetails(String check) {
-
     JsonObject content = GET("/dataIntegrity/details?checks={check}&timeout=1000", check).content();
     JsonDataIntegrityDetails details =
         content.get(check.replace('-', '_'), JsonDataIntegrityDetails.class);
@@ -79,6 +78,31 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
     assertStatus(HttpStatus.OK, trigger);
     assertEquals("http://localhost/dataIntegrity/summary?checks=" + check, trigger.location());
     assertTrue(trigger.content().isA(JsonWebMessage.class));
+  }
+
+  public String createSimpleIndicator(String name, String indicatorType) {
+    String indicatorId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicators",
+                // language=JSON
+                """
+                    {
+                      "name": "%s",
+                      "shortName": "%s",
+                      "indicatorType": {
+                        "id": "%s"
+                      },
+                      "numerator": "abc123",
+                      "numeratorDescription": "One",
+                      "denominator": "abc123",
+                      "denominatorDescription": "Zero"
+                    }
+                    """
+                    .formatted(name, name, indicatorType)));
+    assertNamedMetadataObjectExists("indicators", name);
+    return indicatorId;
   }
 
   void checkDataIntegritySummary(
@@ -292,5 +316,10 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
             .content()
             .getObject(0);
     return ccDefault.getArray("categoryOptionCombos").getString(0).string();
+  }
+
+  @Override
+  public HttpResponse GET(String url, Object... args) {
+    return super.GET(url, args);
   }
 }

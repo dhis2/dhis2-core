@@ -30,15 +30,22 @@ package org.hisp.dhis.analytics.common.params.dimension;
 import static java.util.Objects.nonNull;
 import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.lowerCase;
+import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.ORGANISATION_UNIT;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.STATIC;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.byForeignType;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.DATE_FILTERS;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.DIMENSIONS;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.FILTERS;
+import static org.hisp.dhis.analytics.tei.query.context.TeiStaticField.ORG_UNIT_CODE;
+import static org.hisp.dhis.analytics.tei.query.context.TeiStaticField.ORG_UNIT_NAME;
+import static org.hisp.dhis.analytics.tei.query.context.TeiStaticField.ORG_UNIT_NAME_HIERARCHY;
+import static org.hisp.dhis.analytics.tei.query.context.TeiStaticField.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.common.DimensionType.PERIOD;
 import static org.hisp.dhis.common.QueryOperator.EQ;
+import static org.hisp.dhis.common.ValueType.COORDINATE;
 import static org.hisp.dhis.common.ValueType.DATETIME;
+import static org.hisp.dhis.common.ValueType.GEOJSON;
 import static org.hisp.dhis.common.ValueType.TEXT;
 
 import java.util.ArrayList;
@@ -132,10 +139,6 @@ public class DimensionParam implements UidObject {
             + " instead");
   }
 
-  public static boolean isStaticDimensionIdentifier(String dimensionIdentifier) {
-    return StaticDimension.of(dimensionIdentifier).isPresent();
-  }
-
   /**
    * @return true if this DimensionParams has some items on it.
    */
@@ -212,7 +215,7 @@ public class DimensionParam implements UidObject {
       return queryItem.getItem().getUid();
     }
 
-    return staticDimension.getColumnName();
+    return staticDimension.getHeaderName();
   }
 
   public boolean isPeriodDimension() {
@@ -235,20 +238,34 @@ public class DimensionParam implements UidObject {
 
   @RequiredArgsConstructor
   public enum StaticDimension implements TeiHeaderProvider {
-    OUNAME(TEXT, ORGANISATION_UNIT, TeiStaticField.ORG_UNIT_NAME),
-    OUCODE(TEXT, ORGANISATION_UNIT, TeiStaticField.ORG_UNIT_CODE),
-    OUNAMEHIERARCHY(TEXT, ORGANISATION_UNIT, TeiStaticField.ORG_UNIT_NAME_HIERARCHY),
-    ENROLLMENTDATE(DATETIME, DimensionParamObjectType.PERIOD),
-    ENDDATE(DATETIME, DimensionParamObjectType.PERIOD),
-    INCIDENTDATE(DATETIME, DimensionParamObjectType.PERIOD),
-    EXECUTIONDATE(DATETIME, DimensionParamObjectType.PERIOD),
-    LASTUPDATED(DATETIME, DimensionParamObjectType.PERIOD),
-    LASTUPDATEDBYDISPLAYNAME(TEXT, DimensionParamObjectType.STATIC),
-    CREATED(DATETIME, DimensionParamObjectType.PERIOD),
-    CREATEDBYDISPLAYNAME(TEXT, DimensionParamObjectType.STATIC),
-    STOREDBY(TEXT, DimensionParamObjectType.STATIC),
-    ENROLLMENT_STATUS(TEXT, DimensionParamObjectType.STATIC, null, "enrollmentstatus"),
-    EVENT_STATUS(TEXT, DimensionParamObjectType.STATIC, null, "status");
+    TRACKEDENTITYINSTANCEUID("Tracked entity instance UID", TEXT, STATIC, TRACKED_ENTITY_INSTANCE),
+    GEOMETRY(GEOJSON, STATIC, TeiStaticField.GEOMETRY),
+    LONGITUDE(COORDINATE, STATIC, TeiStaticField.LONGITUDE),
+    LATITUDE(COORDINATE, STATIC, TeiStaticField.LATITUDE),
+    OUNAME("Organisation Unit Name", TEXT, ORGANISATION_UNIT, ORG_UNIT_NAME),
+    OUCODE("Organisation Unit Code", TEXT, ORGANISATION_UNIT, ORG_UNIT_CODE),
+    OUNAMEHIERARCHY(
+        "Organisation Unit Name Hierarchy", TEXT, ORGANISATION_UNIT, ORG_UNIT_NAME_HIERARCHY),
+    ENROLLMENTDATE("Enrollment Date", DATETIME, DimensionParamObjectType.PERIOD),
+    ENDDATE("End Date", DATETIME, DimensionParamObjectType.PERIOD),
+    INCIDENTDATE("Incident Date", DATETIME, DimensionParamObjectType.PERIOD),
+    EXECUTIONDATE("Execution Date", DATETIME, DimensionParamObjectType.PERIOD),
+    LASTUPDATED(DATETIME, DimensionParamObjectType.PERIOD, TeiStaticField.LAST_UPDATED),
+    LASTUPDATEDBYDISPLAYNAME("Last Updated By", TEXT, STATIC),
+    CREATED("Created", DATETIME, DimensionParamObjectType.PERIOD),
+    CREATEDBYDISPLAYNAME("Created By", TEXT, STATIC),
+    STOREDBY("Stored By", TEXT, STATIC),
+    ENROLLMENT_STATUS("Enrollment Status", TEXT, STATIC, null, "enrollmentstatus"),
+    PROGRAM_STATUS(
+        "Program Status",
+        TEXT,
+        STATIC,
+        null,
+        "enrollmentstatus",
+        "programstatus"), /* this enum is an alias for ENROLLMENT_STATUS */
+    EVENT_STATUS("Event Status", TEXT, STATIC, null, "status", "eventstatus");
+
+    private final String headerColumnName;
 
     private final ValueType valueType;
 
@@ -258,38 +275,88 @@ public class DimensionParam implements UidObject {
 
     private final TeiStaticField teiStaticField;
 
-    StaticDimension(ValueType valueType, DimensionParamObjectType dimensionParamObjectType) {
-      this(valueType, dimensionParamObjectType, null);
+    @Getter private final String headerName;
+
+    StaticDimension(
+        String headerColumnName,
+        ValueType valueType,
+        DimensionParamObjectType dimensionParamObjectType) {
+      this(headerColumnName, valueType, dimensionParamObjectType, null);
+    }
+
+    StaticDimension(
+        String headerColumnName,
+        ValueType valueType,
+        DimensionParamObjectType dimensionParamObjectType,
+        TeiStaticField teiStaticField) {
+      this.headerColumnName = headerColumnName;
+
+      this.valueType = valueType;
+
+      // By default, columnName is its own "name" in lowercase.
+      this.columnName = normalizedName();
+
+      this.dimensionParamObjectType = dimensionParamObjectType;
+
+      this.teiStaticField = teiStaticField;
+
+      this.headerName = this.columnName;
+    }
+
+    StaticDimension(
+        String headerColumnName,
+        ValueType valueType,
+        DimensionParamObjectType dimensionParamObjectType,
+        TeiStaticField teiStaticField,
+        String columnName) {
+      this(
+          headerColumnName,
+          valueType,
+          dimensionParamObjectType,
+          teiStaticField,
+          columnName,
+          columnName);
+    }
+
+    StaticDimension(
+        String headerColumnName,
+        ValueType valueType,
+        DimensionParamObjectType dimensionParamObjectType,
+        TeiStaticField teiStaticField,
+        String columnName,
+        String headerName) {
+      this.headerColumnName = headerColumnName;
+      this.valueType = valueType;
+      this.dimensionParamObjectType = dimensionParamObjectType;
+      this.teiStaticField = teiStaticField;
+      this.columnName = columnName;
+      this.headerName = headerName;
     }
 
     StaticDimension(
         ValueType valueType,
         DimensionParamObjectType dimensionParamObjectType,
         TeiStaticField teiStaticField) {
-      this.valueType = valueType;
-
-      // By default, columnName is its own "name" in lowercase.
-      this.columnName = lowerCase(name());
-
-      this.dimensionParamObjectType = dimensionParamObjectType;
-
-      this.teiStaticField = teiStaticField;
+      this("", valueType, dimensionParamObjectType, teiStaticField);
     }
 
-    StaticDimension(
-        ValueType valueType,
-        DimensionParamObjectType dimensionParamObjectType,
-        TeiStaticField teiStaticField,
-        String columnName) {
-      this.valueType = valueType;
-      this.columnName = columnName;
-      this.dimensionParamObjectType = dimensionParamObjectType;
-      this.teiStaticField = teiStaticField;
+    public String getHeaderColumnName() {
+      return Optional.ofNullable(headerColumnName)
+          .filter(StringUtils::isNotBlank)
+          .orElseGet(this::getFullName);
     }
 
-    static Optional<StaticDimension> of(String value) {
+    public String normalizedName() {
+      return name().toLowerCase().replace("_", "");
+    }
+
+    public static Optional<StaticDimension> of(String value) {
       return Arrays.stream(StaticDimension.values())
-          .filter(sd -> StringUtils.equalsIgnoreCase(sd.name(), value))
+          .filter(
+              sd ->
+                  equalsIgnoreCase(sd.columnName, value)
+                      || equalsIgnoreCase(sd.name(), value)
+                      || equalsIgnoreCase(sd.normalizedName(), value))
           .findFirst();
     }
 
@@ -306,6 +373,10 @@ public class DimensionParam implements UidObject {
     @Override
     public ValueType getType() {
       return valueType;
+    }
+
+    public boolean isTeiStaticField() {
+      return nonNull(teiStaticField);
     }
   }
 }

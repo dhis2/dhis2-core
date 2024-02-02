@@ -61,8 +61,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.i18n.I18n;
-import org.hisp.dhis.jdbc.StatementBuilder;
-import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItemMethod;
@@ -115,8 +113,6 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
 
   @Mock private DimensionService dimensionService;
 
-  private StatementBuilder statementBuilder;
-
   @BeforeEach
   public void setUp() {
     dataElementA = createDataElement('A');
@@ -162,8 +158,6 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
     programA = createProgram('A', new HashSet<>(), organisationUnit);
     programA.setUid("Program000A");
     programA.setProgramStages(programStages);
-
-    statementBuilder = new PostgreSQLStatementBuilder();
 
     programIndicator = new ProgramIndicator();
     programIndicator.setProgram(programA);
@@ -735,7 +729,6 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
             .dimensionService(dimensionService)
             .programIndicatorService(programIndicatorService)
             .programStageService(programStageService)
-            .statementBuilder(statementBuilder)
             .i18nSupplier(() -> new I18n(null, null))
             .itemMap(PROGRAM_INDICATOR_ITEMS)
             .itemMethod(itemMethod)

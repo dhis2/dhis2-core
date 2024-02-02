@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.icon;
 
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertGreaterOrEqual;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -55,7 +54,10 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.tracker.TrackerTest;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.utils.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -64,35 +66,38 @@ import org.springframework.util.MimeTypeUtils;
 class IconTest extends TrackerTest {
   @Autowired private FileResourceService fileResourceService;
 
-  @Autowired private CurrentUserService currentUserService;
-
   @Autowired private IconService iconService;
-
+  @Autowired protected UserService _userService;
   private final String[] keywords = {"k1", "k2", "k3"};
 
   @SneakyThrows
   @Override
   protected void initTest() throws IOException {
+    userService = _userService;
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
+    User currentUser = userService.getUserByUsername(currentUsername);
+    injectSecurityContextUser(currentUser);
+
     FileResource fileResource = createAndPersistFileResource('A');
     iconService.addCustomIcon(
         new CustomIcon(
-            "iconKey",
-            "description",
-            keywords,
-            fileResource.getUid(),
-            currentUserService.getCurrentUser().getUid()));
+            "iconKey", "description", keywords, fileResource.getUid(), getCurrentUser().getUid()));
   }
 
   @Test
-  void shouldGetAllIconsWhenRequested() {
+  void shouldGetAllIconsByDefault() {
     Map<String, DefaultIcon> defaultIconMap = getAllDefaultIcons();
+
+    IconOperationParams operationParams = new IconOperationParams();
+
+    List<Icon> icons = iconService.getIcons(operationParams);
 
     assertEquals(
         defaultIconMap.size() + 1,
-        iconService.getIcons().size(),
+        iconService.getIcons(operationParams).size(),
         String.format(
-            "Expected to find %d icons, but found %d instead",
-            defaultIconMap.size() + 1, iconService.getIcons().size()));
+            "Expected to find %d icons, but found %d instead: %s",
+            defaultIconMap.size() + 1, icons.size(), icons));
   }
 
   @Test
@@ -112,12 +117,16 @@ class IconTest extends TrackerTest {
             .flatMap(Arrays::stream)
             .collect(Collectors.toSet());
 
+    IconOperationParams operationParams = new IconOperationParams();
+    operationParams.setIconTypeFilter(IconTypeFilter.ALL);
+    operationParams.setKeywords(keywordList.stream().toList());
+
     assertEquals(
         keywordList.size() + keywords.length,
         iconService.getKeywords().size(),
         String.format(
             "Expected to find %d icons, but found %d instead",
-            keywordList.size() + keywords.length, iconService.getIcons().size()));
+            keywordList.size() + keywords.length, iconService.getIcons(operationParams).size()));
   }
 
   @Test
@@ -132,15 +141,20 @@ class IconTest extends TrackerTest {
 
     String keyword = defaultIcon.get().getKeywords()[0];
     FileResource fileResourceD = createAndPersistFileResource('D');
+
+    IconOperationParams operationParams = new IconOperationParams();
+    operationParams.setIconTypeFilter(IconTypeFilter.ALL);
+    operationParams.setKeywords(List.of(keyword));
+
     iconService.addCustomIcon(
         new CustomIcon(
             "iconKeyD",
             "description",
             new String[] {keyword},
             fileResourceD.getUid(),
-            currentUserService.getCurrentUser().getUid()));
+            getCurrentUser().getUid()));
 
-    assertGreaterOrEqual(2, iconService.getIcons(new String[] {keyword}).size());
+    assertGreaterOrEqual(2, iconService.getIcons(operationParams).size());
   }
 
   @Test
@@ -154,7 +168,7 @@ class IconTest extends TrackerTest {
             "description",
             new String[] {"k4", "k5", "k6"},
             fileResourceB.getUid(),
-            currentUserService.getCurrentUser().getUid());
+            getCurrentUser().getUid());
     iconService.addCustomIcon(iconB);
     FileResource fileResourceC = createAndPersistFileResource('C');
     CustomIcon iconC =
@@ -163,12 +177,24 @@ class IconTest extends TrackerTest {
             "description",
             new String[] {"k6", "k7", "k8"},
             fileResourceC.getUid(),
-            currentUserService.getCurrentUser().getUid());
+            getCurrentUser().getUid());
     iconService.addCustomIcon(iconC);
 
-    assertContainsOnly(List.of(iconB), iconService.getIcons(new String[] {"k4", "k5", "k6"}));
-    assertContainsOnly(List.of(iconC), iconService.getIcons(new String[] {"k6", "k7"}));
-    assertContainsOnly(List.of(iconB, iconC), iconService.getIcons(new String[] {"k6"}));
+    IconOperationParams operationParams1 = new IconOperationParams();
+    operationParams1.setIconTypeFilter(IconTypeFilter.CUSTOM);
+    operationParams1.setKeywords(List.of("k4", "k5", "k6"));
+
+    IconOperationParams operationParams2 = new IconOperationParams();
+    operationParams2.setIconTypeFilter(IconTypeFilter.CUSTOM);
+    operationParams2.setKeywords(List.of("k6", "k7"));
+
+    IconOperationParams operationParams3 = new IconOperationParams();
+    operationParams3.setIconTypeFilter(IconTypeFilter.CUSTOM);
+    operationParams3.setKeywords(List.of("k6"));
+
+    assertContainsOnly(List.of(iconB), iconService.getIcons(operationParams1));
+    assertContainsOnly(List.of(iconC), iconService.getIcons(operationParams2));
+    assertContainsOnly(List.of(iconB, iconC), iconService.getIcons(operationParams3));
   }
 
   @Test
@@ -220,7 +246,7 @@ class IconTest extends TrackerTest {
             "description",
             new String[] {"k4", "k5"},
             fileResourceC.getUid(),
-            currentUserService.getCurrentUser().getUid());
+            CurrentUserUtil.getCurrentUserDetails().getUid());
     iconService.addCustomIcon(original);
 
     CustomIcon fetched = iconService.getCustomIcon("iconKeyB");
@@ -261,5 +287,10 @@ class IconTest extends TrackerTest {
         .map(DefaultIcon.Icons::getVariants)
         .flatMap(Collection::stream)
         .collect(Collectors.toMap(DefaultIcon::getKey, Function.identity()));
+  }
+
+  private void assertContainsOnly(List<CustomIcon> listA, List<? extends Icon> listB) {
+
+    Assertions.assertContainsOnly(listA, listB.stream().map(i -> (CustomIcon) i).toList());
   }
 }

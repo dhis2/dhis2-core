@@ -35,18 +35,18 @@ import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.analytics.AnalyticsExportSettings;
-import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
-import org.hisp.dhis.analytics.AnalyticsTablePartition;
-import org.hisp.dhis.analytics.ColumnDataType;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.model.Skip;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
-import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
@@ -68,11 +68,10 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
       DataApprovalLevelService dataApprovalLevelService,
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
-      StatementBuilder statementBuilder,
       PartitionManager partitionManager,
       DatabaseInfoProvider databaseInfoProvider,
       JdbcTemplate jdbcTemplate,
-      AnalyticsExportSettings analyticsExportSettings,
+      AnalyticsTableExportSettings analyticsExportSettings,
       PeriodDataProvider periodDataProvider) {
     super(
         idObjectManager,
@@ -82,7 +81,6 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
         dataApprovalLevelService,
         resourceTableService,
         tableHookService,
-        statementBuilder,
         partitionManager,
         databaseInfoProvider,
         jdbcTemplate,
@@ -91,15 +89,16 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
   }
 
   protected final String getNumericClause() {
-    return " and value " + statementBuilder.getRegexpMatch() + " '" + NUMERIC_LENIENT_REGEXP + "'";
+    return " and value ~* '" + NUMERIC_LENIENT_REGEXP + "'";
   }
 
   protected final String getDateClause() {
-    return " and value " + statementBuilder.getRegexpMatch() + " '" + DATE_REGEXP + "'";
+    return " and value ~* '" + DATE_REGEXP + "'";
   }
 
-  protected final boolean skipIndex(ValueType valueType, boolean hasOptionSet) {
-    return NO_INDEX_VAL_TYPES.contains(valueType) && !hasOptionSet;
+  protected Skip skipIndex(ValueType valueType, boolean hasOptionSet) {
+    boolean skipIndex = NO_INDEX_VAL_TYPES.contains(valueType) && !hasOptionSet;
+    return skipIndex ? Skip.SKIP : Skip.INCLUDE;
   }
 
   /**
@@ -109,7 +108,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    */
   protected String getSelectClause(ValueType valueType, String columnName) {
     if (valueType.isDecimal()) {
-      return "cast(" + columnName + " as " + statementBuilder.getDoubleColumnType() + ")";
+      return "cast(" + columnName + " as double precision)";
     } else if (valueType.isInteger()) {
       return "cast(" + columnName + " as bigint)";
     } else if (valueType.isBoolean()) {
@@ -156,16 +155,14 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    * Populates the given analytics table partition using the given columns and join statement.
    *
    * @param partition the {@link AnalyticsTablePartition}.
-   * @param columns the list of {@link AnalyticsTableColumn}.
    * @param fromClause the SQL from clause.
    */
-  protected void populateTableInternal(
-      AnalyticsTablePartition partition, List<AnalyticsTableColumn> columns, String fromClause) {
-    String tableName = partition.getTempTableName();
+  protected void populateTableInternal(AnalyticsTablePartition partition, String fromClause) {
+    String tableName = partition.getTempName();
 
-    String sql = "insert into " + partition.getTempTableName() + " (";
+    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
-    validateDimensionColumns(columns);
+    String sql = "insert into " + partition.getTempName() + " (";
 
     for (AnalyticsTableColumn col : columns) {
       sql += col.getName() + ",";
@@ -174,7 +171,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     sql = TextUtils.removeLastComma(sql) + ") select ";
 
     for (AnalyticsTableColumn col : columns) {
-      sql += col.getAlias() + ",";
+      sql += col.getSelectExpression() + ",";
     }
 
     sql = TextUtils.removeLastComma(sql) + " ";
@@ -188,13 +185,13 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     for (TrackedEntityAttribute attribute : program.getNonConfidentialTrackedEntityAttributes()) {
-      ColumnDataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
+      DataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
       String dataClause =
           attribute.isNumericType()
               ? getNumericClause()
               : attribute.isDateType() ? getDateClause() : "";
       String select = getSelectClause(attribute.getValueType(), "value");
-      boolean skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
+      Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
       String sql =
           "(select "
@@ -209,9 +206,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
               + " as "
               + quote(attribute.getUid());
 
-      columns.add(
-          new AnalyticsTableColumn(quote(attribute.getUid()), dataType, sql)
-              .withSkipIndex(skipIndex));
+      columns.add(new AnalyticsTableColumn(quote(attribute.getUid()), dataType, sql, skipIndex));
     }
 
     return columns;

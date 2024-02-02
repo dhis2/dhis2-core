@@ -34,6 +34,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -223,7 +224,9 @@ class JpaQueryUtilsTest {
             + "and jsonb_check_user_access( x.sharing, 'randomUserA', '__r_____' ) = true )   "
             + "or ( jsonb_has_user_group_ids( x.sharing, '{aUserGroupA,aUserGroupB}') = true  "
             + "and jsonb_check_user_groups_access( x.sharing, '__r_____', '{aUserGroupA,aUserGroupB}') = true )";
-    String actual = JpaQueryUtils.generateSQlQueryForSharingCheck("x.sharing", userA, "__r_____");
+    String actual =
+        JpaQueryUtils.generateSQlQueryForSharingCheck(
+            "x.sharing", UserDetails.fromUser(userA), "__r_____");
     Assertions.assertEquals(expected, actual);
   }
 }

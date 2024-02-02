@@ -316,7 +316,7 @@ class PersistablesFilter {
             .map(p -> p.apply(entity))
             .filter(this::isNotValid) // remove valid parents
             .map(p -> error(ValidationCode.E5000, entity, p))
-            .collect(Collectors.toList());
+            .toList();
     this.result.errors.addAll(errors);
   }
 

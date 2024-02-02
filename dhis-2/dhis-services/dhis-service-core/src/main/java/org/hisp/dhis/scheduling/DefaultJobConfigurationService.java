@@ -33,11 +33,8 @@ import static org.hisp.dhis.scheduling.JobType.values;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Maps;
-import com.google.common.hash.Hashing;
-import com.google.common.io.ByteSource;
 import com.google.common.primitives.Primitives;
 import java.beans.PropertyDescriptor;
-import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
@@ -58,7 +55,6 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.PropertyUtils;
-import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -67,8 +63,8 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.fileresource.FileResourceStorageStatus;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -77,8 +73,9 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MimeType;
 
@@ -93,46 +90,17 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   private final JobConfigurationStore jobConfigurationStore;
   private final FileResourceService fileResourceService;
   private final SystemSettingManager systemSettings;
+  private final JobCreationHelper jobCreationHelper;
 
   @Override
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public String create(JobConfiguration config) throws ConflictException {
-    config.setAutoFields();
-    jobConfigurationStore.save(config);
-    return config.getUid();
+    return jobCreationHelper.create(config);
   }
 
   @Override
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public String create(JobConfiguration config, MimeType contentType, InputStream content)
       throws ConflictException {
-    if (config.getSchedulingType() != SchedulingType.ONCE_ASAP)
-      throw new ConflictException(
-          "Job must be of type %s to allow content data".formatted(SchedulingType.ONCE_ASAP));
-    config.setAutoFields(); // ensure UID is set
-    saveJobData(config.getUid(), contentType, content);
-    jobConfigurationStore.save(config);
-    return config.getUid();
-  }
-
-  @SuppressWarnings("java:S4790")
-  private void saveJobData(String uid, MimeType contentType, InputStream content)
-      throws ConflictException {
-    try {
-      byte[] data = IOUtils.toByteArray(content);
-      FileResource fr =
-          new FileResource(
-              "job_input_data_for_" + uid,
-              contentType.toString(),
-              data.length,
-              ByteSource.wrap(data).hash(Hashing.md5()).toString(),
-              FileResourceDomain.JOB_DATA);
-      fr.setUid(uid);
-      fr.setAssigned(true);
-      fileResourceService.syncSaveFileResource(fr, data);
-    } catch (IOException ex) {
-      throw new ConflictException("Failed to create job data file resource: " + ex.getMessage());
-    }
+    return jobCreationHelper.create(config, contentType, content);
   }
 
   @Override
@@ -152,7 +120,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
 
   @Override
   @Transactional
-  public void createDefaultJob(JobType type) {
+  public void createDefaultJob(JobType type, UserDetails actingUser) {
     Defaults job = type.getDefaults();
     if (job == null) return;
     JobConfiguration config = new JobConfiguration(job.name(), type);
@@ -161,7 +129,13 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
     config.setUid(job.uid());
     config.setSchedulingType(
         job.delay() != null ? SchedulingType.FIXED_DELAY : SchedulingType.CRON);
-    jobConfigurationStore.save(config);
+    jobConfigurationStore.save(config, actingUser, false);
+  }
+
+  @Override
+  @Transactional
+  public void createDefaultJob(JobType type) {
+    createDefaultJob(type, CurrentUserUtil.getCurrentUserDetails());
   }
 
   @Override
@@ -240,11 +214,10 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
     Instant endOfWindow = now.plusSeconds(dueInNextSeconds);
     Duration maxCronDelay =
         Duration.ofHours(systemSettings.getIntSetting(SettingKey.JOBS_MAX_CRON_DELAY_HOURS));
-    Stream<JobConfiguration> dueJobs =
-        jobConfigurationStore
-            .getDueJobConfigurations(includeWaiting)
-            .filter(c -> c.isDueBetween(now, endOfWindow, maxCronDelay));
-    return dueJobs.toList();
+    return jobConfigurationStore
+        .getDueJobConfigurations(includeWaiting)
+        .filter(c -> c.isDueBetween(now, endOfWindow, maxCronDelay))
+        .toList();
   }
 
   @Override
@@ -305,11 +278,12 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   private JsonNode getJobInput(JobRunErrorsParams params, String fileResourceId) {
     if (!params.isIncludeInput()) return JsonNode.of("null");
     try {
-      byte[] bytes =
-          fileResourceService.copyFileResourceContent(
-              fileResourceService.getFileResource(fileResourceId));
+      FileResource fr = fileResourceService.getFileResource(fileResourceId);
+      if (fr == null || fr.getStorageStatus() != FileResourceStorageStatus.STORED)
+        return JsonNode.NULL;
+      byte[] bytes = fileResourceService.copyFileResourceContent(fr);
       return JsonNode.of(new String(bytes, StandardCharsets.UTF_8));
-    } catch (IOException ex) {
+    } catch (Exception ex) {
       log.warn("Could not copy file content to error info for file: " + fileResourceId, ex);
       return JsonNode.of("\"" + ex.getMessage() + "\"");
     }

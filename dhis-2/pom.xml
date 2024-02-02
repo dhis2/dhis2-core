@@ -81,16 +81,17 @@
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine -->
-    <dhis2-rule-engine.version>2.1.9</dhis2-rule-engine.version>
+    <dhis2-rule-engine.version>3.0.0-20240119.134348-12</dhis2-rule-engine.version>
+    <kotlinx-datetime.version>0.4.0</kotlinx-datetime.version>
 
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.3</dhis-hisp-quick.version>
     <dhis-hisp-staxwax.version>2.0.0</dhis-hisp-staxwax.version>
-    <dhis-json-tree.version>0.10.3</dhis-json-tree.version>
+    <dhis-json-tree.version>0.11.1</dhis-json-tree.version>
 
     <!-- Security -->
-    <spring-security.version>5.8.8</spring-security.version>
-
+    <spring-security.version>5.8.9</spring-security.version>
+    <spring-security-oauth2.version>2.5.2.RELEASE</spring-security-oauth2.version>
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
@@ -107,7 +108,7 @@
     <spring-restdocs.version>2.0.8.RELEASE</spring-restdocs.version>
     <spring-ldap.version>2.4.1</spring-ldap.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
-    <lettuce.version>6.3.0.RELEASE</lettuce.version>
+    <lettuce.version>6.3.1.RELEASE</lettuce.version>
 
     <!--DBMS -->
     <flyway-core.version>9.22.3</flyway-core.version>
@@ -116,9 +117,9 @@
     <!-- Data sources,db pools and db drivers -->
     <c3p0.version>0.9.5.5</c3p0.version>
     <HikariCP.version>5.1.0</HikariCP.version>
-    <postgresql-driver.version>42.7.0</postgresql-driver.version>
+    <postgresql-driver.version>42.7.1</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
-    <datasource-proxy.version>1.9</datasource-proxy.version>
+    <datasource-proxy.version>1.10</datasource-proxy.version>
 
     <!-- Servlet -->
     <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
@@ -129,7 +130,7 @@
     <velocity-tools.version>2.0</velocity-tools.version>
 
     <!-- Jackson -->
-    <jackson.version>2.15.3</jackson.version>
+    <jackson.version>2.16.1</jackson.version>
     <jackson-datatype-jts.version>2.14</jackson-datatype-jts.version>
     <geojson-jackson.version>1.14</geojson-jackson.version>
 
@@ -155,31 +156,31 @@
     <batik-transcoder.version>1.17</batik-transcoder.version>
     <fop.version>2.9</fop.version>
     <mapstruct.version>1.5.5.Final</mapstruct.version>
-    <geotools.version>29.3</geotools.version>
+    <geotools.version>29.4</geotools.version>
     <jts.version>1.19.0</jts.version>
 
     <!-- Apache Artemis -->
     <artemis.version>2.31.2</artemis.version>
-    <netty-all.version>4.1.101.Final</netty-all.version>
+    <netty-all.version>4.1.106.Final</netty-all.version>
     <classgraph.version>4.8.165</classgraph.version>
 
     <!-- SMS/SMPP -->
     <sms-compression.version>0.2.1.1</sms-compression.version>
     <javacsv.version>2.0</javacsv.version>
     <aerogear-otp-java.version>1.0.0</aerogear-otp-java.version>
-    <jsmpp.version>3.0.0</jsmpp.version>
-    <json-path.version>2.8.0</json-path.version>
-    <jsoup.version>1.17.1</jsoup.version>
-    <jetty.version>10.0.18</jetty.version>
+    <jsmpp.version>3.0.1</jsmpp.version>
+    <json-path.version>2.9.0</json-path.version>
+    <jsoup.version>1.17.2</jsoup.version>
+    <jetty.version>10.0.19</jetty.version>
 
     <!-- Div. utils -->
-    <guava.version>32.1.3-jre</guava.version>
+    <guava.version>33.0.0-jre</guava.version>
     <jsr305.version>3.0.2</jsr305.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
     <google-api-client.version>2.2.0</google-api-client.version>
     <lombok.version>1.18.30</lombok.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
-    <joda-time.version>2.12.5</joda-time.version>
+    <joda-time.version>2.12.6</joda-time.version>
     <cron-utils.version>9.2.1</cron-utils.version>
     <commons-collections4.version>4.4</commons-collections4.version>
     <commons-beanutils.version>1.9.4</commons-beanutils.version>
@@ -191,17 +192,17 @@
     <commons-io.version>2.15.1</commons-io.version>
     <commons-codec.version>1.16.0</commons-codec.version>
     <commons-jexl.version>2.1.1</commons-jexl.version>
-    <commons-email.version>1.5</commons-email.version>
+    <commons-email.version>1.6.0</commons-email.version>
     <httpcomponents-core.version>4.4.16</httpcomponents-core.version>
     <httpcomponents-client.version>4.5.14</httpcomponents-client.version>
     <kafka.version>3.6.1</kafka.version>
 
     <!-- Monitoring -->
     <micrometer-spring-legacy.version>1.3.20</micrometer-spring-legacy.version>
-    <micrometer.version>1.12.1</micrometer.version>
+    <micrometer.version>1.12.2</micrometer.version>
 
     <!-- Logging -->
-    <log4j.version>2.22.0</log4j.version>
+    <log4j.version>2.22.1</log4j.version>
     <slf4j.version>1.7.36</slf4j.version>
 
     <!-- Test -->
@@ -210,35 +211,36 @@
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>2.2</hamcrest.version>
     <hamcrest-date.version>2.0.8</hamcrest-date.version>
-    <testcontainers.version>1.19.3</testcontainers.version>
+    <testcontainers.version>1.19.4</testcontainers.version>
     <jsonassert.version>1.5.1</jsonassert.version>
     <awaitility.version>4.2.0</awaitility.version>
-    <swagger.version>2.1.19</swagger.version>
+    <swagger.version>2.1.20</swagger.version>
     <easy-random.version>5.0.0</easy-random.version>
     <tree.version>0.2.5</tree.version>
     <h2.version>2.2.224</h2.version>
     <javax.persistence-api.version>2.2</javax.persistence-api.version>
 
     <!-- Maven plugin versions -->
-    <maven-surefire-plugin.version>3.2.2</maven-surefire-plugin.version>
-    <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
+    <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
+    <maven-compiler-plugin.version>3.12.1</maven-compiler-plugin.version>
     <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
-    <maven-failsafe-plugin.version>3.2.2</maven-failsafe-plugin.version>
+    <maven-failsafe-plugin.version>3.2.5</maven-failsafe-plugin.version>
     <maven-javadoc-plugin.version>3.6.3</maven-javadoc-plugin.version>
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
     <maven-enforcer-plugin.version>3.4.1</maven-enforcer-plugin.version>
     <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
-    <restrict-imports-enforcer.version>2.4.0</restrict-imports-enforcer.version>
+    <restrict-imports-enforcer.version>2.5.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.16.2</versions-maven-plugin.version>
-    <dependency-check-maven.version>9.0.3</dependency-check-maven.version>
-    <spotbugs-maven-plugin.version>4.8.2.0</spotbugs-maven-plugin.version>
-    <spotless.version>2.41.1</spotless.version>
+    <dependency-check-maven.version>9.0.9</dependency-check-maven.version>
+    <spotbugs-maven-plugin.version>4.8.3.0</spotbugs-maven-plugin.version>
+    <spotless.version>2.43.0</spotless.version>
     <jacoco-maven-plugin.version>0.8.11</jacoco-maven-plugin.version>
     <jrebel-x-maven-plugin.version>1.2.0</jrebel-x-maven-plugin.version>
     <dhis-antlr-expression-parser.version>1.0.34</dhis-antlr-expression-parser.version>
     <jai-imageio.version>1.1.1</jai-imageio.version>
     <gson.version>2.8.9</gson.version>
     <semver4j.version>3.1.0</semver4j.version>
+    <opentelemetry.version>2.0.0</opentelemetry.version>
   </properties>
 
   <dependencyManagement>
@@ -411,8 +413,13 @@
         <version>${dhis-json-tree.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.jetbrains.kotlinx</groupId>
+        <artifactId>kotlinx-datetime-jvm</artifactId>
+        <version>${kotlinx-datetime.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.hisp.dhis.rules</groupId>
-        <artifactId>rule-engine</artifactId>
+        <artifactId>rule-engine-jvm</artifactId>
         <version>${dhis2-rule-engine.version}</version>
         <exclusions>
           <exclusion>
@@ -585,6 +592,11 @@
       </dependency>
 
       <!-- OAuth 2.0 -->
+      <dependency>
+        <groupId>org.springframework.security.oauth</groupId>
+        <artifactId>spring-security-oauth2</artifactId>
+        <version>${spring-security-oauth2.version}</version>
+      </dependency>
       <dependency>
         <groupId>org.springframework.security</groupId>
         <artifactId>spring-security-oauth2-core</artifactId>
@@ -983,6 +995,8 @@
         <artifactId>javax.persistence-api</artifactId>
         <version>${javax.persistence-api.version}</version>
       </dependency>
+
+      <!-- Logging -->
       <dependency>
         <groupId>org.apache.logging.log4j</groupId>
         <artifactId>log4j-api</artifactId>
@@ -1009,6 +1023,15 @@
         <artifactId>slf4j-api</artifactId>
         <version>${slf4j.version}</version>
       </dependency>
+
+      <!-- Tracing -->
+      <dependency>
+        <groupId>io.opentelemetry.instrumentation</groupId>
+        <artifactId>opentelemetry-instrumentation-annotations</artifactId>
+        <version>${opentelemetry.version}</version>
+      </dependency>
+
+      <!-- Database pool -->
       <dependency>
         <groupId>com.mchange</groupId>
         <artifactId>c3p0</artifactId>
@@ -1896,7 +1919,7 @@
             <dependency>
               <groupId>com.github.spotbugs</groupId>
               <artifactId>spotbugs</artifactId>
-              <version>4.8.2</version>
+              <version>4.8.3</version>
             </dependency>
           </dependencies>
         </plugin>
@@ -2045,6 +2068,7 @@ jasperreports.version=${jasperreports.version}
               <!-- Setting the scope to test makes the build fail -->
               <ignoredNonTestScopedDependency>org.springframework:spring-beans</ignoredNonTestScopedDependency>
               <ignoredNonTestScopedDependency>io.debezium:debezium-connector-postgres</ignoredNonTestScopedDependency>
+              <ignoredNonTestScopedDependency>org.springframework.security:spring-security-core</ignoredNonTestScopedDependency>
             </ignoredNonTestScopedDependencies>
           </configuration>
         </plugin>
@@ -2192,8 +2216,8 @@ jasperreports.version=${jasperreports.version}
         </executions>
       </plugin>
     </plugins>
-    <!-- <build><sourceDirectory> cannot be set in a profile, so it needs 
-      a custom property for overwriting it, see 
+    <!-- <build><sourceDirectory> cannot be set in a profile, so it needs
+      a custom property for overwriting it, see
       https://github.com/awhitford/lombok.maven/issues/17#issuecomment-136606104 -->
     <sourceDirectory>${sourceDir}</sourceDirectory>
   </build>
@@ -2250,7 +2274,7 @@ jasperreports.version=${jasperreports.version}
       </build>
     </profile>
 
-    <!-- Integration test profile, runs all integrations tests, not unit 
+    <!-- Integration test profile, runs all integrations tests, not unit
       tests -->
     <profile>
       <id>integration</id>
@@ -2276,7 +2300,7 @@ jasperreports.version=${jasperreports.version}
       </build>
     </profile>
 
-    <!-- IntegrationH2 test profile, runs all integrations tests with H2, 
+    <!-- IntegrationH2 test profile, runs all integrations tests with H2,
       not unit tests -->
     <profile>
       <id>integrationH2</id>

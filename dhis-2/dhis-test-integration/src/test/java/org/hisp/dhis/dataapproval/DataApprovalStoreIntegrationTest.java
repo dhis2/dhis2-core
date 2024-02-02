@@ -43,7 +43,6 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataapproval.hibernate.HibernateDataApprovalStore;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -53,7 +52,6 @@ import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
@@ -62,10 +60,6 @@ import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -76,7 +70,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  *
  * @author Jim Grace
  */
-@ExtendWith(MockitoExtension.class)
+// @ExtendWith(MockitoExtension.class)
 class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
 
   private HibernateDataApprovalStore dataApprovalStore;
@@ -90,8 +84,6 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
   @Autowired private PeriodStore periodStore;
 
   @Autowired private CategoryService categoryService;
-
-  @Autowired private UserService userService;
 
   @Autowired private UserGroupService userGroupService;
 
@@ -108,8 +100,7 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
   @Autowired private CacheProvider cacheProvider;
 
   @Autowired private SystemSettingManager systemSettingManager;
-
-  @Mock private CurrentUserService currentUserService;
+  @Autowired private UserService _userService;
 
   // -------------------------------------------------------------------------
   // Supporting data
@@ -157,6 +148,8 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
 
   @Override
   public void setUpTest() throws Exception {
+    this.userService = _userService;
+
     dataApprovalStore =
         new HibernateDataApprovalStore(
             entityManager,
@@ -165,10 +158,9 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
             cacheProvider,
             periodService,
             periodStore,
-            currentUserService,
             categoryService,
             systemSettingManager,
-            new PostgreSQLStatementBuilder());
+            _userService);
 
     // ---------------------------------------------------------------------
     // Add supporting data
@@ -238,6 +230,11 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
     categoryService.addCategoryOption(categoryOptionA);
     categoryService.addCategoryOption(categoryOptionB);
 
+    categoryOptionA.setPublicAccess("--------");
+    categoryOptionB.setPublicAccess("--------");
+    categoryService.updateCategoryOption(categoryOptionA);
+    categoryService.updateCategoryOption(categoryOptionB);
+
     categoryA = createCategory('A', categoryOptionA, categoryOptionB);
 
     categoryService.addCategory(categoryA);
@@ -256,10 +253,14 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
     categoryComboA.getOptionCombos().add(categoryOptionCombo);
 
     categoryService.updateCategoryCombo(categoryComboA);
+
+    dbmsManager.flushSession();
+    dbmsManager.clearSession();
   }
 
   @Test
   void testGetDataApprovalStatusesWithOpenPeriodsAfterCoEndDate() {
+
     transactionTemplate.execute(
         status -> {
           categoryOptionA.setPublicAccess("r-r-----");
@@ -270,7 +271,8 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
 
           dataApprovalLevelService.addDataApprovalLevel(level1);
 
-          Mockito.when(currentUserService.getCurrentUser()).thenReturn(userA);
+          hibernateService.flushSession();
+          injectSecurityContextUser(userA);
 
           assertEquals(
               1,
@@ -335,12 +337,19 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
           categoryOptionB.setStartDate(new DateTime(2020, 2, 1, 0, 0).toDate());
           categoryOptionB.setEndDate(new DateTime(2020, 6, 30, 0, 0).toDate());
 
+          clearSecurityContext();
+
+          hibernateService.flushSession();
+          injectSecurityContextUser(getAdminUser());
+
           categoryService.updateCategoryOption(categoryOptionA);
           categoryService.updateCategoryOption(categoryOptionB);
 
           dbmsManager.clearSession();
           return null;
         });
+
+    injectSecurityContextUser(userA);
 
     assertEquals(
         0,
@@ -369,7 +378,11 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
 
     dataSetA.setOpenPeriodsAfterCoEndDate(1);
 
+    clearSecurityContext();
+    reLoginAdminUser();
     dataSetService.updateDataSet(dataSetA);
+
+    injectSecurityContextUser(userA);
 
     assertEquals(
         0,
@@ -492,7 +505,8 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
 
     dataApprovalLevelService.addDataApprovalLevel(level1);
 
-    Mockito.when(currentUserService.getCurrentUser()).thenReturn(userA);
+    hibernateService.flushSession();
+    injectSecurityContextUser(userA);
 
     assertEquals(
         expectedApprovalCount,

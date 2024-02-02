@@ -34,6 +34,7 @@ import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.analytics.AnalyticsEnrollmentsActions;
 import org.hisp.dhis.actions.analytics.AnalyticsEventActions;
+import org.hisp.dhis.actions.analytics.AnalyticsOutlierDetectionActions;
 import org.hisp.dhis.actions.analytics.AnalyticsTeiActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
@@ -58,6 +59,8 @@ public class NoAnalyticsTablesErrorsScenariosTest {
       new AnalyticsEnrollmentsActions();
   private final AnalyticsEventActions analyticsEventActions = new AnalyticsEventActions();
   private final AnalyticsTeiActions analyticsTeiActions = new AnalyticsTeiActions();
+  private final AnalyticsOutlierDetectionActions analyticsOutlierActions =
+      new AnalyticsOutlierDetectionActions();
   private final RestApiActions analyticsAggregateActions = new RestApiActions("analytics");
 
   @BeforeAll
@@ -136,6 +139,33 @@ public class NoAnalyticsTablesErrorsScenariosTest {
 
     // Then
     assertNoAnalyticsTableResponse(response);
+  }
+
+  @Test
+  public void testOutliersAnalyticsWhenOutliersDataAreMissing() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dx=Y7Oq71I3ASg")
+            .add("endDate=2024-01-02")
+            .add("ou=O6uvpzGd5pu,fdc6uOvgoji")
+            .add("maxResults=100")
+            .add("startDate=2020-10-01")
+            .add("algorithm=MODIFIED_Z_SCORE");
+
+    // When
+    ApiResponse response = analyticsOutlierActions.query().get("", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(409)
+        .body("status", equalTo("ERROR"))
+        .body(
+            "message",
+            equalTo(
+                "The analytics outliers data does not exist. Please ensure analytics job was run and did not skip the outliers"))
+        .body("errorCode", equalTo("E7180"));
   }
 
   private void assertNoAnalyticsTableResponse(ApiResponse response) {

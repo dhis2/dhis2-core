@@ -73,6 +73,7 @@
     </dependency>
 
     <!-- Other -->
+
     <dependency>
       <groupId>org.hisp.dhis.parser</groupId>
       <artifactId>dhis-antlr-expression-parser</artifactId>
@@ -313,6 +314,10 @@
     <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-aspects</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.security.oauth</groupId>
+      <artifactId>spring-security-oauth2</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework.security</groupId>

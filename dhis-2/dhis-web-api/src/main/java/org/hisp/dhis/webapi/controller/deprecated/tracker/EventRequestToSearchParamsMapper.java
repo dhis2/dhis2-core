@@ -56,6 +56,7 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -76,10 +77,10 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
-import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.springframework.stereotype.Component;
 
@@ -89,7 +90,7 @@ import org.springframework.stereotype.Component;
 @Component("org.hisp.dhis.webapi.controller.deprecated.tracker.EventRequestToSearchParamsMapper")
 @RequiredArgsConstructor
 class EventRequestToSearchParamsMapper {
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   private final ProgramService programService;
 
@@ -219,7 +220,8 @@ class EventRequestToSearchParamsMapper {
       Set<String> dataElements,
       boolean includeAllDataElements,
       boolean includeDeleted) {
-    User user = currentUserService.getCurrentUser();
+
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     EventSearchParams params = new EventSearchParams();
 
@@ -242,12 +244,12 @@ class EventRequestToSearchParamsMapper {
       throw new IllegalQueryException("Org unit is specified but does not exist: " + orgUnit);
     }
 
-    validateUser(user, pr, ps, requestedOrgUnit);
+    validateUser(currentUser, pr, ps, requestedOrgUnit);
 
     OrganisationUnitSelectionMode orgUnitMode =
         getOrgUnitMode(requestedOrgUnit, orgUnitSelectionMode);
 
-    validateOrgUnitMode(orgUnitMode, user, pr, requestedOrgUnit);
+    validateOrgUnitMode(orgUnitMode, currentUser, pr, requestedOrgUnit);
 
     TrackedEntity tei = entityInstanceService.getTrackedEntity(trackedEntityInstance);
 
@@ -257,8 +259,8 @@ class EventRequestToSearchParamsMapper {
     }
 
     if (attributeOptionCombo != null
-        && !user.isSuper()
-        && !aclService.canDataRead(user, attributeOptionCombo)) {
+        && !currentUser.isSuper()
+        && !aclService.canDataRead(currentUser, attributeOptionCombo)) {
       throw new IllegalQueryException(
           "User has no access to attribute category option combo: "
               + attributeOptionCombo.getUid());
@@ -310,7 +312,7 @@ class EventRequestToSearchParamsMapper {
         .setProgramStatus(programStatus)
         .setFollowUp(followUp)
         .setOrgUnitSelectionMode(orgUnitMode)
-        .setUserWithAssignedUsers(assignedUserSelectionMode, user, assignedUsers)
+        .setUserWithAssignedUsers(assignedUserSelectionMode, currentUser, assignedUsers)
         .setStartDate(startDate)
         .setEndDate(endDate)
         .setDueDateStart(dueDateStart)
@@ -454,8 +456,8 @@ class EventRequestToSearchParamsMapper {
 
     switch (selectedOuMode) {
       case ALL -> validateUserCanSearchOrgUnitModeALL(user);
-      case SELECTED, ACCESSIBLE, DESCENDANTS, CHILDREN -> validateUserScope(
-          user, program, selectedOuMode, orgUnit);
+      case SELECTED, ACCESSIBLE, DESCENDANTS, CHILDREN ->
+          validateUserScope(user, program, selectedOuMode, orgUnit);
       case CAPTURE -> validateCaptureScope(user, orgUnit);
     }
   }

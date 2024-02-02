@@ -37,6 +37,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.deduplication.DeduplicationMergeParams;
 import org.hisp.dhis.deduplication.DeduplicationService;
 import org.hisp.dhis.deduplication.DeduplicationStatus;
@@ -55,8 +56,10 @@ import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -82,7 +85,7 @@ public class DeduplicationController {
 
   private final TrackerAccessManager trackerAccessManager;
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   private final FieldFilterService fieldFilterService;
 
@@ -91,29 +94,33 @@ public class DeduplicationController {
 
   @OpenApi.Response(PotentialDuplicate[].class)
   @GetMapping
-  public PagingWrapper<ObjectNode> getPotentialDuplicates(
-      PotentialDuplicateCriteria potentialDuplicateCriteria,
+  public Page<ObjectNode> getPotentialDuplicates(
+      PotentialDuplicateCriteria criteria,
       HttpServletResponse response,
-      @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) List<FieldPath> fields) {
-    PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>("potentialDuplicates");
-
-    if (potentialDuplicateCriteria.isPagingRequest()) {
-      pagingWrapper =
-          pagingWrapper.withPager(
-              PagingWrapper.Pager.builder()
-                  .page(potentialDuplicateCriteria.getPage())
-                  .pageSize(potentialDuplicateCriteria.getPageSize())
-                  .build());
+      @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) List<FieldPath> fields)
+      throws BadRequestException {
+    if (criteria.getPaging() != null
+        && criteria.getSkipPaging() != null
+        && criteria.getPaging().equals(criteria.getSkipPaging())) {
+      throw new BadRequestException(
+          "Paging can either be enabled or disabled. Prefer 'paging' as 'skipPaging' will be removed.");
     }
 
     List<PotentialDuplicate> potentialDuplicates =
-        deduplicationService.getPotentialDuplicates(potentialDuplicateCriteria);
-
+        deduplicationService.getPotentialDuplicates(criteria);
     List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(potentialDuplicates, fields);
 
     setNoStore(response);
 
-    return pagingWrapper.withInstances(objectNodes);
+    if (criteria.isPaged()) {
+      Pager pager = new Pager(criteria.getPageWithDefault(), 0, criteria.getPageSizeWithDefault());
+      pager.force(criteria.getPageWithDefault(), criteria.getPageSizeWithDefault());
+      org.hisp.dhis.tracker.export.Page<PotentialDuplicate> page =
+          org.hisp.dhis.tracker.export.Page.of(potentialDuplicates, pager, false);
+      return Page.withPager("potentialDuplicates", objectNodes, page);
+    }
+
+    return Page.withoutPager("potentialDuplicates", objectNodes);
   }
 
   @GetMapping(value = "/{id}")
@@ -165,8 +172,8 @@ public class DeduplicationController {
           "PotentialDuplicate is missing references and cannot be merged.");
     }
 
-    TrackedEntity original = getTei(potentialDuplicate.getOriginal());
-    TrackedEntity duplicate = getTei(potentialDuplicate.getDuplicate());
+    TrackedEntity original = getTrackedEntity(potentialDuplicate.getOriginal());
+    TrackedEntity duplicate = getTrackedEntity(potentialDuplicate.getDuplicate());
 
     if (mergeObject == null) {
       mergeObject = new MergeObject();
@@ -212,13 +219,13 @@ public class DeduplicationController {
           NotFoundException,
           BadRequestException,
           PotentialDuplicateConflictException {
-    checkValidTei(potentialDuplicate.getOriginal(), "original");
+    checkValidTrackedEntity(potentialDuplicate.getOriginal(), "original");
 
-    checkValidTei(potentialDuplicate.getDuplicate(), "duplicate");
+    checkValidTrackedEntity(potentialDuplicate.getDuplicate(), "duplicate");
 
-    canReadTei(getTei(potentialDuplicate.getOriginal()));
+    canReadTrackedEntity(getTrackedEntity(potentialDuplicate.getOriginal()));
 
-    canReadTei(getTei(potentialDuplicate.getDuplicate()));
+    canReadTrackedEntity(getTrackedEntity(potentialDuplicate.getDuplicate()));
 
     checkAlreadyExistingDuplicate(potentialDuplicate);
   }
@@ -236,27 +243,33 @@ public class DeduplicationController {
     }
   }
 
-  private void checkValidTei(String tei, String teiFieldName) throws BadRequestException {
-    if (tei == null) {
-      throw new BadRequestException("Missing required input property '" + teiFieldName + "'");
-    }
-
-    if (!CodeGenerator.isValidUid(tei)) {
+  private void checkValidTrackedEntity(String trackedEntity, String trackedEntityFieldName)
+      throws BadRequestException {
+    if (trackedEntity == null) {
       throw new BadRequestException(
-          "'" + tei + "' is not valid value for property '" + teiFieldName + "'");
+          "Missing required input property '" + trackedEntityFieldName + "'");
+    }
+
+    if (!CodeGenerator.isValidUid(trackedEntity)) {
+      throw new BadRequestException(
+          "'"
+              + trackedEntity
+              + "' is not valid value for property '"
+              + trackedEntityFieldName
+              + "'");
     }
   }
 
-  private TrackedEntity getTei(String tei) throws NotFoundException {
-    return Optional.ofNullable(trackedEntityService.getTrackedEntity(tei))
+  private TrackedEntity getTrackedEntity(String trackedEntity) throws NotFoundException {
+    return Optional.ofNullable(trackedEntityService.getTrackedEntity(trackedEntity))
         .orElseThrow(
-            () -> new NotFoundException("No tracked entity instance found with id '" + tei + "'."));
+            () ->
+                new NotFoundException("No tracked entity found with id '" + trackedEntity + "'."));
   }
 
-  private void canReadTei(TrackedEntity trackedEntity) throws ForbiddenException {
-    if (!trackerAccessManager
-        .canRead(currentUserService.getCurrentUser(), trackedEntity)
-        .isEmpty()) {
+  private void canReadTrackedEntity(TrackedEntity trackedEntity) throws ForbiddenException {
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    if (!trackerAccessManager.canRead(currentUser, trackedEntity).isEmpty()) {
       throw new ForbiddenException(
           "You don't have read access to '" + trackedEntity.getUid() + "'.");
     }

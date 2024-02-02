@@ -39,10 +39,14 @@ import static org.hisp.dhis.feedback.ErrorCode.E2207;
 import static org.hisp.dhis.feedback.ErrorCode.E2209;
 import static org.hisp.dhis.feedback.ErrorCode.E2210;
 import static org.hisp.dhis.feedback.ErrorCode.E2211;
+import static org.hisp.dhis.feedback.ErrorCode.E2212;
+import static org.hisp.dhis.feedback.ErrorCode.E2213;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_LIMIT;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.analytics.OutlierDetectionAlgorithm;
+import org.hisp.dhis.analytics.outlier.Order;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -69,9 +73,9 @@ public class OutlierRequestValidator {
 
     if (errorMessage != null) {
       log.warn(
-          String.format(
-              "Outlier detection request validation failed, code: '%s', message: '%s'",
-              errorMessage.getErrorCode(), errorMessage.getMessage()));
+          "Outlier detection request validation failed, code: '{}', message: '{}'",
+          errorMessage.getErrorCode(),
+          errorMessage.getMessage());
 
       throw new IllegalQueryException(errorMessage);
     }
@@ -113,9 +117,11 @@ public class OutlierRequestValidator {
 
     if (request.getDataElements().isEmpty()) {
       error = new ErrorMessage(E2200);
-    } else if (request.getStartDate() == null || request.getEndDate() == null) {
+    } else if (!request.hasStartEndDate() && !request.hasPeriods()) {
       error = new ErrorMessage(E2201);
-    } else if (request.getStartDate().after(request.getEndDate())) {
+    } else if (request.hasStartEndDate() && request.hasPeriods()) {
+      error = new ErrorMessage(E2212);
+    } else if (request.hasStartEndDate() && request.getStartDate().after(request.getEndDate())) {
       error = new ErrorMessage(E2202);
     } else if (request.getOrgUnits().isEmpty()) {
       error = new ErrorMessage(E2203);
@@ -125,6 +131,16 @@ public class OutlierRequestValidator {
       error = new ErrorMessage(E2205);
     } else if (request.getMaxResults() > maxLimit) {
       error = new ErrorMessage(E2206, maxLimit);
+    } else if (request.getAlgorithm() == OutlierDetectionAlgorithm.MODIFIED_Z_SCORE
+        && (request.getOrderBy() == Order.Z_SCORE
+            || request.getOrderBy() == Order.MEAN
+            || request.getOrderBy() == Order.STD_DEV)) {
+      error = new ErrorMessage(E2213, request.getAlgorithm());
+    } else if (request.getAlgorithm() == OutlierDetectionAlgorithm.Z_SCORE
+        && (request.getOrderBy() == Order.MODIFIED_Z_SCORE
+            || request.getOrderBy() == Order.MEDIAN
+            || request.getOrderBy() == Order.MEDIAN_ABS_DEV)) {
+      error = new ErrorMessage(E2213, request.getAlgorithm());
     }
 
     return error;

@@ -36,7 +36,6 @@ import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.ImpersonatingUserDetailsChecker;
-import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.security.apikey.DhisApiTokenAuthenticationEntryPoint;
 import org.hisp.dhis.security.basic.HttpBasicWebAuthenticationDetailsSource;
@@ -199,8 +198,6 @@ public class DhisWebApiWebSecurityConfig {
 
     @Autowired private CacheProvider cacheProvider;
 
-    @Autowired private SecurityService securityService;
-
     @Autowired private ExternalAccessVoter externalAccessVoter;
 
     @Autowired
@@ -261,6 +258,8 @@ public class DhisWebApiWebSecurityConfig {
           .antMatchers("/favicon.ico")
           .permitAll()
           .antMatchers("/oauth2/**")
+          .permitAll()
+          .antMatchers(apiContextPath + "/loginConfig")
           .permitAll()
           .antMatchers(apiContextPath + "/authentication/login")
           .permitAll()

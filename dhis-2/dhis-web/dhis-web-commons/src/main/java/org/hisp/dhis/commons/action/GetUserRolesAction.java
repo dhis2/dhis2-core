@@ -31,7 +31,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.hisp.dhis.paging.ActionPagingSupport;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 
@@ -71,8 +72,8 @@ public class GetUserRolesAction extends ActionPagingSupport<UserRole> {
 
     userService.canIssueFilter(userRoles);
 
-    User currentUser = currentUserService.getCurrentUser();
-    userRoles.forEach(instance -> canReadInstance(instance, currentUser));
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    userRoles.forEach(instance -> canReadInstance(instance, currentUserDetails));
 
     Collections.sort(userRoles);
 

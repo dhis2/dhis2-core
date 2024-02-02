@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.visualization;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.common.GenericAnalyticalObjectService;
@@ -76,5 +77,10 @@ public class DefaultVisualizationService extends GenericAnalyticalObjectService<
   @Transactional(readOnly = true)
   public Visualization getVisualizationNoAcl(String uid) {
     return visualizationStore.getByUidNoAcl(uid);
+  }
+
+  @Override
+  public List<Visualization> getVisualizationsWithIndicatorSorting(List<String> indicators) {
+    return visualizationStore.getVisualizationsBySortingIndicator(indicators);
   }
 }

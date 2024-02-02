@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.analytics;
 
-import com.google.common.base.MoreObjects;
 import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 import org.hisp.dhis.util.ObjectUtils;
 
 /**
@@ -36,40 +38,33 @@ import org.hisp.dhis.util.ObjectUtils;
  *
  * @author Lars Helge Overland
  */
+@ToString
+@EqualsAndHashCode
 public class AnalyticsAggregationType {
-  public static final AnalyticsAggregationType SUM =
-      new AnalyticsAggregationType(AggregationType.SUM, AggregationType.SUM);
-
-  public static final AnalyticsAggregationType AVERAGE =
-      new AnalyticsAggregationType(AggregationType.AVERAGE, AggregationType.AVERAGE);
-
-  public static final AnalyticsAggregationType COUNT =
-      new AnalyticsAggregationType(AggregationType.COUNT, AggregationType.COUNT);
-
-  public static final AnalyticsAggregationType FIRST =
-      new AnalyticsAggregationType(AggregationType.SUM, AggregationType.FIRST);
-
-  public static final AnalyticsAggregationType LAST =
-      new AnalyticsAggregationType(AggregationType.SUM, AggregationType.LAST);
-
-  public static final AnalyticsAggregationType LAST_IN_PERIOD =
-      new AnalyticsAggregationType(AggregationType.SUM, AggregationType.LAST_IN_PERIOD);
+  public static final AnalyticsAggregationType //
+      SUM = of(AggregationType.SUM, AggregationType.SUM),
+      AVERAGE = of(AggregationType.AVERAGE, AggregationType.AVERAGE),
+      COUNT = of(AggregationType.COUNT, AggregationType.COUNT),
+      FIRST = of(AggregationType.SUM, AggregationType.FIRST),
+      LAST = of(AggregationType.SUM, AggregationType.LAST),
+      LAST_IN_PERIOD = of(AggregationType.SUM, AggregationType.LAST_IN_PERIOD);
 
   /** General aggregation type. */
-  private final AggregationType aggregationType;
+  @Getter private final AggregationType aggregationType;
 
   /** Aggregation type for the period dimension. */
   private final AggregationType periodAggregationType;
 
   /** Analytics data type. */
-  private DataType dataType;
+  @Getter private DataType dataType;
 
   /** Indicates whether to perform data disaggregation. */
-  private boolean disaggregation;
+  @Getter private boolean disaggregation;
 
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
+  public static AnalyticsAggregationType of(
+      AggregationType aggregationType, AggregationType periodAggregationType) {
+    return new AnalyticsAggregationType(aggregationType, periodAggregationType);
+  }
 
   /**
    * Constructor.
@@ -109,63 +104,22 @@ public class AnalyticsAggregationType {
         this.aggregationType, this.periodAggregationType, this.dataType, this.disaggregation);
   }
 
-  // -------------------------------------------------------------------------
-  // Logic methods
-  // -------------------------------------------------------------------------
-
   public static AnalyticsAggregationType fromAggregationType(AggregationType aggregationType) {
-    AnalyticsAggregationType analyticsAggregationType;
-
-    switch (aggregationType) {
-      case AVERAGE_SUM_ORG_UNIT:
-        analyticsAggregationType =
-            new AnalyticsAggregationType(AggregationType.SUM, AggregationType.AVERAGE);
-        break;
-      case LAST:
-        analyticsAggregationType =
-            new AnalyticsAggregationType(AggregationType.SUM, AggregationType.LAST);
-        break;
-      case LAST_AVERAGE_ORG_UNIT:
-        analyticsAggregationType =
-            new AnalyticsAggregationType(AggregationType.AVERAGE, AggregationType.LAST);
-        break;
-      case LAST_LAST_ORG_UNIT:
-        analyticsAggregationType =
-            new AnalyticsAggregationType(AggregationType.LAST, AggregationType.LAST);
-        break;
-      case LAST_IN_PERIOD:
-        analyticsAggregationType =
-            new AnalyticsAggregationType(AggregationType.SUM, AggregationType.LAST_IN_PERIOD);
-        break;
-      case LAST_IN_PERIOD_AVERAGE_ORG_UNIT:
-        analyticsAggregationType =
-            new AnalyticsAggregationType(AggregationType.AVERAGE, AggregationType.LAST_IN_PERIOD);
-        break;
-      case FIRST:
-        analyticsAggregationType =
-            new AnalyticsAggregationType(AggregationType.SUM, AggregationType.FIRST);
-        break;
-      case FIRST_AVERAGE_ORG_UNIT:
-        analyticsAggregationType =
-            new AnalyticsAggregationType(AggregationType.AVERAGE, AggregationType.FIRST);
-        break;
-      case FIRST_FIRST_ORG_UNIT:
-        analyticsAggregationType =
-            new AnalyticsAggregationType(AggregationType.FIRST, AggregationType.FIRST);
-        break;
-      case MAX_SUM_ORG_UNIT:
-        analyticsAggregationType =
-            new AnalyticsAggregationType(AggregationType.SUM, AggregationType.MAX);
-        break;
-      case MIN_SUM_ORG_UNIT:
-        analyticsAggregationType =
-            new AnalyticsAggregationType(AggregationType.SUM, AggregationType.MIN);
-        break;
-      default:
-        analyticsAggregationType = new AnalyticsAggregationType(aggregationType, aggregationType);
-    }
-
-    return analyticsAggregationType;
+    return switch (aggregationType) {
+      case AVERAGE_SUM_ORG_UNIT -> of(AggregationType.SUM, AggregationType.AVERAGE);
+      case LAST -> of(AggregationType.SUM, AggregationType.LAST);
+      case LAST_AVERAGE_ORG_UNIT -> of(AggregationType.AVERAGE, AggregationType.LAST);
+      case LAST_LAST_ORG_UNIT -> of(AggregationType.LAST, AggregationType.LAST);
+      case LAST_IN_PERIOD -> of(AggregationType.SUM, AggregationType.LAST_IN_PERIOD);
+      case LAST_IN_PERIOD_AVERAGE_ORG_UNIT ->
+          of(AggregationType.AVERAGE, AggregationType.LAST_IN_PERIOD);
+      case FIRST -> of(AggregationType.SUM, AggregationType.FIRST);
+      case FIRST_AVERAGE_ORG_UNIT -> of(AggregationType.AVERAGE, AggregationType.FIRST);
+      case FIRST_FIRST_ORG_UNIT -> of(AggregationType.FIRST, AggregationType.FIRST);
+      case MAX_SUM_ORG_UNIT -> of(AggregationType.SUM, AggregationType.MAX);
+      case MIN_SUM_ORG_UNIT -> of(AggregationType.SUM, AggregationType.MIN);
+      default -> of(aggregationType, aggregationType);
+    };
   }
 
   public boolean isAggregationType(AggregationType type) {
@@ -213,71 +167,11 @@ public class AnalyticsAggregationType {
     return this.dataType == DataType.BOOLEAN;
   }
 
-  // -------------------------------------------------------------------------
-  // Get methods
-  // -------------------------------------------------------------------------
-
-  /** Returns the general {@link AggregationType}. */
-  public AggregationType getAggregationType() {
-    return aggregationType;
-  }
-
   /**
    * Returns the period {@link AggregationType}, with fallback to the general {@link
    * AggregationType} if not specified.
    */
   public AggregationType getPeriodAggregationType() {
     return ObjectUtils.firstNonNull(periodAggregationType, aggregationType);
-  }
-
-  /** Returns the {@link DataType}. */
-  public DataType getDataType() {
-    return dataType;
-  }
-
-  /** Indicates whether disaggregation is involved. */
-  public boolean isDisaggregation() {
-    return disaggregation;
-  }
-
-  // -------------------------------------------------------------------------
-  // toString, equals, hash code
-  // -------------------------------------------------------------------------
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("aggregation type", aggregationType)
-        .add("period dim aggregation type", periodAggregationType)
-        .add("data type", dataType)
-        .add("disaggregation", disaggregation)
-        .toString();
-  }
-
-  @Override
-  public boolean equals(Object object) {
-    if (this == object) {
-      return true;
-    }
-
-    if (object == null) {
-      return false;
-    }
-
-    if (!getClass().isAssignableFrom(object.getClass())) {
-      return false;
-    }
-
-    AnalyticsAggregationType other = (AnalyticsAggregationType) object;
-
-    return Objects.equals(this.aggregationType, other.aggregationType)
-        && Objects.equals(this.periodAggregationType, other.periodAggregationType)
-        && Objects.equals(this.dataType, other.dataType)
-        && Objects.equals(this.disaggregation, other.disaggregation);
-  }
-
-  @Override
-  public int hashCode() {
-    return 31 * Objects.hash(aggregationType, periodAggregationType, dataType, disaggregation);
   }
 }

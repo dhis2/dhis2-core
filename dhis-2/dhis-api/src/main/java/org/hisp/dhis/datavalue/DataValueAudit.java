@@ -33,7 +33,7 @@ import com.google.common.base.MoreObjects;
 import java.util.Date;
 import java.util.Objects;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -62,7 +62,7 @@ public class DataValueAudit {
 
   private Date created;
 
-  private AuditType auditType;
+  private ChangeLogType auditType;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -70,7 +70,8 @@ public class DataValueAudit {
 
   public DataValueAudit() {}
 
-  public DataValueAudit(DataValue dataValue, String value, String modifiedBy, AuditType auditType) {
+  public DataValueAudit(
+      DataValue dataValue, String value, String modifiedBy, ChangeLogType auditType) {
     this.dataElement = dataValue.getDataElement();
     this.period = dataValue.getPeriod();
     this.organisationUnit = dataValue.getSource();
@@ -90,7 +91,7 @@ public class DataValueAudit {
       CategoryOptionCombo attributeOptionCombo,
       String value,
       String modifiedBy,
-      AuditType auditType) {
+      ChangeLogType auditType) {
     this.dataElement = dataElement;
     this.period = period;
     this.organisationUnit = organisationUnit;
@@ -276,11 +277,11 @@ public class DataValueAudit {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public AuditType getAuditType() {
+  public ChangeLogType getAuditType() {
     return auditType;
   }
 
-  public void setAuditType(AuditType auditType) {
+  public void setAuditType(ChangeLogType auditType) {
     this.auditType = auditType;
   }
 }

@@ -41,16 +41,18 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.hisp.dhis.analytics.AnalyticsTable;
-import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableType;
-import org.hisp.dhis.analytics.ColumnDataType;
-import org.hisp.dhis.analytics.IndexType;
+import org.hisp.dhis.analytics.table.model.AnalyticsTable;
+import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.table.model.Skip;
+import org.hisp.dhis.db.model.DataType;
+import org.hisp.dhis.db.model.IndexType;
 
 /**
  * @author Luciano Fiandesio
  */
 public class AnalyticsTableAsserter {
+  /** The analytics table to verify. */
   private AnalyticsTable table;
 
   private int columnsSize;
@@ -71,10 +73,10 @@ public class AnalyticsTableAsserter {
     // verify column size
     assertThat(table.getDimensionColumns(), hasSize(columnsSize));
     assertThat(table.getTableType(), is(tableType));
-    assertThat(table.getTableName(), is(name));
+    assertThat(table.getName(), is(name));
     // verify default columns
     Map<String, AnalyticsTableColumn> tableColumnMap =
-        Stream.concat(table.getDimensionColumns().stream(), table.getValueColumns().stream())
+        Stream.concat(table.getDimensionColumns().stream(), table.getFactColumns().stream())
             .collect(Collectors.toMap(AnalyticsTableColumn::getName, c -> c));
     for (AnalyticsTableColumn col : defaultColumns) {
       if (!tableColumnMap.containsKey(col.getName())) {
@@ -140,29 +142,31 @@ public class AnalyticsTableAsserter {
       return this;
     }
 
-    public Builder addColumn(String name, ColumnDataType dataType, String alias, Date created) {
+    public Builder addColumn(String name, DataType dataType, String alias, Date created) {
       AnalyticsTableColumn col =
-          new AnalyticsTableColumn(quote(name), dataType, alias + quote(name));
-      col.withCreated(created);
+          new AnalyticsTableColumn(quote(name), dataType, alias + quote(name), created);
       this._columns.add(col);
       return this;
     }
 
-    public Builder addColumn(String name, ColumnDataType dataType, String alias) {
-      return addColumnUnquoted(quote(name), dataType, alias, null);
+    public Builder addColumn(String name, DataType dataType, String alias) {
+      return addColumnUnquoted(quote(name), dataType, alias, Skip.INCLUDE, IndexType.BTREE);
     }
 
-    public Builder addColumn(
-        String name, ColumnDataType dataType, String alias, IndexType indexType) {
-      return addColumnUnquoted(quote(name), dataType, alias, indexType);
+    public Builder addColumn(String name, DataType dataType, String alias, IndexType indexType) {
+      return addColumnUnquoted(quote(name), dataType, alias, Skip.INCLUDE, indexType);
+    }
+
+    public Builder addColumn(String name, DataType dataType, String alias, Skip skipIndex) {
+      return addColumnUnquoted(quote(name), dataType, alias, skipIndex, IndexType.BTREE);
     }
 
     public Builder addColumnUnquoted(
-        String name, ColumnDataType dataType, String alias, IndexType indexType) {
-      AnalyticsTableColumn col = new AnalyticsTableColumn(name, dataType, alias);
-      if (indexType != null) {
-        col.withIndexType(indexType);
-      }
+        String name, DataType dataType, String alias, Skip skipIndex, IndexType indexType) {
+      AnalyticsTableColumn col =
+          Skip.SKIP == skipIndex
+              ? new AnalyticsTableColumn(name, dataType, alias, skipIndex)
+              : new AnalyticsTableColumn(name, dataType, alias, indexType);
       this._columns.add(col);
       return this;
     }

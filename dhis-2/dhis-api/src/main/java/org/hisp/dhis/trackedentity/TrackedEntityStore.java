@@ -91,7 +91,13 @@ public interface TrackedEntityStore extends IdentifiableObjectStore<TrackedEntit
    */
   void updateTrackedEntitySyncTimestamp(List<String> trackedEntityUIDs, Date lastSynchronized);
 
-  void updateTrackedEntityLastUpdated(Set<String> trackedEntityUIDs, Date lastUpdated);
+  /**
+   * @param trackedEntityUIDs
+   * @param lastUpdated
+   * @param userInfoSnapshot
+   */
+  void updateTrackedEntityLastUpdated(
+      Set<String> trackedEntityUIDs, Date lastUpdated, String userInfoSnapshot);
 
   List<TrackedEntity> getTrackedEntityByUid(List<String> uids, User user);
 }

@@ -33,22 +33,23 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.security.ldap.authentication.LdapAuthenticationProvider;
 import org.springframework.security.ldap.authentication.LdapAuthenticator;
 import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
-import org.springframework.stereotype.Component;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-@Component
 public class CustomLdapAuthenticationProvider extends LdapAuthenticationProvider {
+
   private final DhisConfigurationProvider configurationProvider;
 
   public CustomLdapAuthenticationProvider(
       LdapAuthenticator authenticator,
       LdapAuthoritiesPopulator authoritiesPopular,
       DhisConfigurationProvider configurationProvider) {
+
     super(authenticator, authoritiesPopular);
 
     checkNotNull(configurationProvider);
+
     this.configurationProvider = configurationProvider;
   }
 

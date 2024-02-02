@@ -36,6 +36,7 @@ import static org.hisp.dhis.DhisConvenienceTest.createCategoryOptionCombo;
 import static org.hisp.dhis.DhisConvenienceTest.createDataSet;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.DhisConvenienceTest.createPeriod;
+import static org.hisp.dhis.DhisConvenienceTest.injectSecurityContext;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -85,8 +86,10 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserService;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.junit.jupiter.api.BeforeEach;
@@ -95,11 +98,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.core.env.Environment;
 
 /**
  * @author Luciano Fiandesio
  */
+@MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 class DefaultCompleteDataSetRegistrationExchangeServiceTest {
   @Mock private CompleteDataSetRegistrationExchangeStore cdsrStore;
@@ -119,8 +125,6 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
   @Mock private CategoryService categoryService;
 
   @Mock private PeriodService periodService;
-
-  @Mock private CurrentUserService currentUserService;
 
   @Mock private CompleteDataSetRegistrationService registrationService;
 
@@ -153,7 +157,7 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
   @Mock private Environment environment;
 
   @Mock private AclService aclService;
-
+  @Mock private UserService userService;
   private User user;
 
   private DefaultCompleteDataSetRegistrationExchangeService subject;
@@ -163,6 +167,7 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
   @BeforeEach
   public void setUp() {
     user = new User();
+    user.setUsername("test");
 
     when(environment.getActiveProfiles()).thenReturn(new String[] {"test"});
     when(dhisConfigurationProvider.getProperty(ConfigurationKey.SYSTEM_CACHE_MAX_SIZE_FACTOR))
@@ -186,20 +191,23 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
             systemSettingManager,
             categoryService,
             periodService,
-            currentUserService,
             registrationService,
             inputUtils,
             aggregateAccessManager,
             notificationPublisher,
             messageService,
             JacksonObjectMapperConfig.staticJsonMapper(),
-            orgUnitService);
+            orgUnitService,
+            userService);
 
     DEFAULT_COC = new CategoryOptionCombo();
   }
 
   @Test
   void verifyUserHasNoWritePermissionOnCategoryOption() {
+    injectSecurityContext(UserDetails.fromUser(user));
+    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
+
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
     DataSet dataSetA = createDataSet('A', new MonthlyPeriodType());
     CategoryCombo categoryCombo = createCategoryCombo('A');
@@ -225,7 +233,7 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
               when(mock.getOrgUnitInHierarchyMap()).thenReturn(orgUnitInHierarchyCache);
               when(mock.getAttrOptComboOrgUnitMap()).thenReturn(attrOptComboOrgUnitCache);
             })) {
-      when(currentUserService.getCurrentUser()).thenReturn(user);
+
       when(batchHandler.init()).thenReturn(batchHandler);
       when(idObjManager.get(CategoryCombo.class, categoryCombo.getUid())).thenReturn(categoryCombo);
       when(idObjManager.getObject(CategoryOption.class, IdScheme.UID, categoryOptionA.getUid()))
@@ -251,9 +259,12 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
           .thenReturn(categoryOptionCombo);
 
       // force error on access check for Category Option Combo
-      when(aclService.canDataWrite(user, dataSetA)).thenReturn(true);
-      when(aclService.canDataWrite(user, categoryOptionA)).thenReturn(false);
-      when(aclService.canDataWrite(user, categoryOptionB)).thenReturn(true);
+      when(aclService.canDataWrite(CurrentUserUtil.getCurrentUserDetails(), dataSetA))
+          .thenReturn(true);
+      when(aclService.canDataWrite(CurrentUserUtil.getCurrentUserDetails(), categoryOptionA))
+          .thenReturn(false);
+      when(aclService.canDataWrite(CurrentUserUtil.getCurrentUserDetails(), categoryOptionB))
+          .thenReturn(true);
 
       when(systemSettingManager.getBoolSetting(SettingKey.DATA_IMPORT_STRICT_PERIODS))
           .thenReturn(false);
@@ -266,8 +277,8 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
               SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO))
           .thenReturn(false);
 
-      when(currentUserService.getCurrentUserOrganisationUnits())
-          .thenReturn(Collections.singleton(createOrganisationUnit('A')));
+      user.setOrganisationUnits(Collections.singleton(createOrganisationUnit('A')));
+
       when(i18nManager.getI18n()).thenReturn(i18n);
 
       when(categoryService.getDefaultCategoryOptionCombo()).thenReturn(DEFAULT_COC);

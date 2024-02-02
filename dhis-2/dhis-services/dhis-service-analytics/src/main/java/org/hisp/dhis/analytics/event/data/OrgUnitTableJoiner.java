@@ -39,7 +39,7 @@ import static org.hisp.dhis.util.DateUtils.plusOneDay;
 import java.util.Date;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.analytics.table.PartitionUtils;
+import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.program.AnalyticsType;
 
 /**
@@ -94,7 +94,7 @@ public final class OrgUnitTableJoiner {
             : plusOneDay(params.getLatestEndDate());
 
     String ownershipTable =
-        PartitionUtils.getTableName(
+        AnalyticsTable.getTableName(
             AnalyticsTableType.OWNERSHIP.getTableName(), params.getProgram());
 
     return "left join "

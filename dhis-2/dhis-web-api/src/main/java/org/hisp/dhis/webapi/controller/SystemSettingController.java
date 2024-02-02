@@ -42,7 +42,6 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -109,15 +108,13 @@ public class SystemSettingController {
       @PathVariable(value = "key") String key,
       @RequestParam(value = "locale", required = false) String locale,
       @RequestParam(value = "value", required = false) String value,
-      @RequestBody(required = false) String valuePayload,
-      HttpServletResponse response,
-      HttpServletRequest request)
+      @RequestBody(required = false) String valuePayload)
       throws WebMessageException {
     validateParameters(key, value, valuePayload);
 
     Optional<SettingKey> setting = SettingKey.getByName(key);
 
-    if (!setting.isPresent()) {
+    if (setting.isEmpty()) {
       return conflict("Key is not supported: " + key);
     }
 
@@ -172,9 +169,7 @@ public class SystemSettingController {
   @ResponseBody
   public WebMessage setSystemSettingV29(@RequestBody Map<String, Object> settings) {
     List<String> invalidKeys =
-        settings.keySet().stream()
-            .filter((key) -> !SettingKey.getByName(key).isPresent())
-            .collect(Collectors.toList());
+        settings.keySet().stream().filter(key -> SettingKey.getByName(key).isEmpty()).toList();
 
     if (!invalidKeys.isEmpty()) {
       return conflict("Key(s) is not supported: " + StringUtils.join(invalidKeys, ", "));
@@ -183,7 +178,9 @@ public class SystemSettingController {
     for (Entry<String, Object> entry : settings.entrySet()) {
       String key = entry.getKey();
       Serializable valueObject = SettingKey.getAsRealClass(key, entry.getValue().toString());
-      systemSettingManager.saveSystemSetting(SettingKey.getByName(key).get(), valueObject);
+      Optional<SettingKey> settingByName = SettingKey.getByName(key);
+      settingByName.ifPresent(
+          settingKey -> systemSettingManager.saveSystemSetting(settingKey, valueObject));
     }
 
     return ok("System settings imported");
@@ -235,6 +232,8 @@ public class SystemSettingController {
   private Serializable getSystemSettingOrTranslation(String key, String locale, User currentUser) {
     if (settingExistsAndIsNotConfidential(key)) {
       Optional<SettingKey> settingKey = SettingKey.getByName(key);
+      if (settingKey.isEmpty()) return StringUtils.EMPTY;
+
       Optional<String> localeToFetch = getLocaleToFetch(locale, key, currentUser);
 
       if (localeToFetch.isPresent()) {
@@ -265,7 +264,9 @@ public class SystemSettingController {
         return Optional.of(locale);
       } else if (currentUser != null) {
         Locale userLocale =
-            (Locale) userSettingService.getUserSetting(UserSettingKey.UI_LOCALE, currentUser);
+            (Locale)
+                userSettingService.getUserSetting(
+                    UserSettingKey.UI_LOCALE, currentUser.getUsername());
 
         if (userLocale != null) {
           return Optional.of(userLocale.getLanguage());
@@ -322,7 +323,7 @@ public class SystemSettingController {
       throws WebMessageException {
     Optional<SettingKey> setting = SettingKey.getByName(key);
 
-    if (!setting.isPresent()) {
+    if (setting.isEmpty()) {
       throw new WebMessageException(conflict("Key is not supported: " + key));
     }
 

@@ -36,7 +36,6 @@ import java.util.List;
 import java.util.Optional;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.GridAdaptor;
 import org.hisp.dhis.analytics.common.QueryExecutor;
@@ -49,6 +48,9 @@ import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryCreatorService;
 import org.hisp.dhis.common.ExecutionPlan;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 
 /**
@@ -58,7 +60,6 @@ import org.springframework.stereotype.Service;
  * @author maikel arabori
  */
 @Service
-@Slf4j
 @RequiredArgsConstructor
 public class TeiAnalyticsQueryService {
   private final QueryExecutor<SqlQuery, SqlQueryResult> queryExecutor;
@@ -70,6 +71,8 @@ public class TeiAnalyticsQueryService {
   private final ExecutionPlanStore executionPlanStore;
 
   private final CommonParamsSecurityManager securityManager;
+
+  private final UserService userService;
 
   /**
    * This method will create a query, based on the teiParams, and execute it against the underline
@@ -104,7 +107,8 @@ public class TeiAnalyticsQueryService {
 
     List<Field> fields = queryCreator.getRenderableSqlQuery().getSelectFields();
 
-    return gridAdaptor.createGrid(result, rowsCount, queryParams, fields);
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    return gridAdaptor.createGrid(result, rowsCount, queryParams, fields, currentUser);
   }
 
   /**

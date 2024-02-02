@@ -46,8 +46,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.audit.payloads.TrackedEntityAudit;
-import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -91,7 +90,8 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
-import org.hisp.dhis.trackedentity.TrackedEntityAuditService;
+import org.hisp.dhis.trackedentity.TrackedEntityChangeLog;
+import org.hisp.dhis.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
@@ -101,8 +101,9 @@ import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.locationtech.jts.geom.Geometry;
@@ -142,9 +143,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
   protected EnrollmentService programInstanceService;
 
-  protected TrackedEntityAuditService trackedEntityAuditService;
-
-  protected CurrentUserService currentUserService;
+  protected TrackedEntityChangeLogService trackedEntityChangeLogService;
 
   protected SchemaService schemaService;
 
@@ -213,24 +212,24 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
       return;
     }
     final String accessedBy =
-        user != null ? user.getUsername() : currentUserService.getCurrentUsername();
+        user != null ? user.getUsername() : CurrentUserUtil.getCurrentUsername();
     Map<String, TrackedEntityType> tetMap =
         trackedEntityTypeService.getAllTrackedEntityType().stream()
             .collect(Collectors.toMap(TrackedEntityType::getUid, t -> t));
 
-    List<TrackedEntityAudit> auditable =
+    List<TrackedEntityChangeLog> auditable =
         trackedEntityInstances.stream()
             .filter(Objects::nonNull)
             .filter(tei -> tei.getTrackedEntityType() != null)
             .filter(tei -> tetMap.get(tei.getTrackedEntityType()).isAllowAuditLog())
             .map(
                 tei ->
-                    new TrackedEntityAudit(
-                        tei.getTrackedEntityInstance(), accessedBy, AuditType.SEARCH))
+                    new TrackedEntityChangeLog(
+                        tei.getTrackedEntityInstance(), accessedBy, ChangeLogType.SEARCH))
             .collect(Collectors.toList());
 
     if (!auditable.isEmpty()) {
-      trackedEntityAuditService.addTrackedEntityAudit(auditable);
+      trackedEntityChangeLogService.addTrackedEntityChangeLog(auditable);
     }
   }
 
@@ -267,7 +266,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
   @Transactional(readOnly = true)
   public TrackedEntityInstance getTrackedEntityInstance(
       TrackedEntity daoTrackedEntity, TrackedEntityInstanceParams params) {
-    return getTrackedEntityInstance(daoTrackedEntity, params, currentUserService.getCurrentUser());
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    return getTrackedEntityInstance(daoTrackedEntity, params, currentUser);
   }
 
   @Override
@@ -285,7 +285,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     }
 
     Set<TrackedEntityAttribute> readableAttributes =
-        trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes(user);
+        trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes(
+            user == null ? null : UserDetails.fromUser(user));
 
     return getTei(daoTrackedEntity, readableAttributes, params, user);
   }
@@ -373,8 +374,10 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
     daoEntityInstance.setStoredBy(storedBy);
     daoEntityInstance.setPotentialDuplicate(dtoEntityInstance.isPotentialDuplicate());
-    daoEntityInstance.setCreatedByUserInfo(UserInfoSnapshot.from(importOptions.getUser()));
-    daoEntityInstance.setLastUpdatedByUserInfo(UserInfoSnapshot.from(importOptions.getUser()));
+    daoEntityInstance.setCreatedByUserInfo(
+        UserInfoSnapshot.from(UserDetails.fromUser(importOptions.getUser())));
+    daoEntityInstance.setLastUpdatedByUserInfo(
+        UserInfoSnapshot.from(UserDetails.fromUser(importOptions.getUser())));
     updateDateFields(dtoEntityInstance, daoEntityInstance);
 
     return daoEntityInstance;
@@ -791,7 +794,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     daoEntityInstance.setOrganisationUnit(organisationUnit);
     daoEntityInstance.setInactive(dtoEntityInstance.isInactive());
     daoEntityInstance.setPotentialDuplicate(dtoEntityInstance.isPotentialDuplicate());
-    daoEntityInstance.setLastUpdatedByUserInfo(UserInfoSnapshot.from(importOptions.getUser()));
+    daoEntityInstance.setLastUpdatedByUserInfo(
+        UserInfoSnapshot.from(UserDetails.fromUser(importOptions.getUser())));
 
     if (dtoEntityInstance.getGeometry() != null) {
       FeatureType featureType = daoEntityInstance.getTrackedEntityType().getFeatureType();
@@ -900,6 +904,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         }
       }
 
+      daoEntityInstance.setLastUpdatedByUserInfo(UserInfoSnapshot.from(importOptions.getUser()));
       teiService.deleteTrackedEntity(daoEntityInstance);
 
       importSummary.setStatus(ImportStatus.SUCCESS);
@@ -1156,7 +1161,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
     if (!orgUnits.isEmpty()) {
       Query query = Query.from(schemaService.getDynamicSchema(OrganisationUnit.class));
-      query.setUser(user);
+      query.setCurrentUserDetails(UserDetails.fromUser(user));
       query.add(Restrictions.in("id", orgUnits));
       queryService
           .query(query)
@@ -1169,7 +1174,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
     if (!trackedEntityAttributes.isEmpty()) {
       Query query = Query.from(schemaService.getDynamicSchema(TrackedEntityAttribute.class));
-      query.setUser(user);
+      query.setCurrentUserDetails(UserDetails.fromUser(user));
       query.add(Restrictions.in("id", trackedEntityAttributes));
       queryService
           .query(query)
@@ -1526,7 +1531,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     }
 
     if (importOptions.getUser() == null) {
-      importOptions.setUser(currentUserService.getCurrentUser());
+      User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+      importOptions.setUser(currentUser);
     }
 
     return importOptions;

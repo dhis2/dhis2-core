@@ -84,6 +84,18 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
 
   private String incidentDateLabel;
 
+  private String enrollmentLabel;
+
+  private String followUpLabel;
+
+  private String orgUnitLabel;
+
+  private String relationshipLabel;
+
+  private String noteLabel;
+
+  private String trackedEntityAttributeLabel;
+
   private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
   private Set<ProgramStage> programStages = new HashSet<>();
@@ -437,6 +449,116 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
 
   public void setIncidentDateLabel(String incidentDateLabel) {
     this.incidentDateLabel = incidentDateLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
+  public String getEnrollmentLabel() {
+    return enrollmentLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "enrollmentLabel", key = "ENROLLMENT_LABEL")
+  public String getDisplayEnrollmentLabel() {
+    return getTranslation("ENROLLMENT_LABEL", getEnrollmentLabel());
+  }
+
+  public void setEnrollmentLabel(String enrollmentLabel) {
+    this.enrollmentLabel = enrollmentLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
+  public String getFollowUpLabel() {
+    return followUpLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "followUpLabel", key = "FOLLOW_UP_LABEL")
+  public String getDisplayFollowUpLabel() {
+    return getTranslation("FOLLOW_UP_LABEL", getFollowUpLabel());
+  }
+
+  public void setFollowUpLabel(String followUpLabel) {
+    this.followUpLabel = followUpLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
+  public String getOrgUnitLabel() {
+    return orgUnitLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "orgUnitLabel", key = "ORG_UNIT_LABEL")
+  public String getDisplayOrgUnitLabel() {
+    return getTranslation("ORG_UNIT_LABEL", getOrgUnitLabel());
+  }
+
+  public void setOrgUnitLabel(String orgUnitLabel) {
+    this.orgUnitLabel = orgUnitLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
+  public String getRelationshipLabel() {
+    return relationshipLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "relationshipLabel", key = "RELATIONSHIP_LABEL")
+  public String getDisplayRelationshipLabel() {
+    return getTranslation("RELATIONSHIP_LABEL", getRelationshipLabel());
+  }
+
+  public void setRelationshipLabel(String relationshipLabel) {
+    this.relationshipLabel = relationshipLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
+  public String getNoteLabel() {
+    return noteLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "noteLabel", key = "NOTE_LABEL")
+  public String getDisplayNoteLabel() {
+    return getTranslation("NOTE_LABEL", getNoteLabel());
+  }
+
+  public void setNoteLabel(String noteLabel) {
+    this.noteLabel = noteLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
+  public String getTrackedEntityAttributeLabel() {
+    return trackedEntityAttributeLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(
+      propertyName = "trackedEntityAttributeLabel",
+      key = "TRACKED_ENTITY_ATTRIBUTE_LABEL")
+  public String getDisplayTrackedEntityAttributeLabel() {
+    return getTranslation("TRACKED_ENTITY_ATTRIBUTE_LABEL", getTrackedEntityAttributeLabel());
+  }
+
+  public void setTrackedEntityAttributeLabel(String trackedEntityAttributeLabel) {
+    this.trackedEntityAttributeLabel = trackedEntityAttributeLabel;
   }
 
   @JsonProperty
@@ -817,6 +939,12 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
     copy.setTrackedEntityType(original.getTrackedEntityType());
     copy.setUseFirstStageDuringRegistration(original.getUseFirstStageDuringRegistration());
     copy.setUserRoles(copyOf(original.getUserRoles()));
+    copy.setEnrollmentLabel(original.getEnrollmentLabel());
+    copy.setNoteLabel(original.getNoteLabel());
+    copy.setFollowUpLabel(original.getFollowUpLabel());
+    copy.setOrgUnitLabel(original.getOrgUnitLabel());
+    copy.setTrackedEntityAttributeLabel(original.getTrackedEntityAttributeLabel());
+    copy.setRelationshipLabel(original.getRelationshipLabel());
   }
 
   public record ProgramStageTuple(ProgramStage original, ProgramStage copy) {}
