@@ -199,13 +199,14 @@ public class DefaultSynchronizationManager implements SynchronizationManager {
     log.info(String.format("Metadata pull, url: %s, user: %s", suppliedUrl, userUid));
 
     String json = "";
+
     URI url = null;
-    try {
-      url = new URI(suppliedUrl);
-    } catch (URISyntaxException e) {
-      throw new RuntimeException(e);
-    }
     if (remoteServerIsInAllowedList(suppliedUrl)) {
+      try {
+        url = new URI(suppliedUrl);
+      } catch (URISyntaxException e) {
+        throw new RuntimeException(e);
+      }
       log.info("Remote server url `{}` is in allowed list, proceed with metadata pull", url);
       json = restTemplate.getForObject(url, String.class);
     } else {
