@@ -80,13 +80,17 @@ public class SynchronizationController {
   @PostMapping(value = "/metadataPull", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public ImportReport importMetaData(@RequestBody @Nonnull String url) throws ConflictException {
-    if (remoteServerIsInAllowedList(url)) {
-      log.info("Remote server url `{}` is in allowed list, proceed with metadata pull", url);
-      return synchronizationManager.executeMetadataPull(url);
+    // clean user-supplied string
+    String urlCleaned = url.replace("\n", "").replace("\r", "");
+    if (remoteServerIsInAllowedList(urlCleaned)) {
+      log.info("Remote server url `{}` is in allowed list, proceed with metadata pull", urlCleaned);
+      return synchronizationManager.executeMetadataPull(urlCleaned);
     }
     log.warn(
-        "Remote server url `{}` is not in allowed list, don't proceed with metadata pull", url);
-    throw new ConflictException("Remote server url `%s` is not in allowed list".formatted(url));
+        "Remote server url `{}` is not in allowed list, don't proceed with metadata pull",
+        urlCleaned);
+    throw new ConflictException(
+        "Remote server url `%s` is not in allowed list".formatted(urlCleaned));
   }
 
   @GetMapping(value = "/availability", produces = APPLICATION_JSON_VALUE)
