@@ -76,10 +76,7 @@ public class AuditScheduler {
     } else {
       if (!delayed.contains(postponed)) {
         boolean wasAddedToQueue = delayed.offer(postponed);
-        log.debug(
-            "Audit queue accepted new audit item `{}`: {}",
-            postponed.getAuditItem().getUid(),
-            wasAddedToQueue);
+        log.debug("Audit queue accepted new audit item: {}", wasAddedToQueue);
       }
     }
   }
