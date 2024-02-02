@@ -377,7 +377,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void testImportWithInvalidCreatedBy() {
-    JsonMixed report =
+    JsonResponse report =
         POST(
                 "/metadata",
                 "{\"optionSets\":\n"
@@ -386,13 +386,13 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
 
     assertNotNull(report.get("response"));
 
-    JsonMixed optionSet = GET("/optionSets/{uid}", "RHqFlB1Wm4d").content(HttpStatus.OK);
+    JsonResponse optionSet = GET("/optionSets/{uid}", "RHqFlB1Wm4d").content(HttpStatus.OK);
     assertTrue(optionSet.get("createdBy").exists());
   }
 
   @Test
   void testImportWithInvalidCreatedByAndSkipSharing() {
-    JsonMixed report =
+    JsonResponse report =
         POST(
                 "/metadata?skipSharing=true",
                 "{\"optionSets\":\n"
@@ -401,7 +401,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
 
     assertNotNull(report.get("response"));
 
-    JsonMixed optionSet = GET("/optionSets/{uid}", "RHqFlB1Wm4d").content(HttpStatus.OK);
+    JsonResponse optionSet = GET("/optionSets/{uid}", "RHqFlB1Wm4d").content(HttpStatus.OK);
     assertTrue(optionSet.get("createdBy").exists());
   }
 }
