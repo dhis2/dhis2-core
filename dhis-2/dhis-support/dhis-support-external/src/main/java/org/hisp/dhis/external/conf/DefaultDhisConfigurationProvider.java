@@ -37,8 +37,10 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
@@ -224,6 +226,14 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
   public String getServerBaseUrl() {
     return StringUtils.trimToNull(
         properties.getProperty(ConfigurationKey.SERVER_BASE_URL.getKey()));
+  }
+
+  @Override
+  public List<String> getRemoteServersAllowed() {
+    String remoteServers =
+        StringUtils.trimToEmpty(
+            properties.getProperty(ConfigurationKey.REMOTE_SERVERS_ALLOWED.getKey()));
+    return Arrays.stream(remoteServers.split(",")).filter(StringUtils::isNotEmpty).toList();
   }
 
   @Override

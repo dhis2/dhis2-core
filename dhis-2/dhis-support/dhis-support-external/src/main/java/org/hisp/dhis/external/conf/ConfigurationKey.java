@@ -443,6 +443,14 @@ public enum ConfigurationKey {
   /** Base URL to the DHIS 2 instance. */
   SERVER_BASE_URL("server.base.url", "", false),
 
+  /**
+   * Remote servers allowed to call. <br>
+   * Default is empty. <br>
+   * Servers should be in a comma-separated style and always end with '/' for security reasons e.g.
+   * server1/,server2/
+   */
+  REMOTE_SERVERS_ALLOWED("remote.servers.allowed", "", false),
+
   /** Enable secure settings if system is deployed on HTTPS, can be 'off', 'on'. */
   SERVER_HTTPS("server.https", Constants.OFF),
 

@@ -30,15 +30,19 @@ package org.hisp.dhis.webapi.controller;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
+import java.util.List;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -51,16 +55,18 @@ import org.springframework.web.client.RestTemplate;
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 @OpenApi.Tags("data")
 @Controller
 @RequestMapping(value = SynchronizationController.RESOURCE_PATH)
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+@RequiredArgsConstructor
 public class SynchronizationController {
   public static final String RESOURCE_PATH = "/synchronization";
 
-  @Autowired private SynchronizationManager synchronizationManager;
-
-  @Autowired private RestTemplate restTemplate;
+  private final SynchronizationManager synchronizationManager;
+  private final RestTemplate restTemplate;
+  private final DhisConfigurationProvider configProvider;
 
   @PreAuthorize("hasRole('ALL') or hasRole('F_EXPORT_DATA')")
   @PostMapping(value = "/dataPush", produces = APPLICATION_JSON_VALUE)
@@ -72,8 +78,14 @@ public class SynchronizationController {
   @PreAuthorize("hasRole('ALL')")
   @PostMapping(value = "/metadataPull", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
-  public ImportReport importMetaData(@RequestBody String url) {
-    return synchronizationManager.executeMetadataPull(url);
+  public ImportReport importMetaData(@RequestBody String url) throws ConflictException {
+    if (remoteServerIsInAllowedList(url)) {
+      log.info("Remote server url `{}` is in allowed list, proceed with metadata pull", url);
+      return synchronizationManager.executeMetadataPull(url);
+    }
+    log.info(
+        "Remote server url `{}` is not in allowed list, don't proceed with metadata pull", url);
+    throw new ConflictException("Remote server url `%s` is not in allowed list".formatted(url));
   }
 
   @GetMapping(value = "/availability", produces = APPLICATION_JSON_VALUE)
@@ -85,5 +97,10 @@ public class SynchronizationController {
   public @ResponseBody String getMetadataRepoIndex() {
     return restTemplate.getForObject(
         SettingKey.METADATA_REPO_URL.getDefaultValue().toString(), String.class);
+  }
+
+  private boolean remoteServerIsInAllowedList(String url) {
+    List<String> remoteServersAllowed = configProvider.getRemoteServersAllowed();
+    return remoteServersAllowed.stream().anyMatch(url::startsWith);
   }
 }
