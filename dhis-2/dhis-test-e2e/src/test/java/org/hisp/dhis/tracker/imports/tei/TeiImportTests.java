@@ -46,6 +46,7 @@ import org.hisp.dhis.Constants;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.tracker.TrackerApiTest;
 import org.hisp.dhis.tracker.imports.databuilder.RelationshipDataBuilder;
@@ -213,5 +214,44 @@ public class TeiImportTests extends TrackerApiTest {
         .getTrackedEntity(teiId + "?fields=attributes")
         .validate()
         .body("attributes.value", hasItem(attributeValue));
+  }
+
+  @Test
+  public void shouldImportExportedTrackedEntity() throws Exception {
+    // Tracker should allow users to import what they exported from another instance as is
+    // Our e2e tests only work with one instance so this simulates the scenario by importing a
+    // tracked entity with nested entities, export it, remove any UID from tracker entities and
+    // import that again
+    JsonObject teJson =
+        new FileReaderUtils()
+            .read(
+                new File(
+                    "src/test/resources/tracker/importer/teis/teiWithEnrollmentAndEventsNested.json"))
+            .get(JsonObject.class);
+    String teUID =
+        trackerImportExportActions
+            .postAndGetJobReport(teJson, new QueryParamsBuilder().add("async=false"))
+            .validateSuccessfulImport()
+            .extractImportedTeis()
+            .get(0);
+
+    JsonObjectBuilder trackedEntities =
+        trackerImportExportActions
+            .getTrackedEntities(
+                new QueryParamsBuilder().add("fields", "*").add("trackedEntity", teUID))
+            .getBodyAsJsonBuilder()
+            .deleteByJsonPath("trackedEntities[0].trackedEntity")
+            .deleteByJsonPath("trackedEntities[0].enrollments[0].enrollment")
+            .deleteByJsonPath("trackedEntities[0].enrollments[0].events[0].event");
+
+    trackerImportExportActions
+        .postAndGetJobReport(trackedEntities.build())
+        .validateSuccessfulImport()
+        .validate()
+        .body("stats.created", equalTo(3))
+        .rootPath("bundleReport.typeReportMap")
+        .body("TRACKED_ENTITY.objectReports", hasSize(1))
+        .body("ENROLLMENT.objectReports", hasSize(1))
+        .body("EVENT.objectReports", hasSize(1));
   }
 }

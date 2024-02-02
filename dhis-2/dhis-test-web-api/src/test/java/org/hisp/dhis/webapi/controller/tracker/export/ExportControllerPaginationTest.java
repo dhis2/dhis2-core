@@ -129,7 +129,7 @@ class ExportControllerPaginationTest extends DhisControllerConvenienceTest {
 
     assertContainsOnly(
         List.of(r1.getUid(), r2.getUid()),
-        page.getList("instances", JsonRelationship.class)
+        page.getList("relationships", JsonRelationship.class)
             .toList(JsonRelationship::getRelationship));
     assertEquals(1, page.getPager().getPage());
     assertEquals(50, page.getPager().getPageSize());
@@ -158,7 +158,7 @@ class ExportControllerPaginationTest extends DhisControllerConvenienceTest {
 
     assertContainsOnly(
         List.of(r1.getUid(), r2.getUid()),
-        page.getList("instances", JsonRelationship.class)
+        page.getList("relationships", JsonRelationship.class)
             .toList(JsonRelationship::getRelationship));
     assertEquals(1, page.getPager().getPage());
     assertEquals(50, page.getPager().getPageSize());
@@ -187,7 +187,7 @@ class ExportControllerPaginationTest extends DhisControllerConvenienceTest {
 
     assertContainsOnly(
         List.of(r1.getUid(), r2.getUid()),
-        page.getList("instances", JsonRelationship.class)
+        page.getList("relationships", JsonRelationship.class)
             .toList(JsonRelationship::getRelationship));
     assertEquals(1, page.getPager().getPage());
     assertEquals(50, page.getPager().getPageSize());
@@ -214,11 +214,13 @@ class ExportControllerPaginationTest extends DhisControllerConvenienceTest {
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
-    JsonList<JsonRelationship> instances = page.getList("instances", JsonRelationship.class);
+    JsonList<JsonRelationship> relationships =
+        page.getList("relationships", JsonRelationship.class);
     assertEquals(
         1,
-        instances.size(),
-        () -> String.format("mismatch in number of expected relationship(s), got %s", instances));
+        relationships.size(),
+        () ->
+            String.format("mismatch in number of expected relationship(s), got %s", relationships));
     assertEquals(2, page.getPager().getPage());
     assertEquals(1, page.getPager().getPageSize());
     assertHasNoMember(page.getPager(), "total");
@@ -246,11 +248,13 @@ class ExportControllerPaginationTest extends DhisControllerConvenienceTest {
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
-    JsonList<JsonRelationship> instances = page.getList("instances", JsonRelationship.class);
+    JsonList<JsonRelationship> relationships =
+        page.getList("relationships", JsonRelationship.class);
     assertEquals(
         1,
-        instances.size(),
-        () -> String.format("mismatch in number of expected relationship(s), got %s", instances));
+        relationships.size(),
+        () ->
+            String.format("mismatch in number of expected relationship(s), got %s", relationships));
     assertEquals(2, page.getPager().getPage());
     assertEquals(1, page.getPager().getPageSize());
     assertEquals(2, page.getPager().getTotal());
@@ -278,7 +282,7 @@ class ExportControllerPaginationTest extends DhisControllerConvenienceTest {
 
     assertContainsOnly(
         List.of(r1.getUid(), r2.getUid()),
-        page.getList("instances", JsonRelationship.class)
+        page.getList("relationships", JsonRelationship.class)
             .toList(JsonRelationship::getRelationship));
     assertHasNoMember(page, "pager");
 
@@ -304,7 +308,7 @@ class ExportControllerPaginationTest extends DhisControllerConvenienceTest {
 
     assertContainsOnly(
         List.of(r1.getUid(), r2.getUid()),
-        page.getList("instances", JsonRelationship.class)
+        page.getList("relationships", JsonRelationship.class)
             .toList(JsonRelationship::getRelationship));
     assertHasNoMember(page, "pager");
 

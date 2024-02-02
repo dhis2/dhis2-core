@@ -47,7 +47,7 @@ public class Index {
   /** Name of index table. Required. */
   private final String tableName;
 
-  /** Index type, defaults to {@link IndexType.BTREE}. Required. */
+  /** Index type. Required. */
   private final IndexType indexType;
 
   /** Index uniqueness constraint. Required. */
@@ -120,15 +120,21 @@ public class Index {
    *
    * @param name the index name.
    * @param tableName the index table name.
+   * @param indexType the index type.
    * @param unique the uniqueness property.
    * @param columns the list of index column names.
    * @param function the index function.
    */
   public Index(
-      String name, String tableName, Unique unique, List<String> columns, IndexFunction function) {
+      String name,
+      String tableName,
+      IndexType indexType,
+      Unique unique,
+      List<String> columns,
+      IndexFunction function) {
     this.name = name;
     this.tableName = tableName;
-    this.indexType = IndexType.BTREE;
+    this.indexType = indexType;
     this.unique = unique;
     this.columns = columns;
     this.condition = null;

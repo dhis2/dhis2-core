@@ -29,6 +29,7 @@ package org.hisp.dhis.resourcetable;
 
 import java.util.List;
 import java.util.Optional;
+import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 
 /**
@@ -43,6 +44,15 @@ public interface ResourceTable {
    * @return the {@link Table}.
    */
   Table getTable();
+
+  /**
+   * Returns the table indexes.
+   *
+   * @return a list of {@link Index}.
+   */
+  default List<Index> getIndexes() {
+    return List.of();
+  }
 
   /**
    * Returns the resource table type.

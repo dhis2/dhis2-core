@@ -62,4 +62,7 @@ public interface Config extends org.aeonbits.owner.Config {
 
   @Key("selenium.url")
   String seleniumUrl();
+
+  @Key("analytics.run.export")
+  Boolean shouldRunAnalyticsExport();
 }

@@ -219,11 +219,19 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
     // Checks
 
-    for (String check : table.getChecks()) {
-      sql.append("check(" + check + "), ");
+    if (table.hasChecks()) {
+      for (String check : table.getChecks()) {
+        sql.append("check(" + check + "), ");
+      }
     }
 
-    return removeLastComma(sql).append(");").toString();
+    removeLastComma(sql).append(")");
+
+    if (table.hasParent()) {
+      sql.append(" inherits (").append(quote(table.getParent().getName())).append(")");
+    }
+
+    return sql.append(";").toString();
   }
 
   @Override

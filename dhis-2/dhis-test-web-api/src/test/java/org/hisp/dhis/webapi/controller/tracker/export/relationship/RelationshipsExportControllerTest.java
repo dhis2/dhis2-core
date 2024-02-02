@@ -243,7 +243,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     JsonList<JsonRelationship> relationships =
         GET("/tracker/relationships?event={uid}", from.getUid())
             .content(HttpStatus.OK)
-            .getList("instances", JsonRelationship.class);
+            .getList("relationships", JsonRelationship.class);
 
     JsonObject relationship = assertFirstRelationship(r, relationships);
     assertHasOnlyMembers(
@@ -261,7 +261,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     JsonList<JsonRelationship> relationships =
         GET("/tracker/relationships?event={uid}&fields=*", from.getUid())
             .content(HttpStatus.OK)
-            .getList("instances", JsonRelationship.class);
+            .getList("relationships", JsonRelationship.class);
 
     JsonRelationship relationship = assertFirstRelationship(r, relationships);
     assertEventWithinRelationshipItem(from, relationship.getFrom());
@@ -277,7 +277,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     JsonList<JsonRelationship> relationships =
         GET("/tracker/relationships?event={uid}&fields=relationship,from[event]", from.getUid())
             .content(HttpStatus.OK)
-            .getList("instances", JsonRelationship.class);
+            .getList("relationships", JsonRelationship.class);
 
     assertEquals(1, relationships.size(), "one relationship expected");
     JsonRelationship relationship = relationships.get(0).as(JsonRelationship.class);
@@ -297,7 +297,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     JsonList<JsonRelationship> relationships =
         GET("/tracker/relationships?event={uid}&fields=from[event[assignedUser]]", from.getUid())
             .content(HttpStatus.OK)
-            .getList("instances", JsonRelationship.class);
+            .getList("relationships", JsonRelationship.class);
 
     JsonUser user = relationships.get(0).getFrom().getEvent().getAssignedUser();
     assertEquals(owner.getUid(), user.getUid());
@@ -316,7 +316,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
                 "/tracker/relationships?event={uid}&fields=from[event[dataValues[dataElement,value]]]",
                 from.getUid())
             .content(HttpStatus.OK)
-            .getList("instances", JsonRelationship.class);
+            .getList("relationships", JsonRelationship.class);
 
     JsonDataValue dataValue = relationships.get(0).getFrom().getEvent().getDataValues().get(0);
     assertEquals(dataElement.getUid(), dataValue.getDataElement());
@@ -333,7 +333,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     JsonList<JsonRelationship> relationships =
         GET("/tracker/relationships?event={uid}&fields=from[event[notes]]", from.getUid())
             .content(HttpStatus.OK)
-            .getList("instances", JsonRelationship.class);
+            .getList("relationships", JsonRelationship.class);
 
     JsonNote note = relationships.get(0).getFrom().getEvent().getNotes().get(0);
     assertEquals("oqXG28h988k", note.getNote());
@@ -357,7 +357,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     JsonList<JsonRelationship> relationships =
         GET("/tracker/relationships?enrollment=" + from.getUid())
             .content(HttpStatus.OK)
-            .getList("instances", JsonRelationship.class);
+            .getList("relationships", JsonRelationship.class);
 
     JsonObject relationship = assertFirstRelationship(r, relationships);
     assertHasOnlyMembers(relationship, "relationship", "relationshipType", "from", "to");
@@ -374,7 +374,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     JsonList<JsonRelationship> relationships =
         GET("/tracker/relationships?enrollment={uid}&fields=*", from.getUid())
             .content(HttpStatus.OK)
-            .getList("instances", JsonRelationship.class);
+            .getList("relationships", JsonRelationship.class);
 
     JsonRelationship relationship = assertFirstRelationship(r, relationships);
     assertEnrollmentWithinRelationship(from, relationship.getFrom());
@@ -392,7 +392,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
                 "/tracker/relationships?enrollment={uid}&fields=from[enrollment[events[enrollment,event]]]",
                 from.getUid())
             .content(HttpStatus.OK)
-            .getList("instances", JsonRelationship.class);
+            .getList("relationships", JsonRelationship.class);
 
     JsonRelationshipItem.JsonEvent event =
         relationships.get(0).getFrom().getEnrollment().getEvents().get(0);
@@ -414,7 +414,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
                 "/tracker/relationships?enrollment={uid}&fields=from[enrollment[attributes[attribute,value]]]",
                 from.getUid())
             .content(HttpStatus.OK)
-            .getList("instances", JsonRelationship.class);
+            .getList("relationships", JsonRelationship.class);
 
     JsonAttribute attribute = relationships.get(0).getFrom().getEnrollment().getAttributes().get(0);
     assertEquals(tea.getUid(), attribute.getAttribute());
@@ -431,7 +431,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     JsonList<JsonRelationship> relationships =
         GET("/tracker/relationships?enrollment={uid}&fields=from[enrollment[notes]]", from.getUid())
             .content(HttpStatus.OK)
-            .getList("instances", JsonRelationship.class);
+            .getList("relationships", JsonRelationship.class);
 
     JsonNote note = relationships.get(0).getFrom().getEnrollment().getNotes().get(0);
     assertEquals("oqXG28h988k", note.getNote());
@@ -457,7 +457,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     JsonList<JsonRelationship> relationships =
         GET("/tracker/relationships?trackedEntity={tei}", to.getUid())
             .content(HttpStatus.OK)
-            .getList("instances", JsonRelationship.class);
+            .getList("relationships", JsonRelationship.class);
 
     JsonObject relationship = assertFirstRelationship(r, relationships);
     assertHasOnlyMembers(relationship, "relationship", "relationshipType", "from", "to");
@@ -564,7 +564,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     JsonList<JsonRelationship> relationships =
         GET("/tracker/relationships?tei=" + to.getUid())
             .content(HttpStatus.OK)
-            .getList("instances", JsonRelationship.class);
+            .getList("relationships", JsonRelationship.class);
 
     JsonObject relationship = assertFirstRelationship(r, relationships);
     assertHasOnlyMembers(relationship, "relationship", "relationshipType", "from", "to");
@@ -583,7 +583,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
                 "/tracker/relationships?trackedEntity={tei}&fields=to[trackedEntity[enrollments[enrollment,trackedEntity]]",
                 to.getUid())
             .content(HttpStatus.OK)
-            .getList("instances", JsonRelationship.class);
+            .getList("relationships", JsonRelationship.class);
 
     JsonRelationshipItem.JsonEnrollment enrollment =
         relationships.get(0).getTo().getTrackedEntity().getEnrollments().get(0);
@@ -605,7 +605,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
                 "/tracker/relationships?trackedEntity={tei}&fields=from[enrollment[attributes[attribute,value]]],to[trackedEntity[attributes[attribute,value]]]",
                 to.getUid())
             .content(HttpStatus.OK)
-            .getList("instances", JsonRelationship.class);
+            .getList("relationships", JsonRelationship.class);
 
     JsonList<JsonAttribute> enrollmentAttr =
         relationships.get(0).getFrom().getEnrollment().getAttributes();
@@ -630,7 +630,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
                 "/tracker/relationships?trackedEntity={tei}&fields=to[trackedEntity[programOwners]",
                 to.getUid())
             .content(HttpStatus.OK)
-            .getList("instances", JsonRelationship.class);
+            .getList("relationships", JsonRelationship.class);
 
     JsonProgramOwner jsonProgramOwner =
         relationships.get(0).getTo().getTrackedEntity().getProgramOwners().get(0);
@@ -648,7 +648,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     JsonList<JsonRelationship> relationships =
         GET("/tracker/relationships?trackedEntity={tei}", from.getUid())
             .content(HttpStatus.OK)
-            .getList("instances", JsonRelationship.class);
+            .getList("relationships", JsonRelationship.class);
 
     JsonObject relationship = assertFirstRelationship(r, relationships);
     assertHasOnlyMembers(relationship, "relationship", "relationshipType", "from", "to");
@@ -665,7 +665,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     JsonList<JsonRelationship> relationships =
         GET("/tracker/relationships?trackedEntity={tei}", from.getUid())
             .content(HttpStatus.OK)
-            .getList("instances", JsonRelationship.class);
+            .getList("relationships", JsonRelationship.class);
 
     JsonObject relationship = assertFirstRelationship(r, relationships);
     assertHasOnlyMembers(relationship, "relationship", "relationshipType", "from", "to");

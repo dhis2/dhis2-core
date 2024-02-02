@@ -52,7 +52,6 @@ import org.hisp.dhis.analytics.AnalyticsTablePhase;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
-import org.hisp.dhis.analytics.table.model.AnalyticsIndex;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
@@ -66,6 +65,7 @@ import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.Collation;
+import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
@@ -111,8 +111,6 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   protected static final String PREFIX_ORGUNITLEVEL = "uidlevel";
 
   protected static final String PREFIX_ORGUNITNAMELEVEL = "namelevel";
-
-  private static final String WITH_AUTOVACUUM_ENABLED_FALSE = "with(autovacuum_enabled = false)";
 
   protected final IdentifiableObjectManager idObjectManager;
 
@@ -178,7 +176,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   @Override
-  public void createIndex(AnalyticsIndex index) {
+  public void createIndex(Index index) {
     String sql = createIndexStatement(index);
 
     log.debug("Create index: '{}' with SQL: '{}'", index.getName(), sql);
@@ -277,7 +275,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
           .append(",");
     }
 
-    TextUtils.removeLastComma(sql).append(") ").append(getTableOptions());
+    TextUtils.removeLastComma(sql).append(")");
 
     log.info("Creating table: '{}', columns: '{}'", tableName, table.getColumnCount());
     log.debug("Create table SQL: '{}'", sql);
@@ -309,7 +307,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
     StringBuilder sql = new StringBuilder();
 
-    sql.append("create ").append(unlogged).append(" table ").append(tableName).append("(");
+    sql.append("create ").append(unlogged).append(" table ").append(tableName).append(" (");
 
     if (!checks.isEmpty()) {
       StringBuilder sqlCheck = new StringBuilder();
@@ -317,7 +315,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
       sql.append(TextUtils.removeLastComma(sqlCheck.toString()));
     }
 
-    sql.append(") inherits (").append(table.getTempName()).append(") ").append(getTableOptions());
+    sql.append(") inherits (").append(table.getTempName()).append(")");
 
     log.info("Creating partition table: '{}'", tableName);
     log.debug("Create table SQL: '{}'", sql);
@@ -566,43 +564,9 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .collect(Collectors.toList());
   }
 
-  /**
-   * Returns the select clause, potentially with a cast statement, based on the given value type.
-   *
-   * @param valueType the value type to represent as database column type.
-   */
-  protected String getSelectClause(ValueType valueType, String columnName) {
-    if (valueType.isDecimal()) {
-      return "cast(" + columnName + " as double precision)";
-    } else if (valueType.isInteger()) {
-      return "cast(" + columnName + " as bigint)";
-    } else if (valueType.isBoolean()) {
-      return "case when "
-          + columnName
-          + " = 'true' then 1 when "
-          + columnName
-          + " = 'false' then 0 else null end";
-    } else if (valueType.isDate()) {
-      return "cast(" + columnName + " as timestamp)";
-    } else if (valueType.isGeo() && isSpatialSupport()) {
-      return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || ("
-          + columnName
-          + ") || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
-    } else if (valueType.isOrganisationUnit()) {
-      return "ou.uid from organisationunit ou where ou.uid = (select " + columnName;
-    } else {
-      return columnName;
-    }
-  }
-
   // -------------------------------------------------------------------------
   // Private supportive methods
   // -------------------------------------------------------------------------
-
-  /** Returns a table options SQL statement. */
-  private String getTableOptions() {
-    return WITH_AUTOVACUUM_ENABLED_FALSE;
-  }
 
   /**
    * Executes a SQL statement "safely" (without throwing any exception). Instead, exceptions are
