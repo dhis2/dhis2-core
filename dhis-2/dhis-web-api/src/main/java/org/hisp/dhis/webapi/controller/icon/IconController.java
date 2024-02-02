@@ -41,7 +41,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -59,7 +58,6 @@ import org.hisp.dhis.icon.Icon;
 import org.hisp.dhis.icon.IconOperationParams;
 import org.hisp.dhis.icon.IconResponse;
 import org.hisp.dhis.icon.IconService;
-import org.hisp.dhis.icon.PaginatedIconResponse;
 import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -137,8 +135,6 @@ public class IconController {
 
     IconOperationParams iconOperationParams = iconRequestParamsMapper.map(iconRequestParams);
 
-    Pager pager = iconOperationParams.getPager();
-
     List<IconResponse> iconResponses =
         iconService.getIcons(iconOperationParams).stream().map(iconMapper::from).toList();
 
@@ -146,7 +142,7 @@ public class IconController {
         fieldFilterService.toObjectNodes(iconResponses, iconRequestParams.getFields());
 
     if (iconRequestParams.isPaging()) {
-      return PaginatedIconResponse.withPager(pager, objectNodes);
+      return PaginatedIconResponse.withPager(iconOperationParams.getPager(), objectNodes);
     }
 
     return PaginatedIconResponse.withoutPager(objectNodes);
