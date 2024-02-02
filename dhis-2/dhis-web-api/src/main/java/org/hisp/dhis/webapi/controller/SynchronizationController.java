@@ -39,7 +39,6 @@ import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
-import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -76,7 +75,7 @@ public class SynchronizationController {
   @PreAuthorize("hasRole('ALL')")
   @PostMapping(value = "/metadataPull", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
-  public ImportReport importMetaData(@RequestBody @Nonnull String url) throws ConflictException {
+  public ImportReport importMetaData(@RequestBody @Nonnull String url) {
     // clean user-supplied string
     String urlCleaned = url.replace("\n", "").replace("\r", "");
     return synchronizationManager.executeMetadataPull(urlCleaned);

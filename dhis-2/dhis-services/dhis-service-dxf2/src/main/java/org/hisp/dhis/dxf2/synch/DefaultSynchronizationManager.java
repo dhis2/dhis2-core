@@ -29,6 +29,8 @@ package org.hisp.dhis.dxf2.synch;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -190,14 +192,20 @@ public class DefaultSynchronizationManager implements SynchronizationManager {
   }
 
   @Override
-  public ImportReport executeMetadataPull(String url) {
+  public ImportReport executeMetadataPull(String suppliedUrl) {
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     String userUid = currentUserDetails != null ? currentUserDetails.getUid() : null;
 
-    log.info(String.format("Metadata pull, url: %s, user: %s", url, userUid));
+    log.info(String.format("Metadata pull, url: %s, user: %s", suppliedUrl, userUid));
 
     String json = "";
-    if (remoteServerIsInAllowedList(url)) {
+    URI url = null;
+    try {
+      url = new URI(suppliedUrl);
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
+    }
+    if (remoteServerIsInAllowedList(suppliedUrl)) {
       log.info("Remote server url `{}` is in allowed list, proceed with metadata pull", url);
       json = restTemplate.getForObject(url, String.class);
     } else {
