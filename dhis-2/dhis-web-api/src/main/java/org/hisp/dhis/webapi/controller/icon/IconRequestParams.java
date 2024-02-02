@@ -56,7 +56,7 @@ public class IconRequestParams {
   private Date lastUpdatedEndDate;
   private boolean paging = true;
   private int pageSize = Pager.DEFAULT_PAGE_SIZE;
-  private int page;
+  private int page = 1;
 
   private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
 
