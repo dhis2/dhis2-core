@@ -157,10 +157,18 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
   private <T extends SoftDeletableObject> int countRelationships(
       T entity, RelationshipQueryParams queryParams) {
 
-    CriteriaQuery<Relationship> criteriaQuery =
-        criteriaQuery(entity, queryParams.toBuilder().order(List.of()).build());
+    CriteriaBuilder builder = getCriteriaBuilder();
+    CriteriaQuery<Long> criteriaQuery = builder.createQuery(Long.class);
 
-    return getSession().createQuery(criteriaQuery).getResultList().size();
+    Root<Relationship> root = criteriaQuery.from(Relationship.class);
+
+    criteriaQuery.select(builder.count(root));
+
+    criteriaQuery.where(
+        whereConditionPredicates(
+            entity, builder, criteriaQuery, root, queryParams.isIncludeDeleted()));
+
+    return getSession().createQuery(criteriaQuery).getSingleResult().intValue();
   }
 
   private <T extends SoftDeletableObject> CriteriaQuery<Relationship> criteriaQuery(
