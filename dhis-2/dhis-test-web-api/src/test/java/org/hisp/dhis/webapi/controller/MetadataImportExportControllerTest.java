@@ -358,4 +358,34 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
     assertNotNull(categories);
     assertFalse(categories.stream().anyMatch(JsonValue::isNull));
   }
+
+  @Test
+  void testImportWithInvalidCreatedBy() {
+    JsonMixed report =
+        POST(
+                "/metadata",
+                "{\"optionSets\":\n"
+                    + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\",\"createdBy\": \"invalid\"}]}")
+            .content(HttpStatus.OK);
+
+    assertNotNull(report.get("response"));
+
+    JsonMixed optionSet = GET("/optionSets/{uid}", "RHqFlB1Wm4d").content(HttpStatus.OK);
+    assertTrue(optionSet.get("createdBy").exists());
+  }
+
+  @Test
+  void testImportWithInvalidCreatedByAndSkipSharing() {
+    JsonMixed report =
+        POST(
+                "/metadata?skipSharing=true",
+                "{\"optionSets\":\n"
+                    + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\",\"createdBy\": \"invalid\"}]}")
+            .content(HttpStatus.OK);
+
+    assertNotNull(report.get("response"));
+
+    JsonMixed optionSet = GET("/optionSets/{uid}", "RHqFlB1Wm4d").content(HttpStatus.OK);
+    assertTrue(optionSet.get("createdBy").exists());
+  }
 }

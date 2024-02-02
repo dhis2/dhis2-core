@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.collect.Sets;
 import java.io.IOException;
@@ -194,20 +193,7 @@ class ObjectBundleServiceTest extends TransactionalIntegrationTest {
     params.setObjects(metadata);
     ObjectBundle bundle = objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
-    assertTrue(validate.hasErrorReports());
-    validate.forEachErrorReport(
-        errorReport -> {
-          assertTrue(errorReport instanceof PreheatErrorReport);
-          PreheatErrorReport preheatErrorReport = (PreheatErrorReport) errorReport;
-          assertEquals(PreheatIdentifier.UID, preheatErrorReport.getPreheatIdentifier());
-          if (preheatErrorReport.getValue() instanceof CategoryCombo) {
-            fail();
-          } else if (preheatErrorReport.getValue() instanceof User) {
-            assertEquals("GOLswS44mh8", preheatErrorReport.getObjectReference().getUid());
-          } else if (preheatErrorReport.getValue() instanceof OptionSet) {
-            fail();
-          }
-        });
+    assertFalse(validate.hasErrorReports());
   }
 
   @Test
@@ -222,7 +208,7 @@ class ObjectBundleServiceTest extends TransactionalIntegrationTest {
     ObjectBundle bundle = objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
     assertTrue(validate.hasErrorReports());
-    assertEquals(5, validate.getErrorReportsCountByCode(DataElement.class, ErrorCode.E5002));
+    assertEquals(1, validate.getErrorReportsCountByCode(DataElement.class, ErrorCode.E5002));
     assertEquals(3, validate.getErrorReportsCountByCode(DataElement.class, ErrorCode.E4000));
   }
 
