@@ -192,4 +192,18 @@ class MessageServiceTest extends SingleSetupIntegrationTestBase {
     assertTrue(conversations.contains(conversationB));
     assertFalse(conversations.contains(conversationC));
   }
+
+  @Test
+  void testSendMessageWithNoCurrentUser() {
+    clearSecurityContext();
+    MessageConversationParams params =
+        new MessageConversationParams.Builder()
+            .withRecipients(Set.of(userA))
+            .withSubject("subject")
+            .withText("text")
+            .withMessageType(MessageType.SYSTEM)
+            .build();
+
+    messageService.sendMessage(params);
+  }
 }
