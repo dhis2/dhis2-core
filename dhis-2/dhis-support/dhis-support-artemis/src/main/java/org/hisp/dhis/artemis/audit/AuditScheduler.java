@@ -75,7 +75,11 @@ public class AuditScheduler {
       auditProducerSupplier.publish(auditItem);
     } else {
       if (!delayed.contains(postponed)) {
-        delayed.offer(postponed);
+        boolean wasAddedToQueue = delayed.offer(postponed);
+        log.debug(
+            "Audit queue accepted new audit item `{}`: {}",
+            postponed.getAuditItem().getUid(),
+            wasAddedToQueue);
       }
     }
   }
