@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
-import java.util.List;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +39,6 @@ import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -67,7 +65,6 @@ public class SynchronizationController {
 
   private final SynchronizationManager synchronizationManager;
   private final RestTemplate restTemplate;
-  private final DhisConfigurationProvider configProvider;
 
   @PreAuthorize("hasRole('ALL') or hasRole('F_EXPORT_DATA')")
   @PostMapping(value = "/dataPush", produces = APPLICATION_JSON_VALUE)
@@ -82,15 +79,7 @@ public class SynchronizationController {
   public ImportReport importMetaData(@RequestBody @Nonnull String url) throws ConflictException {
     // clean user-supplied string
     String urlCleaned = url.replace("\n", "").replace("\r", "");
-    if (remoteServerIsInAllowedList(urlCleaned)) {
-      log.info("Remote server url `{}` is in allowed list, proceed with metadata pull", urlCleaned);
-      return synchronizationManager.executeMetadataPull(urlCleaned);
-    }
-    log.warn(
-        "Remote server url `{}` is not in allowed list, don't proceed with metadata pull",
-        urlCleaned);
-    throw new ConflictException(
-        "Remote server url `%s` is not in allowed list".formatted(urlCleaned));
+    return synchronizationManager.executeMetadataPull(urlCleaned);
   }
 
   @GetMapping(value = "/availability", produces = APPLICATION_JSON_VALUE)
@@ -102,10 +91,5 @@ public class SynchronizationController {
   public @ResponseBody String getMetadataRepoIndex() {
     return restTemplate.getForObject(
         SettingKey.METADATA_REPO_URL.getDefaultValue().toString(), String.class);
-  }
-
-  private boolean remoteServerIsInAllowedList(String url) {
-    List<String> remoteServersAllowed = configProvider.getRemoteServersAllowed();
-    return remoteServersAllowed.stream().anyMatch(url::startsWith);
   }
 }
