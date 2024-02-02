@@ -31,6 +31,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
 import java.util.List;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -78,12 +79,12 @@ public class SynchronizationController {
   @PreAuthorize("hasRole('ALL')")
   @PostMapping(value = "/metadataPull", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
-  public ImportReport importMetaData(@RequestBody String url) throws ConflictException {
+  public ImportReport importMetaData(@RequestBody @Nonnull String url) throws ConflictException {
     if (remoteServerIsInAllowedList(url)) {
       log.info("Remote server url `{}` is in allowed list, proceed with metadata pull", url);
       return synchronizationManager.executeMetadataPull(url);
     }
-    log.info(
+    log.warn(
         "Remote server url `{}` is not in allowed list, don't proceed with metadata pull", url);
     throw new ConflictException("Remote server url `%s` is not in allowed list".formatted(url));
   }

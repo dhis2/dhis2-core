@@ -30,6 +30,7 @@ package org.hisp.dhis.config;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
@@ -119,6 +120,16 @@ public abstract class TestConfigurationProvider implements DhisConfigurationProv
     return this.properties.getProperty(
         ConfigurationKey.SERVER_BASE_URL.getKey(),
         ConfigurationKey.SERVER_BASE_URL.getDefaultValue());
+  }
+
+  @Override
+  public List<String> getRemoteServersAllowed() {
+    return List.of(
+        this.properties
+            .getProperty(
+                ConfigurationKey.REMOTE_SERVERS_ALLOWED.getKey(),
+                ConfigurationKey.REMOTE_SERVERS_ALLOWED.getDefaultValue())
+            .split(","));
   }
 
   @Override
