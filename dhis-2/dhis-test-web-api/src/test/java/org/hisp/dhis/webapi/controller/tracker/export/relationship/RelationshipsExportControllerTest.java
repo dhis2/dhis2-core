@@ -516,7 +516,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     JsonList<JsonRelationship> relationships =
         GET("/tracker/relationships?trackedEntity={tei}&includeDeleted=true", to.getUid())
             .content(HttpStatus.OK)
-            .getList("instances", JsonRelationship.class);
+            .getList("relationships", JsonRelationship.class);
 
     assertFirstRelationship(r, relationships);
   }
@@ -533,7 +533,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     JsonList<JsonRelationship> relationships =
         GET("/tracker/relationships?event={ev}&includeDeleted=true", from.getUid())
             .content(HttpStatus.OK)
-            .getList("instances", JsonRelationship.class);
+            .getList("relationships", JsonRelationship.class);
 
     assertFirstRelationship(r, relationships);
   }
@@ -550,7 +550,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     JsonList<JsonRelationship> relationships =
         GET("/tracker/relationships?enrollment={en}&includeDeleted=true", from.getUid())
             .content(HttpStatus.OK)
-            .getList("instances", JsonRelationship.class);
+            .getList("relationships", JsonRelationship.class);
 
     assertFirstRelationship(r, relationships);
   }
