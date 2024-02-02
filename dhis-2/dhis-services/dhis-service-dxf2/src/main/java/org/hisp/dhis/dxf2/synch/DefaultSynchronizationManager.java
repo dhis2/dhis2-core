@@ -201,18 +201,16 @@ public class DefaultSynchronizationManager implements SynchronizationManager {
     String json = "";
 
     URI url = null;
-    if (remoteServerIsInAllowedList(suppliedUrl)) {
-      try {
-        url = new URI(suppliedUrl);
-      } catch (URISyntaxException e) {
-        throw new RuntimeException(e);
-      }
-      log.info("Remote server url `{}` is in allowed list, proceed with metadata pull", url);
-      json = restTemplate.getForObject(url, String.class);
-    } else {
-      log.warn(
-          "Remote server url `{}` is not in allowed list, don't proceed with metadata pull", url);
+    if (!remoteServerIsInAllowedList(suppliedUrl))
+      throw new IllegalArgumentException("Invalid URL provided");
+
+    try {
+      url = new URI(suppliedUrl);
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
     }
+    log.info("Remote server url `{}` is in allowed list, proceed with metadata pull", url);
+    json = restTemplate.getForObject(url, String.class);
 
     Metadata metadata = null;
 
