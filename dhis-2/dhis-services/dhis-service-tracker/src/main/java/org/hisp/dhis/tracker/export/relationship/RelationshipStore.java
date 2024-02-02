@@ -41,13 +41,11 @@ public interface RelationshipStore extends IdentifiableObjectStore<Relationship>
   String ID = RelationshipStore.class.getName();
 
   List<Relationship> getByTrackedEntity(
-      TrackedEntity trackedEntity, RelationshipQueryParams queryParams, boolean includeDeleted);
+      TrackedEntity trackedEntity, RelationshipQueryParams queryParams);
 
-  List<Relationship> getByEnrollment(
-      Enrollment enrollment, RelationshipQueryParams queryParams, boolean includeDeleted);
+  List<Relationship> getByEnrollment(Enrollment enrollment, RelationshipQueryParams queryParams);
 
-  List<Relationship> getByEvent(
-      Event event, RelationshipQueryParams queryParams, boolean includeDeleted);
+  List<Relationship> getByEvent(Event event, RelationshipQueryParams queryParams);
 
   Page<Relationship> getByTrackedEntity(
       TrackedEntity trackedEntity, RelationshipQueryParams queryParams, PageParams pageParams);

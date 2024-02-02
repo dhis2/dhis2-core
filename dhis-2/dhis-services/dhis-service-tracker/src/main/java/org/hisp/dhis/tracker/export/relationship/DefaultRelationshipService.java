@@ -99,9 +99,7 @@ public class DefaultRelationshipService implements RelationshipService {
       TrackedEntity trackedEntity, RelationshipQueryParams queryParams) {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     List<Relationship> relationships =
-        relationshipStore
-            .getByTrackedEntity(trackedEntity, queryParams, queryParams.isIncludeDeleted())
-            .stream()
+        relationshipStore.getByTrackedEntity(trackedEntity, queryParams).stream()
             .filter(r -> trackerAccessManager.canRead(currentUser, r).isEmpty())
             .toList();
     return map(relationships);
@@ -123,9 +121,7 @@ public class DefaultRelationshipService implements RelationshipService {
       Enrollment enrollment, RelationshipQueryParams queryParams) {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     List<Relationship> relationships =
-        relationshipStore
-            .getByEnrollment(enrollment, queryParams, queryParams.isIncludeDeleted())
-            .stream()
+        relationshipStore.getByEnrollment(enrollment, queryParams).stream()
             .filter(r -> trackerAccessManager.canRead(currentUser, r).isEmpty())
             .toList();
     return map(relationships);
@@ -147,7 +143,7 @@ public class DefaultRelationshipService implements RelationshipService {
       Event event, RelationshipQueryParams queryParams) {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     List<Relationship> relationships =
-        relationshipStore.getByEvent(event, queryParams, queryParams.isIncludeDeleted()).stream()
+        relationshipStore.getByEvent(event, queryParams).stream()
             .filter(r -> trackerAccessManager.canRead(currentUser, r).isEmpty())
             .toList();
     return map(relationships);
