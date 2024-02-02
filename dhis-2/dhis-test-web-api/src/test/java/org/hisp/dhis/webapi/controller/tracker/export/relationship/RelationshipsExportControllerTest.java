@@ -475,7 +475,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     manager.update(r);
 
     assertNoRelationships(
-        GET("/tracker/relationships?trackedEntity={tei}", to.getUid()).content(HttpStatus.OK));
+        GET("/tracker/relationships?trackedEntity={te}", to.getUid()).content(HttpStatus.OK));
   }
 
   @Test
