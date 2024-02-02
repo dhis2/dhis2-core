@@ -215,7 +215,13 @@ public class DefaultMessageService implements MessageService {
   @Override
   @Transactional
   public long sendMessage(MessageConversationParams params) {
-    return sendMessage(params, CurrentUserUtil.getCurrentUserDetails());
+    UserDetails currentUserDetails;
+    if (CurrentUserUtil.hasCurrentUser()) {
+      currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    } else {
+      currentUserDetails = new SystemUser();
+    }
+    return sendMessage(params, currentUserDetails);
   }
 
   @Override
