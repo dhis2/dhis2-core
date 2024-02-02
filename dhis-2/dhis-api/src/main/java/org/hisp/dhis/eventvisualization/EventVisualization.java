@@ -28,8 +28,6 @@
 package org.hisp.dhis.eventvisualization;
 
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.ArrayUtils.contains;
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.hisp.dhis.common.AnalyticsType.EVENT;
 import static org.hisp.dhis.common.DimensionalObjectUtils.TITLE_ITEM_SEP;
