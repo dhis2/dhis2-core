@@ -41,6 +41,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -60,6 +61,7 @@ import org.hisp.dhis.icon.IconResponse;
 import org.hisp.dhis.icon.IconService;
 import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.HeaderUtils;
 import org.springframework.core.io.Resource;
@@ -100,6 +102,8 @@ public class IconController {
 
   private final IconRequestParamsMapper iconRequestParamsMapper;
 
+  private final LinkService linkService;
+
   @GetMapping("/{iconKey}")
   public @ResponseBody IconResponse getIcon(@PathVariable String iconKey) throws NotFoundException {
     Icon icon = iconService.getIcon(iconKey);
@@ -135,17 +139,23 @@ public class IconController {
 
     IconOperationParams iconOperationParams = iconRequestParamsMapper.map(iconRequestParams);
 
+    Pager pager = null;
+
+    if (iconOperationParams.isPaging()) {
+      long total = iconService.count(iconOperationParams);
+
+      pager = new Pager(iconOperationParams.getPage(), total, iconOperationParams.getPageSize());
+    }
+
     List<IconResponse> iconResponses =
         iconService.getIcons(iconOperationParams).stream().map(iconMapper::from).toList();
 
     List<ObjectNode> objectNodes =
         fieldFilterService.toObjectNodes(iconResponses, iconRequestParams.getFields());
 
-    if (iconRequestParams.isPaging()) {
-      return PaginatedIconResponse.withPager(iconOperationParams.getPager(), objectNodes);
-    }
+    linkService.generatePagerLinks(pager, IconResponse.class);
 
-    return PaginatedIconResponse.withoutPager(objectNodes);
+    return new PaginatedIconResponse(pager, objectNodes);
   }
 
   @GetMapping("/keywords")

@@ -29,11 +29,11 @@ package org.hisp.dhis.icon.jdbc;
 
 import java.sql.Types;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.icon.CustomIcon;
@@ -99,10 +99,31 @@ public class JdbcCustomIconStore implements CustomIconStore {
     sql = buildIconQuery(iconOperationParams, sql, parameterSource);
 
     if (iconOperationParams.isPaging()) {
-      sql = getPaginatedQuery(iconOperationParams.getPager(), sql, parameterSource);
+      sql =
+          getPaginatedQuery(
+              iconOperationParams.getPage(),
+              iconOperationParams.getPageSize(),
+              sql,
+              parameterSource);
     }
 
     return namedParameterJdbcTemplate.query(sql, parameterSource, customIconRowMapper).stream();
+  }
+
+  @Override
+  public long count(IconOperationParams iconOperationParams) {
+
+    String sql = """
+     select count(*) from customicon
+                      """;
+
+    MapSqlParameterSource parameterSource = new MapSqlParameterSource();
+
+    sql = buildIconQuery(iconOperationParams, sql, parameterSource);
+
+    return Optional.ofNullable(
+            namedParameterJdbcTemplate.queryForObject(sql, parameterSource, Long.class))
+        .orElse(0L);
   }
 
   @Override
@@ -191,13 +212,13 @@ public class JdbcCustomIconStore implements CustomIconStore {
   }
 
   private String getPaginatedQuery(
-      Pager pager, String sql, MapSqlParameterSource mapSqlParameterSource) {
+      int page, int pageSize, String sql, MapSqlParameterSource mapSqlParameterSource) {
 
     sql = sql + " LIMIT :limit OFFSET :offset ";
 
-    int offset = (pager.getPage() - 1) * pager.getPageSize();
+    int offset = (page - 1) * pageSize;
 
-    mapSqlParameterSource.addValue("limit", pager.getPageSize());
+    mapSqlParameterSource.addValue("limit", pageSize);
     mapSqlParameterSource.addValue("offset", offset);
 
     return sql;

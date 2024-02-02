@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.icon;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.List;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.hisp.dhis.common.Pager;
 
@@ -37,20 +38,8 @@ import org.hisp.dhis.common.Pager;
  * @author Zubair Asghar
  */
 @Getter
+@AllArgsConstructor
 public class PaginatedIconResponse {
   @JsonProperty private Pager pager;
   @JsonProperty private List<ObjectNode> icons;
-
-  private PaginatedIconResponse(Pager pager, List<ObjectNode> icons) {
-    this.pager = pager;
-    this.icons = icons;
-  }
-
-  public static PaginatedIconResponse withoutPager(List<ObjectNode> icons) {
-    return new PaginatedIconResponse(null, icons);
-  }
-
-  public static PaginatedIconResponse withPager(Pager pager, List<ObjectNode> icons) {
-    return new PaginatedIconResponse(pager, icons);
-  }
 }
