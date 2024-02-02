@@ -514,7 +514,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     manager.update(r);
 
     JsonList<JsonRelationship> relationships =
-        GET("/tracker/relationships?trackedEntity={tei}&includeDeleted=true", to.getUid())
+        GET("/tracker/relationships?trackedEntity={te}&includeDeleted=true", to.getUid())
             .content(HttpStatus.OK)
             .getList("instances", JsonRelationship.class);
 
