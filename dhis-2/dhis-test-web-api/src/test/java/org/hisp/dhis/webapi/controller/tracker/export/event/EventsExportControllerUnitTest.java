@@ -33,17 +33,13 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.tracker.export.event.EventService;
-import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
-import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -51,18 +47,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class EventsExportControllerUnitTest {
-
   @Mock private EventService eventService;
-
-  @Mock private EventRequestParamsMapper eventParamsMapper;
-
-  @Mock private CsvService<Event> csvEventService;
-
-  @Mock private FieldFilterService fieldFilterService;
-
-  @Mock private EventFieldsParamMapper eventsMapper;
-
-  @Mock private ObjectMapper objectMapper;
 
   @Test
   void shouldFailInstantiatingControllerIfAnyOrderableFieldIsUnsupported() {
@@ -82,13 +67,7 @@ class EventsExportControllerUnitTest {
         assertThrows(
             IllegalStateException.class,
             () ->
-                new EventsExportController(
-                    eventService,
-                    eventParamsMapper,
-                    csvEventService,
-                    fieldFilterService,
-                    eventsMapper,
-                    objectMapper));
+                new EventsExportController(eventService, null, null, null, null, null, null, null));
 
     assertAll(
         () -> assertStartsWith("event controller supports ordering by", exception.getMessage()),

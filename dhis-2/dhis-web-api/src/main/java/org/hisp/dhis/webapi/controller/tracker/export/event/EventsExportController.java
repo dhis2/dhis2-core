@@ -46,16 +46,23 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventParams;
@@ -65,6 +72,7 @@ import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.utils.HeaderUtils;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -97,19 +105,27 @@ class EventsExportController {
 
   private final ObjectMapper objectMapper;
 
+  private final FileResourceService fileResourceService;
+
+  private final DhisConfigurationProvider dhisConfig;
+
   public EventsExportController(
       EventService eventService,
       EventRequestParamsMapper eventParamsMapper,
       CsvService<Event> csvEventService,
       FieldFilterService fieldFilterService,
       EventFieldsParamMapper eventsMapper,
-      ObjectMapper objectMapper) {
+      ObjectMapper objectMapper,
+      FileResourceService fileResourceService,
+      DhisConfigurationProvider dhisConfig) {
     this.eventService = eventService;
     this.eventParamsMapper = eventParamsMapper;
     this.csvEventService = csvEventService;
     this.fieldFilterService = fieldFilterService;
     this.eventsMapper = eventsMapper;
     this.objectMapper = objectMapper;
+    this.fileResourceService = fileResourceService;
+    this.dhisConfig = dhisConfig;
 
     assertUserOrderableFieldsAreSupported(
         "event", EventMapper.ORDERABLE_FIELDS, eventService.getOrderableFields());
@@ -280,5 +296,36 @@ class EventsExportController {
     Event event = EVENTS_MAPPER.from(eventService.getEvent(uid.getValue(), eventParams));
 
     return ResponseEntity.ok(fieldFilterService.toObjectNode(event, fields));
+  }
+
+  @GetMapping("/{event}/dataValues/{dataElement}/file")
+  void getEventDataValueFile(
+      @OpenApi.Param({UID.class, Event.class}) @PathVariable UID event,
+      @OpenApi.Param({UID.class, DataElement.class}) @PathVariable UID dataElement,
+      HttpServletResponse response)
+      throws ForbiddenException, NotFoundException, ConflictException {
+    FileResource fileResource = eventService.getFileResource(event, dataElement);
+
+    response.setContentType(fileResource.getContentType());
+    response.setHeader(HttpHeaders.CONTENT_LENGTH, String.valueOf(fileResource.getContentLength()));
+    response.setHeader(
+        HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileResource.getName());
+    HeaderUtils.setSecurityHeaders(
+        response, dhisConfig.getProperty(ConfigurationKey.CSP_HEADER_VALUE));
+
+    try {
+      fileResourceService.copyFileResourceContent(fileResource, response.getOutputStream());
+    } catch (NoSuchElementException e) {
+      // Note: we are assuming that the file resource is not available yet. The same approach is
+      // taken in other file endpoints or code relying on the storageStatus = PENDING. All we know
+      // for sure is the file resource is in the DB but not in the store.
+      throw new ConflictException(
+          "The content is being processed and is not available yet. Try again later.");
+    } catch (IOException e) {
+      throw new ConflictException(
+          "Failed fetching the file from storage",
+          "There was an exception when trying to fetch the file from the storage backend. "
+              + "Depending on the provider the root cause could be network or file system related.");
+    }
   }
 }

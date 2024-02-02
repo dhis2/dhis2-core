@@ -29,9 +29,11 @@ package org.hisp.dhis.tracker.export.event;
 
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
@@ -40,6 +42,10 @@ import org.hisp.dhis.tracker.export.PageParams;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface EventService {
+  /** Get a file for an events' data element. */
+  FileResource getFileResource(UID event, UID dataElement)
+      throws NotFoundException, ForbiddenException;
+
   /** Get event matching given {@code UID} and params. */
   Event getEvent(String uid, EventParams eventParams) throws NotFoundException, ForbiddenException;
 
