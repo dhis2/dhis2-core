@@ -101,13 +101,6 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
     return new Table("nutrition", columns, List.of(), List.of(), Logged.LOGGED, getTableB());
   }
 
-  private Table getTableD() {
-    List<Column> columns =
-        List.of(new Column("vitamin_b", DataType.BIGINT), new Column("vitamin_e", DataType.BIGINT));
-
-    return new Table("supplement", columns, List.of());
-  }
-
   @Test
   void testCreateAndDropTableA() {
     Table table = getTableA();
