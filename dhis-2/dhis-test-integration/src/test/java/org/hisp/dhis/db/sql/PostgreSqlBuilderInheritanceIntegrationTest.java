@@ -45,43 +45,31 @@ class PostgreSqlBuilderInheritanceIntegrationTest extends IntegrationTestBase {
 
   private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
-  private Table getTableA() {
-    List<Column> columns =
-        List.of(
-            new Column("id", DataType.BIGINT, Nullable.NOT_NULL),
-            new Column("data", DataType.CHARACTER_11, Nullable.NOT_NULL),
-            new Column("period", DataType.VARCHAR_50, Nullable.NOT_NULL),
-            new Column("value", DataType.DOUBLE));
+  private final List<Column> columns =
+      List.of(
+          new Column("id", DataType.BIGINT, Nullable.NOT_NULL),
+          new Column("data", DataType.CHARACTER_11, Nullable.NOT_NULL),
+          new Column("period", DataType.VARCHAR_50, Nullable.NOT_NULL),
+          new Column("value", DataType.DOUBLE));
 
-    List<String> primaryKey = List.of("id");
+  private final List<String> primaryKey = List.of("id");
+
+  private Table getTableA() {
 
     return new Table("data", columns, primaryKey);
   }
 
   private Table getTableB() {
-    List<Column> columns =
-        List.of(
-            new Column("id", DataType.BIGINT, Nullable.NOT_NULL),
-            new Column("data", DataType.CHARACTER_11, Nullable.NOT_NULL),
-            new Column("period", DataType.VARCHAR_50, Nullable.NOT_NULL),
-            new Column("value", DataType.DOUBLE));
-
-    List<String> primaryKey = List.of("id");
-
     return new Table("data_staging", columns, primaryKey);
   }
 
   private Table getTableC() {
-    List<Column> columns = List.of(new Column("orguit", DataType.CHARACTER_11, Nullable.NOT_NULL));
-
-    return new Table("data_2022", columns, List.of());
+    return new Table("data_2022", columns, primaryKey);
   }
 
   private Table getTableD() {
-    List<Column> columns = List.of(new Column("orguit", DataType.CHARACTER_11, Nullable.NOT_NULL));
-
     return new Table(
-        "data_2023_staging", columns, List.of(), List.of(), Logged.UNLOGGED, getTableB());
+        "data_2023_staging", columns, primaryKey, List.of(), Logged.UNLOGGED, getTableB());
   }
 
   @Test
