@@ -30,7 +30,6 @@ package org.hisp.dhis.db.sql;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import java.util.List;
-
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
@@ -41,93 +40,84 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-class PostgreSqlBuilderInheritanceIntegrationTest extends IntegrationTestBase
-{
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+class PostgreSqlBuilderInheritanceIntegrationTest extends IntegrationTestBase {
+  @Autowired private JdbcTemplate jdbcTemplate;
 
-    private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
-    private final List<Column> columns = List.of(
-        new Column( "id", DataType.BIGINT, Nullable.NOT_NULL ),
-        new Column( "data", DataType.CHARACTER_11, Nullable.NOT_NULL ),
-        new Column( "period", DataType.VARCHAR_50, Nullable.NOT_NULL ),
-        new Column( "value", DataType.DOUBLE ) );
+  private final List<Column> columns =
+      List.of(
+          new Column("id", DataType.BIGINT, Nullable.NOT_NULL),
+          new Column("data", DataType.CHARACTER_11, Nullable.NOT_NULL),
+          new Column("period", DataType.VARCHAR_50, Nullable.NOT_NULL),
+          new Column("value", DataType.DOUBLE));
 
-    private final List<String> primaryKey = List.of( "id" );
+  private final List<String> primaryKey = List.of("id");
 
-    private Table getTableA()
-    {
-        return new Table( "data", columns, primaryKey );
-    }
+  private Table getTableA() {
+    return new Table("data", columns, primaryKey);
+  }
 
-    private Table getTableB()
-    {
-        return new Table( "data_staging", columns, primaryKey );
-    }
+  private Table getTableB() {
+    return new Table("data_staging", columns, primaryKey);
+  }
 
-    private Table getTableC()
-    {
-        return new Table( "data_2022", columns, primaryKey );
-    }
+  private Table getTableC() {
+    return new Table("data_2022", columns, primaryKey);
+  }
 
-    private Table getTableD()
-    {
-        return new Table(
-            "data_2023_staging", List.of(), List.of(), List.of(), Logged.UNLOGGED, getTableB() );
-    }
+  private Table getTableD() {
+    return new Table(
+        "data_2023_staging", List.of(), List.of(), List.of(), Logged.UNLOGGED, getTableB());
+  }
 
-    @Test
-    void testSetParentTable()
-    {
-        Table tableA = getTableA();
-        Table tableC = getTableC();
+  @Test
+  void testSetParentTable() {
+    Table tableA = getTableA();
+    Table tableC = getTableC();
 
-        execute( sqlBuilder.createTable( tableA ) );
-        execute( sqlBuilder.createTable( tableC ) );
+    execute(sqlBuilder.createTable(tableA));
+    execute(sqlBuilder.createTable(tableC));
 
-        assertDoesNotThrow( () -> execute( sqlBuilder.setParentTable( tableC, "data" ) ) );
+    assertDoesNotThrow(() -> execute(sqlBuilder.setParentTable(tableC, "data")));
 
-        jdbcTemplate.execute( sqlBuilder.dropTableIfExists( tableC ) );
-        jdbcTemplate.execute( sqlBuilder.dropTableIfExists( tableA ) );
-    }
+    jdbcTemplate.execute(sqlBuilder.dropTableIfExists(tableC));
+    jdbcTemplate.execute(sqlBuilder.dropTableIfExists(tableA));
+  }
 
-    @Test
-    void testRemoveParentTable()
-    {
-        Table tableB = getTableB();
-        Table tableD = getTableD();
+  @Test
+  void testRemoveParentTable() {
+    Table tableB = getTableB();
+    Table tableD = getTableD();
 
-        execute( sqlBuilder.createTable( tableB ) );
-        execute( sqlBuilder.createTable( tableD ) );
+    execute(sqlBuilder.createTable(tableB));
+    execute(sqlBuilder.createTable(tableD));
 
-        assertDoesNotThrow( () -> execute( sqlBuilder.removeParentTable( tableD, "data_staging" ) ) );
+    assertDoesNotThrow(() -> execute(sqlBuilder.removeParentTable(tableD, "data_staging")));
 
-        jdbcTemplate.execute( sqlBuilder.dropTableIfExists( tableD ) );
-        jdbcTemplate.execute( sqlBuilder.dropTableIfExists( tableB ) );
-    }
+    jdbcTemplate.execute(sqlBuilder.dropTableIfExists(tableD));
+    jdbcTemplate.execute(sqlBuilder.dropTableIfExists(tableB));
+  }
 
-    @Test
-    void testSwapParentTable()
-    {
-        Table tableA = getTableA();
-        Table tableB = getTableB();
-        Table tableD = getTableD();
+  @Test
+  void testSwapParentTable() {
+    Table tableA = getTableA();
+    Table tableB = getTableB();
+    Table tableD = getTableD();
 
-        execute( sqlBuilder.createTable( tableA ) );
-        execute( sqlBuilder.createTable( tableB ) );
-        execute( sqlBuilder.createTable( tableD ) );
+    execute(sqlBuilder.createTable(tableA));
+    execute(sqlBuilder.createTable(tableB));
+    execute(sqlBuilder.createTable(tableD));
 
-        assertDoesNotThrow(
-            () -> execute( sqlBuilder.swapParentTable( getTableD(), "data_staging", "data" ) ) );
+    assertDoesNotThrow(
+        () -> execute(sqlBuilder.swapParentTable(getTableD(), "data_staging", "data")));
 
-        jdbcTemplate.execute( sqlBuilder.dropTableIfExists( tableD ) );
-        jdbcTemplate.execute( sqlBuilder.dropTableIfExists( tableB ) );
-        jdbcTemplate.execute( sqlBuilder.dropTableIfExists( tableA ) );
-    }
+    jdbcTemplate.execute(sqlBuilder.dropTableIfExists(tableD));
+    jdbcTemplate.execute(sqlBuilder.dropTableIfExists(tableB));
+    jdbcTemplate.execute(sqlBuilder.dropTableIfExists(tableA));
+  }
 
-    private void execute( String sql )
-    {
-        jdbcTemplate.execute( sql );
-    }
+  private void execute(String sql) {
+    jdbcTemplate.execute(sql);
+  }
 }

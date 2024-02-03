@@ -32,7 +32,6 @@ import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
 
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Index;
@@ -46,317 +45,272 @@ import org.hisp.dhis.db.model.constraint.Unique;
  *
  * @author Lars Helge Overland
  */
-public class PostgreSqlBuilder extends AbstractSqlBuilder
-{
-    // Data types
+public class PostgreSqlBuilder extends AbstractSqlBuilder {
+  // Data types
 
-    @Override
-    public String dataTypeSmallInt()
-    {
-        return "smallint";
+  @Override
+  public String dataTypeSmallInt() {
+    return "smallint";
+  }
+
+  @Override
+  public String dataTypeInteger() {
+    return "integer";
+  }
+
+  @Override
+  public String dataTypeBigInt() {
+    return "bigint";
+  }
+
+  @Override
+  public String dataTypeNumeric() {
+    return "numeric(18,6)";
+  }
+
+  @Override
+  public String dataTypeReal() {
+    return "real";
+  }
+
+  @Override
+  public String dataTypeDouble() {
+    return "double precision";
+  }
+
+  @Override
+  public String dataTypeBoolean() {
+    return "boolean";
+  }
+
+  @Override
+  public String dataTypeCharacter(int length) {
+    return String.format("char(%d)", length);
+  }
+
+  @Override
+  public String dataTypeVarchar(int length) {
+    return String.format("varchar(%d)", length);
+  }
+
+  @Override
+  public String dataTypeText() {
+    return "text";
+  }
+
+  @Override
+  public String dataTypeDate() {
+    return "date";
+  }
+
+  @Override
+  public String dataTypeTimestamp() {
+    return "timestamp";
+  }
+
+  @Override
+  public String dataTypeTimestampTz() {
+    return "timestamptz";
+  }
+
+  @Override
+  public String dataTypeTime() {
+    return "time";
+  }
+
+  @Override
+  public String dataTypeTimeTz() {
+    return "timetz";
+  }
+
+  @Override
+  public String dataTypeGeometry() {
+    return "geometry";
+  }
+
+  @Override
+  public String dataTypeGeometryPoint() {
+    return "geometry(Point, 4326)";
+  }
+
+  @Override
+  public String dataTypeJsonb() {
+    return "jsonb";
+  }
+
+  // Index types
+
+  @Override
+  public String indexTypeBtree() {
+    return "btree";
+  }
+
+  @Override
+  public String indexTypeGist() {
+    return "gist";
+  }
+
+  @Override
+  public String indexTypeGin() {
+    return "gin";
+  }
+
+  // Index functions
+
+  @Override
+  public String indexFunctionUpper() {
+    return "upper";
+  }
+
+  @Override
+  public String indexFunctionLower() {
+    return "lower";
+  }
+
+  // Capabilities
+
+  @Override
+  public boolean supportsAnalyze() {
+    return true;
+  }
+
+  @Override
+  public boolean supportsVacuum() {
+    return true;
+  }
+
+  // Statements
+
+  @Override
+  public String createTable(Table table) {
+    String unlogged = table.getLogged() == Logged.UNLOGGED ? " unlogged" : "";
+
+    StringBuilder sql =
+        new StringBuilder("create")
+            .append(unlogged)
+            .append(" table ")
+            .append(quote(table.getName()))
+            .append(" (");
+
+    // Columns
+
+    for (Column column : table.getColumns()) {
+      String dataType = getDataTypeName(column.getDataType());
+      String nullable = column.getNullable() == Nullable.NOT_NULL ? " not null" : " null";
+      String collation = column.getCollation() == Collation.C ? (" collate " + quote("C")) : "";
+
+      sql.append(quote(column.getName()) + " ")
+          .append(dataType)
+          .append(nullable)
+          .append(collation + ", ");
     }
 
-    @Override
-    public String dataTypeInteger()
-    {
-        return "integer";
+    // Primary key
+
+    if (table.hasPrimaryKey()) {
+      sql.append("primary key (");
+
+      for (String columnName : table.getPrimaryKey()) {
+        sql.append(quote(columnName) + ", ");
+      }
+
+      removeLastComma(sql).append("), ");
     }
 
-    @Override
-    public String dataTypeBigInt()
-    {
-        return "bigint";
+    // Checks
+
+    if (table.hasChecks()) {
+      for (String check : table.getChecks()) {
+        sql.append("check(" + check + "), ");
+      }
     }
 
-    @Override
-    public String dataTypeNumeric()
-    {
-        return "numeric(18,6)";
+    removeLastComma(sql).append(")");
+
+    if (table.hasParent()) {
+      sql.append(" inherits (").append(quote(table.getParent().getName())).append(")");
     }
 
-    @Override
-    public String dataTypeReal()
-    {
-        return "real";
-    }
+    return sql.append(";").toString();
+  }
 
-    @Override
-    public String dataTypeDouble()
-    {
-        return "double precision";
-    }
+  @Override
+  public String analyzeTable(Table table) {
+    return String.format("analyze %s;", quote(table.getName()));
+  }
 
-    @Override
-    public String dataTypeBoolean()
-    {
-        return "boolean";
-    }
+  @Override
+  public String vacuumTable(Table table) {
+    return String.format("vacuum %s;", quote(table.getName()));
+  }
 
-    @Override
-    public String dataTypeCharacter( int length )
-    {
-        return String.format( "char(%d)", length );
-    }
+  @Override
+  public String renameTable(Table table, String newName) {
+    return String.format("alter table %s rename to %s;", quote(table.getName()), quote(newName));
+  }
 
-    @Override
-    public String dataTypeVarchar( int length )
-    {
-        return String.format( "varchar(%d)", length );
-    }
+  @Override
+  public String dropTableIfExists(Table table) {
+    return dropTableIfExists(table.getName());
+  }
 
-    @Override
-    public String dataTypeText()
-    {
-        return "text";
-    }
+  @Override
+  public String dropTableIfExists(String name) {
+    return String.format("drop table if exists %s;", quote(name));
+  }
 
-    @Override
-    public String dataTypeDate()
-    {
-        return "date";
-    }
+  @Override
+  public String dropTableIfExistsCascade(Table table) {
+    return dropTableIfExistsCascade(table.getName());
+  }
 
-    @Override
-    public String dataTypeTimestamp()
-    {
-        return "timestamp";
-    }
+  @Override
+  public String dropTableIfExistsCascade(String name) {
+    return String.format("drop table if exists %s cascade;", quote(name));
+  }
 
-    @Override
-    public String dataTypeTimestampTz()
-    {
-        return "timestamptz";
-    }
+  @Override
+  public String swapTable(Table table, String newName) {
+    return String.join(" ", dropTableIfExistsCascade(newName), renameTable(table, newName));
+  }
 
-    @Override
-    public String dataTypeTime()
-    {
-        return "time";
-    }
+  @Override
+  public String setParentTable(Table table, String parentName) {
+    return String.format("alter table %s inherit %s;", quote(table.getName()), quote(parentName));
+  }
 
-    @Override
-    public String dataTypeTimeTz()
-    {
-        return "timetz";
-    }
+  @Override
+  public String removeParentTable(Table table, String parentName) {
+    return String.format(
+        "alter table %s no inherit %s;", quote(table.getName()), quote(parentName));
+  }
 
-    @Override
-    public String dataTypeGeometry()
-    {
-        return "geometry";
-    }
+  @Override
+  public String swapParentTable(Table table, String parentName, String newParentName) {
+    return String.join(
+        " ", removeParentTable(table, parentName), setParentTable(table, newParentName));
+  }
 
-    @Override
-    public String dataTypeGeometryPoint()
-    {
-        return "geometry(Point, 4326)";
-    }
+  @Override
+  public String tableExists(String name) {
+    return String.format(
+        "select t.table_name from information_schema.tables t "
+            + "where t.table_schema = 'public' and t.table_name = %s;",
+        singleQuote(name));
+  }
 
-    @Override
-    public String dataTypeJsonb()
-    {
-        return "jsonb";
-    }
+  @Override
+  public String createIndex(Table table, Index index) {
+    String unique = index.getUnique() == Unique.UNIQUE ? "unique " : "";
+    String typeName = getIndexTypeName(index.getIndexType());
 
-    // Index types
+    String columns =
+        index.getColumns().stream()
+            .map(c -> toIndexColumn(index, c))
+            .collect(Collectors.joining(", "));
 
-    @Override
-    public String indexTypeBtree()
-    {
-        return "btree";
-    }
-
-    @Override
-    public String indexTypeGist()
-    {
-        return "gist";
-    }
-
-    @Override
-    public String indexTypeGin()
-    {
-        return "gin";
-    }
-
-    // Index functions
-
-    @Override
-    public String indexFunctionUpper()
-    {
-        return "upper";
-    }
-
-    @Override
-    public String indexFunctionLower()
-    {
-        return "lower";
-    }
-
-    // Capabilities
-
-    @Override
-    public boolean supportsAnalyze()
-    {
-        return true;
-    }
-
-    @Override
-    public boolean supportsVacuum()
-    {
-        return true;
-    }
-
-    // Statements
-
-    @Override
-    public String createTable( Table table )
-    {
-        String unlogged = table.getLogged() == Logged.UNLOGGED ? " unlogged" : "";
-
-        StringBuilder sql = new StringBuilder( "create" )
-            .append( unlogged )
-            .append( " table " )
-            .append( quote( table.getName() ) )
-            .append( " (" );
-
-        // Columns
-
-        for ( Column column : table.getColumns() )
-        {
-            String dataType = getDataTypeName( column.getDataType() );
-            String nullable = column.getNullable() == Nullable.NOT_NULL ? " not null" : " null";
-            String collation = column.getCollation() == Collation.C ? (" collate " + quote( "C" )) : "";
-
-            sql.append( quote( column.getName() ) + " " )
-                .append( dataType )
-                .append( nullable )
-                .append( collation + ", " );
-        }
-
-        // Primary key
-
-        if ( table.hasPrimaryKey() )
-        {
-            sql.append( "primary key (" );
-
-            for ( String columnName : table.getPrimaryKey() )
-            {
-                sql.append( quote( columnName ) + ", " );
-            }
-
-            removeLastComma( sql ).append( "), " );
-        }
-
-        // Checks
-
-        if ( table.hasChecks() )
-        {
-            for ( String check : table.getChecks() )
-            {
-                sql.append( "check(" + check + "), " );
-            }
-        }
-
-        //TODO handle no columns and no primary key
-        removeLastComma( sql ).append( ")" );
-
-        if ( table.hasParent() )
-        {
-            sql.append( " inherits (" ).append( quote( table.getParent().getName() ) ).append( ")" );
-        }
-
-        return sql.append( ";" ).toString();
-    }
-
-    @Override
-    public String analyzeTable( Table table )
-    {
-        return String.format( "analyze %s;", quote( table.getName() ) );
-    }
-
-    @Override
-    public String vacuumTable( Table table )
-    {
-        return String.format( "vacuum %s;", quote( table.getName() ) );
-    }
-
-    @Override
-    public String renameTable( Table table, String newName )
-    {
-        return String.format( "alter table %s rename to %s;", quote( table.getName() ), quote( newName ) );
-    }
-
-    @Override
-    public String dropTableIfExists( Table table )
-    {
-        return dropTableIfExists( table.getName() );
-    }
-
-    @Override
-    public String dropTableIfExists( String name )
-    {
-        return String.format( "drop table if exists %s;", quote( name ) );
-    }
-
-    @Override
-    public String dropTableIfExistsCascade( Table table )
-    {
-        return dropTableIfExistsCascade( table.getName() );
-    }
-
-    @Override
-    public String dropTableIfExistsCascade( String name )
-    {
-        return String.format( "drop table if exists %s cascade;", quote( name ) );
-    }
-
-    @Override
-    public String swapTable( Table table, String newName )
-    {
-        return String.join( " ", dropTableIfExistsCascade( newName ), renameTable( table, newName ) );
-    }
-
-    @Override
-    public String setParentTable( Table table, String parentName )
-    {
-        return String.format( "alter table %s inherit %s;", quote( table.getName() ), quote( parentName ) );
-    }
-
-    @Override
-    public String removeParentTable( Table table, String parentName )
-    {
-        return String.format(
-            "alter table %s no inherit %s;", quote( table.getName() ), quote( parentName ) );
-    }
-
-    @Override
-    public String swapParentTable( Table table, String parentName, String newParentName )
-    {
-        return String.join(
-            " ", removeParentTable( table, parentName ), setParentTable( table, newParentName ) );
-    }
-
-    @Override
-    public String tableExists( String name )
-    {
-        return String.format(
-            "select t.table_name from information_schema.tables t "
-                + "where t.table_schema = 'public' and t.table_name = %s;",
-            singleQuote( name ) );
-    }
-
-    @Override
-    public String createIndex( Table table, Index index )
-    {
-        String unique = index.getUnique() == Unique.UNIQUE ? "unique " : "";
-        String typeName = getIndexTypeName( index.getIndexType() );
-
-        String columns = index.getColumns().stream()
-            .map( c -> toIndexColumn( index, c ) )
-            .collect( Collectors.joining( ", " ) );
-
-        return String.format(
-            "create %sindex %s on %s using %s(%s);",
-            unique, quote( index.getName() ), quote( table.getName() ), typeName, columns );
-    }
+    return String.format(
+        "create %sindex %s on %s using %s(%s);",
+        unique, quote(index.getName()), quote(table.getName()), typeName, columns);
+  }
 }
