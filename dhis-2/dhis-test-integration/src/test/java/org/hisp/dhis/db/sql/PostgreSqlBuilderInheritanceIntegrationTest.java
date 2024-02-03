@@ -69,7 +69,7 @@ class PostgreSqlBuilderInheritanceIntegrationTest extends IntegrationTestBase {
 
   private Table getTableD() {
     return new Table(
-        "data_2023_staging", columns, primaryKey, List.of(), Logged.UNLOGGED, getTableB());
+        "data_2023_staging", List.of(), List.of(), List.of(), Logged.UNLOGGED, getTableB());
   }
 
   @Test
