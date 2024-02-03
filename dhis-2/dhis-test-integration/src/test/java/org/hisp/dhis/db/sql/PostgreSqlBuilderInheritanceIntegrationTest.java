@@ -72,12 +72,16 @@ class PostgreSqlBuilderInheritanceIntegrationTest extends IntegrationTestBase {
   }
 
   private Table getTableC() {
-    return new Table("anaytics_2022", List.of(), List.of());
+    List<Column> columns = List.of(new Column("orguit", DataType.CHARACTER_11, Nullable.NOT_NULL));
+
+    return new Table("anaytics_2022", columns, List.of());
   }
 
   private Table getTableD() {
+    List<Column> columns = List.of(new Column("orguit", DataType.CHARACTER_11, Nullable.NOT_NULL));
+
     return new Table(
-        "anaytics_2023_staging", List.of(), List.of(), List.of(), Logged.UNLOGGED, getTableB());
+        "anaytics_2023_staging", columns, List.of(), List.of(), Logged.UNLOGGED, getTableB());
   }
 
   @Test
