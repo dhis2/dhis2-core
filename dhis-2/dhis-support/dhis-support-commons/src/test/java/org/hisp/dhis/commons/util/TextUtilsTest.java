@@ -142,6 +142,7 @@ class TextUtilsTest {
 
     assertEquals(null, TextUtils.removeLastComma(nullValue));
     assertEquals("", TextUtils.removeLastComma(""));
+    assertEquals("tom", TextUtils.removeLastComma("tom"));
     assertEquals("tom,john", TextUtils.removeLastComma("tom,john,"));
     assertEquals("tom, john", TextUtils.removeLastComma("tom, john, "));
     assertEquals("tom, john", TextUtils.removeLastComma("tom, john,  "));
@@ -153,6 +154,7 @@ class TextUtilsTest {
 
     assertEquals(null, TextUtils.removeLastComma(nullValue));
     assertEquals("", TextUtils.removeLastComma(new StringBuilder()).toString());
+    assertEquals("tom", TextUtils.removeLastComma(new StringBuilder("tom")).toString());
     assertEquals("tom,john", TextUtils.removeLastComma(new StringBuilder("tom,john,")).toString());
     assertEquals(
         "tom, john", TextUtils.removeLastComma(new StringBuilder("tom, john, ")).toString());
