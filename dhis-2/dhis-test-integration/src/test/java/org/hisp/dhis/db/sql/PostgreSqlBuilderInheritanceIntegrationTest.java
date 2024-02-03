@@ -92,7 +92,7 @@ class PostgreSqlBuilderInheritanceIntegrationTest extends IntegrationTestBase {
     execute(sqlBuilder.createTable(tableA));
     execute(sqlBuilder.createTable(tableC));
 
-    assertDoesNotThrow(() -> execute(sqlBuilder.setParentTable(tableC, "anaytics")));
+    assertDoesNotThrow(() -> execute(sqlBuilder.setParentTable(tableC, "data")));
 
     jdbcTemplate.execute(sqlBuilder.dropTableIfExists(tableC));
     jdbcTemplate.execute(sqlBuilder.dropTableIfExists(tableA));
@@ -106,9 +106,7 @@ class PostgreSqlBuilderInheritanceIntegrationTest extends IntegrationTestBase {
     execute(sqlBuilder.createTable(tableB));
     execute(sqlBuilder.createTable(tableD));
 
-    execute(sqlBuilder.setParentTable(tableD, "vaccination"));
-
-    assertDoesNotThrow(() -> execute(sqlBuilder.removeParentTable(tableD, "anaytics_staging")));
+    assertDoesNotThrow(() -> execute(sqlBuilder.removeParentTable(tableD, "data_staging")));
 
     jdbcTemplate.execute(sqlBuilder.dropTableIfExists(tableD));
     jdbcTemplate.execute(sqlBuilder.dropTableIfExists(tableB));
@@ -125,7 +123,7 @@ class PostgreSqlBuilderInheritanceIntegrationTest extends IntegrationTestBase {
     execute(sqlBuilder.createTable(tableD));
 
     assertDoesNotThrow(
-        () -> execute(sqlBuilder.swapParentTable(getTableD(), "anaytics_staging", "analytics")));
+        () -> execute(sqlBuilder.swapParentTable(getTableD(), "data_staging", "data")));
 
     jdbcTemplate.execute(sqlBuilder.dropTableIfExists(tableD));
     jdbcTemplate.execute(sqlBuilder.dropTableIfExists(tableB));
