@@ -55,7 +55,7 @@ class PostgreSqlBuilderInheritanceIntegrationTest extends IntegrationTestBase {
 
     List<String> primaryKey = List.of("id");
 
-    return new Table("anaytics", columns, primaryKey);
+    return new Table("data", columns, primaryKey);
   }
 
   private Table getTableB() {
@@ -68,20 +68,20 @@ class PostgreSqlBuilderInheritanceIntegrationTest extends IntegrationTestBase {
 
     List<String> primaryKey = List.of("id");
 
-    return new Table("anaytics_staging", columns, primaryKey);
+    return new Table("data_staging", columns, primaryKey);
   }
 
   private Table getTableC() {
     List<Column> columns = List.of(new Column("orguit", DataType.CHARACTER_11, Nullable.NOT_NULL));
 
-    return new Table("anaytics_2022", columns, List.of());
+    return new Table("data_2022", columns, List.of());
   }
 
   private Table getTableD() {
     List<Column> columns = List.of(new Column("orguit", DataType.CHARACTER_11, Nullable.NOT_NULL));
 
     return new Table(
-        "anaytics_2023_staging", columns, List.of(), List.of(), Logged.UNLOGGED, getTableB());
+        "data_2023_staging", columns, List.of(), List.of(), Logged.UNLOGGED, getTableB());
   }
 
   @Test
