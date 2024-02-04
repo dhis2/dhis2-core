@@ -98,33 +98,38 @@ public interface RelationshipService {
   List<Relationship> getRelationships(@Nonnull List<String> uids);
 
   default List<Relationship> getRelationshipsByTrackedEntity(
-      TrackedEntity trackedEntity, boolean skipAccessValidation) {
-    return getRelationshipsByTrackedEntity(trackedEntity, null, skipAccessValidation);
+      TrackedEntity trackedEntity, boolean skipAccessValidation, boolean includeDeleted) {
+    return getRelationshipsByTrackedEntity(
+        trackedEntity, null, skipAccessValidation, includeDeleted);
   }
 
   List<Relationship> getRelationshipsByTrackedEntity(
       TrackedEntity te,
       PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean skipAccessValidation);
+      boolean skipAccessValidation,
+      boolean includeDeleted);
 
   default List<Relationship> getRelationshipsByEnrollment(
-      Enrollment enrollment, boolean skipAccessValidation) {
-    return getRelationshipsByEnrollment(enrollment, null, skipAccessValidation);
+      Enrollment enrollment, boolean skipAccessValidation, boolean includeDeleted) {
+    return getRelationshipsByEnrollment(enrollment, null, skipAccessValidation, includeDeleted);
   }
 
   List<Relationship> getRelationshipsByEnrollment(
       Enrollment enrollment,
       PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean skipAccessValidation);
+      boolean skipAccessValidation,
+      boolean includeDeleted);
 
-  default List<Relationship> getRelationshipsByEvent(Event event, boolean skipAccessValidation) {
-    return getRelationshipsByEvent(event, null, skipAccessValidation);
+  default List<Relationship> getRelationshipsByEvent(
+      Event event, boolean skipAccessValidation, boolean includeDeleted) {
+    return getRelationshipsByEvent(event, null, skipAccessValidation, includeDeleted);
   }
 
   List<Relationship> getRelationshipsByEvent(
       Event event,
       PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean skipAccessValidation);
+      boolean skipAccessValidation,
+      boolean includeDeleted);
 
   List<Relationship> getRelationshipsByRelationshipType(RelationshipType relationshipType);
 }
