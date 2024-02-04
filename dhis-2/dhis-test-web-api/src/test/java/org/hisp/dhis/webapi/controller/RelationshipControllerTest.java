@@ -37,17 +37,17 @@ import java.util.Date;
 import java.util.Set;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
@@ -143,8 +143,8 @@ class RelationshipControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void shouldNotGetRelationshipsByTrackedEntityWhenRelationshipIsDeleted() {
-    TrackedEntity to = trackedEntity();
-    Enrollment from = enrollment(to);
+    TrackedEntityInstance to = trackedEntity();
+    ProgramInstance from = enrollment(to);
     Relationship r = relationship(from, to);
 
     r.setDeleted(true);
@@ -156,8 +156,8 @@ class RelationshipControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void shouldNotGetRelationshipsByEnrollmentWhenRelationshipIsDeleted() {
-    TrackedEntity to = trackedEntity();
-    Enrollment from = enrollment(to);
+    TrackedEntityInstance to = trackedEntity();
+    ProgramInstance from = enrollment(to);
     Relationship r = relationship(from, to);
 
     r.setDeleted(true);
@@ -171,8 +171,8 @@ class RelationshipControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void shouldNotGetRelationshipsByEventWhenRelationshipIsDeleted() {
-    TrackedEntity to = trackedEntity();
-    Event from = event(enrollment(to));
+    TrackedEntityInstance to = trackedEntity();
+    ProgramStageInstance from = event(enrollment(to));
     Relationship r = relationship(from, to);
 
     r.setDeleted(true);
@@ -184,8 +184,8 @@ class RelationshipControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void shouldGetRelationshipsByTrackedEntityWhenRelationshipIsDeleted() {
-    TrackedEntity to = trackedEntity();
-    Enrollment from = enrollment(to);
+    TrackedEntityInstance to = trackedEntity();
+    ProgramInstance from = enrollment(to);
     Relationship r = relationship(from, to);
 
     r.setDeleted(true);
@@ -201,8 +201,8 @@ class RelationshipControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void shouldGetRelationshipsByEventWhenRelationshipIsDeleted() {
-    TrackedEntity to = trackedEntity();
-    Event from = event(enrollment(to));
+    TrackedEntityInstance to = trackedEntity();
+    ProgramStageInstance from = event(enrollment(to));
     Relationship r = relationship(from, to);
 
     r.setDeleted(true);
@@ -218,8 +218,8 @@ class RelationshipControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void shouldGetRelationshipsByEnrollmentWhenRelationshipIsDeleted() {
-    TrackedEntity to = trackedEntity();
-    Enrollment from = enrollment(to);
+    TrackedEntityInstance to = trackedEntity();
+    ProgramInstance from = enrollment(to);
     Relationship r = relationship(from, to);
 
     r.setDeleted(true);
@@ -233,44 +233,44 @@ class RelationshipControllerTest extends DhisControllerConvenienceTest {
     assertRelationship(r, relationships);
   }
 
-  private TrackedEntity trackedEntity() {
-    TrackedEntity te = trackedEntity(orgUnit);
+  private TrackedEntityInstance trackedEntity() {
+    TrackedEntityInstance te = trackedEntity(orgUnit);
     manager.save(te, false);
     return te;
   }
 
-  private TrackedEntity trackedEntity(OrganisationUnit orgUnit) {
-    TrackedEntity te = trackedEntity(orgUnit, trackedEntityType);
+  private TrackedEntityInstance trackedEntity(OrganisationUnit orgUnit) {
+    TrackedEntityInstance te = trackedEntity(orgUnit, trackedEntityType);
     manager.save(te, false);
     return te;
   }
 
-  private TrackedEntity trackedEntity(
+  private TrackedEntityInstance trackedEntity(
       OrganisationUnit orgUnit, TrackedEntityType trackedEntityType) {
-    TrackedEntity te = createTrackedEntity(orgUnit);
+    TrackedEntityInstance te = createTrackedEntityInstance(orgUnit);
     te.setTrackedEntityType(trackedEntityType);
     te.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     te.getSharing().setOwner(owner);
     return te;
   }
 
-  private Enrollment enrollment(TrackedEntity te) {
-    Enrollment enrollment = new Enrollment(program, te, orgUnit);
+  private ProgramInstance enrollment(TrackedEntityInstance te) {
+    ProgramInstance enrollment = new ProgramInstance(program, te, orgUnit);
     enrollment.setAutoFields();
     enrollment.setEnrollmentDate(new Date());
-    enrollment.setOccurredDate(new Date());
+    enrollment.setIncidentDate(new Date());
     enrollment.setStatus(ProgramStatus.COMPLETED);
     manager.save(enrollment, false);
-    te.setEnrollments(Set.of(enrollment));
+    te.setProgramInstances(Set.of(enrollment));
     manager.save(te, false);
     return enrollment;
   }
 
-  private Event event(Enrollment enrollment) {
-    Event event = new Event(enrollment, programStage, orgUnit);
+  private ProgramStageInstance event(ProgramInstance enrollment) {
+    ProgramStageInstance event = new ProgramStageInstance(enrollment, programStage, orgUnit);
     event.setAutoFields();
     manager.save(event, false);
-    enrollment.setEvents(Set.of(event));
+    enrollment.setProgramStageInstances(Set.of(event));
     manager.save(enrollment, false);
     return event;
   }
@@ -292,17 +292,17 @@ class RelationshipControllerTest extends DhisControllerConvenienceTest {
     return type;
   }
 
-  private Relationship relationship(Event from, TrackedEntity to) {
+  private Relationship relationship(ProgramStageInstance from, TrackedEntityInstance to) {
     Relationship r = new Relationship();
 
     RelationshipItem fromItem = new RelationshipItem();
-    fromItem.setEvent(from);
+    fromItem.setProgramStageInstance(from);
     from.getRelationshipItems().add(fromItem);
     r.setFrom(fromItem);
     fromItem.setRelationship(r);
 
     RelationshipItem toItem = new RelationshipItem();
-    toItem.setTrackedEntity(to);
+    toItem.setTrackedEntityInstance(to);
     to.getRelationshipItems().add(toItem);
     r.setTo(toItem);
     toItem.setRelationship(r);
@@ -316,25 +316,25 @@ class RelationshipControllerTest extends DhisControllerConvenienceTest {
 
     r.setAutoFields();
     r.getSharing().setOwner(owner);
-    r.setCreatedAtClient(new Date());
+    r.setCreated(new Date());
     manager.save(r, false);
     return r;
   }
 
-  private Relationship relationship(Enrollment from, TrackedEntity to) {
+  private Relationship relationship(ProgramInstance from, TrackedEntityInstance to) {
     manager.save(from, false);
     manager.save(to, false);
 
     Relationship r = new Relationship();
 
     RelationshipItem fromItem = new RelationshipItem();
-    fromItem.setEnrollment(from);
+    fromItem.setProgramInstance(from);
     from.getRelationshipItems().add(fromItem);
     r.setFrom(fromItem);
     fromItem.setRelationship(r);
 
     RelationshipItem toItem = new RelationshipItem();
-    toItem.setTrackedEntity(to);
+    toItem.setTrackedEntityInstance(to);
     to.getRelationshipItems().add(toItem);
     r.setTo(toItem);
     toItem.setRelationship(r);
