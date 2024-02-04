@@ -37,7 +37,7 @@
     not in (select dataelementid from datavalue group by dataelementid)
     and AGE( now(), lastupdated) > INTERVAL '100 days';
   details_sql: >-
-    select uid,name,lastupdated from dataelement
+    select uid,name from dataelement
     where domaintype = 'AGGREGATE'
     and dataelementid
     not in (select  DISTINCT dataelementid from datavalue )
