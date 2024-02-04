@@ -200,6 +200,38 @@ class PostgreSqlBuilderTest {
   }
 
   @Test
+  void testSwapTable() {
+    String expected =
+        "drop table if exists \"vaccination\" cascade; "
+            + "alter table \"immunization\" rename to \"vaccination\";";
+
+    assertEquals(expected, sqlBuilder.swapTable(getTableA(), "vaccination"));
+  }
+
+  @Test
+  void testSetParent() {
+    String expected = "alter table \"immunization\" inherit \"vaccination\";";
+
+    assertEquals(expected, sqlBuilder.setParentTable(getTableA(), "vaccination"));
+  }
+
+  @Test
+  void testRemoveParent() {
+    String expected = "alter table \"immunization\" no inherit \"vaccination\";";
+
+    assertEquals(expected, sqlBuilder.removeParentTable(getTableA(), "vaccination"));
+  }
+
+  @Test
+  void testSwapParentTable() {
+    String expected =
+        "alter table \"immunization\" no inherit \"vaccination\"; "
+            + "alter table \"immunization\" inherit \"nutrition\";";
+
+    assertEquals(expected, sqlBuilder.swapParentTable(getTableA(), "vaccination", "nutrition"));
+  }
+
+  @Test
   void testTableExists() {
     String expected =
         "select t.table_name from information_schema.tables t "
