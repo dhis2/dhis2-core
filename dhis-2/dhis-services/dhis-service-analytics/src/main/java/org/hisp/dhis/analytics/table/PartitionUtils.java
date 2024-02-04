@@ -35,9 +35,9 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.model.Partitions;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -156,7 +156,7 @@ public class PartitionUtils {
             ? getPartitions(params.getStartDate(), params.getEndDate())
             : getPartitions(params.getAllPeriods());
 
-    if (tableType.hasLatestPartition()) {
+    if (tableType.isLatestPartition()) {
       partitions.add(AnalyticsTablePartition.LATEST_PARTITION);
     }
 
