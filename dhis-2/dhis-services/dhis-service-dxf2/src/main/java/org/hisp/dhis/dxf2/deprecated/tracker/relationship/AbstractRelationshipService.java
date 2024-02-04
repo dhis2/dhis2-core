@@ -121,8 +121,7 @@ public abstract class AbstractRelationshipService implements RelationshipService
       boolean includeDeleted) {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     return relationshipService
-        .getRelationshipsByTrackedEntity(
-            tei, pagingAndSortingCriteriaAdapter, skipAccessValidation, includeDeleted)
+        .getRelationshipsByTrackedEntity(tei, pagingAndSortingCriteriaAdapter, includeDeleted)
         .stream()
         .filter(
             r -> !skipAccessValidation && trackerAccessManager.canRead(currentUser, r).isEmpty())
@@ -141,8 +140,7 @@ public abstract class AbstractRelationshipService implements RelationshipService
       boolean includeDeleted) {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     return relationshipService
-        .getRelationshipsByEnrollment(
-            enrollment, pagingAndSortingCriteriaAdapter, skipAccessValidation, includeDeleted)
+        .getRelationshipsByEnrollment(enrollment, pagingAndSortingCriteriaAdapter, includeDeleted)
         .stream()
         .filter(
             r -> !skipAccessValidation && trackerAccessManager.canRead(currentUser, r).isEmpty())
@@ -161,8 +159,7 @@ public abstract class AbstractRelationshipService implements RelationshipService
       boolean includeDeleted) {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     return relationshipService
-        .getRelationshipsByEvent(
-            psi, pagingAndSortingCriteriaAdapter, skipAccessValidation, includeDeleted)
+        .getRelationshipsByEvent(psi, pagingAndSortingCriteriaAdapter, includeDeleted)
         .stream()
         .filter(
             r -> !skipAccessValidation && trackerAccessManager.canRead(currentUser, r).isEmpty())

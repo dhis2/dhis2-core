@@ -101,7 +101,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest {
     Relationship teiRelationship = addTeiToTeiRelationship();
 
     List<Relationship> relationshipList =
-        relationshipService.getRelationshipsByTrackedEntity(trackedEntityA, true, false);
+        relationshipService.getRelationshipsByTrackedEntity(trackedEntityA, false);
 
     assertEquals(1, relationshipList.size());
     assertTrue(relationshipList.contains(teiRelationship));
@@ -122,8 +122,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest {
 
     Relationship relationshipA = addTeiToEventRelationship(trackedEntityA, event);
 
-    List<Relationship> relationshipList =
-        relationshipService.getRelationshipsByEvent(event, true, false);
+    List<Relationship> relationshipList = relationshipService.getRelationshipsByEvent(event, false);
 
     assertEquals(1, relationshipList.size());
     assertTrue(relationshipList.contains(relationshipA));
@@ -143,7 +142,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest {
     Relationship relationshipA = addTeiToEnrollmentRelationship(trackedEntityA, enrollment);
 
     List<Relationship> relationshipList =
-        relationshipService.getRelationshipsByEnrollment(enrollment, true, false);
+        relationshipService.getRelationshipsByEnrollment(enrollment, false);
 
     assertEquals(1, relationshipList.size());
     assertTrue(relationshipList.contains(relationshipA));

@@ -87,14 +87,13 @@ class RelationshipDeletionHandlerTest {
 
   @Test
   void deleteTrackedEntity() {
-    when(relationshipService.getRelationshipsByTrackedEntity(any(), anyBoolean(), anyBoolean()))
+    when(relationshipService.getRelationshipsByTrackedEntity(any(), anyBoolean()))
         .thenReturn(singletonList(new Relationship()));
 
     ObjectDeletionRequestedEvent event = new ObjectDeletionRequestedEvent(new TrackedEntity());
     deletionManager.onDeletion(event);
 
-    verify(relationshipService, atLeastOnce())
-        .getRelationshipsByTrackedEntity(any(), anyBoolean(), anyBoolean());
+    verify(relationshipService, atLeastOnce()).getRelationshipsByTrackedEntity(any(), anyBoolean());
     verify(relationshipService, atLeastOnce()).deleteRelationship(any());
   }
 }
