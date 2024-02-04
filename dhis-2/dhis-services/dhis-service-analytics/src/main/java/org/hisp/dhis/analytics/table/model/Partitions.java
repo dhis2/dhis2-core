@@ -29,21 +29,21 @@ package org.hisp.dhis.analytics.table.model;
 
 import java.util.HashSet;
 import java.util.Set;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * Class representing analytics table partitions.
  *
  * @author Lars Helge Overland
  */
+@Getter
+@Setter
+@NoArgsConstructor
 public class Partitions {
   /** Yearly partitions containing four-digit years. */
   private Set<Integer> partitions = new HashSet<>();
-
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
-
-  public Partitions() {}
 
   public Partitions(Set<Integer> partitions) {
     this.partitions = partitions;
@@ -120,17 +120,5 @@ public class Partitions {
     Partitions other = (Partitions) object;
 
     return partitions.equals(other.partitions);
-  }
-
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
-
-  public Set<Integer> getPartitions() {
-    return partitions;
-  }
-
-  public void setPartitions(Set<Integer> partitions) {
-    this.partitions = partitions;
   }
 }
