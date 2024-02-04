@@ -156,7 +156,7 @@ public class PartitionUtils {
             ? getPartitions(params.getStartDate(), params.getEndDate())
             : getPartitions(params.getAllPeriods());
 
-    if (tableType.hasLatestPartition()) {
+    if (tableType.isLatestPartition()) {
       partitions.add(AnalyticsTablePartition.LATEST_PARTITION);
     }
 
