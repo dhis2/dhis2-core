@@ -33,6 +33,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -177,17 +178,17 @@ public class CommonQueryRequest {
   private DisplayProperty displayProperty;
 
   /** Custom date filters */
-  private String eventDate;
+  private List<String> eventDate;
 
-  private String enrollmentDate;
+  private List<String> enrollmentDate;
 
-  private String scheduledDate;
+  private List<String> scheduledDate;
 
-  private String incidentDate;
+  private List<String> incidentDate;
 
-  private String lastUpdated;
+  private List<String> lastUpdated;
 
-  private String created;
+  private List<String> created;
 
   /** whether the query should consider only items with lat/long coordinates */
   private boolean coordinatesOnly;

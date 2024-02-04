@@ -30,12 +30,15 @@ package org.hisp.dhis.fileresource;
 import java.io.File;
 import java.util.Map;
 import java.util.stream.Stream;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.events.BinaryFileSavedEvent;
 import org.hisp.dhis.fileresource.events.FileDeletedEvent;
 import org.hisp.dhis.fileresource.events.FileSavedEvent;
 import org.hisp.dhis.fileresource.events.ImageFileSavedEvent;
+import org.hisp.dhis.user.AuthenticationService;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.joda.time.format.PeriodFormat;
@@ -48,16 +51,13 @@ import org.springframework.transaction.event.TransactionalEventListener;
  */
 @Slf4j
 @Component("org.hisp.dhis.fileresource.FileResourceEventListener")
+@RequiredArgsConstructor
 public class FileResourceEventListener {
   private final FileResourceService fileResourceService;
 
   private final FileResourceContentStore fileResourceContentStore;
 
-  public FileResourceEventListener(
-      FileResourceService fileResourceService, FileResourceContentStore contentStore) {
-    this.fileResourceService = fileResourceService;
-    this.fileResourceContentStore = contentStore;
-  }
+  private final AuthenticationService authenticationService;
 
   @TransactionalEventListener
   @Async
@@ -78,20 +78,25 @@ public class FileResourceEventListener {
 
   @TransactionalEventListener
   @Async
-  public void saveImageFile(ImageFileSavedEvent imageFileSavedEvent) {
+  public void saveImageFile(ImageFileSavedEvent imageFileSavedEvent) throws NotFoundException {
     DateTime startTime = DateTime.now();
 
-    Map<ImageFileDimension, File> imageFiles = imageFileSavedEvent.getImageFiles();
+    Map<ImageFileDimension, File> imageFiles = imageFileSavedEvent.imageFiles();
 
     FileResource fileResource =
-        fileResourceService.getFileResource(imageFileSavedEvent.getFileResource());
+        fileResourceService.getFileResource(imageFileSavedEvent.fileResource());
 
     String storageId = fileResourceContentStore.saveFileResourceContent(fileResource, imageFiles);
 
     if (storageId != null) {
       fileResource.setHasMultipleStorageFiles(true);
 
-      fileResourceService.updateFileResource(fileResource);
+      try {
+        authenticationService.obtainAuthentication(imageFileSavedEvent.userUid());
+        fileResourceService.updateFileResource(fileResource);
+      } finally {
+        authenticationService.clearAuthentication();
+      }
     }
 
     Period timeDiff = new Period(startTime, DateTime.now());

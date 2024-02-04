@@ -564,35 +564,6 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .collect(Collectors.toList());
   }
 
-  /**
-   * Returns the select clause, potentially with a cast statement, based on the given value type.
-   *
-   * @param valueType the value type to represent as database column type.
-   */
-  protected String getSelectClause(ValueType valueType, String columnName) {
-    if (valueType.isDecimal()) {
-      return "cast(" + columnName + " as double precision)";
-    } else if (valueType.isInteger()) {
-      return "cast(" + columnName + " as bigint)";
-    } else if (valueType.isBoolean()) {
-      return "case when "
-          + columnName
-          + " = 'true' then 1 when "
-          + columnName
-          + " = 'false' then 0 else null end";
-    } else if (valueType.isDate()) {
-      return "cast(" + columnName + " as timestamp)";
-    } else if (valueType.isGeo() && isSpatialSupport()) {
-      return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || ("
-          + columnName
-          + ") || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
-    } else if (valueType.isOrganisationUnit()) {
-      return "ou.uid from organisationunit ou where ou.uid = (select " + columnName;
-    } else {
-      return columnName;
-    }
-  }
-
   // -------------------------------------------------------------------------
   // Private supportive methods
   // -------------------------------------------------------------------------
