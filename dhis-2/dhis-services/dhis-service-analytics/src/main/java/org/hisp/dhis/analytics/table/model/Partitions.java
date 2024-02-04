@@ -51,7 +51,7 @@ public class Partitions {
 
   public Partitions(Partitions partitions) {
     this.partitions =
-        partitions != null ? new HashSet<>(partitions.getPartitions()) : new HashSet<Integer>();
+        partitions != null ? new HashSet<>(partitions.getPartitions()) : new HashSet<>();
   }
 
   // -------------------------------------------------------------------------
