@@ -44,9 +44,9 @@ import org.apache.commons.lang3.Validate;
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Table {
-  private static final String STAGING_TABLE_SUFFIX = "_staging";
+  private static final String STAGING_TABLE_SUFFIX = "_temp";
 
-  private static final String STAGING_TABLE_SUFFIX_RGX = "\\_staging$";
+  private static final String STAGING_TABLE_SUFFIX_RGX = "\\_temp$";
 
   /** Table name. Required. */
   @EqualsAndHashCode.Include private final String name;
