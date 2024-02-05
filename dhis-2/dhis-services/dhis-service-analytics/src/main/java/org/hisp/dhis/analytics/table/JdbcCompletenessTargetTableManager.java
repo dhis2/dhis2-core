@@ -35,6 +35,7 @@ import static org.hisp.dhis.db.model.DataType.DATE;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;

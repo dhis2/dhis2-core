@@ -33,6 +33,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.removeQuote;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.db.model.DataType.TEXT;
+
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang3.RegExUtils;

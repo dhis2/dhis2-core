@@ -37,11 +37,14 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
+
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableManager;
@@ -79,8 +82,6 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -170,8 +171,8 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   @Override
   public void createTable(AnalyticsTable table) {
-    createTempTable(table);
-    createTempTablePartitions(table);
+    createAnalyticsTable(table);
+    createAnalyticsTablePartitions(table);
   }
 
   @Override
@@ -203,17 +204,17 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     } else {
       table.getTablePartitions().stream()
           .forEach(p -> swapInheritance(p.getName(), table.getName(), table.getMainName()));
-      dropTempTable(table);
+      dropTable(table);
     }
   }
 
   @Override
-  public void dropTempTable(AnalyticsTable table) {
+  public void dropTable(AnalyticsTable table) {
     dropTableCascade(table.getName());
   }
 
   @Override
-  public void dropTempTablePartition(AnalyticsTablePartition tablePartition) {
+  public void dropTablePartition(AnalyticsTablePartition tablePartition) {
     dropTableCascade(tablePartition.getName());
   }
 
@@ -253,7 +254,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    *
    * @param table the {@link AnalyticsTable}.
    */
-  private void createTempTable(AnalyticsTable table) {
+  private void createAnalyticsTable(AnalyticsTable table) {
     StringBuilder sql = new StringBuilder();
 
     String tableName = table.getName();
@@ -287,19 +288,20 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    *
    * @param table the {@link AnalyticsTable}.
    */
-  private void createTempTablePartitions(AnalyticsTable table) {
+  private void createAnalyticsTablePartitions(AnalyticsTable table) {
     for (AnalyticsTablePartition partition : table.getTablePartitions()) {
-      createTempTablePartition(table, partition);
+      createAnalyticsTablePartition(table, partition);
     }
   }
 
   /**
-   * Creates the given table partition.
+   * Creates the table partition for the given analytics table.
    *
    * @param table the {@link AnalyticsTable}.
    * @param partition the {@link AnalyticsTablePartition}.
    */
-  private void createTempTablePartition(AnalyticsTable table, AnalyticsTablePartition partition) {
+  private void createAnalyticsTablePartition(
+      AnalyticsTable table, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
     String unlogged = table.isUnlogged() ? "unlogged" : "";
     List<String> checks = getPartitionChecks(partition);
@@ -327,7 +329,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * the main table.
    *
    * @param stagingTableName the staging table name.
-   * @param mainTableName the real table name.
+   * @param mainTableName the main table name.
    */
   private void swapTable(String stagingTableName, String mainTableName) {
     String[] sqlSteps = {
@@ -343,8 +345,8 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * table.
    *
    * @param partitionTableName the partition table name.
-   * @param stagingMasterTableName the temporary master table name.
-   * @param mainMasterTableName the real master table name.
+   * @param stagingMasterTableName the staging master table name.
+   * @param mainMasterTableName the main master table name.
    */
   private void swapInheritance(
       String partitionTableName, String stagingMasterTableName, String mainMasterTableName) {

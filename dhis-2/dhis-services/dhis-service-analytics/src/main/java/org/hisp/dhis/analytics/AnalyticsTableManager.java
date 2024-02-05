@@ -132,14 +132,14 @@ public interface AnalyticsTableManager {
    *
    * @param table the analytics table.
    */
-  void dropTempTable(AnalyticsTable table);
+  void dropTable(AnalyticsTable table);
 
   /**
    * Drops the given {@link AnalyticsTablePartition}.
    *
    * @param tablePartition the analytics table.
    */
-  void dropTempTablePartition(AnalyticsTablePartition tablePartition);
+  void dropTablePartition(AnalyticsTablePartition tablePartition);
 
   /**
    * Drops the given table and all potential partitions.

@@ -28,9 +28,13 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -49,9 +53,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Service;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import lombok.RequiredArgsConstructor;
 
 /**
  * @author Lars Helge Overland

@@ -51,6 +51,7 @@ import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
