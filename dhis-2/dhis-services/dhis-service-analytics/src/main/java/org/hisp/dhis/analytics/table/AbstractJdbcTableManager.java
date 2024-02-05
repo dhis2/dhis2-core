@@ -318,8 +318,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @return true if a table with the given name exists.
    */
   private boolean tableExists(String name) {
-    String sql = sqlBuilder.tableExists(name);
-    return !jdbcTemplate.queryForList(sql).isEmpty();
+    return !jdbcTemplate.queryForList(sqlBuilder.tableExists(name)).isEmpty();
   }
 
   // -------------------------------------------------------------------------
