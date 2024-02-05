@@ -33,6 +33,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
@@ -50,6 +52,7 @@ import org.springframework.util.Assert;
  *
  * @author Lars Helge Overland
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class PartitionUtils {
   public static final String SEP = "_";
 
