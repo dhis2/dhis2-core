@@ -46,22 +46,22 @@ public class AnalyticsTablePartition {
   public static final Integer LATEST_PARTITION = 0;
 
   /** Table name. */
-  @EqualsAndHashCode.Include private String name;
+  @EqualsAndHashCode.Include private final String name;
 
   /** The master analytics table for this partition. */
-  private AnalyticsTable masterTable;
+  private final AnalyticsTable masterTable;
 
   /**
    * The year for which this partition may contain data, where 0 indicates the "latest" data stored
    * since last full analytics table generation.
    */
-  private Integer year;
+  private final Integer year;
 
   /** The start date for which this partition may contain data, inclusive. */
-  private Date startDate;
+  private final Date startDate;
 
   /** The end date for which this partition may contain data, exclusive. */
-  private Date endDate;
+  private final Date endDate;
 
   /**
    * Constructor. Sets the name to represent a staging table partition.

@@ -56,6 +56,7 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
+import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -408,7 +409,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
       AnalyticsTableUpdateParams params,
       List<Integer> dataYears,
       List<AnalyticsTableColumn> columns) {
-
+    Calendar calendar = PeriodType.getCalendar();
     List<Integer> years = ListUtils.mutableCopy(dataYears);
     Logged logged = analyticsExportSettings.getTableLogged();
 
@@ -417,7 +418,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns, logged);
 
     for (Integer year : years) {
-      table.addPartitionTable(year, getStartDate(year), getEndDate(year));
+      table.addPartitionTable(year, getStartDate(calendar, year), getEndDate(calendar, year));
     }
 
     return table;

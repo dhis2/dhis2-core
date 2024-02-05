@@ -67,7 +67,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -567,9 +566,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   void testGeItemNoFiltersSql() {
     EventQueryParams queryParams =
         new EventQueryParams.Builder()
-            .addItem(
-                buildQueryItemWithGroupAndFilters(
-                    "item", UUID.randomUUID(), Collections.emptyList()))
+            .addItem(buildQueryItemWithGroupAndFilters("item", UUID.randomUUID(), List.of()))
             .build();
     assertEquals("", eventSubject.getQueryItemsAndFiltersWhereClause(queryParams, new SqlHelper()));
   }
