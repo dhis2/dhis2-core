@@ -158,7 +158,7 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getTempName();
 
-    String sql = "insert into " + partition.getTempName() + " (";
+    String sql = "insert into " + tableName + " (";
 
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
