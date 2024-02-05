@@ -61,6 +61,8 @@ class DataIntegrityDataElementsAbandonedControllerTest
 
   private static final String detailsIdType = "dataElements";
 
+  private String orgUnitId;
+
   private static final String period = "202212";
 
   @Autowired protected IdentifiableObjectManager manager;
@@ -85,14 +87,16 @@ class DataIntegrityDataElementsAbandonedControllerTest
   void testDataElementsAbandoned() {
 
     setUpTest();
-    createAbandonedDataElement();
 
+    // Create a data element that is 100 days old but this one has no data
+    DataElement dataElementD = createDataElementDaysAgo("D", 100);
+
+    // Out of the four data elements created, only this one should be flagged as abandoned
     assertHasDataIntegrityIssues(
-        detailsIdType, check, 33, "deabcdefghA", "DataElementA", null, true);
+        detailsIdType, check, 25, dataElementD.getUid(), dataElementD.getName(), null, true);
   }
 
-  void createAbandonedDataElement() {
-    String uniqueCharacter = "A";
+  DataElement createDataElementDaysAgo(String uniqueCharacter, Integer daysAgo) {
     DataElement dataElement = new DataElement();
     dataElement.setUid(BASE_DE_UID + uniqueCharacter);
     dataElement.setName("DataElement" + uniqueCharacter);
@@ -104,24 +108,26 @@ class DataIntegrityDataElementsAbandonedControllerTest
     dataElement.setAggregationType(AggregationType.SUM);
     dataElement.setZeroIsSignificant(false);
     dataElement.setCategoryCombo(categoryService.getDefaultCategoryCombo());
-    // Set the lastupdated and created to 100 days ago
-    Date hundredDaysAgo = Date.from(ZonedDateTime.now().minusDays(100).toInstant());
+    // Set the lastupdated to the number of days ago
+    Date hundredDaysAgo = Date.from(ZonedDateTime.now().minusDays(daysAgo).toInstant());
     dataElement.setLastUpdated(hundredDaysAgo);
     dataElement.setCreated(hundredDaysAgo);
     manager.persist(dataElement);
     dbmsManager.flushSession();
     dbmsManager.clearSession();
+
+    return dataElement;
   }
 
   void setUpTest() {
 
-    String dataElementA =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/dataElements",
-                "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER',"
-                    + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
+    // Create some data elements. created and lastUpdated default to now
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/dataElements",
+            "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER',"
+                + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
 
     String dataElementB =
         assertStatus(
@@ -131,7 +137,7 @@ class DataIntegrityDataElementsAbandonedControllerTest
                 "{ 'name': 'ANC2', 'shortName': 'ANC2', 'valueType' : 'NUMBER',"
                     + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
 
-    String orgUnitId =
+    orgUnitId =
         assertStatus(
             HttpStatus.CREATED,
             POST(
@@ -148,9 +154,11 @@ class DataIntegrityDataElementsAbandonedControllerTest
     assertStatus(
         HttpStatus.CREATED,
         postNewDataValue(period, "10", "Test Data", false, dataElementB, orgUnitId));
-    /* Both data elements should have data now */
+
+    // Create a data element that is 100 days old and give it some data
+    DataElement dataElementC = createDataElementDaysAgo("A", 100);
     assertStatus(
         HttpStatus.CREATED,
-        postNewDataValue(period, "20", "Test Data", false, dataElementA, orgUnitId));
+        postNewDataValue(period, "10", "Test Data", false, dataElementC.getUid(), orgUnitId));
   }
 }
