@@ -65,9 +65,6 @@ class DataIntegrityDataElementsAbandonedControllerTest
 
   private static final String period = "202212";
 
-  @Autowired protected IdentifiableObjectManager manager;
-
-  @Autowired protected DbmsManager dbmsManager;
 
   @Test
   void testDataElementsNotAbandoned() {
