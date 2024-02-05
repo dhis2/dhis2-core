@@ -158,6 +158,20 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
   }
 
   @Test
+  void testRenameTable() {
+    Table table = getTableA();
+
+    execute(sqlBuilder.createTable(table));
+
+    assertTrue(tableExists(table.getName()));
+
+    execute(sqlBuilder.renameTable(table, "immunization_temp"));
+
+    assertTrue(tableExists("immunization_temp"));
+    assertFalse(tableExists(table.getName()));
+  }
+
+  @Test
   void testCreateIndex() {
     Table table = getTableA();
 
