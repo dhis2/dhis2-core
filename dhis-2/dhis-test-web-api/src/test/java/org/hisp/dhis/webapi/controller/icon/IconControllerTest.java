@@ -164,6 +164,8 @@ class IconControllerTest extends DhisControllerIntegrationTest {
 
     assertHasMember(iconResponse, "pager");
     assertHasMember(pager, "total");
+    assertHasMember(pager, "pageSize");
+    assertHasMember(pager, "pageCount");
 
     assertEquals(3, pager.getTotal());
     assertEquals(2, pager.getPageSize());
@@ -194,9 +196,12 @@ class IconControllerTest extends DhisControllerIntegrationTest {
 
     assertHasMember(iconResponse, "pager");
     assertHasMember(pager, "total");
+    assertHasMember(pager, "pageSize");
+    assertHasMember(pager, "pageCount");
 
     assertEquals(3, pager.getTotal());
     assertEquals(50, pager.getPageSize());
+    assertEquals(1, pager.getPageCount());
 
     assertEquals(
         3,
