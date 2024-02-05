@@ -50,7 +50,7 @@ public class AnalyticsTablePartition {
   @EqualsAndHashCode.Include private final String name;
 
   /** The master analytics table for this partition. */
-  private final AnalyticsTable masterTable;
+  private final AnalyticsTable parent;
 
   /** Table partition checks. */
   private final List<String> checks;
@@ -77,9 +77,9 @@ public class AnalyticsTablePartition {
    * @param endDate the end date of data for this partition.
    */
   public AnalyticsTablePartition(
-      AnalyticsTable masterTable, List<String> checks, Integer year, Date startDate, Date endDate) {
-    this.name = toStaging(getTableName(masterTable.getMainName(), year));
-    this.masterTable = masterTable;
+      AnalyticsTable parent, List<String> checks, Integer year, Date startDate, Date endDate) {
+    this.name = toStaging(getTableName(parent.getMainName(), year));
+    this.parent = parent;
     this.checks = checks;
     this.year = year;
     this.startDate = startDate;

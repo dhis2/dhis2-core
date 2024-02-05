@@ -205,7 +205,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
   @Override
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
-    Program program = partition.getMasterTable().getProgram();
+    Program program = partition.getParent().getProgram();
 
     String fromClause =
         "from enrollment pi "

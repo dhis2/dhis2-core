@@ -73,9 +73,8 @@ public class AnalyticsIndexHelper {
     List<Index> indexes = new ArrayList<>();
 
     for (AnalyticsTablePartition partition : partitions) {
-      AnalyticsTableType type = partition.getMasterTable().getTableType();
-      List<AnalyticsTableColumn> dimensionColumns =
-          partition.getMasterTable().getDimensionColumns();
+      AnalyticsTableType type = partition.getParent().getTableType();
+      List<AnalyticsTableColumn> dimensionColumns = partition.getParent().getDimensionColumns();
 
       for (AnalyticsTableColumn col : dimensionColumns) {
         if (!col.isSkipIndex()) {

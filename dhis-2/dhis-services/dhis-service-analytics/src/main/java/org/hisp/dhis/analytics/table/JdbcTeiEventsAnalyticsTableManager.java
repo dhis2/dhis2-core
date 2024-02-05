@@ -270,7 +270,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
 
-    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
+    List<AnalyticsTableColumn> columns = partition.getParent().getAnalyticsTableColumns();
 
     String start = getLongDateString(partition.getStartDate());
     String end = getLongDateString(partition.getEndDate());
@@ -310,7 +310,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
             " inner join trackedentity tei on tei.trackedentityid = pi.trackedentityid"
                 + " and tei.deleted is false"
                 + " and tei.trackedentitytypeid = "
-                + partition.getMasterTable().getTrackedEntityType().getId()
+                + partition.getParent().getTrackedEntityType().getId()
                 + " and tei.lastupdated < '"
                 + getLongDateString(params.getStartTime())
                 + "'")
