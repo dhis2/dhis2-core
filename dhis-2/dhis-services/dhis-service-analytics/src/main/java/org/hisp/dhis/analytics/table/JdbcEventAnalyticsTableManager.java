@@ -286,14 +286,14 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
       for (Integer year : yearsForPartitionTables) {
         List<String> checks = getPartitionChecks(year, PartitionUtils.getEndDate(calendar, year));
-        table.addPartitionTable(
+        table.addTablePartition(
             checks,
             year,
             PartitionUtils.getStartDate(calendar, year),
             PartitionUtils.getEndDate(calendar, year));
       }
 
-      if (table.hasPartitionTables()) {
+      if (table.hasTablePartitions()) {
         tables.add(table);
       }
     }
@@ -341,7 +341,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       if (hasUpdatedData) {
         AnalyticsTable table =
             new AnalyticsTable(getAnalyticsTableType(), getColumns(program), logged, program);
-        table.addPartitionTable(
+        table.addTablePartition(
             List.of(), AnalyticsTablePartition.LATEST_PARTITION, startDate, endDate);
         tables.add(table);
 

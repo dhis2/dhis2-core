@@ -211,7 +211,7 @@ public class PartitionUtils {
     List<AnalyticsTablePartition> partitions = new ArrayList<>();
 
     for (AnalyticsTable table : tables) {
-      if (table.hasPartitionTables()) {
+      if (table.hasTablePartitions()) {
         partitions.addAll(table.getTablePartitions());
       } else {
         // Fake partition representing the master table

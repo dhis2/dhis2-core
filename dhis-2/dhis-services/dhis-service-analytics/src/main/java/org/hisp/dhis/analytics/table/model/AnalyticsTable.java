@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.table.model;
 
 import java.util.Date;
 import java.util.List;
+import lombok.Getter;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.db.model.Column;
@@ -37,7 +38,6 @@ import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.springframework.util.Assert;
-import lombok.Getter;
 
 /**
  * Class representing an analytics database table. Note that the table name initially represents a
@@ -47,8 +47,7 @@ import lombok.Getter;
  * @author Lars Helge Overland
  */
 @Getter
-public class AnalyticsTable
-  extends Table {
+public class AnalyticsTable extends Table {
   /** Analytics table type. */
   private final AnalyticsTableType tableType;
 
@@ -114,7 +113,11 @@ public class AnalyticsTable
       List<AnalyticsTableColumn> columns,
       Logged logged,
       TrackedEntityType trackedEntityType) {
-    super(toStaging(getTableName(tableType, trackedEntityType)), toColumns(columns), List.of(), logged);
+    super(
+        toStaging(getTableName(tableType, trackedEntityType)),
+        toColumns(columns),
+        List.of(),
+        logged);
     this.tableType = tableType;
     this.analyticsTableColumns = columns;
     this.trackedEntityType = trackedEntityType;
@@ -203,7 +206,7 @@ public class AnalyticsTable
    * @param endDate the end date.
    * @return this analytics table.
    */
-  public AnalyticsTable addPartitionTable(
+  public AnalyticsTable addTablePartition(
       List<String> checks, Integer year, Date startDate, Date endDate) {
     Assert.notNull(year, "Year must be specified");
 
@@ -220,7 +223,7 @@ public class AnalyticsTable
    *
    * @return true if this analytics table has any partitions.
    */
-  public boolean hasPartitionTables() {
+  public boolean hasTablePartitions() {
     return !tablePartitions.isEmpty();
   }
 

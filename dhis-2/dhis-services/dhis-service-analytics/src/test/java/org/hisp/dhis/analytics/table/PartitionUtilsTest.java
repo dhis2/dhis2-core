@@ -102,12 +102,12 @@ class PartitionUtilsTest {
             new AnalyticsTableColumn("dx", TEXT, "dx"),
             new AnalyticsTableColumn("value", DOUBLE, "value"));
     AnalyticsTable tA = new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, Logged.UNLOGGED);
-    tA.addPartitionTable(
+    tA.addTablePartition(
         List.of(),
         2010,
         new DateTime(2010, 1, 1, 0, 0).toDate(),
         new DateTime(2010, 12, 31, 0, 0).toDate());
-    tA.addPartitionTable(
+    tA.addTablePartition(
         List.of(),
         2011,
         new DateTime(2011, 1, 1, 0, 0).toDate(),

@@ -29,11 +29,12 @@ package org.hisp.dhis.db.model;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.util.ObjectUtils.notNull;
+
 import java.util.List;
-import org.apache.commons.lang3.RegExUtils;
-import org.apache.commons.lang3.Validate;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import org.apache.commons.lang3.RegExUtils;
+import org.apache.commons.lang3.Validate;
 
 /**
  * Represents a database table.
@@ -109,6 +110,7 @@ public class Table {
    * @param name the table name.
    * @param columns the list of {@link Column}.
    * @param primaryKey the primary key.
+   * @param checks the list of checks.
    * @param logged the {@link Logged} parameter.
    */
   public Table(
@@ -132,6 +134,7 @@ public class Table {
    * @param name the table name.
    * @param columns the list of {@link Column}.
    * @param primaryKey the primary key.
+   * @param checks the list of checks.
    * @param logged the {@link Logged} parameter.
    * @param parent the parent {@link Table}.
    */

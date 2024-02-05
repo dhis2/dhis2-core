@@ -163,7 +163,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             ? getLatestAnalyticsTable(params, getColumns(params))
             : getRegularAnalyticsTable(params, getDataYears(params), getColumns(params));
 
-    return table.hasPartitionTables() ? List.of(table) : List.of();
+    return table.hasTablePartitions() ? List.of(table) : List.of();
   }
 
   @Override
