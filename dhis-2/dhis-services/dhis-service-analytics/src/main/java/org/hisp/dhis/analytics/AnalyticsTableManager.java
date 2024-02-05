@@ -95,16 +95,15 @@ public interface AnalyticsTableManager {
   /**
    * Creates single indexes on the given columns of the analytics table with the given name.
    *
-   * @param index the analytics index.
+   * @param index the index.
    */
   void createIndex(Index index);
 
   /**
    * Attempts to drop the analytics table with partitions and rename the staging table with
-   * partitions as replacement.
-   *
-   * <p>If this is a partial update and the master table currently exists, the master table is not
-   * swapped and instead the inheritance of the partitions are set to the existing master table.
+   * partitions as replacement. If this is a partial update and the master table currently exists,
+   * the master table is not swapped and instead the inheritance of the partitions are set to the
+   * existing master table.
    *
    * @param params the {@link AnalyticsTableUpdateParams}.
    * @param table the analytics table.
@@ -112,11 +111,11 @@ public interface AnalyticsTableManager {
   void swapTable(AnalyticsTableUpdateParams params, AnalyticsTable table);
 
   /**
-   * Copies and denormalizes rows from data value table into analytics table. The data range is
-   * based on the start date of the data value row.
+   * Copies and denormalizes rows from the relevant transaction table into the relevant analytics
+   * table.
    *
    * @param params the {@link AnalyticsTableUpdateParams}.
-   * @param partition the analytics table partition to populate
+   * @param partition the analytics table partition to populate.
    */
   void populateTablePartition(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition);
 
@@ -137,7 +136,7 @@ public interface AnalyticsTableManager {
   /**
    * Drops the given {@link AnalyticsTablePartition}.
    *
-   * @param tablePartition the analytics table.
+   * @param tablePartition the analytics table partition.
    */
   void dropTablePartition(AnalyticsTablePartition tablePartition);
 
@@ -163,8 +162,7 @@ public interface AnalyticsTableManager {
   void vacuumTable(String tableName);
 
   /**
-   * Applies aggregation level logic to the analytics table by setting the organisation unit level
-   * column values to null for the levels above the given aggregation level.
+   * Applies aggregation level logic to the analytics table.
    *
    * @param partition the analytics table partition.
    * @param dataElements the data element identifiers to apply aggregation levels for.
@@ -174,8 +172,8 @@ public interface AnalyticsTableManager {
       AnalyticsTablePartition partition, Collection<String> dataElements, int aggregationLevel) {}
 
   /**
-   * Performs vacuum or optimization of the given table. The type of operation performed is
-   * dependent on the underlying DBMS.
+   * Performs vacuum or optimization of the given analytics table. The type of operation performed
+   * is dependent on the underlying DBMS.
    *
    * @param partition the analytics table partition.
    */
