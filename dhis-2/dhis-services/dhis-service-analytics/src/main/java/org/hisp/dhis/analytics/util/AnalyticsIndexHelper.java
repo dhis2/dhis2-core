@@ -36,6 +36,8 @@ import static org.hisp.dhis.db.model.DataType.TEXT;
 
 import java.util.ArrayList;
 import java.util.List;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsConstants;
@@ -55,12 +57,11 @@ import org.hisp.dhis.db.sql.SqlBuilder;
  *
  * @author maikel arabori
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class AnalyticsIndexHelper {
   private static final String PREFIX_INDEX = "in_";
 
   private static final SqlBuilder SQL_BUILDER = new PostgreSqlBuilder();
-
-  private AnalyticsIndexHelper() {}
 
   /**
    * Returns a queue of analytics table indexes.

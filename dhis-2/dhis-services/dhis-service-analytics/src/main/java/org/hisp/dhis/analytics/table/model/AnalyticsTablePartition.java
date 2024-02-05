@@ -31,6 +31,7 @@ import static org.hisp.dhis.db.model.Table.fromStaging;
 import static org.hisp.dhis.db.model.Table.toStaging;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -51,6 +52,9 @@ public class AnalyticsTablePartition {
   /** The master analytics table for this partition. */
   private final AnalyticsTable masterTable;
 
+  /** Table partition checks. */
+  private final List<String> checks;
+
   /**
    * The year for which this partition may contain data, where 0 indicates the "latest" data stored
    * since last full analytics table generation.
@@ -67,14 +71,16 @@ public class AnalyticsTablePartition {
    * Constructor. Sets the name to represent a staging table partition.
    *
    * @param masterTable the master {@link Table} of this partition.
+   * @param checks the partition checks.
    * @param year the year which represents this partition.
    * @param startDate the start date of data for this partition.
    * @param endDate the end date of data for this partition.
    */
   public AnalyticsTablePartition(
-      AnalyticsTable masterTable, Integer year, Date startDate, Date endDate) {
+      AnalyticsTable masterTable, List<String> checks, Integer year, Date startDate, Date endDate) {
     this.name = toStaging(getTableName(masterTable.getMainName(), year));
     this.masterTable = masterTable;
+    this.checks = checks;
     this.year = year;
     this.startDate = startDate;
     this.endDate = endDate;
@@ -114,6 +120,20 @@ public class AnalyticsTablePartition {
     return fromStaging(name);
   }
 
+  /**
+   * Indicates whether at least one check exists.
+   *
+   * @return true if at least one check exists.
+   */
+  public boolean hasChecks() {
+    return !checks.isEmpty();
+  }
+
+  /**
+   * Indicates whether this partition represents the latest data partition.
+   *
+   * @return true if this partition represents the latest data partition.
+   */
   public boolean isLatestPartition() {
     return Objects.equals(year, LATEST_PARTITION);
   }

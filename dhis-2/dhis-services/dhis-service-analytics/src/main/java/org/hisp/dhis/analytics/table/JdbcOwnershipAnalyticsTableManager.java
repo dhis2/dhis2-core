@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
@@ -39,6 +38,7 @@ import static org.hisp.dhis.program.ProgramType.WITHOUT_REGISTRATION;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -148,8 +148,8 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
   }
 
   @Override
-  protected List<String> getPartitionChecks(AnalyticsTablePartition partition) {
-    return emptyList();
+  protected List<String> getPartitionChecks(Integer year, Date endDate) {
+    return List.of();
   }
 
   @Override

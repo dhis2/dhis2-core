@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.table;
+package org.hisp.dhis.analytics.table.model;
 
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.DIMENSION;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
@@ -40,10 +40,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.List;
 import org.hisp.dhis.analytics.AnalyticsTableType;
-import org.hisp.dhis.analytics.table.model.AnalyticsTable;
-import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
-import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
-import org.hisp.dhis.analytics.table.model.AnalyticsValueType;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.period.Period;
@@ -136,8 +132,8 @@ class AnalyticsTableTest {
     Period periodB = new YearlyPeriodType().createPeriod(new DateTime(2015, 1, 1, 0, 0).toDate());
     AnalyticsTable tableA =
         new AnalyticsTable(AnalyticsTableType.EVENT, List.of(), Logged.UNLOGGED, program);
-    tableA.addPartitionTable(2014, periodA.getStartDate(), periodA.getEndDate());
-    tableA.addPartitionTable(2015, periodB.getStartDate(), periodB.getEndDate());
+    tableA.addPartitionTable(List.of(), 2014, periodA.getStartDate(), periodA.getEndDate());
+    tableA.addPartitionTable(List.of(), 2015, periodB.getStartDate(), periodB.getEndDate());
     AnalyticsTablePartition partitionA = tableA.getTablePartitions().get(0);
     AnalyticsTablePartition partitionB = tableA.getTablePartitions().get(1);
     assertNotNull(partitionA);
