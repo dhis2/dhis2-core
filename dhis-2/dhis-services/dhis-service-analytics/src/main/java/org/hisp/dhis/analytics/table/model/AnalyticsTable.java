@@ -227,16 +227,18 @@ public class AnalyticsTable {
   /**
    * Adds an analytics partition table to this master table.
    *
+   * @param checks the partition checks.
    * @param year the year.
    * @param startDate the start date.
    * @param endDate the end date.
    * @return this analytics table.
    */
-  public AnalyticsTable addPartitionTable(Integer year, Date startDate, Date endDate) {
+  public AnalyticsTable addPartitionTable(
+      List<String> checks, Integer year, Date startDate, Date endDate) {
     Assert.notNull(year, "Year must be specified");
 
     AnalyticsTablePartition tablePartition =
-        new AnalyticsTablePartition(this, year, startDate, endDate);
+        new AnalyticsTablePartition(this, checks, year, startDate, endDate);
 
     this.tablePartitions.add(tablePartition);
 

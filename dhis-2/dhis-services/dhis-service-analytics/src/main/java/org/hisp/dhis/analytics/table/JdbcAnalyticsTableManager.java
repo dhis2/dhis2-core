@@ -46,6 +46,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -236,12 +237,10 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   }
 
   @Override
-  protected List<String> getPartitionChecks(AnalyticsTablePartition partition) {
-    return partition.isLatestPartition()
-        ? List.of()
-        : List.of(
-            "year = " + partition.getYear() + "",
-            "pestartdate < '" + DateUtils.getMediumDateString(partition.getEndDate()) + "'");
+  protected List<String> getPartitionChecks(Integer year, Date startDate, Date endDate) {
+    Objects.requireNonNull(year);
+    return List.of(
+        "year = " + year + "", "pestartdate < '" + DateUtils.getMediumDateString(endDate) + "'");
   }
 
   @Override

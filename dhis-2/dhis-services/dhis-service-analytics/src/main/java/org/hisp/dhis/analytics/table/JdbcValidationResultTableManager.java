@@ -41,6 +41,7 @@ import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -149,8 +150,9 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
   }
 
   @Override
-  protected List<String> getPartitionChecks(AnalyticsTablePartition partition) {
-    return List.of("year = " + partition.getYear());
+  protected List<String> getPartitionChecks(Integer year, Date startDate, Date endDate) {
+    Objects.requireNonNull(year);
+    return List.of("year = " + year);
   }
 
   @Override

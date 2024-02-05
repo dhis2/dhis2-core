@@ -366,7 +366,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
    * @param partition the {@link AnalyticsTablePartition}.
    */
   @Override
-  protected List<String> getPartitionChecks(AnalyticsTablePartition partition) {
+  protected List<String> getPartitionChecks(Integer year, Date startDate, Date endDate) {
     return emptyList();
   }
 

@@ -41,6 +41,7 @@ import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -197,7 +198,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
   }
 
   @Override
-  protected List<String> getPartitionChecks(AnalyticsTablePartition partition) {
+  protected List<String> getPartitionChecks(Integer year, Date startDate, Date endDate) {
     return List.of();
   }
 

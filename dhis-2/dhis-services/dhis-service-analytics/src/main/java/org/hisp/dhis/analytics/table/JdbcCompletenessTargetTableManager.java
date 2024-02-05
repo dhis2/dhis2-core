@@ -139,7 +139,7 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
   }
 
   @Override
-  protected List<String> getPartitionChecks(AnalyticsTablePartition partition) {
+  protected List<String> getPartitionChecks(Integer year, Date startDate, Date endDate) {
     return emptyList();
   }
 

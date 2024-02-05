@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.table;
 
 import static java.lang.String.join;
-import static java.util.Collections.emptyList;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.getDateLinkedToStatus;
@@ -183,7 +182,8 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
       AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), getColumns(), logged, tet);
 
       for (Integer year : dataYears) {
-        table.addPartitionTable(year, getStartDate(calendar, year), getEndDate(calendar, year));
+        table.addPartitionTable(
+            List.of(), year, getStartDate(calendar, year), getEndDate(calendar, year));
       }
 
       if (table.hasPartitionTables()) {
@@ -260,8 +260,8 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
    * @param partition the {@link AnalyticsTablePartition}.
    */
   @Override
-  protected List<String> getPartitionChecks(AnalyticsTablePartition partition) {
-    return emptyList();
+  protected List<String> getPartitionChecks(Integer year, Date startDate, Date endDate) {
+    return List.of();
   }
 
   /**

@@ -305,7 +305,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
       AnalyticsTable table, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
     String unlogged = table.isUnlogged() ? "unlogged" : "";
-    List<String> checks = getPartitionChecks(partition);
+    List<String> checks = partition.getChecks();
 
     StringBuilder sql = new StringBuilder();
 
@@ -366,9 +366,12 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   /**
    * Returns a list of table checks (constraints) for the given analytics table partition.
    *
-   * @param partition the {@link AnalyticsTablePartition}.
+   * @param year the year.
+   * @param startDate the start date.
+   * @param endDate the end date.
+   * @return the list of partition checks.
    */
-  protected abstract List<String> getPartitionChecks(AnalyticsTablePartition partition);
+  protected abstract List<String> getPartitionChecks(Integer year, Date startDate, Date endDate);
 
   /**
    * Populates the given analytics table.
@@ -418,7 +421,11 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns, logged);
 
     for (Integer year : years) {
-      table.addPartitionTable(year, getStartDate(calendar, year), getEndDate(calendar, year));
+      List<String> checks =
+          getPartitionChecks(year, getStartDate(calendar, year), getEndDate(calendar, year));
+
+      table.addPartitionTable(
+          checks, year, getStartDate(calendar, year), getEndDate(calendar, year));
     }
 
     return table;
@@ -453,7 +460,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
     if (hasUpdatedData) {
       table.addPartitionTable(
-          AnalyticsTablePartition.LATEST_PARTITION, lastFullTableUpdate, endDate);
+          List.of(), AnalyticsTablePartition.LATEST_PARTITION, lastFullTableUpdate, endDate);
       log.info(
           "Added latest analytics partition with start: '{}' and end: '{}'",
           getLongDateString(lastFullTableUpdate),

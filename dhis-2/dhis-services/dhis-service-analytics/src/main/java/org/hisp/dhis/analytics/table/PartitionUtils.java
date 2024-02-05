@@ -212,8 +212,7 @@ public class PartitionUtils {
         partitions.addAll(table.getTablePartitions());
       } else {
         // Fake partition representing the master table
-
-        partitions.add(new AnalyticsTablePartition(table, null, null, null));
+        partitions.add(new AnalyticsTablePartition(table, List.of(), null, null, null));
       }
     }
 

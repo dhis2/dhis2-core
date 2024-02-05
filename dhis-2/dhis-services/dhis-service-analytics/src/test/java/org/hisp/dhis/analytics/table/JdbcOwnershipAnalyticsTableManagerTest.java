@@ -40,6 +40,7 @@ import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DATE;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -174,7 +175,7 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
             Logged.UNLOGGED,
             programB);
 
-    partitionA = new AnalyticsTablePartition(tableA, 1, new Date(), new Date());
+    partitionA = new AnalyticsTablePartition(tableA, List.of(), 1, new Date(), new Date());
   }
 
   @Test
@@ -200,7 +201,7 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
 
   @Test
   void testGetPartitionChecks() {
-    assertEquals(emptyList(), target.getPartitionChecks(partitionA));
+    assertTrue(target.getPartitionChecks(1, new Date(), new Date()).isEmpty());
   }
 
   @Test

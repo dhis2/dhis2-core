@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.table;
 
 import static java.lang.String.format;
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParentheses;
@@ -55,6 +54,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -284,7 +284,13 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
           new AnalyticsTable(getAnalyticsTableType(), getColumns(program), logged, program);
 
       for (Integer year : yearsForPartitionTables) {
+        List<String> checks =
+            getPartitionChecks(
+                latestDataYear,
+                PartitionUtils.getStartDate(calendar, year),
+                PartitionUtils.getEndDate(calendar, year));
         table.addPartitionTable(
+            checks,
             year,
             PartitionUtils.getStartDate(calendar, year),
             PartitionUtils.getEndDate(calendar, year));
@@ -338,7 +344,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       if (hasUpdatedData) {
         AnalyticsTable table =
             new AnalyticsTable(getAnalyticsTableType(), getColumns(program), logged, program);
-        table.addPartitionTable(AnalyticsTablePartition.LATEST_PARTITION, startDate, endDate);
+        table.addPartitionTable(
+            List.of(), AnalyticsTablePartition.LATEST_PARTITION, startDate, endDate);
         tables.add(table);
 
         log.info(
@@ -414,10 +421,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   }
 
   @Override
-  protected List<String> getPartitionChecks(AnalyticsTablePartition partition) {
-    return partition.isLatestPartition()
-        ? emptyList()
-        : List.of("yearly = '" + partition.getYear() + "'");
+  protected List<String> getPartitionChecks(Integer year, Date startDate, Date endDate) {
+    Objects.requireNonNull(year);
+    return List.of("yearly = '" + year + "'");
   }
 
   @Override
