@@ -200,7 +200,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
       swapTable(table, table.getMainName());
     } else {
       table.getTablePartitions().stream()
-          .forEach(p -> swapInheritance(p, table.getName(), table.getMainName()));
+          .forEach(partition -> swapInheritance(partition, table.getName(), table.getMainName()));
       dropTable(table);
     }
   }
