@@ -26,7 +26,7 @@
 #
 ---
 name: datasets_not_assigned_to_org_units
-description: Datasets which have not been assigned to any organisation units.
+description: Data sets which have not been assigned to any organisation units.
 section: Data sets
 section_order: 2
 summary_sql: >-
