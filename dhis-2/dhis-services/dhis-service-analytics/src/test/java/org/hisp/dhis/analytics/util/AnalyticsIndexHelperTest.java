@@ -33,7 +33,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.analytics.AnalyticsTableType.EVENT;
-import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.createIndexStatement;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexName;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexes;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
@@ -66,17 +65,6 @@ class AnalyticsIndexHelperTest {
     assertThat(indexes.get(0).getTableName(), is(equalTo("analytics_event_2022_temp")));
     assertThat(indexes.get(0).getColumns(), hasSize(1));
     assertThat(indexes.get(0).getIndexType(), is(equalTo(BTREE)));
-  }
-
-  @Test
-  void testCreateIndexStatement() {
-    Index index = new Index("in_column_table", "table", BTREE, List.of("column"));
-
-    String statement = createIndexStatement(index);
-
-    assertThat(statement, containsString("create index \"in_column_table"));
-    assertThat(statement, containsString("on table using"));
-    assertThat(statement, containsString("btree (column)"));
   }
 
   @Test
