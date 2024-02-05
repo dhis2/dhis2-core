@@ -77,10 +77,10 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.MeasureFilter;
-import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.table.PartitionUtils;
+import org.hisp.dhis.analytics.table.model.Partitions;
 import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
@@ -595,7 +595,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
               + " is null)) ");
     }
 
-    if (tableType.hasPeriodDimension() && params.hasStartDate()) {
+    if (tableType.isPeriodDimension() && params.hasStartDate()) {
       sql.append(
           sqlHelper.whereAnd()
               + " "
@@ -605,7 +605,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
               + "' ");
     }
 
-    if (tableType.hasPeriodDimension() && params.hasEndDate()) {
+    if (tableType.isPeriodDimension() && params.hasEndDate()) {
       sql.append(
           sqlHelper.whereAnd()
               + " "

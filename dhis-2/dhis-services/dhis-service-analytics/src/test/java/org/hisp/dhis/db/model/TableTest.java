@@ -55,14 +55,14 @@ class TableTest {
 
   @Test
   void testToStagingTable() {
-    assertEquals("_categorystructure_staging", Table.toStaging("_categorystructure"));
-    assertEquals("analytics_staging", Table.toStaging("analytics"));
+    assertEquals("_categorystructure_temp", Table.toStaging("_categorystructure"));
+    assertEquals("analytics_temp", Table.toStaging("analytics"));
   }
 
   @Test
   void testFromStagingTable() {
-    assertEquals("_categorystructure", Table.fromStaging("_categorystructure_staging"));
-    assertEquals("analytics", Table.fromStaging("analytics_staging"));
+    assertEquals("_categorystructure", Table.fromStaging("_categorystructure_temp"));
+    assertEquals("analytics", Table.fromStaging("analytics_temp"));
   }
 
   @Test

@@ -200,7 +200,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             ? "and cdr.lastupdated >= '" + getLongDateString(partition.getStartDate()) + "' "
             : "and ps.year = " + partition.getYear() + " ";
 
-    String sql = "insert into " + partition.getTempName() + " (";
+    String sql = "insert into " + tableName + " (";
 
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
