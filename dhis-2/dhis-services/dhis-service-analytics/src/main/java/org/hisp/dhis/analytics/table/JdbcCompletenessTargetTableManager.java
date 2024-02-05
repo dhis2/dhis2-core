@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static java.util.Collections.emptyList;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
@@ -140,7 +139,7 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
 
   @Override
   protected List<String> getPartitionChecks(Integer year, Date startDate, Date endDate) {
-    return emptyList();
+    return List.of();
   }
 
   @Override

@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.table;
 
 import static java.lang.String.join;
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.groupingBy;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
@@ -360,14 +359,9 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
     return allFixedColumns;
   }
 
-  /**
-   * Returns a list of table checks (constraints) for the given analytics table partition.
-   *
-   * @param partition the {@link AnalyticsTablePartition}.
-   */
   @Override
   protected List<String> getPartitionChecks(Integer year, Date startDate, Date endDate) {
-    return emptyList();
+    return List.of();
   }
 
   /**

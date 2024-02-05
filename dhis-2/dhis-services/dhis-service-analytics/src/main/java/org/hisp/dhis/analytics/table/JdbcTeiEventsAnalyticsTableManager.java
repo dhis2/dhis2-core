@@ -254,11 +254,6 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
     return null;
   }
 
-  /**
-   * Returns a list of table checks (constraints) for the given analytics table partition.
-   *
-   * @param partition the {@link AnalyticsTablePartition}.
-   */
   @Override
   protected List<String> getPartitionChecks(Integer year, Date startDate, Date endDate) {
     return List.of();

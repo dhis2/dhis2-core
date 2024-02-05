@@ -364,12 +364,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   // -------------------------------------------------------------------------
 
   /**
-   * Returns a list of table checks (constraints) for the given analytics table partition.
+   * Returns a list of table partition checks (constraints) for the given year, start date and end
+   * date.
    *
    * @param year the year.
    * @param startDate the start date.
    * @param endDate the end date.
-   * @return the list of partition checks.
+   * @return the list of table partition checks.
    */
   protected abstract List<String> getPartitionChecks(Integer year, Date startDate, Date endDate);
 
