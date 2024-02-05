@@ -207,16 +207,16 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   @Override
   public void dropTable(AnalyticsTable table) {
-    dropTableCascade(table.getName());
+    dropTable(table.getName());
   }
 
   @Override
   public void dropTablePartition(AnalyticsTablePartition tablePartition) {
-    dropTableCascade(tablePartition.getName());
+    dropTable(tablePartition.getName());
   }
 
   @Override
-  public void dropTableCascade(String name) {
+  public void dropTable(String name) {
     executeSilently(sqlBuilder.dropTableIfExistsCascade(name));
   }
 

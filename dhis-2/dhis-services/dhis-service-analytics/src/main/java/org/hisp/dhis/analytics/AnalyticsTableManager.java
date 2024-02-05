@@ -143,7 +143,7 @@ public interface AnalyticsTableManager {
    *
    * @param name the table name.
    */
-  void dropTableCascade(String name);
+  void dropTable(String name);
 
   /**
    * Performs an analyze operation on the given table.
