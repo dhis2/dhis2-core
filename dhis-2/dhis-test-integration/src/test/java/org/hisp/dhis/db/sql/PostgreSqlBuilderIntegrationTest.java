@@ -174,6 +174,22 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
   }
 
   @Test
+  void testSwapTable() {
+    Table tableA = getTableA();
+    Table tableB = getTableB();
+
+    execute(sqlBuilder.createTable(tableA));
+    execute(sqlBuilder.createTable(tableB));
+
+    execute(sqlBuilder.swapTable(tableA, "vaccination"));
+
+    assertTrue(tableExists("vaccination"));
+    assertFalse(tableExists("immunization"));
+
+    jdbcTemplate.execute(sqlBuilder.dropTableIfExists("vaccination"));
+  }
+
+  @Test
   void testCreateIndex() {
     Table table = getTableA();
 
