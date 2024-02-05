@@ -216,18 +216,18 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   @Override
-  public void dropTableCascade(String tableName) {
-    executeSilently(sqlBuilder.dropTableIfExistsCascade(tableName));
+  public void dropTableCascade(String name) {
+    executeSilently(sqlBuilder.dropTableIfExistsCascade(name));
   }
 
   @Override
-  public void analyzeTable(String tableName) {
-    executeSilently(sqlBuilder.analyzeTable(tableName));
+  public void analyzeTable(String name) {
+    executeSilently(sqlBuilder.analyzeTable(name));
   }
 
   @Override
-  public void vacuumTable(String tableName) {
-    executeSilently(sqlBuilder.vacuumTable(tableName));
+  public void vacuumTable(String name) {
+    executeSilently(sqlBuilder.vacuumTable(name));
   }
 
   @Override
