@@ -291,7 +291,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    */
   private void createAnalyticsTablePartitions(AnalyticsTable table) {
     for (AnalyticsTablePartition partition : table.getTablePartitions()) {
-      createAnalyticsTablePartition(table, partition);
+      createAnalyticsTablePartition(partition);
     }
   }
 
@@ -301,8 +301,8 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @param table the {@link AnalyticsTable}.
    * @param partition the {@link AnalyticsTablePartition}.
    */
-  private void createAnalyticsTablePartition(
-      AnalyticsTable table, AnalyticsTablePartition partition) {
+  private void createAnalyticsTablePartition(AnalyticsTablePartition partition) {
+    AnalyticsTable table = partition.getParent();
     String tableName = partition.getName();
     String unlogged = table.isUnlogged() ? "unlogged" : "";
 

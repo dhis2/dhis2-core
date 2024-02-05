@@ -232,7 +232,7 @@ public class AnalyticsTable extends Table {
    *
    * @return a {@link AnalyticsTablePartition} or null.
    */
-  public AnalyticsTablePartition getLatestPartition() {
+  public AnalyticsTablePartition getLatestTablePartition() {
     return tablePartitions.stream()
         .filter(AnalyticsTablePartition::isLatestPartition)
         .findAny()

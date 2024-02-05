@@ -233,7 +233,7 @@ public class PartitionUtils {
   public static AnalyticsTablePartition getLatestTablePartition(List<AnalyticsTable> tables) {
     Assert.isTrue(tables.size() == 1, "Expecting a single analytics table in list");
 
-    return tables.get(0).getLatestPartition();
+    return tables.get(0).getLatestTablePartition();
   }
 
   /**

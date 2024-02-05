@@ -170,6 +170,15 @@ public class Table {
   }
 
   /**
+   * Indicates whether the table has at least one column.
+   *
+   * @return true if the table has at least one column.
+   */
+  public boolean hasColumns() {
+    return isNotEmpty(columns);
+  }
+
+  /**
    * Indicates whether the table has a primary key.
    *
    * @return true if the table has a primary key.

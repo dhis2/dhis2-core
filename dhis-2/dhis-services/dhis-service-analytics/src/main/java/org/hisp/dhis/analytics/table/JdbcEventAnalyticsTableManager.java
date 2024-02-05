@@ -393,7 +393,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   @Override
   public void removeUpdatedData(List<AnalyticsTable> tables) {
     for (AnalyticsTable table : tables) {
-      AnalyticsTablePartition partition = table.getLatestPartition();
+      AnalyticsTablePartition partition = table.getLatestTablePartition();
 
       String sql =
           "delete from "
