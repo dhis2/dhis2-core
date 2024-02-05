@@ -120,6 +120,20 @@ public class AnalyticsTablePartition {
     return fromStaging(name);
   }
 
+  /**
+   * Indicates whether at least one check exists.
+   *
+   * @return true if at least one check exists.
+   */
+  public boolean hasChecks() {
+    return !checks.isEmpty();
+  }
+
+  /**
+   * Indicates whether this partition represents the latest data partition.
+   *
+   * @return true if this partition represents the latest data partition.
+   */
   public boolean isLatestPartition() {
     return Objects.equals(year, LATEST_PARTITION);
   }
