@@ -3035,4 +3035,23 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
     // Then
     response.validate().statusCode(200);
   }
+
+  @Test
+  public void multipleDateFiltersShouldUseOr() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("headers=w75KJ2mc4zz,zDhUuAYrxNC")
+            .add("created=2014-04-28,2014-03-06")
+            .add("desc=lastUpdated");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response.validate().statusCode(200);
+
+    validateRow(response, 0, List.of("John", "Kelly"));
+    validateRow(response, 1, List.of("John", "Doe"));
+  }
 }
