@@ -157,7 +157,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
 
-    Program program = partition.getParent().getProgram();
+    Program program = partition.getMasterTable().getProgram();
 
     if (program.getProgramType() == WITHOUT_REGISTRATION) {
       return; // Builds an empty table, but it may be joined in queries.

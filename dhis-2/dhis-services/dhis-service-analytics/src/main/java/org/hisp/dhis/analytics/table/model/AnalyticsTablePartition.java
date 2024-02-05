@@ -44,7 +44,7 @@ public class AnalyticsTablePartition extends Table {
   public static final Integer LATEST_PARTITION = 0;
 
   /** The master analytics table for this partition. */
-  private final AnalyticsTable parent;
+  private final AnalyticsTable masterTable;
 
   /**
    * The year for which this partition may contain data, where 0 indicates the "latest" data stored
@@ -68,15 +68,15 @@ public class AnalyticsTablePartition extends Table {
    * @param endDate the end date of data for this partition.
    */
   public AnalyticsTablePartition(
-      AnalyticsTable parent, List<String> checks, Integer year, Date startDate, Date endDate) {
+      AnalyticsTable masterTable, List<String> checks, Integer year, Date startDate, Date endDate) {
     super(
-        toStaging(getTableName(parent.getMainName(), year)),
+        toStaging(getTableName(masterTable.getMainName(), year)),
         List.of(),
         List.of(),
         checks,
         Logged.LOGGED,
-        parent);
-    this.parent = parent;
+        masterTable);
+    this.masterTable = masterTable;
     this.year = year;
     this.startDate = startDate;
     this.endDate = endDate;
