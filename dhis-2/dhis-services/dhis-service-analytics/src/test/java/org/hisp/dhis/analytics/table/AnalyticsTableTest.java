@@ -58,11 +58,27 @@ import org.junit.jupiter.api.Test;
  */
 class AnalyticsTableTest {
   @Test
-  void testGetTableName() {
+  void testGetTableNameDataValue() {
+    AnalyticsTable table =
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, List.of(), Logged.UNLOGGED);
+    assertEquals("analytics", table.getMainName());
+    assertEquals("analytics_temp", table.getName());
+  }
+
+  @Test
+  void testGetTableNameCompleteness() {
     AnalyticsTable table =
         new AnalyticsTable(AnalyticsTableType.COMPLETENESS, List.of(), Logged.UNLOGGED);
     assertEquals("analytics_completeness", table.getMainName());
     assertEquals("analytics_completeness_temp", table.getName());
+  }
+
+  @Test
+  void testGetTableNameValidationResult() {
+    AnalyticsTable table =
+        new AnalyticsTable(AnalyticsTableType.VALIDATION_RESULT, List.of(), Logged.UNLOGGED);
+    assertEquals("analytics_validationresult", table.getMainName());
+    assertEquals("analytics_validationresult_temp", table.getName());
   }
 
   @Test
