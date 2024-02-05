@@ -33,6 +33,7 @@ import java.util.List;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.PagerUtils;
 
 /**
  * Represents query parameters sent to {@link org.hisp.dhis.icon.IconService}.
@@ -51,7 +52,7 @@ public class IconOperationParams {
   private Date lastUpdatedStartDate;
   private Date lastUpdatedEndDate;
   private boolean paging = true;
-  private Pager pager;
+  private Pager pager = PagerUtils.DEFAULT_PAGING;
 
   public boolean hasLastUpdatedStartDate() {
     return lastUpdatedStartDate != null;

@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.icon;
 
+import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
+import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,6 +38,7 @@ import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.hisp.dhis.webapi.controller.metadata.JsonPage;
 import org.hisp.dhis.webapi.json.domain.JsonIcon;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -147,7 +148,34 @@ class IconControllerTest extends DhisControllerIntegrationTest {
   @Test
   void shouldGetIconsWithPager() throws IOException {
 
-    int pageSize = 2;
+    String fileResourceId1 = createFileResource();
+    createCustomIcon(fileResourceId1, keyword, iconKey1);
+
+    String fileResourceId2 = createFileResource();
+    createCustomIcon(fileResourceId2, keyword, iconKey2);
+
+    String fileResourceId3 = createFileResource();
+    createCustomIcon(fileResourceId3, keyword, iconKey3);
+
+    JsonObject iconResponse = GET("/icons?type=CUSTOM&page=1&pageSize=2").content(HttpStatus.OK);
+    JsonPage pager = iconResponse.get("pager", JsonPage.class);
+
+    JsonList<JsonIcon> icons = iconResponse.getList("icons", JsonIcon.class);
+
+    assertHasMember(iconResponse, "pager");
+    assertHasMember(pager, "total");
+
+    assertEquals(3, pager.getTotal());
+    assertEquals(2, pager.getPageSize());
+
+    assertEquals(
+        2,
+        icons.size(),
+        () -> String.format("mismatch in number of expected Icon(s), fetched %s", icons));
+  }
+
+  @Test
+  void shouldGetIconsWithDefaultPager() throws IOException {
 
     String fileResourceId1 = createFileResource();
     createCustomIcon(fileResourceId1, keyword, iconKey1);
@@ -158,13 +186,21 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     String fileResourceId3 = createFileResource();
     createCustomIcon(fileResourceId3, keyword, iconKey3);
 
-    JsonObject response =
-        GET("/icons?type=CUSTOM&page=1&pageSize=" + pageSize).content(HttpStatus.OK);
+    JsonObject iconResponse = GET("/icons?type=CUSTOM").content(HttpStatus.OK);
+    JsonPage pager = iconResponse.get("pager", JsonPage.class);
 
-    JsonList<JsonIcon> icons = response.getList("icons", JsonIcon.class);
+    JsonList<JsonIcon> icons = iconResponse.getList("icons", JsonIcon.class);
 
-    assertTrue(response.has("pager"));
-    assertEquals(pageSize, icons.size());
+    assertHasMember(iconResponse, "pager");
+    assertHasMember(pager, "total");
+
+    assertEquals(3, pager.getTotal());
+    assertEquals(50, pager.getPageSize());
+
+    assertEquals(
+        3,
+        icons.size(),
+        () -> String.format("mismatch in number of expected Icon(s), fetched %s", icons));
   }
 
   @Test
@@ -179,11 +215,18 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     String fileResourceId3 = createFileResource();
     createCustomIcon(fileResourceId3, keyword, iconKey3);
 
-    JsonObject response = GET("/icons?type=CUSTOM&paging=false").content(HttpStatus.OK);
-    JsonList<JsonIcon> icons = response.getList("icons", JsonIcon.class);
+    JsonObject iconResponse = GET("/icons?type=CUSTOM&paging=false").content(HttpStatus.OK);
 
-    assertFalse(response.has("pager"));
-    assertEquals(3, icons.size());
+    JsonPage pager = iconResponse.get("pager", JsonPage.class);
+
+    JsonList<JsonIcon> icons = iconResponse.getList("icons", JsonIcon.class);
+
+    assertHasNoMember(iconResponse, "pager");
+    assertHasNoMember(pager, "total");
+    assertEquals(
+        3,
+        icons.size(),
+        () -> String.format("mismatch in number of expected Icon(s), fetched %s", icons));
   }
 
   private String createCustomIcon(String fileResourceId, String keywords, String iconkey) {

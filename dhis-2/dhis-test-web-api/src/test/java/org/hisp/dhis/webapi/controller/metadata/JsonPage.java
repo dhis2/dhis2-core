@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,51 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.webapi.controller.metadata;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import org.apache.commons.lang3.BooleanUtils;
+import org.hisp.dhis.jsontree.JsonObject;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public final class PagerUtils {
+/** Representation of {@link org.hisp.dhis.common.Pager}. */
+public interface JsonPage extends JsonObject {
 
-  public static final Pager DEFAULT_PAGING = new Pager();
-
-  public static <T> List<T> pageCollection(Collection<T> col, Pager pager) {
-    return pageCollection(col, pager.getOffset(), pager.getPageSize());
+  default Integer getPage() {
+    return getNumber("page").integer();
   }
 
-  public static <T> List<T> pageCollection(Collection<T> col, int offset, int limit) {
-    List<T> objects = new ArrayList<>(col);
-
-    if (offset == 0 && objects.size() <= limit) {
-      return objects;
-    }
-
-    if (offset >= objects.size()) {
-      offset = objects.isEmpty() ? objects.size() : objects.size() - 1;
-    }
-
-    if ((offset + limit) > objects.size()) {
-      limit = objects.size() - offset;
-    }
-
-    return objects.subList(offset, offset + limit);
+  default Integer getPageSize() {
+    return getNumber("pageSize").integer();
   }
 
-  public static boolean isSkipPaging(Boolean skipPaging, Boolean paging) {
-    if (skipPaging != null) {
-      return BooleanUtils.toBoolean(skipPaging);
-    } else if (paging != null) {
-      return !BooleanUtils.toBoolean(paging);
-    }
-
-    return false;
+  default Integer getTotal() {
+    return getNumber("total").integer();
   }
 
-  private PagerUtils() {}
+  default Integer getPageCount() {
+    return getNumber("pageCount").integer();
+  }
 }
