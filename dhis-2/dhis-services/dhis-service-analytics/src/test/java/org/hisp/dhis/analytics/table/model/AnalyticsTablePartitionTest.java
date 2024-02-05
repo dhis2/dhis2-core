@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
 import org.joda.time.LocalDate;
 import org.junit.jupiter.api.Test;
@@ -42,10 +43,16 @@ import org.junit.jupiter.api.Test;
  * @author Lars Helge Overland
  */
 class AnalyticsTablePartitionTest {
+  private final List<AnalyticsTableColumn> columnsA =
+      List.of(
+          new AnalyticsTableColumn("id", DataType.BIGINT, "id"),
+          new AnalyticsTableColumn("data", DataType.CHARACTER_11, "data"),
+          new AnalyticsTableColumn("value", DataType.DOUBLE, "value"));
+
   @Test
   void testGetName() {
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, List.of(), Logged.UNLOGGED);
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, Logged.UNLOGGED);
 
     List<String> checks = List.of("value = 2023");
 
@@ -66,7 +73,7 @@ class AnalyticsTablePartitionTest {
   @Test
   void testIsLatestPartition() {
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.COMPLETENESS, List.of(), Logged.UNLOGGED);
+        new AnalyticsTable(AnalyticsTableType.COMPLETENESS, columnsA, Logged.UNLOGGED);
 
     AnalyticsTablePartition partition =
         new AnalyticsTablePartition(
