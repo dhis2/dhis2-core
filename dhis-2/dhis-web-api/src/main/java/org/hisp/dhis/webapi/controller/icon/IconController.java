@@ -141,10 +141,11 @@ public class IconController {
 
     Pager pager = null;
 
-    if (iconOperationParams.isPaging()) {
+    if (iconRequestParams.isPaging()) {
       long total = iconService.count(iconOperationParams);
 
-      pager = new Pager(iconOperationParams.getPage(), total, iconOperationParams.getPageSize());
+      pager = new Pager(iconRequestParams.getPage(), total, iconRequestParams.getPageSize());
+      iconOperationParams.setPager(pager);
     }
 
     List<IconResponse> iconResponses =

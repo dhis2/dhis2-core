@@ -101,8 +101,8 @@ public class JdbcCustomIconStore implements CustomIconStore {
     if (iconOperationParams.isPaging()) {
       sql =
           getPaginatedQuery(
-              iconOperationParams.getPage(),
-              iconOperationParams.getPageSize(),
+              iconOperationParams.getPager().getPage(),
+              iconOperationParams.getPager().getPageSize(),
               sql,
               parameterSource);
     }
@@ -114,7 +114,7 @@ public class JdbcCustomIconStore implements CustomIconStore {
   public long count(IconOperationParams iconOperationParams) {
 
     String sql = """
-     select count(*) from customicon
+     select count(*) from customicon c
                       """;
 
     MapSqlParameterSource parameterSource = new MapSqlParameterSource();

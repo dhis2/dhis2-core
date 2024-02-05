@@ -51,8 +51,7 @@ public class IconOperationParams {
   private Date lastUpdatedStartDate;
   private Date lastUpdatedEndDate;
   private boolean paging = true;
-  private int pageSize = Pager.DEFAULT_PAGE_SIZE;
-  private int page = 1;
+  private Pager pager;
 
   public boolean hasLastUpdatedStartDate() {
     return lastUpdatedStartDate != null;

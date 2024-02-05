@@ -57,8 +57,6 @@ public class IconRequestParamsMapper {
     operationParams.setLastUpdatedStartDate(iconRequestParams.getLastUpdatedStartDate());
     operationParams.setLastUpdatedEndDate(iconRequestParams.getLastUpdatedEndDate());
     operationParams.setPaging(iconRequestParams.isPaging());
-    operationParams.setPage(iconRequestParams.getPage());
-    operationParams.setPageSize(iconRequestParams.getPageSize());
 
     return operationParams;
   }
