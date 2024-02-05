@@ -122,7 +122,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             ? getLatestAnalyticsTable(params, getColumns())
             : getRegularAnalyticsTable(params, getDataYears(params), getColumns());
 
-    return table.hasPartitionTables() ? List.of(table) : List.of();
+    return table.hasTablePartitions() ? List.of(table) : List.of();
   }
 
   @Override
@@ -201,7 +201,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
 
     String sql = "insert into " + tableName + " (";
 
-    List<AnalyticsTableColumn> columns = partition.getParent().getAnalyticsTableColumns();
+    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
     for (AnalyticsTableColumn col : columns) {
       sql += col.getName() + ",";

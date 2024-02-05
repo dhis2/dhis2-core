@@ -286,14 +286,14 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
       for (Integer year : yearsForPartitionTables) {
         List<String> checks = getPartitionChecks(year, PartitionUtils.getEndDate(calendar, year));
-        table.addPartitionTable(
+        table.addTablePartition(
             checks,
             year,
             PartitionUtils.getStartDate(calendar, year),
             PartitionUtils.getEndDate(calendar, year));
       }
 
-      if (table.hasPartitionTables()) {
+      if (table.hasTablePartitions()) {
         tables.add(table);
       }
     }
@@ -341,7 +341,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       if (hasUpdatedData) {
         AnalyticsTable table =
             new AnalyticsTable(getAnalyticsTableType(), getColumns(program), logged, program);
-        table.addPartitionTable(
+        table.addTablePartition(
             List.of(), AnalyticsTablePartition.LATEST_PARTITION, startDate, endDate);
         tables.add(table);
 
@@ -393,7 +393,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   @Override
   public void removeUpdatedData(List<AnalyticsTable> tables) {
     for (AnalyticsTable table : tables) {
-      AnalyticsTablePartition partition = table.getLatestPartition();
+      AnalyticsTablePartition partition = table.getLatestTablePartition();
 
       String sql =
           "delete from "
@@ -432,7 +432,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     Integer firstDataYear = availableDataYears.get(0);
     Integer latestDataYear = availableDataYears.get(availableDataYears.size() - 1);
 
-    Program program = partition.getParent().getProgram();
+    Program program = partition.getMasterTable().getProgram();
     String start = DateUtils.getLongDateString(partition.getStartDate());
     String end = DateUtils.getLongDateString(partition.getEndDate());
     String partitionClause =

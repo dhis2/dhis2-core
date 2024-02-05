@@ -122,7 +122,7 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
             ? new AnalyticsTable(AnalyticsTableType.VALIDATION_RESULT, List.of(), Logged.LOGGED)
             : getRegularAnalyticsTable(params, getDataYears(params), getColumns());
 
-    return table.hasPartitionTables() ? List.of(table) : List.of();
+    return table.hasTablePartitions() ? List.of(table) : List.of();
   }
 
   @Override
@@ -162,7 +162,7 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
 
     String sql = "insert into " + tableName + " (";
 
-    List<AnalyticsTableColumn> columns = partition.getParent().getAnalyticsTableColumns();
+    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
     for (AnalyticsTableColumn col : columns) {
       sql += col.getName() + ",";

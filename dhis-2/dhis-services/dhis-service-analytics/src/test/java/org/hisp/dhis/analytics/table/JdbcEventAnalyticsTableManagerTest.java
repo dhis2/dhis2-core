@@ -227,8 +227,8 @@ class JdbcEventAnalyticsTableManagerTest {
     assertThat(tableA, notNullValue());
     assertThat(tableB, notNullValue());
 
-    AnalyticsTablePartition partitionA = tableA.getLatestPartition();
-    AnalyticsTablePartition partitionB = tableA.getLatestPartition();
+    AnalyticsTablePartition partitionA = tableA.getLatestTablePartition();
+    AnalyticsTablePartition partitionB = tableA.getLatestTablePartition();
 
     assertThat(partitionA, notNullValue());
     assertThat(partitionA.isLatestPartition(), equalTo(true));

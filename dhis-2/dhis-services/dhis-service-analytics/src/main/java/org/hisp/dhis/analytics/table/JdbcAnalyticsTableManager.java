@@ -163,7 +163,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             ? getLatestAnalyticsTable(params, getColumns(params))
             : getRegularAnalyticsTable(params, getDataYears(params), getColumns(params));
 
-    return table.hasPartitionTables() ? List.of(table) : List.of();
+    return table.hasTablePartitions() ? List.of(table) : List.of();
   }
 
   @Override
@@ -320,8 +320,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
 
     String sql = "insert into " + tableName + " (";
 
-    List<AnalyticsTableColumn> dimensions = partition.getParent().getDimensionColumns();
-    List<AnalyticsTableColumn> columns = partition.getParent().getAnalyticsTableColumns();
+    List<AnalyticsTableColumn> dimensions = partition.getMasterTable().getDimensionColumns();
+    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
     for (AnalyticsTableColumn col : columns) {
       sql += col.getName() + ",";

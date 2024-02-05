@@ -233,7 +233,7 @@ public class AnalyticsTable {
    * @param endDate the end date.
    * @return this analytics table.
    */
-  public AnalyticsTable addPartitionTable(
+  public AnalyticsTable addTablePartition(
       List<String> checks, Integer year, Date startDate, Date endDate) {
     Assert.notNull(year, "Year must be specified");
 
@@ -250,7 +250,7 @@ public class AnalyticsTable {
    *
    * @return true if this analytics table has any partitions.
    */
-  public boolean hasPartitionTables() {
+  public boolean hasTablePartitions() {
     return !tablePartitions.isEmpty();
   }
 
@@ -259,7 +259,7 @@ public class AnalyticsTable {
    *
    * @return a {@link AnalyticsTablePartition} or null.
    */
-  public AnalyticsTablePartition getLatestPartition() {
+  public AnalyticsTablePartition getLatestTablePartition() {
     return tablePartitions.stream()
         .filter(AnalyticsTablePartition::isLatestPartition)
         .findAny()

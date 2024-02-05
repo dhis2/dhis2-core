@@ -57,8 +57,4 @@ public enum AnalyticsTableType {
     this.periodDimension = periodDimension;
     this.latestPartition = latestPartition;
   }
-
-  public String getTempTableName() {
-    return tableName + AnalyticsConstants.ANALYTICS_TBL_TEMP_SUFFIX;
-  }
 }
