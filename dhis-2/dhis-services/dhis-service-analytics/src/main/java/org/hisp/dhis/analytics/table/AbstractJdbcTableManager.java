@@ -278,7 +278,8 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
     TextUtils.removeLastComma(sql).append(")");
 
-    log.info("Creating table: '{}', columns: '{}'", tableName, table.getColumnCount());
+    log.info(
+        "Creating table: '{}', columns: '{}'", tableName, table.getAnalyticsTableColumns().size());
     log.debug("Create table SQL: '{}'", sql);
 
     jdbcTemplate.execute(sql.toString());
@@ -291,7 +292,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    */
   private void createAnalyticsTablePartitions(AnalyticsTable table) {
     for (AnalyticsTablePartition partition : table.getTablePartitions()) {
-      createAnalyticsTablePartition(table, partition);
+      createAnalyticsTablePartition(partition);
     }
   }
 
@@ -301,8 +302,8 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @param table the {@link AnalyticsTable}.
    * @param partition the {@link AnalyticsTablePartition}.
    */
-  private void createAnalyticsTablePartition(
-      AnalyticsTable table, AnalyticsTablePartition partition) {
+  private void createAnalyticsTablePartition(AnalyticsTablePartition partition) {
+    AnalyticsTable table = partition.getParent();
     String tableName = partition.getName();
     String unlogged = table.isUnlogged() ? "unlogged" : "";
 
@@ -421,7 +422,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     for (Integer year : years) {
       List<String> checks = getPartitionChecks(year, getEndDate(calendar, year));
 
-      table.addPartitionTable(
+      table.addTablePartition(
           checks, year, getStartDate(calendar, year), getEndDate(calendar, year));
     }
 
@@ -456,7 +457,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns, logged);
 
     if (hasUpdatedData) {
-      table.addPartitionTable(
+      table.addTablePartition(
           List.of(), AnalyticsTablePartition.LATEST_PARTITION, lastFullTableUpdate, endDate);
       log.info(
           "Added latest analytics partition with start: '{}' and end: '{}'",

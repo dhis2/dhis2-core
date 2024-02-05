@@ -159,12 +159,21 @@ public class Table {
   }
 
   /**
+   * Indicates whether the table has at least one column.
+   *
+   * @return true if the table has at least one column.
+   */
+  public boolean hasColumns() {
+    return isNotEmpty(columns);
+  }
+
+  /**
    * Indicates whether the table has a primary key.
    *
    * @return true if the table has a primary key.
    */
   public boolean hasPrimaryKey() {
-    return !primaryKey.isEmpty();
+    return isNotEmpty(primaryKey);
   }
 
   /**
@@ -173,7 +182,7 @@ public class Table {
    * @return true if the table has at least one check.
    */
   public boolean hasChecks() {
-    return !checks.isEmpty();
+    return isNotEmpty(checks);
   }
 
   /**
@@ -191,7 +200,7 @@ public class Table {
    * @return true if table has a parent table.
    */
   public boolean hasParent() {
-    return parent != null;
+    return notNull(parent);
   }
 
   /**

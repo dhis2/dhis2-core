@@ -182,11 +182,11 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
       AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), getColumns(), logged, tet);
 
       for (Integer year : dataYears) {
-        table.addPartitionTable(
+        table.addTablePartition(
             List.of(), year, getStartDate(calendar, year), getEndDate(calendar, year));
       }
 
-      if (table.hasPartitionTables()) {
+      if (table.hasTablePartitions()) {
         tables.add(table);
       }
     }
