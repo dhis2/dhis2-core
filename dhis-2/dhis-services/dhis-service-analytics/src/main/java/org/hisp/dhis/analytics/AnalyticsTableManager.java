@@ -100,7 +100,7 @@ public interface AnalyticsTableManager {
   void createIndex(Index index);
 
   /**
-   * Attempts to drop the analytics table with partitions and rename the temporary table with
+   * Attempts to drop the analytics table with partitions and rename the staging table with
    * partitions as replacement.
    *
    * <p>If this is a partial update and the master table currently exists, the master table is not
