@@ -27,11 +27,8 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getEndDate;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getStartDate;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getCollation;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.TEXT;
@@ -62,11 +59,11 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
@@ -197,13 +194,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         tableExists,
         skipMasterTable);
 
-    table.getTablePartitions().stream().forEach(p -> swapTable(p.getName(), p.getMainName()));
+    table.getTablePartitions().stream().forEach(p -> swapTable(p, p.getMainName()));
 
     if (!skipMasterTable) {
-      swapTable(table.getName(), table.getMainName());
+      swapTable(table, table.getMainName());
     } else {
       table.getTablePartitions().stream()
-          .forEach(p -> swapInheritance(p.getName(), table.getName(), table.getMainName()));
+          .forEach(p -> swapInheritance(p, table.getName(), table.getMainName()));
       dropTable(table);
     }
   }
@@ -255,29 +252,10 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @param table the {@link AnalyticsTable}.
    */
   private void createAnalyticsTable(AnalyticsTable table) {
-    StringBuilder sql = new StringBuilder();
+    log.info("Creating table: '{}', columns: '{}'", table.getName(), table.getColumns().size());
 
-    String tableName = table.getName();
-    String unlogged = table.isUnlogged() ? "unlogged" : "";
+    String sql = sqlBuilder.createTable(table);
 
-    sql.append("create ").append(unlogged).append(" table ").append(tableName).append(" (");
-
-    for (AnalyticsTableColumn col : table.getAnalyticsTableColumns()) {
-      String dataType = sqlBuilder.getDataTypeName(col.getDataType());
-      String nullable = col.isNotNull() ? " not null" : " null";
-      String collation = col.hasCollation() ? getCollation(col.getCollation().name()) : EMPTY;
-
-      sql.append(col.getName())
-          .append(SPACE)
-          .append(dataType)
-          .append(collation)
-          .append(nullable)
-          .append(",");
-    }
-
-    TextUtils.removeLastComma(sql).append(")");
-
-    log.info("Creating table: '{}', columns: '{}'", tableName, table.getColumns().size());
     log.debug("Create table SQL: '{}'", sql);
 
     jdbcTemplate.execute(sql.toString());
@@ -301,23 +279,10 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @param partition the {@link AnalyticsTablePartition}.
    */
   private void createAnalyticsTablePartition(AnalyticsTablePartition partition) {
-    AnalyticsTable table = partition.getMasterTable();
-    String tableName = partition.getName();
-    String unlogged = table.isUnlogged() ? "unlogged" : "";
+    log.info("Creating partition table: '{}'", partition.getName());
 
-    StringBuilder sql = new StringBuilder();
+    String sql = sqlBuilder.createTable(partition);
 
-    sql.append("create ").append(unlogged).append(" table ").append(tableName).append(" (");
-
-    if (partition.hasChecks()) {
-      StringBuilder sqlCheck = new StringBuilder();
-      partition.getChecks().stream().forEach(check -> sqlCheck.append("check (" + check + "), "));
-      sql.append(TextUtils.removeLastComma(sqlCheck.toString()));
-    }
-
-    sql.append(") inherits (").append(table.getName()).append(")");
-
-    log.info("Creating partition table: '{}'", tableName);
     log.debug("Create table SQL: '{}'", sql);
 
     jdbcTemplate.execute(sql.toString());
@@ -327,16 +292,11 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * Swaps a database table, meaning drops the main table and renames the staging table to become
    * the main table.
    *
-   * @param stagingTableName the staging table name.
+   * @param stagingTable the staging table.
    * @param mainTableName the main table name.
    */
-  private void swapTable(String stagingTableName, String mainTableName) {
-    String[] sqlSteps = {
-      "drop table if exists " + mainTableName + " cascade",
-      "alter table " + stagingTableName + " rename to " + mainTableName
-    };
-
-    executeSilently(sqlSteps, true);
+  private void swapTable(Table stagingTable, String mainTableName) {
+    executeSilently(sqlBuilder.swapTable(stagingTable, mainTableName));
   }
 
   /**
@@ -348,13 +308,9 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @param mainMasterTableName the main master table name.
    */
   private void swapInheritance(
-      String partitionTableName, String stagingMasterTableName, String mainMasterTableName) {
-    String[] sqlSteps = {
-      "alter table " + partitionTableName + " inherit " + mainMasterTableName,
-      "alter table " + partitionTableName + " no inherit " + stagingMasterTableName
-    };
-
-    executeSilently(sqlSteps, true);
+      Table partition, String stagingMasterTableName, String mainMasterTableName) {
+    executeSilently(
+        sqlBuilder.swapParentTable(partition, stagingMasterTableName, mainMasterTableName));
   }
 
   /**
@@ -595,26 +551,6 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
       jdbcTemplate.execute(sql);
     } catch (DataAccessException ex) {
       log.error(ex.getMessage());
-    }
-  }
-
-  /**
-   * Executes a set of SQL statements (without throwing any exception). Instead, exceptions are
-   * simply logged.
-   *
-   * @param sqlStatements the SQL statements to be executed
-   * @param atomically if true, the statements are executed all together in a single JDBC call
-   */
-  private void executeSilently(String[] sqlStatements, boolean atomically) {
-    if (atomically) {
-      String sql = String.join(";", sqlStatements) + ";";
-      log.debug(sql);
-      executeSilently(sql);
-    } else {
-      for (int i = 0; i < sqlStatements.length; i++) {
-        log.debug(sqlStatements[i]);
-        executeSilently(sqlStatements[i]);
-      }
     }
   }
 }
