@@ -51,6 +51,7 @@ import org.hisp.dhis.fileresource.events.FileDeletedEvent;
 import org.hisp.dhis.fileresource.events.FileSavedEvent;
 import org.hisp.dhis.fileresource.events.ImageFileSavedEvent;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Hours;
@@ -187,7 +188,9 @@ public class DefaultFileResourceService implements FileResourceService {
       Map<ImageFileDimension, File> imageFiles =
           imageProcessingService.createImages(fileResource, file);
 
-      fileEventPublisher.publishEvent(new ImageFileSavedEvent(fileResource.getUid(), imageFiles));
+      fileEventPublisher.publishEvent(
+          new ImageFileSavedEvent(
+              fileResource.getUid(), imageFiles, CurrentUserUtil.getCurrentUserDetails().getUid()));
       return;
     }
 

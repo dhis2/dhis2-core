@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.dxf2.gml;
 
+import static javax.xml.XMLConstants.ACCESS_EXTERNAL_DTD;
+import static javax.xml.XMLConstants.ACCESS_EXTERNAL_STYLESHEET;
+
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
@@ -244,7 +247,13 @@ public class DefaultGmlImportService implements GmlImportService {
 
     ByteArrayOutputStream output = new ByteArrayOutputStream();
 
-    TransformerFactory.newInstance().newTransformer(xsl).transform(gml, new StreamResult(output));
+    TransformerFactory tf = TransformerFactory.newInstance();
+    // prevent XXE attack
+    // sonar vulnerability:
+    // https://sonarcloud.io/organizations/dhis2/rules?open=java%3AS2755&rule_key=java%3AS2755
+    tf.setAttribute(ACCESS_EXTERNAL_DTD, "");
+    tf.setAttribute(ACCESS_EXTERNAL_STYLESHEET, "");
+    tf.newTransformer(xsl).transform(gml, new StreamResult(output));
 
     xsl.getInputStream().close();
     gml.getInputStream().close();

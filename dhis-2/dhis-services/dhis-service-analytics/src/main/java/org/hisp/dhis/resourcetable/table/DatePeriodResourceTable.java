@@ -66,7 +66,7 @@ public class DatePeriodResourceTable implements ResourceTable {
 
   @Override
   public Table getTable() {
-    return new Table(toStaging(TABLE_NAME), getColumns(), List.of(), List.of(), logged);
+    return new Table(toStaging(TABLE_NAME), getColumns(), List.of(), logged);
   }
 
   private List<Column> getColumns() {

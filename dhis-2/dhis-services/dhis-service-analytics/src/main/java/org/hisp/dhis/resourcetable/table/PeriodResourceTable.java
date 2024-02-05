@@ -71,7 +71,7 @@ public class PeriodResourceTable implements ResourceTable {
 
   @Override
   public Table getTable() {
-    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), getIndexes(), logged);
+    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);
   }
 
   private List<Column> getColumns() {
@@ -95,9 +95,14 @@ public class PeriodResourceTable implements ResourceTable {
     return List.of("periodid");
   }
 
-  private List<Index> getIndexes() {
+  @Override
+  public List<Index> getIndexes() {
     return List.of(
-        new Index(appendRandom("in_periodstructure_iso"), Unique.UNIQUE, List.of("iso")));
+        new Index(
+            appendRandom("in_periodstructure_iso"),
+            toStaging(TABLE_NAME),
+            Unique.UNIQUE,
+            List.of("iso")));
   }
 
   @Override

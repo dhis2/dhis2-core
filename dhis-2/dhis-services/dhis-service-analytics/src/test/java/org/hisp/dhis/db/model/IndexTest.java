@@ -37,8 +37,8 @@ import org.junit.jupiter.api.Test;
 class IndexTest {
   @Test
   void testIsUnique() {
-    Index indexA = new Index("in_analytics_id", Unique.UNIQUE, List.of("id"));
-    Index indexB = new Index("in_analytics_dx", Unique.NON_UNIQUE, List.of("dx"));
+    Index indexA = new Index("in_analytics_id", "analytics", Unique.UNIQUE, List.of("id"));
+    Index indexB = new Index("in_analytics_dx", "analytics", Unique.NON_UNIQUE, List.of("dx"));
 
     assertTrue(indexA.isUnique());
     assertFalse(indexB.isUnique());

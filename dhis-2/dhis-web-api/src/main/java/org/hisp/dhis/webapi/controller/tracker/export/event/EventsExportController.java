@@ -133,7 +133,7 @@ class EventsExportController {
           fieldFilterService.toObjectNodes(
               EVENTS_MAPPER.fromCollection(eventsPage.getItems()), requestParams.getFields());
 
-      return Page.withPager(objectNodes, eventsPage);
+      return Page.withPager(EVENTS, objectNodes, eventsPage);
     }
 
     List<org.hisp.dhis.program.Event> events = eventService.getEvents(eventOperationParams);
@@ -141,7 +141,7 @@ class EventsExportController {
         fieldFilterService.toObjectNodes(
             EVENTS_MAPPER.fromCollection(events), requestParams.getFields());
 
-    return Page.withoutPager(objectNodes);
+    return Page.withoutPager(EVENTS, objectNodes);
   }
 
   @GetMapping(produces = CONTENT_TYPE_JSON_GZIP)

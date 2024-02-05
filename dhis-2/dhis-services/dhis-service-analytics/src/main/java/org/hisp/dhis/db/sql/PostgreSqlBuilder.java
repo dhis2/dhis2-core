@@ -219,11 +219,19 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
     // Checks
 
-    for (String check : table.getChecks()) {
-      sql.append("check(" + check + "), ");
+    if (table.hasChecks()) {
+      for (String check : table.getChecks()) {
+        sql.append("check(" + check + "), ");
+      }
     }
 
-    return removeLastComma(sql).append(");").toString();
+    removeLastComma(sql).append(")");
+
+    if (table.hasParent()) {
+      sql.append(" inherits (").append(quote(table.getParent().getName())).append(")");
+    }
+
+    return sql.append(";").toString();
   }
 
   @Override
@@ -259,6 +267,28 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   @Override
   public String dropTableIfExistsCascade(String name) {
     return String.format("drop table if exists %s cascade;", quote(name));
+  }
+
+  @Override
+  public String swapTable(Table table, String newName) {
+    return String.join(" ", dropTableIfExistsCascade(newName), renameTable(table, newName));
+  }
+
+  @Override
+  public String setParentTable(Table table, String parentName) {
+    return String.format("alter table %s inherit %s;", quote(table.getName()), quote(parentName));
+  }
+
+  @Override
+  public String removeParentTable(Table table, String parentName) {
+    return String.format(
+        "alter table %s no inherit %s;", quote(table.getName()), quote(parentName));
+  }
+
+  @Override
+  public String swapParentTable(Table table, String parentName, String newParentName) {
+    return String.join(
+        " ", removeParentTable(table, parentName), setParentTable(table, newParentName));
   }
 
   @Override

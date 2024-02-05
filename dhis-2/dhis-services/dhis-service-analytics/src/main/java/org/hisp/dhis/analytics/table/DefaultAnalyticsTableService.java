@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexName;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexes;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
@@ -42,12 +41,12 @@ import org.hisp.dhis.analytics.AnalyticsTableManager;
 import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
-import org.hisp.dhis.analytics.table.model.AnalyticsIndex;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -149,7 +148,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
       clock.logTime("Tables vacuumed");
     }
 
-    List<AnalyticsIndex> indexes = getIndexes(partitions);
+    List<Index> indexes = getIndexes(partitions);
     progress.startingStage("Creating indexes " + tableType, indexes.size(), SKIP_ITEM_OUTLIER);
     createIndexes(indexes, progress);
     clock.logTime("Created indexes");
@@ -263,14 +262,9 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
   }
 
   /** Creates indexes on the given analytics tables. */
-  private void createIndexes(List<AnalyticsIndex> indexes, JobProgress progress) {
-    AnalyticsTableType type = getAnalyticsTableType();
-
+  private void createIndexes(List<Index> indexes, JobProgress progress) {
     progress.runStageInParallel(
-        getParallelJobs(),
-        indexes,
-        index -> getIndexName(index, type).replace("\"", ""),
-        tableManager::createIndex);
+        getParallelJobs(), indexes, index -> index.getName(), tableManager::createIndex);
   }
 
   /** Analyzes the given analytics tables. */

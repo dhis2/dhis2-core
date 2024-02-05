@@ -1177,7 +1177,7 @@ public class DefaultUserService implements UserService {
 
     encodeAndSetPassword(user, newPassword);
 
-    updateUser(user);
+    updateUser(user, new SystemUser());
 
     return true;
   }
