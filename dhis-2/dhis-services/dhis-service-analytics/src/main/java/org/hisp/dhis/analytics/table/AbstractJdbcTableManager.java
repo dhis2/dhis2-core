@@ -216,13 +216,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   @Override
   public void createIndex(Index index) {
+    log.debug("Creating index: '{}'", index.getName());
+
     String sql = sqlBuilder.createIndex(index);
 
-    log.debug("Create index: '{}' with SQL: '{}'", index.getName(), sql);
+    log.debug("Create index SQL: '{}'", sql);
 
     jdbcTemplate.execute(sql);
-
-    log.debug("Created index: '{}'", index.getName());
   }
 
   @Override
