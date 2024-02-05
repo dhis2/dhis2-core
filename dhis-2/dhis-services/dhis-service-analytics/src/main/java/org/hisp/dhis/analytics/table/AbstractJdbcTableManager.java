@@ -172,6 +172,48 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     createAnalyticsTablePartitions(table);
   }
 
+  /**
+   * Drops and creates the given analytics table.
+   *
+   * @param table the {@link AnalyticsTable}.
+   */
+  private void createAnalyticsTable(AnalyticsTable table) {
+    log.info("Creating table: '{}', columns: '{}'", table.getName(), table.getColumns().size());
+
+    String sql = sqlBuilder.createTable(table);
+
+    log.debug("Create table SQL: '{}'", sql);
+
+    jdbcTemplate.execute(sql);
+  }
+
+  /**
+   * Creates the table partitions for the given analytics table.
+   *
+   * @param table the {@link AnalyticsTable}.
+   */
+  private void createAnalyticsTablePartitions(AnalyticsTable table) {
+    for (AnalyticsTablePartition partition : table.getTablePartitions()) {
+      createAnalyticsTablePartition(partition);
+    }
+  }
+
+  /**
+   * Creates the table partition for the given analytics table.
+   *
+   * @param table the {@link AnalyticsTable}.
+   * @param partition the {@link AnalyticsTablePartition}.
+   */
+  private void createAnalyticsTablePartition(AnalyticsTablePartition partition) {
+    log.info("Creating partition table: '{}'", partition.getName());
+
+    String sql = sqlBuilder.createTable(partition);
+
+    log.debug("Create table SQL: '{}'", sql);
+
+    jdbcTemplate.execute(sql);
+  }
+
   @Override
   public void createIndex(Index index) {
     String sql = sqlBuilder.createIndex(index);
@@ -244,48 +286,6 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
             AnalyticsTablePhase.ANALYTICS_TABLE_POPULATED, type);
     tableHookService.executeAnalyticsTableSqlHooks(hooks);
     return hooks.size();
-  }
-
-  /**
-   * Drops and creates the given analytics table.
-   *
-   * @param table the {@link AnalyticsTable}.
-   */
-  private void createAnalyticsTable(AnalyticsTable table) {
-    log.info("Creating table: '{}', columns: '{}'", table.getName(), table.getColumns().size());
-
-    String sql = sqlBuilder.createTable(table);
-
-    log.debug("Create table SQL: '{}'", sql);
-
-    jdbcTemplate.execute(sql);
-  }
-
-  /**
-   * Creates the table partitions for the given analytics table.
-   *
-   * @param table the {@link AnalyticsTable}.
-   */
-  private void createAnalyticsTablePartitions(AnalyticsTable table) {
-    for (AnalyticsTablePartition partition : table.getTablePartitions()) {
-      createAnalyticsTablePartition(partition);
-    }
-  }
-
-  /**
-   * Creates the table partition for the given analytics table.
-   *
-   * @param table the {@link AnalyticsTable}.
-   * @param partition the {@link AnalyticsTablePartition}.
-   */
-  private void createAnalyticsTablePartition(AnalyticsTablePartition partition) {
-    log.info("Creating partition table: '{}'", partition.getName());
-
-    String sql = sqlBuilder.createTable(partition);
-
-    log.debug("Create table SQL: '{}'", sql);
-
-    jdbcTemplate.execute(sql);
   }
 
   /**
