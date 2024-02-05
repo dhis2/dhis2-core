@@ -662,7 +662,7 @@ class CommonQueryRequestMapperTest {
             .map(DimensionIdentifier::getGroupId)
             .collect(Collectors.toSet());
     // Then
-    assertThat(groups, hasSize(1));
+    assertThat(groups, hasSize(2));
     assertThat(params.getDimensionIdentifiers(), hasSize(2));
   }
 }
