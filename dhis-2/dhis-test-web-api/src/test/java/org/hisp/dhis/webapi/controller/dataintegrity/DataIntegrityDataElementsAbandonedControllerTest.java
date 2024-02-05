@@ -31,13 +31,11 @@ import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 
 import java.time.ZonedDateTime;
 import java.util.Date;
-import javax.persistence.EntityManager;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.web.WebClient;
@@ -65,11 +63,9 @@ class DataIntegrityDataElementsAbandonedControllerTest
 
   private static final String period = "202212";
 
-  @Autowired private DataElementService dataElementService;
   @Autowired protected IdentifiableObjectManager manager;
 
   @Autowired protected DbmsManager dbmsManager;
-  @Autowired protected EntityManager entityManager;
 
   @Test
   void testDataElementsNotAbandoned() {
@@ -89,17 +85,15 @@ class DataIntegrityDataElementsAbandonedControllerTest
   void testDataElementsAbandoned() {
 
     setUpTest();
-    createAbaondonedDataElement();
+    createAbandonedDataElement();
 
     assertHasDataIntegrityIssues(
         detailsIdType, check, 33, "deabcdefghA", "DataElementA", null, true);
   }
 
-  void createAbaondonedDataElement() {
+  void createAbandonedDataElement() {
     String uniqueCharacter = "A";
     DataElement dataElement = new DataElement();
-    dataElement.setAutoFields();
-
     dataElement.setUid(BASE_DE_UID + uniqueCharacter);
     dataElement.setName("DataElement" + uniqueCharacter);
     dataElement.setShortName("DataElementShort" + uniqueCharacter);
