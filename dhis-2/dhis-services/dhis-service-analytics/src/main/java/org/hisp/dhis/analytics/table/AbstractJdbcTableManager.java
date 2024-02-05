@@ -304,13 +304,11 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * table.
    *
    * @param partitionTableName the partition table name.
-   * @param stagingMasterTableName the staging master table name.
-   * @param mainMasterTableName the main master table name.
+   * @param stagingMasterName the staging master table name.
+   * @param mainMasterName the main master table name.
    */
-  private void swapInheritance(
-      Table partition, String stagingMasterTableName, String mainMasterTableName) {
-    executeSilently(
-        sqlBuilder.swapParentTable(partition, stagingMasterTableName, mainMasterTableName));
+  private void swapInheritance(Table partition, String stagingMasterName, String mainMasterName) {
+    executeSilently(sqlBuilder.swapParentTable(partition, stagingMasterName, mainMasterName));
   }
 
   /**
