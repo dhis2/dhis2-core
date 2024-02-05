@@ -170,11 +170,9 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
   @Override
   @Transactional
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
-    List<TrackedEntityType> trackedEntityTypes = trackedEntityTypeService.getAllTrackedEntityType();
     Calendar calendar = PeriodType.getCalendar();
-
+    List<TrackedEntityType> trackedEntityTypes = trackedEntityTypeService.getAllTrackedEntityType();
     List<AnalyticsTable> tables = new ArrayList<>();
-
     Logged logged = analyticsExportSettings.getTableLogged();
 
     for (TrackedEntityType tet : trackedEntityTypes) {

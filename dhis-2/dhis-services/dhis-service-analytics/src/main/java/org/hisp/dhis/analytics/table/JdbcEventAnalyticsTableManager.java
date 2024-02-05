@@ -259,10 +259,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    */
   private List<AnalyticsTable> getRegularAnalyticsTables(
       AnalyticsTableUpdateParams params, List<Integer> availableDataYears) {
-    List<AnalyticsTable> tables = new ArrayList<>();
-
     Calendar calendar = PeriodType.getCalendar();
-
+    List<AnalyticsTable> tables = new ArrayList<>();
     Logged logged = analyticsExportSettings.getTableLogged();
 
     List<Program> programs =

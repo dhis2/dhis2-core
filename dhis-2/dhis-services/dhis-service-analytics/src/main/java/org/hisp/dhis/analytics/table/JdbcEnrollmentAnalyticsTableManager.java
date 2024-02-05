@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static java.util.Collections.emptyList;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
@@ -199,7 +198,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
 
   @Override
   protected List<String> getPartitionChecks(AnalyticsTablePartition partition) {
-    return emptyList();
+    return List.of();
   }
 
   @Override
