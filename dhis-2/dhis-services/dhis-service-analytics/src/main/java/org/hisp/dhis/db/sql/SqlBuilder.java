@@ -292,7 +292,7 @@ public interface SqlBuilder {
   String tableExists(String name);
 
   /**
-   * @param table the {@link Table}.
+   * @param index the {@link Index}.
    * @return a create index statement.
    */
   String createIndex(Index index);
