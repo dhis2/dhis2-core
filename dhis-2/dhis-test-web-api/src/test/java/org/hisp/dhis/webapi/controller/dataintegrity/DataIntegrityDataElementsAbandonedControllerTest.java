@@ -29,9 +29,20 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 
+import java.time.ZonedDateTime;
+import java.util.Date;
+import javax.persistence.EntityManager;
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementDomain;
+import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.web.WebClient;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Test for data elements which have been abandoned. This is taken to mean that there is no data
@@ -54,6 +65,12 @@ class DataIntegrityDataElementsAbandonedControllerTest
 
   private static final String period = "202212";
 
+  @Autowired private DataElementService dataElementService;
+  @Autowired protected IdentifiableObjectManager manager;
+
+  @Autowired protected DbmsManager dbmsManager;
+  @Autowired protected EntityManager entityManager;
+
   @Test
   void testDataElementsNotAbandoned() {
 
@@ -68,6 +85,40 @@ class DataIntegrityDataElementsAbandonedControllerTest
     assertHasNoDataIntegrityIssues(detailsIdType, check, false);
   }
 
+  @Test
+  void testDataElementsAbandoned() {
+
+    setUpTest();
+    createAbaondonedDataElement();
+
+    assertHasDataIntegrityIssues(
+        detailsIdType, check, 33, "deabcdefghA", "DataElementA", null, true);
+  }
+
+  void createAbaondonedDataElement() {
+    String uniqueCharacter = "A";
+    DataElement dataElement = new DataElement();
+    dataElement.setAutoFields();
+
+    dataElement.setUid(BASE_DE_UID + uniqueCharacter);
+    dataElement.setName("DataElement" + uniqueCharacter);
+    dataElement.setShortName("DataElementShort" + uniqueCharacter);
+    dataElement.setCode("DataElementCode" + uniqueCharacter);
+    dataElement.setDescription("DataElementDescription" + uniqueCharacter);
+    dataElement.setValueType(ValueType.INTEGER);
+    dataElement.setDomainType(DataElementDomain.AGGREGATE);
+    dataElement.setAggregationType(AggregationType.SUM);
+    dataElement.setZeroIsSignificant(false);
+    dataElement.setCategoryCombo(categoryService.getDefaultCategoryCombo());
+    // Set the lastupdated and created to 100 days ago
+    Date hundredDaysAgo = Date.from(ZonedDateTime.now().minusDays(100).toInstant());
+    dataElement.setLastUpdated(hundredDaysAgo);
+    dataElement.setCreated(hundredDaysAgo);
+    manager.persist(dataElement);
+    dbmsManager.flushSession();
+    dbmsManager.clearSession();
+  }
+
   void setUpTest() {
 
     String dataElementA =
@@ -77,6 +128,7 @@ class DataIntegrityDataElementsAbandonedControllerTest
                 "/dataElements",
                 "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER',"
                     + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
+
     String dataElementB =
         assertStatus(
             HttpStatus.CREATED,
