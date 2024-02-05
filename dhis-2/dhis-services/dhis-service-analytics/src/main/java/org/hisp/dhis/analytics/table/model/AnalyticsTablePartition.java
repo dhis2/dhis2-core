@@ -30,9 +30,9 @@ package org.hisp.dhis.analytics.table.model;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import lombok.Getter;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
+import lombok.Getter;
 
 /**
  * Class representing an analytics database table partition.
