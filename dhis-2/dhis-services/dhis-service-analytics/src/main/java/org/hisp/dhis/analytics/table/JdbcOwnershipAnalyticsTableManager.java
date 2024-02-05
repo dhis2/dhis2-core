@@ -156,6 +156,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
+
     Program program = partition.getMasterTable().getProgram();
 
     if (program.getProgramType() == WITHOUT_REGISTRATION) {
@@ -175,6 +176,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
 
   private void populateOwnershipTableInternal(AnalyticsTablePartition partition, String sql) {
     String tableName = partition.getName();
+
     List<String> columnNames =
         getColumns().stream().map(AnalyticsTableColumn::getName).collect(toList());
 
