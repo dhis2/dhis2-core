@@ -192,7 +192,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
 
-    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
+    List<AnalyticsTableColumn> columns = partition.getParent().getAnalyticsTableColumns();
 
     StringBuilder sql = new StringBuilder("insert into " + tableName + " (");
 
@@ -212,7 +212,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
         .append(" and tei.deleted is false ")
         .append(
             " and tei.trackedentitytypeid = "
-                + partition.getMasterTable().getTrackedEntityType().getId())
+                + partition.getParent().getTrackedEntityType().getId())
         .append(" and tei.lastupdated < '" + getLongDateString(params.getStartTime()) + "'")
         .append(" left join program p on p.programid = pi.programid")
         .append(" left join organisationunit ou on pi.organisationunitid = ou.organisationunitid")
