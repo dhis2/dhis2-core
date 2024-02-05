@@ -177,7 +177,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
   }
 
   @Override
-  protected List<String> getPartitionChecks(Integer year, Date startDate, Date endDate) {
+  protected List<String> getPartitionChecks(Integer year, Date endDate) {
     return List.of();
   }
 

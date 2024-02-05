@@ -237,7 +237,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   }
 
   @Override
-  protected List<String> getPartitionChecks(Integer year, Date startDate, Date endDate) {
+  protected List<String> getPartitionChecks(Integer year, Date endDate) {
     Objects.requireNonNull(year);
     return List.of(
         "year = " + year + "", "pestartdate < '" + DateUtils.getMediumDateString(endDate) + "'");

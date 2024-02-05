@@ -286,10 +286,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
       for (Integer year : yearsForPartitionTables) {
         List<String> checks =
-            getPartitionChecks(
-                latestDataYear,
-                PartitionUtils.getStartDate(calendar, year),
-                PartitionUtils.getEndDate(calendar, year));
+            getPartitionChecks(latestDataYear, PartitionUtils.getEndDate(calendar, year));
         table.addPartitionTable(
             checks,
             year,
@@ -422,7 +419,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   }
 
   @Override
-  protected List<String> getPartitionChecks(Integer year, Date startDate, Date endDate) {
+  protected List<String> getPartitionChecks(Integer year, Date endDate) {
     Objects.requireNonNull(year);
     return List.of("yearly = '" + year + "'");
   }

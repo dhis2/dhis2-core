@@ -363,15 +363,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   // -------------------------------------------------------------------------
 
   /**
-   * Returns a list of table partition checks (constraints) for the given year, start date and end
-   * date.
+   * Returns a list of table partition checks (constraints) for the given year and end date.
    *
    * @param year the year.
-   * @param startDate the start date.
    * @param endDate the end date.
    * @return the list of table partition checks.
    */
-  protected abstract List<String> getPartitionChecks(Integer year, Date startDate, Date endDate);
+  protected abstract List<String> getPartitionChecks(Integer year, Date endDate);
 
   /**
    * Populates the given analytics table.
@@ -421,8 +419,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns, logged);
 
     for (Integer year : years) {
-      List<String> checks =
-          getPartitionChecks(year, getStartDate(calendar, year), getEndDate(calendar, year));
+      List<String> checks = getPartitionChecks(year, getEndDate(calendar, year));
 
       table.addPartitionTable(
           checks, year, getStartDate(calendar, year), getEndDate(calendar, year));

@@ -201,7 +201,7 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
 
   @Test
   void testGetPartitionChecks() {
-    assertTrue(target.getPartitionChecks(1, new Date(), new Date()).isEmpty());
+    assertTrue(target.getPartitionChecks(1, new Date()).isEmpty());
   }
 
   @Test
