@@ -27,10 +27,11 @@
  */
 package org.hisp.dhis.analytics.table.model;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.db.model.Logged;
@@ -40,7 +41,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Lars Helge Overland
  */
-public class AnalyticsTablePartitionTest {
+class AnalyticsTablePartitionTest {
   @Test
   void testGetName() {
     AnalyticsTable table =
@@ -60,5 +61,17 @@ public class AnalyticsTablePartitionTest {
     assertEquals("analytics_2023", partition.getMainName());
     assertTrue(partition.hasChecks());
     assertFalse(partition.isLatestPartition());
+  }
+
+  @Test
+  void testIsLatestPartition() {
+    AnalyticsTable table =
+        new AnalyticsTable(AnalyticsTableType.COMPLETENESS, List.of(), Logged.UNLOGGED);
+
+    AnalyticsTablePartition partition =
+        new AnalyticsTablePartition(
+            table, List.of(), AnalyticsTablePartition.LATEST_PARTITION, new Date(), new Date());
+
+    assertTrue(partition.isLatestPartition());
   }
 }
