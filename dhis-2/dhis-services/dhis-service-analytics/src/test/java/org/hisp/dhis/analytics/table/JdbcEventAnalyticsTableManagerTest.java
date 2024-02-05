@@ -275,8 +275,8 @@ class JdbcEventAnalyticsTableManagerTest {
 
     new AnalyticsTableAsserter.Builder(tables.get(0))
         .withTableType(AnalyticsTableType.EVENT)
-        .withTableName(TABLE_PREFIX + program.getUid().toLowerCase() + STAGING_TABLE_SUFFIX)
-        .withMainTableName(TABLE_PREFIX + program.getUid().toLowerCase())
+        .withName(TABLE_PREFIX + program.getUid().toLowerCase() + STAGING_TABLE_SUFFIX)
+        .withMainName(TABLE_PREFIX + program.getUid().toLowerCase())
         .withColumnSize(56 + OU_NAME_HIERARCHY_COUNT)
         .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
         .addColumns(periodColumns)
@@ -443,8 +443,8 @@ class JdbcEventAnalyticsTableManagerTest {
     assertThat(tables, hasSize(1));
 
     new AnalyticsTableAsserter.Builder(tables.get(0))
-        .withTableName(TABLE_PREFIX + program.getUid().toLowerCase() + STAGING_TABLE_SUFFIX)
-        .withMainTableName(TABLE_PREFIX + program.getUid().toLowerCase())
+        .withName(TABLE_PREFIX + program.getUid().toLowerCase() + STAGING_TABLE_SUFFIX)
+        .withMainName(TABLE_PREFIX + program.getUid().toLowerCase())
         .withTableType(AnalyticsTableType.EVENT)
         .withColumnSize(63 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
@@ -535,8 +535,8 @@ class JdbcEventAnalyticsTableManagerTest {
     assertThat(tables, hasSize(1));
 
     new AnalyticsTableAsserter.Builder(tables.get(0))
-        .withTableName(TABLE_PREFIX + program.getUid().toLowerCase() + STAGING_TABLE_SUFFIX)
-        .withMainTableName(TABLE_PREFIX + program.getUid().toLowerCase())
+        .withName(TABLE_PREFIX + program.getUid().toLowerCase() + STAGING_TABLE_SUFFIX)
+        .withMainName(TABLE_PREFIX + program.getUid().toLowerCase())
         .withTableType(AnalyticsTableType.EVENT)
         .withColumnSize(58 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
@@ -748,8 +748,8 @@ class JdbcEventAnalyticsTableManagerTest {
     assertThat(tables, hasSize(1));
 
     new AnalyticsTableAsserter.Builder(tables.get(0))
-        .withTableName(TABLE_PREFIX + programA.getUid().toLowerCase() + STAGING_TABLE_SUFFIX)
-        .withMainTableName(TABLE_PREFIX + programA.getUid().toLowerCase())
+        .withName(TABLE_PREFIX + programA.getUid().toLowerCase() + STAGING_TABLE_SUFFIX)
+        .withMainName(TABLE_PREFIX + programA.getUid().toLowerCase())
         .withTableType(AnalyticsTableType.EVENT)
         .withColumnSize(
             JdbcEventAnalyticsTableManager.FIXED_COLS.size()
@@ -793,8 +793,8 @@ class JdbcEventAnalyticsTableManagerTest {
     assertThat(tables, hasSize(1));
 
     new AnalyticsTableAsserter.Builder(tables.get(0))
-        .withTableName(TABLE_PREFIX + programA.getUid().toLowerCase() + STAGING_TABLE_SUFFIX)
-        .withMainTableName(TABLE_PREFIX + programA.getUid().toLowerCase())
+        .withName(TABLE_PREFIX + programA.getUid().toLowerCase() + STAGING_TABLE_SUFFIX)
+        .withMainName(TABLE_PREFIX + programA.getUid().toLowerCase())
         .withTableType(AnalyticsTableType.EVENT)
         .withColumnSize(
             JdbcEventAnalyticsTableManager.FIXED_COLS.size()
@@ -836,8 +836,8 @@ class JdbcEventAnalyticsTableManagerTest {
     assertThat(tables, hasSize(1));
 
     new AnalyticsTableAsserter.Builder(tables.get(0))
-        .withTableName(TABLE_PREFIX + programA.getUid().toLowerCase() + STAGING_TABLE_SUFFIX)
-        .withMainTableName(TABLE_PREFIX + programA.getUid().toLowerCase())
+        .withName(TABLE_PREFIX + programA.getUid().toLowerCase() + STAGING_TABLE_SUFFIX)
+        .withMainName(TABLE_PREFIX + programA.getUid().toLowerCase())
         .withTableType(AnalyticsTableType.EVENT)
         .withColumnSize(
             JdbcEventAnalyticsTableManager.FIXED_COLS.size()

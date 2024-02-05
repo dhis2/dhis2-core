@@ -142,13 +142,13 @@ public class AnalyticsTableAsserter {
       return this;
     }
 
-    public Builder withTableName(String tableName) {
-      _name = tableName;
+    public Builder withName(String name) {
+      _name = name;
       return this;
     }
 
-    public Builder withMainTableName(String mainTableName) {
-      _mainName = mainTableName;
+    public Builder withMainName(String mainName) {
+      _mainName = mainName;
       return this;
     }
 
