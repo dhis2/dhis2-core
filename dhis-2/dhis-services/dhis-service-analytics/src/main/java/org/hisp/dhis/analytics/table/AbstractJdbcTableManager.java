@@ -200,7 +200,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     table.getTablePartitions().stream().forEach(p -> swapTable(p.getTempName(), p.getName()));
 
     if (!skipMasterTable) {
-      swapTable(table.getTempName(), table.getName());
+      swapTable(table.getName(), table.getMainName());
     } else {
       table.getTablePartitions().stream()
           .forEach(p -> swapInheritance(p.getName(), table.getTempName(), table.getName()));
@@ -210,7 +210,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   @Override
   public void dropTempTable(AnalyticsTable table) {
-    dropTableCascade(table.getTempName());
+    dropTableCascade(table.getName());
   }
 
   @Override
@@ -257,7 +257,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   private void createTempTable(AnalyticsTable table) {
     StringBuilder sql = new StringBuilder();
 
-    String tableName = table.getTempName();
+    String tableName = table.getName();
     String unlogged = table.isUnlogged() ? "unlogged" : "";
 
     sql.append("create ").append(unlogged).append(" table ").append(tableName).append(" (");
@@ -315,7 +315,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
       sql.append(TextUtils.removeLastComma(sqlCheck.toString()));
     }
 
-    sql.append(") inherits (").append(table.getTempName()).append(")");
+    sql.append(") inherits (").append(table.getName()).append(")");
 
     log.info("Creating partition table: '{}'", tableName);
     log.debug("Create table SQL: '{}'", sql);

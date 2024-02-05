@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.analytics.table.model;
 
+import static org.hisp.dhis.db.model.Table.fromStaging;
+import static org.hisp.dhis.db.model.Table.toStaging;
+
 import java.util.Date;
 import java.util.Objects;
 import lombok.EqualsAndHashCode;
@@ -45,9 +48,6 @@ public class AnalyticsTablePartition {
   /** Table name. */
   @EqualsAndHashCode.Include private String name;
 
-  /** Temporary table name. */
-  private String tempName;
-
   /** The master analytics table for this partition. */
   private AnalyticsTable masterTable;
 
@@ -65,8 +65,7 @@ public class AnalyticsTablePartition {
 
   public AnalyticsTablePartition(
       AnalyticsTable masterTable, Integer year, Date startDate, Date endDate) {
-    this.name = getTableName(masterTable.getName(), year);
-    this.tempName = getTableName(masterTable.getTempName(), year);
+    this.name = toStaging(getTableName(masterTable.getMainName(), year));
     this.masterTable = masterTable;
     this.year = year;
     this.startDate = startDate;
@@ -74,7 +73,7 @@ public class AnalyticsTablePartition {
   }
 
   // -------------------------------------------------------------------------
-  // Logic
+  // Static methods
   // -------------------------------------------------------------------------
 
   private static String getTableName(String baseName, Integer year) {
@@ -85,6 +84,14 @@ public class AnalyticsTablePartition {
     }
 
     return name;
+  }
+
+  // -------------------------------------------------------------------------
+  // Logic methods
+  // -------------------------------------------------------------------------
+
+  public String getMainName() {
+    return fromStaging(name);
   }
 
   public boolean isLatestPartition() {

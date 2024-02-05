@@ -140,7 +140,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
   private String getFrom(ProgramIndicator pi) {
     AnalyticsTableType tableType = ANALYTICS_TYPE_MAP.get(pi.getAnalyticsType());
     return " FROM "
-        + AnalyticsTable.getTableName(tableType.getTableName(), pi.getProgram())
+        + AnalyticsTable.getTableName(tableType, pi.getProgram())
         + " as "
         + SUBQUERY_TABLE_ALIAS;
   }
