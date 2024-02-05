@@ -41,6 +41,7 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.model.Partitions;
+import org.hisp.dhis.analytics.table.util.PartitionUtils;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
