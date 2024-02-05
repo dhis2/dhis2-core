@@ -37,14 +37,11 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
-
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableManager;
@@ -82,6 +79,8 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -197,13 +196,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         tableExists,
         skipMasterTable);
 
-    table.getTablePartitions().stream().forEach(p -> swapTable(p.getTempName(), p.getName()));
+    table.getTablePartitions().stream().forEach(p -> swapTable(p.getName(), p.getMainName()));
 
     if (!skipMasterTable) {
       swapTable(table.getName(), table.getMainName());
     } else {
       table.getTablePartitions().stream()
-          .forEach(p -> swapInheritance(p.getName(), table.getTempName(), table.getName()));
+          .forEach(p -> swapInheritance(p.getName(), table.getName(), table.getMainName()));
       dropTempTable(table);
     }
   }
@@ -215,7 +214,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   @Override
   public void dropTempTablePartition(AnalyticsTablePartition tablePartition) {
-    dropTableCascade(tablePartition.getTempName());
+    dropTableCascade(tablePartition.getName());
   }
 
   @Override
@@ -324,34 +323,34 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   /**
-   * Swaps a database table, meaning drops the real table and renames the temporary table to become
-   * the real table.
+   * Swaps a database table, meaning drops the main table and renames the staging table to become
+   * the main table.
    *
-   * @param tempTableName the temporary table name.
-   * @param realTableName the real table name.
+   * @param stagingTableName the staging table name.
+   * @param mainTableName the real table name.
    */
-  private void swapTable(String tempTableName, String realTableName) {
+  private void swapTable(String stagingTableName, String mainTableName) {
     String[] sqlSteps = {
-      "drop table if exists " + realTableName + " cascade",
-      "alter table " + tempTableName + " rename to " + realTableName
+      "drop table if exists " + mainTableName + " cascade",
+      "alter table " + stagingTableName + " rename to " + mainTableName
     };
 
     executeSafely(sqlSteps, true);
   }
 
   /**
-   * Updates table inheritance of a table partition from the temp master table to the real master
+   * Updates table inheritance of a table partition from the staging master table to the main master
    * table.
    *
    * @param partitionTableName the partition table name.
-   * @param tempMasterTableName the temporary master table name.
-   * @param realMasterTableName the real master table name.
+   * @param stagingMasterTableName the temporary master table name.
+   * @param mainMasterTableName the real master table name.
    */
   private void swapInheritance(
-      String partitionTableName, String tempMasterTableName, String realMasterTableName) {
+      String partitionTableName, String stagingMasterTableName, String mainMasterTableName) {
     String[] sqlSteps = {
-      "alter table " + partitionTableName + " inherit " + realMasterTableName,
-      "alter table " + partitionTableName + " no inherit " + tempMasterTableName
+      "alter table " + partitionTableName + " inherit " + mainMasterTableName,
+      "alter table " + partitionTableName + " no inherit " + stagingMasterTableName
     };
 
     executeSafely(sqlSteps, true);

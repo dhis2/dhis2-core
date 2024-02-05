@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.table.model;
 
 import static org.hisp.dhis.db.model.Table.fromStaging;
 import static org.hisp.dhis.db.model.Table.toStaging;
-
 import java.util.Date;
 import java.util.Objects;
 import lombok.EqualsAndHashCode;
@@ -63,6 +62,14 @@ public class AnalyticsTablePartition {
   /** The end date for which this partition may contain data, exclusive. */
   private Date endDate;
 
+  /**
+   * Constructor. Sets the name to represent a staging table partition.
+   * 
+   * @param masterTable the master {@link Table} of this partition.
+   * @param year the year which represents this partition.
+   * @param startDate the start date of data for this partition.
+   * @param endDate the end date of data for this partition.
+   */
   public AnalyticsTablePartition(
       AnalyticsTable masterTable, Integer year, Date startDate, Date endDate) {
     this.name = toStaging(getTableName(masterTable.getMainName(), year));
@@ -76,6 +83,13 @@ public class AnalyticsTablePartition {
   // Static methods
   // -------------------------------------------------------------------------
 
+  /**
+   * Returns a table partition name.
+   * 
+   * @param baseName the base name.
+   * @param year the year.
+   * @return a table partition name.
+   */
   private static String getTableName(String baseName, Integer year) {
     String name = baseName;
 
@@ -90,6 +104,11 @@ public class AnalyticsTablePartition {
   // Logic methods
   // -------------------------------------------------------------------------
 
+  /**
+   * Returns the main table partition name.
+   * 
+   * @return the main table partition name.
+   */
   public String getMainName() {
     return fromStaging(name);
   }

@@ -31,7 +31,6 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParenthes
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -158,7 +157,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    * @param fromClause the SQL from clause.
    */
   protected void populateTableInternal(AnalyticsTablePartition partition, String fromClause) {
-    String tableName = partition.getTempName();
+    String tableName = partition.getName();
 
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
