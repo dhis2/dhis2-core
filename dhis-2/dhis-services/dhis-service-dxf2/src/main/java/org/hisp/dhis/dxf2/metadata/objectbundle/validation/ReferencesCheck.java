@@ -126,7 +126,7 @@ public class ReferencesCheck implements ValidationCheck {
               }
 
               if (!p.isCollection()) {
-                checkReference(object, preheat, identifier, skipSharing, preheatErrorReports, p);
+                checkReference(object, preheat, identifier, preheatErrorReports, p);
               } else {
                 checkCollection(object, preheat, identifier, preheatErrorReports, p);
               }
@@ -147,7 +147,6 @@ public class ReferencesCheck implements ValidationCheck {
       IdentifiableObject object,
       Preheat preheat,
       PreheatIdentifier identifier,
-      boolean skipSharing,
       List<PreheatErrorReport> preheatErrorReports,
       Property property) {
     IdentifiableObject refObject = ReflectionUtils.invokeMethod(object, property.getGetterMethod());
