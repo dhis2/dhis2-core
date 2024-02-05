@@ -44,7 +44,7 @@ import org.apache.commons.lang3.Validate;
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Table {
-  private static final String STAGING_TABLE_SUFFIX = "_temp";
+  public static final String STAGING_TABLE_SUFFIX = "_temp";
 
   private static final String STAGING_TABLE_SUFFIX_RGX = "\\_temp$";
 

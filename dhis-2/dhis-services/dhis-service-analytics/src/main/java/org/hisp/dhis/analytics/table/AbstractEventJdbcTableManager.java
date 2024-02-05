@@ -158,7 +158,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    * @param fromClause the SQL from clause.
    */
   protected void populateTableInternal(AnalyticsTablePartition partition, String fromClause) {
-    String tableName = partition.getTempName();
+    String tableName = partition.getName();
 
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 

@@ -99,8 +99,7 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
   public EventQueryParams planEnrollmentQuery(EventQueryParams params) {
     return new EventQueryParams.Builder(params)
         .withTableName(
-            AnalyticsTable.getTableName(
-                AnalyticsTableType.ENROLLMENT.getTableName(), params.getProgram()))
+            AnalyticsTable.getTableName(AnalyticsTableType.ENROLLMENT, params.getProgram()))
         .build();
   }
 
@@ -125,7 +124,7 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
             ? AnalyticsTableType.ENROLLMENT
             : AnalyticsTableType.EVENT;
 
-    String tableName = AnalyticsTable.getTableName(tableType.getTableName(), params.getProgram());
+    String tableName = AnalyticsTable.getTableName(tableType, params.getProgram());
 
     if (params.getCurrentUser() != null) {
       partitionManager.filterNonExistingPartitions(partitions, tableName);

@@ -183,9 +183,7 @@ class EventQueryPlannerTest extends SingleSetupIntegrationTestBase {
     Partitions expected = new Partitions(Sets.newHashSet(2010, 2011, 2012));
     assertEquals(3, partitions.getPartitions().size());
     assertEquals(expected, partitions);
-    assertEquals(
-        AnalyticsTable.getTableName(AnalyticsTableType.EVENT.getTableName(), prA),
-        query.getTableName());
+    assertEquals(AnalyticsTable.getTableName(AnalyticsTableType.EVENT, prA), query.getTableName());
   }
 
   @Test
@@ -206,9 +204,7 @@ class EventQueryPlannerTest extends SingleSetupIntegrationTestBase {
     Partitions expected = new Partitions(Sets.newHashSet(2010));
     assertEquals(1, partitions.getPartitions().size());
     assertEquals(expected, partitions);
-    assertEquals(
-        AnalyticsTable.getTableName(AnalyticsTableType.EVENT.getTableName(), prA),
-        query.getTableName());
+    assertEquals(AnalyticsTable.getTableName(AnalyticsTableType.EVENT, prA), query.getTableName());
   }
 
   @Test
@@ -231,9 +227,7 @@ class EventQueryPlannerTest extends SingleSetupIntegrationTestBase {
     Partitions expected = new Partitions(Sets.newHashSet(2010, 2011, 2012));
     assertEquals(3, partitions.getPartitions().size());
     assertEquals(expected, partitions);
-    assertEquals(
-        AnalyticsTable.getTableName(AnalyticsTableType.EVENT.getTableName(), prA),
-        query.getTableName());
+    assertEquals(AnalyticsTable.getTableName(AnalyticsTableType.EVENT, prA), query.getTableName());
   }
 
   @Test
@@ -252,9 +246,7 @@ class EventQueryPlannerTest extends SingleSetupIntegrationTestBase {
     Partitions expected = new Partitions(Sets.newHashSet(2010, 2011, 2012));
     assertEquals(3, partitions.getPartitions().size());
     assertEquals(expected, partitions);
-    assertEquals(
-        AnalyticsTable.getTableName(AnalyticsTableType.EVENT.getTableName(), prA),
-        params.getTableName());
+    assertEquals(AnalyticsTable.getTableName(AnalyticsTableType.EVENT, prA), params.getTableName());
   }
 
   @Test
@@ -273,9 +265,7 @@ class EventQueryPlannerTest extends SingleSetupIntegrationTestBase {
     Partitions expected = new Partitions(Sets.newHashSet(2010));
     assertEquals(1, partitions.getPartitions().size());
     assertEquals(expected, partitions);
-    assertEquals(
-        AnalyticsTable.getTableName(AnalyticsTableType.EVENT.getTableName(), prA),
-        params.getTableName());
+    assertEquals(AnalyticsTable.getTableName(AnalyticsTableType.EVENT, prA), params.getTableName());
   }
 
   @Test

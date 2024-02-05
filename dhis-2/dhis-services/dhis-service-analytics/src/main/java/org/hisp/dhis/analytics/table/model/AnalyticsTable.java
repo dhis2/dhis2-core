@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.analytics.table.model;
 
+import static org.hisp.dhis.db.model.Table.fromStaging;
+import static org.hisp.dhis.db.model.Table.toStaging;
+
 import java.util.Date;
 import java.util.List;
 import lombok.EqualsAndHashCode;
@@ -40,7 +43,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.springframework.util.Assert;
 
 /**
- * Class representing an analytics database table.
+ * Class representing an analytics database table. Note that the table name initially represents a
+ * staging table. The name of the main table can be retrieved with {@link
+ * AnalyticsTable#getMainName()}.
  *
  * @author Lars Helge Overland
  */
@@ -49,9 +54,6 @@ import org.springframework.util.Assert;
 public class AnalyticsTable {
   /** Table name. */
   @EqualsAndHashCode.Include private final String name;
-
-  /** Temporary table name. */
-  private final String tempName;
 
   /** Analytics table type. */
   private final AnalyticsTableType tableType;
@@ -75,35 +77,55 @@ public class AnalyticsTable {
   // Constructors
   // -------------------------------------------------------------------------
 
+  /**
+   * Constructor. Sets the name to represent a staging table.
+   *
+   * @param tableType the {@link AnalyticsTableType}.
+   * @param columns the list of {@link Column}.
+   * @param logged the {@link Logged} property.
+   */
   public AnalyticsTable(
       AnalyticsTableType tableType, List<AnalyticsTableColumn> columns, Logged logged) {
-    this.name = tableType.getTableName();
-    this.tempName = tableType.getTempTableName();
+    this.name = toStaging(tableType.getTableName());
     this.tableType = tableType;
     this.analyticsTableColumns = columns;
     this.logged = logged;
   }
 
+  /**
+   * Constructor. Sets the name to represent a staging table.
+   *
+   * @param tableType the {@link AnalyticsTableType}.
+   * @param columns the list of {@link Column}.
+   * @param logged the {@link Logged} property.
+   * @param program the {@link Program}.
+   */
   public AnalyticsTable(
       AnalyticsTableType tableType,
       List<AnalyticsTableColumn> columns,
       Logged logged,
       Program program) {
-    this.name = getTableName(tableType.getTableName(), program);
-    this.tempName = getTableName(tableType.getTempTableName(), program);
+    this.name = toStaging(getTableName(tableType, program));
     this.tableType = tableType;
     this.analyticsTableColumns = columns;
     this.logged = logged;
     this.program = program;
   }
 
+  /**
+   * Constructor. Sets the name to represent a staging table.
+   *
+   * @param tableType the {@link AnalyticsTableType}.
+   * @param columns the list of {@link Column}.
+   * @param logged the {@link Logged} property.
+   * @param trackedEntityType the {@link TrackedEntityType}.
+   */
   public AnalyticsTable(
       AnalyticsTableType tableType,
       List<AnalyticsTableColumn> columns,
       Logged logged,
       TrackedEntityType trackedEntityType) {
-    this.name = getTableName(tableType.getTableName(), trackedEntityType);
-    this.tempName = getTableName(tableType.getTempTableName(), trackedEntityType);
+    this.name = toStaging(getTableName(tableType, trackedEntityType));
     this.tableType = tableType;
     this.analyticsTableColumns = columns;
     this.logged = logged;
@@ -111,7 +133,7 @@ public class AnalyticsTable {
   }
 
   // -------------------------------------------------------------------------
-  // Logic
+  // Static methods
   // -------------------------------------------------------------------------
 
   /**
@@ -129,23 +151,37 @@ public class AnalyticsTable {
   /**
    * Returns a table name.
    *
-   * @param baseName the table base name.
+   * @param tableType the {@link AnalyticsTableType}.
    * @param program the {@link Program}.
    * @return the table name.
    */
-  public static String getTableName(String baseName, Program program) {
-    return baseName + "_" + program.getUid().toLowerCase();
+  public static String getTableName(AnalyticsTableType tableType, Program program) {
+    return tableType.getTableName() + "_" + program.getUid().toLowerCase();
   }
 
   /**
    * Returns a table name.
    *
-   * @param baseName the table base name.
+   * @param tableType the {@link AnalyticsTableType}.
    * @param trackedEntityType the {@link TrackedEntityType}.
    * @return the table name.
    */
-  public static String getTableName(String baseName, TrackedEntityType trackedEntityType) {
-    return baseName + "_" + trackedEntityType.getUid().toLowerCase();
+  public static String getTableName(
+      AnalyticsTableType tableType, TrackedEntityType trackedEntityType) {
+    return tableType.getTableName() + "_" + trackedEntityType.getUid().toLowerCase();
+  }
+
+  // -------------------------------------------------------------------------
+  // Logic methods
+  // -------------------------------------------------------------------------
+
+  /**
+   * Returns the name which represents the main analytics table.
+   *
+   * @return the name which represents the main analytics table.
+   */
+  public String getMainName() {
+    return fromStaging(name);
   }
 
   /**

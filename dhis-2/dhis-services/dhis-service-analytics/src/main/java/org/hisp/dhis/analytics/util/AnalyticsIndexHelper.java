@@ -82,9 +82,9 @@ public class AnalyticsIndexHelper {
           List<String> columns =
               col.hasIndexColumns() ? col.getIndexColumns() : List.of(col.getName());
 
-          indexes.add(new Index(name, partition.getTempName(), col.getIndexType(), columns));
+          indexes.add(new Index(name, partition.getName(), col.getIndexType(), columns));
 
-          maybeAddTextLowerIndex(indexes, name, partition.getTempName(), col, columns);
+          maybeAddTextLowerIndex(indexes, name, partition.getName(), col, columns);
         }
       }
     }

@@ -171,8 +171,8 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   @Override
   public void createTable(AnalyticsTable table) {
-    createTempTable(table);
-    createTempTablePartitions(table);
+    createAnalyticsTable(table);
+    createAnalyticsTablePartitions(table);
   }
 
   @Override
@@ -197,25 +197,25 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         tableExists,
         skipMasterTable);
 
-    table.getTablePartitions().stream().forEach(p -> swapTable(p.getTempName(), p.getName()));
+    table.getTablePartitions().stream().forEach(p -> swapTable(p.getName(), p.getMainName()));
 
     if (!skipMasterTable) {
-      swapTable(table.getTempName(), table.getName());
+      swapTable(table.getName(), table.getMainName());
     } else {
       table.getTablePartitions().stream()
-          .forEach(p -> swapInheritance(p.getName(), table.getTempName(), table.getName()));
-      dropTempTable(table);
+          .forEach(p -> swapInheritance(p.getName(), table.getName(), table.getMainName()));
+      dropTable(table);
     }
   }
 
   @Override
-  public void dropTempTable(AnalyticsTable table) {
-    dropTableCascade(table.getTempName());
+  public void dropTable(AnalyticsTable table) {
+    dropTableCascade(table.getName());
   }
 
   @Override
-  public void dropTempTablePartition(AnalyticsTablePartition tablePartition) {
-    dropTableCascade(tablePartition.getTempName());
+  public void dropTablePartition(AnalyticsTablePartition tablePartition) {
+    dropTableCascade(tablePartition.getName());
   }
 
   @Override
@@ -254,10 +254,10 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    *
    * @param table the {@link AnalyticsTable}.
    */
-  private void createTempTable(AnalyticsTable table) {
+  private void createAnalyticsTable(AnalyticsTable table) {
     StringBuilder sql = new StringBuilder();
 
-    String tableName = table.getTempName();
+    String tableName = table.getName();
     String unlogged = table.isUnlogged() ? "unlogged" : "";
 
     sql.append("create ").append(unlogged).append(" table ").append(tableName).append(" (");
@@ -288,20 +288,21 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    *
    * @param table the {@link AnalyticsTable}.
    */
-  private void createTempTablePartitions(AnalyticsTable table) {
+  private void createAnalyticsTablePartitions(AnalyticsTable table) {
     for (AnalyticsTablePartition partition : table.getTablePartitions()) {
-      createTempTablePartition(table, partition);
+      createAnalyticsTablePartition(table, partition);
     }
   }
 
   /**
-   * Creates the given table partition.
+   * Creates the table partition for the given analytics table.
    *
    * @param table the {@link AnalyticsTable}.
    * @param partition the {@link AnalyticsTablePartition}.
    */
-  private void createTempTablePartition(AnalyticsTable table, AnalyticsTablePartition partition) {
-    String tableName = partition.getTempName();
+  private void createAnalyticsTablePartition(
+      AnalyticsTable table, AnalyticsTablePartition partition) {
+    String tableName = partition.getName();
     String unlogged = table.isUnlogged() ? "unlogged" : "";
     List<String> checks = getPartitionChecks(partition);
 
@@ -315,7 +316,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
       sql.append(TextUtils.removeLastComma(sqlCheck.toString()));
     }
 
-    sql.append(") inherits (").append(table.getTempName()).append(")");
+    sql.append(") inherits (").append(table.getName()).append(")");
 
     log.info("Creating partition table: '{}'", tableName);
     log.debug("Create table SQL: '{}'", sql);
@@ -324,34 +325,34 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   /**
-   * Swaps a database table, meaning drops the real table and renames the temporary table to become
-   * the real table.
+   * Swaps a database table, meaning drops the main table and renames the staging table to become
+   * the main table.
    *
-   * @param tempTableName the temporary table name.
-   * @param realTableName the real table name.
+   * @param stagingTableName the staging table name.
+   * @param mainTableName the main table name.
    */
-  private void swapTable(String tempTableName, String realTableName) {
+  private void swapTable(String stagingTableName, String mainTableName) {
     String[] sqlSteps = {
-      "drop table if exists " + realTableName + " cascade",
-      "alter table " + tempTableName + " rename to " + realTableName
+      "drop table if exists " + mainTableName + " cascade",
+      "alter table " + stagingTableName + " rename to " + mainTableName
     };
 
     executeSafely(sqlSteps, true);
   }
 
   /**
-   * Updates table inheritance of a table partition from the temp master table to the real master
+   * Updates table inheritance of a table partition from the staging master table to the main master
    * table.
    *
    * @param partitionTableName the partition table name.
-   * @param tempMasterTableName the temporary master table name.
-   * @param realMasterTableName the real master table name.
+   * @param stagingMasterTableName the staging master table name.
+   * @param mainMasterTableName the main master table name.
    */
   private void swapInheritance(
-      String partitionTableName, String tempMasterTableName, String realMasterTableName) {
+      String partitionTableName, String stagingMasterTableName, String mainMasterTableName) {
     String[] sqlSteps = {
-      "alter table " + partitionTableName + " inherit " + realMasterTableName,
-      "alter table " + partitionTableName + " no inherit " + tempMasterTableName
+      "alter table " + partitionTableName + " inherit " + mainMasterTableName,
+      "alter table " + partitionTableName + " no inherit " + stagingMasterTableName
     };
 
     executeSafely(sqlSteps, true);

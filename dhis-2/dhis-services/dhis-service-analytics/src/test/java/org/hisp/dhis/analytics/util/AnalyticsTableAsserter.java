@@ -67,6 +67,8 @@ public class AnalyticsTableAsserter {
 
   private String name;
 
+  private String mainName;
+
   private AnalyticsTableAsserter() {}
 
   public void verify() {
@@ -74,6 +76,7 @@ public class AnalyticsTableAsserter {
     assertThat(table.getDimensionColumns(), hasSize(columnsSize));
     assertThat(table.getTableType(), is(tableType));
     assertThat(table.getName(), is(name));
+    assertThat(table.getMainName(), is(mainName));
     // verify default columns
     Map<String, AnalyticsTableColumn> tableColumnMap =
         Stream.concat(table.getDimensionColumns().stream(), table.getFactColumns().stream())
@@ -116,7 +119,9 @@ public class AnalyticsTableAsserter {
 
     private AnalyticsTableType _tableType;
 
-    private String _tableName;
+    private String _name;
+
+    private String _mainName;
 
     public Builder(AnalyticsTable analyticsTable) {
       _table = analyticsTable;
@@ -137,8 +142,13 @@ public class AnalyticsTableAsserter {
       return this;
     }
 
-    public Builder withTableName(String tableName) {
-      _tableName = tableName;
+    public Builder withName(String name) {
+      _name = name;
+      return this;
+    }
+
+    public Builder withMainName(String mainName) {
+      _mainName = mainName;
       return this;
     }
 
@@ -193,7 +203,8 @@ public class AnalyticsTableAsserter {
       asserter.tableType = _tableType;
       asserter.columns = _columns;
       asserter.matchers = _matchers;
-      asserter.name = _tableName;
+      asserter.name = _name;
+      asserter.mainName = _mainName;
       return asserter;
     }
   }

@@ -135,7 +135,7 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
   @Override
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
-    String tableName = partition.getTempName();
+    String tableName = partition.getName();
 
     String sql = "insert into " + tableName + " (";
 
