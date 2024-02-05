@@ -31,7 +31,6 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getEndDate;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getStartDate;
-import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.createIndexStatement;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getCollation;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
@@ -178,7 +177,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   @Override
   public void createIndex(Index index) {
-    String sql = createIndexStatement(index);
+    String sql = sqlBuilder.createIndex(index);
 
     log.debug("Create index: '{}' with SQL: '{}'", index.getName(), sql);
 
@@ -189,7 +188,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   @Override
   public void swapTable(AnalyticsTableUpdateParams params, AnalyticsTable table) {
-    boolean tableExists = partitionManager.tableExists(table.getName());
+    boolean tableExists = tableExists(table.getName());
     boolean skipMasterTable =
         params.isPartialUpdate() && tableExists && table.getTableType().isLatestPartition();
 
@@ -221,17 +220,17 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   @Override
   public void dropTableCascade(String tableName) {
-    executeSafely("drop table if exists " + tableName + " cascade");
+    executeSilently(sqlBuilder.dropTableIfExistsCascade(tableName));
   }
 
   @Override
   public void analyzeTable(String tableName) {
-    executeSafely("analyze " + tableName);
+    executeSilently(sqlBuilder.analyzeTable(tableName));
   }
 
   @Override
   public void vacuumTable(String tableName) {
-    executeSafely("vacuum " + tableName);
+    executeSilently(sqlBuilder.vacuumTable(tableName));
   }
 
   @Override
@@ -337,7 +336,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
       "alter table " + stagingTableName + " rename to " + mainTableName
     };
 
-    executeSafely(sqlSteps, true);
+    executeSilently(sqlSteps, true);
   }
 
   /**
@@ -355,7 +354,18 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
       "alter table " + partitionTableName + " no inherit " + stagingMasterTableName
     };
 
-    executeSafely(sqlSteps, true);
+    executeSilently(sqlSteps, true);
+  }
+
+  /**
+   * Indicates if a table with the given name exists.
+   *
+   * @param name the table name.
+   * @return true if a table with the given name exists.
+   */
+  private boolean tableExists(String name) {
+    String sql = sqlBuilder.tableExists(name);
+    return !jdbcTemplate.queryForList(sql).isEmpty();
   }
 
   // -------------------------------------------------------------------------
@@ -575,12 +585,12 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   // -------------------------------------------------------------------------
 
   /**
-   * Executes a SQL statement "safely" (without throwing any exception). Instead, exceptions are
+   * Executes a SQL statement silently (without throwing any exception). Instead, exceptions are
    * simply logged.
    *
    * @param sql the SQL statement.
    */
-  private void executeSafely(String sql) {
+  private void executeSilently(String sql) {
     try {
       jdbcTemplate.execute(sql);
     } catch (DataAccessException ex) {
@@ -589,21 +599,21 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   /**
-   * Executes a set of SQL statements "safely" (without throwing any exception). Instead, exceptions
-   * are simply logged.
+   * Executes a set of SQL statements (without throwing any exception). Instead, exceptions are
+   * simply logged.
    *
    * @param sqlStatements the SQL statements to be executed
    * @param atomically if true, the statements are executed all together in a single JDBC call
    */
-  private void executeSafely(String[] sqlStatements, boolean atomically) {
+  private void executeSilently(String[] sqlStatements, boolean atomically) {
     if (atomically) {
       String sql = String.join(";", sqlStatements) + ";";
       log.debug(sql);
-      executeSafely(sql);
+      executeSilently(sql);
     } else {
       for (int i = 0; i < sqlStatements.length; i++) {
         log.debug(sqlStatements[i]);
-        executeSafely(sqlStatements[i]);
+        executeSilently(sqlStatements[i]);
       }
     }
   }
