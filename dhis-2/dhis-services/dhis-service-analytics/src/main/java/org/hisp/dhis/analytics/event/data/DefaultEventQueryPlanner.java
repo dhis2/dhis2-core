@@ -120,12 +120,12 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
             ? PartitionUtils.getPartitions(params.getStartDate(), params.getEndDate())
             : PartitionUtils.getPartitions(params.getAllPeriods());
 
-    String baseName =
+    AnalyticsTableType tableType =
         params.hasEnrollmentProgramIndicatorDimension() || params.isAggregatedEnrollments()
-            ? AnalyticsTableType.ENROLLMENT.getTableName()
-            : AnalyticsTableType.EVENT.getTableName();
+            ? AnalyticsTableType.ENROLLMENT
+            : AnalyticsTableType.EVENT;
 
-    String tableName = AnalyticsTable.getTableName(baseName, params.getProgram());
+    String tableName = AnalyticsTable.getTableName(tableType.getTableName(), params.getProgram());
 
     if (params.getCurrentUser() != null) {
       partitionManager.filterNonExistingPartitions(partitions, tableName);

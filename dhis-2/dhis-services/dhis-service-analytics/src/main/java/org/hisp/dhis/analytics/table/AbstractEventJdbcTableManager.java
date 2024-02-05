@@ -162,7 +162,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
 
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
-    String sql = "insert into " + partition.getTempName() + " (";
+    String sql = "insert into " + tableName + " (";
 
     for (AnalyticsTableColumn col : columns) {
       sql += col.getName() + ",";
