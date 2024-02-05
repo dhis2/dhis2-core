@@ -190,7 +190,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   public void swapTable(AnalyticsTableUpdateParams params, AnalyticsTable table) {
     boolean tableExists = partitionManager.tableExists(table.getName());
     boolean skipMasterTable =
-        params.isPartialUpdate() && tableExists && table.getTableType().hasLatestPartition();
+        params.isPartialUpdate() && tableExists && table.getTableType().isLatestPartition();
 
     log.info(
         "Swapping table, master table exists: '{}', skip master table: '{}'",

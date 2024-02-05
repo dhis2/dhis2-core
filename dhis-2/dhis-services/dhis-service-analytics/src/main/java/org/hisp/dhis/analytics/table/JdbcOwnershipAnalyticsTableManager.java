@@ -155,6 +155,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
   @Override
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+    String tableName = partition.getTempName();
     Program program = partition.getMasterTable().getProgram();
 
     if (program.getProgramType() == WITHOUT_REGISTRATION) {
@@ -163,23 +164,24 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
 
     String sql = getInputSql(program);
 
-    log.debug("Populate table '{}' with SQL: '{}'", partition.getTempName(), sql);
+    log.debug("Populate table '{}' with SQL: '{}'", tableName, sql);
 
     Timer timer = new SystemTimer().start();
 
     populateOwnershipTableInternal(partition, sql);
 
-    log.info("Populate table '{}' in: '{}'", partition.getTempName(), timer.stop().toString());
+    log.info("Populate table '{}' in: '{}'", tableName, timer.stop().toString());
   }
 
   private void populateOwnershipTableInternal(AnalyticsTablePartition partition, String sql) {
+    String tableName = partition.getTempName();
     List<String> columnNames =
         getColumns().stream().map(AnalyticsTableColumn::getName).collect(toList());
 
     try (MappingBatchHandler batchHandler =
         MappingBatchHandler.builder()
             .jdbcConfiguration(jdbcConfiguration)
-            .tableName(partition.getTempName())
+            .tableName(tableName)
             .columns(columnNames)
             .build()) {
       batchHandler.init();
@@ -195,9 +197,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
           });
 
       log.info(
-          "OwnershipAnalytics query row count was {} for table '{}'",
-          queryRowCount,
-          partition.getTempName());
+          "OwnershipAnalytics query row count was {} for table '{}'", queryRowCount, tableName);
       batchHandler.flush();
     } catch (Exception ex) {
       log.error("Failed to alter table ownership: ", ex);

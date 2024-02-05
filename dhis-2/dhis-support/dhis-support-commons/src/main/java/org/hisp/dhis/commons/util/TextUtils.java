@@ -225,15 +225,17 @@ public class TextUtils {
    * character after the comma. It changes the object by reference, and returns the same object for
    * convenience.
    *
-   * @param stringBuilder the StringBuilder.
+   * @param builder the StringBuilder.
    * @return the chopped StringBuilder.
    */
-  public static StringBuilder removeLastComma(StringBuilder stringBuilder) {
-    if (stringBuilder != null && stringBuilder.length() > 0) {
-      stringBuilder.delete(stringBuilder.lastIndexOf(","), stringBuilder.length());
+  public static StringBuilder removeLastComma(StringBuilder builder) {
+    int index = -1;
+
+    if (builder != null && ((index = builder.lastIndexOf(",")) != -1)) {
+      builder.delete(index, builder.length());
     }
 
-    return stringBuilder;
+    return builder;
   }
 
   /**

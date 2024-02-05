@@ -39,7 +39,6 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.OrgUnitField;
-import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.data.QueryPlannerUtils;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -47,6 +46,7 @@ import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
+import org.hisp.dhis.analytics.table.model.Partitions;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.period.Period;
@@ -120,12 +120,12 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
             ? PartitionUtils.getPartitions(params.getStartDate(), params.getEndDate())
             : PartitionUtils.getPartitions(params.getAllPeriods());
 
-    String baseName =
+    AnalyticsTableType tableType =
         params.hasEnrollmentProgramIndicatorDimension() || params.isAggregatedEnrollments()
-            ? AnalyticsTableType.ENROLLMENT.getTableName()
-            : AnalyticsTableType.EVENT.getTableName();
+            ? AnalyticsTableType.ENROLLMENT
+            : AnalyticsTableType.EVENT;
 
-    String tableName = AnalyticsTable.getTableName(baseName, params.getProgram());
+    String tableName = AnalyticsTable.getTableName(tableType.getTableName(), params.getProgram());
 
     if (params.getCurrentUser() != null) {
       partitionManager.filterNonExistingPartitions(partitions, tableName);

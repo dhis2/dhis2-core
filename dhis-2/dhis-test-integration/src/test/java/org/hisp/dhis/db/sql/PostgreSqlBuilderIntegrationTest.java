@@ -132,24 +132,20 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
   @Test
   void testCreateAndDropTableC() {
     Table tableB = getTableB();
-
-    execute(sqlBuilder.createTable(tableB));
-
-    assertTrue(tableExists(tableB.getName()));
-
     Table tableC = getTableC();
 
+    execute(sqlBuilder.createTable(tableB));
     execute(sqlBuilder.createTable(tableC));
 
+    assertTrue(tableExists(tableB.getName()));
     assertTrue(tableExists(tableC.getName()));
 
     jdbcTemplate.execute(sqlBuilder.dropTableIfExists(tableC));
-
     jdbcTemplate.execute(sqlBuilder.dropTableIfExists(tableB));
   }
 
   @Test
-  void testCrateAndDropTableCascadeA() {
+  void testCreateAndDropTableCascade() {
     Table table = getTableA();
 
     execute(sqlBuilder.createTable(table));
