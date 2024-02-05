@@ -155,7 +155,7 @@ public class Table {
   /** Validates this object. */
   public void validate() {
     Validate.notBlank(name);
-    Validate.isTrue(isNotEmpty(columns) || notNull(parent));
+    Validate.isTrue(hasColumns() || hasParent());
   }
 
   /**
