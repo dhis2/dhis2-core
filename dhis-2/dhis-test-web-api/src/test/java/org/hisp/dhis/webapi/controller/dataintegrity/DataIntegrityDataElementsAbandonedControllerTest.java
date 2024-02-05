@@ -43,9 +43,6 @@ import org.junit.jupiter.api.Test;
  * Test for data elements which have been abandoned. This is taken to mean that there is no data
  * recorded against them, and they have not been updated in the last hundred days.
  *
- * <p>It is not possible to manually set the lastUpdate field for data elements, so it is not
- * possible to create a proper unit test for the scenario of identifying abandoned data elements.
- *
  * <p>{@see
  * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/data_elements/aggregate_des_abandoned.yaml
  * }
