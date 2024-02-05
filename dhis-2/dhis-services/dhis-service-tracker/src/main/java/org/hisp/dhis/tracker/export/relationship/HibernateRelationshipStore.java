@@ -129,7 +129,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
   }
 
   /**
-   * Query to extract a relationships with the order by clause
+   * Query to extract a relationships with the order by clause and pagination if required
    *
    * @param entity to filter the relationships
    * @param queryParams
@@ -142,7 +142,10 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
 
     TypedQuery<Relationship> query = getSession().createQuery(criteriaQuery);
 
-    offSet(query, pageParams);
+    if (pageParams != null) {
+      query.setFirstResult((pageParams.getPage() - 1) * pageParams.getPageSize());
+      query.setMaxResults(pageParams.getPageSize());
+    }
 
     return query.getResultList();
   }
@@ -187,20 +190,6 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     criteriaQuery.orderBy(orderBy(queryParams, builder, root));
 
     return criteriaQuery;
-  }
-
-  /**
-   * Set the first and last page of the query. {@link PageParams} might be null when pagination is
-   * not required
-   *
-   * @param criteriaQuery to which apply pagination
-   * @param pageParams
-   */
-  void offSet(TypedQuery<?> criteriaQuery, PageParams pageParams) {
-    if (pageParams != null) {
-      criteriaQuery.setFirstResult((pageParams.getPage() - 1) * pageParams.getPageSize());
-      criteriaQuery.setMaxResults(pageParams.getPageSize());
-    }
   }
 
   private <T extends SoftDeletableObject> Predicate[] whereConditionPredicates(
