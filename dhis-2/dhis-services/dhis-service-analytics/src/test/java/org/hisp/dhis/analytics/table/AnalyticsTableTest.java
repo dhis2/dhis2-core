@@ -125,8 +125,8 @@ class AnalyticsTableTest {
     AnalyticsTablePartition partitionB = tableA.getTablePartitions().get(1);
     assertNotNull(partitionA);
     assertNotNull(partitionB);
-    assertEquals("analytics_event_evxbpywkria_2014", partitionA.getName());
-    assertEquals("analytics_event_evxbpywkria_2015", partitionB.getName());
+    assertEquals("analytics_event_evxbpywkria_2014", partitionA.getMainName());
+    assertEquals("analytics_event_evxbpywkria_2015", partitionB.getMainName());
     assertEquals("analytics_event_evxbpywkria_2014_temp", partitionA.getName());
     assertEquals("analytics_event_evxbpywkria_2015_temp", partitionB.getName());
   }
