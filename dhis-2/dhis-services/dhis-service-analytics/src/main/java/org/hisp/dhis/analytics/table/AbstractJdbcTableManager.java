@@ -305,15 +305,14 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
       AnalyticsTable table, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
     String unlogged = table.isUnlogged() ? "unlogged" : "";
-    List<String> checks = partition.getChecks();
 
     StringBuilder sql = new StringBuilder();
 
     sql.append("create ").append(unlogged).append(" table ").append(tableName).append(" (");
 
-    if (!checks.isEmpty()) {
+    if (partition.hasChecks()) {
       StringBuilder sqlCheck = new StringBuilder();
-      checks.stream().forEach(check -> sqlCheck.append("check (" + check + "), "));
+      partition.getChecks().stream().forEach(check -> sqlCheck.append("check (" + check + "), "));
       sql.append(TextUtils.removeLastComma(sqlCheck.toString()));
     }
 
