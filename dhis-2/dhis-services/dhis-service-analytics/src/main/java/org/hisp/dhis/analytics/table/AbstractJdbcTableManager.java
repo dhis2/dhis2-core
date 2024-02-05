@@ -258,7 +258,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
     log.debug("Create table SQL: '{}'", sql);
 
-    jdbcTemplate.execute(sql.toString());
+    jdbcTemplate.execute(sql);
   }
 
   /**
@@ -285,7 +285,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
     log.debug("Create table SQL: '{}'", sql);
 
-    jdbcTemplate.execute(sql.toString());
+    jdbcTemplate.execute(sql);
   }
 
   /**

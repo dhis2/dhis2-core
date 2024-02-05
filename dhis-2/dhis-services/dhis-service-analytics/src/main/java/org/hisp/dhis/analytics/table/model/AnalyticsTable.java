@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.table.model;
 
 import java.util.Date;
 import java.util.List;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
@@ -47,6 +48,7 @@ import org.springframework.util.Assert;
  * @author Lars Helge Overland
  */
 @Getter
+@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 public class AnalyticsTable extends Table {
   /** Analytics table type. */
   private final AnalyticsTableType tableType;
