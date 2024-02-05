@@ -207,10 +207,22 @@ public interface SqlBuilder {
   String analyzeTable(Table table);
 
   /**
+   * @param name the table name.
+   * @return an analyze table statement.
+   */
+  String analyzeTable(String name);
+
+  /**
    * @param table the {@link Table}.
    * @return a vacuum table statement.
    */
   String vacuumTable(Table table);
+
+  /**
+   * @param name the table name.
+   * @return a vacuum table statement.
+   */
+  String vacuumTable(String name);
 
   /**
    * @param table the {@link Table}.
@@ -280,9 +292,8 @@ public interface SqlBuilder {
   String tableExists(String name);
 
   /**
-   * @param table the {@link Table}.
    * @param index the {@link Index}.
    * @return a create index statement.
    */
-  String createIndex(Table table, Index index);
+  String createIndex(Index index);
 }

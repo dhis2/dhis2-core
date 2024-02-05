@@ -242,45 +242,41 @@ class PostgreSqlBuilderTest {
 
   @Test
   void testCreateIndexA() {
-    Table table = getTableA();
     List<Index> indexes = getIndexesA();
 
     String expected =
         "create index \"in_immunization_data\" on \"immunization\" using btree(\"data\");";
 
-    assertEquals(expected, sqlBuilder.createIndex(table, indexes.get(0)));
+    assertEquals(expected, sqlBuilder.createIndex(indexes.get(0)));
   }
 
   @Test
   void testCreateIndexB() {
-    Table table = getTableA();
     List<Index> indexes = getIndexesA();
 
     String expected =
         "create index \"in_immunization_period_created\" on \"immunization\" using btree(\"period\", \"created\");";
 
-    assertEquals(expected, sqlBuilder.createIndex(table, indexes.get(1)));
+    assertEquals(expected, sqlBuilder.createIndex(indexes.get(1)));
   }
 
   @Test
   void testCreateIndexC() {
-    Table table = getTableA();
     List<Index> indexes = getIndexesA();
 
     String expected =
         "create index \"in_immunization_user\" on \"immunization\" using gin(\"user\");";
 
-    assertEquals(expected, sqlBuilder.createIndex(table, indexes.get(2)));
+    assertEquals(expected, sqlBuilder.createIndex(indexes.get(2)));
   }
 
   @Test
   void testCreateIndexD() {
-    Table table = getTableA();
     List<Index> indexes = getIndexesA();
 
     String expected =
         "create index \"in_immunization_data_period\" on \"immunization\" using btree(lower(\"data\"), lower(\"period\"));";
 
-    assertEquals(expected, sqlBuilder.createIndex(table, indexes.get(3)));
+    assertEquals(expected, sqlBuilder.createIndex(indexes.get(3)));
   }
 }

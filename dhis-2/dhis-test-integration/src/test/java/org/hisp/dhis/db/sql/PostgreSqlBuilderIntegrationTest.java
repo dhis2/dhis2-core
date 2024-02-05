@@ -197,11 +197,11 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
 
     execute(sqlBuilder.createTable(table));
 
-    assertDoesNotThrow(() -> execute(sqlBuilder.createIndex(table, indexes.get(0))));
+    assertDoesNotThrow(() -> execute(sqlBuilder.createIndex(indexes.get(0))));
 
-    assertDoesNotThrow(() -> execute(sqlBuilder.createIndex(table, indexes.get(1))));
+    assertDoesNotThrow(() -> execute(sqlBuilder.createIndex(indexes.get(1))));
 
-    assertDoesNotThrow(() -> execute(sqlBuilder.createIndex(table, indexes.get(2))));
+    assertDoesNotThrow(() -> execute(sqlBuilder.createIndex(indexes.get(2))));
 
     jdbcTemplate.execute(sqlBuilder.dropTableIfExists(table));
   }
