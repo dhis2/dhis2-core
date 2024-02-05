@@ -169,6 +169,8 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
 
     assertTrue(tableExists("immunization_temp"));
     assertFalse(tableExists(table.getName()));
+
+    jdbcTemplate.execute(sqlBuilder.dropTableIfExists("immunization_temp"));
   }
 
   @Test
