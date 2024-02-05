@@ -33,7 +33,6 @@ import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -135,7 +134,7 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
   @Override
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
-    String tableName = partition.getTempName();
+    String tableName = partition.getName();
 
     String sql = "insert into " + tableName + " (";
 

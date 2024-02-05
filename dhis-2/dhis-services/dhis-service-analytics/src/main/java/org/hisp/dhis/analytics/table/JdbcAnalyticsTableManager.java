@@ -616,7 +616,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   @Override
   public void applyAggregationLevels(
       AnalyticsTablePartition partition, Collection<String> dataElements, int aggregationLevel) {
-    StringBuilder sql = new StringBuilder("update " + partition.getTempName() + " set ");
+    StringBuilder sql = new StringBuilder("update " + partition.getName() + " set ");
 
     for (int i = 0; i < aggregationLevel; i++) {
       int level = i + 1;
@@ -638,7 +638,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
 
   @Override
   public void vacuumTables(AnalyticsTablePartition partition) {
-    vacuumTable(partition.getTempName());
+    vacuumTable(partition.getName());
   }
 
   /**

@@ -300,7 +300,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @param partition the {@link AnalyticsTablePartition}.
    */
   private void createTempTablePartition(AnalyticsTable table, AnalyticsTablePartition partition) {
-    String tableName = partition.getTempName();
+    String tableName = partition.getName();
     String unlogged = table.isUnlogged() ? "unlogged" : "";
     List<String> checks = getPartitionChecks(partition);
 
