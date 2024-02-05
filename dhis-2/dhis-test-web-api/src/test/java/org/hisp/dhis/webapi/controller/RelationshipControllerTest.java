@@ -33,7 +33,24 @@ import static org.hisp.dhis.webapi.WebClient.ContentType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Date;
+import java.util.Set;
+import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.relationship.RelationshipEntity;
+import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -45,6 +62,29 @@ import org.springframework.http.MediaType;
  * @author Jan Bernitt
  */
 class RelationshipControllerTest extends DhisControllerConvenienceTest {
+
+  private OrganisationUnit orgUnit;
+  private TrackedEntityType trackedEntityType;
+
+  private Program program;
+
+  private ProgramStage programStage;
+
+  @BeforeEach
+  void setUp() {
+    orgUnit = createOrganisationUnit('A');
+    manager.save(orgUnit, false);
+
+    trackedEntityType = createTrackedEntityType('B');
+    manager.save(trackedEntityType, false);
+
+    program = createProgram('A');
+    program.addOrganisationUnit(orgUnit);
+    manager.save(program, false);
+
+    programStage = createProgramStage('A', program);
+    manager.save(programStage, false);
+  }
 
   @Test
   void testPostRelationshipJson() {
@@ -97,5 +137,188 @@ class RelationshipControllerTest extends DhisControllerConvenienceTest {
         "ERROR",
         "No relationship with id 'xyz' was found.",
         DELETE("/relationships/xyz").content(HttpStatus.NOT_FOUND));
+  }
+
+  @Test
+  void shouldNotGetRelationshipsByTrackedEntityWhenRelationshipIsDeleted() {
+    TrackedEntityInstance to = trackedEntity();
+    ProgramInstance from = enrollment(to);
+    Relationship r = relationship(from, to);
+
+    assertRelationship(
+        r, GET("/relationships?tei={te}", to.getUid()).content(HttpStatus.OK).as(JsonArray.class));
+
+    manager.delete(r);
+
+    assertNoRelationships(
+        GET("/relationships?tei={te}", to.getUid()).content(HttpStatus.OK).as(JsonArray.class));
+  }
+
+  @Test
+  void shouldNotGetRelationshipsByEnrollmentWhenRelationshipIsDeleted() {
+    TrackedEntityInstance to = trackedEntity();
+    ProgramInstance from = enrollment(to);
+    Relationship r = relationship(from, to);
+
+    assertRelationship(
+        r,
+        GET("/relationships?enrollment={en}", from.getUid())
+            .content(HttpStatus.OK)
+            .as(JsonArray.class));
+
+    manager.delete(r);
+
+    assertNoRelationships(
+        GET("/relationships?enrollment={en}", from.getUid())
+            .content(HttpStatus.OK)
+            .as(JsonArray.class));
+  }
+
+  @Test
+  void shouldNotGetRelationshipsByEventWhenRelationshipIsDeleted() {
+    TrackedEntityInstance to = trackedEntity();
+    ProgramStageInstance from = event(enrollment(to));
+    Relationship r = relationship(from, to);
+
+    assertRelationship(
+        r,
+        GET("/relationships?event={ev}", from.getUid()).content(HttpStatus.OK).as(JsonArray.class));
+
+    manager.delete(r);
+
+    assertNoRelationships(
+        GET("/relationships?event={ev}", from.getUid()).content(HttpStatus.OK).as(JsonArray.class));
+  }
+
+  private TrackedEntityInstance trackedEntity() {
+    TrackedEntityInstance te = trackedEntity(orgUnit);
+    manager.save(te, false);
+    return te;
+  }
+
+  private TrackedEntityInstance trackedEntity(OrganisationUnit orgUnit) {
+    TrackedEntityInstance te = trackedEntity(orgUnit, trackedEntityType);
+    manager.save(te, false);
+    return te;
+  }
+
+  private TrackedEntityInstance trackedEntity(
+      OrganisationUnit orgUnit, TrackedEntityType trackedEntityType) {
+    TrackedEntityInstance te = createTrackedEntityInstance(orgUnit);
+    te.setTrackedEntityType(trackedEntityType);
+    te.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    return te;
+  }
+
+  private ProgramInstance enrollment(TrackedEntityInstance te) {
+    ProgramInstance enrollment = new ProgramInstance(program, te, orgUnit);
+    enrollment.setAutoFields();
+    enrollment.setEnrollmentDate(new Date());
+    enrollment.setIncidentDate(new Date());
+    enrollment.setStatus(ProgramStatus.COMPLETED);
+    manager.save(enrollment, false);
+    te.setProgramInstances(Set.of(enrollment));
+    manager.save(te, false);
+    return enrollment;
+  }
+
+  private ProgramStageInstance event(ProgramInstance enrollment) {
+    ProgramStageInstance event = new ProgramStageInstance(enrollment, programStage, orgUnit);
+    event.setAutoFields();
+    manager.save(event, false);
+    enrollment.setProgramStageInstances(Set.of(event));
+    manager.save(enrollment, false);
+    return event;
+  }
+
+  private RelationshipType relationshipTypeAccessible(
+      RelationshipEntity from, RelationshipEntity to) {
+    RelationshipType type = relationshipType(from, to);
+    manager.save(type, false);
+    return type;
+  }
+
+  private RelationshipType relationshipType(RelationshipEntity from, RelationshipEntity to) {
+    RelationshipType type = createRelationshipType('A');
+    type.getFromConstraint().setRelationshipEntity(from);
+    type.getToConstraint().setRelationshipEntity(to);
+    type.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    manager.save(type, false);
+    return type;
+  }
+
+  private Relationship relationship(ProgramStageInstance from, TrackedEntityInstance to) {
+    Relationship r = new Relationship();
+
+    RelationshipItem fromItem = new RelationshipItem();
+    fromItem.setProgramStageInstance(from);
+    from.getRelationshipItems().add(fromItem);
+    r.setFrom(fromItem);
+    fromItem.setRelationship(r);
+
+    RelationshipItem toItem = new RelationshipItem();
+    toItem.setTrackedEntityInstance(to);
+    to.getRelationshipItems().add(toItem);
+    r.setTo(toItem);
+    toItem.setRelationship(r);
+
+    RelationshipType type =
+        relationshipTypeAccessible(
+            RelationshipEntity.PROGRAM_STAGE_INSTANCE, RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    r.setRelationshipType(type);
+    r.setKey(type.getUid());
+    r.setInvertedKey(type.getUid());
+
+    r.setAutoFields();
+    r.setCreated(new Date());
+    manager.save(r, false);
+    return r;
+  }
+
+  private Relationship relationship(ProgramInstance from, TrackedEntityInstance to) {
+    manager.save(from, false);
+    manager.save(to, false);
+
+    Relationship r = new Relationship();
+
+    RelationshipItem fromItem = new RelationshipItem();
+    fromItem.setProgramInstance(from);
+    from.getRelationshipItems().add(fromItem);
+    r.setFrom(fromItem);
+    fromItem.setRelationship(r);
+
+    RelationshipItem toItem = new RelationshipItem();
+    toItem.setTrackedEntityInstance(to);
+    to.getRelationshipItems().add(toItem);
+    r.setTo(toItem);
+    toItem.setRelationship(r);
+
+    RelationshipType type =
+        relationshipTypeAccessible(
+            RelationshipEntity.PROGRAM_INSTANCE, RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    r.setRelationshipType(type);
+    r.setKey(type.getUid());
+    r.setInvertedKey(type.getUid());
+
+    r.setAutoFields();
+    manager.save(r, false);
+    return r;
+  }
+
+  public void assertNoRelationships(JsonArray json) {
+    assertEquals(0, json.size(), "Response should have no relationship");
+  }
+
+  public static void assertRelationship(Relationship expected, JsonArray json) {
+    assertEquals(
+        1,
+        json.size(),
+        String.format("Relationship response should contain relationship %s", expected.getUid()));
+    assertEquals(
+        expected.getUid(),
+        json.get(0).asObject().getString("relationship").string(),
+        String.format(
+            "Relationship response should contain relationship %s but got %s",
+            expected.getUid(), json.get(0).asObject().getString("relationship").string()));
   }
 }
