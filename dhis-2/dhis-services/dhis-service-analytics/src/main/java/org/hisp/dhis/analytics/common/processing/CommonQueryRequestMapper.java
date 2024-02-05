@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.common.processing;
 
+import static java.util.Arrays.stream;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.unmodifiableList;
 import static org.hisp.dhis.analytics.EventOutputType.TRACKED_ENTITY_INSTANCE;
@@ -46,8 +47,8 @@ import static org.hisp.dhis.feedback.ErrorCode.E7250;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Streams;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -55,9 +56,12 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.analytics.common.params.AnalyticsPagingParams;
@@ -315,7 +319,7 @@ public class CommonQueryRequestMapper {
    * @return the {@link List} of String.
    */
   private static List<String> splitOnOrIfNecessary(String dimensionAsString) {
-    return Arrays.stream(DIMENSION_OR_SEPARATOR.split(dimensionAsString)).toList();
+    return stream(DIMENSION_OR_SEPARATOR.split(dimensionAsString)).toList();
   }
 
   /**
@@ -425,10 +429,71 @@ public class CommonQueryRequestMapper {
       }
     }
 
+    // for queryItems, dimension string is in the format:
+    // uid:OP:VAL1:OP2:VAL2:OPn:VALn
     return DimensionIdentifier.of(
         dimensionIdentifier.getProgram(),
         dimensionIdentifier.getProgramStage(),
-        DimensionParam.ofObject(queryItem, dimensionParamType, items));
+        DimensionParam.ofObject(
+            queryItem, dimensionParamType, parseDimensionItems(dimensionOrFilter)));
+  }
+
+  /**
+   * Parses the dimension items from the given dimension or filter into a {@link List} of String.
+   * The format of the dimension or filter is: uid:OP:VAL1:OP2:VAL2:...:OPn:VALn The method will
+   * skip the first element (the uid) and then return a list of all the remaining pairs of operator
+   * and value. (example ["OP:VAL1", "OP2:VAL2", ..., "OPn:VALn"])
+   *
+   * @param dimensionOrFilter the dimension string.
+   * @return the {@link List} of parsed dimension items.
+   */
+  private List<String> parseDimensionItems(String dimensionOrFilter) {
+    if (Objects.isNull(dimensionOrFilter) || !dimensionOrFilter.contains(":")) {
+      return Collections.emptyList();
+    }
+    return toPairs(
+            stream(dimensionOrFilter.split(":"))
+                .skip(1) // Skip the dimensionId
+                .map(String::trim)
+                .filter(StringUtils::isNotBlank))
+        .map(CommonQueryRequestMapper::toItem)
+        .toList();
+  }
+
+  /**
+   * Returns a string representation of the given pair by joining the left and right elements with a
+   * colon.
+   *
+   * @param pair the pair.
+   * @return the string representation.
+   */
+  private static String toItem(Pair<String, String> pair) {
+    return Stream.of(pair.getLeft(), pair.getRight())
+        .filter(Objects::nonNull)
+        .collect(Collectors.joining(":"));
+  }
+
+  /**
+   * Returns a {@link Stream} of pairs of elements from the given stream, where each pair is
+   * composed of the current element and the next element. Example of input: [1, 2, 3, 4, 5] Example
+   * of output: [(1, 2), (3, 4), (5, null)]
+   *
+   * @param stream the input stream.
+   * @return the {@link Stream} of pairs.
+   * @param <T> the type of the elements in the stream.
+   */
+  private <T> Stream<Pair<T, T>> toPairs(final Stream<T> stream) {
+    final AtomicInteger counter = new AtomicInteger(0);
+    return stream
+        .collect(
+            Collectors.groupingBy(
+                item -> {
+                  final int i = counter.getAndIncrement();
+                  return (i % 2 == 0) ? i : i - 1;
+                }))
+        .values()
+        .stream()
+        .map(a -> Pair.of(a.get(0), (a.size() == 2 ? a.get(1) : null)));
   }
 
   private static DimensionIdentifier<DimensionParam> parseAsStaticDimension(
