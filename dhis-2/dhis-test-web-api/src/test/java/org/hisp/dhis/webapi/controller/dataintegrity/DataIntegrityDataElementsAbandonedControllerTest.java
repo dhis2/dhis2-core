@@ -32,15 +32,12 @@ import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
-import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.web.WebClient;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Test for data elements which have been abandoned. This is taken to mean that there is no data
@@ -64,7 +61,6 @@ class DataIntegrityDataElementsAbandonedControllerTest
   private String orgUnitId;
 
   private static final String period = "202212";
-
 
   @Test
   void testDataElementsNotAbandoned() {
@@ -106,9 +102,9 @@ class DataIntegrityDataElementsAbandonedControllerTest
     dataElement.setZeroIsSignificant(false);
     dataElement.setCategoryCombo(categoryService.getDefaultCategoryCombo());
     // Set the lastupdated to the number of days ago
-    Date hundredDaysAgo = Date.from(ZonedDateTime.now().minusDays(daysAgo).toInstant());
-    dataElement.setLastUpdated(hundredDaysAgo);
-    dataElement.setCreated(hundredDaysAgo);
+    Date numberDaysAgo = Date.from(ZonedDateTime.now().minusDays(daysAgo).toInstant());
+    dataElement.setLastUpdated(numberDaysAgo);
+    dataElement.setCreated(numberDaysAgo);
     manager.persist(dataElement);
     dbmsManager.flushSession();
     dbmsManager.clearSession();
