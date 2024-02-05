@@ -538,10 +538,10 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   // -------------------------------------------------------------------------
 
   /**
-   * Executes a SQL statement silently (without throwing any exception). Instead, exceptions are
-   * simply logged.
+   * Executes a SQL statement silently without throwing any exceptions. Instead exceptions are
+   * logged.
    *
-   * @param sql the SQL statement.
+   * @param sql the SQL statement to execute.
    */
   private void executeSilently(String sql) {
     try {
