@@ -44,7 +44,6 @@ import static org.hisp.dhis.db.model.DataType.VARCHAR_50;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -196,7 +195,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
   @Override
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
-    String tableName = partition.getTempName();
+    String tableName = partition.getName();
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
     StringBuilder sql = new StringBuilder("insert into " + tableName + " (");

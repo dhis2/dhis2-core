@@ -33,7 +33,6 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.removeQuote;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.db.model.DataType.TEXT;
-
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang3.RegExUtils;
@@ -82,9 +81,9 @@ public class AnalyticsIndexHelper {
           List<String> columns =
               col.hasIndexColumns() ? col.getIndexColumns() : List.of(col.getName());
 
-          indexes.add(new Index(name, partition.getTempName(), col.getIndexType(), columns));
+          indexes.add(new Index(name, partition.getName(), col.getIndexType(), columns));
 
-          maybeAddTextLowerIndex(indexes, name, partition.getTempName(), col, columns);
+          maybeAddTextLowerIndex(indexes, name, partition.getName(), col, columns);
         }
       }
     }

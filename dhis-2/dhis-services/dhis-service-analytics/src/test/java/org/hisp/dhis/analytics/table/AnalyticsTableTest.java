@@ -37,7 +37,6 @@ import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-
 import java.util.List;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
@@ -61,8 +60,8 @@ class AnalyticsTableTest {
   void testGetTableName() {
     AnalyticsTable table =
         new AnalyticsTable(AnalyticsTableType.COMPLETENESS, List.of(), Logged.UNLOGGED);
-    assertEquals("analytics_completeness", table.getName());
-    assertEquals("analytics_completeness_temp", table.getTempName());
+    assertEquals("analytics_completeness", table.getMainName());
+    assertEquals("analytics_completeness_temp", table.getName());
   }
 
   @Test
@@ -71,8 +70,8 @@ class AnalyticsTableTest {
     program.setUid("rfT56YbgFeK");
     AnalyticsTable table =
         new AnalyticsTable(AnalyticsTableType.EVENT, List.of(), Logged.UNLOGGED, program);
-    assertEquals("analytics_event_rft56ybgfek", table.getName());
-    assertEquals("analytics_event_temp_rft56ybgfek", table.getTempName());
+    assertEquals("analytics_event_rft56ybgfek", table.getMainName());
+    assertEquals("analytics_event_rft56ybgfek_temp", table.getName());
   }
 
   @Test
@@ -82,8 +81,8 @@ class AnalyticsTableTest {
     AnalyticsTable table =
         new AnalyticsTable(
             AnalyticsTableType.ENROLLMENT, List.of(), Logged.UNLOGGED, trackedEntityType);
-    assertEquals("analytics_enrollment_k7gfrbe3rt5", table.getName());
-    assertEquals("analytics_enrollment_temp_k7gfrbe3rt5", table.getTempName());
+    assertEquals("analytics_enrollment_k7gfrbe3rt5", table.getMainName());
+    assertEquals("analytics_enrollment_k7gfrbe3rt5_temp", table.getName());
   }
 
   @Test
@@ -115,7 +114,7 @@ class AnalyticsTableTest {
   @Test
   void testGetTablePartitionName() {
     Program program = new Program("ProgramA", "DescriptionA");
-    program.setUid("UIDA");
+    program.setUid("EvxbPYWkrIa");
     Period periodA = new YearlyPeriodType().createPeriod(new DateTime(2014, 1, 1, 0, 0).toDate());
     Period periodB = new YearlyPeriodType().createPeriod(new DateTime(2015, 1, 1, 0, 0).toDate());
     AnalyticsTable tableA =
@@ -126,10 +125,10 @@ class AnalyticsTableTest {
     AnalyticsTablePartition partitionB = tableA.getTablePartitions().get(1);
     assertNotNull(partitionA);
     assertNotNull(partitionB);
-    assertEquals("analytics_event_uida_2014", partitionA.getName());
-    assertEquals("analytics_event_uida_2015", partitionB.getName());
-    assertEquals("analytics_event_temp_uida_2014", partitionA.getTempName());
-    assertEquals("analytics_event_temp_uida_2015", partitionB.getTempName());
+    assertEquals("analytics_event_evxbpywkria_2014", partitionA.getName());
+    assertEquals("analytics_event_evxbpywkria_2015", partitionB.getName());
+    assertEquals("analytics_event_evxbpywkria_2014_temp", partitionA.getName());
+    assertEquals("analytics_event_evxbpywkria_2015_temp", partitionB.getName());
   }
 
   @Test

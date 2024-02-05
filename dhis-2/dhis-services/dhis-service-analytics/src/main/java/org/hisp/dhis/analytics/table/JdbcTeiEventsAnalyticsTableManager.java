@@ -51,7 +51,6 @@ import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -275,7 +274,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
   @Override
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
-    String tableName = partition.getTempName();
+    String tableName = partition.getName();
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
     String start = getLongDateString(partition.getStartDate());
