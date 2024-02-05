@@ -432,7 +432,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     Integer firstDataYear = availableDataYears.get(0);
     Integer latestDataYear = availableDataYears.get(availableDataYears.size() - 1);
 
-    Program program = partition.getParent().getProgram();
+    Program program = partition.getMasterTable().getProgram();
     String start = DateUtils.getLongDateString(partition.getStartDate());
     String end = DateUtils.getLongDateString(partition.getEndDate());
     String partitionClause =
