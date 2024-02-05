@@ -216,6 +216,15 @@ public class AnalyticsTable {
   }
 
   /**
+   * Returns the count of all columns.
+   *
+   * @return the count of all columns.
+   */
+  public int getColumnCount() {
+    return getAnalyticsTableColumns().size();
+  }
+
+  /**
    * Adds an analytics partition table to this master table.
    *
    * @param checks the partition checks.

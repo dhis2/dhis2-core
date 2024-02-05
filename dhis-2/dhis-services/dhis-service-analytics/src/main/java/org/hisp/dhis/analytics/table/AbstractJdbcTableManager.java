@@ -278,8 +278,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
     TextUtils.removeLastComma(sql).append(")");
 
-    log.info(
-        "Creating table: '{}', columns: '{}'", tableName, table.getAnalyticsTableColumns().size());
+    log.info("Creating table: '{}', columns: '{}'", tableName, table.getColumnCount());
     log.debug("Create table SQL: '{}'", sql);
 
     jdbcTemplate.execute(sql.toString());
