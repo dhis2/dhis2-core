@@ -82,7 +82,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
 
     invokeTableHooks(tableType);
 
-    createIndexes(stagingTable, indexes);
+    createIndexes(indexes);
 
     jdbcTemplate.execute(sqlBuilder.analyzeTable(stagingTable));
 
@@ -140,13 +140,12 @@ public class JdbcResourceTableStore implements ResourceTableStore {
   /**
    * Creates indexes for the given table.
    *
-   * @param table the {@link Table}.
    * @param indexes the list of {@link Index} to create.
    */
-  private void createIndexes(Table table, List<Index> indexes) {
+  private void createIndexes(List<Index> indexes) {
     if (CollectionUtils.isNotEmpty(indexes)) {
       for (Index index : indexes) {
-        jdbcTemplate.execute(sqlBuilder.createIndex(table, index));
+        jdbcTemplate.execute(sqlBuilder.createIndex(index));
       }
     }
   }
