@@ -207,21 +207,21 @@ public class AnalyticsTable {
   }
 
   /**
-   * Indicates whether the table is unlogged.
-   *
-   * @return true if the table is unlogged.
-   */
-  public boolean isUnlogged() {
-    return Logged.UNLOGGED == logged;
-  }
-
-  /**
    * Returns the count of all columns.
    *
    * @return the count of all columns.
    */
   public int getColumnCount() {
     return getAnalyticsTableColumns().size();
+  }
+
+  /**
+   * Indicates whether the table is unlogged.
+   *
+   * @return true if the table is unlogged.
+   */
+  public boolean isUnlogged() {
+    return Logged.UNLOGGED == logged;
   }
 
   /**
