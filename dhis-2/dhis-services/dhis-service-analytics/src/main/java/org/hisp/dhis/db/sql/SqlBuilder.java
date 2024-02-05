@@ -281,8 +281,7 @@ public interface SqlBuilder {
 
   /**
    * @param table the {@link Table}.
-   * @param index the {@link Index}.
    * @return a create index statement.
    */
-  String createIndex(Table table, Index index);
+  String createIndex(Index index);
 }

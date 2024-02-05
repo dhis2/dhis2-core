@@ -30,7 +30,6 @@ package org.hisp.dhis.db.sql;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
-
 import java.util.stream.Collectors;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
@@ -300,8 +299,9 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String createIndex(Table table, Index index) {
+  public String createIndex(Index index) {
     String unique = index.getUnique() == Unique.UNIQUE ? "unique " : "";
+    String tableName = index.getTableName();
     String typeName = getIndexTypeName(index.getIndexType());
 
     String columns =
@@ -311,6 +311,6 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
     return String.format(
         "create %sindex %s on %s using %s(%s);",
-        unique, quote(index.getName()), quote(table.getName()), typeName, columns);
+        unique, quote(index.getName()), quote(tableName), typeName, columns);
   }
 }

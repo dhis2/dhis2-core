@@ -30,7 +30,6 @@ package org.hisp.dhis.db.sql;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.util.List;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
@@ -197,11 +196,11 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
 
     execute(sqlBuilder.createTable(table));
 
-    assertDoesNotThrow(() -> execute(sqlBuilder.createIndex(table, indexes.get(0))));
+    assertDoesNotThrow(() -> execute(sqlBuilder.createIndex(indexes.get(0))));
 
-    assertDoesNotThrow(() -> execute(sqlBuilder.createIndex(table, indexes.get(1))));
+    assertDoesNotThrow(() -> execute(sqlBuilder.createIndex(indexes.get(1))));
 
-    assertDoesNotThrow(() -> execute(sqlBuilder.createIndex(table, indexes.get(2))));
+    assertDoesNotThrow(() -> execute(sqlBuilder.createIndex(indexes.get(2))));
 
     jdbcTemplate.execute(sqlBuilder.dropTableIfExists(table));
   }

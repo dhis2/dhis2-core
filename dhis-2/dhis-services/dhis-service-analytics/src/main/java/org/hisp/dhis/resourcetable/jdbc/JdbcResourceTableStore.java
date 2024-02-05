@@ -29,8 +29,6 @@ package org.hisp.dhis.resourcetable.jdbc;
 
 import java.util.List;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
@@ -46,6 +44,8 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.hisp.dhis.system.util.Clock;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -82,7 +82,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
 
     invokeTableHooks(tableType);
 
-    createIndexes(stagingTable, indexes);
+    createIndexes(indexes);
 
     jdbcTemplate.execute(sqlBuilder.analyzeTable(stagingTable));
 
@@ -140,13 +140,12 @@ public class JdbcResourceTableStore implements ResourceTableStore {
   /**
    * Creates indexes for the given table.
    *
-   * @param table the {@link Table}.
    * @param indexes the list of {@link Index} to create.
    */
-  private void createIndexes(Table table, List<Index> indexes) {
+  private void createIndexes(List<Index> indexes) {
     if (CollectionUtils.isNotEmpty(indexes)) {
       for (Index index : indexes) {
-        jdbcTemplate.execute(sqlBuilder.createIndex(table, index));
+        jdbcTemplate.execute(sqlBuilder.createIndex(index));
       }
     }
   }
