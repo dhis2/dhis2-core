@@ -285,8 +285,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
           new AnalyticsTable(getAnalyticsTableType(), getColumns(program), logged, program);
 
       for (Integer year : yearsForPartitionTables) {
-        List<String> checks =
-            getPartitionChecks(latestDataYear, PartitionUtils.getEndDate(calendar, year));
+        List<String> checks = getPartitionChecks(year, PartitionUtils.getEndDate(calendar, year));
         table.addPartitionTable(
             checks,
             year,
