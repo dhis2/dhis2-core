@@ -285,7 +285,7 @@ public class CommonQueryRequestMapper {
 
   /**
    * Returns a {@link List} of {@link DimensionIdentifier} built from given arguments, params and
-   * filter, assigning the same (random) groupId to all dimensionIdentifier.
+   * filter, assigning a groupId to all dimensionIdentifier.
    *
    * @param dimensions the {@link List} of dimensions.
    * @param dimensionParamType the {@link DimensionParamType}.
@@ -301,15 +301,30 @@ public class CommonQueryRequestMapper {
       CommonQueryRequest queryRequest,
       List<Program> programs,
       List<OrganisationUnit> userOrgUnits) {
-    String groupId = UUID.randomUUID().toString();
-
     return dimensions.stream()
         .map(
             dimensionAsString ->
                 toDimensionIdentifier(
                     dimensionAsString, dimensionParamType, queryRequest, programs, userOrgUnits))
-        .map(dimensionIdentifier -> dimensionIdentifier.withGroupId(groupId))
+        .map(this::withGroupId)
         .toList();
+  }
+
+  /**
+   * Assigns a groupId to the given {@link DimensionIdentifier}. If the dimension is static or
+   * period, it will assign a default groupId (the full dimensionIdentifier). Otherwise, it will
+   * assign a random UUID as groupId.
+   *
+   * @param dimensionIdentifier the {@link DimensionIdentifier}.
+   * @return the {@link DimensionIdentifier} with a groupId.
+   */
+  private DimensionIdentifier<DimensionParam> withGroupId(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+    if (dimensionIdentifier.getDimension().isStaticDimension()
+        || dimensionIdentifier.getDimension().isPeriodDimension()) {
+      return dimensionIdentifier.withDefaultGroupId();
+    }
+    return dimensionIdentifier.withGroupId(UUID.randomUUID().toString());
   }
 
   /**

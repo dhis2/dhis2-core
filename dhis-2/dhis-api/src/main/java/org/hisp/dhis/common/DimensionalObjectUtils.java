@@ -157,7 +157,9 @@ public class DimensionalObjectUtils {
               parent,
               dimension);
 
-          boolean associationFound = qualifiedDim.equals(eventRepetition.qualifiedDimension());
+          boolean associationFound =
+              qualifiedDim.equals(eventRepetition.qualifiedDimension())
+                  || dimension.equals(eventRepetition.qualifiedDimension());
 
           if (associationFound) {
             ((BaseDimensionalObject) dimensionalObject).setEventRepetition(eventRepetition);

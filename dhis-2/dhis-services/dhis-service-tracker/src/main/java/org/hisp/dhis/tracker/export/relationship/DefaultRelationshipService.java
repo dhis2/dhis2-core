@@ -210,6 +210,7 @@ public class DefaultRelationshipService implements RelationshipService {
     result.setCreatedBy(relationship.getCreatedBy());
     result.setLastUpdated(relationship.getLastUpdated());
     result.setLastUpdatedBy(relationship.getLastUpdatedBy());
+    result.setDeleted(relationship.isDeleted());
     RelationshipType type = new RelationshipType();
     type.setUid(relationship.getRelationshipType().getUid());
     result.setRelationshipType(relationship.getRelationshipType());

@@ -117,10 +117,11 @@ public abstract class AbstractRelationshipService implements RelationshipService
   public List<Relationship> getRelationshipsByTrackedEntityInstance(
       TrackedEntity tei,
       PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean skipAccessValidation) {
+      boolean skipAccessValidation,
+      boolean includeDeleted) {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     return relationshipService
-        .getRelationshipsByTrackedEntity(tei, pagingAndSortingCriteriaAdapter, skipAccessValidation)
+        .getRelationshipsByTrackedEntity(tei, pagingAndSortingCriteriaAdapter, includeDeleted)
         .stream()
         .filter(
             r -> !skipAccessValidation && trackerAccessManager.canRead(currentUser, r).isEmpty())
@@ -135,11 +136,11 @@ public abstract class AbstractRelationshipService implements RelationshipService
   public List<Relationship> getRelationshipsByEnrollment(
       Enrollment enrollment,
       PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean skipAccessValidation) {
+      boolean skipAccessValidation,
+      boolean includeDeleted) {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     return relationshipService
-        .getRelationshipsByEnrollment(
-            enrollment, pagingAndSortingCriteriaAdapter, skipAccessValidation)
+        .getRelationshipsByEnrollment(enrollment, pagingAndSortingCriteriaAdapter, includeDeleted)
         .stream()
         .filter(
             r -> !skipAccessValidation && trackerAccessManager.canRead(currentUser, r).isEmpty())
@@ -154,10 +155,11 @@ public abstract class AbstractRelationshipService implements RelationshipService
   public List<Relationship> getRelationshipsByEvent(
       Event psi,
       PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean skipAccessValidation) {
+      boolean skipAccessValidation,
+      boolean includeDeleted) {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     return relationshipService
-        .getRelationshipsByEvent(psi, pagingAndSortingCriteriaAdapter, skipAccessValidation)
+        .getRelationshipsByEvent(psi, pagingAndSortingCriteriaAdapter, includeDeleted)
         .stream()
         .filter(
             r -> !skipAccessValidation && trackerAccessManager.canRead(currentUser, r).isEmpty())
