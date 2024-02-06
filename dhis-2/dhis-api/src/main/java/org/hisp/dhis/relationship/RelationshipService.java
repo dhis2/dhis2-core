@@ -98,34 +98,37 @@ public interface RelationshipService {
   List<Relationship> getRelationships(@Nonnull List<String> uids);
 
   default List<Relationship> getRelationshipsByTrackedEntityInstance(
-      TrackedEntityInstance tei, boolean skipAccessValidation) {
-    return getRelationshipsByTrackedEntityInstance(tei, null, skipAccessValidation);
+      TrackedEntityInstance tei, boolean skipAccessValidation, boolean includeDeleted) {
+    return getRelationshipsByTrackedEntityInstance(tei, null, skipAccessValidation, includeDeleted);
   }
 
   List<Relationship> getRelationshipsByTrackedEntityInstance(
       TrackedEntityInstance tei,
       PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean skipAccessValidation);
+      boolean skipAccessValidation,
+      boolean includeDeleted);
 
   default List<Relationship> getRelationshipsByProgramInstance(
-      ProgramInstance pi, boolean skipAccessValidation) {
-    return getRelationshipsByProgramInstance(pi, null, skipAccessValidation);
+      ProgramInstance pi, boolean skipAccessValidation, boolean includeDeleted) {
+    return getRelationshipsByProgramInstance(pi, null, skipAccessValidation, includeDeleted);
   }
 
   List<Relationship> getRelationshipsByProgramInstance(
       ProgramInstance pi,
       PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean skipAccessValidation);
+      boolean skipAccessValidation,
+      boolean includeDeleted);
 
   default List<Relationship> getRelationshipsByProgramStageInstance(
-      ProgramStageInstance psi, boolean skipAccessValidation) {
-    return getRelationshipsByProgramStageInstance(psi, null, skipAccessValidation);
+      ProgramStageInstance psi, boolean skipAccessValidation, boolean includeDeleted) {
+    return getRelationshipsByProgramStageInstance(psi, null, skipAccessValidation, includeDeleted);
   }
 
   List<Relationship> getRelationshipsByProgramStageInstance(
       ProgramStageInstance psi,
       PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean skipAccessValidation);
+      boolean skipAccessValidation,
+      boolean includeDeleted);
 
   List<Relationship> getRelationshipsByRelationshipType(RelationshipType relationshipType);
 }

@@ -118,12 +118,13 @@ public abstract class AbstractRelationshipService implements RelationshipService
   public List<Relationship> getRelationshipsByTrackedEntityInstance(
       TrackedEntityInstance tei,
       PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean skipAccessValidation) {
+      boolean skipAccessValidation,
+      boolean includeDeleted) {
     User user = currentUserService.getCurrentUser();
 
     return relationshipService
         .getRelationshipsByTrackedEntityInstance(
-            tei, pagingAndSortingCriteriaAdapter, skipAccessValidation)
+            tei, pagingAndSortingCriteriaAdapter, skipAccessValidation, includeDeleted)
         .stream()
         .filter((r) -> !skipAccessValidation && trackerAccessManager.canRead(user, r).isEmpty())
         .map(r -> getRelationship(r, user))
@@ -137,12 +138,13 @@ public abstract class AbstractRelationshipService implements RelationshipService
   public List<Relationship> getRelationshipsByProgramInstance(
       ProgramInstance pi,
       PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean skipAccessValidation) {
+      boolean skipAccessValidation,
+      boolean includeDeleted) {
     User user = currentUserService.getCurrentUser();
 
     return relationshipService
         .getRelationshipsByProgramInstance(
-            pi, pagingAndSortingCriteriaAdapter, skipAccessValidation)
+            pi, pagingAndSortingCriteriaAdapter, skipAccessValidation, includeDeleted)
         .stream()
         .filter((r) -> !skipAccessValidation && trackerAccessManager.canRead(user, r).isEmpty())
         .map(r -> getRelationship(r, user))
@@ -156,12 +158,13 @@ public abstract class AbstractRelationshipService implements RelationshipService
   public List<Relationship> getRelationshipsByProgramStageInstance(
       ProgramStageInstance psi,
       PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean skipAccessValidation) {
+      boolean skipAccessValidation,
+      boolean includeDeleted) {
     User user = currentUserService.getCurrentUser();
 
     return relationshipService
         .getRelationshipsByProgramStageInstance(
-            psi, pagingAndSortingCriteriaAdapter, skipAccessValidation)
+            psi, pagingAndSortingCriteriaAdapter, skipAccessValidation, includeDeleted)
         .stream()
         .filter((r) -> !skipAccessValidation && trackerAccessManager.canRead(user, r).isEmpty())
         .map(r -> getRelationship(r, user))

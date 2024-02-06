@@ -59,10 +59,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
 
     baseIdentifiableObject.setAutoFields();
     baseIdentifiableObject.setLastUpdatedBy(bundle.getUser());
-
-    if (baseIdentifiableObject.getCreatedBy() == null) {
-      baseIdentifiableObject.setCreatedBy(bundle.getUser());
-    }
+    baseIdentifiableObject.setCreatedBy(bundle.getUser());
 
     if (baseIdentifiableObject.getSharing().getOwner() == null) {
       baseIdentifiableObject.getSharing().setOwner(baseIdentifiableObject.getCreatedBy());

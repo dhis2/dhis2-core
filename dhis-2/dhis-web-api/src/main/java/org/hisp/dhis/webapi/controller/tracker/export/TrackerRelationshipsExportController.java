@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
@@ -115,9 +114,6 @@ public class TrackerRelationshipsExportController {
 
   private Map<Class<?>, Function<String, ?>> objectRetrievers;
 
-  private Map<Class<?>, BiFunction<Object, PagingAndSortingCriteriaAdapter, List<Relationship>>>
-      relationshipRetrievers;
-
   @PostConstruct
   void setupMaps() {
     objectRetrievers =
@@ -126,27 +122,6 @@ public class TrackerRelationshipsExportController {
                 TrackedEntityInstance.class, trackedEntityInstanceService::getTrackedEntityInstance)
             .put(ProgramInstance.class, programInstanceService::getProgramInstance)
             .put(ProgramStageInstance.class, programStageInstanceService::getProgramStageInstance)
-            .build();
-
-    relationshipRetrievers =
-        ImmutableMap
-            .<Class<?>, BiFunction<Object, PagingAndSortingCriteriaAdapter, List<Relationship>>>
-                builder()
-            .put(
-                TrackedEntityInstance.class,
-                (o, criteria) ->
-                    relationshipService.getRelationshipsByTrackedEntityInstance(
-                        (TrackedEntityInstance) o, criteria, false))
-            .put(
-                ProgramInstance.class,
-                (o, criteria) ->
-                    relationshipService.getRelationshipsByProgramInstance(
-                        (ProgramInstance) o, criteria, false))
-            .put(
-                ProgramStageInstance.class,
-                (o, criteria) ->
-                    relationshipService.getRelationshipsByProgramStageInstance(
-                        (ProgramStageInstance) o, criteria, false))
             .build();
   }
 
@@ -163,7 +138,8 @@ public class TrackerRelationshipsExportController {
             identifier,
             criteria.getIdentifierClass(),
             () -> notFound("No " + identifierName + " '" + identifier + "' found."),
-            criteria);
+            criteria,
+            criteria.isIncludeDeleted());
 
     PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
     if (criteria.isPagingRequest()) {
@@ -175,7 +151,8 @@ public class TrackerRelationshipsExportController {
                     identifier,
                     criteria.getIdentifierClass(),
                     () -> notFound("No " + identifierName + " '" + identifier + "' found."),
-                    null)
+                    null,
+                    criteria.isIncludeDeleted())
                 .size();
       }
 
@@ -208,7 +185,8 @@ public class TrackerRelationshipsExportController {
       String identifier,
       Class<?> type,
       Supplier<WebMessage> notFoundMessageSupplier,
-      PagingAndSortingCriteriaAdapter pagingAndSortingCriteria) {
+      PagingAndSortingCriteriaAdapter pagingAndSortingCriteria,
+      boolean includeDeleted) {
 
     if (pagingAndSortingCriteria != null) {
       // validate and translate from user facing field names to internal field names users can order
@@ -222,23 +200,29 @@ public class TrackerRelationshipsExportController {
     if (identifier != null) {
       Object object = getObjectRetriever(type).apply(identifier);
       if (object != null) {
-        return RELATIONSHIP_MAPPER.fromCollection(
-            getRelationshipRetriever(type).apply(object, pagingAndSortingCriteria));
+        List<Relationship> relationships;
+        if (object instanceof TrackedEntityInstance) {
+          relationships =
+              relationshipService.getRelationshipsByTrackedEntityInstance(
+                  (TrackedEntityInstance) object, pagingAndSortingCriteria, false, includeDeleted);
+
+        } else if (object instanceof ProgramInstance) {
+          relationships =
+              relationshipService.getRelationshipsByProgramInstance(
+                  (ProgramInstance) object, pagingAndSortingCriteria, false, includeDeleted);
+        } else {
+
+          relationships =
+              relationshipService.getRelationshipsByProgramStageInstance(
+                  (ProgramStageInstance) object, pagingAndSortingCriteria, false, includeDeleted);
+        }
+
+        return RELATIONSHIP_MAPPER.fromCollection(relationships);
       } else {
         throw new WebMessageException(notFoundMessageSupplier.get());
       }
     }
     return Collections.emptyList();
-  }
-
-  private BiFunction<Object, PagingAndSortingCriteriaAdapter, List<Relationship>>
-      getRelationshipRetriever(Class<?> type) {
-    return Optional.ofNullable(type)
-        .map(relationshipRetrievers::get)
-        .orElseThrow(
-            () ->
-                new IllegalArgumentException(
-                    "Unable to detect relationship retriever from " + type));
   }
 
   private Function<String, ?> getObjectRetriever(Class<?> type) {
