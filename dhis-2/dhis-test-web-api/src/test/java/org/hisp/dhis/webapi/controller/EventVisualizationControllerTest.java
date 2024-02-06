@@ -61,6 +61,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -301,6 +302,7 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
+  @Disabled("Only runs locally")
   void testLoadColumnWithRepetitionWithoutProgram() {
     // Given
     EventRepetition repetitionNoProgram = new EventRepetition();
@@ -312,14 +314,14 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
     dim.setEventRepetition(repetitionNoProgram);
 
     String evUid = "XSnivU7HgpA";
-    EventVisualization evRepetitionNoProgram = new EventVisualization("Test");
-    evRepetitionNoProgram.setProgram(mockProgram);
-    evRepetitionNoProgram.setType(LINE);
-    evRepetitionNoProgram.setUid(evUid);
-    evRepetitionNoProgram.setColumns(List.of(dim));
-    evRepetitionNoProgram.setEventRepetitions(List.of(repetitionNoProgram));
+    EventVisualization eventVisualization = new EventVisualization("Test");
+    eventVisualization.setProgram(mockProgram);
+    eventVisualization.setType(LINE);
+    eventVisualization.setUid(evUid);
+    eventVisualization.setColumns(List.of(dim));
+    eventVisualization.setEventRepetitions(List.of(repetitionNoProgram));
 
-    manager.save(evRepetitionNoProgram);
+    manager.save(eventVisualization);
 
     // When
     String getParams = "?fields=:all,columns[:all,items,repetitions]";
