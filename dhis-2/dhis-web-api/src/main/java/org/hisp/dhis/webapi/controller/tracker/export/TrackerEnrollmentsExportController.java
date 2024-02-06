@@ -33,6 +33,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.NonNull;
@@ -112,6 +113,7 @@ public class TrackerEnrollmentsExportController {
           enrollmentIds != null
               ? enrollmentIds.stream()
                   .map(e -> enrollmentService.getEnrollment(e, enrollmentParams))
+                  .filter(Objects::nonNull)
                   .collect(Collectors.toList())
               : Collections.emptyList();
     }
