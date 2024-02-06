@@ -33,9 +33,13 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor(staticName = "of")
+@RequiredArgsConstructor(staticName = "ofList")
 public class OrCondition extends BaseRenderable {
   private final List<? extends Renderable> conditions;
+
+  public static OrCondition of(Renderable... conditions) {
+    return OrCondition.ofList(List.of(conditions));
+  }
 
   /** Renders this conditions as a single condition joined by "or". */
   @Override
