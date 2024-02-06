@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.message;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -204,6 +205,6 @@ class MessageServiceTest extends SingleSetupIntegrationTestBase {
             .withMessageType(MessageType.SYSTEM)
             .build();
 
-    messageService.sendMessage(params);
+    assertDoesNotThrow(() -> messageService.sendMessage(params));
   }
 }
