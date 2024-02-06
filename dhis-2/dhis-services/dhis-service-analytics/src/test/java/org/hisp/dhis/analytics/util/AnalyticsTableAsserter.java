@@ -30,9 +30,7 @@ package org.hisp.dhis.analytics.util;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.junit.jupiter.api.Assertions.fail;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -83,7 +81,7 @@ public class AnalyticsTableAsserter {
             .collect(Collectors.toMap(AnalyticsTableColumn::getName, c -> c));
     for (AnalyticsTableColumn col : defaultColumns) {
       if (!tableColumnMap.containsKey(col.getName())) {
-        fail("Default column [" + col.getName() + "] is missing");
+        fail("Default column '" + col.getName() + "' is missing, found: " + tableColumnMap.keySet());
       } else {
         new AnalyticsColumnAsserter.Builder(col).build().verify(tableColumnMap.get(col.getName()));
       }
@@ -91,14 +89,14 @@ public class AnalyticsTableAsserter {
     // verify additional columns
     for (AnalyticsTableColumn col : columns) {
       if (!tableColumnMap.containsKey(col.getName())) {
-        fail("Column [" + col.getName() + "] is missing");
+        fail("Column '" + col.getName() + "' is missing, found: " + tableColumnMap.keySet());
       } else {
         new AnalyticsColumnAsserter.Builder(col).build().verify(tableColumnMap.get(col.getName()));
       }
     }
     for (String name : matchers.keySet()) {
       if (!tableColumnMap.containsKey(name)) {
-        fail("Column [" + name + "] is missing");
+        fail("Column '" + name + "' is missing, found: " + tableColumnMap.keySet());
       } else {
         matchers.get(name).accept(tableColumnMap.get(name));
       }
@@ -155,7 +153,7 @@ public class AnalyticsTableAsserter {
     public Builder addColumn(
         String name, DataType dataType, String selectExpression, Date created) {
       AnalyticsTableColumn col =
-          new AnalyticsTableColumn(name, dataType, selectExpression + quote(name), created);
+          new AnalyticsTableColumn(name, dataType, selectExpression, created);
       this._columns.add(col);
       return this;
     }
