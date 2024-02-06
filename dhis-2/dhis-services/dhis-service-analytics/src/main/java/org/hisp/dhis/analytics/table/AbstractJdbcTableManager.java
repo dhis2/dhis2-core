@@ -531,10 +531,10 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   protected List<AnalyticsTableColumn> getOrganisationUnitLevelColumns() {
     return organisationUnitService.getFilledOrganisationUnitLevels().stream()
         .map(
-            lv -> {
-              String name = PREFIX_ORGUNITLEVEL + lv.getLevel();
+            level -> {
+              String name = PREFIX_ORGUNITLEVEL + level.getLevel();
               return new AnalyticsTableColumn(
-                  name, CHARACTER_11, "ous." + quote(name), lv.getCreated());
+                  name, CHARACTER_11, "ous." + quote(name), level.getCreated());
             })
         .collect(Collectors.toList());
   }

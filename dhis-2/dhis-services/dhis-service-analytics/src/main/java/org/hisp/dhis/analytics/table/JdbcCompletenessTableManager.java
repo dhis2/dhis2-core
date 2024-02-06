@@ -58,8 +58,6 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
-import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.resourcetable.ResourceTableService;
@@ -246,27 +244,13 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     String idColAlias = "(ds.uid || '-' || ps.iso || '-' || ou.uid || '-' || ao.uid) as id ";
     columns.add(new AnalyticsTableColumn("id", TEXT, idColAlias));
 
-    List<OrganisationUnitGroupSet> orgUnitGroupSets =
-        idObjectManager.getDataDimensionsNoAcl(OrganisationUnitGroupSet.class);
-
-    List<OrganisationUnitLevel> levels = organisationUnitService.getFilledOrganisationUnitLevels();
+    columns.addAll(getOrganisationUnitGroupSetColumns());
+    columns.addAll(getOrganisationUnitLevelColumns());
 
     List<CategoryOptionGroupSet> attributeCategoryOptionGroupSets =
         categoryService.getAttributeCategoryOptionGroupSetsNoAcl();
 
     List<Category> attributeCategories = categoryService.getAttributeDataDimensionCategoriesNoAcl();
-
-    for (OrganisationUnitGroupSet groupSet : orgUnitGroupSets) {
-      columns.add(
-          new AnalyticsTableColumn(
-              groupSet.getUid(), CHARACTER_11, "ougs." + groupSet.getUid(), groupSet.getCreated()));
-    }
-
-    for (OrganisationUnitLevel level : levels) {
-      String column = PREFIX_ORGUNITLEVEL + level.getLevel();
-      columns.add(
-          new AnalyticsTableColumn(column, CHARACTER_11, "ous." + column, level.getCreated()));
-    }
 
     for (CategoryOptionGroupSet groupSet : attributeCategoryOptionGroupSets) {
       columns.add(
