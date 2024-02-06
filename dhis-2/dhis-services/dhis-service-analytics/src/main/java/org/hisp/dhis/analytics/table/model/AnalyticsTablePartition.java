@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.table.model;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
@@ -41,7 +40,6 @@ import org.hisp.dhis.db.model.Table;
  * @author Lars Helge Overland
  */
 @Getter
-@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 public class AnalyticsTablePartition extends Table {
   public static final Integer LATEST_PARTITION = 0;
 
@@ -125,5 +123,21 @@ public class AnalyticsTablePartition extends Table {
    */
   public boolean isLatestPartition() {
     return Objects.equals(year, LATEST_PARTITION);
+  }
+
+  @Override
+  public int hashCode() {
+    return super.hashCode();
+  }
+
+  @Override
+  public boolean equals(Object object) {
+    if (this == object) {
+      return true;
+    }
+    if (getClass() != object.getClass()) {
+      return false;
+    }
+    return super.equals(object);
   }
 }

@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.table.model;
 
 import java.util.Date;
 import java.util.List;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
@@ -48,7 +47,6 @@ import org.springframework.util.Assert;
  * @author Lars Helge Overland
  */
 @Getter
-@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 public class AnalyticsTable extends Table {
   /** Analytics table type. */
   private final AnalyticsTableType tableType;
@@ -244,5 +242,21 @@ public class AnalyticsTable extends Table {
   @Override
   public String toString() {
     return "[Table name: " + getName() + ", partitions: " + tablePartitions + "]";
+  }
+
+  @Override
+  public int hashCode() {
+    return super.hashCode();
+  }
+
+  @Override
+  public boolean equals(Object object) {
+    if (this == object) {
+      return true;
+    }
+    if (getClass() != object.getClass()) {
+      return false;
+    }
+    return super.equals(object);
   }
 }
