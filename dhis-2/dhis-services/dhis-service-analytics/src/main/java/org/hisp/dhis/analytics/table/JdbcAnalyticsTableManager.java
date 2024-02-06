@@ -447,13 +447,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     List<CategoryOptionGroupSet> disaggregationCategoryOptionGroupSets =
         categoryService.getDisaggregationCategoryOptionGroupSetsNoAcl();
 
-    List<CategoryOptionGroupSet> attributeCategoryOptionGroupSets =
-        categoryService.getAttributeCategoryOptionGroupSetsNoAcl();
-
     List<Category> disaggregationCategories =
         categoryService.getDisaggregationDataDimensionCategoriesNoAcl();
-
-    List<Category> attributeCategories = categoryService.getAttributeDataDimensionCategoriesNoAcl();
 
     for (DataElementGroupSet groupSet : dataElementGroupSets) {
       columns.add(
@@ -475,14 +470,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
               groupSet.getCreated()));
     }
 
-    for (CategoryOptionGroupSet groupSet : attributeCategoryOptionGroupSets) {
-      columns.add(
-          new AnalyticsTableColumn(
-              groupSet.getUid(),
-              CHARACTER_11,
-              "acs." + quote(groupSet.getUid()),
-              groupSet.getCreated()));
-    }
+    columns.addAll(getAttributeCategoryOptionGroupSetColumns());
 
     for (Category category : disaggregationCategories) {
       columns.add(
@@ -493,19 +481,11 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
               category.getCreated()));
     }
 
-    for (Category category : attributeCategories) {
-      columns.add(
-          new AnalyticsTableColumn(
-              category.getUid(),
-              CHARACTER_11,
-              "acs." + quote(category.getUid()),
-              category.getCreated()));
-    }
-
+    columns.addAll(getAttributeCategoryColumns());
     columns.addAll(getOrganisationUnitLevelColumns());
     columns.addAll(getPeriodTypeColumns("ps"));
-
     columns.addAll(FIXED_COLS);
+
     if (!skipOutliers(params)) {
       columns.addAll(getOutlierStatsColumns());
     }

@@ -517,10 +517,10 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     return PeriodType.getAvailablePeriodTypes().stream()
         .map(
             pt -> {
-              String column = pt.getName().toLowerCase();
-              return new AnalyticsTableColumn(column, TEXT, prefix + "." + column);
+              String name = pt.getName().toLowerCase();
+              return new AnalyticsTableColumn(name, TEXT, prefix + "." + quote(name));
             })
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /**
@@ -536,7 +536,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
               return new AnalyticsTableColumn(
                   name, CHARACTER_11, "ous." + quote(name), level.getCreated());
             })
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /**
@@ -567,7 +567,29 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
               return new AnalyticsTableColumn(
                   name, CHARACTER_11, "ougs." + quote(name), ougs.getCreated());
             })
-        .collect(Collectors.toList());
+        .toList();
+  }
+
+  protected List<AnalyticsTableColumn> getAttributeCategoryOptionGroupSetColumns() {
+    return categoryService.getAttributeCategoryOptionGroupSetsNoAcl().stream()
+        .map(
+            cogs -> {
+              String name = cogs.getUid();
+              return new AnalyticsTableColumn(
+                  name, CHARACTER_11, "acs." + quote(name), cogs.getCreated());
+            })
+        .toList();
+  }
+
+  protected List<AnalyticsTableColumn> getAttributeCategoryColumns() {
+    return categoryService.getAttributeDataDimensionCategoriesNoAcl().stream()
+        .map(
+            category -> {
+              String name = category.getUid();
+              return new AnalyticsTableColumn(
+                  name, CHARACTER_11, "acs." + quote(name), category.getCreated());
+            })
+        .toList();
   }
 
   // -------------------------------------------------------------------------
