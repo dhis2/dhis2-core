@@ -31,6 +31,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -53,4 +54,19 @@ public class DataIntegritySummary implements Serializable {
   @JsonProperty private final int count;
 
   @JsonProperty private final Double percentage;
+
+  List<PastRun> runs;
+
+  class PastRun {
+    @JsonProperty private Date jobId;
+    @JsonProperty private Date startTime;
+
+    @JsonProperty private Date finishedTime;
+
+    @JsonProperty private String error;
+
+    @JsonProperty private int count;
+
+    @JsonProperty private Double percentage;
+  }
 }

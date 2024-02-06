@@ -47,8 +47,6 @@ import org.hisp.dhis.common.auth.HttpBasicAuth;
 import org.hisp.dhis.eventhook.targets.JmsTarget;
 import org.hisp.dhis.eventhook.targets.KafkaTarget;
 import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.sms.config.ClickatellGatewayConfig;
-import org.hisp.dhis.sms.config.SmsGatewayConfig;
 import org.hisp.dhis.system.util.AnnotationUtils;
 
 /**
@@ -74,18 +72,10 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
    */
   private static final Map<Class<?>, Set<String>> IGNORE_LIST =
       Map.of(
-          HttpBasicAuth.class,
-          Set.of("auth.password", "targets.auth.password"),
-          ApiTokenAuth.class,
-          Set.of("auth.token", "targets.auth.token"),
-          JmsTarget.class,
-          Set.of("targets.password"),
-          KafkaTarget.class,
-          Set.of("targets.password"),
-          SmsGatewayConfig.class,
-          Set.of("password"),
-          ClickatellGatewayConfig.class,
-          Set.of("authToken"));
+          HttpBasicAuth.class, Set.of("auth.password", "targets.auth.password"),
+          ApiTokenAuth.class, Set.of("auth.token", "targets.auth.token"),
+          JmsTarget.class, Set.of("targets.password"),
+          KafkaTarget.class, Set.of("targets.password"));
 
   /** Cache that contains true/false for classes that should always be expanded. */
   private static final Map<Class<?>, Boolean> ALWAYS_EXPAND_CACHE = new ConcurrentHashMap<>();
@@ -141,9 +131,7 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
   }
 
   private static boolean isIgnoredProperty(String property, Class<?> type) {
-    if (!IGNORE_LIST.containsKey(type))
-      return type != Object.class && isIgnoredProperty(property, type.getSuperclass());
-    return IGNORE_LIST.get(type).contains(property);
+    return IGNORE_LIST.getOrDefault(type, Set.of()).contains(property);
   }
 
   private PathContext getPath(PropertyWriter writer, JsonGenerator jgen) {
