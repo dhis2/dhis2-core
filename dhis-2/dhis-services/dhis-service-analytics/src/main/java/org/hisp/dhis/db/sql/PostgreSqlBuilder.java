@@ -236,12 +236,22 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String analyzeTable(Table table) {
-    return String.format("analyze %s;", quote(table.getName()));
+    return analyzeTable(table.getName());
+  }
+
+  @Override
+  public String analyzeTable(String name) {
+    return String.format("analyze %s;", quote(name));
   }
 
   @Override
   public String vacuumTable(Table table) {
-    return String.format("vacuum %s;", quote(table.getName()));
+    return vacuumTable(table.getName());
+  }
+
+  @Override
+  public String vacuumTable(String name) {
+    return String.format("vacuum %s;", quote(name));
   }
 
   @Override
@@ -300,8 +310,9 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String createIndex(Table table, Index index) {
+  public String createIndex(Index index) {
     String unique = index.getUnique() == Unique.UNIQUE ? "unique " : "";
+    String tableName = index.getTableName();
     String typeName = getIndexTypeName(index.getIndexType());
 
     String columns =
@@ -311,6 +322,6 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
     return String.format(
         "create %sindex %s on %s using %s(%s);",
-        unique, quote(index.getName()), quote(table.getName()), typeName, columns);
+        unique, quote(index.getName()), quote(tableName), typeName, columns);
   }
 }

@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static org.hisp.dhis.analytics.table.PartitionUtils.getLatestTablePartition;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
+import static org.hisp.dhis.analytics.table.util.PartitionUtils.getLatestTablePartition;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
@@ -46,6 +46,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -162,7 +163,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             ? getLatestAnalyticsTable(params, getColumns(params))
             : getRegularAnalyticsTable(params, getDataYears(params), getColumns(params));
 
-    return table.hasPartitionTables() ? List.of(table) : List.of();
+    return table.hasTablePartitions() ? List.of(table) : List.of();
   }
 
   @Override
@@ -236,12 +237,10 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   }
 
   @Override
-  protected List<String> getPartitionChecks(AnalyticsTablePartition partition) {
-    return partition.isLatestPartition()
-        ? List.of()
-        : List.of(
-            "year = " + partition.getYear() + "",
-            "pestartdate < '" + DateUtils.getMediumDateString(partition.getEndDate()) + "'");
+  protected List<String> getPartitionChecks(Integer year, Date endDate) {
+    Objects.requireNonNull(year);
+    return List.of(
+        "year = " + year + "", "pestartdate < '" + DateUtils.getMediumDateString(endDate) + "'");
   }
 
   @Override

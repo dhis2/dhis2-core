@@ -27,48 +27,58 @@
  */
 package org.hisp.dhis.analytics.table.model;
 
-import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
-import static org.hisp.dhis.db.model.DataType.DOUBLE;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.hisp.dhis.db.model.Collation;
-import org.hisp.dhis.db.model.constraint.Nullable;
+import java.util.Date;
+import java.util.List;
+import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.db.model.DataType;
+import org.hisp.dhis.db.model.Logged;
+import org.joda.time.LocalDate;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  */
-class AnalyticsTableColumnTest {
+class AnalyticsTablePartitionTest {
+  private final List<AnalyticsTableColumn> columnsA =
+      List.of(
+          new AnalyticsTableColumn("id", DataType.BIGINT, "id"),
+          new AnalyticsTableColumn("data", DataType.CHARACTER_11, "data"),
+          new AnalyticsTableColumn("value", DataType.DOUBLE, "value"));
 
   @Test
-  void testIsNotNull() {
-    AnalyticsTableColumn colA =
-        new AnalyticsTableColumn("dx", CHARACTER_11, Nullable.NOT_NULL, "dx");
-    AnalyticsTableColumn colB = new AnalyticsTableColumn("value", DOUBLE, Nullable.NULL, "value");
+  void testGetName() {
+    AnalyticsTable table =
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, Logged.UNLOGGED);
 
-    assertTrue(colA.isNotNull());
-    assertFalse(colB.isNotNull());
+    List<String> checks = List.of("value = 2023");
+
+    AnalyticsTablePartition partition =
+        new AnalyticsTablePartition(
+            table,
+            checks,
+            2023,
+            new LocalDate(2023, 1, 1).toDate(),
+            new LocalDate(2023, 12, 31).toDate());
+
+    assertEquals("analytics_2023_temp", partition.getName());
+    assertEquals("analytics_2023", partition.getMainName());
+    assertTrue(partition.hasChecks());
+    assertFalse(partition.isLatestPartition());
   }
 
   @Test
-  void testHasCollation() {
-    AnalyticsTableColumn colA =
-        new AnalyticsTableColumn("dx", CHARACTER_11, Collation.DEFAULT, "dx");
-    AnalyticsTableColumn colB = new AnalyticsTableColumn("ou", CHARACTER_11, Collation.C, "ou");
-    AnalyticsTableColumn colC = new AnalyticsTableColumn("value", DOUBLE, "value");
+  void testIsLatestPartition() {
+    AnalyticsTable table =
+        new AnalyticsTable(AnalyticsTableType.COMPLETENESS, columnsA, Logged.UNLOGGED);
 
-    assertFalse(colA.hasCollation());
-    assertTrue(colB.hasCollation());
-    assertFalse(colC.hasCollation());
-  }
+    AnalyticsTablePartition partition =
+        new AnalyticsTablePartition(
+            table, List.of(), AnalyticsTablePartition.LATEST_PARTITION, new Date(), new Date());
 
-  @Test
-  void testIsSkipIndex() {
-    AnalyticsTableColumn colA = new AnalyticsTableColumn("value", DOUBLE, "value", Skip.SKIP);
-    AnalyticsTableColumn colB = new AnalyticsTableColumn("ou", CHARACTER_11, "ou", Skip.INCLUDE);
-
-    assertTrue(colA.isSkipIndex());
-    assertFalse(colB.isSkipIndex());
+    assertTrue(partition.isLatestPartition());
   }
 }

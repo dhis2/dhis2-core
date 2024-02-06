@@ -169,7 +169,7 @@ class JdbcAnalyticsTableManagerTest {
     assertNotNull(table.getTablePartitions());
     assertEquals(1, table.getTablePartitions().size());
 
-    AnalyticsTablePartition partition = table.getLatestPartition();
+    AnalyticsTablePartition partition = table.getLatestTablePartition();
 
     assertNotNull(partition);
     assertTrue(partition.isLatestPartition());

@@ -41,6 +41,7 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.model.Partitions;
+import org.hisp.dhis.analytics.table.util.PartitionUtils;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -101,10 +102,16 @@ class PartitionUtilsTest {
             new AnalyticsTableColumn("dx", TEXT, "dx"),
             new AnalyticsTableColumn("value", DOUBLE, "value"));
     AnalyticsTable tA = new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, Logged.UNLOGGED);
-    tA.addPartitionTable(
-        2010, new DateTime(2010, 1, 1, 0, 0).toDate(), new DateTime(2010, 12, 31, 0, 0).toDate());
-    tA.addPartitionTable(
-        2011, new DateTime(2011, 1, 1, 0, 0).toDate(), new DateTime(2011, 12, 31, 0, 0).toDate());
+    tA.addTablePartition(
+        List.of(),
+        2010,
+        new DateTime(2010, 1, 1, 0, 0).toDate(),
+        new DateTime(2010, 12, 31, 0, 0).toDate());
+    tA.addTablePartition(
+        List.of(),
+        2011,
+        new DateTime(2011, 1, 1, 0, 0).toDate(),
+        new DateTime(2011, 12, 31, 0, 0).toDate());
     AnalyticsTable tB =
         new AnalyticsTable(AnalyticsTableType.ORG_UNIT_TARGET, columns, Logged.UNLOGGED);
     List<AnalyticsTablePartition> partitions = PartitionUtils.getTablePartitions(List.of(tA, tB));

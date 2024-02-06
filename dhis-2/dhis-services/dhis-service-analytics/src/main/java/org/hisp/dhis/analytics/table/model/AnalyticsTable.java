@@ -227,16 +227,18 @@ public class AnalyticsTable {
   /**
    * Adds an analytics partition table to this master table.
    *
+   * @param checks the partition checks.
    * @param year the year.
    * @param startDate the start date.
    * @param endDate the end date.
    * @return this analytics table.
    */
-  public AnalyticsTable addPartitionTable(Integer year, Date startDate, Date endDate) {
+  public AnalyticsTable addTablePartition(
+      List<String> checks, Integer year, Date startDate, Date endDate) {
     Assert.notNull(year, "Year must be specified");
 
     AnalyticsTablePartition tablePartition =
-        new AnalyticsTablePartition(this, year, startDate, endDate);
+        new AnalyticsTablePartition(this, checks, year, startDate, endDate);
 
     this.tablePartitions.add(tablePartition);
 
@@ -248,7 +250,7 @@ public class AnalyticsTable {
    *
    * @return true if this analytics table has any partitions.
    */
-  public boolean hasPartitionTables() {
+  public boolean hasTablePartitions() {
     return !tablePartitions.isEmpty();
   }
 
@@ -257,7 +259,7 @@ public class AnalyticsTable {
    *
    * @return a {@link AnalyticsTablePartition} or null.
    */
-  public AnalyticsTablePartition getLatestPartition() {
+  public AnalyticsTablePartition getLatestTablePartition() {
     return tablePartitions.stream()
         .filter(AnalyticsTablePartition::isLatestPartition)
         .findAny()

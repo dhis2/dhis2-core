@@ -29,8 +29,8 @@ package org.hisp.dhis.analytics.table;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
-import static org.hisp.dhis.analytics.table.PartitionUtils.getEndDate;
-import static org.hisp.dhis.analytics.table.PartitionUtils.getStartDate;
+import static org.hisp.dhis.analytics.table.util.PartitionUtils.getEndDate;
+import static org.hisp.dhis.analytics.table.util.PartitionUtils.getStartDate;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.createIndexStatement;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getCollation;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
@@ -56,6 +56,7 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
+import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -290,7 +291,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    */
   private void createAnalyticsTablePartitions(AnalyticsTable table) {
     for (AnalyticsTablePartition partition : table.getTablePartitions()) {
-      createAnalyticsTablePartition(table, partition);
+      createAnalyticsTablePartition(partition);
     }
   }
 
@@ -300,19 +301,18 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @param table the {@link AnalyticsTable}.
    * @param partition the {@link AnalyticsTablePartition}.
    */
-  private void createAnalyticsTablePartition(
-      AnalyticsTable table, AnalyticsTablePartition partition) {
+  private void createAnalyticsTablePartition(AnalyticsTablePartition partition) {
+    AnalyticsTable table = partition.getMasterTable();
     String tableName = partition.getName();
     String unlogged = table.isUnlogged() ? "unlogged" : "";
-    List<String> checks = getPartitionChecks(partition);
 
     StringBuilder sql = new StringBuilder();
 
     sql.append("create ").append(unlogged).append(" table ").append(tableName).append(" (");
 
-    if (!checks.isEmpty()) {
+    if (partition.hasChecks()) {
       StringBuilder sqlCheck = new StringBuilder();
-      checks.stream().forEach(check -> sqlCheck.append("check (" + check + "), "));
+      partition.getChecks().stream().forEach(check -> sqlCheck.append("check (" + check + "), "));
       sql.append(TextUtils.removeLastComma(sqlCheck.toString()));
     }
 
@@ -363,11 +363,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   // -------------------------------------------------------------------------
 
   /**
-   * Returns a list of table checks (constraints) for the given analytics table partition.
+   * Returns a list of table partition checks (constraints) for the given year and end date.
    *
-   * @param partition the {@link AnalyticsTablePartition}.
+   * @param year the year.
+   * @param endDate the end date.
+   * @return the list of table partition checks.
    */
-  protected abstract List<String> getPartitionChecks(AnalyticsTablePartition partition);
+  protected abstract List<String> getPartitionChecks(Integer year, Date endDate);
 
   /**
    * Populates the given analytics table.
@@ -408,7 +410,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
       AnalyticsTableUpdateParams params,
       List<Integer> dataYears,
       List<AnalyticsTableColumn> columns) {
-
+    Calendar calendar = PeriodType.getCalendar();
     List<Integer> years = ListUtils.mutableCopy(dataYears);
     Logged logged = analyticsExportSettings.getTableLogged();
 
@@ -417,7 +419,10 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns, logged);
 
     for (Integer year : years) {
-      table.addPartitionTable(year, getStartDate(year), getEndDate(year));
+      List<String> checks = getPartitionChecks(year, getEndDate(calendar, year));
+
+      table.addTablePartition(
+          checks, year, getStartDate(calendar, year), getEndDate(calendar, year));
     }
 
     return table;
@@ -451,8 +456,8 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns, logged);
 
     if (hasUpdatedData) {
-      table.addPartitionTable(
-          AnalyticsTablePartition.LATEST_PARTITION, lastFullTableUpdate, endDate);
+      table.addTablePartition(
+          List.of(), AnalyticsTablePartition.LATEST_PARTITION, lastFullTableUpdate, endDate);
       log.info(
           "Added latest analytics partition with start: '{}' and end: '{}'",
           getLongDateString(lastFullTableUpdate),
