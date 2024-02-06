@@ -193,8 +193,8 @@ public class AnalyticsTableAsserter {
       return this;
     }
 
-    public Builder addColumn(String name, Consumer<AnalyticsTableColumn> consumer) {
-      this._matchers.put(name, consumer);
+    public Builder addColumn(String name, Consumer<AnalyticsTableColumn> matcher) {
+      this._matchers.put(name, matcher);
       return this;
     }
 

@@ -853,23 +853,23 @@ class JdbcEventAnalyticsTableManagerTest {
   }
 
   private void match(OrganisationUnitGroupSet ouGroupSet, AnalyticsTableColumn col) {
-    String name = quote(ouGroupSet.getUid());
+    String expression = "ougs." + quote(ouGroupSet.getUid());
     assertNotNull(col);
-    assertThat(col.getSelectExpression(), is("ougs." + name));
+    assertThat(col.getSelectExpression(), is(expression));
     match(col);
   }
 
   private void match(OrganisationUnitLevel ouLevel, AnalyticsTableColumn col) {
-    String name = quote("uidlevel" + ouLevel.getLevel());
+    String expression = "ous." + quote("uidlevel" + ouLevel.getLevel());
     assertNotNull(col);
-    assertThat(col.getSelectExpression(), is("ous." + name));
+    assertThat(col.getSelectExpression(), is(expression));
     match(col);
   }
 
   private void match(CategoryOptionGroupSet cog, AnalyticsTableColumn col) {
-    String name = quote(cog.getUid());
+    String expression = "acs." + quote(cog.getUid());
     assertNotNull(col);
-    assertThat(col.getSelectExpression(), is("acs." + name));
+    assertThat(col.getSelectExpression(), is(expression));
     match(col);
   }
 

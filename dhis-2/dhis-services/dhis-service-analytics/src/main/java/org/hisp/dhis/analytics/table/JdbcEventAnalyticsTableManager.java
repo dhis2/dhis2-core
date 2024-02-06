@@ -818,8 +818,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     return jdbcTemplate.queryForList(sql, Integer.class);
   }
 
-  private AnalyticsTableColumn toCharColumn(String name, String prefix, Date created) {
-    return new AnalyticsTableColumn(name, CHARACTER_11, prefix + "." + name, created);
+  private AnalyticsTableColumn toCharColumn(String name, String alias, Date created) {
+    return new AnalyticsTableColumn(name, CHARACTER_11, alias + "." + quote(name), created);
   }
 
   /**
