@@ -38,7 +38,6 @@ import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -78,8 +77,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
-          new AnalyticsTableColumn(quote("dx"), CHARACTER_11, NOT_NULL, "ds.uid"),
-          new AnalyticsTableColumn(quote("year"), INTEGER, NOT_NULL, "ps.year"));
+          new AnalyticsTableColumn("dx", CHARACTER_11, NOT_NULL, "ds.uid"),
+          new AnalyticsTableColumn("year", INTEGER, NOT_NULL, "ps.year"));
 
   public JdbcCompletenessTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -244,7 +243,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     String idColAlias = "(ds.uid || '-' || ps.iso || '-' || ou.uid || '-' || ao.uid) as id ";
-    columns.add(new AnalyticsTableColumn(quote("id"), TEXT, idColAlias));
+    columns.add(new AnalyticsTableColumn("id", TEXT, idColAlias));
 
     List<OrganisationUnitGroupSet> orgUnitGroupSets =
         idObjectManager.getDataDimensionsNoAcl(OrganisationUnitGroupSet.class);
@@ -259,14 +258,14 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     for (OrganisationUnitGroupSet groupSet : orgUnitGroupSets) {
       columns.add(
           new AnalyticsTableColumn(
-              quote(groupSet.getUid()),
+              groupSet.getUid(),
               CHARACTER_11,
-              "ougs." + quote(groupSet.getUid()),
+              "ougs." + groupSet.getUid(),
               groupSet.getCreated()));
     }
 
     for (OrganisationUnitLevel level : levels) {
-      String column = quote(PREFIX_ORGUNITLEVEL + level.getLevel());
+      String column = PREFIX_ORGUNITLEVEL + level.getLevel();
       columns.add(
           new AnalyticsTableColumn(column, CHARACTER_11, "ous." + column, level.getCreated()));
     }
@@ -274,7 +273,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     for (CategoryOptionGroupSet groupSet : attributeCategoryOptionGroupSets) {
       columns.add(
           new AnalyticsTableColumn(
-              quote(groupSet.getUid()),
+              groupSet.getUid(),
               CHARACTER_11,
               "acs." + quote(groupSet.getUid()),
               groupSet.getCreated()));
@@ -283,7 +282,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     for (Category category : attributeCategories) {
       columns.add(
           new AnalyticsTableColumn(
-              quote(category.getUid()),
+              category.getUid(),
               CHARACTER_11,
               "acs." + quote(category.getUid()),
               category.getCreated()));
@@ -294,9 +293,9 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     String timelyDateDiff = "cast(cdr.date as date) - pe.enddate";
     String timelyAlias = "(select (" + timelyDateDiff + ") <= ds.timelydays) as timely";
 
-    columns.add(new AnalyticsTableColumn(quote("timely"), BOOLEAN, timelyAlias));
+    columns.add(new AnalyticsTableColumn("timely", BOOLEAN, timelyAlias));
     columns.addAll(FIXED_COLS);
-    columns.add(new AnalyticsTableColumn(quote("value"), DATE, NULL, FACT, "cdr.date as value"));
+    columns.add(new AnalyticsTableColumn("value", DATE, NULL, FACT, "cdr.date as value"));
     return filterDimensionColumns(columns);
   }
 

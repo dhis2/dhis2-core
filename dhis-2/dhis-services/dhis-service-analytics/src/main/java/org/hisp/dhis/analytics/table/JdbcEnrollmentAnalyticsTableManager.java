@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
@@ -39,7 +38,6 @@ import static org.hisp.dhis.db.model.DataType.VARCHAR_255;
 import static org.hisp.dhis.db.model.DataType.VARCHAR_50;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -75,63 +73,63 @@ import org.springframework.transaction.annotation.Transactional;
 public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
-          new AnalyticsTableColumn(quote("pi"), CHARACTER_11, NOT_NULL, "pi.uid"),
-          new AnalyticsTableColumn(quote("enrollmentdate"), TIMESTAMP, "pi.enrollmentdate"),
-          new AnalyticsTableColumn(quote("incidentdate"), TIMESTAMP, "pi.occurreddate"),
+          new AnalyticsTableColumn("pi", CHARACTER_11, NOT_NULL, "pi.uid"),
+          new AnalyticsTableColumn("enrollmentdate", TIMESTAMP, "pi.enrollmentdate"),
+          new AnalyticsTableColumn("incidentdate", TIMESTAMP, "pi.occurreddate"),
           new AnalyticsTableColumn(
-              quote("completeddate"),
+              "completeddate",
               TIMESTAMP,
               "case pi.status when 'COMPLETED' then pi.completeddate end"),
-          new AnalyticsTableColumn(quote("lastupdated"), TIMESTAMP, "pi.lastupdated"),
-          new AnalyticsTableColumn(quote("storedby"), VARCHAR_255, "pi.storedby"),
+          new AnalyticsTableColumn("lastupdated", TIMESTAMP, "pi.lastupdated"),
+          new AnalyticsTableColumn("storedby", VARCHAR_255, "pi.storedby"),
           new AnalyticsTableColumn(
-              quote("createdbyusername"),
+              "createdbyusername",
               VARCHAR_255,
               "pi.createdbyuserinfo ->> 'username' as createdbyusername"),
           new AnalyticsTableColumn(
-              quote("createdbyname"),
+              "createdbyname",
               VARCHAR_255,
               "pi.createdbyuserinfo ->> 'firstName' as createdbyname"),
           new AnalyticsTableColumn(
-              quote("createdbylastname"),
+              "createdbylastname",
               VARCHAR_255,
               "pi.createdbyuserinfo ->> 'surname' as createdbylastname"),
           new AnalyticsTableColumn(
-              quote("createdbydisplayname"),
+              "createdbydisplayname",
               VARCHAR_255,
               getDisplayName("createdbyuserinfo", "pi", "createdbydisplayname")),
           new AnalyticsTableColumn(
-              quote("lastupdatedbyusername"),
+              "lastupdatedbyusername",
               VARCHAR_255,
               "pi.lastupdatedbyuserinfo ->> 'username' as lastupdatedbyusername"),
           new AnalyticsTableColumn(
-              quote("lastupdatedbyname"),
+              "lastupdatedbyname",
               VARCHAR_255,
               "pi.lastupdatedbyuserinfo ->> 'firstName' as lastupdatedbyname"),
           new AnalyticsTableColumn(
-              quote("lastupdatedbylastname"),
+              "lastupdatedbylastname",
               VARCHAR_255,
               "pi.lastupdatedbyuserinfo ->> 'surname' as lastupdatedbylastname"),
           new AnalyticsTableColumn(
-              quote("lastupdatedbydisplayname"),
+              "lastupdatedbydisplayname",
               VARCHAR_255,
               getDisplayName("lastupdatedbyuserinfo", "pi", "lastupdatedbydisplayname")),
-          new AnalyticsTableColumn(quote("enrollmentstatus"), VARCHAR_50, "pi.status"),
+          new AnalyticsTableColumn("enrollmentstatus", VARCHAR_50, "pi.status"),
           new AnalyticsTableColumn(
-              quote("longitude"),
+              "longitude",
               DOUBLE,
               "CASE WHEN 'POINT' = GeometryType(pi.geometry) THEN ST_X(pi.geometry) ELSE null END"),
           new AnalyticsTableColumn(
-              quote("latitude"),
+              "latitude",
               DOUBLE,
               "CASE WHEN 'POINT' = GeometryType(pi.geometry) THEN ST_Y(pi.geometry) ELSE null END"),
-          new AnalyticsTableColumn(quote("ou"), CHARACTER_11, NOT_NULL, "ou.uid"),
-          new AnalyticsTableColumn(quote("ouname"), TEXT, NOT_NULL, "ou.name"),
-          new AnalyticsTableColumn(quote("oucode"), TEXT, "ou.code"),
-          new AnalyticsTableColumn(quote("oulevel"), INTEGER, "ous.level"),
-          new AnalyticsTableColumn(quote("pigeometry"), GEOMETRY, "pi.geometry", IndexType.GIST),
+          new AnalyticsTableColumn("ou", CHARACTER_11, NOT_NULL, "ou.uid"),
+          new AnalyticsTableColumn("ouname", TEXT, NOT_NULL, "ou.name"),
+          new AnalyticsTableColumn("oucode", TEXT, "ou.code"),
+          new AnalyticsTableColumn("oulevel", INTEGER, "ous.level"),
+          new AnalyticsTableColumn("pigeometry", GEOMETRY, "pi.geometry", IndexType.GIST),
           new AnalyticsTableColumn(
-              quote("registrationou"),
+              "registrationou",
               CHARACTER_11,
               NOT_NULL,
               "coalesce(registrationou.uid,ou.uid)"));
@@ -242,8 +240,8 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
     columns.addAll(FIXED_COLS);
 
     if (program.isRegistration()) {
-      columns.add(new AnalyticsTableColumn(quote("tei"), CHARACTER_11, "tei.uid"));
-      columns.add(new AnalyticsTableColumn(quote("teigeometry"), GEOMETRY, "tei.geometry"));
+      columns.add(new AnalyticsTableColumn("tei", CHARACTER_11, "tei.uid"));
+      columns.add(new AnalyticsTableColumn("teigeometry", GEOMETRY, "tei.geometry"));
     }
 
     return filterDimensionColumns(columns);

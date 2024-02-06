@@ -37,7 +37,6 @@ import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -77,10 +76,10 @@ import org.springframework.stereotype.Service;
 public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
-          new AnalyticsTableColumn(quote("dx"), CHARACTER_11, NOT_NULL, "vr.uid"),
-          new AnalyticsTableColumn(quote("pestartdate"), TIMESTAMP, "pe.startdate"),
-          new AnalyticsTableColumn(quote("peenddate"), TIMESTAMP, "pe.enddate"),
-          new AnalyticsTableColumn(quote("year"), INTEGER, NOT_NULL, "ps.year"));
+          new AnalyticsTableColumn("dx", CHARACTER_11, NOT_NULL, "vr.uid"),
+          new AnalyticsTableColumn("pestartdate", TIMESTAMP, "pe.startdate"),
+          new AnalyticsTableColumn("peenddate", TIMESTAMP, "pe.enddate"),
+          new AnalyticsTableColumn("year", INTEGER, NOT_NULL, "ps.year"));
 
   public JdbcValidationResultTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -230,14 +229,14 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
     for (OrganisationUnitGroupSet groupSet : orgUnitGroupSets) {
       columns.add(
           new AnalyticsTableColumn(
-              quote(groupSet.getUid()),
+              groupSet.getUid(),
               CHARACTER_11,
               "ougs." + quote(groupSet.getUid()),
               groupSet.getCreated()));
     }
 
     for (OrganisationUnitLevel level : levels) {
-      String column = quote(PREFIX_ORGUNITLEVEL + level.getLevel());
+      String column = PREFIX_ORGUNITLEVEL + level.getLevel();
       columns.add(
           new AnalyticsTableColumn(column, CHARACTER_11, "ous." + column, level.getCreated()));
     }
@@ -245,19 +244,19 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
     for (Category category : attributeCategories) {
       columns.add(
           new AnalyticsTableColumn(
-              quote(category.getUid()),
+              category.getUid(),
               CHARACTER_11,
               "acs." + quote(category.getUid()),
               category.getCreated()));
     }
 
     for (PeriodType periodType : PeriodType.getAvailablePeriodTypes()) {
-      String column = quote(periodType.getName().toLowerCase());
+      String column = periodType.getName().toLowerCase();
       columns.add(new AnalyticsTableColumn(column, TEXT, "ps." + column));
     }
 
     columns.addAll(FIXED_COLS);
-    columns.add(new AnalyticsTableColumn(quote("value"), DATE, NULL, FACT, "vrs.created as value"));
+    columns.add(new AnalyticsTableColumn("value", DATE, NULL, FACT, "vrs.created as value"));
 
     return filterDimensionColumns(columns);
   }
