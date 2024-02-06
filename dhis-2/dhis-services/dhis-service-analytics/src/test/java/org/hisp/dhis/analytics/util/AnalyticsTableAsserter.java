@@ -152,31 +152,38 @@ public class AnalyticsTableAsserter {
       return this;
     }
 
-    public Builder addColumn(String name, DataType dataType, String alias, Date created) {
+    public Builder addColumn(
+        String name, DataType dataType, String selectExpression, Date created) {
       AnalyticsTableColumn col =
-          new AnalyticsTableColumn(name, dataType, alias + quote(name), created);
+          new AnalyticsTableColumn(name, dataType, selectExpression + quote(name), created);
       this._columns.add(col);
       return this;
     }
 
-    public Builder addColumn(String name, DataType dataType, String alias) {
-      return addColumnUnquoted(name, dataType, alias, Skip.INCLUDE, IndexType.BTREE);
+    public Builder addColumn(String name, DataType dataType, String selectExpression) {
+      return addColumnUnquoted(name, dataType, selectExpression, Skip.INCLUDE, IndexType.BTREE);
     }
 
-    public Builder addColumn(String name, DataType dataType, String alias, IndexType indexType) {
-      return addColumnUnquoted(name, dataType, alias, Skip.INCLUDE, indexType);
+    public Builder addColumn(
+        String name, DataType dataType, String selectExpression, IndexType indexType) {
+      return addColumnUnquoted(name, dataType, selectExpression, Skip.INCLUDE, indexType);
     }
 
-    public Builder addColumn(String name, DataType dataType, String alias, Skip skipIndex) {
-      return addColumnUnquoted(name, dataType, alias, skipIndex, IndexType.BTREE);
+    public Builder addColumn(
+        String name, DataType dataType, String selectExpression, Skip skipIndex) {
+      return addColumnUnquoted(name, dataType, selectExpression, skipIndex, IndexType.BTREE);
     }
 
     public Builder addColumnUnquoted(
-        String name, DataType dataType, String alias, Skip skipIndex, IndexType indexType) {
+        String name,
+        DataType dataType,
+        String selectExpression,
+        Skip skipIndex,
+        IndexType indexType) {
       AnalyticsTableColumn col =
           Skip.SKIP == skipIndex
-              ? new AnalyticsTableColumn(name, dataType, alias, skipIndex)
-              : new AnalyticsTableColumn(name, dataType, alias, indexType);
+              ? new AnalyticsTableColumn(name, dataType, selectExpression, skipIndex)
+              : new AnalyticsTableColumn(name, dataType, selectExpression, indexType);
       this._columns.add(col);
       return this;
     }
