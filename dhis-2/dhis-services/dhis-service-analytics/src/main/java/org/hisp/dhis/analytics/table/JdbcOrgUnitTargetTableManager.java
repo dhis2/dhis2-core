@@ -51,7 +51,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.Logged;
-import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.resourcetable.ResourceTableService;
@@ -165,14 +164,7 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
   private List<AnalyticsTableColumn> getColumns() {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-    List<OrganisationUnitLevel> levels = organisationUnitService.getFilledOrganisationUnitLevels();
-
-    for (OrganisationUnitLevel level : levels) {
-      String column = PREFIX_ORGUNITLEVEL + level.getLevel();
-      columns.add(
-          new AnalyticsTableColumn(column, CHARACTER_11, "ous." + column, level.getCreated()));
-    }
-
+    columns.addAll(getOrganisationUnitLevelColumns());
     columns.addAll(FIXED_COLS);
     columns.add(new AnalyticsTableColumn("value", DOUBLE, NULL, FACT, "1 as value"));
 

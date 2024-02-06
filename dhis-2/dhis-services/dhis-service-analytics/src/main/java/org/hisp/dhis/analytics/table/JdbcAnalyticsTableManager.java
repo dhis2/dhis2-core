@@ -69,7 +69,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
@@ -445,21 +444,11 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     List<DataElementGroupSet> dataElementGroupSets =
         idObjectManager.getDataDimensionsNoAcl(DataElementGroupSet.class);
 
-    List<OrganisationUnitGroupSet> orgUnitGroupSets =
-        idObjectManager.getDataDimensionsNoAcl(OrganisationUnitGroupSet.class);
-
     List<CategoryOptionGroupSet> disaggregationCategoryOptionGroupSets =
         categoryService.getDisaggregationCategoryOptionGroupSetsNoAcl();
 
-    List<CategoryOptionGroupSet> attributeCategoryOptionGroupSets =
-        categoryService.getAttributeCategoryOptionGroupSetsNoAcl();
-
     List<Category> disaggregationCategories =
         categoryService.getDisaggregationDataDimensionCategoriesNoAcl();
-
-    List<Category> attributeCategories = categoryService.getAttributeDataDimensionCategoriesNoAcl();
-
-    List<OrganisationUnitLevel> levels = organisationUnitService.getFilledOrganisationUnitLevels();
 
     for (DataElementGroupSet groupSet : dataElementGroupSets) {
       columns.add(
@@ -470,14 +459,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
               groupSet.getCreated()));
     }
 
-    for (OrganisationUnitGroupSet groupSet : orgUnitGroupSets) {
-      columns.add(
-          new AnalyticsTableColumn(
-              groupSet.getUid(),
-              CHARACTER_11,
-              "ougs." + quote(groupSet.getUid()),
-              groupSet.getCreated()));
-    }
+    columns.addAll(getOrganisationUnitGroupSetColumns());
 
     for (CategoryOptionGroupSet groupSet : disaggregationCategoryOptionGroupSets) {
       columns.add(
@@ -488,14 +470,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
               groupSet.getCreated()));
     }
 
-    for (CategoryOptionGroupSet groupSet : attributeCategoryOptionGroupSets) {
-      columns.add(
-          new AnalyticsTableColumn(
-              groupSet.getUid(),
-              CHARACTER_11,
-              "acs." + quote(groupSet.getUid()),
-              groupSet.getCreated()));
-    }
+    columns.addAll(getAttributeCategoryOptionGroupSetColumns());
 
     for (Category category : disaggregationCategories) {
       columns.add(
@@ -506,24 +481,11 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
               category.getCreated()));
     }
 
-    for (Category category : attributeCategories) {
-      columns.add(
-          new AnalyticsTableColumn(
-              category.getUid(),
-              CHARACTER_11,
-              "acs." + quote(category.getUid()),
-              category.getCreated()));
-    }
-
-    for (OrganisationUnitLevel level : levels) {
-      String column = PREFIX_ORGUNITLEVEL + level.getLevel();
-      columns.add(
-          new AnalyticsTableColumn(column, CHARACTER_11, "ous." + column, level.getCreated()));
-    }
-
+    columns.addAll(getAttributeCategoryColumns());
+    columns.addAll(getOrganisationUnitLevelColumns());
     columns.addAll(getPeriodTypeColumns("ps"));
-
     columns.addAll(FIXED_COLS);
+
     if (!skipOutliers(params)) {
       columns.addAll(getOutlierStatsColumns());
     }

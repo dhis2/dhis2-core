@@ -32,11 +32,8 @@ import static org.apache.commons.lang3.StringUtils.join;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.removeQuote;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.db.model.DataType.TEXT;
-
 import java.util.ArrayList;
 import java.util.List;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsConstants;
@@ -47,6 +44,8 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.IndexFunction;
 import org.hisp.dhis.db.model.constraint.Unique;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 /**
  * Helper class that encapsulates methods responsible for supporting the creation of analytics
