@@ -43,6 +43,7 @@ import static org.hisp.dhis.common.EventDataQueryRequest.ExtendedEventDataQueryR
 import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.feedback.ErrorCode.E7129;
 import static org.hisp.dhis.feedback.ErrorCode.E7250;
+import static org.hisp.dhis.feedback.ErrorCode.E7251;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Streams;
@@ -70,9 +71,11 @@ import org.hisp.dhis.analytics.common.params.CommonParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParamType;
 import org.hisp.dhis.analytics.common.params.dimension.StringUid;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
+import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -386,22 +389,22 @@ public class CommonQueryRequestMapper {
 
     // We first parse the dimensionId into <Program, ProgramStage, String>
     // to be able to operate on the string version (uid) of the dimension.
-    DimensionIdentifier<StringUid> dimensionIdentifier =
+    DimensionIdentifier<StringUid> stringDimensionIdentifier =
         dimensionIdentifierConverter.fromString(programs, dimensionId);
     List<String> items = getDimensionItemsFromParam(dimensionOrFilter);
 
     Optional<StaticDimension> staticDimension =
-        StaticDimension.of(dimensionIdentifier.getDimension().getUid());
+        StaticDimension.of(stringDimensionIdentifier.getDimension().getUid());
 
     // Then we check if it's a static dimension.
     if (staticDimension.isPresent()) {
-      return parseAsStaticDimension(dimensionParamType, dimensionIdentifier, items);
+      return parseAsStaticDimension(dimensionParamType, stringDimensionIdentifier, items);
     }
 
     // Then we check if it's a DimensionalObject.
     DimensionalObject dimensionalObject =
         dataQueryService.getDimension(
-            dimensionIdentifier.getDimension().getUid(),
+            stringDimensionIdentifier.getDimension().getUid(),
             items,
             relativePeriodDate,
             userOrgUnits,
@@ -413,16 +416,18 @@ public class CommonQueryRequestMapper {
       DimensionParam dimensionParam =
           DimensionParam.ofObject(dimensionalObject, dimensionParamType, items);
       return DimensionIdentifier.of(
-          dimensionIdentifier.getProgram(), dimensionIdentifier.getProgramStage(), dimensionParam);
+          stringDimensionIdentifier.getProgram(),
+          stringDimensionIdentifier.getProgramStage(),
+          dimensionParam);
     }
 
     QueryItem queryItem;
 
-    if (!dimensionIdentifier.hasProgram() && !dimensionIdentifier.hasProgramStage()) {
+    if (!stringDimensionIdentifier.hasProgram() && !stringDimensionIdentifier.hasProgramStage()) {
       // If we reach here, it should be a trackedEntityAttribute.
       queryItem =
           eventDataQueryService.getQueryItem(
-              dimensionIdentifier.getDimension().getUid(), null, TRACKED_ENTITY_INSTANCE);
+              stringDimensionIdentifier.getDimension().getUid(), null, TRACKED_ENTITY_INSTANCE);
 
       if (Objects.isNull(queryItem)) {
         throw new IllegalQueryException(E7250, dimensionId);
@@ -434,8 +439,8 @@ public class CommonQueryRequestMapper {
       // (both program and program stage prefixes)
       queryItem =
           eventDataQueryService.getQueryItem(
-              dimensionIdentifier.getDimension().getUid(),
-              dimensionIdentifier.getProgram().getElement(),
+              stringDimensionIdentifier.getDimension().getUid(),
+              stringDimensionIdentifier.getProgram().getElement(),
               TRACKED_ENTITY_INSTANCE);
 
       // TEA should only be specified without program prefix
@@ -446,11 +451,20 @@ public class CommonQueryRequestMapper {
 
     // for queryItems, dimension string is in the format:
     // uid:OP:VAL1:OP2:VAL2:OPn:VALn
-    return DimensionIdentifier.of(
-        dimensionIdentifier.getProgram(),
-        dimensionIdentifier.getProgramStage(),
-        DimensionParam.ofObject(
-            queryItem, dimensionParamType, parseDimensionItems(dimensionOrFilter)));
+    DimensionIdentifier<DimensionParam> dimensionIdentifier =
+        DimensionIdentifier.of(
+            stringDimensionIdentifier.getProgram(),
+            stringDimensionIdentifier.getProgramStage(),
+            DimensionParam.ofObject(
+                queryItem, dimensionParamType, parseDimensionItems(dimensionOrFilter)));
+
+    /* DHIS2-16732 missing support for ProgramIndicators*/
+    if (SqlQueryBuilders.isOfType(
+        dimensionIdentifier, DimensionParamObjectType.PROGRAM_INDICATOR)) {
+      throw new IllegalQueryException(E7251, stringDimensionIdentifier.toString());
+    }
+
+    return dimensionIdentifier;
   }
 
   /**
