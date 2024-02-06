@@ -168,7 +168,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
   @Override
   @Transactional
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
-    return params.isLatestUpdate() ? new ArrayList<>() : getRegularAnalyticsTables(params);
+    return params.isLatestUpdate() ? List.of() : getRegularAnalyticsTables(params);
   }
 
   /**
