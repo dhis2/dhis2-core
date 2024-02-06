@@ -254,7 +254,7 @@ public class AnalyticsTable extends Table {
     if (this == object) {
       return true;
     }
-    if (getClass() != object.getClass()) {
+    if (object != null && getClass() != object.getClass()) {
       return false;
     }
     return super.equals(object);
