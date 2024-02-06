@@ -136,7 +136,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
   /**
    * Query to extract relationships with the order by clause and pagination if required
    *
-   * @param entity to filter the relationships
+   * @param entity to filter the relationships by
    * @param queryParams
    * @return
    * @param <T> relationships list
