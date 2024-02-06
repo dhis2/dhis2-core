@@ -313,6 +313,7 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
 
     String evUid = "XSnivU7HgpA";
     EventVisualization evRepetitionNoProgram = new EventVisualization("Test");
+    evRepetitionNoProgram.setProgram(mockProgram);
     evRepetitionNoProgram.setType(LINE);
     evRepetitionNoProgram.setUid(evUid);
     evRepetitionNoProgram.setColumns(List.of(dim));
