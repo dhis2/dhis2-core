@@ -2871,8 +2871,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
     response
         .validate()
         .statusCode(200)
-        .body("rows", hasSize(equalTo(50)))
-        .body("height", equalTo(50))
+        .body("rows", hasSize(equalTo(32)))
+        .body("height", equalTo(32))
         .body("width", equalTo(1))
         .body("headerWidth", equalTo(1))
         .body("headers", hasSize(equalTo(1)));
