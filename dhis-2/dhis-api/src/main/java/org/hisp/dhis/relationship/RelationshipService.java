@@ -98,33 +98,33 @@ public interface RelationshipService {
   List<Relationship> getRelationships(@Nonnull List<String> uids);
 
   default List<Relationship> getRelationshipsByTrackedEntity(
-      TrackedEntity trackedEntity, boolean skipAccessValidation) {
-    return getRelationshipsByTrackedEntity(trackedEntity, null, skipAccessValidation);
+      TrackedEntity trackedEntity, boolean includeDeleted) {
+    return getRelationshipsByTrackedEntity(trackedEntity, null, includeDeleted);
   }
 
   List<Relationship> getRelationshipsByTrackedEntity(
       TrackedEntity te,
       PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean skipAccessValidation);
+      boolean includeDeleted);
 
   default List<Relationship> getRelationshipsByEnrollment(
-      Enrollment enrollment, boolean skipAccessValidation) {
-    return getRelationshipsByEnrollment(enrollment, null, skipAccessValidation);
+      Enrollment enrollment, boolean includeDeleted) {
+    return getRelationshipsByEnrollment(enrollment, null, includeDeleted);
   }
 
   List<Relationship> getRelationshipsByEnrollment(
       Enrollment enrollment,
       PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean skipAccessValidation);
+      boolean includeDeleted);
 
-  default List<Relationship> getRelationshipsByEvent(Event event, boolean skipAccessValidation) {
-    return getRelationshipsByEvent(event, null, skipAccessValidation);
+  default List<Relationship> getRelationshipsByEvent(Event event, boolean includeDeleted) {
+    return getRelationshipsByEvent(event, null, includeDeleted);
   }
 
   List<Relationship> getRelationshipsByEvent(
       Event event,
       PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean skipAccessValidation);
+      boolean includeDeleted);
 
   List<Relationship> getRelationshipsByRelationshipType(RelationshipType relationshipType);
 }
