@@ -400,8 +400,9 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
     return switch (getSchedulingType()) {
       case ONCE_ASAP -> nextOnceExecutionTime(since);
       case FIXED_DELAY -> nextDelayExecutionTime(since);
-      case CRON -> nextCronExecutionTime(
-          zone, isFirstExecution ? since.minus(maxCronDelay) : since, now, maxCronDelay);
+      case CRON ->
+          nextCronExecutionTime(
+              zone, isFirstExecution ? since.minus(maxCronDelay) : since, now, maxCronDelay);
     };
   }
 

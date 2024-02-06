@@ -35,7 +35,6 @@ import static org.hisp.dhis.common.PrefixedDimensions.ofItemsWithProgram;
 import static org.hisp.dhis.common.PrefixedDimensions.ofProgramStageDataElements;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -81,7 +80,7 @@ public class DefaultEnrollmentAnalyticsDimensionsService
                             QUERY,
                             ofItemsWithProgram(
                                 program, getTeasIfRegistrationAndNotConfidential(program))))))
-        .orElse(Collections.emptyList());
+        .orElse(List.of());
   }
 
   private Collection<PrefixedDimension> getProgramStageDataElements(
@@ -108,7 +107,7 @@ public class DefaultEnrollmentAnalyticsDimensionsService
                         filterByValueType(
                             AGGREGATE,
                             ofItemsWithProgram(program, program.getTrackedEntityAttributes())))))
-        .orElse(Collections.emptyList());
+        .orElse(List.of());
   }
 
   private Collection<TrackedEntityAttribute> getTeasIfRegistrationAndNotConfidential(
@@ -116,7 +115,7 @@ public class DefaultEnrollmentAnalyticsDimensionsService
     return Optional.of(program)
         .filter(Program::isRegistration)
         .map(Program::getTrackedEntityAttributes)
-        .orElse(Collections.emptyList())
+        .orElse(List.of())
         .stream()
         .filter(this::isNotConfidential)
         .collect(Collectors.toList());

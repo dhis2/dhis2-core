@@ -42,7 +42,7 @@ import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.user.User;
 
-/** Utilities for organisation unit criteria of outcoming analytics response. */
+/** Utilities for organisation unit criteria of analytics response. */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class AnalyticsOrganisationUnitUtils {
   /**
@@ -89,18 +89,21 @@ public class AnalyticsOrganisationUnitUtils {
     List<String> userOrgUnitList;
 
     switch (analyticsMetaDataKey) {
-      case USER_ORGUNIT -> userOrgUnitList =
-          user.getOrganisationUnits().stream().map(BaseIdentifiableObject::getUid).toList();
-      case USER_ORGUNIT_CHILDREN -> userOrgUnitList =
-          user.getOrganisationUnits().stream()
-              .flatMap(ou -> ou.getChildren().stream())
-              .map(BaseIdentifiableObject::getUid)
-              .toList();
-      case USER_ORGUNIT_GRANDCHILDREN -> userOrgUnitList =
-          user.getOrganisationUnits().stream()
-              .flatMap(ou -> ou.getGrandChildren().stream())
-              .map(BaseIdentifiableObject::getUid)
-              .toList();
+      case USER_ORGUNIT ->
+          userOrgUnitList =
+              user.getOrganisationUnits().stream().map(BaseIdentifiableObject::getUid).toList();
+      case USER_ORGUNIT_CHILDREN ->
+          userOrgUnitList =
+              user.getOrganisationUnits().stream()
+                  .flatMap(ou -> ou.getChildren().stream())
+                  .map(BaseIdentifiableObject::getUid)
+                  .toList();
+      case USER_ORGUNIT_GRANDCHILDREN ->
+          userOrgUnitList =
+              user.getOrganisationUnits().stream()
+                  .flatMap(ou -> ou.getGrandChildren().stream())
+                  .map(BaseIdentifiableObject::getUid)
+                  .toList();
       default -> userOrgUnitList = List.of();
     }
 

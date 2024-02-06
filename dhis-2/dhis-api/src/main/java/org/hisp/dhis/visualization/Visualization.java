@@ -32,7 +32,6 @@ import static com.google.common.base.Verify.verify;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.containsAny;
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.join;
@@ -824,22 +823,6 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
             format);
 
     return object != null ? object.getItems() : null;
-  }
-
-  /** Validates the state of the current list of {@link Sorting} objects (if one is defined). */
-  public void validateSortingState() {
-    List<String> columns = getColumnDimensions();
-    List<Sorting> sortingList = getSorting();
-
-    sortingList.forEach(
-        s -> {
-          if (isBlank(s.getDimension()) || s.getDirection() == null) {
-            throw new IllegalArgumentException("Sorting is not valid");
-          } else if (columns.stream()
-              .noneMatch(c -> containsAny(s.getDimension(), c.split("\\.")))) {
-            throw new IllegalStateException(s.getDimension());
-          }
-        });
   }
 
   /**

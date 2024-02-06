@@ -33,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dxf2.adx.AdxDataService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
+import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.fileresource.FileResource;
@@ -73,16 +74,20 @@ public class DataValueSetImportJob implements Job {
       progress.startingStage("Importing data...");
       ImportSummary summary =
           switch (contentType) {
-            case "application/json" -> progress.runStage(
-                () -> dataValueSetService.importDataValueSetJson(input, options, jobId));
-            case "application/csv" -> progress.runStage(
-                () -> dataValueSetService.importDataValueSetCsv(input, options, jobId));
-            case "application/pdf" -> progress.runStage(
-                () -> dataValueSetService.importDataValueSetPdf(input, options, jobId));
-            case "application/adx+xml" -> progress.runStage(
-                () -> adxDataService.saveDataValueSet(input, options, jobId));
-            case "application/xml" -> progress.runStage(
-                () -> dataValueSetService.importDataValueSetXml(input, options, jobId));
+            case "application/json" ->
+                progress.runStage(
+                    () -> dataValueSetService.importDataValueSetJson(input, options, jobId));
+            case "application/csv" ->
+                progress.runStage(
+                    () -> dataValueSetService.importDataValueSetCsv(input, options, jobId));
+            case "application/pdf" ->
+                progress.runStage(
+                    () -> dataValueSetService.importDataValueSetPdf(input, options, jobId));
+            case "application/adx+xml" ->
+                progress.runStage(() -> adxDataService.saveDataValueSet(input, options, jobId));
+            case "application/xml" ->
+                progress.runStage(
+                    () -> dataValueSetService.importDataValueSetXml(input, options, jobId));
             default -> {
               progress.failedStage("Unknown format: " + contentType);
               yield null;
@@ -92,6 +97,12 @@ public class DataValueSetImportJob implements Job {
         progress.failedProcess("Import failed, no summary available");
         return;
       }
+
+      if (summary.hasConflicts()) {
+        for (ImportConflict c : summary.getConflicts())
+          progress.addError(c.getErrorCode(), c.getObject(), c.getGroupingKey(), c.getArgs());
+      }
+
       ImportCount count = summary.getImportCount();
       progress.completedProcess(
           "Import complete with status %s, %d created, %d updated, %d deleted, %d ignored"

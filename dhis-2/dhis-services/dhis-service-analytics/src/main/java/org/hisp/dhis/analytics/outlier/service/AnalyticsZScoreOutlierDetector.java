@@ -29,7 +29,7 @@ package org.hisp.dhis.analytics.outlier.service;
 
 import static java.lang.Double.NaN;
 import static org.apache.commons.math3.util.Precision.round;
-import static org.hisp.dhis.analytics.OutlierDetectionAlgorithm.MOD_Z_SCORE;
+import static org.hisp.dhis.analytics.OutlierDetectionAlgorithm.MODIFIED_Z_SCORE;
 import static org.hisp.dhis.analytics.outlier.OutlierHelper.withExceptionHandling;
 import static org.hisp.dhis.period.PeriodType.getIsoPeriod;
 
@@ -37,7 +37,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.OutlierDetectionAlgorithm;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.outlier.OutlierSqlStatementProcessor;
@@ -57,11 +56,10 @@ import org.springframework.stereotype.Repository;
  * z-score.
  *
  * <p>This both implements the {@link OutlierDetectionAlgorithm#Z_SCORE} and {@link
- * OutlierDetectionAlgorithm#MOD_Z_SCORE}. Usual z-score uses the mean as middle value whereas the
- * modified z-score uses the median as middle value or more mathematically correct as the
+ * OutlierDetectionAlgorithm#MODIFIED_Z_SCORE}. Usual z-score uses the mean as middle value whereas
+ * the modified z-score uses the median as middle value or more mathematically correct as the
  * <em>measure of central tendency</em>.
  */
-@Slf4j
 @Repository
 @RequiredArgsConstructor
 public class AnalyticsZScoreOutlierDetector {
@@ -82,7 +80,7 @@ public class AnalyticsZScoreOutlierDetector {
     String sql = sqlStatementProcessor.getSqlStatement(request);
     SqlParameterSource params = sqlStatementProcessor.getSqlParameterSource(request);
     Calendar calendar = PeriodType.getCalendar();
-    boolean modifiedZ = request.getAlgorithm() == MOD_Z_SCORE;
+    boolean modifiedZ = request.getAlgorithm() == MODIFIED_Z_SCORE;
 
     return withExceptionHandling(
             () -> jdbcTemplate.query(sql, params, getRowMapper(calendar, modifiedZ)))

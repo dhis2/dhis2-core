@@ -37,8 +37,6 @@ import org.hisp.dhis.feedback.ErrorReport;
 @Data
 @Builder
 public class ProgramRuleActionValidationResult {
-  private String description;
-
   private boolean valid;
 
   private ErrorReport errorReport;

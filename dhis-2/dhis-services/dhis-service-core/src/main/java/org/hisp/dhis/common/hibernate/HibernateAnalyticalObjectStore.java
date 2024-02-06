@@ -187,6 +187,19 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
   }
 
   @Override
+  public List<T> getVisualizationsBySortingIndicator(List<String> indicators) {
+    // language=sql
+    String sql =
+        """
+    select v.* from visualization v, jsonb_array_elements(sorting) as sort
+    where sort->>'dimension' in :indicators
+    group by v.visualizationid
+    """;
+
+    return getSession().createNativeQuery(sql, clazz).setParameter("indicators", indicators).list();
+  }
+
+  @Override
   public long countAnalyticalObjects(Indicator indicator) {
     Query<Long> query =
         getTypedQuery(

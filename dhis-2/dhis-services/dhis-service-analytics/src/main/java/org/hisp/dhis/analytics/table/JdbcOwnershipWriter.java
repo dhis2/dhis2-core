@@ -44,7 +44,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.jdbc.batchhandler.MappingBatchHandler;
 
 /**
- * Writer of rows to the analytics_ownership temp tables.
+ * Writer of rows to the analytics_ownership staging tables.
  *
  * @author Jim Grace
  */
@@ -76,7 +76,7 @@ public class JdbcOwnershipWriter {
   }
 
   /**
-   * Write a row to an analytics_ownership temp table. Work on a copy of the row, so we do not
+   * Write a row to an analytics_ownership staging table. Work on a copy of the row, so we do not
    * change the original row. We cannot use immutable maps because the orgUnit levels contain nulls
    * when the orgUnit is not at the lowest level, and immutable maps do not allow null values. Also,
    * the end date is null in the last record for each TEI.

@@ -67,8 +67,6 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.jdbc.StatementBuilder;
-import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -122,7 +120,6 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
   public void setUp() {
     when(jdbcTemplate.queryForRowSet(anyString())).thenReturn(this.rowSet);
 
-    StatementBuilder statementBuilder = new PostgreSQLStatementBuilder();
     DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
         new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService);
 
@@ -131,7 +128,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             jdbcTemplate,
             programIndicatorService,
             programIndicatorSubqueryBuilder,
-            new EnrollmentTimeFieldSqlRenderer(statementBuilder),
+            new EnrollmentTimeFieldSqlRenderer(),
             executionPlanStore);
   }
 

@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.tracker.TrackerType;
@@ -67,6 +68,8 @@ import org.hisp.dhis.user.User;
 public class TrackerBundle {
   /** User to use for import job. */
   private User user;
+
+  private UserInfoSnapshot userInfo;
 
   /** Should import be imported or just validated. */
   @Builder.Default private TrackerBundleMode importMode = TrackerBundleMode.COMMIT;
@@ -146,7 +149,7 @@ public class TrackerBundle {
     return User.username(user);
   }
 
-  @Builder.Default @JsonIgnore private Set<String> updatedTeis = new HashSet<>();
+  @Builder.Default @JsonIgnore private Set<String> updatedTrackedEntities = new HashSet<>();
 
   public Optional<TrackedEntity> findTrackedEntityByUid(String uid) {
     return findById(this.trackedEntities, uid);

@@ -28,6 +28,8 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.Collections.singletonMap;
+import static javax.xml.XMLConstants.ACCESS_EXTERNAL_DTD;
+import static javax.xml.XMLConstants.ACCESS_EXTERNAL_STYLESHEET;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
@@ -162,6 +164,12 @@ public class DataSetController extends AbstractCrudController<DataSet> {
         new ByteArrayInputStream(xmlMapper.writeValueAsString(metadata).getBytes("UTF-8"));
 
     TransformerFactory tf = TransformerFactory.newInstance();
+    // prevent XXE attack
+    // sonar vulnerability:
+    // https://sonarcloud.io/organizations/dhis2/rules?open=java%3AS2755&rule_key=java%3AS2755
+    tf.setAttribute(ACCESS_EXTERNAL_DTD, "");
+    tf.setAttribute(ACCESS_EXTERNAL_STYLESHEET, "");
+
     tf.setURIResolver(new ClassPathUriResolver());
 
     Transformer transformer =

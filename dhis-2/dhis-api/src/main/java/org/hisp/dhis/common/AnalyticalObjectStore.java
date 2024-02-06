@@ -40,6 +40,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.visualization.Visualization;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -71,6 +72,15 @@ public interface AnalyticalObjectStore<T extends AnalyticalObject>
   List<T> getAnalyticalObjects(CategoryOptionGroup categoryOptionGroup);
 
   List<T> getAnalyticalObjects(LegendSet legendSet);
+
+  /**
+   * Method that gets all {@link Visualization}s where its {@link org.hisp.dhis.analytics.Sorting}
+   * column (jsonb) contains any of the supplied {@link Indicator} references.
+   *
+   * @param indicators references to search for
+   * @return matching {@link Visualization}s
+   */
+  List<T> getVisualizationsBySortingIndicator(List<String> indicators);
 
   long countAnalyticalObjects(Indicator indicator);
 

@@ -38,17 +38,16 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import org.hisp.dhis.analytics.AnalyticsExportSettings;
-import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableManager;
-import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.table.model.AnalyticsTable;
+import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.resourcetable.ResourceTableService;
@@ -77,7 +76,7 @@ class JdbcAnalyticsTableManagerTest {
 
   @Mock private JdbcTemplate jdbcTemplate;
 
-  @Mock private AnalyticsExportSettings analyticsExportSettings;
+  @Mock private AnalyticsTableExportSettings analyticsExportSettings;
 
   @Mock private PeriodDataProvider periodDataProvider;
 
@@ -94,7 +93,6 @@ class JdbcAnalyticsTableManagerTest {
             mock(DataApprovalLevelService.class),
             mock(ResourceTableService.class),
             mock(AnalyticsTableHookService.class),
-            mock(StatementBuilder.class),
             mock(PartitionManager.class),
             mock(DatabaseInfoProvider.class),
             jdbcTemplate,
@@ -171,7 +169,7 @@ class JdbcAnalyticsTableManagerTest {
     assertNotNull(table.getTablePartitions());
     assertEquals(1, table.getTablePartitions().size());
 
-    AnalyticsTablePartition partition = table.getLatestPartition();
+    AnalyticsTablePartition partition = table.getLatestTablePartition();
 
     assertNotNull(partition);
     assertTrue(partition.isLatestPartition());

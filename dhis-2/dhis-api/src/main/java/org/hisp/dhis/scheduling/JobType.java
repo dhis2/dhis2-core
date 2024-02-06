@@ -234,7 +234,10 @@ public enum JobType {
    *     the ready jobs per type is attempted to start in a single loop cycle
    */
   public boolean isUsingContinuousExecution() {
-    return this == METADATA_IMPORT || this == TRACKER_IMPORT_JOB || this == DATA_INTEGRITY_DETAILS;
+    return this == METADATA_IMPORT
+        || this == TRACKER_IMPORT_JOB
+        || this == DATA_INTEGRITY
+        || this == DATA_INTEGRITY_DETAILS;
   }
 
   public boolean hasJobParameters() {
@@ -251,20 +254,23 @@ public enum JobType {
   public Map<String, String> getRelativeApiElements() {
     return switch (this) {
       case DATA_INTEGRITY, DATA_INTEGRITY_DETAILS -> Map.of("checks", "/api/dataIntegrity");
-      case ANALYTICS_TABLE -> Map.of(
-          "skipTableTypes", "/api/analytics/tableTypes",
-          "skipPrograms", "/api/programs");
+      case ANALYTICS_TABLE ->
+          Map.of(
+              "skipTableTypes", "/api/analytics/tableTypes",
+              "skipPrograms", "/api/programs");
       case CONTINUOUS_ANALYTICS_TABLE -> Map.of("skipTableTypes", "/api/analytics/tableTypes");
       case AGGREGATE_DATA_EXCHANGE -> Map.of("dataExchangeIds", "/api/aggregateDataExchanges");
-      case MONITORING -> Map.of(
-          "relativePeriods", "/api/periodTypes/relativePeriodTypes",
-          "validationRuleGroups", "/api/validationRuleGroups");
+      case MONITORING ->
+          Map.of(
+              "relativePeriods", "/api/periodTypes/relativePeriodTypes",
+              "validationRuleGroups", "/api/validationRuleGroups");
       case PUSH_ANALYSIS -> Map.of("pushAnalysis", "/api/pushAnalysis");
-      case TRACKER_SEARCH_OPTIMIZATION -> Map.of(
-          "attributes", "/api/trackedEntityAttributes/indexable");
-      case PREDICTOR -> Map.of(
-          "predictors", "/api/predictors",
-          "predictorGroups", "/api/predictorGroups");
+      case TRACKER_SEARCH_OPTIMIZATION ->
+          Map.of("attributes", "/api/trackedEntityAttributes/indexable");
+      case PREDICTOR ->
+          Map.of(
+              "predictors", "/api/predictors",
+              "predictorGroups", "/api/predictorGroups");
       default -> Map.of();
     };
   }

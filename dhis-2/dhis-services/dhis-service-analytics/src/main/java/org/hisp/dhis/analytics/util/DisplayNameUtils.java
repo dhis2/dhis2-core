@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.analytics.util;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class DisplayNameUtils {
   /**
    * TODO Refactor and change this, too much code vs benefit.

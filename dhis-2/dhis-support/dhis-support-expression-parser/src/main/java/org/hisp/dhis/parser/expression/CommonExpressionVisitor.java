@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.parser.expression;
 
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -48,7 +46,9 @@ import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.expression.ExpressionInfo;
 import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.i18n.I18n;
+import org.hisp.dhis.jdbc.PostgreSqlStatementBuilder;
 import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -62,6 +62,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 @Setter
 @Builder(toBuilder = true)
 public class CommonExpressionVisitor extends AntlrExpressionVisitor {
+  private final StatementBuilder statementBuilder = new PostgreSqlStatementBuilder();
+
   private IdentifiableObjectManager idObjectManager;
 
   private DimensionService dimensionService;
@@ -71,8 +73,6 @@ public class CommonExpressionVisitor extends AntlrExpressionVisitor {
   private ProgramStageService programStageService;
 
   private TrackedEntityAttributeService attributeService;
-
-  private StatementBuilder statementBuilder;
 
   /**
    * A {@link Supplier} object that can return a {@link I18n} instance when needed. This is done

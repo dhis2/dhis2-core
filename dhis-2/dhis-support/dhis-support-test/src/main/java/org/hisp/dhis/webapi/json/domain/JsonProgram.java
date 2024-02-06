@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.json.domain;
 
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonString;
 
 /**
  * @author David Mackessy
@@ -53,5 +54,33 @@ public interface JsonProgram extends JsonObject, JsonNameableObject {
 
   default JsonList<JsonProgramTrackedEntityAttribute> getProgramTrackedEntityAttributes() {
     return getList("programTrackedEntityAttributes", JsonProgramTrackedEntityAttribute.class);
+  }
+
+  default JsonString getEnrollmentDateLabel() {
+    return getString("enrollmentDateLabel");
+  }
+
+  default JsonString getEnrollmentLabel() {
+    return getString("enrollmentLabel");
+  }
+
+  default JsonString getFollowUpLabel() {
+    return getString("followUpLabel");
+  }
+
+  default JsonString getOrUnitLabel() {
+    return getString("orgUnitLabel");
+  }
+
+  default JsonString getRelationshipLabel() {
+    return getString("relationshipLabel");
+  }
+
+  default JsonString getNoteLabel() {
+    return getString("noteLabel");
+  }
+
+  default JsonString getTrackedEntityAttributeLabel() {
+    return getString("trackedEntityAttributeLabel");
   }
 }

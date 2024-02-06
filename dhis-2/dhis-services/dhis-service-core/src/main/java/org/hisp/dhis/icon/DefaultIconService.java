@@ -46,7 +46,6 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserService;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -64,8 +63,6 @@ public class DefaultIconService implements IconService {
 
   private final FileResourceService fileResourceService;
 
-  private final UserService userService;
-
   private final Map<String, DefaultIcon> defaultIcons =
       Arrays.stream(DefaultIcon.Icons.values())
           .map(DefaultIcon.Icons::getVariants)
@@ -74,21 +71,26 @@ public class DefaultIconService implements IconService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<Icon> getIcons() {
-    return Stream.concat(defaultIcons.values().stream(), customIconStore.getAllIcons().stream())
-        .toList();
-  }
+  public List<Icon> getIcons(IconOperationParams iconOperationParams) {
+    if (IconTypeFilter.DEFAULT == iconOperationParams.getIconTypeFilter()) {
+      return defaultIcons.values().stream()
+          .filter(icon -> Set.of(icon.getKeywords()).containsAll(iconOperationParams.getKeywords()))
+          .collect(Collectors.toList());
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<Icon> getIcons(String[] keywords) {
+    if (IconTypeFilter.CUSTOM == iconOperationParams.getIconTypeFilter()) {
+      return customIconStore.getIcons(iconOperationParams).collect(Collectors.toList());
+    }
+
     return Stream.concat(
             defaultIcons.values().stream()
-                .filter(icon -> Set.of(icon.getKeywords()).containsAll(List.of(keywords)))
+                .filter(
+                    icon ->
+                        Set.of(icon.getKeywords()).containsAll(iconOperationParams.getKeywords()))
                 .toList()
                 .stream(),
-            customIconStore.getIconsByKeywords(keywords).stream())
-        .toList();
+            customIconStore.getIcons(iconOperationParams))
+        .collect(Collectors.toList());
   }
 
   @Override

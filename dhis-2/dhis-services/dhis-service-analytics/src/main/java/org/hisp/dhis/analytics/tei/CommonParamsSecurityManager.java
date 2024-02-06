@@ -219,9 +219,7 @@ public class CommonParamsSecurityManager {
       orgUnitItems.addAll(intersection);
     }
 
-    log.debug(
-        String.format(
-            "User: '%s' constrained by data view organisation units", currentUser.getUsername()));
+    log.debug("User: '{}' constrained by data view organisation units", currentUser.getUsername());
   }
 
   /**
@@ -289,9 +287,9 @@ public class CommonParamsSecurityManager {
       dimension.getItems().addAll(canReadItems);
 
       log.debug(
-          String.format(
-              "User: '%s' constrained by dimension: '%s'",
-              currentUser.getUsername(), dimension.getDimension()));
+          "User: '{}' constrained by dimension: '{}'",
+          currentUser.getUsername(),
+          dimension.getDimension());
     }
   }
 

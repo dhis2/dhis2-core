@@ -29,55 +29,78 @@ package org.hisp.dhis.analytics.common.params.dimension;
 
 import static java.util.Collections.singletonList;
 import static lombok.AccessLevel.PRIVATE;
-import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
-import static org.hisp.dhis.feedback.ErrorCode.E2035;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.QueryOperator;
+import org.apache.commons.collections4.ListUtils;
 
 @Getter
 @RequiredArgsConstructor(access = PRIVATE)
 public class DimensionParamItem {
+
   private final AnalyticsQueryOperator operator;
 
   private final List<String> values;
 
+  /**
+   * This method parses a list of strings into a list of DimensionParamItem. Items can be either a
+   * list in the form of [OP:VAL, OP2:VAL2, ...] (queryItem case) or a list of values in the form of
+   * [VAL, VAL2, ...] (values case - dimensionalObject).
+   *
+   * @param items List of strings to be parsed.
+   * @return List of DimensionParamItem.
+   */
   public static List<DimensionParamItem> ofStrings(List<String> items) {
-    if (items.isEmpty()) {
+    if (isEmpty(items)) {
       return Collections.emptyList();
     }
-    // If operator is specified, it's in the first element.
-    String firstElement = items.get(0);
-
-    if (firstElement.contains(DIMENSION_NAME_SEP)) { // Has operator.
-      String[] parts = firstElement.split(DIMENSION_NAME_SEP);
-      AnalyticsQueryOperator queryOperator = getOperator(parts[0].trim());
-      return singletonList(
-          new DimensionParamItem(
-              queryOperator,
-              Stream.concat(Stream.of(parts[1]), items.stream().skip(1))
-                  .collect(Collectors.toList())));
+    if (isQueryItemFormat(items)) {
+      return ofQueryItemFormat(items);
     } else {
       return singletonList(new DimensionParamItem(null, items));
     }
   }
 
-  private static AnalyticsQueryOperator getOperator(String operator) {
-    if (operator.startsWith("!")) {
-      return getOperator(operator.substring(1)).negate();
-    }
-    return Arrays.stream(QueryOperator.values())
-        .filter(queryOperator -> equalsIgnoreCase(queryOperator.name(), operator))
-        .findFirst()
-        .map(AnalyticsQueryOperator::of)
-        .orElseThrow(() -> new IllegalQueryException(E2035, operator));
+  /**
+   * This method checks if the list of strings is in the queryItem format, i.e. if the first item
+   * contains the dimension name separator. We assume that if the first item contains the separator,
+   * then the rest of the items are also in the queryItem format.
+   *
+   * @param items List of strings to be checked.
+   * @return True if the list is in the queryItem format, false otherwise.
+   */
+  private static boolean isQueryItemFormat(List<String> items) {
+    return isNotEmpty(items) && items.get(0).contains(DIMENSION_NAME_SEP);
+  }
+
+  /**
+   * This method parses a list of strings in the queryItem format into a list of DimensionParamItem.
+   *
+   * @param items List of strings to be parsed.
+   * @return List of DimensionParamItem.
+   */
+  private static List<DimensionParamItem> ofQueryItemFormat(List<String> items) {
+    return ListUtils.emptyIfNull(items).stream()
+        .map(DimensionParamItem::ofQueryItemFormat)
+        .toList();
+  }
+
+  /**
+   * This method parses a string in the queryItem format into a DimensionParamItem by simply
+   * splitting the string by the dimension name separator (:). The first part is the operator and
+   * the second part is the value.
+   *
+   * @param item String to be parsed.
+   * @return parsed DimensionParamItem.
+   */
+  private static DimensionParamItem ofQueryItemFormat(String item) {
+    String[] parts = item.split(DIMENSION_NAME_SEP);
+    AnalyticsQueryOperator queryOperator = AnalyticsQueryOperator.ofString(parts[0].trim());
+    return new DimensionParamItem(queryOperator, singletonList(parts[1]));
   }
 }

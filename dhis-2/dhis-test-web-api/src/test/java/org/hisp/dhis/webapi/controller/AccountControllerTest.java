@@ -30,13 +30,16 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -45,7 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Jan Bernitt
  */
-class AccountControllerTest extends DhisControllerConvenienceTest {
+class AccountControllerTest extends DhisControllerIntegrationTest {
   @Autowired private SystemSettingManager systemSettingManager;
 
   @Test
@@ -88,7 +91,8 @@ class AccountControllerTest extends DhisControllerConvenienceTest {
         "status",
         "NON_EXPIRED",
         "Account is not expired, redirecting to login.",
-        POST("/account/password?oldPassword=xyz&password=abc").content(HttpStatus.BAD_REQUEST));
+        POST("/account/password?username=admin&oldPassword=xyz&password=abc")
+            .content(HttpStatus.BAD_REQUEST));
   }
 
   @Test
@@ -158,6 +162,20 @@ class AccountControllerTest extends DhisControllerConvenienceTest {
         "error",
         "Password must have at least 8, and at most 72 characters",
         POST("/account/validatePassword?password=xyz").content(HttpStatus.OK));
+  }
+
+  @Test
+  void testGetLinkedAccounts() {
+    String openId = "email@provider.com";
+    List<User> allUsers = userService.getAllUsers();
+    for (User user : allUsers) {
+      user.setOpenId(openId);
+      userService.updateUser(user);
+    }
+
+    JsonMixed response = GET("/account/linkedAccounts").content(HttpStatus.OK);
+    JsonList<JsonObject> users = response.getList("users", JsonObject.class);
+    assertEquals(2, users.size());
   }
 
   private static void assertMessage(String key, String value, String message, JsonMixed response) {

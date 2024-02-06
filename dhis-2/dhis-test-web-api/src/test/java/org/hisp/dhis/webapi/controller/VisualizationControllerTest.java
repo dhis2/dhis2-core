@@ -36,8 +36,11 @@ import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.web.HttpStatus;
@@ -111,24 +114,37 @@ class VisualizationControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testPostInvalidSortingObject() {
+  void testPostForNullOutlierMaxResults() {
     // Given
-    String invalidDimension = "invalidOne";
-    String sorting = "'sorting': [{'dimension': '" + invalidDimension + "', 'direction':'ASC'}]";
     String body =
-        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
-            + mockProgram.getUid()
-            + "'}, 'columns': [{'dimension': 'pe'}],"
-            + sorting
-            + "}";
+        """
+            {
+                "name": "Test Visualization",
+                "type": "LINE",
+                "program": {
+                    "id": "IpHINAT79UW"
+                },
+                "outlierAnalysis": {
+                    "enabled": true,
+                    "outlierMethod": "MODIFIED_Z_SCORE",
+                    "thresholdFactor": 3,
+                    "extremeLines": {
+                        "enabled": false,
+                        "value": 1
+                    },
+                    "maxResults": null
+                }
+            }
+        """;
 
     // When
-    HttpResponse response = POST("/visualizations/", body);
+    String uid = assertStatus(CREATED, POST("/visualizations/", body));
 
     // Then
-    assertEquals(
-        "Sorting dimension ‘" + invalidDimension + "’ is not a column",
-        response.error(CONFLICT).getMessage());
+    String getParams = "?fields=:all,columns[:all,items,sorting]";
+    JsonObject response = GET("/visualizations/" + uid + getParams).content();
+
+    assertThat(response.get("outlierAnalysis").toString(), not(containsString("maxResults")));
   }
 
   @Test
@@ -153,6 +169,62 @@ class VisualizationControllerTest extends DhisControllerConvenienceTest {
     JsonObject response = GET("/visualizations/" + uid + getParams).content();
 
     assertThat(response.get("sorting").toString(), containsString("pe"));
+    assertThat(response.get("sorting").toString(), containsString("ASC"));
+  }
+
+  @Test
+  void testPostOutlierTypeObject() {
+    // Given
+    String dimension = "pe";
+    String body =
+        "{'name': 'Name Test', 'type': 'OUTLIER_TABLE', 'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}, 'columns': [{'dimension': '"
+            + dimension
+            + "'}]"
+            + "}";
+
+    // When
+    String uid = assertStatus(CREATED, POST("/visualizations/", body));
+
+    // Then
+    String getParams = "?filter=type:eq:OUTLIER_TABLE&fields=:all,columns[:all,items,sorting]";
+    JsonObject response = GET("/visualizations" + getParams).content();
+
+    JsonNode visualization = response.getArray("visualizations").getArray(0).node();
+    assertEquals(uid, visualization.get("id").value().toString());
+    assertEquals("OUTLIER_TABLE", visualization.get("type").value().toString());
+  }
+
+  @Test
+  void testPostSortingObjectForColumnItems() {
+    // Given
+    IndicatorType indicatorType = createIndicatorType('A');
+    manager.save(indicatorType);
+
+    Indicator mockIndicator = createIndicator('A', indicatorType);
+    manager.save(mockIndicator);
+
+    String sorting =
+        "'sorting': [{'dimension': '" + mockIndicator.getUid() + "', 'direction':'ASC'}]";
+    String body =
+        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}, 'columns': [{'dimension': 'dx',"
+            + "'items': [{'id': '"
+            + mockIndicator.getUid()
+            + "'}]}],"
+            + sorting
+            + "}";
+
+    // When
+    String uid = assertStatus(CREATED, POST("/visualizations/", body));
+
+    // Then
+    String getParams = "?fields=:all,columns[:all,items,sorting]";
+    JsonObject response = GET("/visualizations/" + uid + getParams).content();
+
+    assertThat(response.get("sorting").toString(), containsString(mockIndicator.getUid()));
     assertThat(response.get("sorting").toString(), containsString("ASC"));
   }
 
@@ -222,47 +294,5 @@ class VisualizationControllerTest extends DhisControllerConvenienceTest {
     assertThat(response.get("sorting").toString(), containsString("pe"));
     assertThat(response.get("sorting").toString(), containsString("ASC"));
     assertThat(response.get("sorting").toString(), not(containsString("DESC")));
-  }
-
-  @Test
-  void testPostBlankSortingObject() {
-    // Given
-    String blankDimension = " ";
-    String sorting = "'sorting': [{'dimension': '" + blankDimension + "', 'direction':'ASC'}]";
-    String body =
-        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
-            + mockProgram.getUid()
-            + "'}, 'columns': [{'dimension': 'pe'}],"
-            + sorting
-            + "}";
-
-    // When
-    HttpResponse response = POST("/visualizations/", body);
-
-    // Then
-    assertEquals(
-        "Sorting must have a valid dimension and a direction",
-        response.error(CONFLICT).getMessage());
-  }
-
-  @Test
-  void testPostNullSortingObject() {
-    // Given
-    String blankDimension = " ";
-    String sorting = "'sorting': [{'dimension': '" + blankDimension + "', 'direction':'ASC'}]";
-    String body =
-        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
-            + mockProgram.getUid()
-            + "'}, 'columns': [{'dimension': 'pe'}],"
-            + sorting
-            + "}";
-
-    // When
-    HttpResponse response = POST("/visualizations/", body);
-
-    // Then
-    assertEquals(
-        "Sorting must have a valid dimension and a direction",
-        response.error(CONFLICT).getMessage());
   }
 }

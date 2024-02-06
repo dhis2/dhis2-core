@@ -30,6 +30,9 @@ package org.hisp.dhis.analytics;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.analytics.table.model.AnalyticsTable;
+import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.db.model.Index;
 
 /**
  * Manager for the analytics database tables.
@@ -37,8 +40,6 @@ import java.util.Set;
  * @author Lars Helge Overland
  */
 public interface AnalyticsTableManager {
-  String TABLE_TEMP_SUFFIX = "_temp";
-
   /**
    * Returns the {@link AnalyticsTableType} of analytics table which this manager handles.
    *
@@ -94,16 +95,15 @@ public interface AnalyticsTableManager {
   /**
    * Creates single indexes on the given columns of the analytics table with the given name.
    *
-   * @param index the analytics index.
+   * @param index the index.
    */
-  void createIndex(AnalyticsIndex index);
+  void createIndex(Index index);
 
   /**
-   * Attempts to drop the analytics table with partitions and rename the temporary table with
-   * partitions as replacement.
-   *
-   * <p>If this is a partial update and the master table currently exists, the master table is not
-   * swapped and instead the inheritance of the partitions are set to the existing master table.
+   * Attempts to drop the analytics table with partitions and rename the staging table with
+   * partitions as replacement. If this is a partial update and the master table currently exists,
+   * the master table is not swapped and instead the inheritance of the partitions are set to the
+   * existing master table.
    *
    * @param params the {@link AnalyticsTableUpdateParams}.
    * @param table the analytics table.
@@ -111,11 +111,11 @@ public interface AnalyticsTableManager {
   void swapTable(AnalyticsTableUpdateParams params, AnalyticsTable table);
 
   /**
-   * Copies and denormalizes rows from data value table into analytics table. The data range is
-   * based on the start date of the data value row.
+   * Copies and denormalizes rows from the relevant transaction table into the relevant analytics
+   * table.
    *
    * @param params the {@link AnalyticsTableUpdateParams}.
-   * @param partition the analytics table partition to populate
+   * @param partition the analytics table partition to populate.
    */
   void populateTablePartition(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition);
 
@@ -131,21 +131,14 @@ public interface AnalyticsTableManager {
    *
    * @param table the analytics table.
    */
-  void dropTempTable(AnalyticsTable table);
+  void dropTable(AnalyticsTable table);
 
   /**
    * Drops the given {@link AnalyticsTablePartition}.
    *
-   * @param tablePartition the analytics table.
+   * @param tablePartition the analytics table partition.
    */
-  void dropTempTablePartition(AnalyticsTablePartition tablePartition);
-
-  /**
-   * Drops the given table.
-   *
-   * @param tableName the table name.
-   */
-  void dropTable(String tableName);
+  void dropTablePartition(AnalyticsTablePartition tablePartition);
 
   /**
    * Drops the given table and all potential partitions.
@@ -155,39 +148,34 @@ public interface AnalyticsTableManager {
   void dropTableCascade(String tableName);
 
   /**
-   * Performs an analyze operation on the given table name.
+   * Performs an analyze operation on the given table.
    *
    * @param tableName the table name.
    */
   void analyzeTable(String tableName);
 
   /**
-   * Applies aggregation level logic to the analytics table by setting the organisation unit level
-   * column values to null for the levels above the given aggregation level.
+   * Performs a vacuum operation on the given table.
+   *
+   * @param tableName the table name.
+   */
+  void vacuumTable(String tableName);
+
+  /**
+   * Applies aggregation level logic to the analytics table.
    *
    * @param partition the analytics table partition.
    * @param dataElements the data element identifiers to apply aggregation levels for.
    * @param aggregationLevel the aggregation level.
    */
   default void applyAggregationLevels(
-      AnalyticsTablePartition partition, Collection<String> dataElements, int aggregationLevel) {
-    // NOOP by default
-  }
+      AnalyticsTablePartition partition, Collection<String> dataElements, int aggregationLevel) {}
 
   /**
-   * Performs vacuum or optimization of the given table. The type of operation performed is
-   * dependent on the underlying DBMS.
+   * Performs vacuum or optimization of the given analytics table. The type of operation performed
+   * is dependent on the underlying DBMS.
    *
    * @param partition the analytics table partition.
    */
-  default void vacuumTables(AnalyticsTablePartition partition) {
-    // NOOP by default
-  }
-
-  /**
-   * Returns a list of non-dynamic {@link AnalyticsTableColumn}.
-   *
-   * @return a List of {@link AnalyticsTableColumn}.
-   */
-  List<AnalyticsTableColumn> getFixedColumns();
+  default void vacuumTables(AnalyticsTablePartition partition) {}
 }

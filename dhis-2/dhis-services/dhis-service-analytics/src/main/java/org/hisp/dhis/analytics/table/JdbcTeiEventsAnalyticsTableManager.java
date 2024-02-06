@@ -27,52 +27,48 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.String.join;
-import static java.util.Collections.emptyList;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS;
-import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
-import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_32;
-import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
-import static org.hisp.dhis.analytics.ColumnDataType.GEOMETRY;
-import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
-import static org.hisp.dhis.analytics.ColumnDataType.JSONB;
-import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
-import static org.hisp.dhis.analytics.ColumnDataType.VARCHAR_255;
-import static org.hisp.dhis.analytics.ColumnDataType.VARCHAR_50;
-import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
-import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NULL;
-import static org.hisp.dhis.analytics.IndexType.GIST;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.getDateLinkedToStatus;
-import static org.hisp.dhis.analytics.table.PartitionUtils.getEndDate;
-import static org.hisp.dhis.analytics.table.PartitionUtils.getStartDate;
+import static org.hisp.dhis.analytics.table.util.PartitionUtils.getEndDate;
+import static org.hisp.dhis.analytics.table.util.PartitionUtils.getStartDate;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
+import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
+import static org.hisp.dhis.db.model.DataType.CHARACTER_32;
+import static org.hisp.dhis.db.model.DataType.DOUBLE;
+import static org.hisp.dhis.db.model.DataType.GEOMETRY;
+import static org.hisp.dhis.db.model.DataType.INTEGER;
+import static org.hisp.dhis.db.model.DataType.JSONB;
+import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
+import static org.hisp.dhis.db.model.DataType.VARCHAR_255;
+import static org.hisp.dhis.db.model.DataType.VARCHAR_50;
+import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
+import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
-import static org.springframework.util.Assert.notNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.analytics.AnalyticsExportSettings;
-import org.hisp.dhis.analytics.AnalyticsTable;
-import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
-import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.table.model.AnalyticsTable;
+import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
-import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.db.model.IndexType;
+import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.period.PeriodType;
@@ -88,44 +84,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Component("org.hisp.dhis.analytics.TeiEventsAnalyticsTableManager")
 public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager {
-  private static final String AND = " and (";
-
-  private final TrackedEntityTypeService trackedEntityTypeService;
-
-  public JdbcTeiEventsAnalyticsTableManager(
-      IdentifiableObjectManager idObjectManager,
-      OrganisationUnitService organisationUnitService,
-      CategoryService categoryService,
-      SystemSettingManager systemSettingManager,
-      DataApprovalLevelService dataApprovalLevelService,
-      ResourceTableService resourceTableService,
-      AnalyticsTableHookService tableHookService,
-      StatementBuilder statementBuilder,
-      PartitionManager partitionManager,
-      DatabaseInfoProvider databaseInfoProvider,
-      @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
-      TrackedEntityTypeService trackedEntityTypeService,
-      AnalyticsExportSettings settings,
-      PeriodDataProvider periodDataProvider) {
-    super(
-        idObjectManager,
-        organisationUnitService,
-        categoryService,
-        systemSettingManager,
-        dataApprovalLevelService,
-        resourceTableService,
-        tableHookService,
-        statementBuilder,
-        partitionManager,
-        databaseInfoProvider,
-        jdbcTemplate,
-        settings,
-        periodDataProvider);
-
-    notNull(trackedEntityTypeService, "trackedEntityTypeService cannot be null");
-    this.trackedEntityTypeService = trackedEntityTypeService;
-  }
-
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
           new AnalyticsTableColumn(
@@ -139,8 +97,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
           new AnalyticsTableColumn(quote("created"), TIMESTAMP, "psi.created"),
           new AnalyticsTableColumn(quote("scheduleddate"), TIMESTAMP, "psi.scheduleddate"),
           new AnalyticsTableColumn(quote("status"), VARCHAR_50, "psi.status"),
-          new AnalyticsTableColumn(quote("psigeometry"), GEOMETRY, "psi.geometry")
-              .withIndexType(GIST),
+          new AnalyticsTableColumn(quote("psigeometry"), GEOMETRY, "psi.geometry", IndexType.GIST),
           new AnalyticsTableColumn(
               quote("psilongitude"),
               DOUBLE,
@@ -158,6 +115,40 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
           new AnalyticsTableColumn(quote("oucode"), CHARACTER_32, NULL, "ou.code"),
           new AnalyticsTableColumn(quote("oulevel"), INTEGER, NULL, "ous.level"),
           new AnalyticsTableColumn(quote("eventdatavalues"), JSONB, "psi.eventdatavalues"));
+
+  private static final String AND = " and (";
+
+  private final TrackedEntityTypeService trackedEntityTypeService;
+
+  public JdbcTeiEventsAnalyticsTableManager(
+      IdentifiableObjectManager idObjectManager,
+      OrganisationUnitService organisationUnitService,
+      CategoryService categoryService,
+      SystemSettingManager systemSettingManager,
+      DataApprovalLevelService dataApprovalLevelService,
+      ResourceTableService resourceTableService,
+      AnalyticsTableHookService tableHookService,
+      PartitionManager partitionManager,
+      DatabaseInfoProvider databaseInfoProvider,
+      @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
+      TrackedEntityTypeService trackedEntityTypeService,
+      AnalyticsTableExportSettings settings,
+      PeriodDataProvider periodDataProvider) {
+    super(
+        idObjectManager,
+        organisationUnitService,
+        categoryService,
+        systemSettingManager,
+        dataApprovalLevelService,
+        resourceTableService,
+        tableHookService,
+        partitionManager,
+        databaseInfoProvider,
+        jdbcTemplate,
+        settings,
+        periodDataProvider);
+    this.trackedEntityTypeService = trackedEntityTypeService;
+  }
 
   /**
    * Returns the {@link AnalyticsTableType} of analytics table which this manager handles.
@@ -178,24 +169,24 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
   @Override
   @Transactional
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
-    List<TrackedEntityType> trackedEntityTypes = trackedEntityTypeService.getAllTrackedEntityType();
     Calendar calendar = PeriodType.getCalendar();
-
+    List<TrackedEntityType> trackedEntityTypes = trackedEntityTypeService.getAllTrackedEntityType();
     List<AnalyticsTable> tables = new ArrayList<>();
+    Logged logged = analyticsExportSettings.getTableLogged();
 
     for (TrackedEntityType tet : trackedEntityTypes) {
       List<Integer> dataYears = getDataYears(params, tet);
 
       Collections.sort(dataYears);
 
-      AnalyticsTable table =
-          new AnalyticsTable(getAnalyticsTableType(), getTableColumns(), newArrayList(), tet);
+      AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), getColumns(), logged, tet);
 
       for (Integer year : dataYears) {
-        table.addPartitionTable(year, getStartDate(calendar, year), getEndDate(calendar, year));
+        table.addTablePartition(
+            List.of(), year, getStartDate(calendar, year), getEndDate(calendar, year));
       }
 
-      if (table.hasPartitionTables()) {
+      if (table.hasTablePartitions()) {
         tables.add(table);
       }
     }
@@ -246,8 +237,8 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
     return jdbcTemplate.queryForList(sql.toString(), Integer.class);
   }
 
-  private List<AnalyticsTableColumn> getTableColumns() {
-    List<AnalyticsTableColumn> analyticsTableColumnList = new ArrayList<>(getFixedColumns());
+  private List<AnalyticsTableColumn> getColumns() {
+    List<AnalyticsTableColumn> analyticsTableColumnList = new ArrayList<>(FIXED_COLS);
     analyticsTableColumnList.add(getOrganisationUnitNameHierarchyColumn());
 
     return analyticsTableColumnList;
@@ -263,24 +254,9 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
     return null;
   }
 
-  /**
-   * Returns a list of non-dynamic {@link AnalyticsTableColumn}.
-   *
-   * @return a List of {@link AnalyticsTableColumn}.
-   */
   @Override
-  public List<AnalyticsTableColumn> getFixedColumns() {
-    return FIXED_COLS;
-  }
-
-  /**
-   * Returns a list of table checks (constraints) for the given analytics table partition.
-   *
-   * @param partition the {@link AnalyticsTablePartition}.
-   */
-  @Override
-  protected List<String> getPartitionChecks(AnalyticsTablePartition partition) {
-    return emptyList();
+  protected List<String> getPartitionChecks(Integer year, Date endDate) {
+    return List.of();
   }
 
   /**
@@ -292,8 +268,9 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
   @Override
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
-    List<AnalyticsTableColumn> columns = partition.getMasterTable().getDimensionColumns();
-    List<AnalyticsTableColumn> values = partition.getMasterTable().getValueColumns();
+    String tableName = partition.getName();
+
+    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
     String start = getLongDateString(partition.getStartDate());
     String end = getLongDateString(partition.getEndDate());
@@ -312,26 +289,16 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
                 + end
                 + "' ";
 
-    validateDimensionColumns(columns);
+    StringBuilder sql = new StringBuilder("insert into " + tableName + " (");
 
-    StringBuilder sql = new StringBuilder("insert into " + partition.getTempTableName() + " (");
-
-    for (AnalyticsTableColumn col : ListUtils.union(columns, values)) {
-      if (col.isVirtual()) {
-        continue;
-      }
-
+    for (AnalyticsTableColumn col : columns) {
       sql.append(col.getName() + ",");
     }
 
     removeLastComma(sql).append(") select distinct ");
 
     for (AnalyticsTableColumn col : columns) {
-      if (col.isVirtual()) {
-        continue;
-      }
-
-      sql.append(col.getAlias() + ",");
+      sql.append(col.getSelectExpression() + ",");
     }
 
     removeLastComma(sql)
@@ -356,7 +323,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
         .append(" and " + partitionClause)
         .append(" and psi.deleted is false ");
 
-    invokeTimeAndLog(sql.toString(), partition.getTempTableName());
+    invokeTimeAndLog(sql.toString(), tableName);
   }
 
   /**

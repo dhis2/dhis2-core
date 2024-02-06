@@ -46,7 +46,7 @@ jobs:
           mvn --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true -f ./dhis-2/dhis-web/dhis-web-portal/pom.xml jib:dockerBuild -Djib.to.image=$CORE_IMAGE_NAME
 
       - name: Get Sierra Leone DB from cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: cache-sierra-leone-db
         with:
           path: ${{ env.SIERRA_LEONE_DB_PATH }}

@@ -36,6 +36,7 @@ import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.PI
 import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.TEI_UID;
 import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.isOfType;
+import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
 import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
 import java.util.List;
@@ -117,10 +118,12 @@ public class ProgramIndicatorQueryBuilder implements SqlQueryBuilder {
       List<AnalyticsSortingParams> acceptedSortingParams,
       RenderableSqlQuery.RenderableSqlQueryBuilder builder) {
     for (AnalyticsSortingParams param : acceptedSortingParams) {
-      String assignedAlias = param.getOrderBy().toString();
+      String assignedAlias = doubleQuote(param.getOrderBy().toString());
+      Field sortField =
+          Field.ofUnquoted(
+              () -> "coalesce(" + assignedAlias + ".value, double precision 'NaN')", EMPTY);
       builder.orderClause(
-          IndexedOrder.of(
-              param.getIndex(), Order.of(Field.of(assignedAlias), param.getSortDirection())));
+          IndexedOrder.of(param.getIndex(), Order.of(sortField, param.getSortDirection())));
     }
   }
 
@@ -165,7 +168,7 @@ public class ProgramIndicatorQueryBuilder implements SqlQueryBuilder {
       builder.selectField(
           Field.ofUnquoted(
               StringUtils.EMPTY,
-              () -> "coalesce(" + assignedAlias + ".value, double precision 'NaN')",
+              () -> "coalesce(" + assignedAlias + ".value::text, '')",
               param.getDimensionIdentifier()));
 
       if (programIndicator.getAnalyticsType() == AnalyticsType.ENROLLMENT) {

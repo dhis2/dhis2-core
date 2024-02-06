@@ -86,6 +86,10 @@ public class ProgramStage extends BaseNameableObject implements MetadataObject {
 
   private String dueDateLabel;
 
+  private String programStageLabel;
+
+  private String eventLabel;
+
   private Set<ProgramNotificationTemplate> notificationTemplates = new HashSet<>();
 
   private Boolean autoGenerateEvent = true;
@@ -347,6 +351,42 @@ public class ProgramStage extends BaseNameableObject implements MetadataObject {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
+  public String getProgramStageLabel() {
+    return programStageLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "programStageLabel", key = "PROGRAM_STAGE_LABEL")
+  public String getDisplayProgramStageLabel() {
+    return getTranslation("PROGRAM_STAGE_LABEL", getProgramStageLabel());
+  }
+
+  public void setProgramStageLabel(String programStageLabel) {
+    this.programStageLabel = programStageLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
+  public String getEventLabel() {
+    return eventLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "eventLabel", key = "EVENT_LABEL")
+  public String getDisplayEventLabel() {
+    return getTranslation("EVENT_LABEL", getEventLabel());
+  }
+
+  public void setEventLabel(String eventLabel) {
+    this.eventLabel = eventLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Boolean getAutoGenerateEvent() {
     return autoGenerateEvent;
   }
@@ -559,5 +599,7 @@ public class ProgramStage extends BaseNameableObject implements MetadataObject {
     copy.setStandardInterval(original.getStandardInterval());
     copy.setStyle(original.getStyle());
     copy.setValidationStrategy(original.getValidationStrategy());
+    copy.setEventLabel(original.getEventLabel());
+    copy.setProgramStageLabel(original.getProgramStageLabel());
   }
 }

@@ -36,6 +36,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import lombok.Getter;
+import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.period.PeriodType;
@@ -47,6 +49,7 @@ import org.hisp.dhis.util.DateUtils;
  *
  * @author Lars Helge Overland
  */
+@Getter
 public class AnalyticsTableUpdateParams {
   /**
    * Number of last years for which to update tables. A zero value indicates the "latest" data
@@ -95,38 +98,6 @@ public class AnalyticsTableUpdateParams {
   // -------------------------------------------------------------------------
   // Get methods
   // -------------------------------------------------------------------------
-
-  public Integer getLastYears() {
-    return lastYears;
-  }
-
-  public boolean isSkipResourceTables() {
-    return skipResourceTables;
-  }
-
-  public boolean isSkipOutliers() {
-    return skipOutliers;
-  }
-
-  public Set<AnalyticsTableType> getSkipTableTypes() {
-    return skipTableTypes;
-  }
-
-  public Set<String> getSkipPrograms() {
-    return skipPrograms;
-  }
-
-  public JobConfiguration getJobId() {
-    return jobId;
-  }
-
-  public Date getStartTime() {
-    return startTime;
-  }
-
-  public Date getLastSuccessfulUpdate() {
-    return lastSuccessfulUpdate;
-  }
 
   public boolean isSkipPrograms() {
     return !skipPrograms.isEmpty();

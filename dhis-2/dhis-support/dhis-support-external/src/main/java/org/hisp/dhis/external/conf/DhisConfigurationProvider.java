@@ -35,8 +35,7 @@ import java.util.Properties;
 import org.hisp.dhis.encryption.EncryptionStatus;
 
 /**
- * Interface which provides access to the DHIS 2 configuration specified through the dhis.config
- * file.
+ * Provider of DHIS 2 configuration properties specified in the {@code dhis.conf} file.
  *
  * @author Lars Helge Overland
  */

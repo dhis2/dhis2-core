@@ -27,36 +27,36 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static java.util.Collections.emptyList;
-import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
-import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
-import static org.hisp.dhis.analytics.ColumnDataType.GEOMETRY;
-import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
-import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
-import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
-import static org.hisp.dhis.analytics.ColumnDataType.VARCHAR_255;
-import static org.hisp.dhis.analytics.ColumnDataType.VARCHAR_50;
-import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
+import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
+import static org.hisp.dhis.db.model.DataType.DOUBLE;
+import static org.hisp.dhis.db.model.DataType.GEOMETRY;
+import static org.hisp.dhis.db.model.DataType.INTEGER;
+import static org.hisp.dhis.db.model.DataType.TEXT;
+import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
+import static org.hisp.dhis.db.model.DataType.VARCHAR_255;
+import static org.hisp.dhis.db.model.DataType.VARCHAR_50;
+import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.analytics.AnalyticsExportSettings;
-import org.hisp.dhis.analytics.AnalyticsTable;
-import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
-import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
-import org.hisp.dhis.analytics.IndexType;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.table.model.AnalyticsTable;
+import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
-import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.db.model.IndexType;
+import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
@@ -73,36 +73,6 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service("org.hisp.dhis.analytics.EnrollmentAnalyticsTableManager")
 public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableManager {
-  public JdbcEnrollmentAnalyticsTableManager(
-      IdentifiableObjectManager idObjectManager,
-      OrganisationUnitService organisationUnitService,
-      CategoryService categoryService,
-      SystemSettingManager systemSettingManager,
-      DataApprovalLevelService dataApprovalLevelService,
-      ResourceTableService resourceTableService,
-      AnalyticsTableHookService tableHookService,
-      StatementBuilder statementBuilder,
-      PartitionManager partitionManager,
-      DatabaseInfoProvider databaseInfoProvider,
-      @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
-      AnalyticsExportSettings analyticsExportSettings,
-      PeriodDataProvider periodDataProvider) {
-    super(
-        idObjectManager,
-        organisationUnitService,
-        categoryService,
-        systemSettingManager,
-        dataApprovalLevelService,
-        resourceTableService,
-        tableHookService,
-        statementBuilder,
-        partitionManager,
-        databaseInfoProvider,
-        jdbcTemplate,
-        analyticsExportSettings,
-        periodDataProvider);
-  }
-
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
           new AnalyticsTableColumn(quote("pi"), CHARACTER_11, NOT_NULL, "pi.uid"),
@@ -159,13 +129,40 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
           new AnalyticsTableColumn(quote("ouname"), TEXT, NOT_NULL, "ou.name"),
           new AnalyticsTableColumn(quote("oucode"), TEXT, "ou.code"),
           new AnalyticsTableColumn(quote("oulevel"), INTEGER, "ous.level"),
-          new AnalyticsTableColumn(quote("pigeometry"), GEOMETRY, "pi.geometry")
-              .withIndexType(IndexType.GIST),
+          new AnalyticsTableColumn(quote("pigeometry"), GEOMETRY, "pi.geometry", IndexType.GIST),
           new AnalyticsTableColumn(
               quote("registrationou"),
               CHARACTER_11,
               NOT_NULL,
               "coalesce(registrationou.uid,ou.uid)"));
+
+  public JdbcEnrollmentAnalyticsTableManager(
+      IdentifiableObjectManager idObjectManager,
+      OrganisationUnitService organisationUnitService,
+      CategoryService categoryService,
+      SystemSettingManager systemSettingManager,
+      DataApprovalLevelService dataApprovalLevelService,
+      ResourceTableService resourceTableService,
+      AnalyticsTableHookService tableHookService,
+      PartitionManager partitionManager,
+      DatabaseInfoProvider databaseInfoProvider,
+      @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
+      AnalyticsTableExportSettings analyticsExportSettings,
+      PeriodDataProvider periodDataProvider) {
+    super(
+        idObjectManager,
+        organisationUnitService,
+        categoryService,
+        systemSettingManager,
+        dataApprovalLevelService,
+        resourceTableService,
+        tableHookService,
+        partitionManager,
+        databaseInfoProvider,
+        jdbcTemplate,
+        analyticsExportSettings,
+        periodDataProvider);
+  }
 
   @Override
   public AnalyticsTableType getAnalyticsTableType() {
@@ -187,12 +184,12 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
   private List<AnalyticsTable> getRegularAnalyticsTables(AnalyticsTableUpdateParams params) {
     List<AnalyticsTable> tables = new UniqueArrayList<>();
 
+    Logged logged = analyticsExportSettings.getTableLogged();
     List<Program> programs = idObjectManager.getAllNoAcl(Program.class);
 
     for (Program program : programs) {
       AnalyticsTable table =
-          new AnalyticsTable(
-              getAnalyticsTableType(), getDimensionColumns(program), List.of(), program);
+          new AnalyticsTable(getAnalyticsTableType(), getColumns(program), logged, program);
 
       tables.add(table);
     }
@@ -201,8 +198,8 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
   }
 
   @Override
-  protected List<String> getPartitionChecks(AnalyticsTablePartition partition) {
-    return emptyList();
+  protected List<String> getPartitionChecks(Integer year, Date endDate) {
+    return List.of();
   }
 
   @Override
@@ -231,18 +228,18 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
             + "and pi.occurreddate is not null "
             + "and pi.deleted is false ";
 
-    populateTableInternal(partition, getDimensionColumns(program), fromClause);
+    populateTableInternal(partition, fromClause);
   }
 
-  private List<AnalyticsTableColumn> getDimensionColumns(Program program) {
+  private List<AnalyticsTableColumn> getColumns(Program program) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-    columns.addAll(addOrganisationUnitLevels());
+    columns.addAll(getOrganisationUnitLevelColumns());
     columns.add(getOrganisationUnitNameHierarchyColumn());
-    columns.addAll(addOrganisationUnitGroupSets());
-    columns.addAll(addPeriodTypeColumns("dps"));
+    columns.addAll(getOrganisationUnitGroupSetColumns());
+    columns.addAll(getPeriodTypeColumns("dps"));
     columns.addAll(addTrackedEntityAttributes(program));
-    columns.addAll(getFixedColumns());
+    columns.addAll(FIXED_COLS);
 
     if (program.isRegistration()) {
       columns.add(new AnalyticsTableColumn(quote("tei"), CHARACTER_11, "tei.uid"));
@@ -250,10 +247,5 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
     }
 
     return filterDimensionColumns(columns);
-  }
-
-  @Override
-  public List<AnalyticsTableColumn> getFixedColumns() {
-    return FIXED_COLS;
   }
 }

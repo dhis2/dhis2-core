@@ -28,9 +28,11 @@
 package org.hisp.dhis.analytics.outlier.data;
 
 import static java.util.stream.Collectors.toList;
+import static org.hisp.dhis.analytics.outlier.Order.getOrderBy;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -86,7 +88,7 @@ public class OutlierQueryParser {
             .dataElements(dataElements)
             .startDate(queryParams.getStartDate())
             .endDate(queryParams.getEndDate())
-            .periods(getPeriods(queryParams.getPe()))
+            .periods(getPeriods(queryParams.getPe(), queryParams.getRelativePeriodDate()))
             .orgUnits(getOrganisationUnits(queryParams))
             .analyzeOnly(analyzeOnly)
             .dataStartDate(queryParams.getDataStartDate())
@@ -103,7 +105,7 @@ public class OutlierQueryParser {
     }
 
     if (queryParams.getOrderBy() != null) {
-      builder.orderBy(queryParams.getOrderBy());
+      builder.orderBy(getOrderBy(queryParams.getOrderBy()));
     }
 
     if (queryParams.getSortOrder() != null) {
@@ -152,12 +154,12 @@ public class OutlierQueryParser {
    * @param relativePeriod the {@link RelativePeriodEnum}.
    * @return list of the {@link Period}.
    */
-  private List<Period> getPeriods(RelativePeriodEnum relativePeriod) {
+  private List<Period> getPeriods(RelativePeriodEnum relativePeriod, Date relativePeriodDate) {
     if (relativePeriod == null) {
       return new ArrayList<>();
     }
     return dimensionalObjectProducer
-        .getPeriodDimension(List.of(relativePeriod.name()), null)
+        .getPeriodDimension(List.of(relativePeriod.name()), relativePeriodDate)
         .getItems()
         .stream()
         .map(pe -> (Period) pe)
