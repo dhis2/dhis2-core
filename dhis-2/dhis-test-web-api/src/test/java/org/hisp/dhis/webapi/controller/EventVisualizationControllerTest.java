@@ -33,6 +33,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.dataelement.DataElementDomain.TRACKER;
+import static org.hisp.dhis.eventvisualization.Attribute.COLUMN;
+import static org.hisp.dhis.eventvisualization.EventVisualizationType.LINE;
 import static org.hisp.dhis.web.HttpStatus.BAD_REQUEST;
 import static org.hisp.dhis.web.HttpStatus.CONFLICT;
 import static org.hisp.dhis.web.HttpStatus.CREATED;
@@ -43,7 +45,12 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.eventvisualization.EventRepetition;
+import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -64,6 +71,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
   @Autowired private ObjectMapper jsonMapper;
+
+  @Autowired private IdentifiableObjectManager manager;
 
   private Program mockProgram;
 
@@ -289,6 +298,41 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
     assertThat(response.get("columns").toString(), containsString(indexes));
     assertThat(response.get("rows").toString(), not(containsString(indexes)));
     assertThat(response.get("filters").toString(), not(containsString(indexes)));
+  }
+
+  @Test
+  void testLoadColumnWithRepetitionWithoutProgram() {
+    // Given
+    EventRepetition repetitionNoProgram = new EventRepetition();
+    repetitionNoProgram.setDimension("pe");
+    repetitionNoProgram.setParent(COLUMN);
+    repetitionNoProgram.setIndexes(List.of(-1, 0, 2));
+
+    BaseDimensionalObject dim = new BaseDimensionalObject();
+    dim.setEventRepetition(repetitionNoProgram);
+
+    String evUid = "XSnivU7HgpA";
+    EventVisualization evRepetitionNoProgram = new EventVisualization("Test");
+    evRepetitionNoProgram.setType(LINE);
+    evRepetitionNoProgram.setUid(evUid);
+    evRepetitionNoProgram.setColumns(List.of(dim));
+    evRepetitionNoProgram.setEventRepetitions(List.of(repetitionNoProgram));
+
+    manager.save(evRepetitionNoProgram);
+
+    // When
+    String getParams = "?fields=:all,columns[:all,items,repetitions]";
+    JsonObject response = GET("/eventVisualizations/" + evUid + getParams).content();
+
+    // Then
+    String repetitionIndexes = repetitionNoProgram.getIndexes().toString().replace(" ", "");
+
+    assertThat(response.get("repetitions").toString(), containsString("COLUMN"));
+    assertThat(response.get("repetitions").toString(), containsString(repetitionIndexes));
+    assertThat(response.get("repetitions").toString(), containsString("pe"));
+    assertThat(response.get("columns").toString(), containsString(repetitionIndexes));
+    assertThat(response.get("rows").toString(), not(containsString(repetitionIndexes)));
+    assertThat(response.get("filters").toString(), not(containsString(repetitionIndexes)));
   }
 
   @Test
