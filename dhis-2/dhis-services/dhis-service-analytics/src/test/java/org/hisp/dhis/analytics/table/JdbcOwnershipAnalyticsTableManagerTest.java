@@ -35,7 +35,6 @@ import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.ENDDATE;
 import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.OU;
 import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.STARTDATE;
 import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.TEIUID;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DATE;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
@@ -48,7 +47,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.mockingDetails;
 import static org.mockito.Mockito.when;
-
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -319,10 +317,10 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
   void testGetFixedColumns() {
     List<AnalyticsTableColumn> expected =
         List.of(
-            new AnalyticsTableColumn(quote("teiuid"), CHARACTER_11, "tei.uid"),
-            new AnalyticsTableColumn(quote("startdate"), DATE, "a.startdate"),
-            new AnalyticsTableColumn(quote("enddate"), DATE, "a.enddate"),
-            new AnalyticsTableColumn(quote("ou"), CHARACTER_11, NOT_NULL, "ou.uid"));
+            new AnalyticsTableColumn("teiuid", CHARACTER_11, "tei.uid"),
+            new AnalyticsTableColumn("startdate", DATE, "a.startdate"),
+            new AnalyticsTableColumn("enddate", DATE, "a.enddate"),
+            new AnalyticsTableColumn("ou", CHARACTER_11, NOT_NULL, "ou.uid"));
 
     assertEquals(expected, JdbcOwnershipAnalyticsTableManager.FIXED_COLS);
   }

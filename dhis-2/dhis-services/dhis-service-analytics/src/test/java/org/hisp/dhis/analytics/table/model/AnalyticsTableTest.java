@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.table.model;
 
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.DIMENSION;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.DataType.TEXT;
@@ -37,7 +36,6 @@ import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-
 import java.util.List;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
@@ -109,25 +107,25 @@ class AnalyticsTableTest {
   void testGetDimensionAndFactColumns() {
     List<AnalyticsTableColumn> columns =
         List.of(
-            new AnalyticsTableColumn(quote("dx"), CHARACTER_11, NOT_NULL, DIMENSION, "de.uid"),
-            new AnalyticsTableColumn(quote("co"), CHARACTER_11, NOT_NULL, "co.uid"),
-            new AnalyticsTableColumn(quote("ou"), CHARACTER_11, NOT_NULL, "ou.uid"),
-            new AnalyticsTableColumn(quote("value"), DOUBLE, NULL, FACT, "value"),
-            new AnalyticsTableColumn(quote("textvalue"), TEXT, NULL, FACT, "textvalue"));
+            new AnalyticsTableColumn("dx", CHARACTER_11, NOT_NULL, DIMENSION, "de.uid"),
+            new AnalyticsTableColumn("co", CHARACTER_11, NOT_NULL, "co.uid"),
+            new AnalyticsTableColumn("ou", CHARACTER_11, NOT_NULL, "ou.uid"),
+            new AnalyticsTableColumn("value", DOUBLE, NULL, FACT, "value"),
+            new AnalyticsTableColumn("textvalue", TEXT, NULL, FACT, "textvalue"));
 
     AnalyticsTable table =
         new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, Logged.UNLOGGED);
 
     assertEquals(3, table.getDimensionColumns().size());
-    assertEquals(quote("dx"), table.getDimensionColumns().get(0).getName());
+    assertEquals("dx", table.getDimensionColumns().get(0).getName());
     assertEquals(AnalyticsValueType.DIMENSION, table.getDimensionColumns().get(0).getValueType());
-    assertEquals(quote("co"), table.getDimensionColumns().get(1).getName());
+    assertEquals("co", table.getDimensionColumns().get(1).getName());
     assertEquals(AnalyticsValueType.DIMENSION, table.getDimensionColumns().get(1).getValueType());
 
     assertEquals(2, table.getFactColumns().size());
-    assertEquals(quote("value"), table.getFactColumns().get(0).getName());
+    assertEquals("value", table.getFactColumns().get(0).getName());
     assertEquals(AnalyticsValueType.FACT, table.getFactColumns().get(0).getValueType());
-    assertEquals(quote("textvalue"), table.getFactColumns().get(1).getName());
+    assertEquals("textvalue", table.getFactColumns().get(1).getName());
     assertEquals(AnalyticsValueType.FACT, table.getFactColumns().get(1).getValueType());
   }
 
