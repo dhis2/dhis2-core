@@ -69,13 +69,13 @@ class AnalyticsIndexHelperTest {
 
   @Test
   void testCreateIndexStatement() {
-    Index index = new Index("in_column_table", "table", BTREE, List.of("column"));
+    Index index = new Index("in_column_table", "mytable", BTREE, List.of("mycolumn"));
 
     String statement = createIndexStatement(index);
 
     assertThat(statement, containsString("create index \"in_column_table"));
-    assertThat(statement, containsString("on table using"));
-    assertThat(statement, containsString("btree (column)"));
+    assertThat(statement, containsString("on \"mytable\" using"));
+    assertThat(statement, containsString("btree (\"mycolumn\")"));
   }
 
   @Test
