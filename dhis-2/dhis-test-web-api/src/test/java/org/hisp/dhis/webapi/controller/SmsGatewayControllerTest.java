@@ -33,6 +33,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.sms.config.ClickatellGatewayConfig;
 import org.hisp.dhis.sms.config.GatewayAdministrationService;
@@ -41,6 +43,8 @@ import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Set;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.sms.SmsGatewayController} using (mocked) REST
@@ -94,14 +98,15 @@ class SmsGatewayControllerTest extends DhisControllerConvenienceTest {
     uid = assertStatus(HttpStatus.OK, POST("/gateways", json));
 
     JsonObject gateway = GET("/gateways/{uid}", uid).content();
-    assertTrue(gateway.getString("password").isUndefined());
+    JsonObject gatewayNoPass = JsonMixed.of(gateway.node().removeMembers(Set.of("password")));
+    assertTrue(gatewayNoPass.getString("password").isUndefined());
 
     assertWebMessage(
         "OK",
         200,
         "OK",
         "Gateway with uid: " + uid + " has been updated",
-        PUT("/gateways/" + uid, gateway.toString()).content(HttpStatus.OK));
+        PUT("/gateways/" + uid, gatewayNoPass.toJson()).content(HttpStatus.OK));
 
     String password =
         gatewayAdministrationService.getByUid(gateway.getString("uid").string()).getPassword();
@@ -118,15 +123,17 @@ class SmsGatewayControllerTest extends DhisControllerConvenienceTest {
     uid = assertStatus(HttpStatus.OK, POST("/gateways", json));
 
     JsonObject gateway = GET("/gateways/{uid}", uid).content();
-    assertTrue(gateway.getString("password").isUndefined());
-    assertTrue(gateway.getString("authToken").isUndefined());
+    JsonObject gatewayNoAuth = JsonMixed.of(gateway.node().removeMembers(Set.of("password", "authToken")));
+
+    assertTrue(gatewayNoAuth.getString("password").isUndefined());
+    assertTrue(gatewayNoAuth.getString("authToken").isUndefined());
 
     assertWebMessage(
         "OK",
         200,
         "OK",
         "Gateway with uid: " + uid + " has been updated",
-        PUT("/gateways/" + uid, gateway.toString()).content(HttpStatus.OK));
+        PUT("/gateways/" + uid, gatewayNoAuth.toJson()).content(HttpStatus.OK));
 
     ClickatellGatewayConfig config =
         (ClickatellGatewayConfig)
