@@ -532,9 +532,9 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     return organisationUnitService.getFilledOrganisationUnitLevels().stream()
         .map(
             lv -> {
-              String column = quote(PREFIX_ORGUNITLEVEL + lv.getLevel());
+              String name = PREFIX_ORGUNITLEVEL + lv.getLevel();
               return new AnalyticsTableColumn(
-                  column, CHARACTER_11, "ous." + column, lv.getCreated());
+                  name, CHARACTER_11, "ous." + quote(name), lv.getCreated());
             })
         .collect(Collectors.toList());
   }
@@ -563,9 +563,9 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     return idObjectManager.getDataDimensionsNoAcl(OrganisationUnitGroupSet.class).stream()
         .map(
             ougs -> {
-              String column = quote(ougs.getUid());
+              String name = ougs.getUid();
               return new AnalyticsTableColumn(
-                  column, CHARACTER_11, "ougs." + column, ougs.getCreated());
+                  name, CHARACTER_11, "ougs." + quote(name), ougs.getCreated());
             })
         .collect(Collectors.toList());
   }

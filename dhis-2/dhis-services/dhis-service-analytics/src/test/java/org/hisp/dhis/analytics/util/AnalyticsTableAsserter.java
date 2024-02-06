@@ -200,7 +200,6 @@ public class AnalyticsTableAsserter {
     }
 
     public AnalyticsTableAsserter build() {
-      // verify
       if (_tableType == null) {
         fail("Missing table type");
       }
