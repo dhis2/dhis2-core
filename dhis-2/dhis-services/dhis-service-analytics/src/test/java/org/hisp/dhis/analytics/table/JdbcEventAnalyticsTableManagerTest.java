@@ -58,6 +58,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import java.time.LocalDate;
 import java.time.Year;
 import java.time.ZoneId;
@@ -281,8 +282,16 @@ class JdbcEventAnalyticsTableManagerTest {
         .withColumnSize(56 + OU_NAME_HIERARCHY_COUNT)
         .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
         .addColumns(periodColumns)
-        .addColumn(categoryA.getUid(), CHARACTER_11, ("acs." + quote(categoryA.getUid())), categoryA.getCreated())
-        .addColumn(categoryB.getUid(), CHARACTER_11, ("acs." + quote(categoryB.getUid())), categoryB.getCreated())
+        .addColumn(
+            categoryA.getUid(),
+            CHARACTER_11,
+            ("acs." + quote(categoryA.getUid())),
+            categoryA.getCreated())
+        .addColumn(
+            categoryB.getUid(),
+            CHARACTER_11,
+            ("acs." + quote(categoryB.getUid())),
+            categoryB.getCreated())
         .build()
         .verify();
   }
@@ -449,7 +458,11 @@ class JdbcEventAnalyticsTableManagerTest {
         .withTableType(AnalyticsTableType.EVENT)
         .withColumnSize(63 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
-        .addColumn(d1.getUid(), TEXT, toSelectExpression(aliasD1, d1.getUid()), Skip.SKIP) // ValueType.TEXT
+        .addColumn(
+            d1.getUid(),
+            TEXT,
+            toSelectExpression(aliasD1, d1.getUid()),
+            Skip.SKIP) // ValueType.TEXT
         .addColumn(
             d2.getUid(),
             DOUBLE,
@@ -476,13 +489,21 @@ class JdbcEventAnalyticsTableManagerTest {
             toSelectExpression(aliasD6, d6.getUid()),
             IndexType.BTREE) // ValueType.INTEGER
         .addColumn(
-            d7.getUid(), GEOMETRY_POINT, toSelectExpression(aliasD7, d7.getUid())) // ValueType.COORDINATES
+            d7.getUid(),
+            GEOMETRY_POINT,
+            toSelectExpression(aliasD7, d7.getUid())) // ValueType.COORDINATES
         // element d5 also creates a Geo column
         .addColumn(
-            d5.getUid() + "_geom", GEOMETRY, toSelectExpression(aliasD5_geo, d5.getUid()), IndexType.GIST)
+            d5.getUid() + "_geom",
+            GEOMETRY,
+            toSelectExpression(aliasD5_geo, d5.getUid()),
+            IndexType.GIST)
         // element d5 also creates a Name column
         .addColumn(
-            d5.getUid() + "_name", TEXT, toSelectExpression(aliasD5_name, d5.getUid() + "_name"), Skip.SKIP)
+            d5.getUid() + "_name",
+            TEXT,
+            toSelectExpression(aliasD5_name, d5.getUid() + "_name"),
+            Skip.SKIP)
         .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
         .build()
         .verify();
@@ -541,7 +562,11 @@ class JdbcEventAnalyticsTableManagerTest {
         .withTableType(AnalyticsTableType.EVENT)
         .withColumnSize(58 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
-        .addColumn(d1.getUid(), TEXT, toSelectExpression(aliasD1, d1.getUid()), Skip.SKIP) // ValueType.TEXT
+        .addColumn(
+            d1.getUid(),
+            TEXT,
+            toSelectExpression(aliasD1, d1.getUid()),
+            Skip.SKIP) // ValueType.TEXT
         .addColumn(
             tea1.getUid(), TEXT, String.format(aliasTea1, "ou.uid", tea1.getId(), tea1.getUid()))
         // Second Geometry column created from the OU column above

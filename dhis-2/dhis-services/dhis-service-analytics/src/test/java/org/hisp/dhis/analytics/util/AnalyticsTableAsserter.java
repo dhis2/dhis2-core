@@ -31,6 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.fail;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -38,7 +39,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
@@ -77,16 +77,18 @@ public class AnalyticsTableAsserter {
     assertThat(table.getMainName(), is(mainName));
     // verify default columns
     Map<String, AnalyticsTableColumn> tableColumnMap =
-        Stream.concat(table.getDimensionColumns().stream(), table.getFactColumns().stream())
+        table.getAnalyticsTableColumns().stream()
             .collect(Collectors.toMap(AnalyticsTableColumn::getName, c -> c));
+
     for (AnalyticsTableColumn col : defaultColumns) {
       if (!tableColumnMap.containsKey(col.getName())) {
-        fail("Default column '" + col.getName() + "' is missing, found: " + tableColumnMap.keySet());
+        fail(
+            "Default column '" + col.getName() + "' is missing, found: " + tableColumnMap.keySet());
       } else {
         new AnalyticsColumnAsserter.Builder(col).build().verify(tableColumnMap.get(col.getName()));
       }
     }
-    // verify additional columns
+
     for (AnalyticsTableColumn col : columns) {
       if (!tableColumnMap.containsKey(col.getName())) {
         fail("Column '" + col.getName() + "' is missing, found: " + tableColumnMap.keySet());
@@ -94,6 +96,7 @@ public class AnalyticsTableAsserter {
         new AnalyticsColumnAsserter.Builder(col).build().verify(tableColumnMap.get(col.getName()));
       }
     }
+
     for (String name : matchers.keySet()) {
       if (!tableColumnMap.containsKey(name)) {
         fail("Column '" + name + "' is missing, found: " + tableColumnMap.keySet());
@@ -159,20 +162,20 @@ public class AnalyticsTableAsserter {
     }
 
     public Builder addColumn(String name, DataType dataType, String selectExpression) {
-      return addColumnUnquoted(name, dataType, selectExpression, Skip.INCLUDE, IndexType.BTREE);
+      return addColumn(name, dataType, selectExpression, Skip.INCLUDE, IndexType.BTREE);
     }
 
     public Builder addColumn(
         String name, DataType dataType, String selectExpression, IndexType indexType) {
-      return addColumnUnquoted(name, dataType, selectExpression, Skip.INCLUDE, indexType);
+      return addColumn(name, dataType, selectExpression, Skip.INCLUDE, indexType);
     }
 
     public Builder addColumn(
         String name, DataType dataType, String selectExpression, Skip skipIndex) {
-      return addColumnUnquoted(name, dataType, selectExpression, skipIndex, IndexType.BTREE);
+      return addColumn(name, dataType, selectExpression, skipIndex, IndexType.BTREE);
     }
 
-    public Builder addColumnUnquoted(
+    public Builder addColumn(
         String name,
         DataType dataType,
         String selectExpression,
