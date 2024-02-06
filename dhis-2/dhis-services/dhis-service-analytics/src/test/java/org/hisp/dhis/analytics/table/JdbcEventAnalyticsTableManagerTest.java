@@ -320,8 +320,8 @@ class JdbcEventAnalyticsTableManagerTest {
 
     assertThat(tables, hasSize(1));
 
-    AnalyticsTableColumn lastUpdated = getColumn("\"lastupdated\"", tables.get(0));
-    AnalyticsTableColumn created = getColumn("\"created\"", tables.get(0));
+    AnalyticsTableColumn lastUpdated = getColumn("lastupdated", tables.get(0));
+    AnalyticsTableColumn created = getColumn("created", tables.get(0));
 
     assertThat(
         lastUpdated.getSelectExpression(),
@@ -364,7 +364,7 @@ class JdbcEventAnalyticsTableManagerTest {
     return analyticsTable.getDimensionColumns().stream()
         .filter(col -> col.getName().equals(column))
         .findFirst()
-        .orElseThrow(() -> new IllegalArgumentException("Column " + column + " not found"));
+        .orElseThrow(() -> new IllegalArgumentException("Column '" + column + "' not found"));
   }
 
   @Test
