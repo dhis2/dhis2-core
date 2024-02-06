@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.table;
 
 import static java.lang.String.join;
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.groupingBy;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
@@ -66,6 +65,7 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Logged;
@@ -282,10 +282,42 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
                     new AnalyticsTableColumn(
                         quote(tea.getUid()),
                         getColumnType(tea.getValueType(), isSpatialSupport()),
-                        getSelectClause(tea.getValueType(), "\"" + tea.getUid() + "\".value")))
+                        castBasedOnType(tea.getValueType(), "\"" + tea.getUid() + "\".value")))
             .toList());
 
     return columns;
+  }
+
+  /**
+   * Returns the select clause, potentially with a cast statement, based on the given value type.
+   * (this method is an adapted version of {@link
+   * JdbcEventAnalyticsTableManager#getSelectClause(ValueType, String)})
+   *
+   * @param valueType the value type to represent as database column type.
+   */
+  private String castBasedOnType(ValueType valueType, String columnName) {
+    if (valueType.isDecimal()) {
+      return "cast(" + columnName + " as double precision)";
+    }
+    if (valueType.isInteger()) {
+      return "cast(" + columnName + " as bigint)";
+    }
+    if (valueType.isBoolean()) {
+      return "case when "
+          + columnName
+          + " = 'true' then 1 when "
+          + columnName
+          + " = 'false' then 0 end";
+    }
+    if (valueType.isDate()) {
+      return "cast(" + columnName + " as timestamp)";
+    }
+    if (valueType.isGeo() && isSpatialSupport()) {
+      return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || ("
+          + columnName
+          + ") || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
+    }
+    return columnName;
   }
 
   private List<TrackedEntityAttribute> getAllTrackedEntityAttributes(
@@ -327,14 +359,9 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
     return allFixedColumns;
   }
 
-  /**
-   * Returns a list of table checks (constraints) for the given analytics table partition.
-   *
-   * @param partition the {@link AnalyticsTablePartition}.
-   */
   @Override
-  protected List<String> getPartitionChecks(AnalyticsTablePartition partition) {
-    return emptyList();
+  protected List<String> getPartitionChecks(Integer year, Date endDate) {
+    return List.of();
   }
 
   /**
@@ -347,9 +374,11 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
   @SuppressWarnings("unchecked")
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+    String tableName = partition.getName();
+
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
-    StringBuilder sql = new StringBuilder("insert into " + partition.getTempName() + " (");
+    StringBuilder sql = new StringBuilder("insert into " + tableName + " (");
 
     for (AnalyticsTableColumn col : columns) {
       sql.append(col.getName() + ",");
@@ -399,7 +428,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
         .append(" and tei.created is not null ")
         .append(" and tei.deleted is false");
 
-    invokeTimeAndLog(sql.toString(), partition.getTempName());
+    invokeTimeAndLog(sql.toString(), tableName);
   }
 
   /**

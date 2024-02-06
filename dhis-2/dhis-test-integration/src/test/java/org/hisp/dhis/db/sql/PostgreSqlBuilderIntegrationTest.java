@@ -94,6 +94,13 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
     return new Table("vaccination", columns, List.of(), checks, Logged.UNLOGGED);
   }
 
+  private Table getTableC() {
+    List<Column> columns =
+        List.of(new Column("vitamin_a", DataType.BIGINT), new Column("vitamin_d", DataType.BIGINT));
+
+    return new Table("nutrition", columns, List.of(), List.of(), Logged.LOGGED, getTableB());
+  }
+
   @Test
   void testCreateAndDropTableA() {
     Table table = getTableA();
@@ -123,7 +130,22 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
   }
 
   @Test
-  void testCrateAndDropTableCascadeA() {
+  void testCreateAndDropTableC() {
+    Table tableB = getTableB();
+    Table tableC = getTableC();
+
+    execute(sqlBuilder.createTable(tableB));
+    execute(sqlBuilder.createTable(tableC));
+
+    assertTrue(tableExists(tableB.getName()));
+    assertTrue(tableExists(tableC.getName()));
+
+    jdbcTemplate.execute(sqlBuilder.dropTableIfExists(tableC));
+    jdbcTemplate.execute(sqlBuilder.dropTableIfExists(tableB));
+  }
+
+  @Test
+  void testCreateAndDropTableCascade() {
     Table table = getTableA();
 
     execute(sqlBuilder.createTable(table));
@@ -136,6 +158,38 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
   }
 
   @Test
+  void testRenameTable() {
+    Table table = getTableA();
+
+    execute(sqlBuilder.createTable(table));
+
+    assertTrue(tableExists(table.getName()));
+
+    execute(sqlBuilder.renameTable(table, "immunization_temp"));
+
+    assertTrue(tableExists("immunization_temp"));
+    assertFalse(tableExists(table.getName()));
+
+    jdbcTemplate.execute(sqlBuilder.dropTableIfExists("immunization_temp"));
+  }
+
+  @Test
+  void testSwapTable() {
+    Table tableA = getTableA();
+    Table tableB = getTableB();
+
+    execute(sqlBuilder.createTable(tableA));
+    execute(sqlBuilder.createTable(tableB));
+
+    execute(sqlBuilder.swapTable(tableA, "vaccination"));
+
+    assertTrue(tableExists("vaccination"));
+    assertFalse(tableExists("immunization"));
+
+    jdbcTemplate.execute(sqlBuilder.dropTableIfExists("vaccination"));
+  }
+
+  @Test
   void testCreateIndex() {
     Table table = getTableA();
 
@@ -143,11 +197,11 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
 
     execute(sqlBuilder.createTable(table));
 
-    assertDoesNotThrow(() -> execute(sqlBuilder.createIndex(table, indexes.get(0))));
+    assertDoesNotThrow(() -> execute(sqlBuilder.createIndex(indexes.get(0))));
 
-    assertDoesNotThrow(() -> execute(sqlBuilder.createIndex(table, indexes.get(1))));
+    assertDoesNotThrow(() -> execute(sqlBuilder.createIndex(indexes.get(1))));
 
-    assertDoesNotThrow(() -> execute(sqlBuilder.createIndex(table, indexes.get(2))));
+    assertDoesNotThrow(() -> execute(sqlBuilder.createIndex(indexes.get(2))));
 
     jdbcTemplate.execute(sqlBuilder.dropTableIfExists(table));
   }

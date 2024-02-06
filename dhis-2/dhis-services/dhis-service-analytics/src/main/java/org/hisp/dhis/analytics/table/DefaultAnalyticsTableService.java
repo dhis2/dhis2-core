@@ -43,6 +43,7 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.util.PartitionUtils;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -121,9 +122,9 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     progress.runStage(() -> tableManager.preCreateTables(params));
     clock.logTime("Performed pre-create table work " + tableType);
 
-    progress.startingStage("Dropping temp tables (if any) " + tableType, tables.size());
-    dropTempTables(tables, progress);
-    clock.logTime("Dropped temp tables");
+    progress.startingStage("Dropping staging tables (if any) " + tableType, tables.size());
+    dropTables(tables, progress);
+    clock.logTime("Dropped staging tables");
 
     progress.startingStage("Creating analytics tables " + tableType, tables.size());
     createTables(tables, progress);
@@ -190,10 +191,10 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
   // Supportive methods
   // -------------------------------------------------------------------------
 
-  /** Drops the given temporary analytics tables. */
-  private void dropTempTables(List<AnalyticsTable> tables, JobProgress progress) {
+  /** Drops the given analytics tables. */
+  private void dropTables(List<AnalyticsTable> tables, JobProgress progress) {
 
-    progress.runStage(tables, AnalyticsTable::getName, tableManager::dropTempTable);
+    progress.runStage(tables, AnalyticsTable::getName, tableManager::dropTable);
   }
 
   /** Creates the given analytics tables. */
@@ -272,7 +273,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     progress.runStage(
         partitions,
         AnalyticsTablePartition::getName,
-        table -> tableManager.analyzeTable(table.getTempName()));
+        table -> tableManager.analyzeTable(table.getName()));
   }
 
   /**

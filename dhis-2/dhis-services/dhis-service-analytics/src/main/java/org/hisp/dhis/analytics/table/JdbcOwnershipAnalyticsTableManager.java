@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
@@ -39,6 +38,7 @@ import static org.hisp.dhis.program.ProgramType.WITHOUT_REGISTRATION;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -132,7 +132,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
   @Override
   @Transactional
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
-    return params.isLatestUpdate() ? emptyList() : getRegularAnalyticsTables();
+    return params.isLatestUpdate() ? List.of() : getRegularAnalyticsTables();
   }
 
   /**
@@ -148,13 +148,15 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
   }
 
   @Override
-  protected List<String> getPartitionChecks(AnalyticsTablePartition partition) {
-    return emptyList();
+  protected List<String> getPartitionChecks(Integer year, Date endDate) {
+    return List.of();
   }
 
   @Override
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+    String tableName = partition.getName();
+
     Program program = partition.getMasterTable().getProgram();
 
     if (program.getProgramType() == WITHOUT_REGISTRATION) {
@@ -163,23 +165,25 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
 
     String sql = getInputSql(program);
 
-    log.debug("Populate table '{}' with SQL: '{}'", partition.getTempName(), sql);
+    log.debug("Populate table '{}' with SQL: '{}'", tableName, sql);
 
     Timer timer = new SystemTimer().start();
 
     populateOwnershipTableInternal(partition, sql);
 
-    log.info("Populate table '{}' in: '{}'", partition.getTempName(), timer.stop().toString());
+    log.info("Populate table '{}' in: '{}'", tableName, timer.stop().toString());
   }
 
   private void populateOwnershipTableInternal(AnalyticsTablePartition partition, String sql) {
+    String tableName = partition.getName();
+
     List<String> columnNames =
         getColumns().stream().map(AnalyticsTableColumn::getName).collect(toList());
 
     try (MappingBatchHandler batchHandler =
         MappingBatchHandler.builder()
             .jdbcConfiguration(jdbcConfiguration)
-            .tableName(partition.getTempName())
+            .tableName(tableName)
             .columns(columnNames)
             .build()) {
       batchHandler.init();
@@ -195,9 +199,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
           });
 
       log.info(
-          "OwnershipAnalytics query row count was {} for table '{}'",
-          queryRowCount,
-          partition.getTempName());
+          "OwnershipAnalytics query row count was {} for table '{}'", queryRowCount, tableName);
       batchHandler.flush();
     } catch (Exception ex) {
       log.error("Failed to alter table ownership: ", ex);

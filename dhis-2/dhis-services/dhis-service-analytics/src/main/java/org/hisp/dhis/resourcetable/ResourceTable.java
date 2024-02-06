@@ -50,7 +50,9 @@ public interface ResourceTable {
    *
    * @return a list of {@link Index}.
    */
-  List<Index> getIndexes();
+  default List<Index> getIndexes() {
+    return List.of();
+  }
 
   /**
    * Returns the resource table type.

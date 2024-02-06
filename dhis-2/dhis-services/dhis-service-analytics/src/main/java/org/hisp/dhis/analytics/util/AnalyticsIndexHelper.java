@@ -36,6 +36,8 @@ import static org.hisp.dhis.db.model.DataType.TEXT;
 
 import java.util.ArrayList;
 import java.util.List;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsConstants;
@@ -55,18 +57,17 @@ import org.hisp.dhis.db.sql.SqlBuilder;
  *
  * @author maikel arabori
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class AnalyticsIndexHelper {
   private static final String PREFIX_INDEX = "in_";
 
   private static final SqlBuilder SQL_BUILDER = new PostgreSqlBuilder();
 
-  private AnalyticsIndexHelper() {}
-
   /**
    * Returns a queue of analytics table indexes.
    *
    * @param partitions the list of {@link AnalyticsTablePartition}.
-   * @return a list of indexes.
+   * @return a list of {@link Index}
    */
   public static List<Index> getIndexes(List<AnalyticsTablePartition> partitions) {
     List<Index> indexes = new ArrayList<>();
@@ -82,9 +83,9 @@ public class AnalyticsIndexHelper {
           List<String> columns =
               col.hasIndexColumns() ? col.getIndexColumns() : List.of(col.getName());
 
-          indexes.add(new Index(name, partition.getTempName(), col.getIndexType(), columns));
+          indexes.add(new Index(name, partition.getName(), col.getIndexType(), columns));
 
-          maybeAddTextLowerIndex(indexes, name, partition.getTempName(), col, columns);
+          maybeAddTextLowerIndex(indexes, name, partition.getName(), col, columns);
         }
       }
     }
@@ -210,7 +211,7 @@ public class AnalyticsIndexHelper {
    * Shortens the given table name.
    *
    * @param table the table name
-   * @param tableType
+   * @param tableType the {@link AnayticsTableType}
    */
   private static String shortenTableName(String table, AnalyticsTableType tableType) {
     table = table.replace(tableType.getTableName(), "ax");

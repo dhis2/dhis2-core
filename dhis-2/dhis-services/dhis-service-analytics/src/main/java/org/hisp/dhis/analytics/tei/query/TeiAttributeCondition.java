@@ -34,10 +34,10 @@ import org.hisp.dhis.analytics.common.ValueTypeMapping;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParamItem;
+import org.hisp.dhis.analytics.common.query.AndCondition;
 import org.hisp.dhis.analytics.common.query.BaseRenderable;
 import org.hisp.dhis.analytics.common.query.BinaryConditionRenderer;
 import org.hisp.dhis.analytics.common.query.Field;
-import org.hisp.dhis.analytics.common.query.OrCondition;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 
 @RequiredArgsConstructor(staticName = "of")
@@ -65,6 +65,6 @@ public class TeiAttributeCondition extends BaseRenderable {
       renderers.add(binaryConditionRenderer);
     }
 
-    return OrCondition.of(renderers).render();
+    return AndCondition.of(renderers).render();
   }
 }

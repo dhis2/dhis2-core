@@ -41,6 +41,7 @@ import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -121,7 +122,7 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
             ? new AnalyticsTable(AnalyticsTableType.VALIDATION_RESULT, List.of(), Logged.LOGGED)
             : getRegularAnalyticsTable(params, getDataYears(params), getColumns());
 
-    return table.hasPartitionTables() ? List.of(table) : List.of();
+    return table.hasTablePartitions() ? List.of(table) : List.of();
   }
 
   @Override
@@ -149,16 +150,17 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
   }
 
   @Override
-  protected List<String> getPartitionChecks(AnalyticsTablePartition partition) {
-    return List.of("year = " + partition.getYear());
+  protected List<String> getPartitionChecks(Integer year, Date endDate) {
+    Objects.requireNonNull(year);
+    return List.of("year = " + year);
   }
 
   @Override
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
-    String tableName = partition.getTempName();
+    String tableName = partition.getName();
 
-    String sql = "insert into " + partition.getTempName() + " (";
+    String sql = "insert into " + tableName + " (";
 
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 

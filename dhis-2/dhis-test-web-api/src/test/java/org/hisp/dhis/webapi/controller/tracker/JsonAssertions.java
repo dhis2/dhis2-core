@@ -80,8 +80,8 @@ public class JsonAssertions {
 
   public static void assertNoRelationships(JsonObject json) {
     assertFalse(json.isEmpty());
-    JsonArray rels = json.getArray("instances");
-    assertTrue(rels.isEmpty(), "instances should not contain any relationships");
+    JsonArray rels = json.getArray("relationships");
+    assertTrue(rels.isEmpty(), "relationships should not contain any relationships");
   }
 
   public static void assertEventWithinRelationshipItem(

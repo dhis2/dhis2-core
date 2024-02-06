@@ -27,9 +27,8 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static java.util.Collections.emptyList;
-import static org.hisp.dhis.analytics.table.PartitionUtils.getLatestTablePartition;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
+import static org.hisp.dhis.analytics.table.util.PartitionUtils.getLatestTablePartition;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.db.model.DataType.BOOLEAN;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
@@ -43,6 +42,7 @@ import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -122,7 +122,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             ? getLatestAnalyticsTable(params, getColumns())
             : getRegularAnalyticsTable(params, getDataYears(params), getColumns());
 
-    return table.hasPartitionTables() ? List.of(table) : List.of();
+    return table.hasTablePartitions() ? List.of(table) : List.of();
   }
 
   @Override
@@ -185,22 +185,21 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
   }
 
   @Override
-  protected List<String> getPartitionChecks(AnalyticsTablePartition partition) {
-    return partition.isLatestPartition()
-        ? emptyList()
-        : List.of("year = " + partition.getYear() + "");
+  protected List<String> getPartitionChecks(Integer year, Date endDate) {
+    Objects.requireNonNull(year);
+    return List.of("year = " + year + "");
   }
 
   @Override
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
-    String tableName = partition.getTempName();
+    String tableName = partition.getName();
     String partitionClause =
         partition.isLatestPartition()
             ? "and cdr.lastupdated >= '" + getLongDateString(partition.getStartDate()) + "' "
             : "and ps.year = " + partition.getYear() + " ";
 
-    String sql = "insert into " + partition.getTempName() + " (";
+    String sql = "insert into " + tableName + " (";
 
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 

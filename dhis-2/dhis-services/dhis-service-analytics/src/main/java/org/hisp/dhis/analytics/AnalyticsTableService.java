@@ -50,9 +50,9 @@ public interface AnalyticsTableService {
    */
   void create(AnalyticsTableUpdateParams params, JobProgress progress);
 
-  /** Drops main and temporary analytics tables. */
+  /** Drops main and staging analytics tables. */
   void dropTables();
 
-  /** Performs an SQL analyze operation on all analytics tables. */
+  /** Performs an analyze operation on analytics tables. */
   void analyzeAnalyticsTables();
 }

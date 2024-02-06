@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.table;
 
 import static java.lang.String.format;
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParentheses;
@@ -55,6 +54,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -66,6 +66,7 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
+import org.hisp.dhis.analytics.table.util.PartitionUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryService;
@@ -259,10 +260,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    */
   private List<AnalyticsTable> getRegularAnalyticsTables(
       AnalyticsTableUpdateParams params, List<Integer> availableDataYears) {
-    List<AnalyticsTable> tables = new ArrayList<>();
-
     Calendar calendar = PeriodType.getCalendar();
-
+    List<AnalyticsTable> tables = new ArrayList<>();
     Logged logged = analyticsExportSettings.getTableLogged();
 
     List<Program> programs =
@@ -286,13 +285,15 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
           new AnalyticsTable(getAnalyticsTableType(), getColumns(program), logged, program);
 
       for (Integer year : yearsForPartitionTables) {
-        table.addPartitionTable(
+        List<String> checks = getPartitionChecks(year, PartitionUtils.getEndDate(calendar, year));
+        table.addTablePartition(
+            checks,
             year,
             PartitionUtils.getStartDate(calendar, year),
             PartitionUtils.getEndDate(calendar, year));
       }
 
-      if (table.hasPartitionTables()) {
+      if (table.hasTablePartitions()) {
         tables.add(table);
       }
     }
@@ -340,7 +341,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       if (hasUpdatedData) {
         AnalyticsTable table =
             new AnalyticsTable(getAnalyticsTableType(), getColumns(program), logged, program);
-        table.addPartitionTable(AnalyticsTablePartition.LATEST_PARTITION, startDate, endDate);
+        table.addTablePartition(
+            List.of(), AnalyticsTablePartition.LATEST_PARTITION, startDate, endDate);
         tables.add(table);
 
         log.info(
@@ -391,7 +393,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   @Override
   public void removeUpdatedData(List<AnalyticsTable> tables) {
     for (AnalyticsTable table : tables) {
-      AnalyticsTablePartition partition = table.getLatestPartition();
+      AnalyticsTablePartition partition = table.getLatestTablePartition();
 
       String sql =
           "delete from "
@@ -416,10 +418,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   }
 
   @Override
-  protected List<String> getPartitionChecks(AnalyticsTablePartition partition) {
-    return partition.isLatestPartition()
-        ? emptyList()
-        : List.of("yearly = '" + partition.getYear() + "'");
+  protected List<String> getPartitionChecks(Integer year, Date endDate) {
+    Objects.requireNonNull(year);
+    return List.of("yearly = '" + year + "'");
   }
 
   @Override

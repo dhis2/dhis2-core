@@ -207,10 +207,22 @@ public interface SqlBuilder {
   String analyzeTable(Table table);
 
   /**
+   * @param name the table name.
+   * @return an analyze table statement.
+   */
+  String analyzeTable(String name);
+
+  /**
    * @param table the {@link Table}.
    * @return a vacuum table statement.
    */
   String vacuumTable(Table table);
+
+  /**
+   * @param name the table name.
+   * @return a vacuum table statement.
+   */
+  String vacuumTable(String name);
 
   /**
    * @param table the {@link Table}.
@@ -244,6 +256,35 @@ public interface SqlBuilder {
   String dropTableIfExistsCascade(String name);
 
   /**
+   * @param table the {@link Table}.
+   * @param newName the new name for the table.
+   * @return a combined drop table if exists cascade and rename table statement.
+   */
+  String swapTable(Table table, String newName);
+
+  /**
+   * @param table the {@link Table}.
+   * @param parentName the parent table name.
+   * @return a table inherit statement.
+   */
+  String setParentTable(Table table, String parentName);
+
+  /**
+   * @param table the {@link Table}.
+   * @param parentName the parent table name.
+   * @return a table no inherit statement.
+   */
+  String removeParentTable(Table table, String parentName);
+
+  /**
+   * @param table the {@link Table}.
+   * @param parentName the name of the current parent table.
+   * @param newParentName the name of the new parent table.
+   * @return a combined table inherit and table no inherit statement.
+   */
+  String swapParentTable(Table table, String parentName, String newParentName);
+
+  /**
    * @param name the table name.
    * @return a statement which will return a single row with a single column with the table name if
    *     the table exists.
@@ -251,9 +292,8 @@ public interface SqlBuilder {
   String tableExists(String name);
 
   /**
-   * @param table the {@link Table}.
    * @param index the {@link Index}.
    * @return a create index statement.
    */
-  String createIndex(Table table, Index index);
+  String createIndex(Index index);
 }

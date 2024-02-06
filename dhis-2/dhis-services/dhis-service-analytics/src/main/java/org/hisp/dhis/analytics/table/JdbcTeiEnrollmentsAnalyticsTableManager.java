@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.table;
 
 import static java.lang.String.join;
-import static java.util.Collections.emptyList;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_ENROLLMENTS;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
@@ -177,14 +176,9 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
     return null;
   }
 
-  /**
-   * Returns a list of table checks (constraints) for the given analytics table partition.
-   *
-   * @param partition the {@link AnalyticsTablePartition}.
-   */
   @Override
-  protected List<String> getPartitionChecks(AnalyticsTablePartition partition) {
-    return emptyList();
+  protected List<String> getPartitionChecks(Integer year, Date endDate) {
+    return List.of();
   }
 
   /**
@@ -196,9 +190,11 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
   @Override
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+    String tableName = partition.getName();
+
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
-    StringBuilder sql = new StringBuilder("insert into " + partition.getTempName() + " (");
+    StringBuilder sql = new StringBuilder("insert into " + tableName + " (");
 
     for (AnalyticsTableColumn col : columns) {
       sql.append(col.getName() + ",");
@@ -231,7 +227,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
         .append(" and pi.occurreddate is not null ")
         .append(" and pi.deleted is false");
 
-    invokeTimeAndLog(sql.toString(), partition.getTempName());
+    invokeTimeAndLog(sql.toString(), tableName);
   }
 
   /**

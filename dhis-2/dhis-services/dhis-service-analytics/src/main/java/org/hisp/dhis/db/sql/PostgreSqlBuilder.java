@@ -219,21 +219,39 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
     // Checks
 
-    for (String check : table.getChecks()) {
-      sql.append("check(" + check + "), ");
+    if (table.hasChecks()) {
+      for (String check : table.getChecks()) {
+        sql.append("check(" + check + "), ");
+      }
     }
 
-    return removeLastComma(sql).append(");").toString();
+    removeLastComma(sql).append(")");
+
+    if (table.hasParent()) {
+      sql.append(" inherits (").append(quote(table.getParent().getName())).append(")");
+    }
+
+    return sql.append(";").toString();
   }
 
   @Override
   public String analyzeTable(Table table) {
-    return String.format("analyze %s;", quote(table.getName()));
+    return analyzeTable(table.getName());
+  }
+
+  @Override
+  public String analyzeTable(String name) {
+    return String.format("analyze %s;", quote(name));
   }
 
   @Override
   public String vacuumTable(Table table) {
-    return String.format("vacuum %s;", quote(table.getName()));
+    return vacuumTable(table.getName());
+  }
+
+  @Override
+  public String vacuumTable(String name) {
+    return String.format("vacuum %s;", quote(name));
   }
 
   @Override
@@ -262,6 +280,28 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
+  public String swapTable(Table table, String newName) {
+    return String.join(" ", dropTableIfExistsCascade(newName), renameTable(table, newName));
+  }
+
+  @Override
+  public String setParentTable(Table table, String parentName) {
+    return String.format("alter table %s inherit %s;", quote(table.getName()), quote(parentName));
+  }
+
+  @Override
+  public String removeParentTable(Table table, String parentName) {
+    return String.format(
+        "alter table %s no inherit %s;", quote(table.getName()), quote(parentName));
+  }
+
+  @Override
+  public String swapParentTable(Table table, String parentName, String newParentName) {
+    return String.join(
+        " ", removeParentTable(table, parentName), setParentTable(table, newParentName));
+  }
+
+  @Override
   public String tableExists(String name) {
     return String.format(
         "select t.table_name from information_schema.tables t "
@@ -270,8 +310,9 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String createIndex(Table table, Index index) {
+  public String createIndex(Index index) {
     String unique = index.getUnique() == Unique.UNIQUE ? "unique " : "";
+    String tableName = index.getTableName();
     String typeName = getIndexTypeName(index.getIndexType());
 
     String columns =
@@ -281,6 +322,6 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
     return String.format(
         "create %sindex %s on %s using %s(%s);",
-        unique, quote(index.getName()), quote(table.getName()), typeName, columns);
+        unique, quote(index.getName()), quote(tableName), typeName, columns);
   }
 }

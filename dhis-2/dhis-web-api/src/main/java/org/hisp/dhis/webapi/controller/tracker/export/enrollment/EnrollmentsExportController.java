@@ -112,7 +112,7 @@ class EnrollmentsExportController {
               ENROLLMENT_MAPPER.fromCollection(enrollmentsPage.getItems()),
               requestParams.getFields());
 
-      return Page.withPager(objectNodes, enrollmentsPage);
+      return Page.withPager(ENROLLMENTS, objectNodes, enrollmentsPage);
     }
 
     Collection<org.hisp.dhis.program.Enrollment> enrollments =
@@ -121,7 +121,7 @@ class EnrollmentsExportController {
         fieldFilterService.toObjectNodes(
             ENROLLMENT_MAPPER.fromCollection(enrollments), requestParams.getFields());
 
-    return Page.withoutPager(objectNodes);
+    return Page.withoutPager(ENROLLMENTS, objectNodes);
   }
 
   @OpenApi.Response(OpenApi.EntityType.class)
