@@ -33,6 +33,7 @@ import static org.hisp.dhis.util.ObjectUtils.notNull;
 import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.Validate;
 
@@ -42,6 +43,7 @@ import org.apache.commons.lang3.Validate;
  * @author Lars Helge Overland
  */
 @Getter
+@ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Table {
   public static final String STAGING_TABLE_SUFFIX = "_temp";
