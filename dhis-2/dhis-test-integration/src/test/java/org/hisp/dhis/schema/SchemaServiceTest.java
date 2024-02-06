@@ -140,7 +140,7 @@ class SchemaServiceTest extends SingleSetupIntegrationTestBase {
     Schema schema = schemaService.getDynamicSchema(BulkSmsGatewayConfig.class);
     Property isDefault = schema.getProperty("isDefault");
     assertEquals(PropertyType.BOOLEAN, isDefault.getPropertyType());
-    assertNotNull(isDefault.getGetterMethod());
-    assertNotNull(isDefault.getSetterMethod());
+    assertNotNull(isDefault.getGetterMethod(), "getter is null");
+    assertNotNull(isDefault.getSetterMethod(), "setter is null");
   }
 }

@@ -217,7 +217,8 @@ public class ReflectionUtils {
   public static Method findGetterMethod(String fieldName, Class<?> clazz) {
     final String[] getterNames = new String[] {"get", "is", "has"};
 
-    Field field = _findField(clazz, StringUtils.uncapitalize(fieldName));
+    String property = StringUtils.uncapitalize(fieldName);
+    Field field = _findField(clazz, property);
     Method method;
 
     if (field != null) {
@@ -229,7 +230,7 @@ public class ReflectionUtils {
         }
       }
     }
-
+    if (property.matches("(?:is|has|get)[A-Z].*")) return _findMethod(clazz, property);
     return null;
   }
 
@@ -254,7 +255,8 @@ public class ReflectionUtils {
 
     final String[] setterNames = new String[] {"set"};
 
-    Field field = _findField(target, StringUtils.uncapitalize(fieldName));
+    String property = StringUtils.uncapitalize(fieldName);
+    Field field = _findField(target, property);
     Method method;
 
     if (field != null) {
@@ -267,6 +269,9 @@ public class ReflectionUtils {
           return method;
         }
       }
+      if (property.matches("(?:is|has|get)[A-Z].*"))
+        return _findMethod(
+            target, "set" + property.substring(property.startsWith("is") ? 2 : 3), field.getType());
     }
 
     return null;
@@ -440,10 +445,6 @@ public class ReflectionUtils {
 
   public static List<Field> findFields(Class<?> klass, Predicate<Field> predicate) {
     return getAllFields(klass).stream().filter(predicate).collect(Collectors.toList());
-  }
-
-  public static List<Method> findMethods(Class<?> klass, Predicate<Method> predicate) {
-    return getMethods(klass).stream().filter(predicate).collect(Collectors.toList());
   }
 
   public static String getFieldName(Method method) {

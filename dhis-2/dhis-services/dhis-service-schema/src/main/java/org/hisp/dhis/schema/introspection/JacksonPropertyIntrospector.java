@@ -28,7 +28,6 @@
 package org.hisp.dhis.schema.introspection;
 
 import static java.util.Objects.requireNonNull;
-import static org.apache.commons.lang3.StringUtils.capitalize;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.system.util.AnnotationUtils.getAnnotation;
@@ -39,7 +38,6 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.Multimap;
 import com.google.common.primitives.Primitives;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -57,6 +55,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.EmbeddedObject;
@@ -312,18 +311,6 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector {
     List<Field> fields =
         ReflectionUtils.findFields(klass, f -> f.isAnnotationPresent(JsonProperty.class));
 
-    // FIXME this misses inherited methods
-    List<Method> methods =
-        ReflectionUtils.findMethods(
-            klass,
-            m ->
-                AnnotationUtils.findAnnotation(m, JsonProperty.class) != null
-                    && m.getParameterTypes().length == 0);
-
-    // FIXME this is used because of potential name overloads but does not make sure
-    // the method that is a getter/setter is actually picked rather just takes the first one
-    Multimap<String, Method> multimap = ReflectionUtils.getMethodsMultimap(klass);
-
     Map<String, Property> propertyMap = new HashMap<>();
 
     for (var field : fields) {
@@ -340,7 +327,6 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector {
 
       property.setName(name);
       property.setFieldName(fieldName);
-      // FIXME fields named isX might have a getter setter isX not getIsX
       property.setSetterMethod(ReflectionUtils.findSetterMethod(fieldName, klass));
       property.setGetterMethod(ReflectionUtils.findGetterMethod(fieldName, klass));
       property.setNamespace(trimToNull(jsonProperty.namespace()));
@@ -348,6 +334,11 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector {
       propertyMap.put(name, property);
     }
 
+    List<Method> methods =
+        Stream.of(klass.getMethods())
+            .filter(m -> m.getParameterCount() == 0)
+            .filter(m -> m.isAnnotationPresent(JsonProperty.class))
+            .toList();
     for (var method : methods) {
       JsonProperty jsonProperty = AnnotationUtils.findAnnotation(method, JsonProperty.class);
 
@@ -367,14 +358,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector {
       property.setName(name);
       property.setFieldName(fieldName);
       property.setNamespace(trimToNull(jsonProperty.namespace()));
-
-      propertyMap.put(name, property);
-
-      String setterName = "set" + capitalize(fieldName);
-
-      if (multimap.containsKey(setterName)) {
-        property.setSetterMethod(multimap.get(setterName).iterator().next());
-      }
+      property.setSetterMethod(ReflectionUtils.findSetterMethod(fieldName, klass));
 
       propertyMap.put(name, property);
     }

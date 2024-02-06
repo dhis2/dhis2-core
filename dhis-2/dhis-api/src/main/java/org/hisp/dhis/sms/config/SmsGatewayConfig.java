@@ -59,6 +59,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 @ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public abstract class SmsGatewayConfig implements Serializable {
+
   @Serial private static final long serialVersionUID = -4288220735161151632L;
 
   @EqualsAndHashCode.Include @JsonProperty private String uid;
