@@ -102,7 +102,7 @@ class RelationshipRequestParamsMapper {
 
     mapOrderParam(builder, relationshipRequestParams.getOrder());
 
-    return builder.build();
+    return builder.includeDeleted(relationshipRequestParams.isIncludeDeleted()).build();
   }
 
   private TrackerType getTrackerType(UID trackedEntity, UID enrollment, UID event) {

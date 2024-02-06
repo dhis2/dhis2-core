@@ -100,8 +100,10 @@ public class StatusQueryBuilder extends SqlQueryBuilderAdaptor {
         .forEach(builder::selectField);
 
     acceptedDimensions.stream()
-        .map(dimensionIdentifier -> StatusCondition.of(dimensionIdentifier, ctx))
-        .map(GroupableCondition::ofUngroupedCondition)
+        .map(
+            dimensionIdentifier ->
+                GroupableCondition.of(
+                    dimensionIdentifier.getGroupId(), StatusCondition.of(dimensionIdentifier, ctx)))
         .forEach(builder::groupableCondition);
 
     acceptedSortingParams.forEach(
