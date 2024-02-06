@@ -32,9 +32,9 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Set;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonMixed;
-import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.sms.config.ClickatellGatewayConfig;
 import org.hisp.dhis.sms.config.GatewayAdministrationService;
@@ -43,8 +43,6 @@ import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Set;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.sms.SmsGatewayController} using (mocked) REST
@@ -123,7 +121,8 @@ class SmsGatewayControllerTest extends DhisControllerConvenienceTest {
     uid = assertStatus(HttpStatus.OK, POST("/gateways", json));
 
     JsonObject gateway = GET("/gateways/{uid}", uid).content();
-    JsonObject gatewayNoAuth = JsonMixed.of(gateway.node().removeMembers(Set.of("password", "authToken")));
+    JsonObject gatewayNoAuth =
+        JsonMixed.of(gateway.node().removeMembers(Set.of("password", "authToken")));
 
     assertTrue(gatewayNoAuth.getString("password").isUndefined());
     assertTrue(gatewayNoAuth.getString("authToken").isUndefined());
