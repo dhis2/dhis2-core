@@ -154,21 +154,21 @@ public class AnalyticsTableAsserter {
 
     public Builder addColumn(String name, DataType dataType, String alias, Date created) {
       AnalyticsTableColumn col =
-          new AnalyticsTableColumn(quote(name), dataType, alias + quote(name), created);
+          new AnalyticsTableColumn(name, dataType, alias + quote(name), created);
       this._columns.add(col);
       return this;
     }
 
     public Builder addColumn(String name, DataType dataType, String alias) {
-      return addColumnUnquoted(quote(name), dataType, alias, Skip.INCLUDE, IndexType.BTREE);
+      return addColumnUnquoted(name, dataType, alias, Skip.INCLUDE, IndexType.BTREE);
     }
 
     public Builder addColumn(String name, DataType dataType, String alias, IndexType indexType) {
-      return addColumnUnquoted(quote(name), dataType, alias, Skip.INCLUDE, indexType);
+      return addColumnUnquoted(name, dataType, alias, Skip.INCLUDE, indexType);
     }
 
     public Builder addColumn(String name, DataType dataType, String alias, Skip skipIndex) {
-      return addColumnUnquoted(quote(name), dataType, alias, skipIndex, IndexType.BTREE);
+      return addColumnUnquoted(name, dataType, alias, skipIndex, IndexType.BTREE);
     }
 
     public Builder addColumnUnquoted(

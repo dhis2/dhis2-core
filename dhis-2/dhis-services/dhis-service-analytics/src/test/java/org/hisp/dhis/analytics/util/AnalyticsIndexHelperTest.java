@@ -36,7 +36,6 @@ import static org.hisp.dhis.analytics.AnalyticsTableType.EVENT;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.createIndexStatement;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexName;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexes;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.db.model.IndexType.BTREE;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -89,16 +88,11 @@ class AnalyticsIndexHelperTest {
   @Test
   void testGetIndexNameB() {
     String nameA =
-        getIndexName(
-            "analytics_2017_temp", List.of(quote("quarterly")), AnalyticsTableType.DATA_VALUE);
+        getIndexName("analytics_2017_temp", List.of("quarterly"), AnalyticsTableType.DATA_VALUE);
     String nameB =
-        getIndexName(
-            "analytics_2018_temp",
-            List.of(quote("ax"), quote("co")),
-            AnalyticsTableType.DATA_VALUE);
+        getIndexName("analytics_2018_temp", List.of("ax", "co"), AnalyticsTableType.DATA_VALUE);
     String nameC =
-        getIndexName(
-            "analytics_2019_temp", List.of(quote("YtbsuPPo010")), AnalyticsTableType.DATA_VALUE);
+        getIndexName("analytics_2019_temp", List.of("YtbsuPPo010"), AnalyticsTableType.DATA_VALUE);
 
     assertTrue(nameA.startsWith("in_quarterly_ax_2017_"), nameA);
     assertTrue(nameB.startsWith("in_ax_co_ax_2018_"), nameB);

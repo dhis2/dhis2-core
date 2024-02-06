@@ -49,6 +49,7 @@ import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -84,8 +85,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
-          new AnalyticsTableColumn(
-              "trackedentityinstanceuid", CHARACTER_11, NOT_NULL, "tei.uid"),
+          new AnalyticsTableColumn("trackedentityinstanceuid", CHARACTER_11, NOT_NULL, "tei.uid"),
           new AnalyticsTableColumn("programuid", CHARACTER_11, NULL, "p.uid"),
           new AnalyticsTableColumn("programinstanceuid", CHARACTER_11, NULL, "pi.uid"),
           new AnalyticsTableColumn("programstageuid", CHARACTER_11, NULL, "ps.uid"),

@@ -42,6 +42,7 @@ import static org.hisp.dhis.db.model.DataType.VARCHAR_50;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -74,8 +75,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
-          new AnalyticsTableColumn(
-              "trackedentityinstanceuid", CHARACTER_11, NOT_NULL, "tei.uid"),
+          new AnalyticsTableColumn("trackedentityinstanceuid", CHARACTER_11, NOT_NULL, "tei.uid"),
           new AnalyticsTableColumn("programuid", CHARACTER_11, NULL, "p.uid"),
           new AnalyticsTableColumn("programinstanceuid", CHARACTER_11, NULL, "pi.uid"),
           new AnalyticsTableColumn("enrollmentdate", TIMESTAMP, "pi.enrollmentdate"),

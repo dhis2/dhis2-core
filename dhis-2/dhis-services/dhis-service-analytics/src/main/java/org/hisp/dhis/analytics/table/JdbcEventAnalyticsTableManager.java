@@ -47,6 +47,7 @@ import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
+
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -55,6 +56,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -91,7 +93,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -121,9 +122,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
            * the server-side timestamp. Applies to both created and lastupdated.
            */
           new AnalyticsTableColumn(
-              "created",
-              TIMESTAMP,
-              firstIfNotNullOrElse("psi.createdatclient", "psi.created")),
+              "created", TIMESTAMP, firstIfNotNullOrElse("psi.createdatclient", "psi.created")),
           new AnalyticsTableColumn(
               "lastupdated",
               TIMESTAMP,
@@ -180,10 +179,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
           new AnalyticsTableColumn("ougeometry", GEOMETRY, "ou.geometry", IndexType.GIST),
           new AnalyticsTableColumn("pigeometry", GEOMETRY, "pi.geometry", IndexType.GIST),
           new AnalyticsTableColumn(
-              "registrationou",
-              CHARACTER_11,
-              NOT_NULL,
-              "coalesce(registrationou.uid,ou.uid)"),
+              "registrationou", CHARACTER_11, NOT_NULL, "coalesce(registrationou.uid,ou.uid)"),
           new AnalyticsTableColumn(
               "enrollmentou", CHARACTER_11, NOT_NULL, "coalesce(enrollmentou.uid,ou.uid)"));
 
@@ -661,10 +657,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               dataClause);
       columns.add(
           new AnalyticsTableColumn(
-              (attribute.getUid() + OU_GEOMETRY_COL_SUFFIX),
-              GEOMETRY,
-              geoSql,
-              IndexType.GIST));
+              (attribute.getUid() + OU_GEOMETRY_COL_SUFFIX), GEOMETRY, geoSql, IndexType.GIST));
     }
 
     // Add org unit name column
@@ -672,8 +665,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String ouNameSql = selectForInsert(attribute, fromTypeSql, dataClause);
 
     columns.add(
-        new AnalyticsTableColumn(
-            (attribute.getUid() + OU_NAME_COL_SUFFIX), TEXT, ouNameSql, SKIP));
+        new AnalyticsTableColumn((attribute.getUid() + OU_NAME_COL_SUFFIX), TEXT, ouNameSql, SKIP));
 
     return columns;
   }
@@ -693,10 +685,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
       columns.add(
           new AnalyticsTableColumn(
-              (dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX),
-              GEOMETRY,
-              geoSql,
-              IndexType.GIST));
+              (dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX), GEOMETRY, geoSql, IndexType.GIST));
     }
 
     // Add org unit name column

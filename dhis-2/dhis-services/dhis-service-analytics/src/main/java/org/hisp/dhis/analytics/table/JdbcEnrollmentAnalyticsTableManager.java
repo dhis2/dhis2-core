@@ -38,6 +38,7 @@ import static org.hisp.dhis.db.model.DataType.VARCHAR_255;
 import static org.hisp.dhis.db.model.DataType.VARCHAR_50;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -129,10 +130,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
           new AnalyticsTableColumn("oulevel", INTEGER, "ous.level"),
           new AnalyticsTableColumn("pigeometry", GEOMETRY, "pi.geometry", IndexType.GIST),
           new AnalyticsTableColumn(
-              "registrationou",
-              CHARACTER_11,
-              NOT_NULL,
-              "coalesce(registrationou.uid,ou.uid)"));
+              "registrationou", CHARACTER_11, NOT_NULL, "coalesce(registrationou.uid,ou.uid)"));
 
   public JdbcEnrollmentAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,

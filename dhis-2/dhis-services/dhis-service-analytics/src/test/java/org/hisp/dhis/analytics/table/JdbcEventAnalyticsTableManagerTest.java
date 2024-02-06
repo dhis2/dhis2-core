@@ -155,7 +155,7 @@ class JdbcEventAnalyticsTableManagerTest {
       PeriodType.getAvailablePeriodTypes().stream()
           .map(
               pt -> {
-                String column = quote(pt.getName().toLowerCase());
+                String column = pt.getName().toLowerCase();
                 return new AnalyticsTableColumn(column, TEXT, "dps" + "." + column);
               })
           .collect(Collectors.toList());
@@ -760,10 +760,8 @@ class JdbcEventAnalyticsTableManagerTest {
                 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
         .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
-        .addColumn(
-            quote("uidlevel" + ouLevels.get(0).getLevel()), col -> match(ouLevels.get(0), col))
-        .addColumn(
-            quote("uidlevel" + ouLevels.get(1).getLevel()), col -> match(ouLevels.get(1), col))
+        .addColumn(("uidlevel" + ouLevels.get(0).getLevel()), col -> match(ouLevels.get(0), col))
+        .addColumn(("uidlevel" + ouLevels.get(1).getLevel()), col -> match(ouLevels.get(1), col))
         .build()
         .verify();
   }
@@ -805,8 +803,8 @@ class JdbcEventAnalyticsTableManagerTest {
                 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
         .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
-        .addColumn(quote(ouGroupSet.get(0).getUid()), col -> match(ouGroupSet.get(0), col))
-        .addColumn(quote(ouGroupSet.get(1).getUid()), col -> match(ouGroupSet.get(1), col))
+        .addColumn(ouGroupSet.get(0).getUid(), col -> match(ouGroupSet.get(0), col))
+        .addColumn(ouGroupSet.get(1).getUid(), col -> match(ouGroupSet.get(1), col))
         .build()
         .verify();
   }
@@ -848,8 +846,8 @@ class JdbcEventAnalyticsTableManagerTest {
                 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
         .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
-        .addColumn(quote(cogs.get(0).getUid()), col -> match(cogs.get(0), col))
-        .addColumn(quote(cogs.get(1).getUid()), col -> match(cogs.get(1), col))
+        .addColumn(cogs.get(0).getUid(), col -> match(cogs.get(0), col))
+        .addColumn(cogs.get(1).getUid(), col -> match(cogs.get(1), col))
         .build()
         .verify();
   }

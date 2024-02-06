@@ -38,6 +38,7 @@ import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -258,10 +259,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     for (OrganisationUnitGroupSet groupSet : orgUnitGroupSets) {
       columns.add(
           new AnalyticsTableColumn(
-              groupSet.getUid(),
-              CHARACTER_11,
-              "ougs." + groupSet.getUid(),
-              groupSet.getCreated()));
+              groupSet.getUid(), CHARACTER_11, "ougs." + groupSet.getUid(), groupSet.getCreated()));
     }
 
     for (OrganisationUnitLevel level : levels) {

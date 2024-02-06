@@ -46,6 +46,7 @@ import static org.hisp.dhis.db.model.DataType.VARCHAR_50;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -94,16 +95,13 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
 
   private static final List<AnalyticsTableColumn> FIXED_GROUP_BY_COLS =
       List.of(
-          new AnalyticsTableColumn(
-              "trackedentityid", INTEGER, NOT_NULL, "tei.trackedentityid"),
-          new AnalyticsTableColumn(
-              "trackedentityinstanceuid", CHARACTER_11, NOT_NULL, "tei.uid"),
+          new AnalyticsTableColumn("trackedentityid", INTEGER, NOT_NULL, "tei.trackedentityid"),
+          new AnalyticsTableColumn("trackedentityinstanceuid", CHARACTER_11, NOT_NULL, "tei.uid"),
           new AnalyticsTableColumn("created", TIMESTAMP, "tei.created"),
           new AnalyticsTableColumn("lastupdated", TIMESTAMP, "tei.lastupdated"),
           new AnalyticsTableColumn("inactive", BOOLEAN, "tei.inactive"),
           new AnalyticsTableColumn("createdatclient", TIMESTAMP, "tei.createdatclient"),
-          new AnalyticsTableColumn(
-              "lastupdatedatclient", TIMESTAMP, "tei.lastupdatedatclient"),
+          new AnalyticsTableColumn("lastupdatedatclient", TIMESTAMP, "tei.lastupdatedatclient"),
           new AnalyticsTableColumn("lastsynchronized", TIMESTAMP, "tei.lastsynchronized"),
           new AnalyticsTableColumn("geometry", GEOMETRY, "tei.geometry", IndexType.GIST),
           new AnalyticsTableColumn(
@@ -117,8 +115,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
           new AnalyticsTableColumn("featuretype", VARCHAR_255, NULL, "tei.featuretype"),
           new AnalyticsTableColumn("coordinates", TEXT, NULL, "tei.coordinates"),
           new AnalyticsTableColumn("storedby", VARCHAR_255, "tei.storedby"),
-          new AnalyticsTableColumn(
-              "potentialduplicate", BOOLEAN, NULL, "tei.potentialduplicate"),
+          new AnalyticsTableColumn("potentialduplicate", BOOLEAN, NULL, "tei.potentialduplicate"),
           new AnalyticsTableColumn("uidlevel1", CHARACTER_11, NULL, "ous.uidlevel1"),
           new AnalyticsTableColumn("uidlevel2", CHARACTER_11, NULL, "ous.uidlevel2"),
           new AnalyticsTableColumn("uidlevel3", CHARACTER_11, NULL, "ous.uidlevel3"),
