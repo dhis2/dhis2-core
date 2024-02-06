@@ -333,16 +333,6 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
   }
 
   /**
-   * Checks if the database content is in valid state for analytics table generation.
-   *
-   * @return null if valid, a descriptive string if invalid.
-   */
-  @Override
-  public String validState() {
-    return null;
-  }
-
-  /**
    * Returns a list of non-dynamic {@link AnalyticsTableColumn}.
    *
    * @return a List of {@link AnalyticsTableColumn}.

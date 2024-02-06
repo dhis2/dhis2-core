@@ -124,11 +124,6 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
   }
 
   @Override
-  public String validState() {
-    return null;
-  }
-
-  @Override
   protected boolean hasUpdatedLatestData(Date startDate, Date endDate) {
     return false;
   }

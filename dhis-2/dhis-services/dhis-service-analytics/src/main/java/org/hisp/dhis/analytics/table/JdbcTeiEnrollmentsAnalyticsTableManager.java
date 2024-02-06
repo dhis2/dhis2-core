@@ -165,16 +165,6 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
     return analyticsTableColumnList;
   }
 
-  /**
-   * Checks if the database content is in valid state for analytics table generation.
-   *
-   * @return null if valid, a descriptive string if invalid.
-   */
-  @Override
-  public String validState() {
-    return null;
-  }
-
   @Override
   protected List<String> getPartitionChecks(Integer year, Date endDate) {
     return List.of();
