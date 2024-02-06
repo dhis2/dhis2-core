@@ -42,6 +42,7 @@ import static org.hisp.dhis.DhisConvenienceTest.createProgramStage;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramTrackedEntityAttribute;
 import static org.hisp.dhis.DhisConvenienceTest.createTrackedEntityAttribute;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.db.model.DataType.BIGINT;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
@@ -155,7 +156,7 @@ class JdbcEventAnalyticsTableManagerTest {
       PeriodType.getAvailablePeriodTypes().stream()
           .map(
               pt -> {
-                String column = quote(pt.getName().toLowerCase());
+                String column = pt.getName().toLowerCase();
                 return new AnalyticsTableColumn(column, TEXT, "dps" + "." + column);
               })
           .collect(Collectors.toList());
@@ -281,8 +282,16 @@ class JdbcEventAnalyticsTableManagerTest {
         .withColumnSize(56 + OU_NAME_HIERARCHY_COUNT)
         .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
         .addColumns(periodColumns)
-        .addColumn(categoryA.getUid(), CHARACTER_11, "acs.", categoryA.getCreated())
-        .addColumn(categoryB.getUid(), CHARACTER_11, "acs.", categoryB.getCreated())
+        .addColumn(
+            categoryA.getUid(),
+            CHARACTER_11,
+            ("acs." + quote(categoryA.getUid())),
+            categoryA.getCreated())
+        .addColumn(
+            categoryB.getUid(),
+            CHARACTER_11,
+            ("acs." + quote(categoryB.getUid())),
+            categoryB.getCreated())
         .build()
         .verify();
   }
@@ -311,8 +320,8 @@ class JdbcEventAnalyticsTableManagerTest {
 
     assertThat(tables, hasSize(1));
 
-    AnalyticsTableColumn lastUpdated = getColumn("\"lastupdated\"", tables.get(0));
-    AnalyticsTableColumn created = getColumn("\"created\"", tables.get(0));
+    AnalyticsTableColumn lastUpdated = getColumn("lastupdated", tables.get(0));
+    AnalyticsTableColumn created = getColumn("created", tables.get(0));
 
     assertThat(
         lastUpdated.getSelectExpression(),
@@ -355,7 +364,7 @@ class JdbcEventAnalyticsTableManagerTest {
     return analyticsTable.getDimensionColumns().stream()
         .filter(col -> col.getName().equals(column))
         .findFirst()
-        .orElseThrow(() -> new IllegalArgumentException("Column " + column + " not found"));
+        .orElseThrow(() -> new IllegalArgumentException("Column '" + column + "' not found"));
   }
 
   @Test
@@ -449,40 +458,52 @@ class JdbcEventAnalyticsTableManagerTest {
         .withTableType(AnalyticsTableType.EVENT)
         .withColumnSize(63 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
-        .addColumn(d1.getUid(), TEXT, toAlias(aliasD1, d1.getUid()), Skip.SKIP) // ValueType.TEXT
+        .addColumn(
+            d1.getUid(),
+            TEXT,
+            toSelectExpression(aliasD1, d1.getUid()),
+            Skip.SKIP) // ValueType.TEXT
         .addColumn(
             d2.getUid(),
             DOUBLE,
-            toAlias(aliasD2, d2.getUid()),
+            toSelectExpression(aliasD2, d2.getUid()),
             IndexType.BTREE) // ValueType.PERCENTAGE
         .addColumn(
             d3.getUid(),
             INTEGER,
-            toAlias(aliasD3, d3.getUid()),
+            toSelectExpression(aliasD3, d3.getUid()),
             IndexType.BTREE) // ValueType.BOOLEAN
         .addColumn(
             d4.getUid(),
             TIMESTAMP,
-            toAlias(aliasD4, d4.getUid()),
+            toSelectExpression(aliasD4, d4.getUid()),
             IndexType.BTREE) // ValueType.DATE
         .addColumn(
             d5.getUid(),
             TEXT,
-            toAlias(aliasD5, d5.getUid()),
+            toSelectExpression(aliasD5, d5.getUid()),
             IndexType.BTREE) // ValueType.ORGANISATION_UNIT
         .addColumn(
             d6.getUid(),
             BIGINT,
-            toAlias(aliasD6, d6.getUid()),
+            toSelectExpression(aliasD6, d6.getUid()),
             IndexType.BTREE) // ValueType.INTEGER
         .addColumn(
-            d7.getUid(), GEOMETRY_POINT, toAlias(aliasD7, d7.getUid())) // ValueType.COORDINATES
+            d7.getUid(),
+            GEOMETRY_POINT,
+            toSelectExpression(aliasD7, d7.getUid())) // ValueType.COORDINATES
         // element d5 also creates a Geo column
         .addColumn(
-            d5.getUid() + "_geom", GEOMETRY, toAlias(aliasD5_geo, d5.getUid()), IndexType.GIST)
+            d5.getUid() + "_geom",
+            GEOMETRY,
+            toSelectExpression(aliasD5_geo, d5.getUid()),
+            IndexType.GIST)
         // element d5 also creates a Name column
         .addColumn(
-            d5.getUid() + "_name", TEXT, toAlias(aliasD5_name, d5.getUid() + "_name"), Skip.SKIP)
+            d5.getUid() + "_name",
+            TEXT,
+            toSelectExpression(aliasD5_name, d5.getUid() + "_name"),
+            Skip.SKIP)
         .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
         .build()
         .verify();
@@ -541,7 +562,11 @@ class JdbcEventAnalyticsTableManagerTest {
         .withTableType(AnalyticsTableType.EVENT)
         .withColumnSize(58 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
-        .addColumn(d1.getUid(), TEXT, toAlias(aliasD1, d1.getUid()), Skip.SKIP) // ValueType.TEXT
+        .addColumn(
+            d1.getUid(),
+            TEXT,
+            toSelectExpression(aliasD1, d1.getUid()),
+            Skip.SKIP) // ValueType.TEXT
         .addColumn(
             tea1.getUid(), TEXT, String.format(aliasTea1, "ou.uid", tea1.getId(), tea1.getUid()))
         // Second Geometry column created from the OU column above
@@ -760,10 +785,8 @@ class JdbcEventAnalyticsTableManagerTest {
                 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
         .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
-        .addColumn(
-            quote("uidlevel" + ouLevels.get(0).getLevel()), col -> match(ouLevels.get(0), col))
-        .addColumn(
-            quote("uidlevel" + ouLevels.get(1).getLevel()), col -> match(ouLevels.get(1), col))
+        .addColumn(("uidlevel" + ouLevels.get(0).getLevel()), col -> match(ouLevels.get(0), col))
+        .addColumn(("uidlevel" + ouLevels.get(1).getLevel()), col -> match(ouLevels.get(1), col))
         .build()
         .verify();
   }
@@ -805,8 +828,8 @@ class JdbcEventAnalyticsTableManagerTest {
                 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
         .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
-        .addColumn(quote(ouGroupSet.get(0).getUid()), col -> match(ouGroupSet.get(0), col))
-        .addColumn(quote(ouGroupSet.get(1).getUid()), col -> match(ouGroupSet.get(1), col))
+        .addColumn(ouGroupSet.get(0).getUid(), col -> match(ouGroupSet.get(0), col))
+        .addColumn(ouGroupSet.get(1).getUid(), col -> match(ouGroupSet.get(1), col))
         .build()
         .verify();
   }
@@ -848,30 +871,30 @@ class JdbcEventAnalyticsTableManagerTest {
                 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
         .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
-        .addColumn(quote(cogs.get(0).getUid()), col -> match(cogs.get(0), col))
-        .addColumn(quote(cogs.get(1).getUid()), col -> match(cogs.get(1), col))
+        .addColumn(cogs.get(0).getUid(), col -> match(cogs.get(0), col))
+        .addColumn(cogs.get(1).getUid(), col -> match(cogs.get(1), col))
         .build()
         .verify();
   }
 
   private void match(OrganisationUnitGroupSet ouGroupSet, AnalyticsTableColumn col) {
-    String name = quote(ouGroupSet.getUid());
+    String expression = "ougs." + quote(ouGroupSet.getUid());
     assertNotNull(col);
-    assertThat(col.getSelectExpression(), is("ougs." + name));
+    assertThat(col.getSelectExpression(), is(expression));
     match(col);
   }
 
   private void match(OrganisationUnitLevel ouLevel, AnalyticsTableColumn col) {
-    String name = quote("uidlevel" + ouLevel.getLevel());
+    String expression = "ous." + quote("uidlevel" + ouLevel.getLevel());
     assertNotNull(col);
-    assertThat(col.getSelectExpression(), is("ous." + name));
+    assertThat(col.getSelectExpression(), is(expression));
     match(col);
   }
 
   private void match(CategoryOptionGroupSet cog, AnalyticsTableColumn col) {
-    String name = quote(cog.getUid());
+    String expression = "acs." + quote(cog.getUid());
     assertNotNull(col);
-    assertThat(col.getSelectExpression(), is("acs." + name));
+    assertThat(col.getSelectExpression(), is(expression));
     match(col);
   }
 
@@ -881,10 +904,6 @@ class JdbcEventAnalyticsTableManagerTest {
     assertThat(col.isSkipIndex(), is(false));
     assertThat(col.getNullable(), is(NULL));
     assertThat(col.getIndexColumns(), hasSize(0));
-  }
-
-  private String quote(String string) {
-    return "\"" + string + "\"";
   }
 
   @Test
@@ -954,7 +973,7 @@ class JdbcEventAnalyticsTableManagerTest {
     assertThat(sql.getValue(), containsString(String.format(ouQuery, "name")));
   }
 
-  private String toAlias(String template, String uid) {
+  private String toSelectExpression(String template, String uid) {
     return String.format(template, uid, uid, uid);
   }
 

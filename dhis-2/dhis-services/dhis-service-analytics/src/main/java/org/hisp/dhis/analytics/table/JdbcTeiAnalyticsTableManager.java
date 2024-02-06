@@ -96,72 +96,68 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
 
   private static final List<AnalyticsTableColumn> FIXED_GROUP_BY_COLS =
       List.of(
+          new AnalyticsTableColumn("trackedentityid", INTEGER, NOT_NULL, "tei.trackedentityid"),
+          new AnalyticsTableColumn("trackedentityinstanceuid", CHARACTER_11, NOT_NULL, "tei.uid"),
+          new AnalyticsTableColumn("created", TIMESTAMP, "tei.created"),
+          new AnalyticsTableColumn("lastupdated", TIMESTAMP, "tei.lastupdated"),
+          new AnalyticsTableColumn("inactive", BOOLEAN, "tei.inactive"),
+          new AnalyticsTableColumn("createdatclient", TIMESTAMP, "tei.createdatclient"),
+          new AnalyticsTableColumn("lastupdatedatclient", TIMESTAMP, "tei.lastupdatedatclient"),
+          new AnalyticsTableColumn("lastsynchronized", TIMESTAMP, "tei.lastsynchronized"),
+          new AnalyticsTableColumn("geometry", GEOMETRY, "tei.geometry", IndexType.GIST),
           new AnalyticsTableColumn(
-              quote("trackedentityid"), INTEGER, NOT_NULL, "tei.trackedentityid"),
-          new AnalyticsTableColumn(
-              quote("trackedentityinstanceuid"), CHARACTER_11, NOT_NULL, "tei.uid"),
-          new AnalyticsTableColumn(quote("created"), TIMESTAMP, "tei.created"),
-          new AnalyticsTableColumn(quote("lastupdated"), TIMESTAMP, "tei.lastupdated"),
-          new AnalyticsTableColumn(quote("inactive"), BOOLEAN, "tei.inactive"),
-          new AnalyticsTableColumn(quote("createdatclient"), TIMESTAMP, "tei.createdatclient"),
-          new AnalyticsTableColumn(
-              quote("lastupdatedatclient"), TIMESTAMP, "tei.lastupdatedatclient"),
-          new AnalyticsTableColumn(quote("lastsynchronized"), TIMESTAMP, "tei.lastsynchronized"),
-          new AnalyticsTableColumn(quote("geometry"), GEOMETRY, "tei.geometry", IndexType.GIST),
-          new AnalyticsTableColumn(
-              quote("longitude"),
+              "longitude",
               DOUBLE,
               "case when 'POINT' = GeometryType(tei.geometry) then ST_X(tei.geometry) else null end"),
           new AnalyticsTableColumn(
-              quote("latitude"),
+              "latitude",
               DOUBLE,
               "case when 'POINT' = GeometryType(tei.geometry) then ST_Y(tei.geometry) else null end"),
-          new AnalyticsTableColumn(quote("featuretype"), VARCHAR_255, NULL, "tei.featuretype"),
-          new AnalyticsTableColumn(quote("coordinates"), TEXT, NULL, "tei.coordinates"),
-          new AnalyticsTableColumn(quote("storedby"), VARCHAR_255, "tei.storedby"),
-          new AnalyticsTableColumn(
-              quote("potentialduplicate"), BOOLEAN, NULL, "tei.potentialduplicate"),
-          new AnalyticsTableColumn(quote("uidlevel1"), CHARACTER_11, NULL, "ous.uidlevel1"),
-          new AnalyticsTableColumn(quote("uidlevel2"), CHARACTER_11, NULL, "ous.uidlevel2"),
-          new AnalyticsTableColumn(quote("uidlevel3"), CHARACTER_11, NULL, "ous.uidlevel3"),
-          new AnalyticsTableColumn(quote("uidlevel4"), CHARACTER_11, NULL, "ous.uidlevel4"),
-          new AnalyticsTableColumn(quote("ou"), CHARACTER_11, NULL, "ou.uid"),
-          new AnalyticsTableColumn(quote("ouname"), VARCHAR_255, NULL, "ou.name"),
-          new AnalyticsTableColumn(quote("oucode"), VARCHAR_50, NULL, "ou.code"),
-          new AnalyticsTableColumn(quote("oulevel"), INTEGER, NULL, "ous.level"));
+          new AnalyticsTableColumn("featuretype", VARCHAR_255, NULL, "tei.featuretype"),
+          new AnalyticsTableColumn("coordinates", TEXT, NULL, "tei.coordinates"),
+          new AnalyticsTableColumn("storedby", VARCHAR_255, "tei.storedby"),
+          new AnalyticsTableColumn("potentialduplicate", BOOLEAN, NULL, "tei.potentialduplicate"),
+          new AnalyticsTableColumn("uidlevel1", CHARACTER_11, NULL, "ous.uidlevel1"),
+          new AnalyticsTableColumn("uidlevel2", CHARACTER_11, NULL, "ous.uidlevel2"),
+          new AnalyticsTableColumn("uidlevel3", CHARACTER_11, NULL, "ous.uidlevel3"),
+          new AnalyticsTableColumn("uidlevel4", CHARACTER_11, NULL, "ous.uidlevel4"),
+          new AnalyticsTableColumn("ou", CHARACTER_11, NULL, "ou.uid"),
+          new AnalyticsTableColumn("ouname", VARCHAR_255, NULL, "ou.name"),
+          new AnalyticsTableColumn("oucode", VARCHAR_50, NULL, "ou.code"),
+          new AnalyticsTableColumn("oulevel", INTEGER, NULL, "ous.level"));
 
   private static final List<AnalyticsTableColumn> FIXED_NON_GROUP_BY_COLS =
       List.of(
           new AnalyticsTableColumn(
-              quote("createdbyusername"),
+              "createdbyusername",
               VARCHAR_255,
               "tei.createdbyuserinfo ->> 'username' as createdbyusername"),
           new AnalyticsTableColumn(
-              quote("createdbyname"),
+              "createdbyname",
               VARCHAR_255,
               "tei.createdbyuserinfo ->> 'firstName' as createdbyname"),
           new AnalyticsTableColumn(
-              quote("createdbylastname"),
+              "createdbylastname",
               VARCHAR_255,
               "tei.createdbyuserinfo ->> 'surname' as createdbylastname"),
           new AnalyticsTableColumn(
-              quote("createdbydisplayname"),
+              "createdbydisplayname",
               VARCHAR_255,
               getDisplayName("createdbyuserinfo", "tei", "createdbydisplayname")),
           new AnalyticsTableColumn(
-              quote("lastupdatedbyusername"),
+              "lastupdatedbyusername",
               VARCHAR_255,
               "tei.lastupdatedbyuserinfo ->> 'username' as lastupdatedbyusername"),
           new AnalyticsTableColumn(
-              quote("lastupdatedbyname"),
+              "lastupdatedbyname",
               VARCHAR_255,
               "tei.lastupdatedbyuserinfo ->> 'firstName' as lastupdatedbyname"),
           new AnalyticsTableColumn(
-              quote("lastupdatedbylastname"),
+              "lastupdatedbylastname",
               VARCHAR_255,
               "tei.lastupdatedbyuserinfo ->> 'surname' as lastupdatedbylastname"),
           new AnalyticsTableColumn(
-              quote("lastupdatedbydisplayname"),
+              "lastupdatedbydisplayname",
               VARCHAR_255,
               getDisplayName("lastupdatedbyuserinfo", "tei", "lastupdatedbydisplayname")));
 
@@ -256,7 +252,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
             program ->
                 columns.add(
                     new AnalyticsTableColumn(
-                        quote(program.getUid()),
+                        program.getUid(),
                         BOOLEAN,
                         " exists(select 1 from enrollment pi_0"
                             + " where pi_0.trackedentityid = tei.trackedentityid"
@@ -280,7 +276,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
             .map(
                 tea ->
                     new AnalyticsTableColumn(
-                        quote(tea.getUid()),
+                        tea.getUid(),
                         getColumnType(tea.getValueType(), isSpatialSupport()),
                         castBasedOnType(tea.getValueType(), "\"" + tea.getUid() + "\".value")))
             .toList());
@@ -381,7 +377,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
     StringBuilder sql = new StringBuilder("insert into " + tableName + " (");
 
     for (AnalyticsTableColumn col : columns) {
-      sql.append(col.getName() + ",");
+      sql.append(quote(col.getName()) + ",");
     }
 
     removeLastComma(sql).append(") select ");

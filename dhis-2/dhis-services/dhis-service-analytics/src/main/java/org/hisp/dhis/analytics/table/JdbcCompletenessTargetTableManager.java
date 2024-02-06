@@ -73,12 +73,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
-          new AnalyticsTableColumn(quote("ouopeningdate"), DATE, "ou.openingdate"),
-          new AnalyticsTableColumn(quote("oucloseddate"), DATE, "ou.closeddate"),
-          new AnalyticsTableColumn(quote("costartdate"), DATE, "doc.costartdate"),
-          new AnalyticsTableColumn(quote("coenddate"), DATE, "doc.coenddate"),
-          new AnalyticsTableColumn(quote("dx"), CHARACTER_11, NOT_NULL, "ds.uid"),
-          new AnalyticsTableColumn(quote("ao"), CHARACTER_11, NOT_NULL, "ao.uid"));
+          new AnalyticsTableColumn("ouopeningdate", DATE, "ou.openingdate"),
+          new AnalyticsTableColumn("oucloseddate", DATE, "ou.closeddate"),
+          new AnalyticsTableColumn("costartdate", DATE, "doc.costartdate"),
+          new AnalyticsTableColumn("coenddate", DATE, "doc.coenddate"),
+          new AnalyticsTableColumn("dx", CHARACTER_11, NOT_NULL, "ds.uid"),
+          new AnalyticsTableColumn("ao", CHARACTER_11, NOT_NULL, "ao.uid"));
 
   public JdbcCompletenessTargetTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -152,7 +152,7 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
     for (AnalyticsTableColumn col : columns) {
-      sql += col.getName() + ",";
+      sql += quote(col.getName()) + ",";
     }
 
     sql = TextUtils.removeLastComma(sql) + ") select ";
@@ -191,14 +191,14 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
     for (OrganisationUnitGroupSet groupSet : orgUnitGroupSets) {
       columns.add(
           new AnalyticsTableColumn(
-              quote(groupSet.getUid()),
+              groupSet.getUid(),
               CHARACTER_11,
               "ougs." + quote(groupSet.getUid()),
               groupSet.getCreated()));
     }
 
     for (OrganisationUnitLevel level : levels) {
-      String column = quote(PREFIX_ORGUNITLEVEL + level.getLevel());
+      String column = PREFIX_ORGUNITLEVEL + level.getLevel();
       columns.add(
           new AnalyticsTableColumn(column, CHARACTER_11, "ous." + column, level.getCreated()));
     }
@@ -206,7 +206,7 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
     for (CategoryOptionGroupSet groupSet : attributeCategoryOptionGroupSets) {
       columns.add(
           new AnalyticsTableColumn(
-              quote(groupSet.getUid()),
+              groupSet.getUid(),
               CHARACTER_11,
               "acs." + quote(groupSet.getUid()),
               groupSet.getCreated()));
@@ -215,14 +215,14 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
     for (Category category : attributeCategories) {
       columns.add(
           new AnalyticsTableColumn(
-              quote(category.getUid()),
+              category.getUid(),
               CHARACTER_11,
               "acs." + quote(category.getUid()),
               category.getCreated()));
     }
 
     columns.addAll(FIXED_COLS);
-    columns.add(new AnalyticsTableColumn(quote("value"), DOUBLE, NULL, FACT, "1 as value"));
+    columns.add(new AnalyticsTableColumn("value", DOUBLE, NULL, FACT, "1 as value"));
 
     return filterDimensionColumns(columns);
   }

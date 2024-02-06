@@ -165,7 +165,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     String sql = "insert into " + tableName + " (";
 
     for (AnalyticsTableColumn col : columns) {
-      sql += col.getName() + ",";
+      sql += quote(col.getName()) + ",";
     }
 
     sql = TextUtils.removeLastComma(sql) + ") select ";

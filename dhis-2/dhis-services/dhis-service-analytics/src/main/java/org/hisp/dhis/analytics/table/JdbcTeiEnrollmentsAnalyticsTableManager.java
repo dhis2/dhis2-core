@@ -76,31 +76,30 @@ import org.springframework.transaction.annotation.Transactional;
 public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
+          new AnalyticsTableColumn("trackedentityinstanceuid", CHARACTER_11, NOT_NULL, "tei.uid"),
+          new AnalyticsTableColumn("programuid", CHARACTER_11, NULL, "p.uid"),
+          new AnalyticsTableColumn("programinstanceuid", CHARACTER_11, NULL, "pi.uid"),
+          new AnalyticsTableColumn("enrollmentdate", TIMESTAMP, "pi.enrollmentdate"),
+          new AnalyticsTableColumn("enddate", TIMESTAMP, "pi.completeddate"),
+          new AnalyticsTableColumn("incidentdate", TIMESTAMP, "pi.occurreddate"),
+          new AnalyticsTableColumn("enrollmentstatus", VARCHAR_50, "pi.status"),
+          new AnalyticsTableColumn("pigeometry", GEOMETRY, "pi.geometry", IndexType.GIST),
           new AnalyticsTableColumn(
-              quote("trackedentityinstanceuid"), CHARACTER_11, NOT_NULL, "tei.uid"),
-          new AnalyticsTableColumn(quote("programuid"), CHARACTER_11, NULL, "p.uid"),
-          new AnalyticsTableColumn(quote("programinstanceuid"), CHARACTER_11, NULL, "pi.uid"),
-          new AnalyticsTableColumn(quote("enrollmentdate"), TIMESTAMP, "pi.enrollmentdate"),
-          new AnalyticsTableColumn(quote("enddate"), TIMESTAMP, "pi.completeddate"),
-          new AnalyticsTableColumn(quote("incidentdate"), TIMESTAMP, "pi.occurreddate"),
-          new AnalyticsTableColumn(quote("enrollmentstatus"), VARCHAR_50, "pi.status"),
-          new AnalyticsTableColumn(quote("pigeometry"), GEOMETRY, "pi.geometry", IndexType.GIST),
-          new AnalyticsTableColumn(
-              quote("pilongitude"),
+              "pilongitude",
               DOUBLE,
               "case when 'POINT' = GeometryType(pi.geometry) then ST_X(pi.geometry) end"),
           new AnalyticsTableColumn(
-              quote("pilatitude"),
+              "pilatitude",
               DOUBLE,
               "case when 'POINT' = GeometryType(pi.geometry) then ST_Y(pi.geometry) end"),
-          new AnalyticsTableColumn(quote("uidlevel1"), CHARACTER_11, NULL, "ous.uidlevel1"),
-          new AnalyticsTableColumn(quote("uidlevel2"), CHARACTER_11, NULL, "ous.uidlevel2"),
-          new AnalyticsTableColumn(quote("uidlevel3"), CHARACTER_11, NULL, "ous.uidlevel3"),
-          new AnalyticsTableColumn(quote("uidlevel4"), CHARACTER_11, NULL, "ous.uidlevel4"),
-          new AnalyticsTableColumn(quote("ou"), CHARACTER_11, NULL, "ou.uid"),
-          new AnalyticsTableColumn(quote("ouname"), VARCHAR_255, NULL, "ou.name"),
-          new AnalyticsTableColumn(quote("oucode"), CHARACTER_32, NULL, "ou.code"),
-          new AnalyticsTableColumn(quote("oulevel"), INTEGER, NULL, "ous.level"));
+          new AnalyticsTableColumn("uidlevel1", CHARACTER_11, NULL, "ous.uidlevel1"),
+          new AnalyticsTableColumn("uidlevel2", CHARACTER_11, NULL, "ous.uidlevel2"),
+          new AnalyticsTableColumn("uidlevel3", CHARACTER_11, NULL, "ous.uidlevel3"),
+          new AnalyticsTableColumn("uidlevel4", CHARACTER_11, NULL, "ous.uidlevel4"),
+          new AnalyticsTableColumn("ou", CHARACTER_11, NULL, "ou.uid"),
+          new AnalyticsTableColumn("ouname", VARCHAR_255, NULL, "ou.name"),
+          new AnalyticsTableColumn("oucode", CHARACTER_32, NULL, "ou.code"),
+          new AnalyticsTableColumn("oulevel", INTEGER, NULL, "ous.level"));
 
   private final TrackedEntityTypeService trackedEntityTypeService;
 
@@ -197,7 +196,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
     StringBuilder sql = new StringBuilder("insert into " + tableName + " (");
 
     for (AnalyticsTableColumn col : columns) {
-      sql.append(col.getName() + ",");
+      sql.append(quote(col.getName()) + ",");
     }
 
     removeLastComma(sql).append(") select ");

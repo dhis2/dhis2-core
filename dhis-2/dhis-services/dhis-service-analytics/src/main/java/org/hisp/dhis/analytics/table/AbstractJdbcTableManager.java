@@ -33,14 +33,11 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
-
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableManager;
@@ -79,6 +76,8 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -173,11 +172,11 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   /**
-   * Drops and creates the given analytics table.
+   * Drops and creates the given analytics table or table partition.
    *
-   * @param table the {@link AnalyticsTable}.
+   * @param table the {@link Table}.
    */
-  private void createAnalyticsTable(AnalyticsTable table) {
+  private void createAnalyticsTable(Table table) {
     log.info("Creating table: '{}', columns: '{}'", table.getName(), table.getColumns().size());
 
     String sql = sqlBuilder.createTable(table);
@@ -194,24 +193,8 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    */
   private void createAnalyticsTablePartitions(AnalyticsTable table) {
     for (AnalyticsTablePartition partition : table.getTablePartitions()) {
-      createAnalyticsTablePartition(partition);
+      createAnalyticsTable(partition);
     }
-  }
-
-  /**
-   * Creates the table partition for the given analytics table.
-   *
-   * @param table the {@link AnalyticsTable}.
-   * @param partition the {@link AnalyticsTablePartition}.
-   */
-  private void createAnalyticsTablePartition(AnalyticsTablePartition partition) {
-    log.info("Creating partition table: '{}'", partition.getName());
-
-    String sql = sqlBuilder.createTable(partition);
-
-    log.debug("Create table SQL: '{}'", sql);
-
-    jdbcTemplate.execute(sql);
   }
 
   @Override
@@ -480,7 +463,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     return PeriodType.getAvailablePeriodTypes().stream()
         .map(
             pt -> {
-              String column = quote(pt.getName().toLowerCase());
+              String column = pt.getName().toLowerCase();
               return new AnalyticsTableColumn(column, TEXT, prefix + "." + column);
             })
         .collect(Collectors.toList());
@@ -495,9 +478,9 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     return organisationUnitService.getFilledOrganisationUnitLevels().stream()
         .map(
             lv -> {
-              String column = quote(PREFIX_ORGUNITLEVEL + lv.getLevel());
+              String name = PREFIX_ORGUNITLEVEL + lv.getLevel();
               return new AnalyticsTableColumn(
-                  column, CHARACTER_11, "ous." + column, lv.getCreated());
+                  name, CHARACTER_11, "ous." + quote(name), lv.getCreated());
             })
         .collect(Collectors.toList());
   }
@@ -526,9 +509,9 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     return idObjectManager.getDataDimensionsNoAcl(OrganisationUnitGroupSet.class).stream()
         .map(
             ougs -> {
-              String column = quote(ougs.getUid());
+              String name = ougs.getUid();
               return new AnalyticsTableColumn(
-                  column, CHARACTER_11, "ougs." + column, ougs.getCreated());
+                  name, CHARACTER_11, "ougs." + quote(name), ougs.getCreated());
             })
         .collect(Collectors.toList());
   }
