@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.table;
 
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.SPACE;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DATE;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
@@ -88,10 +89,10 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
 
   protected static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
-          new AnalyticsTableColumn("teiuid", CHARACTER_11, "tei.uid"),
-          new AnalyticsTableColumn("startdate", DATE, "a.startdate"),
-          new AnalyticsTableColumn("enddate", DATE, "a.enddate"),
-          new AnalyticsTableColumn("ou", CHARACTER_11, NOT_NULL, "ou.uid"));
+          new AnalyticsTableColumn(quote("teiuid"), CHARACTER_11, "tei.uid"),
+          new AnalyticsTableColumn(quote("startdate"), DATE, "a.startdate"),
+          new AnalyticsTableColumn(quote("enddate"), DATE, "a.enddate"),
+          new AnalyticsTableColumn(quote("ou"), CHARACTER_11, NOT_NULL, "ou.uid"));
 
   public JdbcOwnershipAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
