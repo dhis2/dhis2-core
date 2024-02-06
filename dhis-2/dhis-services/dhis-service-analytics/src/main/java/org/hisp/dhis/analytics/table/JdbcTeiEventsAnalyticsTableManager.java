@@ -33,6 +33,7 @@ import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPOR
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.getDateLinkedToStatus;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getEndDate;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getStartDate;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_32;
@@ -290,7 +291,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
     StringBuilder sql = new StringBuilder("insert into " + tableName + " (");
 
     for (AnalyticsTableColumn col : columns) {
-      sql.append(col.getName() + ",");
+      sql.append(quote(col.getName()) + ",");
     }
 
     removeLastComma(sql).append(") select distinct ");
