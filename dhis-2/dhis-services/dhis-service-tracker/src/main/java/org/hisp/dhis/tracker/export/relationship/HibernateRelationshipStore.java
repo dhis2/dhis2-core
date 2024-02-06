@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.IntSupplier;
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -43,6 +44,7 @@ import javax.persistence.criteria.Subquery;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SoftDeletableObject;
+import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
@@ -59,6 +61,9 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.tracker.export.relationship.RelationshipStore")
 class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relationship>
     implements RelationshipStore {
+
+  private static final org.hisp.dhis.tracker.export.Order DEFAULT_ORDER =
+      new org.hisp.dhis.tracker.export.Order("id", SortDirection.DESC);
 
   /**
    * Relationships can be ordered by given fields which correspond to fields on {@link
@@ -107,7 +112,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     return getPage(
         pageParams,
         relationshipsList(trackedEntity, queryParams, pageParams),
-        countRelationships(trackedEntity, queryParams));
+        () -> countRelationships(trackedEntity, queryParams));
   }
 
   @Override
@@ -116,7 +121,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     return getPage(
         pageParams,
         relationshipsList(enrollment, queryParams, pageParams),
-        countRelationships(enrollment, queryParams));
+        () -> countRelationships(enrollment, queryParams));
   }
 
   @Override
@@ -125,7 +130,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     return getPage(
         pageParams,
         relationshipsList(event, queryParams, pageParams),
-        countRelationships(event, queryParams));
+        () -> countRelationships(event, queryParams));
   }
 
   /**
@@ -241,28 +246,33 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
 
   private List<Order> orderBy(
       RelationshipQueryParams queryParams, CriteriaBuilder builder, Root<Relationship> root) {
-    List<Order> list = new ArrayList<>();
     if (!queryParams.getOrder().isEmpty()) {
-      queryParams
-          .getOrder()
-          .forEach(
-              order ->
-                  list.add(
-                      order.getDirection().isAscending()
-                          ? builder.asc(root.get((String) order.getField()))
-                          : builder.desc(root.get((String) order.getField()))));
+      return orderBy(queryParams.getOrder(), builder, root);
     } else {
-      list.add(builder.desc(root.get(("id"))));
+      return orderBy(List.of(DEFAULT_ORDER), builder, root);
     }
+  }
 
-    return list;
+  List<Order> orderBy(
+      List<org.hisp.dhis.tracker.export.Order> orderList,
+      CriteriaBuilder builder,
+      Root<Relationship> root) {
+
+    return orderList.stream()
+        .map(
+            order ->
+                order.getDirection().isAscending()
+                    ? builder.asc(root.get((String) order.getField()))
+                    : builder.desc(root.get((String) order.getField())))
+        .toList();
   }
 
   private Page<Relationship> getPage(
-      PageParams pageParams, List<Relationship> relationships, int count) {
+      PageParams pageParams, List<Relationship> relationships, IntSupplier relationshipsCount) {
 
     if (pageParams.isPageTotal()) {
-      Pager pager = new Pager(pageParams.getPage(), count, pageParams.getPageSize());
+      Pager pager =
+          new Pager(pageParams.getPage(), relationshipsCount.getAsInt(), pageParams.getPageSize());
       return Page.of(relationships, pager, pageParams.isPageTotal());
     }
 
