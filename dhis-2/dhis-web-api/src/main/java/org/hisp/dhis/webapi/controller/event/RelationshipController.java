@@ -104,7 +104,7 @@ public class RelationshipController {
           .map(
               tei ->
                   relationshipService.getRelationshipsByTrackedEntityInstance(
-                      tei, relationshipCriteria, false))
+                      tei, relationshipCriteria, false, relationshipCriteria.isIncludeDeleted()))
           .orElseThrow(
               () ->
                   new WebMessageException(
@@ -118,7 +118,7 @@ public class RelationshipController {
           .map(
               pi ->
                   relationshipService.getRelationshipsByProgramInstance(
-                      pi, relationshipCriteria, false))
+                      pi, relationshipCriteria, false, relationshipCriteria.isIncludeDeleted()))
           .orElseThrow(
               () ->
                   new WebMessageException(
@@ -130,7 +130,7 @@ public class RelationshipController {
           .map(
               psi ->
                   relationshipService.getRelationshipsByProgramStageInstance(
-                      psi, relationshipCriteria, false))
+                      psi, relationshipCriteria, false, relationshipCriteria.isIncludeDeleted()))
           .orElseThrow(
               () ->
                   new WebMessageException(

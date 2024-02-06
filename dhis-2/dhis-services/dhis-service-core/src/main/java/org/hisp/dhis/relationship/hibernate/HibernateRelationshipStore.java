@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.relationship.hibernate;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -91,33 +92,41 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
 
   @Override
   public List<Relationship> getByTrackedEntityInstance(
-      TrackedEntityInstance tei, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter) {
+      TrackedEntityInstance tei,
+      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
+      boolean includeDeleted) {
     TypedQuery<Relationship> relationshipTypedQuery =
-        getRelationshipTypedQuery(tei, pagingAndSortingCriteriaAdapter);
+        getRelationshipTypedQuery(tei, pagingAndSortingCriteriaAdapter, includeDeleted);
 
     return getList(relationshipTypedQuery);
   }
 
   @Override
   public List<Relationship> getByProgramInstance(
-      ProgramInstance pi, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter) {
+      ProgramInstance pi,
+      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
+      boolean includeDeleted) {
     TypedQuery<Relationship> relationshipTypedQuery =
-        getRelationshipTypedQuery(pi, pagingAndSortingCriteriaAdapter);
+        getRelationshipTypedQuery(pi, pagingAndSortingCriteriaAdapter, includeDeleted);
 
     return getList(relationshipTypedQuery);
   }
 
   @Override
   public List<Relationship> getByProgramStageInstance(
-      ProgramStageInstance psi, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter) {
+      ProgramStageInstance psi,
+      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
+      boolean includeDeleted) {
     TypedQuery<Relationship> relationshipTypedQuery =
-        getRelationshipTypedQuery(psi, pagingAndSortingCriteriaAdapter);
+        getRelationshipTypedQuery(psi, pagingAndSortingCriteriaAdapter, includeDeleted);
 
     return getList(relationshipTypedQuery);
   }
 
   private <T extends IdentifiableObject> TypedQuery<Relationship> getRelationshipTypedQuery(
-      T entity, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter) {
+      T entity,
+      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
+      boolean includeDeleted) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
     CriteriaQuery<Relationship> relationshipItemCriteriaQuery =
@@ -125,7 +134,7 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
     Root<Relationship> root = relationshipItemCriteriaQuery.from(Relationship.class);
 
     setRelationshipItemCriteriaQueryExistsCondition(
-        entity, builder, relationshipItemCriteriaQuery, root);
+        entity, builder, relationshipItemCriteriaQuery, root, includeDeleted);
 
     return getRelationshipTypedQuery(
         pagingAndSortingCriteriaAdapter, builder, relationshipItemCriteriaQuery, root);
@@ -135,7 +144,8 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
       T entity,
       CriteriaBuilder builder,
       CriteriaQuery<Relationship> relationshipItemCriteriaQuery,
-      Root<Relationship> root) {
+      Root<Relationship> root,
+      boolean includeDeleted) {
     Subquery<RelationshipItem> fromSubQuery =
         relationshipItemCriteriaQuery.subquery(RelationshipItem.class);
     Root<RelationshipItem> fromRoot = fromSubQuery.from(RelationshipItem.class);
@@ -158,8 +168,14 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
 
     toSubQuery.select(toRoot.get("id"));
 
-    relationshipItemCriteriaQuery.where(
-        builder.or(builder.exists(fromSubQuery), builder.exists(toSubQuery)));
+    List<Predicate> predicates = new ArrayList<>();
+    predicates.add(builder.or(builder.exists(fromSubQuery), builder.exists(toSubQuery)));
+
+    if (!includeDeleted) {
+      predicates.add(builder.equal(root.get("deleted"), false));
+    }
+
+    relationshipItemCriteriaQuery.where(predicates.toArray(Predicate[]::new));
 
     relationshipItemCriteriaQuery.select(root);
   }

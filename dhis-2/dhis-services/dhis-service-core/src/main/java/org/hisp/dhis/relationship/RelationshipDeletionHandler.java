@@ -58,7 +58,7 @@ public class RelationshipDeletionHandler extends DeletionHandler {
 
   private void deleteTrackedEntityInstance(TrackedEntityInstance entityInstance) {
     Collection<Relationship> relationships =
-        relationshipService.getRelationshipsByTrackedEntityInstance(entityInstance, false);
+        relationshipService.getRelationshipsByTrackedEntityInstance(entityInstance, false, false);
 
     if (relationships != null) {
       for (Relationship relationship : relationships) {
@@ -69,7 +69,8 @@ public class RelationshipDeletionHandler extends DeletionHandler {
 
   private void deleteProgramStageInstance(ProgramStageInstance programStageInstance) {
     Collection<Relationship> relationships =
-        relationshipService.getRelationshipsByProgramStageInstance(programStageInstance, false);
+        relationshipService.getRelationshipsByProgramStageInstance(
+            programStageInstance, false, false);
 
     if (relationships != null) {
       for (Relationship relationship : relationships) {
@@ -80,7 +81,7 @@ public class RelationshipDeletionHandler extends DeletionHandler {
 
   private void deleteProgramInstance(ProgramInstance programInstance) {
     Collection<Relationship> relationships =
-        relationshipService.getRelationshipsByProgramInstance(programInstance, false);
+        relationshipService.getRelationshipsByProgramInstance(programInstance, false, false);
 
     if (relationships != null) {
       for (Relationship relationship : relationships) {

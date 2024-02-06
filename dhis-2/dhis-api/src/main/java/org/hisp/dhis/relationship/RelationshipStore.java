@@ -40,26 +40,20 @@ import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteria
 public interface RelationshipStore extends IdentifiableObjectStore<Relationship> {
   String ID = RelationshipStore.class.getName();
 
-  default List<Relationship> getByTrackedEntityInstance(TrackedEntityInstance tei) {
-    return getByTrackedEntityInstance(tei, null);
-  }
-
   List<Relationship> getByTrackedEntityInstance(
-      TrackedEntityInstance tei, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter);
-
-  default List<Relationship> getByProgramInstance(ProgramInstance pi) {
-    return getByProgramInstance(pi, null);
-  }
+      TrackedEntityInstance tei,
+      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
+      boolean includeDeleted);
 
   List<Relationship> getByProgramInstance(
-      ProgramInstance pi, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter);
-
-  default List<Relationship> getByProgramStageInstance(ProgramStageInstance psi) {
-    return getByProgramStageInstance(psi, null);
-  }
+      ProgramInstance pi,
+      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
+      boolean includeDeleted);
 
   List<Relationship> getByProgramStageInstance(
-      ProgramStageInstance psi, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter);
+      ProgramStageInstance psi,
+      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
+      boolean includeDeleted);
 
   List<Relationship> getByRelationshipType(RelationshipType relationshipType);
 
