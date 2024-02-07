@@ -29,16 +29,15 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.web.WebClient;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Test for data elements which have been abandoned. This is taken to mean that there is no data
  * recorded against them, and they have not been updated in the last hundred days.
- *
- * <p>It is not possible to manually set the lastUpdate field for data elements, so it is not
- * possible to create a proper unit test for the scenario of identifying abandoned data elements.
  *
  * <p>{@see
  * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/data_elements/aggregate_des_abandoned.yaml
@@ -52,7 +51,11 @@ class DataIntegrityDataElementsAbandonedControllerTest
 
   private static final String detailsIdType = "dataElements";
 
+  private String orgUnitId;
+
   private static final String period = "202212";
+
+  @Autowired private DataElementService dataElementService;
 
   @Test
   void testDataElementsNotAbandoned() {
@@ -70,13 +73,14 @@ class DataIntegrityDataElementsAbandonedControllerTest
 
   void setUpTest() {
 
-    String dataElementA =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/dataElements",
-                "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER',"
-                    + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
+    // Create some data elements. created and lastUpdated default to now
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/dataElements",
+            "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER',"
+                + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
+
     String dataElementB =
         assertStatus(
             HttpStatus.CREATED,
@@ -85,7 +89,7 @@ class DataIntegrityDataElementsAbandonedControllerTest
                 "{ 'name': 'ANC2', 'shortName': 'ANC2', 'valueType' : 'NUMBER',"
                     + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
 
-    String orgUnitId =
+    orgUnitId =
         assertStatus(
             HttpStatus.CREATED,
             POST(
@@ -102,9 +106,5 @@ class DataIntegrityDataElementsAbandonedControllerTest
     assertStatus(
         HttpStatus.CREATED,
         postNewDataValue(period, "10", "Test Data", false, dataElementB, orgUnitId));
-    /* Both data elements should have data now */
-    assertStatus(
-        HttpStatus.CREATED,
-        postNewDataValue(period, "20", "Test Data", false, dataElementA, orgUnitId));
   }
 }
