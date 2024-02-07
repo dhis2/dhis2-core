@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.sms;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -41,7 +39,8 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
@@ -90,8 +89,8 @@ public class SmsGatewayController {
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonRoot> getGateways(
       @RequestParam(defaultValue = "*") List<String> fields) {
-    SmsConfiguration smsConfiguration = smsConfigurationManager.getSmsConfiguration();
-    FieldFilterParams<?> params = FieldFilterParams.of(smsConfiguration.getGateways(), fields);
+    SmsConfiguration config = smsConfigurationManager.getSmsConfiguration();
+    FieldFilterParams<?> params = FieldFilterParams.of(config.getGateways(), fields);
 
     return ResponseEntity.ok(JsonRoot.of("gateways", fieldFilterService.toObjectNodes(params)));
   }
@@ -100,12 +99,8 @@ public class SmsGatewayController {
   @GetMapping(value = "/{uid}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<ObjectNode> getGatewayConfiguration(
       @PathVariable String uid, @RequestParam(defaultValue = "*") List<FieldPath> fields)
-      throws WebMessageException {
-    SmsGatewayConfig gateway = gatewayAdminService.getByUid(uid);
-
-    if (gateway == null) {
-      throw new WebMessageException(notFound("No gateway found"));
-    }
+      throws NotFoundException {
+    SmsGatewayConfig gateway = getExistingConfig(uid);
 
     return ResponseEntity.ok(fieldFilterService.toObjectNode(gateway, fields));
   }
@@ -117,12 +112,8 @@ public class SmsGatewayController {
   @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')")
   @PutMapping("/default/{uid}")
   @ResponseBody
-  public WebMessage setDefault(@PathVariable String uid) {
-    SmsGatewayConfig gateway = gatewayAdminService.getByUid(uid);
-
-    if (gateway == null) {
-      return notFound("No gateway found");
-    }
+  public WebMessage setDefault(@PathVariable String uid) throws NotFoundException {
+    SmsGatewayConfig gateway = getExistingConfig(uid);
 
     gatewayAdminService.setDefaultGateway(gateway);
 
@@ -132,12 +123,8 @@ public class SmsGatewayController {
   @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')")
   @PutMapping("/{uid}")
   public WebMessage updateGateway(@PathVariable String uid, HttpServletRequest request)
-      throws IOException {
-    SmsGatewayConfig config = gatewayAdminService.getByUid(uid);
-
-    if (config == null) {
-      return notFound("No gateway found");
-    }
+      throws IOException, NotFoundException, ConflictException {
+    SmsGatewayConfig config = getExistingConfig(uid);
 
     SmsGatewayConfig updatedConfig =
         renderService.fromJson(request.getInputStream(), SmsGatewayConfig.class);
@@ -145,9 +132,10 @@ public class SmsGatewayController {
     if (gatewayAdminService.hasDefaultGateway()
         && updatedConfig.isDefault()
         && !config.isDefault()) {
-      return conflict("Default gateway already exists");
+      throw new ConflictException("Default gateway already exists");
     }
 
+    updatedConfig.setUid(uid); // just make sure it is set and identical to the path parameter
     gatewayAdminService.updateGateway(config, updatedConfig);
 
     return ok(String.format("Gateway with uid: %s has been updated", uid));
@@ -157,12 +145,12 @@ public class SmsGatewayController {
   @PostMapping
   @ResponseBody
   public WebMessage addGateway(HttpServletRequest request, HttpServletResponse response)
-      throws IOException {
+      throws IOException, ConflictException {
     SmsGatewayConfig config =
         renderService.fromJson(request.getInputStream(), SmsGatewayConfig.class);
 
     if (config == null) {
-      return conflict("Cannot de-serialize SMS configurations");
+      throw new ConflictException("Cannot de-serialize SMS configurations");
     }
 
     gatewayAdminService.addGateway(config);
@@ -177,15 +165,19 @@ public class SmsGatewayController {
   @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')")
   @DeleteMapping("/{uid}")
   @ResponseBody
-  public WebMessage removeGateway(@PathVariable String uid) {
-    SmsGatewayConfig gateway = gatewayAdminService.getByUid(uid);
-
-    if (gateway == null) {
-      return notFound("No gateway found with id: " + uid);
-    }
+  public WebMessage removeGateway(@PathVariable String uid) throws NotFoundException {
+    getExistingConfig(uid);
 
     gatewayAdminService.removeGatewayByUid(uid);
 
     return ok("Gateway removed successfully");
+  }
+
+  private SmsGatewayConfig getExistingConfig(String uid) throws NotFoundException {
+    SmsGatewayConfig gateway = gatewayAdminService.getByUid(uid);
+    if (gateway == null) {
+      throw new NotFoundException(SmsGatewayConfig.class, uid);
+    }
+    return gateway;
   }
 }
