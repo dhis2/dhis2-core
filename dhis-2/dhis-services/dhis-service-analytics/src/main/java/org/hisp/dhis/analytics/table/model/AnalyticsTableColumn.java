@@ -276,4 +276,9 @@ public class AnalyticsTableColumn {
   public boolean isSkipIndex() {
     return Skip.SKIP == skipIndex;
   }
+
+  @Override
+  public String toString() {
+    return "[" + name + " " + dataType + " " + nullable + "]";
+  }
 }

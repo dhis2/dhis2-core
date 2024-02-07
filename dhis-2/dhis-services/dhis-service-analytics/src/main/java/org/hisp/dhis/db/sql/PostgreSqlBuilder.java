@@ -317,7 +317,7 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
     String columns =
         index.getColumns().stream()
-            .map(c -> toIndexColumn(index, c))
+            .map(col -> toIndexColumn(index, col))
             .collect(Collectors.joining(", "));
 
     return String.format(

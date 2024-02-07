@@ -268,7 +268,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
       String nullable = col.isNotNull() ? " not null" : " null";
       String collation = col.hasCollation() ? getCollation(col.getCollation().name()) : EMPTY;
 
-      sql.append(col.getName())
+      sql.append(quote(col.getName()))
           .append(SPACE)
           .append(dataType)
           .append(collation)
@@ -517,10 +517,10 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     return PeriodType.getAvailablePeriodTypes().stream()
         .map(
             pt -> {
-              String column = quote(pt.getName().toLowerCase());
-              return new AnalyticsTableColumn(column, TEXT, prefix + "." + column);
+              String name = pt.getName().toLowerCase();
+              return new AnalyticsTableColumn(name, TEXT, prefix + "." + quote(name));
             })
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /**
@@ -531,12 +531,12 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   protected List<AnalyticsTableColumn> getOrganisationUnitLevelColumns() {
     return organisationUnitService.getFilledOrganisationUnitLevels().stream()
         .map(
-            lv -> {
-              String column = quote(PREFIX_ORGUNITLEVEL + lv.getLevel());
+            level -> {
+              String name = PREFIX_ORGUNITLEVEL + level.getLevel();
               return new AnalyticsTableColumn(
-                  column, CHARACTER_11, "ous." + column, lv.getCreated());
+                  name, CHARACTER_11, "ous." + quote(name), level.getCreated());
             })
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /**
@@ -563,11 +563,33 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     return idObjectManager.getDataDimensionsNoAcl(OrganisationUnitGroupSet.class).stream()
         .map(
             ougs -> {
-              String column = quote(ougs.getUid());
+              String name = ougs.getUid();
               return new AnalyticsTableColumn(
-                  column, CHARACTER_11, "ougs." + column, ougs.getCreated());
+                  name, CHARACTER_11, "ougs." + quote(name), ougs.getCreated());
             })
-        .collect(Collectors.toList());
+        .toList();
+  }
+
+  protected List<AnalyticsTableColumn> getAttributeCategoryOptionGroupSetColumns() {
+    return categoryService.getAttributeCategoryOptionGroupSetsNoAcl().stream()
+        .map(
+            cogs -> {
+              String name = cogs.getUid();
+              return new AnalyticsTableColumn(
+                  name, CHARACTER_11, "acs." + quote(name), cogs.getCreated());
+            })
+        .toList();
+  }
+
+  protected List<AnalyticsTableColumn> getAttributeCategoryColumns() {
+    return categoryService.getAttributeDataDimensionCategoriesNoAcl().stream()
+        .map(
+            category -> {
+              String name = category.getUid();
+              return new AnalyticsTableColumn(
+                  name, CHARACTER_11, "acs." + quote(name), category.getCreated());
+            })
+        .toList();
   }
 
   // -------------------------------------------------------------------------

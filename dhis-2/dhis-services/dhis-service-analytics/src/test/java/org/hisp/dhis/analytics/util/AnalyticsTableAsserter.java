@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.util;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
@@ -40,7 +39,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
@@ -79,26 +77,29 @@ public class AnalyticsTableAsserter {
     assertThat(table.getMainName(), is(mainName));
     // verify default columns
     Map<String, AnalyticsTableColumn> tableColumnMap =
-        Stream.concat(table.getDimensionColumns().stream(), table.getFactColumns().stream())
+        table.getAnalyticsTableColumns().stream()
             .collect(Collectors.toMap(AnalyticsTableColumn::getName, c -> c));
+
     for (AnalyticsTableColumn col : defaultColumns) {
       if (!tableColumnMap.containsKey(col.getName())) {
-        fail("Default column [" + col.getName() + "] is missing");
+        fail(
+            "Default column '" + col.getName() + "' is missing, found: " + tableColumnMap.keySet());
       } else {
         new AnalyticsColumnAsserter.Builder(col).build().verify(tableColumnMap.get(col.getName()));
       }
     }
-    // verify additional columns
+
     for (AnalyticsTableColumn col : columns) {
       if (!tableColumnMap.containsKey(col.getName())) {
-        fail("Column [" + col.getName() + "] is missing");
+        fail("Column '" + col.getName() + "' is missing, found: " + tableColumnMap.keySet());
       } else {
         new AnalyticsColumnAsserter.Builder(col).build().verify(tableColumnMap.get(col.getName()));
       }
     }
+
     for (String name : matchers.keySet()) {
       if (!tableColumnMap.containsKey(name)) {
-        fail("Column [" + name + "] is missing");
+        fail("Column '" + name + "' is missing, found: " + tableColumnMap.keySet());
       } else {
         matchers.get(name).accept(tableColumnMap.get(name));
       }
@@ -152,31 +153,38 @@ public class AnalyticsTableAsserter {
       return this;
     }
 
-    public Builder addColumn(String name, DataType dataType, String alias, Date created) {
+    public Builder addColumn(
+        String name, DataType dataType, String selectExpression, Date created) {
       AnalyticsTableColumn col =
-          new AnalyticsTableColumn(quote(name), dataType, alias + quote(name), created);
+          new AnalyticsTableColumn(name, dataType, selectExpression, created);
       this._columns.add(col);
       return this;
     }
 
-    public Builder addColumn(String name, DataType dataType, String alias) {
-      return addColumnUnquoted(quote(name), dataType, alias, Skip.INCLUDE, IndexType.BTREE);
+    public Builder addColumn(String name, DataType dataType, String selectExpression) {
+      return addColumn(name, dataType, selectExpression, Skip.INCLUDE, IndexType.BTREE);
     }
 
-    public Builder addColumn(String name, DataType dataType, String alias, IndexType indexType) {
-      return addColumnUnquoted(quote(name), dataType, alias, Skip.INCLUDE, indexType);
+    public Builder addColumn(
+        String name, DataType dataType, String selectExpression, IndexType indexType) {
+      return addColumn(name, dataType, selectExpression, Skip.INCLUDE, indexType);
     }
 
-    public Builder addColumn(String name, DataType dataType, String alias, Skip skipIndex) {
-      return addColumnUnquoted(quote(name), dataType, alias, skipIndex, IndexType.BTREE);
+    public Builder addColumn(
+        String name, DataType dataType, String selectExpression, Skip skipIndex) {
+      return addColumn(name, dataType, selectExpression, skipIndex, IndexType.BTREE);
     }
 
-    public Builder addColumnUnquoted(
-        String name, DataType dataType, String alias, Skip skipIndex, IndexType indexType) {
+    public Builder addColumn(
+        String name,
+        DataType dataType,
+        String selectExpression,
+        Skip skipIndex,
+        IndexType indexType) {
       AnalyticsTableColumn col =
           Skip.SKIP == skipIndex
-              ? new AnalyticsTableColumn(name, dataType, alias, skipIndex)
-              : new AnalyticsTableColumn(name, dataType, alias, indexType);
+              ? new AnalyticsTableColumn(name, dataType, selectExpression, skipIndex)
+              : new AnalyticsTableColumn(name, dataType, selectExpression, indexType);
       this._columns.add(col);
       return this;
     }
@@ -186,13 +194,12 @@ public class AnalyticsTableAsserter {
       return this;
     }
 
-    public Builder addColumn(String name, Consumer<AnalyticsTableColumn> consumer) {
-      this._matchers.put(name, consumer);
+    public Builder addColumn(String name, Consumer<AnalyticsTableColumn> matcher) {
+      this._matchers.put(name, matcher);
       return this;
     }
 
     public AnalyticsTableAsserter build() {
-      // verify
       if (_tableType == null) {
         fail("Missing table type");
       }

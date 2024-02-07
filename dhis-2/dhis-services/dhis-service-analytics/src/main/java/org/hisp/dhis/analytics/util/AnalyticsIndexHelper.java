@@ -36,6 +36,7 @@ import static org.hisp.dhis.db.model.DataType.TEXT;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.RegExUtils;
@@ -101,20 +102,38 @@ public class AnalyticsIndexHelper {
    * @return the SQL index statement
    */
   public static String createIndexStatement(Index index) {
-    String indexTypeName = SQL_BUILDER.getIndexTypeName(index.getIndexType());
-    String indexColumns = maybeApplyFunctionToIndex(index, join(index.getColumns(), ","));
+    String typeName = SQL_BUILDER.getIndexTypeName(index.getIndexType());
+    String columns =
+        index.getColumns().stream()
+            .map(col -> toIndexColumn(index, col))
+            .collect(Collectors.joining(", "));
 
     return "create index "
         + quote(index.getName())
         + " "
         + "on "
-        + index.getTableName()
+        + quote(index.getTableName())
         + " "
         + "using "
-        + indexTypeName
+        + typeName
         + " ("
-        + indexColumns
+        + columns
         + ");";
+  }
+
+  /**
+   * Returns a quoted column string. If the index has a function, the quoted column is wrapped in
+   * the function call.
+   *
+   * @param index the {@link Index}.
+   * @param column the column name.
+   * @return an index column string.
+   */
+  private static String toIndexColumn(Index index, String column) {
+    String functionName =
+        index.hasFunction() ? SQL_BUILDER.getIndexFunctionName(index.getFunction()) : null;
+    String indexColumn = quote(column);
+    return index.hasFunction() ? String.format("%s(%s)", functionName, indexColumn) : indexColumn;
   }
 
   /**
@@ -152,23 +171,6 @@ public class AnalyticsIndexHelper {
     String shortenName = StringUtils.substringBetween(columnName, "'");
 
     return StringUtils.isEmpty(shortenName) ? columnName : shortenName;
-  }
-
-  /**
-   * If the given "index" has an associated function, this method will wrap the given "columns" into
-   * the index function.
-   *
-   * @param index the {@link Index}
-   * @param indexColumns the columns to be used in the function
-   * @return the columns inside the respective function
-   */
-  private static String maybeApplyFunctionToIndex(Index index, String indexColumns) {
-    if (index.hasFunction()) {
-      String functionName = SQL_BUILDER.getIndexFunctionName(index.getFunction());
-      return functionName + "(" + indexColumns + ")";
-    }
-
-    return indexColumns;
   }
 
   /**

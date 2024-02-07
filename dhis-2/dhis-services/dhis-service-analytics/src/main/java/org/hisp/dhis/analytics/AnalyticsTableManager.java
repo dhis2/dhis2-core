@@ -67,7 +67,9 @@ public interface AnalyticsTableManager {
    *
    * @return null if valid, a descriptive string if invalid.
    */
-  String validState();
+  default String validState() {
+    return null;
+  }
 
   /**
    * Performs work before tables are being created.
