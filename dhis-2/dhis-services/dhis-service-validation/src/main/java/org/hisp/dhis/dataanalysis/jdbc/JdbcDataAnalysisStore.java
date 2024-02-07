@@ -29,14 +29,11 @@ package org.hisp.dhis.dataanalysis.jdbc;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.commons.collection.PaginatedList;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -54,6 +51,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -72,22 +71,16 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore {
   public List<DataAnalysisMeasures> getDataAnalysisMeasures(
       DataElement dataElement,
       Collection<CategoryOptionCombo> categoryOptionCombos,
-      Collection<String> parentPaths,
+      OrganisationUnit orgUnit,
       Date from) {
-    List<DataAnalysisMeasures> measures = new ArrayList<>();
-
-    if (categoryOptionCombos.isEmpty() || parentPaths.isEmpty()) {
-      return measures;
+    if (categoryOptionCombos.isEmpty() || dataElement == null || orgUnit == null) {
+      return List.of();
     }
+
+    List<DataAnalysisMeasures> measures = new ArrayList<>();
 
     String catOptionComboIds =
         TextUtils.getCommaDelimitedString(getIdentifiers(categoryOptionCombos));
-
-    String matchPaths = "(";
-    for (String path : parentPaths) {
-      matchPaths += "ou.path like '" + path + "%' or ";
-    }
-    matchPaths = TextUtils.removeLastOr(matchPaths) + ") ";
 
     String sql =
         "select dv.sourceid, dv.categoryoptioncomboid, "
@@ -98,7 +91,6 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore {
             + statementBuilder.getDoubleColumnType()
             + ")) as standarddeviation "
             + "from datavalue dv "
-            + "inner join organisationunit ou on ou.organisationunitid = dv.sourceid "
             + "inner join period pe on dv.periodid = pe.periodid "
             + "where dv.dataelementid = "
             + dataElement.getId()
@@ -109,10 +101,11 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore {
             + "and pe.startdate >= '"
             + DateUtils.getMediumDateString(from)
             + "' "
-            + "and "
-            + matchPaths
+            + "and dv.sourceid = "
+            + orgUnit.getId()
+            + " "
             + "and dv.deleted is false "
-            + "group by dv.sourceid, dv.categoryoptioncomboid";
+            + "group by dv.sourceid, dv.categoryoptioncomboid;";
 
     SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
 
@@ -135,13 +128,13 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore {
       Collection<DataElement> dataElements,
       Collection<CategoryOptionCombo> categoryOptionCombos,
       Collection<Period> periods,
-      Collection<OrganisationUnit> parents,
+      OrganisationUnit orgUnit,
       int limit) {
     if (dataElements.isEmpty()
         || categoryOptionCombos.isEmpty()
         || periods.isEmpty()
-        || parents.isEmpty()) {
-      return new ArrayList<>();
+        || orgUnit == null) {
+      return List.of();
     }
 
     String dataElementIds = getCommaDelimitedString(getIdentifiers(dataElements));
@@ -171,23 +164,16 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore {
             + "and dv.periodid in ("
             + periodIds
             + ") "
+            + "and dv.sourceid = "
+            + orgUnit.getId()
+            + " "
             + "and ("
-            + "cast(dv.value as "
-            + statementBuilder.getDoubleColumnType()
-            + ") < mm.minimumvalue "
-            + "or cast(dv.value as "
-            + statementBuilder.getDoubleColumnType()
-            + ") > mm.maximumvalue) "
-            + "and (";
-
-    for (OrganisationUnit parent : parents) {
-      sql += "ou.path like '" + parent.getPath() + "%' or ";
-    }
-
-    sql = TextUtils.removeLastOr(sql) + ") ";
-    sql += "and dv.deleted is false ";
-
-    sql += statementBuilder.limitRecord(0, limit);
+            + "cast(dv.value as double precision) < mm.minimumvalue "
+            + "or cast(dv.value as double precision) > mm.maximumvalue) "
+            + "and dv.deleted is false "
+            + "limit "
+            + limit
+            + ";";
 
     return jdbcTemplate.query(sql, new DeflatedDataValueNameMinMaxRowMapper(null, null));
   }
@@ -200,7 +186,7 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore {
       Map<Long, Integer> lowerBoundMap,
       Map<Long, Integer> upperBoundMap) {
     if (lowerBoundMap == null || lowerBoundMap.isEmpty() || periods.isEmpty()) {
-      return new ArrayList<>();
+      return List.of();
     }
 
     List<List<Long>> organisationUnitPages =
@@ -283,13 +269,13 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore {
       Collection<DataElement> dataElements,
       Collection<CategoryOptionCombo> categoryOptionCombos,
       Collection<Period> periods,
-      Collection<OrganisationUnit> parents,
+      OrganisationUnit orgUnit,
       int limit) {
     if (dataElements.isEmpty()
         || categoryOptionCombos.isEmpty()
         || periods.isEmpty()
-        || parents.isEmpty()) {
-      return new ArrayList<>();
+        || orgUnit == null) {
+      return List.of();
     }
 
     String dataElementIds = getCommaDelimitedString(getIdentifiers(dataElements));
@@ -319,16 +305,13 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore {
             + "and dv.periodid in ("
             + periodIds
             + ") "
-            + "and (";
-
-    for (OrganisationUnit parent : parents) {
-      sql += "ou.path like '" + parent.getPath() + "%' or ";
-    }
-
-    sql = TextUtils.removeLastOr(sql) + ") ";
-    sql += "and dv.followup = true and dv.deleted is false ";
-
-    sql += statementBuilder.limitRecord(0, limit);
+            + "and dv.sourceid = "
+            + orgUnit.getId()
+            + " "
+            + "and dv.followup = true and dv.deleted is false "
+            + "limit "
+            + limit
+            + ";";
 
     return jdbcTemplate.query(sql, new DeflatedDataValueNameMinMaxRowMapper(null, null));
   }
