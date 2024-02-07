@@ -119,8 +119,8 @@ public class DefaultGatewayAdministrationService implements GatewayAdministratio
   public void updateGateway(
       @CheckForNull SmsGatewayConfig persisted, @CheckForNull SmsGatewayConfig updated)
       throws NotFoundException, ConflictException {
-    if (persisted == null) throw new NotFoundException(SmsGatewayConfig.class, updated.getUid());
     if (updated == null) throw new ConflictException("Gateway configuration cannot be null");
+    if (persisted == null) throw new NotFoundException(SmsGatewayConfig.class, updated.getUid());
     if (persisted.getClass() != updated.getClass())
       throw new ConflictException("Type of an existing configuration cannot be changed");
 
@@ -136,11 +136,10 @@ public class DefaultGatewayAdministrationService implements GatewayAdministratio
       updated.setPassword(pbeStringEncryptor.encrypt(updated.getPassword()));
     }
 
-    if (persisted instanceof ClickatellGatewayConfig from) {
-      // keep old auth token when undefined
-      if (updated instanceof ClickatellGatewayConfig to && to.getAuthToken() == null) {
-        to.setAuthToken(from.getAuthToken());
-      }
+    if (persisted instanceof ClickatellGatewayConfig from
+        && updated instanceof ClickatellGatewayConfig to
+        && to.getAuthToken() == null) {
+      to.setAuthToken(from.getAuthToken());
     }
 
     if (persisted instanceof GenericHttpGatewayConfig from
