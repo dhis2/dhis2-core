@@ -29,14 +29,12 @@ package org.hisp.dhis.analytics.util;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.join;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.removeQuote;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.RegExUtils;
@@ -49,8 +47,6 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.IndexFunction;
 import org.hisp.dhis.db.model.constraint.Unique;
-import org.hisp.dhis.db.sql.PostgreSqlBuilder;
-import org.hisp.dhis.db.sql.SqlBuilder;
 
 /**
  * Helper class that encapsulates methods responsible for supporting the creation of analytics
@@ -61,8 +57,6 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class AnalyticsIndexHelper {
   private static final String PREFIX_INDEX = "in_";
-
-  private static final SqlBuilder SQL_BUILDER = new PostgreSqlBuilder();
 
   /**
    * Returns a queue of analytics table indexes.
@@ -92,48 +86,6 @@ public class AnalyticsIndexHelper {
     }
 
     return indexes;
-  }
-
-  /**
-   * Based on the given arguments, this method will apply specific logic and return the correct SQL
-   * statement for the index creation.
-   *
-   * @param index the {@link Index}
-   * @return the SQL index statement
-   */
-  public static String createIndexStatement(Index index) {
-    String typeName = SQL_BUILDER.getIndexTypeName(index.getIndexType());
-    String columns =
-        index.getColumns().stream()
-            .map(col -> toIndexColumn(index, col))
-            .collect(Collectors.joining(", "));
-
-    return "create index "
-        + quote(index.getName())
-        + " "
-        + "on "
-        + quote(index.getTableName())
-        + " "
-        + "using "
-        + typeName
-        + " ("
-        + columns
-        + ");";
-  }
-
-  /**
-   * Returns a quoted column string. If the index has a function, the quoted column is wrapped in
-   * the function call.
-   *
-   * @param index the {@link Index}.
-   * @param column the column name.
-   * @return an index column string.
-   */
-  private static String toIndexColumn(Index index, String column) {
-    String functionName =
-        index.hasFunction() ? SQL_BUILDER.getIndexFunctionName(index.getFunction()) : null;
-    String indexColumn = quote(column);
-    return index.hasFunction() ? String.format("%s(%s)", functionName, indexColumn) : indexColumn;
   }
 
   /**
