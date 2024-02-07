@@ -29,6 +29,7 @@ package org.hisp.dhis.eventvisualization;
 
 import static java.util.Arrays.stream;
 import static org.hisp.dhis.common.DimensionType.DATA_X;
+import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.DimensionType.PERIOD;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
@@ -61,11 +62,13 @@ public class SimpleDimension implements Serializable {
     ENROLLMENT_DATE("enrollmentDate", PERIOD),
     INCIDENT_DATE("incidentDate", PERIOD),
     SCHEDULE_DATE("scheduledDate", PERIOD),
-    LAST_UPDATE_DATE("lastUpdated", PERIOD),
+    LAST_UPDATED_DATE("lastUpdated", PERIOD),
+    CREATED_DATE("created", PERIOD),
     EVENT_STATUS("eventStatus", DATA_X),
     PROGRAM_STATUS("programStatus", DATA_X),
     CREATED_BY("createdBy", DATA_X),
-    LAST_UPDATED_BY("lastUpdatedBy", DATA_X);
+    LAST_UPDATED_BY("lastUpdatedBy", DATA_X),
+    OU("ou", ORGANISATION_UNIT);
 
     private final String dimension;
 
@@ -84,7 +87,7 @@ public class SimpleDimension implements Serializable {
       return parentType;
     }
 
-    public static boolean contains(final String dimension) {
+    public static boolean contains(String dimension) {
       return stream(Type.values()).anyMatch(t -> t.getDimension().equals(dimension));
     }
 
@@ -125,7 +128,7 @@ public class SimpleDimension implements Serializable {
     this.values = values;
   }
 
-  boolean belongsTo(final Attribute parent) {
+  boolean belongsTo(Attribute parent) {
     return this.parent == parent;
   }
 }
