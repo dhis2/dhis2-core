@@ -30,6 +30,7 @@ package org.hisp.dhis.db.model;
 import java.util.List;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.db.model.constraint.Unique;
 
 /**
@@ -43,7 +44,10 @@ public class Index {
   /** Index name. Required. */
   private final String name;
 
-  /** Index type, defaults to {@link IndexType.BTREE}. Required. */
+  /** Name of index table. Required. */
+  private final String tableName;
+
+  /** Index type. Required. */
   private final IndexType indexType;
 
   /** Index uniqueness constraint. Required. */
@@ -52,35 +56,135 @@ public class Index {
   /** Index column names. Required. */
   private final List<String> columns;
 
-  /** SQL {©code where} condition for index. Optional. */
+  /** SQL {©code where} condition for index. Optional, may be null. */
   private final String condition;
+
+  /** SQL function to use for index columns. Optional, may be null. */
+  private final IndexFunction function;
 
   /**
    * Constructor.
    *
    * @param name the index name.
+   * @param tableName the index table name.
    * @param columns the list of index column names.
    */
-  public Index(String name, List<String> columns) {
+  public Index(String name, String tableName, List<String> columns) {
     this.name = name;
+    this.tableName = tableName;
     this.indexType = IndexType.BTREE;
     this.unique = Unique.NON_UNIQUE;
     this.columns = columns;
     this.condition = null;
+    this.function = null;
   }
 
   /**
    * Constructor.
    *
    * @param name the index name.
+   * @param tableName the index table name.
+   * @param indexType the index type.
+   * @param columns the list of index column names.
+   */
+  public Index(String name, String tableName, IndexType indexType, List<String> columns) {
+    this.name = name;
+    this.tableName = tableName;
+    this.indexType = indexType;
+    this.unique = Unique.NON_UNIQUE;
+    this.columns = columns;
+    this.condition = null;
+    this.function = null;
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param name the index name.
+   * @param tableName the index table name.
    * @param unique the uniqueness property.
    * @param columns the list of index column names.
    */
-  public Index(String name, Unique unique, List<String> columns) {
+  public Index(String name, String tableName, Unique unique, List<String> columns) {
     this.name = name;
+    this.tableName = tableName;
     this.indexType = IndexType.BTREE;
     this.unique = unique;
     this.columns = columns;
     this.condition = null;
+    this.function = null;
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param name the index name.
+   * @param tableName the index table name.
+   * @param indexType the index type.
+   * @param unique the uniqueness property.
+   * @param columns the list of index column names.
+   * @param function the index function.
+   */
+  public Index(
+      String name,
+      String tableName,
+      IndexType indexType,
+      Unique unique,
+      List<String> columns,
+      IndexFunction function) {
+    this.name = name;
+    this.tableName = tableName;
+    this.indexType = indexType;
+    this.unique = unique;
+    this.columns = columns;
+    this.condition = null;
+    this.function = function;
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param name the index name.
+   * @param tableName the index table name.
+   * @param unique the uniqueness property.
+   * @param columns the list of index column names.
+   * @param condition the SQL condition for the index.
+   */
+  public Index(
+      String name, String tableName, Unique unique, List<String> columns, String condition) {
+    this.name = name;
+    this.tableName = tableName;
+    this.indexType = IndexType.BTREE;
+    this.unique = unique;
+    this.columns = columns;
+    this.condition = condition;
+    this.function = null;
+  }
+
+  /**
+   * Indicates whether the index is unique.
+   *
+   * @return true if the index is unique.
+   */
+  public boolean isUnique() {
+    return Unique.UNIQUE == unique;
+  }
+
+  /**
+   * Indicates whether the index has a SQL condition.
+   *
+   * @return true if the index has a SQL condition.
+   */
+  public boolean hasCondition() {
+    return StringUtils.isNotBlank(condition);
+  }
+
+  /**
+   * Indicates whether the index has a function.
+   *
+   * @return true if the index has a function.
+   */
+  public boolean hasFunction() {
+    return function != null;
   }
 }

@@ -27,20 +27,76 @@
  */
 package org.hisp.dhis.db.model;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
+import org.hisp.dhis.db.model.constraint.Nullable;
 import org.junit.jupiter.api.Test;
 
 class TableTest {
+  private final Column colA = new Column("dx", DataType.CHARACTER_11, Nullable.NOT_NULL);
+  private final Column colB = new Column("value", DataType.DOUBLE, Nullable.NULL);
+
   @Test
   void testToStagingTable() {
-    assertEquals("_categorystructure_staging", Table.toStaging("_categorystructure"));
-    assertEquals("analytics_staging", Table.toStaging("analytics"));
+    assertEquals("_categorystructure_temp", Table.toStaging("_categorystructure"));
+    assertEquals("analytics_temp", Table.toStaging("analytics"));
   }
 
   @Test
   void testFromStagingTable() {
-    assertEquals("_categorystructure", Table.fromStaging("_categorystructure_staging"));
-    assertEquals("analytics", Table.fromStaging("analytics_staging"));
+    assertEquals("_categorystructure", Table.fromStaging("_categorystructure_temp"));
+    assertEquals("analytics", Table.fromStaging("analytics_temp"));
+  }
+
+  @Test
+  void testIsUnlogged() {
+    List<Column> columns = List.of(colA, colB);
+
+    Table tableA = new Table("analytics", columns, List.of(), List.of(), Logged.UNLOGGED);
+    Table tableB = new Table("analytics", columns, List.of(), List.of(), Logged.LOGGED);
+
+    assertTrue(tableA.isUnlogged());
+    assertFalse(tableB.isUnlogged());
+  }
+
+  @Test
+  void testHasColumns() {
+    Table table = new Table("analytics", List.of(colA, colB), List.of());
+
+    assertTrue(table.hasColumns());
+  }
+
+  @Test
+  void testSuccessfulValidation() {
+    List<Column> columns = List.of(colA);
+    List<String> primaryKey = List.of();
+
+    assertDoesNotThrow(() -> new Table("analytics", columns, primaryKey));
+  }
+
+  @Test
+  void testNameValidation() {
+    List<Column> columns = List.of(colA);
+    List<String> primaryKey = List.of();
+
+    assertThrows(NullPointerException.class, () -> new Table(null, columns, primaryKey));
+    assertThrows(IllegalArgumentException.class, () -> new Table("", columns, primaryKey));
+  }
+
+  @Test
+  void testColumnsParentValidation() {
+    List<Column> columns = List.of();
+    List<String> primaryKey = List.of();
+    List<String> checks = List.of();
+
+    assertThrows(IllegalArgumentException.class, () -> new Table("analytics", columns, primaryKey));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> new Table("analytics", columns, primaryKey, checks, Logged.UNLOGGED, null));
   }
 }

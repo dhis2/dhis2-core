@@ -234,7 +234,10 @@ public enum JobType {
    *     the ready jobs per type is attempted to start in a single loop cycle
    */
   public boolean isUsingContinuousExecution() {
-    return this == METADATA_IMPORT || this == TRACKER_IMPORT_JOB || this == DATA_INTEGRITY_DETAILS;
+    return this == METADATA_IMPORT
+        || this == TRACKER_IMPORT_JOB
+        || this == DATA_INTEGRITY
+        || this == DATA_INTEGRITY_DETAILS;
   }
 
   public boolean hasJobParameters() {

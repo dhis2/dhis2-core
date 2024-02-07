@@ -27,16 +27,11 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.SPACE;
-import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
-import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
-import static org.hisp.dhis.analytics.table.PartitionUtils.getEndDate;
-import static org.hisp.dhis.analytics.table.PartitionUtils.getStartDate;
-import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.createIndexStatement;
-import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexName;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getCollation;
+import static org.hisp.dhis.analytics.table.util.PartitionUtils.getEndDate;
+import static org.hisp.dhis.analytics.table.util.PartitionUtils.getStartDate;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
+import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
 import java.util.Collections;
@@ -46,28 +41,31 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.analytics.AnalyticsIndex;
-import org.hisp.dhis.analytics.AnalyticsTable;
-import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableManager;
-import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTablePhase;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
-import org.hisp.dhis.analytics.Collation;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.table.model.AnalyticsTable;
+import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
+import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.db.model.Collation;
+import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.model.Table;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -79,7 +77,6 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
 
@@ -128,9 +125,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   protected final PartitionManager partitionManager;
 
-  private final DatabaseInfoProvider databaseInfoProvider;
-
-  protected Boolean spatialSupport;
+  protected final DatabaseInfoProvider databaseInfoProvider;
 
   protected final JdbcTemplate jdbcTemplate;
 
@@ -138,7 +133,9 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   protected final PeriodDataProvider periodDataProvider;
 
-  private static final String WITH_AUTOVACUUM_ENABLED_FALSE = "with(autovacuum_enabled = false)";
+  protected final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+
+  protected Boolean spatialSupport;
 
   protected boolean isSpatialSupport() {
     if (spatialSupport == null)
@@ -171,71 +168,92 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   @Override
   public void createTable(AnalyticsTable table) {
-    createTempTable(table);
-    createTempTablePartitions(table);
+    createAnalyticsTable(table);
+    createAnalyticsTablePartitions(table);
+  }
+
+  /**
+   * Drops and creates the given analytics table or table partition.
+   *
+   * @param table the {@link Table}.
+   */
+  private void createAnalyticsTable(Table table) {
+    log.info("Creating table: '{}', columns: '{}'", table.getName(), table.getColumns().size());
+
+    String sql = sqlBuilder.createTable(table);
+
+    log.debug("Create table SQL: '{}'", sql);
+
+    jdbcTemplate.execute(sql);
+  }
+
+  /**
+   * Creates the table partitions for the given analytics table.
+   *
+   * @param table the {@link AnalyticsTable}.
+   */
+  private void createAnalyticsTablePartitions(AnalyticsTable table) {
+    for (AnalyticsTablePartition partition : table.getTablePartitions()) {
+      createAnalyticsTable(partition);
+    }
   }
 
   @Override
-  public void createIndex(AnalyticsIndex index) {
-    String indexName = getIndexName(index, getAnalyticsTableType());
-    String sql = createIndexStatement(index, getAnalyticsTableType());
+  public void createIndex(Index index) {
+    log.debug("Creating index: '{}'", index.getName());
 
-    log.debug("Create index: '{}' with SQL: '{}'", indexName, sql);
+    String sql = sqlBuilder.createIndex(index);
+
+    log.debug("Create index SQL: '{}'", sql);
 
     jdbcTemplate.execute(sql);
-
-    log.debug("Created index: '{}'", indexName);
   }
 
   @Override
   public void swapTable(AnalyticsTableUpdateParams params, AnalyticsTable table) {
-    boolean tableExists = partitionManager.tableExists(table.getTableName());
+    boolean tableExists = tableExists(table.getName());
     boolean skipMasterTable =
-        params.isPartialUpdate() && tableExists && table.getTableType().hasLatestPartition();
+        params.isPartialUpdate() && tableExists && table.getTableType().isLatestPartition();
 
     log.info(
         "Swapping table, master table exists: '{}', skip master table: '{}'",
         tableExists,
         skipMasterTable);
 
-    table.getTablePartitions().stream()
-        .forEach(p -> swapTable(p.getTempTableName(), p.getTableName()));
+    table.getTablePartitions().stream().forEach(p -> swapTable(p, p.getMainName()));
 
     if (!skipMasterTable) {
-      swapTable(table.getTempTableName(), table.getTableName());
+      swapTable(table, table.getMainName());
     } else {
       table.getTablePartitions().stream()
-          .forEach(
-              p ->
-                  swapInheritance(
-                      p.getTableName(), table.getTempTableName(), table.getTableName()));
-      dropTempTable(table);
+          .forEach(partition -> swapInheritance(partition, table.getName(), table.getMainName()));
+      dropTable(table);
     }
   }
 
   @Override
-  public void dropTempTable(AnalyticsTable table) {
-    dropTableCascade(table.getTempTableName());
+  public void dropTable(AnalyticsTable table) {
+    dropTable(table.getName());
   }
 
   @Override
-  public void dropTempTablePartition(AnalyticsTablePartition tablePartition) {
-    dropTableCascade(tablePartition.getTempTableName());
+  public void dropTablePartition(AnalyticsTablePartition tablePartition) {
+    dropTable(tablePartition.getName());
   }
 
   @Override
-  public void dropTable(String tableName) {
-    executeSafely("drop table if exists " + tableName);
+  public void dropTable(String name) {
+    executeSilently(sqlBuilder.dropTableIfExistsCascade(name));
   }
 
   @Override
-  public void dropTableCascade(String tableName) {
-    executeSafely("drop table if exists " + tableName + " cascade");
+  public void analyzeTable(String name) {
+    executeSilently(sqlBuilder.analyzeTable(name));
   }
 
   @Override
-  public void analyzeTable(String tableName) {
-    executeSafely("analyze " + tableName);
+  public void vacuumTable(String name) {
+    executeSilently(sqlBuilder.vacuumTable(name));
   }
 
   @Override
@@ -254,16 +272,51 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     return hooks.size();
   }
 
+  /**
+   * Swaps a database table, meaning drops the main table and renames the staging table to become
+   * the main table.
+   *
+   * @param stagingTable the staging table.
+   * @param mainTableName the main table name.
+   */
+  private void swapTable(Table stagingTable, String mainTableName) {
+    executeSilently(sqlBuilder.swapTable(stagingTable, mainTableName));
+  }
+
+  /**
+   * Updates table inheritance of a table partition from the staging master table to the main master
+   * table.
+   *
+   * @param partitionTableName the partition table name.
+   * @param stagingMasterName the staging master table name.
+   * @param mainMasterName the main master table name.
+   */
+  private void swapInheritance(Table partition, String stagingMasterName, String mainMasterName) {
+    executeSilently(sqlBuilder.swapParentTable(partition, stagingMasterName, mainMasterName));
+  }
+
+  /**
+   * Indicates if a table with the given name exists.
+   *
+   * @param name the table name.
+   * @return true if a table with the given name exists.
+   */
+  private boolean tableExists(String name) {
+    return !jdbcTemplate.queryForList(sqlBuilder.tableExists(name)).isEmpty();
+  }
+
   // -------------------------------------------------------------------------
   // Abstract methods
   // -------------------------------------------------------------------------
 
   /**
-   * Returns a list of table checks (constraints) for the given analytics table partition.
+   * Returns a list of table partition checks (constraints) for the given year and end date.
    *
-   * @param partition the {@link AnalyticsTablePartition}.
+   * @param year the year.
+   * @param endDate the end date.
+   * @return the list of table partition checks.
    */
-  protected abstract List<String> getPartitionChecks(AnalyticsTablePartition partition);
+  protected abstract List<String> getPartitionChecks(Integer year, Date endDate);
 
   /**
    * Populates the given analytics table.
@@ -294,141 +347,29 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   /**
-   * Indicates whether the given table exists and has at least one row.
-   *
-   * @param tableName the table name.
-   */
-  protected boolean hasRows(String tableName) {
-    String sql = "select * from " + tableName + " limit 1";
-
-    try {
-      return jdbcTemplate.queryForRowSet(sql).next();
-    } catch (BadSqlGrammarException ex) {
-      return false;
-    }
-  }
-
-  /**
-   * Executes a SQL statement "safely" (without throwing any exception). Instead, exceptions are
-   * simply logged.
-   *
-   * @param sql the SQL statement.
-   */
-  protected void executeSafely(String sql) {
-    try {
-      jdbcTemplate.execute(sql);
-    } catch (DataAccessException ex) {
-      log.error(ex.getMessage());
-    }
-  }
-
-  /**
-   * Drops and creates the given analytics table.
-   *
-   * @param table the {@link AnalyticsTable}.
-   */
-  protected void createTempTable(AnalyticsTable table) {
-    StringBuilder sql = new StringBuilder();
-
-    String tableName = table.getTempTableName();
-    Logged logged = analyticsExportSettings.getTableLogged();
-    String unlogged = logged == Logged.UNLOGGED ? "unlogged" : "";
-
-    sql.append("create ").append(unlogged).append(" table ").append(tableName).append(" (");
-
-    for (AnalyticsTableColumn col : table.getColumns()) {
-      String dataType = col.getDataType().getValue();
-      String nullable = col.getNotNull().isNotNull() ? " not null" : " null";
-      String collation = col.hasCollation() ? getCollation(col.getCollation().name()) : EMPTY;
-
-      sql.append(col.getName())
-          .append(SPACE)
-          .append(dataType)
-          .append(collation)
-          .append(nullable)
-          .append(",");
-    }
-
-    TextUtils.removeLastComma(sql).append(") ").append(getTableOptions());
-
-    log.info("Creating table: '{}', columns: '{}'", tableName, table.getColumnCount());
-    log.debug("Create table SQL: '{}'", sql);
-
-    jdbcTemplate.execute(sql.toString());
-  }
-
-  /**
-   * Creates the table partitions for the given analytics table.
-   *
-   * @param table the {@link AnalyticsTable}.
-   */
-  protected void createTempTablePartitions(AnalyticsTable table) {
-    for (AnalyticsTablePartition partition : table.getTablePartitions()) {
-      createTempTablePartition(table, partition);
-    }
-  }
-
-  /**
-   * Creates the given table partition.
-   *
-   * @param table the {@link AnalyticsTable}.
-   * @param partition the {@link AnalyticsTablePartition}.
-   */
-  private void createTempTablePartition(AnalyticsTable table, AnalyticsTablePartition partition) {
-    String tableName = partition.getTempTableName();
-    Logged logged = analyticsExportSettings.getTableLogged();
-    String unlogged = logged == Logged.UNLOGGED ? "unlogged" : "";
-    List<String> checks = getPartitionChecks(partition);
-
-    StringBuilder sql = new StringBuilder();
-
-    sql.append("create ").append(unlogged).append(" table ").append(tableName).append("(");
-
-    if (!checks.isEmpty()) {
-      StringBuilder sqlCheck = new StringBuilder();
-      checks.stream().forEach(check -> sqlCheck.append("check (" + check + "), "));
-      sql.append(TextUtils.removeLastComma(sqlCheck.toString()));
-    }
-
-    sql.append(") inherits (")
-        .append(table.getTempTableName())
-        .append(") ")
-        .append(getTableOptions());
-
-    log.info("Creating partition table: '{}'", tableName);
-    log.debug("Create table SQL: '{}'", sql);
-
-    jdbcTemplate.execute(sql.toString());
-  }
-
-  /** Returns a table options SQL statement. */
-  private String getTableOptions() {
-    return WITH_AUTOVACUUM_ENABLED_FALSE;
-  }
-
-  /**
    * Creates a {@link AnalyticsTable} with partitions based on a list of years with data.
    *
    * @param params the {@link AnalyticsTableUpdateParams}.
    * @param dataYears the list of years with data.
-   * @param dimensionColumns the list of dimension {@link AnalyticsTableColumn}.
-   * @param valueColumns the list of value {@link AnalyticsTableColumn}.
+   * @param columns the list of {@link AnalyticsTableColumn}.
    */
   protected AnalyticsTable getRegularAnalyticsTable(
       AnalyticsTableUpdateParams params,
       List<Integer> dataYears,
-      List<AnalyticsTableColumn> dimensionColumns,
-      List<AnalyticsTableColumn> valueColumns) {
-
+      List<AnalyticsTableColumn> columns) {
+    Calendar calendar = PeriodType.getCalendar();
     List<Integer> years = ListUtils.mutableCopy(dataYears);
+    Logged logged = analyticsExportSettings.getTableLogged();
 
     Collections.sort(years);
 
-    AnalyticsTable table =
-        new AnalyticsTable(getAnalyticsTableType(), dimensionColumns, valueColumns);
+    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns, logged);
 
     for (Integer year : years) {
-      table.addPartitionTable(year, getStartDate(year), getEndDate(year));
+      List<String> checks = getPartitionChecks(year, getEndDate(calendar, year));
+
+      table.addTablePartition(
+          checks, year, getStartDate(calendar, year), getEndDate(calendar, year));
     }
 
     return table;
@@ -440,13 +381,10 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * partition is the start time of this analytics table update process.
    *
    * @param params the {@link AnalyticsTableUpdateParams}.
-   * @param dimensionColumns the list of dimension {@link AnalyticsTableColumn}.
-   * @param valueColumns the list of value {@link AnalyticsTableColumn}.
+   * @param columns the list of {@link AnalyticsTableColumn}.
    */
   protected AnalyticsTable getLatestAnalyticsTable(
-      AnalyticsTableUpdateParams params,
-      List<AnalyticsTableColumn> dimensionColumns,
-      List<AnalyticsTableColumn> valueColumns) {
+      AnalyticsTableUpdateParams params, List<AnalyticsTableColumn> columns) {
     Date lastFullTableUpdate =
         systemSettingManager.getDateSetting(SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE);
     Date lastLatestPartitionUpdate =
@@ -458,15 +396,15 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         lastFullTableUpdate,
         "A full analytics table update must be run prior to a latest partition update");
 
+    Logged logged = analyticsExportSettings.getTableLogged();
     Date endDate = params.getStartTime();
     boolean hasUpdatedData = hasUpdatedLatestData(lastAnyTableUpdate, endDate);
 
-    AnalyticsTable table =
-        new AnalyticsTable(getAnalyticsTableType(), dimensionColumns, valueColumns);
+    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns, logged);
 
     if (hasUpdatedData) {
-      table.addPartitionTable(
-          AnalyticsTablePartition.LATEST_PARTITION, lastFullTableUpdate, endDate);
+      table.addTablePartition(
+          List.of(), AnalyticsTablePartition.LATEST_PARTITION, lastFullTableUpdate, endDate);
       log.info(
           "Added latest analytics partition with start: '{}' and end: '{}'",
           getLongDateString(lastFullTableUpdate),
@@ -526,10 +464,10 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     return PeriodType.getAvailablePeriodTypes().stream()
         .map(
             pt -> {
-              String column = quote(pt.getName().toLowerCase());
-              return new AnalyticsTableColumn(column, TEXT, prefix + "." + column);
+              String name = pt.getName().toLowerCase();
+              return new AnalyticsTableColumn(name, TEXT, prefix + "." + quote(name));
             })
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /**
@@ -540,12 +478,12 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   protected List<AnalyticsTableColumn> getOrganisationUnitLevelColumns() {
     return organisationUnitService.getFilledOrganisationUnitLevels().stream()
         .map(
-            lv -> {
-              String column = quote(PREFIX_ORGUNITLEVEL + lv.getLevel());
-              return new AnalyticsTableColumn(column, CHARACTER_11, "ous." + column)
-                  .withCreated(lv.getCreated());
+            level -> {
+              String name = PREFIX_ORGUNITLEVEL + level.getLevel();
+              return new AnalyticsTableColumn(
+                  name, CHARACTER_11, "ous." + quote(name), level.getCreated());
             })
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /**
@@ -554,13 +492,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @return a table column {@link AnalyticsTableColumn}
    */
   protected AnalyticsTableColumn getOrganisationUnitNameHierarchyColumn() {
-    String columnAlias =
+    String columnExpression =
         "concat_ws(' / ',"
             + organisationUnitService.getFilledOrganisationUnitLevels().stream()
                 .map(lv -> "ous." + PREFIX_ORGUNITNAMELEVEL + lv.getLevel())
                 .collect(Collectors.joining(","))
             + ") as ounamehierarchy";
-    return new AnalyticsTableColumn("ounamehierarchy", TEXT, columnAlias, Collation.C);
+    return new AnalyticsTableColumn("ounamehierarchy", TEXT, Collation.C, columnExpression);
   }
 
   /**
@@ -572,40 +510,33 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     return idObjectManager.getDataDimensionsNoAcl(OrganisationUnitGroupSet.class).stream()
         .map(
             ougs -> {
-              String column = quote(ougs.getUid());
-              return new AnalyticsTableColumn(column, CHARACTER_11, "ougs." + column)
-                  .withCreated(ougs.getCreated());
+              String name = ougs.getUid();
+              return new AnalyticsTableColumn(
+                  name, CHARACTER_11, "ougs." + quote(name), ougs.getCreated());
             })
-        .collect(Collectors.toList());
+        .toList();
   }
 
-  /**
-   * Returns the select clause, potentially with a cast statement, based on the given value type.
-   *
-   * @param valueType the value type to represent as database column type.
-   */
-  protected String getSelectClause(ValueType valueType, String columnName) {
-    if (valueType.isDecimal()) {
-      return "cast(" + columnName + " as double precision)";
-    } else if (valueType.isInteger()) {
-      return "cast(" + columnName + " as bigint)";
-    } else if (valueType.isBoolean()) {
-      return "case when "
-          + columnName
-          + " = 'true' then 1 when "
-          + columnName
-          + " = 'false' then 0 else null end";
-    } else if (valueType.isDate()) {
-      return "cast(" + columnName + " as timestamp)";
-    } else if (valueType.isGeo() && isSpatialSupport()) {
-      return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || ("
-          + columnName
-          + ") || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
-    } else if (valueType.isOrganisationUnit()) {
-      return "ou.uid from organisationunit ou where ou.uid = (select " + columnName;
-    } else {
-      return columnName;
-    }
+  protected List<AnalyticsTableColumn> getAttributeCategoryOptionGroupSetColumns() {
+    return categoryService.getAttributeCategoryOptionGroupSetsNoAcl().stream()
+        .map(
+            cogs -> {
+              String name = cogs.getUid();
+              return new AnalyticsTableColumn(
+                  name, CHARACTER_11, "acs." + quote(name), cogs.getCreated());
+            })
+        .toList();
+  }
+
+  protected List<AnalyticsTableColumn> getAttributeCategoryColumns() {
+    return categoryService.getAttributeDataDimensionCategoriesNoAcl().stream()
+        .map(
+            category -> {
+              String name = category.getUid();
+              return new AnalyticsTableColumn(
+                  name, CHARACTER_11, "acs." + quote(name), category.getCreated());
+            })
+        .toList();
   }
 
   // -------------------------------------------------------------------------
@@ -613,56 +544,16 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   // -------------------------------------------------------------------------
 
   /**
-   * Swaps a database table, meaning drops the real table and renames the temporary table to become
-   * the real table.
+   * Executes a SQL statement silently without throwing any exceptions. Instead exceptions are
+   * logged.
    *
-   * @param tempTableName the temporary table name.
-   * @param realTableName the real table name.
+   * @param sql the SQL statement to execute.
    */
-  private void swapTable(String tempTableName, String realTableName) {
-    String[] sqlSteps = {
-      "drop table if exists " + realTableName + " cascade",
-      "alter table " + tempTableName + " rename to " + realTableName
-    };
-
-    executeSafely(sqlSteps, true);
-  }
-
-  /**
-   * Updates table inheritance of a table partition from the temp master table to the real master
-   * table.
-   *
-   * @param partitionTableName the partition table name.
-   * @param tempMasterTableName the temporary master table name.
-   * @param realMasterTableName the real master table name.
-   */
-  private void swapInheritance(
-      String partitionTableName, String tempMasterTableName, String realMasterTableName) {
-    String[] sqlSteps = {
-      "alter table " + partitionTableName + " inherit " + realMasterTableName,
-      "alter table " + partitionTableName + " no inherit " + tempMasterTableName
-    };
-
-    executeSafely(sqlSteps, true);
-  }
-
-  /**
-   * Executes a set of SQL statements "safely" (without throwing any exception). Instead, exceptions
-   * are simply logged.
-   *
-   * @param sqlStatements the SQL statements to be executed
-   * @param atomically if true, the statements are executed all together in a single JDBC call
-   */
-  private void executeSafely(String[] sqlStatements, boolean atomically) {
-    if (atomically) {
-      String sql = String.join(";", sqlStatements) + ";";
-      log.debug(sql);
-      executeSafely(sql);
-    } else {
-      for (int i = 0; i < sqlStatements.length; i++) {
-        log.debug(sqlStatements[i]);
-        executeSafely(sqlStatements[i]);
-      }
+  private void executeSilently(String sql) {
+    try {
+      jdbcTemplate.execute(sql);
+    } catch (DataAccessException ex) {
+      log.error(ex.getMessage());
     }
   }
 }

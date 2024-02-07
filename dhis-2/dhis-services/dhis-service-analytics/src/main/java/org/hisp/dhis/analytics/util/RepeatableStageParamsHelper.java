@@ -34,6 +34,8 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.exception.InvalidRepeatableStageParamsException;
 import org.hisp.dhis.period.Period;
@@ -41,6 +43,7 @@ import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.util.DateUtils;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class RepeatableStageParamsHelper {
   private static final String SEPARATOR = "~";
 
@@ -85,9 +88,6 @@ public class RepeatableStageParamsHelper {
     Pattern.compile(PS_START_DATE_END_DATE_REGEX),
     Pattern.compile(PS_RELATIVE_PERIOD_REGEX)
   };
-
-  /** private constructor */
-  private RepeatableStageParamsHelper() {}
 
   /**
    * @param dimension

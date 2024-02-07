@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,48 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.translation;
+package org.hisp.dhis.db.model;
 
-/**
- * This enum defined a translatable property. The value of this enum is used for mapping this
- * translation with the object property name. The capitol Enum string is used as a key when storing
- * translation in Jsonb format.
- *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public enum TranslationProperty {
-  NAME("name"),
-  SHORT_NAME("shortName"),
-  DESCRIPTION("description"),
-  FORM_NAME("formName"),
-  NUMERATOR_DESCRIPTION("numeratorDescription"),
-  DENOMINATOR_DESCRIPTION("denominatorDescription"),
-  RELATIONSHIP_FROM_TO_NAME("fromToName"),
-  RELATIONSHIP_TO_FROM_NAME("toFromName"),
-  INSTRUCTION("instruction"),
-  INCIDENT_DATE_LABEL("incidentDateLabel"),
-  ENROLLMENT_DATE_LABEL("enrollmentDateLabel"),
-  EXECUTION_DATE_LABEL("executionDateLabel"),
-  DUE_DATE_LABEL("dueDateLabel"),
-  CONTENT("content");
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-  private String name;
+import org.hisp.dhis.db.model.constraint.Nullable;
+import org.junit.jupiter.api.Test;
 
-  TranslationProperty(String name) {
-    this.name = name;
+class ColumnTest {
+
+  @Test
+  void testIsNotNull() {
+    Column colA = new Column("dx", DataType.CHARACTER_11, Nullable.NOT_NULL);
+    Column colB = new Column("value", DataType.DOUBLE, Nullable.NULL);
+
+    assertTrue(colA.isNotNull());
+    assertFalse(colB.isNotNull());
   }
 
-  public static TranslationProperty fromValue(String value) {
-    for (TranslationProperty type : TranslationProperty.values()) {
-      if (type.getName().equalsIgnoreCase(value)) {
-        return type;
-      }
-    }
+  @Test
+  void testHasCollation() {
+    Column colA = new Column("dx", DataType.CHARACTER_11, Nullable.NOT_NULL, Collation.DEFAULT);
+    Column colB = new Column("ou", DataType.CHARACTER_11, Nullable.NOT_NULL, Collation.C);
+    Column colC = new Column("value", DataType.DOUBLE, Nullable.NULL);
 
-    return null;
-  }
-
-  public String getName() {
-    return name;
+    assertFalse(colA.hasCollation());
+    assertTrue(colB.hasCollation());
+    assertFalse(colC.hasCollation());
   }
 }

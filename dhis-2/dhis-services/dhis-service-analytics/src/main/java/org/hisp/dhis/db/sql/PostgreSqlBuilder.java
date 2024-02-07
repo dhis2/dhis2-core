@@ -49,93 +49,122 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   // Data types
 
   @Override
-  public String typeSmallInt() {
+  public String dataTypeSmallInt() {
     return "smallint";
   }
 
   @Override
-  public String typeInteger() {
+  public String dataTypeInteger() {
     return "integer";
   }
 
   @Override
-  public String typeBigInt() {
+  public String dataTypeBigInt() {
     return "bigint";
   }
 
   @Override
-  public String typeNumeric() {
+  public String dataTypeNumeric() {
     return "numeric(18,6)";
   }
 
   @Override
-  public String typeReal() {
+  public String dataTypeReal() {
     return "real";
   }
 
   @Override
-  public String typeDouble() {
+  public String dataTypeDouble() {
     return "double precision";
   }
 
   @Override
-  public String typeBoolean() {
+  public String dataTypeBoolean() {
     return "boolean";
   }
 
   @Override
-  public String typeCharacter(int length) {
+  public String dataTypeCharacter(int length) {
     return String.format("char(%d)", length);
   }
 
   @Override
-  public String typeVarchar(int length) {
+  public String dataTypeVarchar(int length) {
     return String.format("varchar(%d)", length);
   }
 
   @Override
-  public String typeText() {
+  public String dataTypeText() {
     return "text";
   }
 
   @Override
-  public String typeDate() {
+  public String dataTypeDate() {
     return "date";
   }
 
   @Override
-  public String typeTimestamp() {
+  public String dataTypeTimestamp() {
     return "timestamp";
   }
 
   @Override
-  public String typeTimestampTz() {
+  public String dataTypeTimestampTz() {
     return "timestamptz";
   }
 
   @Override
-  public String typeTime() {
+  public String dataTypeTime() {
     return "time";
   }
 
   @Override
-  public String typeTimeTz() {
+  public String dataTypeTimeTz() {
     return "timetz";
   }
 
   @Override
-  public String typeGeometry() {
+  public String dataTypeGeometry() {
     return "geometry";
   }
 
   @Override
-  public String typeGeometryPoint() {
+  public String dataTypeGeometryPoint() {
     return "geometry(Point, 4326)";
   }
 
   @Override
-  public String typeJsonb() {
+  public String dataTypeJsonb() {
     return "jsonb";
+  }
+
+  // Index types
+
+  @Override
+  public String indexTypeBtree() {
+    return "btree";
+  }
+
+  @Override
+  public String indexTypeGist() {
+    return "gist";
+  }
+
+  @Override
+  public String indexTypeGin() {
+    return "gin";
+  }
+
+  // Index functions
+
+  @Override
+  public String indexFunctionUpper() {
+    return "upper";
+  }
+
+  @Override
+  public String indexFunctionLower() {
+    return "lower";
   }
 
   // Capabilities
@@ -190,21 +219,39 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
     // Checks
 
-    for (String check : table.getChecks()) {
-      sql.append("check(" + check + "), ");
+    if (table.hasChecks()) {
+      for (String check : table.getChecks()) {
+        sql.append("check(" + check + "), ");
+      }
     }
 
-    return removeLastComma(sql).append(");").toString();
+    removeLastComma(sql).append(")");
+
+    if (table.hasParent()) {
+      sql.append(" inherits (").append(quote(table.getParent().getName())).append(")");
+    }
+
+    return sql.append(";").toString();
   }
 
   @Override
   public String analyzeTable(Table table) {
-    return String.format("analyze %s;", quote(table.getName()));
+    return analyzeTable(table.getName());
+  }
+
+  @Override
+  public String analyzeTable(String name) {
+    return String.format("analyze %s;", quote(name));
   }
 
   @Override
   public String vacuumTable(Table table) {
-    return String.format("vacuum %s;", quote(table.getName()));
+    return vacuumTable(table.getName());
+  }
+
+  @Override
+  public String vacuumTable(String name) {
+    return String.format("vacuum %s;", quote(name));
   }
 
   @Override
@@ -214,12 +261,44 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String dropTableIfExists(Table table) {
-    return String.format("drop table if exists %s;", quote(table.getName()));
+    return dropTableIfExists(table.getName());
   }
 
   @Override
   public String dropTableIfExists(String name) {
     return String.format("drop table if exists %s;", quote(name));
+  }
+
+  @Override
+  public String dropTableIfExistsCascade(Table table) {
+    return dropTableIfExistsCascade(table.getName());
+  }
+
+  @Override
+  public String dropTableIfExistsCascade(String name) {
+    return String.format("drop table if exists %s cascade;", quote(name));
+  }
+
+  @Override
+  public String swapTable(Table table, String newName) {
+    return String.join(" ", dropTableIfExistsCascade(newName), renameTable(table, newName));
+  }
+
+  @Override
+  public String setParentTable(Table table, String parentName) {
+    return String.format("alter table %s inherit %s;", quote(table.getName()), quote(parentName));
+  }
+
+  @Override
+  public String removeParentTable(Table table, String parentName) {
+    return String.format(
+        "alter table %s no inherit %s;", quote(table.getName()), quote(parentName));
+  }
+
+  @Override
+  public String swapParentTable(Table table, String parentName, String newParentName) {
+    return String.join(
+        " ", removeParentTable(table, parentName), setParentTable(table, newParentName));
   }
 
   @Override
@@ -231,14 +310,18 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String createIndex(Table table, Index index) {
+  public String createIndex(Index index) {
     String unique = index.getUnique() == Unique.UNIQUE ? "unique " : "";
+    String tableName = index.getTableName();
+    String typeName = getIndexTypeName(index.getIndexType());
 
     String columns =
-        index.getColumns().stream().map(c -> quote(c)).collect(Collectors.joining(", "));
+        index.getColumns().stream()
+            .map(col -> toIndexColumn(index, col))
+            .collect(Collectors.joining(", "));
 
     return String.format(
-        "create %sindex %s on %s (%s);",
-        unique, quote(index.getName()), quote(table.getName()), columns);
+        "create %sindex %s on %s using %s(%s);",
+        unique, quote(index.getName()), quote(tableName), typeName, columns);
   }
 }

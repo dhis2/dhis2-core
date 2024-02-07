@@ -40,17 +40,10 @@ public interface IconService {
   /**
    * Gets data about all the icons in the system
    *
+   * @param iconOperationParams params to fetch icons
    * @return a collection of data about all the icons in the system
    */
-  List<Icon> getIcons();
-
-  /**
-   * Gets icons tagged with all given keywords.
-   *
-   * @param keywords collection of keywords
-   * @return a collection of matching icons
-   */
-  List<Icon> getIcons(String[] keywords);
+  List<Icon> getIcons(IconOperationParams iconOperationParams);
 
   /**
    * Gets the icon associated to a key, if it exists

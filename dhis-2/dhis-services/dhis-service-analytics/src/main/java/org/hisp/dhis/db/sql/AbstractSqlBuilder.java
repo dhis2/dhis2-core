@@ -27,7 +27,12 @@
  */
 package org.hisp.dhis.db.sql;
 
+import static org.hisp.dhis.system.util.SqlUtils.quote;
+
 import org.hisp.dhis.db.model.DataType;
+import org.hisp.dhis.db.model.Index;
+import org.hisp.dhis.db.model.IndexFunction;
+import org.hisp.dhis.db.model.IndexType;
 
 /**
  * Abstract SQL builder class.
@@ -41,53 +46,108 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
    * @param dataType the {@link DataType}.
    * @return the data type name.
    */
-  protected String getDataTypeName(DataType dataType) {
+  @Override
+  public String getDataTypeName(DataType dataType) {
     switch (dataType) {
       case SMALLINT:
-        return typeSmallInt();
+        return dataTypeSmallInt();
       case INTEGER:
-        return typeInteger();
+        return dataTypeInteger();
       case BIGINT:
-        return typeBigInt();
+        return dataTypeBigInt();
       case NUMERIC:
-        return typeNumeric();
+        return dataTypeNumeric();
       case REAL:
-        return typeReal();
+        return dataTypeReal();
       case DOUBLE:
-        return typeDouble();
+        return dataTypeDouble();
       case BOOLEAN:
-        return typeBoolean();
+        return dataTypeBoolean();
       case CHARACTER_11:
-        return typeCharacter(11);
+        return dataTypeCharacter(11);
       case CHARACTER_32:
-        return typeCharacter(32);
+        return dataTypeCharacter(32);
       case VARCHAR_50:
-        return typeVarchar(50);
+        return dataTypeVarchar(50);
       case VARCHAR_255:
-        return typeVarchar(255);
+        return dataTypeVarchar(255);
       case VARCHAR_1200:
-        return typeVarchar(1200);
+        return dataTypeVarchar(1200);
       case TEXT:
-        return typeText();
+        return dataTypeText();
       case DATE:
-        return typeDate();
+        return dataTypeDate();
       case TIMESTAMP:
-        return typeTimestamp();
+        return dataTypeTimestamp();
       case TIMESTAMPTZ:
-        return typeTimestampTz();
+        return dataTypeTimestampTz();
       case TIME:
-        return typeTime();
+        return dataTypeTime();
       case TIMETZ:
-        return typeTimeTz();
+        return dataTypeTimeTz();
       case GEOMETRY:
-        return typeGeometry();
+        return dataTypeGeometry();
       case GEOMETRY_POINT:
-        return typeGeometryPoint();
+        return dataTypeGeometryPoint();
       case JSONB:
-        return typeJsonb();
+        return dataTypeJsonb();
       default:
         throw new UnsupportedOperationException(
             String.format("Unsuported data type: %s", dataType));
     }
+  }
+
+  /**
+   * Returns the database name of the given index type.
+   *
+   * @param indexType the {@link IndexType}.
+   * @return the index type name.
+   */
+  @Override
+  public String getIndexTypeName(IndexType indexType) {
+    switch (indexType) {
+      case BTREE:
+        return indexTypeBtree();
+      case GIST:
+        return indexTypeGist();
+      case GIN:
+        return indexTypeGin();
+      default:
+        throw new UnsupportedOperationException(
+            String.format("Unsuported index type: %s", indexType));
+    }
+  }
+
+  /**
+   * Returns the database name of the given index function.
+   *
+   * @param indexFunction the {@link IndexFunction}.
+   * @return the index function name.
+   */
+  @Override
+  public String getIndexFunctionName(IndexFunction indexFunction) {
+    switch (indexFunction) {
+      case UPPER:
+        return indexFunctionUpper();
+      case LOWER:
+        return indexFunctionLower();
+      default:
+        throw new UnsupportedOperationException(
+            String.format("Unsuported index function: %s", indexFunction));
+    }
+  }
+
+  /**
+   * Returns a quoted column string. If the index has a function, the quoted column is wrapped in
+   * the function call.
+   *
+   * @param index the {@link Index}.
+   * @param column the column name.
+   * @return an index column string.
+   */
+  protected String toIndexColumn(Index index, String column) {
+    String functionName = index.hasFunction() ? getIndexFunctionName(index.getFunction()) : null;
+    String indexColumn = quote(column);
+    return index.hasFunction() ? String.format("%s(%s)", functionName, indexColumn) : indexColumn;
   }
 }

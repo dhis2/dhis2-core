@@ -109,7 +109,7 @@ public class DefaultMessageService implements MessageService {
   @Override
   @Transactional
   public long sendTicketMessage(String subject, String text, String metaData) {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    User currentUser = getCurrentUserOrNull();
 
     MessageConversationParams params =
         new MessageConversationParams.Builder()
@@ -133,7 +133,7 @@ public class DefaultMessageService implements MessageService {
       String text,
       String metaData,
       Set<FileResource> attachments) {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    User currentUser = getCurrentUserOrNull();
 
     MessageConversationParams params =
         new MessageConversationParams.Builder()
@@ -215,7 +215,13 @@ public class DefaultMessageService implements MessageService {
   @Override
   @Transactional
   public long sendMessage(MessageConversationParams params) {
-    return sendMessage(params, CurrentUserUtil.getCurrentUserDetails());
+    UserDetails currentUserDetails;
+    if (CurrentUserUtil.hasCurrentUser()) {
+      currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    } else {
+      currentUserDetails = new SystemUser();
+    }
+    return sendMessage(params, currentUserDetails);
   }
 
   @Override
@@ -254,7 +260,7 @@ public class DefaultMessageService implements MessageService {
       String metaData,
       boolean internal,
       Set<FileResource> attachments) {
-    User sender = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    User sender = getCurrentUserOrNull();
 
     Message message = new Message(text, metaData, sender, internal);
 
@@ -288,7 +294,7 @@ public class DefaultMessageService implements MessageService {
 
     UserGroup userGroup = dataSet.getNotificationRecipients();
 
-    User sender = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    User sender = getCurrentUserOrNull();
 
     // data set completed through sms
     if (sender == null) {
@@ -367,7 +373,7 @@ public class DefaultMessageService implements MessageService {
       return null;
     }
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    User currentUser = getCurrentUserOrNull();
 
     mc.setFollowUp(mc.isFollowUp(currentUser));
     mc.setRead(mc.isRead(currentUser));
@@ -378,7 +384,7 @@ public class DefaultMessageService implements MessageService {
   @Override
   @Transactional(readOnly = true)
   public long getUnreadMessageConversationCount() {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    User currentUser = getCurrentUserOrNull();
     return messageConversationStore.getUnreadUserMessageConversationCount(currentUser);
   }
 
@@ -391,7 +397,7 @@ public class DefaultMessageService implements MessageService {
   @Override
   @Transactional(readOnly = true)
   public List<MessageConversation> getMessageConversations() {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    User currentUser = getCurrentUserOrNull();
     return messageConversationStore.getMessageConversations(
         currentUser, null, false, false, null, null);
   }
@@ -399,7 +405,7 @@ public class DefaultMessageService implements MessageService {
   @Override
   @Transactional(readOnly = true)
   public List<MessageConversation> getMessageConversations(int first, int max) {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    User currentUser = getCurrentUserOrNull();
     return messageConversationStore.getMessageConversations(
         currentUser, null, false, false, first, max);
   }
@@ -437,7 +443,7 @@ public class DefaultMessageService implements MessageService {
   @Override
   @Transactional(readOnly = true)
   public List<UserMessage> getLastRecipients(int first, int max) {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    User currentUser = getCurrentUserOrNull();
     return messageConversationStore.getLastRecipients(currentUser, first, max);
   }
 
@@ -518,5 +524,13 @@ public class DefaultMessageService implements MessageService {
       @Nonnull String baseUrl, @Nonnull MessageType messageType, @Nonnull String uid) {
     String expectedBaseUrlFormat = removeAnyTrailingSlash(baseUrl);
     return expectedBaseUrlFormat + MESSAGE_PATH + messageType + "/" + uid;
+  }
+
+  private User getCurrentUserOrNull() {
+    if (CurrentUserUtil.hasCurrentUser()) {
+      String currentUsername = CurrentUserUtil.getCurrentUsername();
+      return userService.getUserByUsername(currentUsername);
+    }
+    return null;
   }
 }

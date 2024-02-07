@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,24 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
-
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+package org.hisp.dhis.analytics.table.model;
 
 /**
- * Index type.
+ * Represents an analytics value type for tables and columns, i.e. whether a table or column is a
+ * dimension or fact.
  *
  * @author Lars Helge Overland
  */
-@Getter
-@RequiredArgsConstructor
-public enum IndexType {
-  BTREE("btree"),
-  GIST("gist"),
-  HASH("hash"),
-  BLOOM("bloom"),
-  GIN("gin");
-
-  final String keyword;
+public enum AnalyticsValueType {
+  DIMENSION,
+  FACT;
 }

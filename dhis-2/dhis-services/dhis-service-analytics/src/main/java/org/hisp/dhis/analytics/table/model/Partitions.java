@@ -25,90 +25,82 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.analytics.table.model;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
- * Class representing an index on a database table column.
+ * Class representing analytics table partitions.
  *
  * @author Lars Helge Overland
  */
-public class AnalyticsIndex {
-  /** Table name. */
-  private String table;
+@Getter
+@Setter
+@NoArgsConstructor
+public class Partitions {
+  /** Yearly partitions containing four-digit years. */
+  private Set<Integer> partitions = new HashSet<>();
 
-  /** Table column names. */
-  private List<String> columns = new ArrayList<>();
-
-  /** Index type. */
-  private IndexType type;
-
-  /** Function to be used by the index, if any */
-  private IndexFunction function;
-
-  /**
-   * @param table table name.
-   * @param columns column name.
-   * @param type index type.
-   */
-  public AnalyticsIndex(String table, List<String> columns, IndexType type) {
-    this.table = table;
-    this.columns = columns;
-    this.type = type;
+  public Partitions(Set<Integer> partitions) {
+    this.partitions = partitions;
   }
 
-  /**
-   * @param table table name.
-   * @param columns column name.
-   * @param type index type.
-   */
-  public AnalyticsIndex(
-      String table, List<String> columns, IndexType type, IndexFunction function) {
-    this(table, columns, type);
-    this.function = function;
+  public Partitions(Partitions partitions) {
+    this.partitions =
+        partitions != null ? new HashSet<>(partitions.getPartitions()) : new HashSet<>();
   }
 
   // -------------------------------------------------------------------------
   // Logic
   // -------------------------------------------------------------------------
 
-  public boolean hasType() {
-    return type != null;
+  /** Adds a partition. */
+  public Partitions add(Integer partition) {
+    partitions.add(partition);
+    return this;
   }
 
-  public boolean hasFunction() {
-    return function != null;
+  /** Indicates whether this instance contains multiple partitions. */
+  public boolean isMultiple() {
+    return partitions != null && partitions.size() > 1;
+  }
+
+  /** Indicates whether this instance has any partitions. */
+  public boolean hasAny() {
+    return partitions != null && !partitions.isEmpty();
+  }
+
+  /** Indicates whether this instance has exactly one partition. */
+  public boolean hasOne() {
+    return partitions != null && partitions.size() == 1;
+  }
+
+  /** Indicates whether this instance has more than one partition. */
+  public boolean hasMultiple() {
+    return partitions != null && partitions.size() > 1;
+  }
+
+  /** Returns a partition. */
+  public Integer getAny() {
+    return hasAny() ? partitions.iterator().next() : null;
   }
 
   // -------------------------------------------------------------------------
-  // Get and set methods
+  // toString, hashCode, equals
   // -------------------------------------------------------------------------
 
-  public String getTable() {
-    return table;
-  }
-
-  public List<String> getColumns() {
-    return columns;
-  }
-
-  public IndexType getType() {
-    return type;
-  }
-
-  public IndexFunction getFunction() {
-    return function;
+  @Override
+  public String toString() {
+    return partitions.toString();
   }
 
   @Override
   public int hashCode() {
-    int prime = 31;
-    int result = 1;
-    result = prime * result + columns.hashCode();
-    result = prime * result + table.hashCode();
-    return result;
+    return partitions.hashCode();
   }
 
   @Override
@@ -125,8 +117,8 @@ public class AnalyticsIndex {
       return false;
     }
 
-    AnalyticsIndex other = (AnalyticsIndex) object;
+    Partitions other = (Partitions) object;
 
-    return table.equals(other.table) && columns.equals(other.columns);
+    return partitions.equals(other.partitions);
   }
 }

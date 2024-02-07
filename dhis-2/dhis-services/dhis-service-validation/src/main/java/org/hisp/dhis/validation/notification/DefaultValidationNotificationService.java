@@ -103,12 +103,13 @@ public class DefaultValidationNotificationService implements ValidationNotificat
     // order
     progress.startingStage("Filtering results with rule and template ");
     Set<ValidationResult> applicableResults =
-        progress.runStage(
-            Set.of(),
-            () ->
-                validationResults.stream()
-                    .filter(IS_APPLICABLE_RESULT)
-                    .collect(Collectors.toCollection(TreeSet::new)));
+        new TreeSet<>(
+            progress.runStage(
+                Set.of(),
+                () ->
+                    validationResults.stream()
+                        .filter(IS_APPLICABLE_RESULT)
+                        .collect(Collectors.toSet())));
 
     progress.startingStage(
         format("Creating notifications for %d validation results", applicableResults.size()));

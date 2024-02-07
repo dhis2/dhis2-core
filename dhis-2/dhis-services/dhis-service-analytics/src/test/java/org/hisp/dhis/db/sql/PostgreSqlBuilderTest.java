@@ -34,9 +34,12 @@ import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
+import org.hisp.dhis.db.model.IndexFunction;
+import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
+import org.hisp.dhis.db.model.constraint.Unique;
 import org.junit.jupiter.api.Test;
 
 class PostgreSqlBuilderTest {
@@ -49,16 +52,26 @@ class PostgreSqlBuilderTest {
             new Column("data", DataType.CHARACTER_11, Nullable.NOT_NULL),
             new Column("period", DataType.VARCHAR_50, Nullable.NOT_NULL),
             new Column("created", DataType.TIMESTAMP),
+            new Column("user", DataType.JSONB),
             new Column("value", DataType.DOUBLE));
 
     List<String> primaryKey = List.of("id");
 
-    List<Index> indexes =
-        List.of(
-            new Index("in_immunization_data", List.of("data")),
-            new Index("in_immunization_period", List.of("period", "created")));
+    return new Table("immunization", columns, primaryKey);
+  }
 
-    return new Table("immunization", columns, primaryKey, indexes);
+  private List<Index> getIndexesA() {
+    return List.of(
+        new Index("in_immunization_data", "immunization", List.of("data")),
+        new Index("in_immunization_period_created", "immunization", List.of("period", "created")),
+        new Index("in_immunization_user", "immunization", IndexType.GIN, List.of("user")),
+        new Index(
+            "in_immunization_data_period",
+            "immunization",
+            IndexType.BTREE,
+            Unique.NON_UNIQUE,
+            List.of("data", "period"),
+            IndexFunction.LOWER));
   }
 
   private Table getTableB() {
@@ -70,13 +83,26 @@ class PostgreSqlBuilderTest {
 
     List<String> checks = List.of("\"id\">0", "\"bcg_doses\">0");
 
-    return new Table("vaccination", columns, List.of(), List.of(), checks, Logged.UNLOGGED);
+    return new Table("vaccination", columns, List.of(), checks, Logged.UNLOGGED);
+  }
+
+  private Table getTableC() {
+    List<Column> columns =
+        List.of(new Column("vitamin_a", DataType.BIGINT), new Column("vitamin_d", DataType.BIGINT));
+
+    return new Table("nutrition", columns, List.of(), List.of(), Logged.LOGGED, getTableB());
   }
 
   @Test
   void testDataType() {
-    assertEquals("double precision", sqlBuilder.typeDouble());
-    assertEquals("geometry", sqlBuilder.typeGeometry());
+    assertEquals("double precision", sqlBuilder.dataTypeDouble());
+    assertEquals("geometry", sqlBuilder.dataTypeGeometry());
+  }
+
+  @Test
+  void testIndexType() {
+    assertEquals("btree", sqlBuilder.indexTypeBtree());
+    assertEquals("gist", sqlBuilder.indexTypeGist());
   }
 
   @Test
@@ -85,7 +111,7 @@ class PostgreSqlBuilderTest {
 
     String expected =
         "create table \"immunization\" (\"id\" bigint not null, \"data\" char(11) not null, "
-            + "\"period\" varchar(50) not null, \"created\" timestamp null, "
+            + "\"period\" varchar(50) not null, \"created\" timestamp null, \"user\" jsonb null, "
             + "\"value\" double precision null, primary key (\"id\"));";
 
     assertEquals(expected, sqlBuilder.createTable(table));
@@ -99,6 +125,17 @@ class PostgreSqlBuilderTest {
         "create unlogged table \"vaccination\" (\"id\" integer not null, "
             + "\"facility_type\" varchar(255) null collate \"C\", \"bcg_doses\" double precision null, "
             + "check(\"id\">0), check(\"bcg_doses\">0));";
+
+    assertEquals(expected, sqlBuilder.createTable(table));
+  }
+
+  @Test
+  void testCreateTableC() {
+    Table table = getTableC();
+
+    String expected =
+        "create table \"nutrition\" (\"vitamin_a\" bigint null, "
+            + "\"vitamin_d\" bigint null) inherits (\"vaccination\");";
 
     assertEquals(expected, sqlBuilder.createTable(table));
   }
@@ -147,6 +184,54 @@ class PostgreSqlBuilderTest {
   }
 
   @Test
+  void testDropTableIfExistsCascade() {
+    Table table = getTableA();
+
+    String expected = "drop table if exists \"immunization\" cascade;";
+
+    assertEquals(expected, sqlBuilder.dropTableIfExistsCascade(table));
+  }
+
+  @Test
+  void testDropTableIfExistsCascadeString() {
+    String expected = "drop table if exists \"immunization\" cascade;";
+
+    assertEquals(expected, sqlBuilder.dropTableIfExistsCascade("immunization"));
+  }
+
+  @Test
+  void testSwapTable() {
+    String expected =
+        "drop table if exists \"vaccination\" cascade; "
+            + "alter table \"immunization\" rename to \"vaccination\";";
+
+    assertEquals(expected, sqlBuilder.swapTable(getTableA(), "vaccination"));
+  }
+
+  @Test
+  void testSetParent() {
+    String expected = "alter table \"immunization\" inherit \"vaccination\";";
+
+    assertEquals(expected, sqlBuilder.setParentTable(getTableA(), "vaccination"));
+  }
+
+  @Test
+  void testRemoveParent() {
+    String expected = "alter table \"immunization\" no inherit \"vaccination\";";
+
+    assertEquals(expected, sqlBuilder.removeParentTable(getTableA(), "vaccination"));
+  }
+
+  @Test
+  void testSwapParentTable() {
+    String expected =
+        "alter table \"immunization\" no inherit \"vaccination\"; "
+            + "alter table \"immunization\" inherit \"nutrition\";";
+
+    assertEquals(expected, sqlBuilder.swapParentTable(getTableA(), "vaccination", "nutrition"));
+  }
+
+  @Test
   void testTableExists() {
     String expected =
         "select t.table_name from information_schema.tables t "
@@ -157,20 +242,41 @@ class PostgreSqlBuilderTest {
 
   @Test
   void testCreateIndexA() {
-    Table table = getTableA();
+    List<Index> indexes = getIndexesA();
 
-    String expected = "create index \"in_immunization_data\" on \"immunization\" (\"data\");";
+    String expected =
+        "create index \"in_immunization_data\" on \"immunization\" using btree(\"data\");";
 
-    assertEquals(expected, sqlBuilder.createIndex(table, table.getIndexes().get(0)));
+    assertEquals(expected, sqlBuilder.createIndex(indexes.get(0)));
   }
 
   @Test
   void testCreateIndexB() {
-    Table table = getTableA();
+    List<Index> indexes = getIndexesA();
 
     String expected =
-        "create index \"in_immunization_period\" on \"immunization\" (\"period\", \"created\");";
+        "create index \"in_immunization_period_created\" on \"immunization\" using btree(\"period\", \"created\");";
 
-    assertEquals(expected, sqlBuilder.createIndex(table, table.getIndexes().get(1)));
+    assertEquals(expected, sqlBuilder.createIndex(indexes.get(1)));
+  }
+
+  @Test
+  void testCreateIndexC() {
+    List<Index> indexes = getIndexesA();
+
+    String expected =
+        "create index \"in_immunization_user\" on \"immunization\" using gin(\"user\");";
+
+    assertEquals(expected, sqlBuilder.createIndex(indexes.get(2)));
+  }
+
+  @Test
+  void testCreateIndexD() {
+    List<Index> indexes = getIndexesA();
+
+    String expected =
+        "create index \"in_immunization_data_period\" on \"immunization\" using btree(lower(\"data\"), lower(\"period\"));";
+
+    assertEquals(expected, sqlBuilder.createIndex(indexes.get(3)));
   }
 }

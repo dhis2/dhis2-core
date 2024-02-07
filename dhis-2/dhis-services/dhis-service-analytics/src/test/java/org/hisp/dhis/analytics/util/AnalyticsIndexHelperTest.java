@@ -33,24 +33,24 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.analytics.AnalyticsTableType.EVENT;
-import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
-import static org.hisp.dhis.analytics.IndexFunction.LOWER;
-import static org.hisp.dhis.analytics.IndexType.BTREE;
-import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.createIndexStatement;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexName;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexes;
+import static org.hisp.dhis.db.model.DataType.TEXT;
+import static org.hisp.dhis.db.model.IndexType.BTREE;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.analytics.AnalyticsIndex;
-import org.hisp.dhis.analytics.AnalyticsTable;
-import org.hisp.dhis.analytics.AnalyticsTableColumn;
-import org.hisp.dhis.analytics.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.table.model.AnalyticsTable;
+import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.db.model.Index;
+import org.hisp.dhis.db.model.IndexType;
+import org.hisp.dhis.db.model.Logged;
 import org.junit.jupiter.api.Test;
 
 /**
- * Unit tests for {@link org.hisp.dhis.analytics.AnalyticsIndex}
- *
  * @author maikel arabori
  */
 class AnalyticsIndexHelperTest {
@@ -58,60 +58,49 @@ class AnalyticsIndexHelperTest {
   void testGetIndexes() {
     List<AnalyticsTablePartition> stubPartitions = List.of(stubAnalyticsTablePartition());
 
-    List<AnalyticsIndex> indexes = getIndexes(stubPartitions);
+    List<Index> indexes = getIndexes(stubPartitions);
 
     assertThat(indexes, hasSize(1));
-    assertThat(indexes.get(0).getTable(), is(equalTo("analytics_event_temp_2022")));
+    assertThat(indexes.get(0).getTableName(), is(equalTo("analytics_event_2022_temp")));
     assertThat(indexes.get(0).getColumns(), hasSize(1));
-    assertThat(indexes.get(0).getType(), is(equalTo(BTREE)));
+    assertThat(indexes.get(0).getIndexType(), is(equalTo(BTREE)));
   }
 
   @Test
-  void testCreateIndexStatement() {
-    AnalyticsIndex someAnalyticsIndex = new AnalyticsIndex("table", List.of("column"), BTREE);
+  void testGetIndexNameA() {
+    String statement = getIndexName("table", List.of("column"), EVENT);
 
-    String statement = createIndexStatement(someAnalyticsIndex, EVENT);
-
-    assertThat(statement, containsString("create index \"in_column_table"));
-    assertThat(statement, containsString("on table using"));
-    assertThat(statement, containsString("btree (column)"));
+    assertThat(statement, containsString("in_column_table"));
   }
 
   @Test
-  void testGetIndexName() {
-    AnalyticsIndex someAnalyticsIndex = new AnalyticsIndex("table", List.of("column"), BTREE);
+  void testGetIndexNameB() {
+    String nameA =
+        getIndexName("analytics_2017_temp", List.of("quarterly"), AnalyticsTableType.DATA_VALUE);
+    String nameB =
+        getIndexName("analytics_2018_temp", List.of("ax", "co"), AnalyticsTableType.DATA_VALUE);
+    String nameC =
+        getIndexName("analytics_2019_temp", List.of("YtbsuPPo010"), AnalyticsTableType.DATA_VALUE);
 
-    String statement = getIndexName(someAnalyticsIndex, EVENT);
-
-    assertThat(statement, containsString("\"in_column_table"));
-  }
-
-  @Test
-  void testGetIndexNameWithFunction() {
-    AnalyticsIndex someAnalyticsIndex =
-        new AnalyticsIndex("table", List.of("column"), BTREE, LOWER);
-
-    String statement = getIndexName(someAnalyticsIndex, EVENT);
-
-    assertThat(statement, containsString("\"in_column_table"));
-    assertThat(statement, containsString("_lower\""));
+    assertTrue(nameA.startsWith("in_quarterly_ax_2017_"), nameA);
+    assertTrue(nameB.startsWith("in_ax_co_ax_2018_"), nameB);
+    assertTrue(nameC.startsWith("in_YtbsuPPo010_ax_2019_"), nameC);
   }
 
   private AnalyticsTablePartition stubAnalyticsTablePartition() {
     AnalyticsTablePartition analyticsTablePartitionStub =
-        new AnalyticsTablePartition(stubAnalyticsTable(), 2022, new Date(), new Date(), false);
+        new AnalyticsTablePartition(stubAnalyticsTable(), List.of(), 2022, new Date(), new Date());
 
     return analyticsTablePartitionStub;
   }
 
   private AnalyticsTable stubAnalyticsTable() {
-    List<AnalyticsTableColumn> dimensionColumns = List.of(stubAnalyticsTableColumn());
-    List<AnalyticsTableColumn> valueColumns = List.of(stubAnalyticsTableColumn());
+    List<AnalyticsTableColumn> columns = List.of(stubAnalyticsTableColumn());
 
-    return new AnalyticsTable(EVENT, dimensionColumns, valueColumns);
+    return new AnalyticsTable(EVENT, columns, Logged.UNLOGGED);
   }
 
   private AnalyticsTableColumn stubAnalyticsTableColumn() {
-    return new AnalyticsTableColumn("column", TEXT, "c").withIndexType(BTREE);
+    return new AnalyticsTableColumn("column", TEXT, "c", IndexType.BTREE);
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,36 +25,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.icon;
 
-import lombok.Getter;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * @author Lars Helge Overland
+ * Represents query parameters sent to {@link org.hisp.dhis.icon.IconService}.
+ *
+ * @author Zubair Asghar
  */
-@Getter
-public enum ColumnDataType {
-  CHARACTER_11("character(11)"),
-  CHARACTER_32("character(32)"),
-  VARCHAR_50("varchar(50)"),
-  VARCHAR_255("varchar(255)"),
-  VARCHAR_1200("varchar(1200)"),
-  TEXT("text"),
-  DATE("date"),
-  TIMESTAMP("timestamp"),
-  INTEGER("integer"),
-  SMALLINT("smallint"),
-  BIGINT("bigint"),
-  DOUBLE("double precision"),
-  NUMERIC("numeric"),
-  BOOLEAN("boolean"),
-  GEOMETRY("geometry"),
-  GEOMETRY_POINT("geometry(Point, 4326)"),
-  JSONB("jsonb");
+@Data
+@NoArgsConstructor
+public class IconOperationParams {
 
-  final String value;
+  private List<String> keys = new ArrayList<>();
+  private IconTypeFilter iconTypeFilter = IconTypeFilter.ALL;
+  private List<String> keywords = new ArrayList<>();
+  private Date createdStartDate;
+  private Date createdEndDate;
+  private Date lastUpdatedStartDate;
+  private Date lastUpdatedEndDate;
 
-  ColumnDataType(String value) {
-    this.value = value;
+  public boolean hasLastUpdatedStartDate() {
+    return lastUpdatedStartDate != null;
+  }
+
+  public boolean hasLastUpdatedEndDate() {
+    return lastUpdatedEndDate != null;
+  }
+
+  public boolean hasCreatedStartDate() {
+    return createdStartDate != null;
+  }
+
+  public boolean hasCreatedEndDate() {
+    return createdEndDate != null;
+  }
+
+  public boolean hasKeywords() {
+    return !keywords.isEmpty();
+  }
+
+  public boolean hasKeys() {
+    return !keys.isEmpty();
   }
 }

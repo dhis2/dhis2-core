@@ -35,6 +35,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.Assert;
 
@@ -43,6 +45,7 @@ import org.springframework.util.Assert;
  *
  * @author Lars Helge Overland
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class AnalyticsSqlUtils {
   public static final String QUOTE = "\"";
 

@@ -113,16 +113,6 @@ public class Page<T> {
   }
 
   /**
-   * Returns a page which will serialize the items into {@link #items} under key {@code instances}.
-   * Pagination details will be serialized as well including totals only if {@link
-   * org.hisp.dhis.tracker.export.Page#isPageTotal()} is true.
-   */
-  public static <T, U> Page<T> withPager(
-      List<T> items, org.hisp.dhis.tracker.export.Page<U> pager) {
-    return new Page<>("instances", items, pager.getPager(), pager.isPageTotal());
-  }
-
-  /**
    * Returns a page which will serialize the items into {@link #items} under given {@code key}.
    * Pagination details will be serialized as well including totals only if {@link
    * org.hisp.dhis.tracker.export.Page#isPageTotal()} is true.
@@ -130,14 +120,6 @@ public class Page<T> {
   public static <T, U> Page<T> withPager(
       String key, List<T> items, org.hisp.dhis.tracker.export.Page<U> pager) {
     return new Page<>(key, items, pager.getPager(), pager.isPageTotal());
-  }
-
-  /**
-   * Returns a page which will only serialize the items into {@link #items} under key {@code
-   * instances}. All other fields will be omitted from the JSON.
-   */
-  public static <T> Page<T> withoutPager(List<T> items) {
-    return Page.withoutPager("instances", items);
   }
 
   /**

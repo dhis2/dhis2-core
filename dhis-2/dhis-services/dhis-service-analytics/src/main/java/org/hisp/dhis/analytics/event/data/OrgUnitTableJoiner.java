@@ -37,9 +37,9 @@ import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.util.DateUtils.plusOneDay;
 
 import java.util.Date;
-import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.program.AnalyticsType;
 
 /**
@@ -94,8 +94,7 @@ public final class OrgUnitTableJoiner {
             : plusOneDay(params.getLatestEndDate());
 
     String ownershipTable =
-        AnalyticsTable.getTableName(
-            AnalyticsTableType.OWNERSHIP.getTableName(), params.getProgram());
+        AnalyticsTable.getTableName(AnalyticsTableType.OWNERSHIP, params.getProgram());
 
     return "left join "
         + ownershipTable

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.common.params.dimension;
 
+import static java.util.List.of;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
@@ -40,15 +41,15 @@ class DimensionParamTypeTest {
   void mapDates() {
     CommonQueryRequest request =
         new CommonQueryRequest()
-            .withEventDate("IpHINAT79UW.LAST_YEAR")
-            .withIncidentDate("LAST_MONTH")
-            .withEnrollmentDate("2021-06-30")
-            .withLastUpdated("TODAY")
-            .withScheduledDate("YESTERDAY");
+            .withEventDate(of("IpHINAT79UW.LAST_YEAR"))
+            .withIncidentDate(of("LAST_MONTH"))
+            .withEnrollmentDate(of("2021-06-30"))
+            .withLastUpdated(of("TODAY"))
+            .withScheduledDate(of("YESTERDAY"));
     Collection<String> dateFilters = DimensionParamType.DATE_FILTERS.getUidsGetter().apply(request);
 
     List<String> expected =
-        List.of(
+        of(
             "IpHINAT79UW.pe:LAST_YEAR:EVENT_DATE",
             "pe:2021-06-30:ENROLLMENT_DATE",
             "pe:LAST_MONTH:INCIDENT_DATE",

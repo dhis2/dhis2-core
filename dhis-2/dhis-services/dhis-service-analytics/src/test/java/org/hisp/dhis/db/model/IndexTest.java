@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,20 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.db.model;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * Represents SQL functions that can be used by indexes.
- *
- * @author maikel arabori
- */
-@Getter
-@RequiredArgsConstructor
-public enum IndexFunction {
-  LOWER("lower");
+import java.util.List;
+import org.hisp.dhis.db.model.constraint.Unique;
+import org.junit.jupiter.api.Test;
 
-  private final String value;
+class IndexTest {
+  @Test
+  void testIsUnique() {
+    Index indexA = new Index("in_analytics_id", "analytics", Unique.UNIQUE, List.of("id"));
+    Index indexB = new Index("in_analytics_dx", "analytics", Unique.NON_UNIQUE, List.of("dx"));
+
+    assertTrue(indexA.isUnique());
+    assertFalse(indexB.isUnique());
+  }
 }

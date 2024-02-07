@@ -64,7 +64,7 @@ public class DataElementResourceTable implements ResourceTable {
 
   @Override
   public Table getTable() {
-    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), getIndexes(), logged);
+    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);
   }
 
   private List<Column> getColumns() {
@@ -85,16 +85,30 @@ public class DataElementResourceTable implements ResourceTable {
     return List.of("dataelementid");
   }
 
-  private List<Index> getIndexes() {
+  @Override
+  public List<Index> getIndexes() {
     return List.of(
         new Index(
             appendRandom("in_dataelementstructure_dataelementuid"),
+            toStaging(TABLE_NAME),
             Unique.UNIQUE,
             List.of("dataelementuid")),
-        new Index(appendRandom("in_dataelementstructure_datasetid"), List.of("datasetid")),
-        new Index(appendRandom("in_dataelementstructure_datasetuid"), List.of("datasetuid")),
-        new Index(appendRandom("in_dataelementstructure_periodtypeid"), List.of("periodtypeid")),
-        new Index(appendRandom("in_dataelementstructure_workflowid"), List.of("workflowid")));
+        new Index(
+            appendRandom("in_dataelementstructure_datasetid"),
+            toStaging(TABLE_NAME),
+            List.of("datasetid")),
+        new Index(
+            appendRandom("in_dataelementstructure_datasetuid"),
+            toStaging(TABLE_NAME),
+            List.of("datasetuid")),
+        new Index(
+            appendRandom("in_dataelementstructure_periodtypeid"),
+            toStaging(TABLE_NAME),
+            List.of("periodtypeid")),
+        new Index(
+            appendRandom("in_dataelementstructure_workflowid"),
+            toStaging(TABLE_NAME),
+            List.of("workflowid")));
   }
 
   @Override

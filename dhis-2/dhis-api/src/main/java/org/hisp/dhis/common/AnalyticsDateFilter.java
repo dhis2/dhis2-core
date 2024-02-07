@@ -28,6 +28,7 @@
 package org.hisp.dhis.common;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import lombok.Getter;
@@ -75,7 +76,7 @@ public enum AnalyticsDateFilter {
 
   private final Function<EnrollmentAnalyticsQueryCriteria, String> enrollmentExtractor;
 
-  private final Function<CommonQueryRequest, String> teiExtractor;
+  private final Function<CommonQueryRequest, List<String>> teiExtractor;
 
   public static Optional<AnalyticsDateFilter> of(String dateField) {
     return Arrays.stream(values())

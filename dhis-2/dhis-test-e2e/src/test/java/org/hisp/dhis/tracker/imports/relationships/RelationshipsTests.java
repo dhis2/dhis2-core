@@ -74,9 +74,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 public class RelationshipsTests extends TrackerApiTest {
   private static final String relationshipType = "TV9oB9LT3sh";
 
-  private static List<String> teis;
-
-  private static List<String> enrollments;
+  private static List<String> trackedEntities;
 
   private static List<String> events;
 
@@ -93,14 +91,24 @@ public class RelationshipsTests extends TrackerApiTest {
   private static Stream<Arguments> provideRelationshipData() {
     return Stream.of(
         /*
-         * Arguments.of( "WmNgnmedbQj", "trackedEntity", teis.get( 0 ),
-         * "enrollment", enrollments.get( 1 )), // tei to enrollment todo:
+         * Arguments.of( "WmNgnmedbQj", "trackedEntity", trackedEntities.get( 0 ),
+         * "enrollment", enrollments.get( 1 )), // trackedEntity to enrollment todo:
          * uncomment when DHIS2-12625 is fixed
          */
-        Arguments.of("HrS7b5Lis6E", "event", events.get(0), "trackedEntity", teis.get(0)), // event
+        Arguments.of(
+            "HrS7b5Lis6E",
+            "event",
+            events.get(0),
+            "trackedEntity",
+            trackedEntities.get(0)), // event
         // to
-        // tei
-        Arguments.of("HrS7b5Lis6w", "trackedEntity", teis.get(0), "event", events.get(0)), // tei
+        // trackedEntity
+        Arguments.of(
+            "HrS7b5Lis6w",
+            "trackedEntity",
+            trackedEntities.get(0),
+            "event",
+            events.get(0)), // trackedEntity
         // to
         // event
         Arguments.of("HrS7b5Lis6P", "event", events.get(0), "event", events.get(1)), // event
@@ -109,42 +117,42 @@ public class RelationshipsTests extends TrackerApiTest {
         Arguments.of(
             relationshipType,
             "trackedEntity",
-            teis.get(0),
+            trackedEntities.get(0),
             "trackedEntity",
-            teis.get(1))); // tei to tei
+            trackedEntities.get(1))); // trackedEntity to trackedEntity
   }
 
   private static Stream<Arguments> provideDuplicateRelationshipData() {
     return Stream.of(
         Arguments.of(
-            teis.get(0),
-            teis.get(1),
-            teis.get(1),
-            teis.get(0),
+            trackedEntities.get(0),
+            trackedEntities.get(1),
+            trackedEntities.get(1),
+            trackedEntities.get(0),
             true,
             1,
             "bi: reversed direction should import 1"),
         Arguments.of(
-            teis.get(0),
-            teis.get(1),
-            teis.get(0),
-            teis.get(1),
+            trackedEntities.get(0),
+            trackedEntities.get(1),
+            trackedEntities.get(0),
+            trackedEntities.get(1),
             false,
             1,
             "uni: same direction should import 1"),
         Arguments.of(
-            teis.get(0),
-            teis.get(1),
-            teis.get(0),
-            teis.get(1),
+            trackedEntities.get(0),
+            trackedEntities.get(1),
+            trackedEntities.get(0),
+            trackedEntities.get(1),
             true,
             1,
             "bi: same direction should import 1"),
         Arguments.of(
-            teis.get(0),
-            teis.get(1),
-            teis.get(1),
-            teis.get(0),
+            trackedEntities.get(0),
+            trackedEntities.get(1),
+            trackedEntities.get(1),
+            trackedEntities.get(0),
             false,
             2,
             "uni: reversed direction should import 2"));
@@ -164,8 +172,7 @@ public class RelationshipsTests extends TrackerApiTest {
 
     TrackerApiResponse importResponse =
         importTeisWithEnrollmentAndEvent().validateSuccessfulImport();
-    teis = importResponse.extractImportedTeis();
-    enrollments = importResponse.extractImportedEnrollments();
+    trackedEntities = importResponse.extractImportedTeis();
     events = importEvents();
   }
 
@@ -178,8 +185,8 @@ public class RelationshipsTests extends TrackerApiTest {
         new RelationshipDataBuilder()
             .setRelationshipId(relationshipId)
             .setRelationshipType(relationshipType)
-            .setToEntity("trackedEntity", teis.get(1))
-            .setFromEntity("trackedEntity", teis.get(0))
+            .setToEntity("trackedEntity", trackedEntities.get(1))
+            .setFromEntity("trackedEntity", trackedEntities.get(0))
             .array();
 
     trackerImportExportActions.postAndGetJobReport(originalRelationship).validateSuccessfulImport();
@@ -205,7 +212,9 @@ public class RelationshipsTests extends TrackerApiTest {
                                                 from.addObject(
                                                     "trackedEntity",
                                                     te ->
-                                                        te.addString("trackedEntity", teis.get(0))))
+                                                        te.addString(
+                                                            "trackedEntity",
+                                                            trackedEntities.get(0))))
                                         .addObject(
                                             "to",
                                             to ->
@@ -213,7 +222,8 @@ public class RelationshipsTests extends TrackerApiTest {
                                                     "trackedEntity",
                                                     te ->
                                                         te.addString(
-                                                            "trackedEntity", teis.get(1))))))));
+                                                            "trackedEntity",
+                                                            trackedEntities.get(1))))))));
 
     // act
     trackerImportExportActions
@@ -258,13 +268,12 @@ public class RelationshipsTests extends TrackerApiTest {
     response
         .extractImportedTeis()
         .forEach(
-            tei -> {
-              trackedEntityInstancesAction
-                  .get(tei, new QueryParamsBuilder().add("fields=relationships"))
-                  .validate()
-                  .statusCode(200)
-                  .body("relationships.relationship", contains(createdRelationships.get(0)));
-            });
+            trackedEntity ->
+                trackedEntityInstancesAction
+                    .get(trackedEntity, new QueryParamsBuilder().add("fields=relationships"))
+                    .validate()
+                    .statusCode(200)
+                    .body("relationships.relationship", contains(createdRelationships.get(0))));
   }
 
   @Test
@@ -307,9 +316,9 @@ public class RelationshipsTests extends TrackerApiTest {
 
     // and there are 2 relationships for any of the tracked entities
     ApiResponse relationshipResponse =
-        trackerImportExportActions.get("/relationships?tei=" + trackedEntity_1);
+        trackerImportExportActions.get("/relationships?trackedEntity=" + trackedEntity_1);
 
-    relationshipResponse.validate().statusCode(200).body("instances.size()", is(2));
+    relationshipResponse.validate().statusCode(200).body("relationships.size()", is(2));
   }
 
   @Test
@@ -344,13 +353,13 @@ public class RelationshipsTests extends TrackerApiTest {
 
     // and relationship is not duplicated
     ApiResponse relationshipResponse =
-        trackerImportExportActions.get("/relationships?tei=" + trackedEntity_1);
+        trackerImportExportActions.get("/relationships?trackedEntity=" + trackedEntity_1);
 
     relationshipResponse
         .validate()
         .statusCode(200)
-        .body("instances[0].relationship", is(createdRelationshipUid))
-        .body("instances.size()", is(1));
+        .body("relationships[0].relationship", is(createdRelationshipUid))
+        .body("relationships.size()", is(1));
   }
 
   @Test
@@ -362,13 +371,13 @@ public class RelationshipsTests extends TrackerApiTest {
                 new File("src/test/resources/tracker/importer/teis/teisAndRelationship.json"))
             .validateSuccessfulImport();
 
-    List<String> teis = response.extractImportedTeis();
+    List<String> trackedEntities = response.extractImportedTeis();
     String relationship = response.extractImportedRelationships().get(0);
 
     JsonObject obj =
         new JsonObjectBuilder()
-            .addObject("from", relationshipItem("trackedEntity", teis.get(0)))
-            .addObject("to", relationshipItem("trackedEntity", teis.get(1)))
+            .addObject("from", relationshipItem("trackedEntity", trackedEntities.get(0)))
+            .addObject("to", relationshipItem("trackedEntity", trackedEntities.get(1)))
             .addProperty("relationshipType", relationshipType)
             .addProperty("relationship", relationship)
             .wrapIntoArray("relationships");
@@ -384,7 +393,7 @@ public class RelationshipsTests extends TrackerApiTest {
     trackerImportExportActions.get("/relationships/" + relationship).validate().statusCode(404);
 
     trackerImportExportActions
-        .getTrackedEntity(teis.get(0) + "?fields=relationships")
+        .getTrackedEntity(trackedEntities.get(0) + "?fields=relationships")
         .validate()
         .body("relationships", Matchers.empty());
   }
@@ -395,7 +404,7 @@ public class RelationshipsTests extends TrackerApiTest {
         JsonObjectBuilder.jsonObject()
             .addProperty("relationshipType", relationshipType)
             .addObject("from", relationshipItem("event", events.get(0)))
-            .addObject("to", relationshipItem("trackedEntity", teis.get(0)))
+            .addObject("to", relationshipItem("trackedEntity", trackedEntities.get(0)))
             .wrapIntoArray("relationships");
 
     trackerImportExportActions
@@ -409,7 +418,7 @@ public class RelationshipsTests extends TrackerApiTest {
     JsonObject object =
         JsonObjectBuilder.jsonObject()
             .addProperty("relationshipType", "xLmPUYJX8Ks")
-            .addObject("from", relationshipItem("trackedEntity", "invalid-tei"))
+            .addObject("from", relationshipItem("trackedEntity", "invalid-trackedEntity"))
             .addObject("to", relationshipItem("trackedEntity", "more-invalid"))
             .wrapIntoArray("relationships");
 
@@ -482,8 +491,7 @@ public class RelationshipsTests extends TrackerApiTest {
       String fromTei2,
       String toTei2,
       boolean bidirectional,
-      int expectedCount,
-      String representation) {
+      int expectedCount) {
     // arrange
     String relationshipTypeId =
         relationshipTypeActions
@@ -600,26 +608,12 @@ public class RelationshipsTests extends TrackerApiTest {
 
   private ApiResponse getEntityInRelationship(String toOrFromInstance, String id) {
     String queryParams = "?fields=relationships";
-    switch (toOrFromInstance) {
-      case "trackedEntity":
-        {
-          return trackerImportExportActions.getTrackedEntity(id + queryParams);
-        }
-
-      case "event":
-        {
-          return trackerImportExportActions.getEvent(id + queryParams);
-        }
-
-      case "enrollment":
-        {
-          return trackerImportExportActions.getEnrollment(id + queryParams);
-        }
-      default:
-        {
-          return null;
-        }
-    }
+    return switch (toOrFromInstance) {
+      case "trackedEntity" -> trackerImportExportActions.getTrackedEntity(id + queryParams);
+      case "event" -> trackerImportExportActions.getEvent(id + queryParams);
+      case "enrollment" -> trackerImportExportActions.getEnrollment(id + queryParams);
+      default -> null;
+    };
   }
 
   private void validateRelationship(
@@ -649,10 +643,7 @@ public class RelationshipsTests extends TrackerApiTest {
 
   @AfterEach
   public void cleanup() {
-    createdRelationships.forEach(
-        rel -> {
-          new TestCleanUp().deleteEntity("relationships", rel);
-        });
+    createdRelationships.forEach(rel -> new TestCleanUp().deleteEntity("relationships", rel));
   }
 
   private JsonObjectBuilder relationshipItem(String type, String identifier) {

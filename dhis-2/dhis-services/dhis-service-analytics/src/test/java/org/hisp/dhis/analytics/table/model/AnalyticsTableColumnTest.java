@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,16 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.analytics.table.model;
+
+import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
+import static org.hisp.dhis.db.model.DataType.DOUBLE;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.hisp.dhis.db.model.Collation;
+import org.hisp.dhis.db.model.constraint.Nullable;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  */
-public enum ColumnNotNullConstraint {
-  NULL,
-  NOT_NULL;
+class AnalyticsTableColumnTest {
 
-  public boolean isNotNull() {
-    return this == NOT_NULL;
+  @Test
+  void testIsNotNull() {
+    AnalyticsTableColumn colA =
+        new AnalyticsTableColumn("dx", CHARACTER_11, Nullable.NOT_NULL, "dx");
+    AnalyticsTableColumn colB = new AnalyticsTableColumn("value", DOUBLE, Nullable.NULL, "value");
+
+    assertTrue(colA.isNotNull());
+    assertFalse(colB.isNotNull());
+  }
+
+  @Test
+  void testHasCollation() {
+    AnalyticsTableColumn colA =
+        new AnalyticsTableColumn("dx", CHARACTER_11, Collation.DEFAULT, "dx");
+    AnalyticsTableColumn colB = new AnalyticsTableColumn("ou", CHARACTER_11, Collation.C, "ou");
+    AnalyticsTableColumn colC = new AnalyticsTableColumn("value", DOUBLE, "value");
+
+    assertFalse(colA.hasCollation());
+    assertTrue(colB.hasCollation());
+    assertFalse(colC.hasCollation());
+  }
+
+  @Test
+  void testIsSkipIndex() {
+    AnalyticsTableColumn colA = new AnalyticsTableColumn("value", DOUBLE, "value", Skip.SKIP);
+    AnalyticsTableColumn colB = new AnalyticsTableColumn("ou", CHARACTER_11, "ou", Skip.INCLUDE);
+
+    assertTrue(colA.isSkipIndex());
+    assertFalse(colB.isSkipIndex());
   }
 }

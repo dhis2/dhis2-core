@@ -435,4 +435,52 @@ public class AnalyticsQueryDv10AutoTest extends AnalyticsApiTest {
     validateRow(response, List.of("202208", "6.8"));
     validateRow(response, List.of("202209", "6.2"));
   }
+
+  @Test
+  public void queryWithDifferentValueTypes() throws JSONException {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("skipData=false")
+            .add("includeMetadataDetails=true")
+            .add("includeNumDen=true")
+            .add("displayProperty=NAME")
+            .add("skipMeta=false")
+            .add("relativePeriodDate=2024-01-29")
+            .add(
+                "dimension=dx:Uvn6LCg7dVU;sB79w2hiLp8;YgsAnqU3I7B;PBXQFnb2AOk;tUdBD1JDxpn;uF1DLnZNlWe;ytHQ7rfvIOe;lxAQ7Zs9VYR.sWoqcoByYmD;lxAQ7Zs9VYR.Ok9OQpitjQr,ou:USER_ORGUNIT;USER_ORGUNIT,pe:LAST_6_MONTHS");
+
+    // When
+    ApiResponse response = actions.get(params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(9)))
+        .body("rows", hasSize(equalTo(0)))
+        .body("height", equalTo(0))
+        .body("width", equalTo(0))
+        .body("headerWidth", equalTo(9));
+
+    // Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"ytHQ7rfvIOe\":{\"uid\":\"ytHQ7rfvIOe\",\"aggregationType\":\"COUNT\",\"valueType\":\"NUMBER\",\"name\":\"Malaria test - microscopy 0-4 years female\",\"description\":\"The number of suspected malaria cases tested by Microscopy\",\"dimensionItemType\":\"PROGRAM_INDICATOR\",\"totalAggregationType\":\"SUM\"},\"sB79w2hiLp8\":{\"uid\":\"sB79w2hiLp8\",\"indicatorType\":{\"number\":false,\"displayName\":\"Per cent\",\"name\":\"Per cent\",\"factor\":100},\"valueType\":\"NUMBER\",\"name\":\"ANC 3 Coverage\",\"legendSet\":\"fqs276KXCXi\",\"description\":\"Total 3rd ANC visits (Fixed and outreach) by expected number of pregnant women.\",\"dimensionItemType\":\"INDICATOR\",\"totalAggregationType\":\"AVERAGE\"},\"ou\":{\"uid\":\"ou\",\"dimensionType\":\"ORGANISATION_UNIT\",\"name\":\"Organisation unit\"},\"202309\":{\"uid\":\"202309\",\"code\":\"202309\",\"endDate\":\"2023-09-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"September 2023\",\"startDate\":\"2023-09-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"PBXQFnb2AOk\":{\"uid\":\"PBXQFnb2AOk\",\"aggregationType\":\"SUM\",\"code\":\"DE_374647\",\"valueType\":\"NUMBER\",\"name\":\"Shift to ABC 300mg + ddI 200mg + LPV\\/r 133.3\\/33.3mg\",\"dimensionItemType\":\"DATA_ELEMENT\",\"totalAggregationType\":\"SUM\"},\"202307\":{\"uid\":\"202307\",\"code\":\"202307\",\"endDate\":\"2023-07-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"July 2023\",\"startDate\":\"2023-07-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202308\":{\"uid\":\"202308\",\"code\":\"202308\",\"endDate\":\"2023-08-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"August 2023\",\"startDate\":\"2023-08-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"uF1DLnZNlWe\":{\"uid\":\"uF1DLnZNlWe\",\"aggregationType\":\"SUM\",\"code\":\"DE_1152329\",\"valueType\":\"TEXT\",\"name\":\"Additional notes related to facility\",\"dimensionItemType\":\"DATA_ELEMENT\",\"totalAggregationType\":\"SUM\"},\"202312\":{\"uid\":\"202312\",\"code\":\"202312\",\"endDate\":\"2023-12-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"December 2023\",\"startDate\":\"2023-12-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202310\":{\"uid\":\"202310\",\"code\":\"202310\",\"endDate\":\"2023-10-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"October 2023\",\"startDate\":\"2023-10-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"valueType\":\"TEXT\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"totalAggregationType\":\"SUM\"},\"202311\":{\"uid\":\"202311\",\"code\":\"202311\",\"endDate\":\"2023-11-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"November 2023\",\"startDate\":\"2023-11-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"LAST_6_MONTHS\":{\"name\":\"Last 6 months\"},\"dx\":{\"uid\":\"dx\",\"dimensionType\":\"DATA_X\",\"name\":\"Data\"},\"tUdBD1JDxpn\":{\"uid\":\"tUdBD1JDxpn\",\"aggregationType\":\"AVERAGE\",\"valueType\":\"NUMBER\",\"name\":\"Average age of deaths\",\"dimensionItemType\":\"PROGRAM_INDICATOR\",\"totalAggregationType\":\"SUM\"},\"lxAQ7Zs9VYR.Ok9OQpitjQr\":{\"aggregationType\":\"SUM\",\"valueType\":\"BOOLEAN\",\"name\":\"Antenatal care visit WHOMCH Smoking cessation counselling provided \",\"dimensionItemType\":\"PROGRAM_DATA_ELEMENT\",\"totalAggregationType\":\"SUM\"},\"pe\":{\"uid\":\"pe\",\"dimensionType\":\"PERIOD\",\"name\":\"Period\"},\"Uvn6LCg7dVU\":{\"uid\":\"Uvn6LCg7dVU\",\"code\":\"IN_52486\",\"indicatorType\":{\"number\":false,\"displayName\":\"Per cent\",\"name\":\"Per cent\",\"factor\":100},\"valueType\":\"NUMBER\",\"name\":\"ANC 1 Coverage\",\"legendSet\":\"fqs276KXCXi\",\"description\":\"Total 1st ANC visits (Fixed and outreach) by expected number of pregnant women.\",\"dimensionItemType\":\"INDICATOR\",\"totalAggregationType\":\"AVERAGE\"},\"YgsAnqU3I7B\":{\"uid\":\"YgsAnqU3I7B\",\"aggregationType\":\"SUM\",\"code\":\"DE_374657\",\"valueType\":\"NUMBER\",\"name\":\"Shift to AZT + 3TC + NVP 300mg + 150mg + 200mg\",\"dimensionItemType\":\"DATA_ELEMENT\",\"totalAggregationType\":\"SUM\"},\"HllvX50cXC0\":{\"uid\":\"HllvX50cXC0\",\"code\":\"default\",\"valueType\":\"NUMBER\",\"name\":\"default\",\"totalAggregationType\":\"SUM\"},\"lxAQ7Zs9VYR.sWoqcoByYmD\":{\"aggregationType\":\"SUM\",\"valueType\":\"BOOLEAN\",\"name\":\"Antenatal care visit WHOMCH Smoking\",\"dimensionItemType\":\"PROGRAM_DATA_ELEMENT\",\"totalAggregationType\":\"SUM\"}},\"dimensions\":{\"dx\":[\"Uvn6LCg7dVU\",\"sB79w2hiLp8\",\"YgsAnqU3I7B\",\"PBXQFnb2AOk\",\"tUdBD1JDxpn\",\"uF1DLnZNlWe\",\"ytHQ7rfvIOe\",\"lxAQ7Zs9VYR.sWoqcoByYmD\",\"lxAQ7Zs9VYR.Ok9OQpitjQr\"],\"pe\":[\"202307\",\"202308\",\"202309\",\"202310\",\"202311\",\"202312\"],\"ou\":[\"ImspTQPwCqd\"],\"co\":[\"HllvX50cXC0\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Assert headers.
+    validateHeader(response, 0, "dx", "Data", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 1, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 2, "pe", "Period", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 3, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+    validateHeader(
+        response, 4, "numerator", "Numerator", "NUMBER", "java.lang.Double", false, false);
+    validateHeader(
+        response, 5, "denominator", "Denominator", "NUMBER", "java.lang.Double", false, false);
+    validateHeader(response, 6, "factor", "Factor", "NUMBER", "java.lang.Double", false, false);
+    validateHeader(
+        response, 7, "multiplier", "Multiplier", "NUMBER", "java.lang.Double", false, false);
+    validateHeader(response, 8, "divisor", "Divisor", "NUMBER", "java.lang.Double", false, false);
+  }
 }

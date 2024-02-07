@@ -90,6 +90,21 @@ class ProgramControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
+  void shouldGetProgramLabels() {
+
+    JsonProgram program =
+        GET("/programs/{id}", "PrZMWi7rBga").content(HttpStatus.OK).as(JsonProgram.class);
+
+    assertEquals("enrollmetdatelabel", program.getEnrollmentDateLabel().string());
+    assertEquals("enrollmentlabel", program.getEnrollmentLabel().string());
+    assertEquals("followuplabel", program.getFollowUpLabel().string());
+    assertEquals("orgunitlabel", program.getOrUnitLabel().string());
+    assertEquals("relationshiplabel", program.getRelationshipLabel().string());
+    assertEquals("notelabel", program.getNoteLabel().string());
+    assertEquals("trackedentityattributelabel", program.getTrackedEntityAttributeLabel().string());
+  }
+
+  @Test
   void testProgramValidation_RelatedProgram() {
     // language=JSON
     String json =

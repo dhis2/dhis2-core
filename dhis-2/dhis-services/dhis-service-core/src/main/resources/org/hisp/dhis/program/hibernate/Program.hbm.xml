@@ -29,6 +29,18 @@
 
         <property name="incidentDateLabel" column="incidentdatelabel" type="text"/>
 
+        <property name="enrollmentLabel" column="enrollmentlabel" type="text"/>
+
+        <property name="followUpLabel" column="followuplabel" type="text"/>
+
+        <property name="orgUnitLabel" column="orgunitlabel" type="text"/>
+
+        <property name="relationshipLabel" column="relationshiplabel" type="text"/>
+
+        <property name="noteLabel" column="notelabel" type="text"/>
+
+        <property name="trackedEntityAttributeLabel" column="trackedentityattributelabel" type="text"/>
+
         <set name="programStages" order-by="sortOrder">
             <key column="programid"/>
             <one-to-many class="org.hisp.dhis.program.ProgramStage"/>
