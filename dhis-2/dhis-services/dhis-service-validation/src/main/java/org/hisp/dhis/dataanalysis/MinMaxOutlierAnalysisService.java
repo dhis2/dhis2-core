@@ -29,8 +29,11 @@ package org.hisp.dhis.dataanalysis;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.common.collect.Lists;
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -82,7 +85,7 @@ public class MinMaxOutlierAnalysisService implements MinMaxDataAnalysisService {
 
   @Override
   public List<DeflatedDataValue> analyse(
-      Collection<OrganisationUnit> parents,
+      OrganisationUnit orgUnit,
       Collection<DataElement> dataElements,
       Collection<Period> periods,
       Double stdDevFactor,
@@ -97,32 +100,26 @@ public class MinMaxOutlierAnalysisService implements MinMaxDataAnalysisService {
       categoryOptionCombos.addAll(dataElement.getCategoryOptionCombos());
     }
 
-    log.debug(
-        "Starting min-max analysis, no of data elements: "
-            + elements.size()
-            + ", no of parent org units: "
-            + parents.size());
+    log.debug("Starting min-max analysis, no of data elements: {}", elements.size());
 
     return dataAnalysisStore.getMinMaxViolations(
-        elements, categoryOptionCombos, periods, parents, MAX_OUTLIERS);
+        elements, categoryOptionCombos, periods, orgUnit, MAX_OUTLIERS);
   }
 
   @Override
   public void generateMinMaxValues(
-      OrganisationUnit parent, Collection<DataElement> dataElements, Double stdDevFactor) {
+      OrganisationUnit orgUnit, Collection<DataElement> dataElements, Double stdDevFactor) {
     log.info(
         "Starting min-max value generation, no of data elements: "
             + dataElements.size()
             + ", parent: "
-            + parent.getUid());
+            + orgUnit.getUid());
 
     Date from = new DateTime(1, 1, 1, 1, 1).toDate();
 
-    minMaxDataElementService.removeMinMaxDataElements(dataElements, parent);
+    minMaxDataElementService.removeMinMaxDataElements(dataElements, orgUnit);
 
     log.debug("Deleted existing min-max values");
-
-    List<String> parentPaths = Lists.newArrayList(parent.getPath());
 
     BatchHandler<MinMaxDataElement> batchHandler =
         batchHandlerFactory.createBatchHandler(MinMaxDataElementBatchHandler.class).init();
@@ -133,7 +130,7 @@ public class MinMaxOutlierAnalysisService implements MinMaxDataAnalysisService {
 
         List<DataAnalysisMeasures> measuresList =
             dataAnalysisStore.getDataAnalysisMeasures(
-                dataElement, categoryOptionCombos, parentPaths, from);
+                dataElement, categoryOptionCombos, orgUnit, from);
 
         for (DataAnalysisMeasures measures : measuresList) {
           int min =
@@ -157,14 +154,13 @@ public class MinMaxOutlierAnalysisService implements MinMaxDataAnalysisService {
               break;
           }
 
-          OrganisationUnit orgUnit = new OrganisationUnit();
-          orgUnit.setId(measures.getOrgUnitId());
+          OrganisationUnit ou = new OrganisationUnit();
+          ou.setId(measures.getOrgUnitId());
 
-          CategoryOptionCombo categoryOptionCombo = new CategoryOptionCombo();
-          categoryOptionCombo.setId(measures.getCategoryOptionComboId());
+          CategoryOptionCombo coc = new CategoryOptionCombo();
+          coc.setId(measures.getCategoryOptionComboId());
 
-          batchHandler.addObject(
-              new MinMaxDataElement(dataElement, orgUnit, categoryOptionCombo, min, max, true));
+          batchHandler.addObject(new MinMaxDataElement(dataElement, ou, coc, min, max, true));
         }
       }
     }

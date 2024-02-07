@@ -27,9 +27,10 @@
  */
 package org.hisp.dhis.dataanalysis;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -191,9 +192,7 @@ class StdDevOutlierAnalysisServiceTest extends SingleSetupIntegrationTestBase {
     periods.add(periodE);
     List<DeflatedDataValue> values =
         stdDevOutlierAnalysisService.analyse(
-            Lists.newArrayList(organisationUnitA), dataElementsA, periods, stdDevFactor, from);
-    double lowerBound = -34.51 * stdDevFactor;
-    double upperBound = 34.51 * stdDevFactor;
+            organisationUnitA, dataElementsA, periods, stdDevFactor, from);
     DeflatedDataValue valueA = new DeflatedDataValue(dataValueA);
     DeflatedDataValue valueB = new DeflatedDataValue(dataValueB);
     assertEquals(1, values.size());
