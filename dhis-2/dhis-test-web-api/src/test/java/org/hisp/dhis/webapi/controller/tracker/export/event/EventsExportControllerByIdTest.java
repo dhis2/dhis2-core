@@ -28,15 +28,13 @@
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.web.WebClient.Header;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasOnlyMembers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 import java.util.Date;
 import java.util.List;
@@ -79,7 +77,6 @@ import org.hisp.dhis.webapi.controller.tracker.JsonRelationshipItem;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.util.NestedServletException;
 
 class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
   private static final String DATA_ELEMENT_VALUE = "value";
@@ -358,16 +355,18 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
             de.getUid());
 
     assertEquals(HttpStatus.OK, response.status());
-    assertEquals("file content", response.content("text/plain"));
-    assertEquals("attachment; filename=" + file.getName(), response.header("Content-Disposition"));
+    assertEquals("\"" + file.getContentMd5() + "\"", response.header("Etag"));
+    assertEquals("max-age=0, must-revalidate, private", response.header("Cache-Control"));
     assertEquals(Long.toString(file.getContentLength()), response.header("Content-Length"));
+    assertEquals("attachment; filename=" + file.getName(), response.header("Content-Disposition"));
+    assertEquals("file content", response.content("text/plain"));
   }
 
   @Test
   void getDataValuesFileByDataElementIfFileIsAnImage() throws ConflictException {
     Event event = event(enrollment(trackedEntity()));
     DataElement de = dataElement(ValueType.IMAGE);
-    FileResource file = storeFile("img/png", "file content");
+    FileResource file = storeFile("image/png", "file content");
 
     event.getEventDataValues().add(dataValue(de, file.getUid()));
     manager.update(event);
@@ -379,9 +378,33 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
             de.getUid());
 
     assertEquals(HttpStatus.OK, response.status());
-    assertEquals("file content", response.content("img/png"));
+    assertEquals("\"" + file.getContentMd5() + "\"", response.header("Etag"));
+    assertEquals("max-age=0, must-revalidate, private", response.header("Cache-Control"));
     assertEquals("attachment; filename=" + file.getName(), response.header("Content-Disposition"));
     assertEquals(Long.toString(file.getContentLength()), response.header("Content-Length"));
+    assertEquals("file content", response.content("image/png"));
+  }
+
+  @Test
+  void getDataValuesFileByDataElementShouldReturnNotModified() throws ConflictException {
+    DataElement de = dataElement(ValueType.FILE_RESOURCE);
+    FileResource file = storeFile("text/plain", "file content");
+
+    Event event = event(enrollment(trackedEntity()));
+    event.getEventDataValues().add(dataValue(de, file.getUid()));
+    manager.update(event);
+
+    HttpResponse response =
+        GET(
+            "/tracker/events/{eventUid}/dataValues/{dataElementUid}/file",
+            event.getUid(),
+            de.getUid(),
+            Header("If-None-Match", "\"" + file.getContentMd5() + "\""));
+
+    assertEquals(HttpStatus.NOT_MODIFIED, response.status());
+    assertEquals("\"" + file.getContentMd5() + "\"", response.header("Etag"));
+    assertEquals("max-age=0, must-revalidate, private", response.header("Cache-Control"));
+    assertFalse(response.hasBody());
   }
 
   @Test
@@ -459,19 +482,8 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
     event.getEventDataValues().add(dataValue(de, file.getUid()));
     manager.update(event);
 
-    // We cannot use the usual approach to test status codes as we need to write HTTP headers before
-    // writing the body. Throwing an exception after writing headers leads to a
-    // NestedServletException which we have to catch.
-    NestedServletException exception =
-        assertThrows(
-            NestedServletException.class,
-            () ->
-                mvc.perform(
-                    get(
-                        "/tracker/events/{eventUid}/dataValues/{dataElementUid}/file",
-                        event.getUid(),
-                        de.getUid())));
-    assertInstanceOf(ConflictException.class, exception.getCause());
+    GET("/tracker/events/{eventUid}/dataValues/{dataElementUid}/file", event.getUid(), de.getUid())
+        .error(HttpStatus.CONFLICT);
   }
 
   @Test
