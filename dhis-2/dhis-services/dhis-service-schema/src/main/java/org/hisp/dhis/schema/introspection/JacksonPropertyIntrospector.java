@@ -32,6 +32,10 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.system.util.AnnotationUtils.getAnnotation;
 import static org.hisp.dhis.system.util.AnnotationUtils.isAnnotationPresent;
+import static org.hisp.dhis.system.util.ReflectionUtils.findFields;
+import static org.hisp.dhis.system.util.ReflectionUtils.findGetterMethod;
+import static org.hisp.dhis.system.util.ReflectionUtils.findSetterMethod;
+import static org.springframework.core.annotation.AnnotationUtils.findAnnotation;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
@@ -65,7 +69,6 @@ import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.util.ReflectionUtils;
-import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -308,8 +311,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector {
       return Collections.emptyList();
     }
 
-    List<Field> fields =
-        ReflectionUtils.findFields(klass, f -> f.isAnnotationPresent(JsonProperty.class));
+    List<Field> fields = findFields(klass, f -> f.isAnnotationPresent(JsonProperty.class));
 
     Map<String, Property> propertyMap = new HashMap<>();
 
@@ -327,8 +329,8 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector {
 
       property.setName(name);
       property.setFieldName(fieldName);
-      property.setSetterMethod(ReflectionUtils.findSetterMethod(fieldName, klass));
-      property.setGetterMethod(ReflectionUtils.findGetterMethod(fieldName, klass));
+      property.setSetterMethod(findSetterMethod(fieldName, klass));
+      property.setGetterMethod(findGetterMethod(fieldName, klass));
       property.setNamespace(trimToNull(jsonProperty.namespace()));
 
       propertyMap.put(name, property);
@@ -337,10 +339,10 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector {
     List<Method> methods =
         Stream.of(klass.getMethods())
             .filter(m -> m.getParameterCount() == 0)
-            .filter(m -> m.isAnnotationPresent(JsonProperty.class))
+            .filter(m -> getAnnotation(m, JsonProperty.class) != null)
             .toList();
     for (var method : methods) {
-      JsonProperty jsonProperty = AnnotationUtils.findAnnotation(method, JsonProperty.class);
+      JsonProperty jsonProperty = findAnnotation(method, JsonProperty.class);
 
       String fieldName = ReflectionUtils.getFieldName(method);
       String name =
@@ -358,7 +360,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector {
       property.setName(name);
       property.setFieldName(fieldName);
       property.setNamespace(trimToNull(jsonProperty.namespace()));
-      property.setSetterMethod(ReflectionUtils.findSetterMethod(fieldName, klass));
+      property.setSetterMethod(findSetterMethod(fieldName, klass));
 
       propertyMap.put(name, property);
     }
