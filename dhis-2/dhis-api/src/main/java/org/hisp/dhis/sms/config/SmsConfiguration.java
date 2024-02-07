@@ -27,42 +27,23 @@
  */
 package org.hisp.dhis.sms.config;
 
-import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.bind.annotation.XmlRootElement;
-import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /** Serializable configuration object for Sms. */
+@Setter
+@Getter
+@NoArgsConstructor
 @XmlRootElement(name = "smsConfiguration")
 public class SmsConfiguration implements Serializable {
-  private static final long serialVersionUID = 7460688383539123303L;
+  @Serial private static final long serialVersionUID = 7460688383539123303L;
 
-  private List<SmsGatewayConfig> gateways = new ArrayList<>();
-
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
-
-  public SmsConfiguration() {
-    this.gateways = new ArrayList<>();
-  }
-
-  public SmsConfiguration(boolean enabled) {
-    this.gateways = new ArrayList<>();
-  }
-
-  // -------------------------------------------------------------------------
-  // Getter && Setter
-  // -------------------------------------------------------------------------
-
-  @JsonView(SmsConfigurationViews.Public.class)
-  public List<SmsGatewayConfig> getGateways() {
-    return gateways;
-  }
-
-  public void setGateways(List<SmsGatewayConfig> gateways) {
-    this.gateways = gateways;
-  }
+  @JsonProperty private List<SmsGatewayConfig> gateways = new ArrayList<>();
 }
