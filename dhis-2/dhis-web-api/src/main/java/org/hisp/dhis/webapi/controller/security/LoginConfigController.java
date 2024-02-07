@@ -39,17 +39,16 @@ import org.hisp.dhis.security.LoginConfigResponse.LoginConfigResponseBuilder;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @OpenApi.Tags({"login"})
-@Controller
+@RestController
 @RequestMapping("/loginConfig")
 @RequiredArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
@@ -94,7 +93,7 @@ public class LoginConfigController {
   }
 
   @GetMapping()
-  public @ResponseBody LoginConfigResponse getConfig(
+  public LoginConfigResponse getConfig(
       @RequestParam(required = false, defaultValue = "en") String locale) {
     LoginConfigResponseBuilder builder = LoginConfigResponse.builder();
 
