@@ -252,27 +252,30 @@ public class ReflectionUtils {
     if (target == null || !StringUtils.hasLength(fieldName)) {
       return null;
     }
+    String property = StringUtils.uncapitalize(fieldName);
+    Field field = _findField(target, property);
+    if (field == null) return null;
+    return findSetterMethod(field.getName(), target, field.getType());
+  }
+
+  public static Method findSetterMethod(String fieldName, Class<?> target, Class<?> type) {
+    if (target == null || !StringUtils.hasLength(fieldName)) {
+      return null;
+    }
 
     final String[] setterNames = new String[] {"set"};
 
     String property = StringUtils.uncapitalize(fieldName);
-    Field field = _findField(target, property);
-    Method method;
+    for (String setterName : setterNames) {
+      Method method = _findMethod(target, setterName + StringUtils.capitalize(property), type);
 
-    if (field != null) {
-      for (String setterName : setterNames) {
-        method =
-            _findMethod(
-                target, setterName + StringUtils.capitalize(field.getName()), field.getType());
-
-        if (method != null) {
-          return method;
-        }
+      if (method != null) {
+        return method;
       }
-      if (property.matches("(?:is|has|get)[A-Z].*"))
-        return _findMethod(
-            target, "set" + property.substring(property.startsWith("is") ? 2 : 3), field.getType());
     }
+    if (property.matches("(?:is|has|get)[A-Z].*"))
+      return _findMethod(
+          target, "set" + property.substring(property.startsWith("is") ? 2 : 3), type);
 
     return null;
   }

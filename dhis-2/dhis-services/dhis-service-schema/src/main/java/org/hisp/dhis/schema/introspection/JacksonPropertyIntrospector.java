@@ -329,7 +329,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector {
 
       property.setName(name);
       property.setFieldName(fieldName);
-      property.setSetterMethod(findSetterMethod(fieldName, klass));
+      property.setSetterMethod(findSetterMethod(fieldName, klass, field.getType()));
       property.setGetterMethod(findGetterMethod(fieldName, klass));
       property.setNamespace(trimToNull(jsonProperty.namespace()));
 
@@ -353,13 +353,14 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector {
         continue;
       }
 
-      Property property = new Property(method.getReturnType(), method, null);
+      Class<?> type = method.getReturnType();
+      Property property = new Property(type, method, null);
       property.setAnnotations(getAnnotations(method.getAnnotations()));
 
       property.setName(name);
       property.setFieldName(fieldName);
       property.setNamespace(trimToNull(jsonProperty.namespace()));
-      property.setSetterMethod(findSetterMethod(fieldName, klass));
+      property.setSetterMethod(findSetterMethod(fieldName, klass, type));
 
       propertyMap.put(name, property);
     }
