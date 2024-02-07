@@ -83,9 +83,7 @@ public interface AnalyticsTableManager {
    *
    * @param tables tables to pick partitions from
    */
-  default void removeUpdatedData(List<AnalyticsTable> tables) {
-    // NOOP by default
-  }
+  default void removeUpdatedData(List<AnalyticsTable> tables) {}
 
   /**
    * Attempts to drop and then create analytics table.
@@ -145,23 +143,23 @@ public interface AnalyticsTableManager {
   /**
    * Drops the given table and all potential partitions.
    *
-   * @param tableName the table name.
+   * @param name the table name.
    */
-  void dropTableCascade(String tableName);
+  void dropTable(String name);
 
   /**
    * Performs an analyze operation on the given table.
    *
-   * @param tableName the table name.
+   * @param name the table name.
    */
-  void analyzeTable(String tableName);
+  void analyzeTable(String name);
 
   /**
    * Performs a vacuum operation on the given table.
    *
-   * @param tableName the table name.
+   * @param name the table name.
    */
-  void vacuumTable(String tableName);
+  void vacuumTable(String name);
 
   /**
    * Applies aggregation level logic to the analytics table.

@@ -27,14 +27,12 @@
  */
 package org.hisp.dhis.analytics.table.model;
 
-import static org.hisp.dhis.db.model.Table.fromStaging;
-import static org.hisp.dhis.db.model.Table.toStaging;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.model.Table;
 
 /**
  * Class representing an analytics database table partition.
@@ -42,18 +40,11 @@ import lombok.Getter;
  * @author Lars Helge Overland
  */
 @Getter
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class AnalyticsTablePartition {
+public class AnalyticsTablePartition extends Table {
   public static final Integer LATEST_PARTITION = 0;
-
-  /** Table name. */
-  @EqualsAndHashCode.Include private final String name;
 
   /** The master analytics table for this partition. */
   private final AnalyticsTable masterTable;
-
-  /** Table partition checks. */
-  private final List<String> checks;
 
   /**
    * The year for which this partition may contain data, where 0 indicates the "latest" data stored
@@ -77,10 +68,15 @@ public class AnalyticsTablePartition {
    * @param endDate the end date of data for this partition.
    */
   public AnalyticsTablePartition(
-      AnalyticsTable parent, List<String> checks, Integer year, Date startDate, Date endDate) {
-    this.name = toStaging(getTableName(parent.getMainName(), year));
-    this.masterTable = parent;
-    this.checks = checks;
+      AnalyticsTable masterTable, List<String> checks, Integer year, Date startDate, Date endDate) {
+    super(
+        toStaging(getTableName(masterTable.getMainName(), year)),
+        List.of(),
+        List.of(),
+        checks,
+        Logged.LOGGED,
+        masterTable);
+    this.masterTable = masterTable;
     this.year = year;
     this.startDate = startDate;
     this.endDate = endDate;
@@ -117,16 +113,7 @@ public class AnalyticsTablePartition {
    * @return the main table partition name.
    */
   public String getMainName() {
-    return fromStaging(name);
-  }
-
-  /**
-   * Indicates whether at least one check exists.
-   *
-   * @return true if at least one check exists.
-   */
-  public boolean hasChecks() {
-    return !checks.isEmpty();
+    return fromStaging(getName());
   }
 
   /**
@@ -139,7 +126,18 @@ public class AnalyticsTablePartition {
   }
 
   @Override
-  public String toString() {
-    return name;
+  public int hashCode() {
+    return super.hashCode();
+  }
+
+  @Override
+  public boolean equals(Object object) {
+    if (this == object) {
+      return true;
+    }
+    if (object != null && getClass() != object.getClass()) {
+      return false;
+    }
+    return super.equals(object);
   }
 }
