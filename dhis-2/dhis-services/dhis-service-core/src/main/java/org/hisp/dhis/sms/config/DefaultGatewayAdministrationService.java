@@ -33,6 +33,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
@@ -115,7 +116,8 @@ public class DefaultGatewayAdministrationService implements GatewayAdministratio
 
   @Override
   @IndirectTransactional
-  public void updateGateway(SmsGatewayConfig persisted, SmsGatewayConfig updated)
+  public void updateGateway(
+      @CheckForNull SmsGatewayConfig persisted, @CheckForNull SmsGatewayConfig updated)
       throws NotFoundException, ConflictException {
     if (persisted == null) throw new NotFoundException(SmsGatewayConfig.class, updated.getUid());
     if (updated == null) throw new ConflictException("Gateway configuration cannot be null");

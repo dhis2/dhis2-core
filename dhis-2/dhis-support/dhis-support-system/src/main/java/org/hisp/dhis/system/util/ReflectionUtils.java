@@ -447,6 +447,10 @@ public class ReflectionUtils {
     return getAllFields(klass).stream().filter(predicate).collect(Collectors.toList());
   }
 
+  public static List<Method> findMethods(Class<?> klass, Predicate<Method> predicate) {
+    return getMethods(klass).stream().filter(predicate).collect(Collectors.toList());
+  }
+
   public static String getFieldName(Method method) {
     String name = method.getName();
 

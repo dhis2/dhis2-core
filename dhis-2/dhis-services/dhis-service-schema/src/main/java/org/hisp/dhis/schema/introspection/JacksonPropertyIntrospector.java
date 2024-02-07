@@ -34,6 +34,7 @@ import static org.hisp.dhis.system.util.AnnotationUtils.getAnnotation;
 import static org.hisp.dhis.system.util.AnnotationUtils.isAnnotationPresent;
 import static org.hisp.dhis.system.util.ReflectionUtils.findFields;
 import static org.hisp.dhis.system.util.ReflectionUtils.findGetterMethod;
+import static org.hisp.dhis.system.util.ReflectionUtils.findMethods;
 import static org.hisp.dhis.system.util.ReflectionUtils.findSetterMethod;
 import static org.springframework.core.annotation.AnnotationUtils.findAnnotation;
 
@@ -59,7 +60,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.EmbeddedObject;
@@ -337,8 +337,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector {
     }
 
     List<Method> methods =
-        Stream.of(klass.getMethods())
-            .filter(m -> m.getParameterCount() == 0)
+        findMethods(klass, m -> m.getParameterCount() == 0).stream()
             .filter(m -> getAnnotation(m, JsonProperty.class) != null)
             .toList();
     for (var method : methods) {
