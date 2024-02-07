@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.dataanalysis;
 
-import static java.util.Collections.emptyList;
 import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
 
 import java.util.Collection;
@@ -75,12 +74,12 @@ public class DefaultFollowupAnalysisService implements FollowupAnalysisService {
   @Override
   @Transactional(readOnly = true)
   public List<DeflatedDataValue> getFollowupDataValues(
-      Collection<OrganisationUnit> parents,
+      OrganisationUnit orgUnit,
       Collection<DataElement> dataElements,
       Collection<Period> periods,
       int limit) {
-    if (parents == null || parents.isEmpty() || limit < 1) {
-      return emptyList();
+    if (orgUnit == null || limit < 1) {
+      return List.of();
     }
 
     Set<DataElement> elements =
@@ -94,14 +93,10 @@ public class DefaultFollowupAnalysisService implements FollowupAnalysisService {
       categoryOptionCombos.addAll(dataElement.getCategoryOptionCombos());
     }
 
-    log.debug(
-        "Starting min-max analysis, no of data elements: "
-            + elements.size()
-            + ", no of parent org units: "
-            + parents.size());
+    log.debug("Starting min-max analysis, no of data elements: {}", elements.size());
 
     return dataAnalysisStore.getFollowupDataValues(
-        elements, categoryOptionCombos, periods, parents, limit);
+        elements, categoryOptionCombos, periods, orgUnit, limit);
   }
 
   @Override

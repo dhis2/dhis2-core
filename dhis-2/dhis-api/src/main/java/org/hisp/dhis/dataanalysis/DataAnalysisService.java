@@ -44,7 +44,7 @@ public interface DataAnalysisService {
   int MAX_OUTLIERS = 500;
 
   List<DeflatedDataValue> analyse(
-      Collection<OrganisationUnit> organisationUnits,
+      OrganisationUnit orgUnit,
       Collection<DataElement> dataElements,
       Collection<Period> periods,
       Double stdDevFactor,
