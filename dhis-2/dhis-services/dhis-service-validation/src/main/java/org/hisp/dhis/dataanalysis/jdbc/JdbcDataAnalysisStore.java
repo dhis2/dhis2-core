@@ -70,22 +70,16 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore {
   public List<DataAnalysisMeasures> getDataAnalysisMeasures(
       DataElement dataElement,
       Collection<CategoryOptionCombo> categoryOptionCombos,
-      Collection<String> parentPaths,
+      OrganisationUnit orgUnit,
       Date from) {
     List<DataAnalysisMeasures> measures = new ArrayList<>();
 
-    if (categoryOptionCombos.isEmpty() || parentPaths.isEmpty()) {
+    if (categoryOptionCombos.isEmpty() || orgUnit == null) {
       return measures;
     }
 
     String catOptionComboIds =
         TextUtils.getCommaDelimitedString(getIdentifiers(categoryOptionCombos));
-
-    String matchPaths = "(";
-    for (String path : parentPaths) {
-      matchPaths += "ou.path like '" + path + "%' or ";
-    }
-    matchPaths = TextUtils.removeLastOr(matchPaths) + ") ";
 
     String sql =
         "select dv.sourceid, dv.categoryoptioncomboid, "
@@ -103,10 +97,11 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore {
             + "and pe.startdate >= '"
             + DateUtils.getMediumDateString(from)
             + "' "
-            + "and "
-            + matchPaths
+            + "and dv.sourceid = "
+            + orgUnit.getId()
+            + " "
             + "and dv.deleted is false "
-            + "group by dv.sourceid, dv.categoryoptioncomboid";
+            + "group by dv.sourceid, dv.categoryoptioncomboid;";
 
     SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
 
@@ -129,12 +124,12 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore {
       Collection<DataElement> dataElements,
       Collection<CategoryOptionCombo> categoryOptionCombos,
       Collection<Period> periods,
-      Collection<OrganisationUnit> parents,
+      OrganisationUnit orgUnit,
       int limit) {
     if (dataElements.isEmpty()
         || categoryOptionCombos.isEmpty()
         || periods.isEmpty()
-        || parents.isEmpty()) {
+        || orgUnit == null) {
       return new ArrayList<>();
     }
 
@@ -165,19 +160,16 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore {
             + "and dv.periodid in ("
             + periodIds
             + ") "
+            + "and dv.sourceid = "
+            + orgUnit.getId()
+            + " "
             + "and ("
             + "cast(dv.value as double precision) < mm.minimumvalue "
             + "or cast(dv.value as double precision) > mm.maximumvalue) "
-            + "and (";
-
-    for (OrganisationUnit parent : parents) {
-      sql += "ou.path like '" + parent.getPath() + "%' or ";
-    }
-
-    sql = TextUtils.removeLastOr(sql) + ") ";
-    sql += "and dv.deleted is false ";
-
-    sql += "limit " + limit;
+            + "and dv.deleted is false "
+            + "limit "
+            + limit
+            + ";";
 
     return jdbcTemplate.query(sql, new DeflatedDataValueNameMinMaxRowMapper(null, null));
   }
@@ -269,12 +261,12 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore {
       Collection<DataElement> dataElements,
       Collection<CategoryOptionCombo> categoryOptionCombos,
       Collection<Period> periods,
-      Collection<OrganisationUnit> parents,
+      OrganisationUnit orgUnit,
       int limit) {
     if (dataElements.isEmpty()
         || categoryOptionCombos.isEmpty()
         || periods.isEmpty()
-        || parents.isEmpty()) {
+        || orgUnit == null) {
       return new ArrayList<>();
     }
 
@@ -305,16 +297,13 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore {
             + "and dv.periodid in ("
             + periodIds
             + ") "
-            + "and (";
-
-    for (OrganisationUnit parent : parents) {
-      sql += "ou.path like '" + parent.getPath() + "%' or ";
-    }
-
-    sql = TextUtils.removeLastOr(sql) + ") ";
-    sql += "and dv.followup = true and dv.deleted is false ";
-
-    sql += "limit " + limit;
+            + "and dv.sourceid = "
+            + orgUnit.getId()
+            + " "
+            + "and dv.followup = true and dv.deleted is false "
+            + "limit "
+            + limit
+            + ";";
 
     return jdbcTemplate.query(sql, new DeflatedDataValueNameMinMaxRowMapper(null, null));
   }

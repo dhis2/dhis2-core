@@ -29,7 +29,6 @@ package org.hisp.dhis.dataanalysis;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -185,8 +184,7 @@ class MinMaxOutlierAnalysisServiceTest extends IntegrationTestBase {
     periods.add(periodA);
     periods.add(periodE);
     List<DeflatedDataValue> result =
-        minMaxOutlierAnalysisService.analyse(
-            Lists.newArrayList(organisationUnitA), dataElementsA, periods, null, from);
+        minMaxOutlierAnalysisService.analyse(organisationUnitA, dataElementsA, periods, null, from);
     assertEquals(2, result.size());
   }
 }

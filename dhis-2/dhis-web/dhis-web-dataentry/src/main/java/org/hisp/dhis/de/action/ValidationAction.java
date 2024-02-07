@@ -27,10 +27,12 @@
  */
 package org.hisp.dhis.de.action;
 
-import com.google.common.collect.Sets;
-import com.opensymphony.xwork2.Action;
-import java.util.*;
-import lombok.extern.slf4j.Slf4j;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataanalysis.DataAnalysisService;
@@ -50,6 +52,9 @@ import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationService;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.google.common.collect.Sets;
+import com.opensymphony.xwork2.Action;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Margrethe Store
@@ -213,7 +218,7 @@ public class ValidationAction implements Action {
       List<DeflatedDataValue> values =
           new ArrayList<>(
               minMaxOutlierAnalysisService.analyse(
-                  Sets.newHashSet(organisationUnit),
+                  organisationUnit,
                   dataSet.getDataElements(),
                   Sets.newHashSet(period),
                   null,
