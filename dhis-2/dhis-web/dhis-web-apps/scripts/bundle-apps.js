@@ -1,5 +1,5 @@
 /**
- * deps
+ * Dependencies
  */
 
 const { promisify } = require('util')
@@ -8,26 +8,19 @@ const access = promisify(require('fs').access)
 const mkdir = promisify(require('fs').mkdir)
 
 const { clone_app, get_sha } = require('./git.js')
+const get_zip = require('./get-zip.js');
 const generate_index = require('./write-index-html.js')
 const generate_struts = require('./write-struts-xml.js')
 const generate_bundle = require('./write-bundle-json.js')
 
-
-
-
-
 /**
  * setup
  */
-
 const root = process.cwd()
 const apps = require(path.join(root, process.env.APPS))
 const artifact = process.env.ARTIFACT_ID
 const build_dir = process.env.BUILD_DIR
 const default_branch = process.env.DEFAULT_BRANCH
-
-
-
 
 /**
  * functions
@@ -64,9 +57,16 @@ async function main(opts = {}) {
     }
 
     const new_apps = []
-    for (const app of apps) {
-        const promise = clone_app(app, path.join(build_dir, artifact), default_branch)
-        new_apps.push(promise)
+    for (const appUrl of apps) {
+        if (appUrl.endsWith('.zip')) {
+            const extractPath = path.join(build_dir, artifact)
+            // Use get_zip and wrap it with a promise
+            const extractPromise = get_zip(appUrl, extractPath);
+            new_apps.push(extractPromise);
+        } else {
+            const promise = clone_app(appUrl, path.join(build_dir, artifact), default_branch);
+            new_apps.push(promise)
+        }
     }
 
     const final = await Promise.all(new_apps)
@@ -79,14 +79,9 @@ async function main(opts = {}) {
     await generate_bundle(final, bundle_path)
 }
 
-
-
-
-
 /**
  * start it
  */
-
 main({
     apps,
     artifact,
