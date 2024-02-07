@@ -50,7 +50,7 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.tracker.export.File;
+import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -83,7 +83,7 @@ class DefaultEventService implements EventService {
   private final EventOperationParamsMapper paramsMapper;
 
   @Override
-  public File getFileResource(UID eventUid, UID dataElementUid)
+  public FileResourceStream getFileResource(UID eventUid, UID dataElementUid)
       throws NotFoundException, ForbiddenException, ConflictException {
     Event event = eventService.getEvent(eventUid.getValue());
     if (event == null) {
@@ -126,7 +126,7 @@ class DefaultEventService implements EventService {
     // to retrieve the file
     FileResource fileResource = fileResourceService.getExistingFileResource(fileResourceUid);
 
-    return new File(
+    return new FileResourceStream(
         fileResource,
         () -> {
           try {

@@ -62,7 +62,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.tracker.export.File;
+import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventParams;
@@ -304,7 +304,7 @@ class EventsExportController {
       @OpenApi.Param({UID.class, DataElement.class}) @PathVariable UID dataElement,
       HttpServletRequest request)
       throws ForbiddenException, NotFoundException, ConflictException {
-    File file = eventService.getFileResource(event, dataElement);
+    FileResourceStream file = eventService.getFileResource(event, dataElement);
     FileResource fileResource = file.fileResource();
 
     final String etag = fileResource.getContentMd5();

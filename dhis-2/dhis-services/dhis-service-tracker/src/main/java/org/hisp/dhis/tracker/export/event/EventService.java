@@ -35,7 +35,7 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.tracker.export.File;
+import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 
@@ -44,7 +44,7 @@ import org.hisp.dhis.tracker.export.PageParams;
  */
 public interface EventService {
   /** Get a file for an events' data element. */
-  File getFileResource(UID event, UID dataElement)
+  FileResourceStream getFileResource(UID event, UID dataElement)
       throws NotFoundException, ForbiddenException, ConflictException;
 
   /** Get event matching given {@code UID} and params. */
