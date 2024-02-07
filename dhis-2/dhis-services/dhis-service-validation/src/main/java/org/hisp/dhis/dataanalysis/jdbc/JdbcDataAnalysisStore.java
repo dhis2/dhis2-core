@@ -72,11 +72,11 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore {
       Collection<CategoryOptionCombo> categoryOptionCombos,
       OrganisationUnit orgUnit,
       Date from) {
-    List<DataAnalysisMeasures> measures = new ArrayList<>();
-
-    if (categoryOptionCombos.isEmpty() || orgUnit == null) {
-      return measures;
+    if (categoryOptionCombos.isEmpty() || dataElement == null || orgUnit == null) {
+      return List.of();
     }
+
+    List<DataAnalysisMeasures> measures = new ArrayList<>();
 
     String catOptionComboIds =
         TextUtils.getCommaDelimitedString(getIdentifiers(categoryOptionCombos));
@@ -129,7 +129,7 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore {
         || categoryOptionCombos.isEmpty()
         || periods.isEmpty()
         || orgUnit == null) {
-      return new ArrayList<>();
+      return List.of();
     }
 
     String dataElementIds = getCommaDelimitedString(getIdentifiers(dataElements));
@@ -181,7 +181,7 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore {
       Map<Long, Integer> lowerBoundMap,
       Map<Long, Integer> upperBoundMap) {
     if (lowerBoundMap == null || lowerBoundMap.isEmpty() || periods.isEmpty()) {
-      return new ArrayList<>();
+      return List.of();
     }
 
     List<List<Long>> organisationUnitPages =
@@ -266,7 +266,7 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore {
         || categoryOptionCombos.isEmpty()
         || periods.isEmpty()
         || orgUnit == null) {
-      return new ArrayList<>();
+      return List.of();
     }
 
     String dataElementIds = getCommaDelimitedString(getIdentifiers(dataElements));
