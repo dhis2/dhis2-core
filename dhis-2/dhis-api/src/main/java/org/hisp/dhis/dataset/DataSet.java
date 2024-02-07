@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dataset;
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.util.DateUtils.addDays;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -351,7 +352,7 @@ public class DataSet extends BaseDimensionalItemObject
   }
 
   public boolean hasSections() {
-    return sections != null && sections.size() > 0;
+    return isNotEmpty(sections);
   }
 
   /**
