@@ -86,7 +86,6 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore {
             + "avg(cast(dv.value as double precision)) as average, "
             + "stddev_pop(cast(dv.value as double precision)) as standarddeviation "
             + "from datavalue dv "
-            + "inner join organisationunit ou on ou.organisationunitid = dv.sourceid "
             + "inner join period pe on dv.periodid = pe.periodid "
             + "where dv.dataelementid = "
             + dataElement.getId()
