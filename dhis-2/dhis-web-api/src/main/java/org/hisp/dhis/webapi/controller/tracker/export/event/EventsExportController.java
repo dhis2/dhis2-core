@@ -44,10 +44,8 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_TEXT_CSV;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import javax.servlet.http.HttpServletRequest;
@@ -64,7 +62,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.tracker.export.File;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventParams;
@@ -82,16 +80,15 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 @OpenApi.EntityType(Event.class)
 @OpenApi.Tags("tracker")
-@Controller
+@RestController
 @RequestMapping(value = RESOURCE_PATH + "/" + EventsExportController.EVENTS)
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @OpenApi.Ignore
@@ -112,8 +109,6 @@ class EventsExportController {
 
   private final ObjectMapper objectMapper;
 
-  private final FileResourceService fileResourceService;
-
   private final DhisConfigurationProvider dhisConfig;
 
   public EventsExportController(
@@ -123,7 +118,6 @@ class EventsExportController {
       FieldFilterService fieldFilterService,
       EventFieldsParamMapper eventsMapper,
       ObjectMapper objectMapper,
-      FileResourceService fileResourceService,
       DhisConfigurationProvider dhisConfig) {
     this.eventService = eventService;
     this.eventParamsMapper = eventParamsMapper;
@@ -131,7 +125,6 @@ class EventsExportController {
     this.fieldFilterService = fieldFilterService;
     this.eventsMapper = eventsMapper;
     this.objectMapper = objectMapper;
-    this.fileResourceService = fileResourceService;
     this.dhisConfig = dhisConfig;
 
     assertUserOrderableFieldsAreSupported(
@@ -140,7 +133,6 @@ class EventsExportController {
 
   @OpenApi.Response(status = Status.OK, value = Page.class)
   @GetMapping(produces = "application/json")
-  @ResponseBody
   Page<ObjectNode> getEvents(EventRequestParams requestParams)
       throws BadRequestException, ForbiddenException {
     validatePaginationParameters(requestParams);
@@ -169,7 +161,6 @@ class EventsExportController {
   }
 
   @GetMapping(produces = CONTENT_TYPE_JSON_GZIP)
-  @ResponseBody
   void getEventsAsJsonGzip(EventRequestParams eventRequestParams, HttpServletResponse response)
       throws BadRequestException, IOException, ForbiddenException {
     validatePaginationParameters(eventRequestParams);
@@ -192,7 +183,6 @@ class EventsExportController {
   }
 
   @GetMapping(produces = CONTENT_TYPE_JSON_ZIP)
-  @ResponseBody
   void getEventsAsJsonZip(EventRequestParams eventRequestParams, HttpServletResponse response)
       throws BadRequestException, ForbiddenException, IOException {
     validatePaginationParameters(eventRequestParams);
@@ -218,7 +208,6 @@ class EventsExportController {
   }
 
   @GetMapping(produces = {CONTENT_TYPE_CSV, CONTENT_TYPE_TEXT_CSV})
-  @ResponseBody
   void getEventsAsCsv(
       EventRequestParams eventRequestParams,
       HttpServletResponse response,
@@ -239,7 +228,6 @@ class EventsExportController {
   }
 
   @GetMapping(produces = {CONTENT_TYPE_CSV_GZIP})
-  @ResponseBody
   void getEventsAsCsvGZip(
       EventRequestParams eventRequestParams,
       HttpServletResponse response,
@@ -263,7 +251,6 @@ class EventsExportController {
   }
 
   @GetMapping(produces = {CONTENT_TYPE_CSV_ZIP})
-  @ResponseBody
   void getEventsAsCsvZip(
       EventRequestParams eventRequestParams,
       HttpServletResponse response,
@@ -300,7 +287,6 @@ class EventsExportController {
 
   @OpenApi.Response(OpenApi.EntityType.class)
   @GetMapping("/{uid}")
-  @ResponseBody
   ResponseEntity<ObjectNode> getEventByUid(
       @OpenApi.Param({UID.class, Event.class}) @PathVariable UID uid,
       @OpenApi.Param(value = String[].class) @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM)
@@ -318,8 +304,8 @@ class EventsExportController {
       @OpenApi.Param({UID.class, DataElement.class}) @PathVariable UID dataElement,
       HttpServletRequest request)
       throws ForbiddenException, NotFoundException, ConflictException {
-    // TODO now that I return a stream can I return the stream and fileResource?
-    FileResource fileResource = eventService.getFileResource(event, dataElement);
+    File file = eventService.getFileResource(event, dataElement);
+    FileResource fileResource = file.fileResource();
 
     final String etag = fileResource.getContentMd5();
     if (ResponseEntityUtils.checkNotModified(etag, request)) {
@@ -329,30 +315,15 @@ class EventsExportController {
           .build();
     }
 
-    try {
-      // TODO
-      //    HeaderUtils.setSecurityHeaders(
-      //        response, dhisConfig.getProperty(ConfigurationKey.CSP_HEADER_VALUE));
-      InputStream inputStream = fileResourceService.openContentStream(fileResource);
-      return ResponseEntity.ok()
-          .cacheControl(CacheControl.maxAge(0, TimeUnit.SECONDS).cachePrivate().mustRevalidate())
-          .eTag(etag)
-          .contentType(MediaType.valueOf(fileResource.getContentType()))
-          .contentLength(fileResource.getContentLength())
-          .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileResource.getName())
-          .body(new InputStreamResource(inputStream));
-
-    } catch (NoSuchElementException e) {
-      // Note: we are assuming that the file resource is not available yet. The same approach is
-      // taken in other file endpoints or code relying on the storageStatus = PENDING. All we know
-      // for sure is the file resource is in the DB but not in the store.
-      throw new ConflictException(
-          "The content is being processed and is not available yet. Try again later.");
-    } catch (IOException e) {
-      throw new ConflictException(
-          "Failed fetching the file from storage",
-          "There was an exception when trying to fetch the file from the storage backend. "
-              + "Depending on the provider the root cause could be network or file system related.");
-    }
+    // TODO
+    //    HeaderUtils.setSecurityHeaders(
+    //        response, dhisConfig.getProperty(ConfigurationKey.CSP_HEADER_VALUE));
+    return ResponseEntity.ok()
+        .cacheControl(CacheControl.maxAge(0, TimeUnit.SECONDS).cachePrivate().mustRevalidate())
+        .eTag(etag)
+        .contentType(MediaType.valueOf(fileResource.getContentType()))
+        .contentLength(fileResource.getContentLength())
+        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileResource.getName())
+        .body(new InputStreamResource(file.inputStream().get()));
   }
 }

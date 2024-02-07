@@ -31,10 +31,11 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.tracker.export.File;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 
@@ -43,8 +44,8 @@ import org.hisp.dhis.tracker.export.PageParams;
  */
 public interface EventService {
   /** Get a file for an events' data element. */
-  FileResource getFileResource(UID event, UID dataElement)
-      throws NotFoundException, ForbiddenException;
+  File getFileResource(UID event, UID dataElement)
+      throws NotFoundException, ForbiddenException, ConflictException;
 
   /** Get event matching given {@code UID} and params. */
   Event getEvent(String uid, EventParams eventParams) throws NotFoundException, ForbiddenException;

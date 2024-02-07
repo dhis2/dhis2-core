@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +40,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
@@ -47,6 +50,7 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.tracker.export.File;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -79,8 +83,8 @@ class DefaultEventService implements EventService {
   private final EventOperationParamsMapper paramsMapper;
 
   @Override
-  public FileResource getFileResource(UID eventUid, UID dataElementUid)
-      throws NotFoundException, ForbiddenException {
+  public File getFileResource(UID eventUid, UID dataElementUid)
+      throws NotFoundException, ForbiddenException, ConflictException {
     Event event = eventService.getEvent(eventUid.getValue());
     if (event == null) {
       throw new NotFoundException(Event.class, eventUid.getValue());
@@ -120,7 +124,26 @@ class DefaultEventService implements EventService {
     // DefaultFileResourceService.getFileResource and checkStorageStatus.
     // The same check will be done by fileResourceService.copyFileResourceContent anyway when trying
     // to retrieve the file
-    return fileResourceService.getExistingFileResource(fileResourceUid);
+    FileResource fileResource = fileResourceService.getExistingFileResource(fileResourceUid);
+
+    return new File(
+        fileResource,
+        () -> {
+          try {
+            return fileResourceService.openContentStream(fileResource);
+          } catch (NoSuchElementException e) {
+            // Note: we are assuming that the file resource is not available yet. The same approach
+            // is taken in other file endpoints or code relying on the storageStatus = PENDING.
+            // All we know for sure is the file resource is in the DB but not in the store.
+            throw new ConflictException(
+                "The content is being processed and is not available yet. Try again later.");
+          } catch (IOException e) {
+            throw new ConflictException(
+                "Failed fetching the file from storage",
+                "There was an exception when trying to fetch the file from the storage backend. "
+                    + "Depending on the provider the root cause could be network or file system related.");
+          }
+        });
   }
 
   @Override
