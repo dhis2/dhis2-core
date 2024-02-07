@@ -35,6 +35,7 @@ import static org.hisp.dhis.common.QueryOperator.GT;
 import static org.hisp.dhis.common.QueryOperator.LE;
 import static org.hisp.dhis.common.QueryOperator.LT;
 import static org.hisp.dhis.common.QueryOperator.NEQ;
+import static org.hisp.dhis.common.QueryOperator.NIEQ;
 import static org.hisp.dhis.common.QueryOperator.NILIKE;
 import static org.hisp.dhis.common.QueryOperator.NLIKE;
 import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
@@ -118,13 +119,19 @@ public class BinaryConditionRenderer extends BaseRenderable {
       throw new IllegalQueryException(E2045);
     }
 
+    if (NIEQ == queryOperator) {
+      return OrCondition.of(
+          IsNullConditionRenderer.of(left, true),
+          NotEqConditionRenderer.of(LowerRenderer.of(left), LowerRenderer.of(right)));
+    }
+
     // NE / NEQ
     if (NEQ == queryOperator || QueryOperator.NE == queryOperator) {
       if (hasNullValue(right)) {
         return IsNullConditionRenderer.of(left, false);
       }
       return OrCondition.of(
-          List.of(IsNullConditionRenderer.of(left, true), NotEqConditionRenderer.of(left, right)));
+          IsNullConditionRenderer.of(left, true), NotEqConditionRenderer.of(left, right));
     }
 
     // LIKE / ILIKE
@@ -139,11 +146,10 @@ public class BinaryConditionRenderer extends BaseRenderable {
       }
 
       return OrCondition.of(
-          List.of(
-              IsNullConditionRenderer.of(left, true),
-              NLIKE == queryOperator
-                  ? NotLikeConditionRenderer.of(left, right)
-                  : NotILikeConditionRenderer.of(left, right)));
+          IsNullConditionRenderer.of(left, true),
+          NLIKE == queryOperator
+              ? NotLikeConditionRenderer.of(left, right)
+              : NotILikeConditionRenderer.of(left, right));
     }
 
     if (comparisonOperators.contains(queryOperator)) {

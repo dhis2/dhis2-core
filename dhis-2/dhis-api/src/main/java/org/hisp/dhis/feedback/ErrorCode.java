@@ -499,6 +499,7 @@ public enum ErrorCode {
 
   /* TE analytics */
   E7250("Dimension is not a fully qualified: `{0}`"),
+  E7251("Query does not support program indicators: `{0}`"),
 
   /* Org unit analytics */
   E7300(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),

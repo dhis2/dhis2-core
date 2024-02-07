@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.common.query;
 import static org.hisp.dhis.analytics.common.query.ConstantValuesRenderer.hasMultipleValues;
 import static org.hisp.dhis.analytics.common.query.ConstantValuesRenderer.hasNullValue;
 
-import java.util.List;
 import java.util.function.BiFunction;
 import lombok.RequiredArgsConstructor;
 
@@ -55,6 +54,6 @@ public class NullValueAwareConditionRenderer extends BaseRenderable {
       return fieldIsNullCondition.render();
     }
 
-    return OrCondition.of(List.of(fieldIsNullCondition, realCondition)).render();
+    return OrCondition.of(fieldIsNullCondition, realCondition).render();
   }
 }

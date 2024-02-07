@@ -128,7 +128,7 @@ public class OrganisationUnitCondition extends BaseRenderable {
               queryContext));
     }
 
-    return isEmpty(orgUnitConditions) ? FALSE_CONDITION : OrCondition.of(orgUnitConditions);
+    return isEmpty(orgUnitConditions) ? FALSE_CONDITION : OrCondition.ofList(orgUnitConditions);
   }
 
   private OrganisationUnitSelectionMode getOuMode() {
