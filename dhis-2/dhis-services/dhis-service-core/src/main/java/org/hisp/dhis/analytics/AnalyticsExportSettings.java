@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_ORDERING;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_UNLOGGED;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_PERIOD_YEARS_OFFSET;
 
@@ -63,6 +64,10 @@ public class AnalyticsExportSettings {
     }
 
     return EMPTY;
+  }
+
+  public boolean isTableOrdering() {
+    return dhisConfigurationProvider.isEnabled(ANALYTICS_TABLE_ORDERING);
   }
 
   /**
