@@ -838,7 +838,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
   /**
    * Returns a list of quoted relations.
    *
-   * @param relation the relations.
+   * @param relations the list of relations.
    * @return a list of quoted relations.
    */
   protected List<String> toQuotedList(List<String> relations) {
@@ -846,13 +846,14 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
   }
 
   /**
-   * Returns a list of quoted relations.
+   * Returns a list of quoted function relations.
    *
-   * @param relation the relations.
-   * @return a list of quoted relations.
+   * @param function the function.
+   * @param the list of relations.
+   * @return a list of quoted function relations.
    */
-  public String toQuotedFunctionString(String function, List<String> items) {
-    return items.stream()
+  public String toQuotedFunctionString(String function, List<String> relations) {
+    return relations.stream()
         .map(item -> String.format("%s(%s) as %s", function, quote(item), quote(item)))
         .collect(Collectors.joining(","));
   }
