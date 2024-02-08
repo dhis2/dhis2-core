@@ -68,5 +68,9 @@ class SqlUtilsTest {
     assertEquals("John White", SqlUtils.escape("John White"));
     assertEquals("Main St 1\\\\nSmallwille\\\\n", SqlUtils.escape("Main St 1\\nSmallwille\\n"));
     assertEquals("Provided ''Rx01'' to patient", SqlUtils.escape("Provided 'Rx01' to patient"));
+    assertEquals("Some ''special'' value", SqlUtils.escape("Some 'special' value"));
+    assertEquals("Prescribed ''rx82''", SqlUtils.escape("Prescribed 'rx82'"));
+    assertEquals("Some regular value", SqlUtils.escape("Some regular value"));
+    assertEquals("C:\\\\Downloads\\\\Temp", SqlUtils.escape("C:\\Downloads\\Temp"));
   }
 }
