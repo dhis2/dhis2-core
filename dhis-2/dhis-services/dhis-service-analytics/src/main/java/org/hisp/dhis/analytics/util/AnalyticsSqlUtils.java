@@ -60,6 +60,8 @@ public class AnalyticsSqlUtils {
 
   private static final String SEPARATOR = ".";
 
+  private static final String BACKSLASH = "\\";
+
   /**
    * Quotes the given relation (typically a column). Quotes part of the given relation are encoded
    * (replaced by double quotes that is).
@@ -121,13 +123,16 @@ public class AnalyticsSqlUtils {
   }
 
   /**
-   * Escapes the given value. Replaces single quotes with two single quotes.
+   * Escapes the given value. Replaces single quotes with two single quotes. Replaces backslash with
+   * two backslashes.
    *
    * @param value the value to escape.
    * @return the escaped value.
    */
   public static String escape(String value) {
-    return value.replace(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE));
+    return value
+        .replace(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE))
+        .replace(BACKSLASH, (BACKSLASH + BACKSLASH));
   }
 
   /**

@@ -61,6 +61,7 @@ class AnalyticsSqlUtilsTest {
     assertEquals("Some ''special'' value", AnalyticsSqlUtils.escape("Some 'special' value"));
     assertEquals("Prescribed ''rx82''", AnalyticsSqlUtils.escape("Prescribed 'rx82'"));
     assertEquals("Some regular value", AnalyticsSqlUtils.escape("Some regular value"));
+    assertEquals("C:\\\\Downloads\\\\Temp", AnalyticsSqlUtils.escape("C:\\Downloads\\Temp)"));
   }
 
   @Test

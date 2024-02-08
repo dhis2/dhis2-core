@@ -53,21 +53,17 @@ class SqlUtilsTest {
     assertEquals("'jkhYg65ThbF'", SqlUtils.singleQuote("jkhYg65ThbF"));
     assertEquals("'Some ''special'' value'", SqlUtils.singleQuote("Some 'special' value"));
     assertEquals("'Another \"strange\" value'", SqlUtils.singleQuote("Another \"strange\" value"));
+    assertEquals("'John White'", SqlUtils.singleQuote("John White"));
+    assertEquals(
+        "'Main St 1\\\\nSmallwille\\\\n'", SqlUtils.singleQuote("Main St 1\\nSmallwille\\n"));
+    assertEquals(
+        "'Provided ''Rx01'' to patient'", SqlUtils.singleQuote("Provided 'Rx01' to patient"));
   }
 
   @Test
-  void testEncode() {
-    assertEquals("'John White'", SqlUtils.encode("John White"));
-    assertEquals("'Main St 1\\\\nSmallwille\\\\n'", SqlUtils.encode("Main St 1\\nSmallwille\\n"));
-    assertEquals("'Provided ''Rx01'' to patient'", SqlUtils.encode("Provided 'Rx01' to patient"));
-  }
-
-  @Test
-  void testEncodeWithoutQuote() {
-    assertEquals("John White", SqlUtils.encode("John White", false));
-    assertEquals(
-        "Main St 1\\\\nSmallwille\\\\n", SqlUtils.encode("Main St 1\\nSmallwille\\n", false));
-    assertEquals(
-        "Provided ''Rx01'' to patient", SqlUtils.encode("Provided 'Rx01' to patient", false));
+  void testEscape() {
+    assertEquals("John White", SqlUtils.escape("John White"));
+    assertEquals("Main St 1\\\\nSmallwille\\\\n", SqlUtils.escape("Main St 1\\nSmallwille\\n"));
+    assertEquals("Provided ''Rx01'' to patient", SqlUtils.escape("Provided 'Rx01' to patient"));
   }
 }

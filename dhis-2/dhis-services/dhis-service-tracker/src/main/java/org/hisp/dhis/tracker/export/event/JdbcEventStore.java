@@ -30,9 +30,9 @@ package org.hisp.dhis.tracker.export.event;
 import static java.util.Map.entry;
 import static org.hisp.dhis.common.ValueType.NUMERIC_TYPES;
 import static org.hisp.dhis.system.util.SqlUtils.castToNumber;
-import static org.hisp.dhis.system.util.SqlUtils.encode;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
+import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -624,7 +624,7 @@ class JdbcEventStore implements EventStore {
           .append(AND)
           .append(teaCol + ".UID")
           .append(EQUALS)
-          .append(encode(teaUid, true));
+          .append(singleQuote(teaUid));
 
       sql.append(
           getAttributeFilterQuery(

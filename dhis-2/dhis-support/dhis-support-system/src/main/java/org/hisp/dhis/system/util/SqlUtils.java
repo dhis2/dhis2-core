@@ -50,6 +50,8 @@ public class SqlUtils {
 
   public static final String OPTION_SEP = ".";
 
+  private static final String BACKSLASH = "\\";
+
   /**
    * Double quotes the given relation (typically a column). Quotes part of the given relation are
    * escaped (replaced by two double quotes).
@@ -86,34 +88,20 @@ public class SqlUtils {
    * @return the single-quoted relation.
    */
   public static String singleQuote(String relation) {
-    String rel = relation.replace(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE));
-
-    return SINGLE_QUOTE + rel + SINGLE_QUOTE;
+    return SINGLE_QUOTE + escape(relation) + SINGLE_QUOTE;
   }
 
   /**
-   * Encodes and quotes a value with single quotes to make it suitable in a SQL statement.
+   * Escapes the given value. Replaces single quotes with two single quotes. Replaces backslash with
+   * two backslashes.
    *
-   * @param value the value to encode.
-   * @return the encoded value.
+   * @param value the value to escape.
+   * @return the escaped value.
    */
-  public static String encode(String value) {
-    return encode(value, true);
-  }
-
-  /**
-   * Encodes a value to make it suitable in a SQL statement.
-   *
-   * @param value the value to encode.
-   * @param quote whether to quote the value with single quotes.
-   * @return the encoded value.
-   */
-  public static String encode(String value, boolean quote) {
-    if (value != null) {
-      value = value.replace("\\", "\\\\").replace(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE));
-    }
-
-    return quote ? (SINGLE_QUOTE + value + SINGLE_QUOTE) : value;
+  public static String escape(String value) {
+    return value
+        .replace(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE))
+        .replace(BACKSLASH, (BACKSLASH + BACKSLASH));
   }
 
   /**
