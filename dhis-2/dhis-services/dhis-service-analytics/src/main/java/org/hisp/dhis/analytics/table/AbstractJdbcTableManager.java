@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getEndDate;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getStartDate;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
@@ -537,6 +536,26 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
                   name, CHARACTER_11, "acs." + quote(name), category.getCreated());
             })
         .toList();
+  }
+
+  /**
+   * Quotes the given relation.
+   *
+   * @param relation the relation to quote, e.g. a table or column name.
+   * @return a double quoted relation.
+   */
+  protected String quote(String relation) {
+    return sqlBuilder.quote(relation);
+  }
+
+  /**
+   * Single quotes the given value.
+   *
+   * @param value the value to quote.
+   * @return a single quoted value.
+   */
+  protected String singleQuote(String value) {
+    return sqlBuilder.singleQuote(value);
   }
 
   // -------------------------------------------------------------------------

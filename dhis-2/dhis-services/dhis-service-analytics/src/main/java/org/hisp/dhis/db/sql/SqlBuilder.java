@@ -192,6 +192,20 @@ public interface SqlBuilder {
    */
   boolean supportsVacuum();
 
+  // Utilities
+
+  /**
+   * @param relation the relation to quote, e.g. a table or column name.
+   * @return a double quoted relation.
+   */
+  String quote(String relation);
+
+  /**
+   * @param value the value to quote.
+   * @return a single quoted value.
+   */
+  String singleQuote(String value);
+
   // Statements
 
   /**

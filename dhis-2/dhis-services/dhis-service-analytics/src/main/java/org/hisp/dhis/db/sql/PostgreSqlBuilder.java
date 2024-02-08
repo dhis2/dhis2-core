@@ -28,8 +28,6 @@
 package org.hisp.dhis.db.sql;
 
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
-import static org.hisp.dhis.system.util.SqlUtils.quote;
-import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
 
 import java.util.stream.Collectors;
 import org.hisp.dhis.db.model.Collation;
@@ -177,6 +175,20 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   @Override
   public boolean supportsVacuum() {
     return true;
+  }
+
+  // Utilities
+
+  @Override
+  public String quote(String relation) {
+    String escapedRelation = relation.replace(QUOTE, (QUOTE + QUOTE));
+    return QUOTE + escapedRelation + QUOTE;
+  }
+
+  @Override
+  public String singleQuote(String value) {
+    String escapedValue = value.replaceAll(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE));
+    return SINGLE_QUOTE + escapedValue + SINGLE_QUOTE;
   }
 
   // Statements

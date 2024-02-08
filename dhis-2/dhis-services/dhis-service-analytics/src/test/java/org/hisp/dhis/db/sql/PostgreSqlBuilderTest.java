@@ -106,6 +106,23 @@ class PostgreSqlBuilderTest {
   }
 
   @Test
+  void testQuote() {
+    assertEquals(
+        "\"Treated \"\"malaria\"\" at facility\"",
+        sqlBuilder.quote("Treated \"malaria\" at facility"));
+    assertEquals("\"quarterly\"", sqlBuilder.quote("quarterly"));
+    assertEquals("\"Fully immunized\"", sqlBuilder.quote("Fully immunized"));
+  }
+
+  @Test
+  void testSingleQuote() {
+    assertEquals("'jkhYg65ThbF'", sqlBuilder.singleQuote("jkhYg65ThbF"));
+    assertEquals("'Age ''<5'' years'", sqlBuilder.singleQuote("Age '<5' years"));
+    assertEquals(
+        "'Status \"not checked\" found'", sqlBuilder.singleQuote("Status \"not checked\" found"));
+  }
+
+  @Test
   void testCreateTableA() {
     Table table = getTableA();
 
