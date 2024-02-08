@@ -36,7 +36,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import java.util.AbstractSequentialList;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.junit.jupiter.api.Test;
@@ -236,8 +235,8 @@ class TextUtilsTest {
   @Test
   void testGetCommaDelimitedString() {
     assertThat(
-        TextUtils.getCommaDelimitedString(Arrays.asList(1, 2, 3, 4, 5)), is("1, 2, 3, 4, 5"));
-    assertThat(TextUtils.getCommaDelimitedString(Collections.singletonList(1)), is("1"));
+        TextUtils.getCommaDelimitedString(List.of("1", "2", "3", "4", "5")), is("1, 2, 3, 4, 5"));
+    assertThat(TextUtils.getCommaDelimitedString(List.of("1")), is("1"));
     assertThat(TextUtils.getCommaDelimitedString(null), is(""));
   }
 

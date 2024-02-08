@@ -346,12 +346,12 @@ public class TextUtils {
    * @param elements the collection of Integers
    * @return a comma delimited String.
    */
-  public static String getQuotedCommaDelimitedString(Collection<?> elements) {
+  public static String getQuotedCommaDelimitedString(Collection<String> elements) {
     if (elements != null && !elements.isEmpty()) {
       final StringBuilder builder = new StringBuilder();
 
       for (Object element : elements) {
-        builder.append("'").append(element.toString()).append("', ");
+        builder.append("'").append(element).append("', ");
       }
 
       return builder.substring(0, builder.length() - ", ".length());
