@@ -221,6 +221,8 @@ public class AggregateDataExchangeService {
    * @return an {@link ImportSummary} describing the outcome of the exchange.
    */
   private ImportSummary pushToExternal(AggregateDataExchange exchange, DataValueSet dataValueSet) {
+    // If sending to an external server, do not send specify the storedBy field
+    dataValueSet.getDataValues().forEach(value -> value.setStoredBy(""));
     return getDhis2Client(exchange).saveDataValueSet(dataValueSet, toImportOptions(exchange));
   }
 
