@@ -383,7 +383,7 @@ public enum ConfigurationKey {
   /** Use unlogged tables during analytics export. (default: off) */
   ANALYTICS_TABLE_UNLOGGED("analytics.table.unlogged", Constants.OFF),
 
-  /** Order analytics tables data as part of insert. */
+  /** Order analytics tables data on insert. */
   ANALYTICS_TABLE_ORDERING("analytics.table.ordering", Constants.OFF),
 
   /**

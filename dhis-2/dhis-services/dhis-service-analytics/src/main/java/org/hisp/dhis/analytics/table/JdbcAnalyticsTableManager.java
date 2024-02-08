@@ -388,7 +388,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     }
 
     if (analyticsExportSettings.isTableOrdering()) {
-      sql += "order by dx, co";
+      sql += "order by de.uid, co.uid";
     }
 
     invokeTimeAndLog(sql, String.format("Populate %s %s", tableName, valueTypes));
