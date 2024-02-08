@@ -160,6 +160,14 @@ public interface DhisConfigurationProvider {
   List<String> getRemoteServersAllowed();
 
   /**
+   * Checks whether the supplied url is contained in the remote servers allowed list.
+   *
+   * @param url the url to check
+   * @return true if in the remote servers allowed list.
+   */
+  boolean remoteServerIsInAllowedList(String url);
+
+  /**
    * Indicates whether LDAP authentication is configured.
    *
    * @return true if LDAP authentication is configured.

@@ -237,6 +237,13 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
   }
 
   @Override
+  public boolean remoteServerIsInAllowedList(String url) {
+    List<String> remoteServersAllowed = getRemoteServersAllowed();
+    return !getRemoteServersAllowed().isEmpty()
+        && remoteServersAllowed.stream().anyMatch(url::startsWith);
+  }
+
+  @Override
   public boolean isLdapConfigured() {
     String ldapUrl = getProperty(ConfigurationKey.LDAP_URL);
     String managerDn = getProperty(ConfigurationKey.LDAP_MANAGER_DN);

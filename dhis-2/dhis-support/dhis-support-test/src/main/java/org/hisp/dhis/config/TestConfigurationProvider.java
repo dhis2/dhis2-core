@@ -124,12 +124,21 @@ public abstract class TestConfigurationProvider implements DhisConfigurationProv
 
   @Override
   public List<String> getRemoteServersAllowed() {
-    return List.of(
-        this.properties
-            .getProperty(
-                ConfigurationKey.REMOTE_SERVERS_ALLOWED.getKey(),
-                ConfigurationKey.REMOTE_SERVERS_ALLOWED.getDefaultValue())
-            .split(","));
+    return Stream.of(
+            this.properties
+                .getProperty(
+                    ConfigurationKey.REMOTE_SERVERS_ALLOWED.getKey(),
+                    ConfigurationKey.REMOTE_SERVERS_ALLOWED.getDefaultValue())
+                .split(","))
+        .filter(StringUtils::isNotEmpty)
+        .toList();
+  }
+
+  @Override
+  public boolean remoteServerIsInAllowedList(String url) {
+    List<String> remoteServersAllowed = getRemoteServersAllowed();
+    return !getRemoteServersAllowed().isEmpty()
+        && remoteServersAllowed.stream().anyMatch(url::startsWith);
   }
 
   @Override

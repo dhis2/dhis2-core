@@ -449,8 +449,8 @@ public enum ConfigurationKey {
   /**
    * Remote servers allowed to call. <br>
    * Default is empty. <br>
-   * Servers should be in a comma-separated style and always end with '/' for security reasons e.g.
-   * server1/,server2/
+   * Servers should be in a comma-separated style and always end with '/' for security reasons <br>
+   * e.g. remote.servers.allowed = https://server1.com/,https://server2.com/
    */
   REMOTE_SERVERS_ALLOWED("remote.servers.allowed", "", false),
 
