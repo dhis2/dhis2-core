@@ -348,13 +348,13 @@ public class TextUtils {
    */
   public static String getQuotedCommaDelimitedString(Collection<? extends Object> elements) {
     if (elements != null && elements.size() > 0) {
-      final StringBuilder buffer = new StringBuilder();
+      final StringBuilder builder = new StringBuilder();
 
       for (Object element : elements) {
-        buffer.append("'").append(element.toString()).append("', ");
+        builder.append("'").append(element.toString()).append("', ");
       }
 
-      return buffer.substring(0, buffer.length() - ", ".length());
+      return builder.substring(0, builder.length() - ", ".length());
     }
 
     return null;
