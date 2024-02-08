@@ -54,7 +54,6 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -109,23 +108,19 @@ class EventsExportController {
 
   private final ObjectMapper objectMapper;
 
-  private final DhisConfigurationProvider dhisConfig;
-
   public EventsExportController(
       EventService eventService,
       EventRequestParamsMapper eventParamsMapper,
       CsvService<Event> csvEventService,
       FieldFilterService fieldFilterService,
       EventFieldsParamMapper eventsMapper,
-      ObjectMapper objectMapper,
-      DhisConfigurationProvider dhisConfig) {
+      ObjectMapper objectMapper) {
     this.eventService = eventService;
     this.eventParamsMapper = eventParamsMapper;
     this.csvEventService = csvEventService;
     this.fieldFilterService = fieldFilterService;
     this.eventsMapper = eventsMapper;
     this.objectMapper = objectMapper;
-    this.dhisConfig = dhisConfig;
 
     assertUserOrderableFieldsAreSupported(
         "event", EventMapper.ORDERABLE_FIELDS, eventService.getOrderableFields());
@@ -315,9 +310,6 @@ class EventsExportController {
           .build();
     }
 
-    // TODO
-    //    HeaderUtils.setSecurityHeaders(
-    //        response, dhisConfig.getProperty(ConfigurationKey.CSP_HEADER_VALUE));
     return ResponseEntity.ok()
         .cacheControl(CacheControl.maxAge(0, TimeUnit.SECONDS).cachePrivate().mustRevalidate())
         .eTag(etag)
