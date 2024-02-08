@@ -276,10 +276,6 @@ class EventsExportController {
     return Objects.toString(filename, String.join(".", EVENTS, type));
   }
 
-  public String getContentDispositionHeaderValue(String filename) {
-    return "attachment; filename=" + filename;
-  }
-
   @OpenApi.Response(OpenApi.EntityType.class)
   @GetMapping("/{uid}")
   ResponseEntity<ObjectNode> getEventByUid(
@@ -298,7 +294,7 @@ class EventsExportController {
       @OpenApi.Param({UID.class, Event.class}) @PathVariable UID event,
       @OpenApi.Param({UID.class, DataElement.class}) @PathVariable UID dataElement,
       HttpServletRequest request)
-      throws ForbiddenException, NotFoundException, ConflictException {
+      throws NotFoundException, ConflictException {
     FileResourceStream file = eventService.getFileResource(event, dataElement);
     FileResource fileResource = file.fileResource();
 
@@ -315,7 +311,13 @@ class EventsExportController {
         .eTag(etag)
         .contentType(MediaType.valueOf(fileResource.getContentType()))
         .contentLength(fileResource.getContentLength())
-        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileResource.getName())
+        .header(
+            HttpHeaders.CONTENT_DISPOSITION,
+            getContentDispositionHeaderValue(fileResource.getName()))
         .body(new InputStreamResource(file.inputStream().get()));
+  }
+
+  private static String getContentDispositionHeaderValue(String filename) {
+    return "attachment; filename=" + filename;
   }
 }

@@ -84,7 +84,7 @@ class DefaultEventService implements EventService {
 
   @Override
   public FileResourceStream getFileResource(UID eventUid, UID dataElementUid)
-      throws NotFoundException, ForbiddenException, ConflictException {
+      throws NotFoundException, ConflictException {
     Event event = eventService.getEvent(eventUid.getValue());
     if (event == null) {
       throw new NotFoundException(Event.class, eventUid.getValue());
@@ -103,7 +103,7 @@ class DefaultEventService implements EventService {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     List<String> errors = trackerAccessManager.canRead(currentUser, event, dataElement, false);
     if (!errors.isEmpty()) {
-      throw new ForbiddenException(errors.toString());
+      throw new NotFoundException(DataElement.class, dataElementUid.getValue());
     }
 
     String fileResourceUid = null;

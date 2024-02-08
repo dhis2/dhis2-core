@@ -45,7 +45,7 @@ import org.hisp.dhis.tracker.export.PageParams;
 public interface EventService {
   /** Get a file for an events' data element. */
   FileResourceStream getFileResource(UID event, UID dataElement)
-      throws NotFoundException, ForbiddenException, ConflictException;
+      throws NotFoundException, ConflictException;
 
   /** Get event matching given {@code UID} and params. */
   Event getEvent(String uid, EventParams eventParams) throws NotFoundException, ForbiddenException;

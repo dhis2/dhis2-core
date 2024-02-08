@@ -518,7 +518,7 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
     this.switchContextToUser(user);
 
     GET("/tracker/events/{eventUid}/dataValues/{dataElementUid}/file", event.getUid(), de.getUid())
-        .error(HttpStatus.FORBIDDEN);
+        .error(HttpStatus.NOT_FOUND);
   }
 
   private FileResource storeFile(String contentType, String content) throws ConflictException {
