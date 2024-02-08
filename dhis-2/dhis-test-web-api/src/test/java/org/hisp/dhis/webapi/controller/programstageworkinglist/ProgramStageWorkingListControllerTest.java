@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.webapi.controller.programstageworkinglist;
 
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
@@ -33,11 +33,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.controller.ProgramStageWorkingListController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+/** Tests the {@link ProgramStageWorkingListController} using (mocked) REST requests. */
 class ProgramStageWorkingListControllerTest extends DhisControllerConvenienceTest {
 
   private String programId;
@@ -258,17 +261,77 @@ class ProgramStageWorkingListControllerTest extends DhisControllerConvenienceTes
     assertEquals(HttpStatus.OK, response.status());
   }
 
+  @Test
+  void shouldCreateWorkingListWithProgramStageQueryCriteria() {
+
+    String workingListJson =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programStageWorkingLists",
+                """
+         {
+         'program': {'id': '%s'},
+         'programStage': {'id': '%s'},
+         'name':'workingListName',
+         'programStageQueryCriteria': {
+           "displayColumnOrder": [
+             "w75KJ2mc4zz",
+             "zDhUuAYrxNC",
+             "APtutTb0nOY"
+           ],
+           'order': 'createdAt:desc',
+           'enrollmentStatus': 'ACTIVE',
+           'followup': 'true',
+           'eventOccurredAt': {
+             'type': 'RELATIVE',
+             'period': 'TODAY'
+           }
+         }
+        }
+        """
+                    .formatted(programId, programStageId)));
+
+    JsonWorkingList response =
+        GET("/programStageWorkingLists/{id}", workingListJson).content().as(JsonWorkingList.class);
+
+    assertFalse(response.isEmpty());
+
+    assertEquals(programId, response.getProgram());
+    assertEquals(programStageId, response.getProgramStage());
+
+    JsonProgramStageQueryCriteria programStageQueryCriteria =
+        response.getProgramStageQueryCriteria();
+
+    assertFalse(programStageQueryCriteria.isEmpty());
+
+    assertEquals("ACTIVE", programStageQueryCriteria.getEnrollmentStatus());
+    assertEquals("createdAt:desc", programStageQueryCriteria.getOrder());
+
+    JsonDatePeriod eventOccurredAt = programStageQueryCriteria.getEventOccurredAt();
+    assertEquals("RELATIVE", eventOccurredAt.getType());
+    assertEquals("TODAY", eventOccurredAt.getPeriod());
+
+    JsonArray displayColumnOrder = programStageQueryCriteria.getDisplayColumnOrder();
+    assertEquals("w75KJ2mc4zz", displayColumnOrder.getString(0).string());
+    assertEquals("zDhUuAYrxNC", displayColumnOrder.getString(1).string());
+    assertEquals("APtutTb0nOY", displayColumnOrder.getString(2).string());
+
+    assertTrue(programStageQueryCriteria.getFollowUp());
+  }
+
   private String createWorkingList(String workingListName) {
     return assertStatus(
         HttpStatus.CREATED,
         POST(
             "/programStageWorkingLists",
-            "{'program': {'id': '"
-                + programId
-                + "'}, 'programStage': {'id': '"
-                + programStageId
-                + "'}, 'name':'"
-                + workingListName
-                + "'}"));
+            """
+                {
+                'program': {'id': '%s'},
+                'programStage': {'id': '%s'},
+                'name':'%s'
+                }
+              """
+                .formatted(programId, programStageId, workingListName)));
   }
 }
