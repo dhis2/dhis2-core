@@ -51,16 +51,6 @@ class AnalyticsSqlUtilsTest {
   }
 
   @Test
-  void testQuotedListOf() {
-    assertEquals(
-        List.of("\"a\"\"b\"\"c\"", "\"d\"\"e\"\"f\""),
-        AnalyticsSqlUtils.quotedListOf("a\"b\"c", "d\"e\"f"));
-
-    assertEquals(
-        List.of("\"ab\"", "\"cd\"", "\"ef\""), AnalyticsSqlUtils.quotedListOf("ab", "cd", "ef"));
-  }
-
-  @Test
   void testQuoteWithAlias() {
     assertEquals("ougs.\"Short name\"", AnalyticsSqlUtils.quote("ougs", "Short name"));
     assertEquals("ous.\"uid\"", AnalyticsSqlUtils.quote("ous", "uid"));

@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.util;
 
-import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
@@ -78,10 +77,6 @@ public class AnalyticsSqlUtils {
     return QUOTE + rel + QUOTE;
   }
 
-  public static List<String> quotedListOf(String... relation) {
-    return Arrays.asList(relation).stream().map(AnalyticsSqlUtils::quote).collect(toList());
-  }
-
   /**
    * Quotes and qualifies the given relation (typically a column). Quotes part of the given relation
    * are encoded (replaced by double quotes that is).
@@ -104,18 +99,6 @@ public class AnalyticsSqlUtils {
    */
   public static String quoteAlias(String relation) {
     return ANALYTICS_TBL_ALIAS + SEPARATOR + quote(relation);
-  }
-
-  /**
-   * Removes all quotes from the given relation.
-   *
-   * @param relation the relation (typically a column).
-   * @return the unquoted relation.
-   */
-  public static String removeQuote(String relation) {
-    Assert.notNull(relation, "Relation must be specified");
-
-    return relation.replace(AnalyticsSqlUtils.QUOTE, EMPTY);
   }
 
   /**

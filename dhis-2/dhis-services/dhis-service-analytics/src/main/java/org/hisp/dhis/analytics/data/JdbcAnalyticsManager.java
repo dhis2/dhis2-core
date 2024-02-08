@@ -46,7 +46,6 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAliasCommaSeparate;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteWithFunction;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quotedListOf;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
@@ -802,8 +801,9 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
     return join(
         ",",
         concat(
-            quotedListOf(
-                YEAR, PESTARTDATE, PEENDDATE, OULEVEL, DAYSXVALUE, DAYSNO, VALUE, TEXTVALUE),
+            toQuotedList(
+                List.of(
+                    YEAR, PESTARTDATE, PEENDDATE, OULEVEL, DAYSXVALUE, DAYSNO, VALUE, TEXTVALUE)),
             getSubqueryDataApprovalColumns(params),
             getFirstOrLastValueSubqueryDimensionAndFilterColumns(params)));
   }
@@ -834,6 +834,16 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
     }
 
     return cols;
+  }
+
+  /**
+   * Returns a list of quoted relations.
+   *
+   * @param relation the relations.
+   * @return a list of quoted relations.
+   */
+  private List<String> toQuotedList(List<String> relations) {
+    return relations.stream().map(AnalyticsSqlUtils::quote).collect(Collectors.toList());
   }
 
   /**
