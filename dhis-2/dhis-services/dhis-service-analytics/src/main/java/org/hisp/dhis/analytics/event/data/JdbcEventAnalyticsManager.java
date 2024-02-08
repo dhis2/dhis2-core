@@ -597,7 +597,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
               + " "
               + quoteAlias("yearly")
               + OPEN_IN
-              + TextUtils.getQuotedCommaDelimitedString(params.getPartitions().getPartitions())
+              + TextUtils.getQuotedCommaDelimitedString(
+                  params.getPartitions().getPartitionsAsString())
               + ") ";
     }
 

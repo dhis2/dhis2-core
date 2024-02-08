@@ -155,7 +155,7 @@ public class AnalyticsSqlUtils {
   public static String encode(String value, boolean quote) {
     if (value != null) {
       value = value.endsWith("\\") ? value.substring(0, value.length() - 1) : value;
-      value = value.replaceAll(SINGLE_QUOTE, SINGLE_QUOTE + SINGLE_QUOTE);
+      value = value.replace(SINGLE_QUOTE, SINGLE_QUOTE + SINGLE_QUOTE);
     }
 
     return quote ? (SINGLE_QUOTE + value + SINGLE_QUOTE) : value;

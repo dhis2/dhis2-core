@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,25 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.config;
+package org.hisp.dhis.tracker.export;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serial;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import javax.xml.bind.annotation.XmlRootElement;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import java.io.InputStream;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.util.ConflictExceptionSupplier;
 
-/** Serializable configuration object for Sms. */
-@Setter
-@Getter
-@NoArgsConstructor
-@XmlRootElement(name = "smsConfiguration")
-public class SmsConfiguration implements Serializable {
-  @Serial private static final long serialVersionUID = 7460688383539123303L;
-
-  @JsonProperty private List<SmsGatewayConfig> gateways = new ArrayList<>();
-}
+/**
+ * FileResourceStream holds a file resource and a supplier to open an input stream to the file
+ * resource content if needed.
+ */
+public record FileResourceStream(
+    FileResource fileResource, ConflictExceptionSupplier<InputStream> inputStream) {}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,14 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.config.views;
+package org.hisp.dhis.util;
+
+import org.hisp.dhis.feedback.ConflictException;
 
 /**
- * Json view to keep confidential parameters from exposing through API and make sure their
- * availability while de-serialisation. @Author Zubair Asghar.
+ * Use instead of {@link java.util.function.Supplier} when you need to throw a {@link
+ * ConflictException} as checked exceptions cannot be thrown from lambdas.
  */
-public class SmsConfigurationViews {
-  public static class Public {}
-
-  public static class Internal extends Public {}
+@FunctionalInterface
+public interface ConflictExceptionSupplier<T> {
+  T get() throws ConflictException;
 }
