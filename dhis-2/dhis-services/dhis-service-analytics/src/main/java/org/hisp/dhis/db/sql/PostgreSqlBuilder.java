@@ -197,7 +197,7 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   public String quotedCommaDelimitedString(Collection<String> items) {
     return isEmpty(items)
         ? EMPTY
-        : items.stream().map(this::quote).collect(Collectors.joining(COMMA));
+        : items.stream().map(this::singleQuote).collect(Collectors.joining(COMMA));
   }
 
   // Statements
