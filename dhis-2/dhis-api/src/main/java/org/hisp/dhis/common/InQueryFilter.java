@@ -127,7 +127,9 @@ public class InQueryFilter extends QueryFilter {
     return NV.equals(filterItem);
   }
 
+  /** Select sql statement detection. The method retrieves true if sql statement detected. */
   private boolean isNestedSqlStmtInField() {
-    return field.toLowerCase().contains("select ") && field.toLowerCase().contains(" from ");
+    String maybeSql = field.toLowerCase();
+    return maybeSql.contains("select ") && maybeSql.contains(" from ");
   }
 }
