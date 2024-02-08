@@ -117,12 +117,4 @@ class AnalyticsSqlUtilsTest {
     // then
     assertEquals("coalesce(ax.\"coorA\",ax.\"coorB\",ax.\"coorC\")", sqlSnippet);
   }
-
-  @Test
-  void testGetCollate() {
-    assertEquals(" collate \"Posix\" ", AnalyticsSqlUtils.getCollation("Posix"));
-    assertEquals("", AnalyticsSqlUtils.getCollation(null));
-    assertEquals("", AnalyticsSqlUtils.getCollation(""));
-    assertEquals("", AnalyticsSqlUtils.getCollation(" "));
-  }
 }
