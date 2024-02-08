@@ -65,6 +65,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.export.Order;
@@ -198,7 +199,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
   private String encodeAndQuote(Collection<String> elements) {
     return getQuotedCommaDelimitedString(
-        elements.stream().map(element -> escape(element)).collect(Collectors.toList()));
+        elements.stream().map(SqlUtils::escape).collect(Collectors.toList()));
   }
 
   private void checkMaxTrackedEntityCountReached(

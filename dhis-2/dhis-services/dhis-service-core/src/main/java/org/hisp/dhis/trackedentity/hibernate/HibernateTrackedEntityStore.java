@@ -87,6 +87,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityStore;
@@ -204,7 +205,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
 
   private String encodeAndQuote(Collection<String> elements) {
     return getQuotedCommaDelimitedString(
-        elements.stream().map(element -> escape(element)).collect(Collectors.toList()));
+        elements.stream().map(SqlUtils::escape).collect(Collectors.toList()));
   }
 
   @Override
