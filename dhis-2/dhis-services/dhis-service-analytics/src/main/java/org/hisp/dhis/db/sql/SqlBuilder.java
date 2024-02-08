@@ -214,6 +214,12 @@ public interface SqlBuilder {
   String singleQuote(String value);
 
   /**
+   * @param value the value to escape.
+   * @return the escaped value, with single quotes doubled up.
+   */
+  String escape(String value);
+
+  /**
    * @param items the items to join.
    * @return a string representing the comma delimited and single quoted item values.
    */

@@ -57,6 +57,13 @@ class AnalyticsSqlUtilsTest {
   }
 
   @Test
+  void testEscape() {
+    assertEquals("Some ''special'' value", AnalyticsSqlUtils.escape("A 'special' value"));
+    assertEquals("Prescribed ''rx82''", AnalyticsSqlUtils.escape("Prescribed 'rx82'"));
+    assertEquals("Some regular value", AnalyticsSqlUtils.escape("Some regular value"));
+  }
+
+  @Test
   void testQuoteAliasCommaSeparate() {
     assertEquals(
         "ax.\"de\",ax.\"pe\",ax.\"ou\"",

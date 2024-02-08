@@ -93,6 +93,8 @@ class PostgreSqlBuilderTest {
     return new Table("nutrition", columns, List.of(), List.of(), Logged.LOGGED, getTableB());
   }
 
+  // Data types
+
   @Test
   void testDataType() {
     assertEquals("double precision", sqlBuilder.dataTypeDouble());
@@ -104,6 +106,8 @@ class PostgreSqlBuilderTest {
     assertEquals("btree", sqlBuilder.indexTypeBtree());
     assertEquals("gist", sqlBuilder.indexTypeGist());
   }
+
+  // Utilities
 
   @Test
   void testQuote() {
@@ -127,8 +131,13 @@ class PostgreSqlBuilderTest {
   void testSingleQuote() {
     assertEquals("'jkhYg65ThbF'", sqlBuilder.singleQuote("jkhYg65ThbF"));
     assertEquals("'Age ''<5'' years'", sqlBuilder.singleQuote("Age '<5' years"));
-    assertEquals(
-        "'Status \"not checked\" found'", sqlBuilder.singleQuote("Status \"not checked\" found"));
+    assertEquals("'Status \"not checked\"'", sqlBuilder.singleQuote("Status \"not checked\""));
+  }
+
+  @Test
+  void testEscape() {
+    assertEquals("Age group ''under 5'' years", sqlBuilder.escape("Age group 'under 5' years"));
+    assertEquals("Level ''high'' found", sqlBuilder.escape("Level 'high' found"));
   }
 
   @Test
@@ -141,6 +150,8 @@ class PostgreSqlBuilderTest {
     assertEquals("", sqlBuilder.quotedCommaDelimitedString(List.of()));
     assertEquals("", sqlBuilder.quotedCommaDelimitedString(null));
   }
+
+  // Statements
 
   @Test
   void testCreateTableA() {

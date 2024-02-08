@@ -50,7 +50,7 @@ import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_GE
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_NAME_COL_SUFFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.encode;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.escape;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.singleQuote;
@@ -868,9 +868,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   protected String getSqlFilter(QueryFilter queryFilter, QueryItem item) {
     String filter = getFilter(queryFilter.getFilter(), item);
-    String encodedFilter = encode(filter, false);
 
-    return item.getSqlFilter(queryFilter, encodedFilter, true);
+    return item.getSqlFilter(queryFilter, escape(filter), true);
   }
 
   /**
@@ -1247,7 +1246,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     if (IN.equals(filter.getOperator())) {
       InQueryFilter inQueryFilter =
-          new InQueryFilter(field, encode(filter.getFilter(), false), item.isText());
+          new InQueryFilter(field, escape(filter.getFilter()), item.isText());
 
       return inQueryFilter.getSqlFilter();
     } else {

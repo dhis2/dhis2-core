@@ -117,20 +117,17 @@ public class AnalyticsSqlUtils {
    * @return the encoded and quoted value.
    */
   public static String singleQuote(String value) {
-    return encode(value, true);
+    return SINGLE_QUOTE + escape(value) + SINGLE_QUOTE;
   }
 
   /**
-   * Encodes the given value.
+   * Escapes the given value. Replaces single quotes with two single quotes.
    *
-   * @param value the value.
-   * @param quote whether to quote the value.
-   * @return the encoded value.
+   * @param value the value to escape.
+   * @return the escaped value.
    */
-  public static String encode(String value, boolean quote) {
-    value = value.replace(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE));
-
-    return quote ? (SINGLE_QUOTE + value + SINGLE_QUOTE) : value;
+  public static String escape(String value) {
+    return value.replace(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE));
   }
 
   /**
