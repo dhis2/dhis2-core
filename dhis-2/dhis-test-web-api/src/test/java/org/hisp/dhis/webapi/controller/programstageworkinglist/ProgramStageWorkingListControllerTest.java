@@ -292,16 +292,16 @@ class ProgramStageWorkingListControllerTest extends DhisControllerConvenienceTes
         """
                     .formatted(programId, programStageId)));
 
-    JsonWorkingList response =
+    JsonWorkingList workingList =
         GET("/programStageWorkingLists/{id}", workingListJson).content().as(JsonWorkingList.class);
 
-    assertFalse(response.isEmpty());
+    assertFalse(workingList.isEmpty());
 
-    assertEquals(programId, response.getProgram());
-    assertEquals(programStageId, response.getProgramStage());
+    assertEquals(programId, workingList.getProgram());
+    assertEquals(programStageId, workingList.getProgramStage());
 
     JsonProgramStageQueryCriteria programStageQueryCriteria =
-        response.getProgramStageQueryCriteria();
+        workingList.getProgramStageQueryCriteria();
 
     assertFalse(programStageQueryCriteria.isEmpty());
 
