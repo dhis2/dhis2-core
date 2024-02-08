@@ -33,7 +33,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Objects;
 import java.util.Set;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.CodeGenerator;
 
 /**
@@ -81,14 +80,14 @@ public class SqlUtils {
   }
 
   /**
-   * Single quotes the given relation (typically a value). Single quotes part of the given relation
-   * are encoded (replaced by two single quotes).
+   * Single quotes the given relation (typically a value). Escapes characters including single quote
+   * and backslash.
    *
-   * @param relation the relation (typically a column).
-   * @return the single-quoted relation.
+   * @param value the value.
+   * @return the single quoted relation.
    */
-  public static String singleQuote(String relation) {
-    return SINGLE_QUOTE + escape(relation) + SINGLE_QUOTE;
+  public static String singleQuote(String value) {
+    return SINGLE_QUOTE + escape(value) + SINGLE_QUOTE;
   }
 
   /**
@@ -138,14 +137,13 @@ public class SqlUtils {
     return "cast (" + value + " as numeric)";
   }
 
+  /**
+   * Lowers the given value.
+   *
+   * @param value the value.
+   * @return a string with the lower function.
+   */
   public static String lower(String value) {
     return "lower(" + value + ")";
-  }
-
-  public static String escapeSql(String str) {
-    if (str == null) {
-      return null;
-    }
-    return StringUtils.replace(str, "'", "''");
   }
 }
