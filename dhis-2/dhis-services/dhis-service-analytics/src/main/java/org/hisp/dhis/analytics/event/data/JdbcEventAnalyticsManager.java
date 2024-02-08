@@ -38,11 +38,11 @@ import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitT
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_GEOMETRY_COL_SUFFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.encode;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getCoalesce;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAliasCommaSeparate;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.singleQuote;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
@@ -546,7 +546,9 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       sql +=
           hlp.whereAnd()
               + " pistatus in ("
-              + params.getProgramStatus().stream().map(p -> encode(p.name())).collect(joining(","))
+              + params.getProgramStatus().stream()
+                  .map(p -> singleQuote(p.name()))
+                  .collect(joining(","))
               + ") ";
     }
 
@@ -554,7 +556,9 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       sql +=
           hlp.whereAnd()
               + " psistatus in ("
-              + params.getEventStatus().stream().map(e -> encode(e.name())).collect(joining(","))
+              + params.getEventStatus().stream()
+                  .map(e -> singleQuote(e.name()))
+                  .collect(joining(","))
               + ") ";
     }
 

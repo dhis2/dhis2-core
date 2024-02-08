@@ -53,6 +53,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.encode;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.singleQuote;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
@@ -262,9 +263,11 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     return "WHEN "
         + quotedAlias
         + "="
-        + encode(item.getUid())
+        + singleQuote(item.getUid())
         + " THEN "
-        + (dp == DisplayProperty.NAME ? encode(item.getName()) : encode(item.getShortName()));
+        + (dp == DisplayProperty.NAME
+            ? singleQuote(item.getName())
+            : singleQuote(item.getShortName()));
   }
 
   private boolean isSupported(DimensionalObject dimension) {
@@ -367,14 +370,14 @@ public abstract class AbstractJdbcEventAnalyticsManager {
               } else if (params.hasSinglePeriod()) {
                 Period period = (Period) params.getPeriods().get(0);
                 columns.add(
-                    encode(period.getIsoDate()) + " as " + period.getPeriodType().getName());
+                    singleQuote(period.getIsoDate()) + " as " + period.getPeriodType().getName());
               } else if (!params.hasPeriods() && params.hasFilterPeriods()) {
                 // Assuming same period type for all period filters, as the
                 // query planner splits into one query per period type
 
                 Period period = (Period) params.getFilterPeriods().get(0);
                 columns.add(
-                    encode(period.getIsoDate()) + " as " + period.getPeriodType().getName());
+                    singleQuote(period.getIsoDate()) + " as " + period.getPeriodType().getName());
               } else {
                 throw new IllegalStateException(
                     "Program indicator non-default boundary query must have "

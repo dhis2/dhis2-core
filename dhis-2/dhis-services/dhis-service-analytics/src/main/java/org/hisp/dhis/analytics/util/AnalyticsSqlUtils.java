@@ -116,7 +116,7 @@ public class AnalyticsSqlUtils {
    * @param value the value.
    * @return the encoded and quoted value.
    */
-  public static String encode(String value) {
+  public static String singleQuote(String value) {
     return encode(value, true);
   }
 

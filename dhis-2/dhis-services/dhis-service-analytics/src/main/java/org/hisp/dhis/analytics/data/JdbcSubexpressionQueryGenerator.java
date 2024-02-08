@@ -46,8 +46,8 @@ import static org.hisp.dhis.analytics.data.SubexpressionPeriodOffsetUtils.SHIFT;
 import static org.hisp.dhis.analytics.data.SubexpressionPeriodOffsetUtils.getParamsWithOffsetPeriodsWithoutData;
 import static org.hisp.dhis.analytics.data.SubexpressionPeriodOffsetUtils.joinPeriodOffsetValues;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.encode;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.singleQuote;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.commons.collection.CollectionUtils.addUnique;
@@ -186,7 +186,7 @@ public class JdbcSubexpressionQueryGenerator {
     String dimensions =
         jam.getCommaDelimitedQuotedDimensionColumns(paramsWithoutData.getDimensions());
 
-    String data = encode(subex.getDimensionItemWithQueryModsId()) + " as " + quote(DX);
+    String data = singleQuote(subex.getDimensionItemWithQueryModsId()) + " as " + quote(DX);
 
     String aggregate = getHighLevelAggregateFunction();
 
