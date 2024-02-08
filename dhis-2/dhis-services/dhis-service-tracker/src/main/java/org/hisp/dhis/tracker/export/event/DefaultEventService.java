@@ -27,21 +27,30 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -69,7 +78,68 @@ class DefaultEventService implements EventService {
 
   private final DataElementService dataElementService;
 
+  private final FileResourceService fileResourceService;
+
   private final EventOperationParamsMapper paramsMapper;
+
+  @Override
+  public FileResourceStream getFileResource(UID eventUid, UID dataElementUid)
+      throws NotFoundException, ConflictException {
+    Event event = eventService.getEvent(eventUid.getValue());
+    if (event == null) {
+      throw new NotFoundException(Event.class, eventUid.getValue());
+    }
+
+    DataElement dataElement = dataElementService.getDataElement(dataElementUid.getValue());
+    if (dataElement == null) {
+      throw new NotFoundException(DataElement.class, dataElementUid.getValue());
+    }
+
+    if (!dataElement.getValueType().isFile()) {
+      throw new NotFoundException(
+          "Data element " + dataElementUid.getValue() + " is not a file (or image).");
+    }
+
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    List<String> errors = trackerAccessManager.canRead(currentUser, event, dataElement, false);
+    if (!errors.isEmpty()) {
+      throw new NotFoundException(DataElement.class, dataElementUid.getValue());
+    }
+
+    String fileResourceUid = null;
+    for (EventDataValue eventDataValue : event.getEventDataValues()) {
+      if (dataElementUid.getValue().equals(eventDataValue.getDataElement())) {
+        fileResourceUid = eventDataValue.getValue();
+        break;
+      }
+    }
+
+    if (fileResourceUid == null) {
+      throw new NotFoundException(
+          "DataValue for data element " + dataElementUid.getValue() + " could not be found.");
+    }
+
+    FileResource fileResource = fileResourceService.getExistingFileResource(fileResourceUid);
+
+    return new FileResourceStream(
+        fileResource,
+        () -> {
+          try {
+            return fileResourceService.openContentStream(fileResource);
+          } catch (NoSuchElementException e) {
+            // Note: we are assuming that the file resource is not available yet. The same approach
+            // is taken in other file endpoints or code relying on the storageStatus = PENDING.
+            // All we know for sure is the file resource is in the DB but not in the store.
+            throw new ConflictException(
+                "The content is being processed and is not available yet. Try again later.");
+          } catch (IOException e) {
+            throw new ConflictException(
+                "Failed fetching the file from storage",
+                "There was an exception when trying to fetch the file from the storage backend. "
+                    + "Depending on the provider the root cause could be network or file system related.");
+          }
+        });
+  }
 
   @Override
   public Event getEvent(String uid, EventParams eventParams)
@@ -82,7 +152,6 @@ class DefaultEventService implements EventService {
     return getEvent(event, eventParams);
   }
 
-  @Override
   public Event getEvent(@Nonnull Event event, EventParams eventParams) throws ForbiddenException {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     List<String> errors = trackerAccessManager.canRead(currentUser, event, false);
@@ -146,8 +215,7 @@ class DefaultEventService implements EventService {
       Set<RelationshipItem> relationshipItems = new HashSet<>();
 
       for (RelationshipItem relationshipItem : event.getRelationshipItems()) {
-        org.hisp.dhis.relationship.Relationship daoRelationship =
-            relationshipItem.getRelationship();
+        Relationship daoRelationship = relationshipItem.getRelationship();
         if (trackerAccessManager.canRead(currentUser, daoRelationship).isEmpty()
             && (!daoRelationship.isDeleted())) {
           relationshipItems.add(relationshipItem);

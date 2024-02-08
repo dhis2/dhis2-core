@@ -290,6 +290,12 @@ public class DefaultFileResourceService implements FileResourceService {
   }
 
   @Override
+  public InputStream openContentStream(FileResource fileResource)
+      throws IOException, NoSuchElementException {
+    return fileResourceContentStore.openStream(fileResource.getStorageKey());
+  }
+
+  @Override
   @Transactional
   public boolean fileResourceExists(String uid) {
     return fileResourceStore.getByUid(uid) != null;
