@@ -99,10 +99,9 @@ class TextUtilsTest {
   @Test
   void testGetTokens() {
     assertEquals(
-        new ArrayList<>(Arrays.asList("John", "Doe", "Main", "Road", "25")),
-        TextUtils.getTokens("John Doe Main Road 25"));
+        List.of("John", "Doe", "Main", "Road", "25"), TextUtils.getTokens("John Doe Main Road 25"));
     assertEquals(
-        new ArrayList<>(Arrays.asList("Ted,Johnson", "Upper-Road", "45")),
+        List.of("Ted,Johnson", "Upper-Road", "45"),
         TextUtils.getTokens("Ted,Johnson Upper-Road 45"));
   }
 
