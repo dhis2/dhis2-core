@@ -28,18 +28,21 @@
 package org.hisp.dhis.schema.introspection;
 
 import static java.util.Objects.requireNonNull;
-import static org.apache.commons.lang3.StringUtils.capitalize;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.system.util.AnnotationUtils.getAnnotation;
 import static org.hisp.dhis.system.util.AnnotationUtils.isAnnotationPresent;
+import static org.hisp.dhis.system.util.ReflectionUtils.findFields;
+import static org.hisp.dhis.system.util.ReflectionUtils.findGetterMethod;
+import static org.hisp.dhis.system.util.ReflectionUtils.findMethods;
+import static org.hisp.dhis.system.util.ReflectionUtils.findSetterMethod;
+import static org.springframework.core.annotation.AnnotationUtils.findAnnotation;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.Multimap;
 import com.google.common.primitives.Primitives;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -66,7 +69,6 @@ import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.util.ReflectionUtils;
-import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -92,19 +94,19 @@ import org.springframework.util.ClassUtils;
  */
 public class JacksonPropertyIntrospector implements PropertyIntrospector {
   @Override
-  public void introspect(Class<?> klass, Map<String, Property> properties) {
+  public void introspect(Class<?> type, Map<String, Property> properties) {
     Map<String, Property> persistedProperties = new HashMap<>(properties);
     properties.clear();
-    Set<String> classFieldNames = ReflectionUtils.getAllFieldNames(klass);
+    Set<String> classFieldNames = ReflectionUtils.getAllFieldNames(type);
 
     // TODO this is quite nasty, should find a better way of exposing
     // properties at class-level
-    if (isAnnotationPresent(klass, JacksonXmlRootElement.class)
-        || isAnnotationPresent(klass, JsonRootName.class)) {
-      properties.put(SchemaService.PROPERTY_SCHEMA, createSchemaProperty(klass));
+    if (isAnnotationPresent(type, JacksonXmlRootElement.class)
+        || isAnnotationPresent(type, JsonRootName.class)) {
+      properties.put(SchemaService.PROPERTY_SCHEMA, createSchemaProperty(type));
     }
 
-    for (Property property : collectProperties(klass)) {
+    for (Property property : collectProperties(type)) {
       String fieldName = initFromJsonProperty(property);
 
       if (classFieldNames.contains(fieldName)) {
@@ -272,12 +274,12 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector {
     }
   }
 
-  private static Property createSchemaProperty(Class<?> klass) {
+  private static Property createSchemaProperty(Class<?> type) {
     Property schemaProperty = new Property();
-    schemaProperty.setAnnotations(getAnnotations(klass.getAnnotations()));
+    schemaProperty.setAnnotations(getAnnotations(type.getAnnotations()));
 
-    if (isAnnotationPresent(klass, JsonRootName.class)) {
-      JsonRootName jsonRootName = getAnnotation(klass, JsonRootName.class);
+    if (isAnnotationPresent(type, JsonRootName.class)) {
+      JsonRootName jsonRootName = getAnnotation(type, JsonRootName.class);
 
       if (!isEmpty(jsonRootName.value())) {
         schemaProperty.setName(jsonRootName.value());
@@ -286,9 +288,9 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector {
       if (!isEmpty(jsonRootName.namespace())) {
         schemaProperty.setNamespace(jsonRootName.namespace());
       }
-    } else if (isAnnotationPresent(klass, JacksonXmlRootElement.class)) {
+    } else if (isAnnotationPresent(type, JacksonXmlRootElement.class)) {
       JacksonXmlRootElement jacksonXmlRootElement =
-          getAnnotation(klass, JacksonXmlRootElement.class);
+          getAnnotation(type, JacksonXmlRootElement.class);
 
       if (!isEmpty(jacksonXmlRootElement.localName())) {
         schemaProperty.setName(jacksonXmlRootElement.localName());
@@ -302,29 +304,19 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector {
     return schemaProperty;
   }
 
-  private static List<Property> collectProperties(Class<?> klass) {
-    boolean isPrimitiveOrWrapped = ClassUtils.isPrimitiveOrWrapper(klass);
+  private static List<Property> collectProperties(Class<?> type) {
+    boolean isPrimitiveOrWrapped = ClassUtils.isPrimitiveOrWrapper(type);
 
     if (isPrimitiveOrWrapped) {
       return Collections.emptyList();
     }
 
-    List<Field> fields =
-        ReflectionUtils.findFields(klass, f -> f.isAnnotationPresent(JsonProperty.class));
-
-    List<Method> methods =
-        ReflectionUtils.findMethods(
-            klass,
-            m ->
-                AnnotationUtils.findAnnotation(m, JsonProperty.class) != null
-                    && m.getParameterTypes().length == 0);
-
-    Multimap<String, Method> multimap = ReflectionUtils.getMethodsMultimap(klass);
+    List<Field> fields = findFields(type, f -> f.isAnnotationPresent(JsonProperty.class));
 
     Map<String, Property> propertyMap = new HashMap<>();
 
     for (var field : fields) {
-      Property property = new Property(klass, null, null);
+      Property property = new Property(field.getType(), null, null);
       property.setAnnotations(getAnnotations(field.getAnnotations()));
 
       JsonProperty jsonProperty = field.getAnnotation(JsonProperty.class);
@@ -337,15 +329,19 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector {
 
       property.setName(name);
       property.setFieldName(fieldName);
-      property.setSetterMethod(ReflectionUtils.findSetterMethod(fieldName, klass));
-      property.setGetterMethod(ReflectionUtils.findGetterMethod(fieldName, klass));
+      property.setSetterMethod(findSetterMethod(fieldName, type, field.getType()));
+      property.setGetterMethod(findGetterMethod(fieldName, type));
       property.setNamespace(trimToNull(jsonProperty.namespace()));
 
       propertyMap.put(name, property);
     }
 
+    List<Method> methods =
+        findMethods(type, m -> m.getParameterCount() == 0).stream()
+            .filter(m -> getAnnotation(m, JsonProperty.class) != null)
+            .toList();
     for (var method : methods) {
-      JsonProperty jsonProperty = AnnotationUtils.findAnnotation(method, JsonProperty.class);
+      JsonProperty jsonProperty = findAnnotation(method, JsonProperty.class);
 
       String fieldName = ReflectionUtils.getFieldName(method);
       String name =
@@ -357,20 +353,14 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector {
         continue;
       }
 
-      Property property = new Property(klass, method, null);
+      Class<?> propertyType = method.getReturnType();
+      Property property = new Property(propertyType, method, null);
       property.setAnnotations(getAnnotations(method.getAnnotations()));
 
       property.setName(name);
       property.setFieldName(fieldName);
       property.setNamespace(trimToNull(jsonProperty.namespace()));
-
-      propertyMap.put(name, property);
-
-      String setterName = "set" + capitalize(fieldName);
-
-      if (multimap.containsKey(setterName)) {
-        property.setSetterMethod(multimap.get(setterName).iterator().next());
-      }
+      property.setSetterMethod(findSetterMethod(fieldName, type, propertyType));
 
       propertyMap.put(name, property);
     }

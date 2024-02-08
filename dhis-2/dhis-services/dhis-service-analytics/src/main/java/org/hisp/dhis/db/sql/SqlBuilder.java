@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.db.sql;
 
+import java.util.Collection;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.IndexFunction;
@@ -191,6 +192,26 @@ public interface SqlBuilder {
    * @return true if the DBMS supports table vacuuming.
    */
   boolean supportsVacuum();
+
+  // Utilities
+
+  /**
+   * @param relation the relation to quote, e.g. a table or column name.
+   * @return a double quoted relation.
+   */
+  String quote(String relation);
+
+  /**
+   * @param value the value to quote.
+   * @return a single quoted value.
+   */
+  String singleQuote(String value);
+
+  /**
+   * @param items the items to join.
+   * @return a string representing the comma delimited and single quoted item values.
+   */
+  String quotedCommaDelimitedString(Collection<String> items);
 
   // Statements
 

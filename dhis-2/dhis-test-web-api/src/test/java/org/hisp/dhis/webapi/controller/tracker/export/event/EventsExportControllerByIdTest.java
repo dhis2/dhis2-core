@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
+import static org.hisp.dhis.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.web.WebClient.Header;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasOnlyMembers;
@@ -39,8 +41,13 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.fileresource.FileResourceStorageStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.note.Note;
@@ -75,6 +82,8 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
   private static final String DATA_ELEMENT_VALUE = "value";
 
   @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired private FileResourceService fileResourceService;
 
   private OrganisationUnit orgUnit;
 
@@ -288,7 +297,6 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
 
   @Test
   void getEventByIdContainsCreatedByAndUpdateByAndAssignedUserInDataValues() {
-
     TrackedEntity te = trackedEntity();
     Enrollment enrollment = enrollment(te);
     Event event = event(enrollment);
@@ -329,6 +337,212 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
     assertEquals(
         "Event with id Hq3Kc6HK4OZ could not be found.",
         GET("/tracker/events/Hq3Kc6HK4OZ").error(HttpStatus.NOT_FOUND).getMessage());
+  }
+
+  @Test
+  void getDataValuesFileByDataElement() throws ConflictException {
+    DataElement de = dataElement(ValueType.FILE_RESOURCE);
+    FileResource file = storeFile("text/plain", "file content");
+
+    Event event = event(enrollment(trackedEntity()));
+    event.getEventDataValues().add(dataValue(de, file.getUid()));
+    manager.update(event);
+
+    HttpResponse response =
+        GET(
+            "/tracker/events/{eventUid}/dataValues/{dataElementUid}/file",
+            event.getUid(),
+            de.getUid());
+
+    assertEquals(HttpStatus.OK, response.status());
+    assertEquals("\"" + file.getContentMd5() + "\"", response.header("Etag"));
+    assertEquals("max-age=0, must-revalidate, private", response.header("Cache-Control"));
+    assertEquals(Long.toString(file.getContentLength()), response.header("Content-Length"));
+    assertEquals("attachment; filename=" + file.getName(), response.header("Content-Disposition"));
+    assertEquals("file content", response.content("text/plain"));
+  }
+
+  @Test
+  void getDataValuesFileByDataElementIfFileIsAnImage() throws ConflictException {
+    Event event = event(enrollment(trackedEntity()));
+    DataElement de = dataElement(ValueType.IMAGE);
+    FileResource file = storeFile("image/png", "file content");
+
+    event.getEventDataValues().add(dataValue(de, file.getUid()));
+    manager.update(event);
+
+    HttpResponse response =
+        GET(
+            "/tracker/events/{eventUid}/dataValues/{dataElementUid}/file",
+            event.getUid(),
+            de.getUid());
+
+    assertEquals(HttpStatus.OK, response.status());
+    assertEquals("\"" + file.getContentMd5() + "\"", response.header("Etag"));
+    assertEquals("max-age=0, must-revalidate, private", response.header("Cache-Control"));
+    assertEquals("attachment; filename=" + file.getName(), response.header("Content-Disposition"));
+    assertEquals(Long.toString(file.getContentLength()), response.header("Content-Length"));
+    assertEquals("file content", response.content("image/png"));
+  }
+
+  @Test
+  void getDataValuesFileByDataElementShouldReturnNotModified() throws ConflictException {
+    DataElement de = dataElement(ValueType.FILE_RESOURCE);
+    FileResource file = storeFile("text/plain", "file content");
+
+    Event event = event(enrollment(trackedEntity()));
+    event.getEventDataValues().add(dataValue(de, file.getUid()));
+    manager.update(event);
+
+    HttpResponse response =
+        GET(
+            "/tracker/events/{eventUid}/dataValues/{dataElementUid}/file",
+            event.getUid(),
+            de.getUid(),
+            Header("If-None-Match", "\"" + file.getContentMd5() + "\""));
+
+    assertEquals(HttpStatus.NOT_MODIFIED, response.status());
+    assertEquals("\"" + file.getContentMd5() + "\"", response.header("Etag"));
+    assertEquals("max-age=0, must-revalidate, private", response.header("Cache-Control"));
+    assertFalse(response.hasBody());
+  }
+
+  @Test
+  void getDataValuesFileByDataElementIfDataElementIsNotFound() {
+    Event event = event(enrollment(trackedEntity()));
+
+    String deUid = CodeGenerator.generateUid();
+
+    assertStartsWith(
+        "DataElement with id " + deUid,
+        GET("/tracker/events/{eventUid}/dataValues/{dataElementUid}/file", event.getUid(), deUid)
+            .error(HttpStatus.NOT_FOUND)
+            .getMessage());
+  }
+
+  @Test
+  void getDataValuesFileByDataElementIfUserDoesNotHaveReadAccessToDataElement()
+      throws ConflictException {
+    Event event = event(enrollment(trackedEntity()));
+    DataElement de = dataElement(ValueType.FILE_RESOURCE);
+    // remove public access
+    de.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    manager.save(de, false);
+    FileResource file = storeFile("text/plain", "file content");
+
+    event.getEventDataValues().add(dataValue(de, file.getUid()));
+    manager.update(event);
+
+    this.switchContextToUser(user);
+
+    GET("/tracker/events/{eventUid}/dataValues/{dataElementUid}/file", event.getUid(), de.getUid())
+        .error(HttpStatus.NOT_FOUND);
+  }
+
+  @Test
+  void getDataValuesFileByDataElementIfDataElementIsNotAFile() {
+    DataElement de = dataElement(ValueType.BOOLEAN);
+    Event event = event(enrollment(trackedEntity()));
+
+    event.getEventDataValues().add(dataValue(de, "true"));
+    manager.update(event);
+
+    assertStartsWith(
+        "Data element " + de.getUid() + " is not a file",
+        GET(
+                "/tracker/events/{eventUid}/dataValues/{dataElementUid}/file",
+                event.getUid(),
+                de.getUid())
+            .error(HttpStatus.NOT_FOUND)
+            .getMessage());
+  }
+
+  @Test
+  void getDataValuesFileByDataElementIfNoDataValueExists() {
+    Event event = event(enrollment(trackedEntity()));
+    DataElement de = dataElement(ValueType.FILE_RESOURCE);
+
+    assertEquals(
+        "DataValue for data element " + de.getUid() + " could not be found.",
+        GET(
+                "/tracker/events/{eventUid}/dataValues/{dataElementUid}/file",
+                event.getUid(),
+                de.getUid())
+            .error(HttpStatus.NOT_FOUND)
+            .getMessage());
+  }
+
+  @Test
+  void getDataValuesFileByDataElementIfFileResourceIsInDbButNotInTheStore() {
+    Event event = event(enrollment(trackedEntity()));
+    DataElement de = dataElement(ValueType.FILE_RESOURCE);
+    FileResource file = createFileResource('A', "file content".getBytes());
+    manager.save(file, false);
+
+    event.getEventDataValues().add(dataValue(de, file.getUid()));
+    manager.update(event);
+
+    GET("/tracker/events/{eventUid}/dataValues/{dataElementUid}/file", event.getUid(), de.getUid())
+        .error(HttpStatus.CONFLICT);
+  }
+
+  @Test
+  void getDataValuesFileByDataElementIfFileIsNotFound() {
+    Event event = event(enrollment(trackedEntity()));
+    DataElement de = dataElement(ValueType.FILE_RESOURCE);
+    String fileUid = CodeGenerator.generateUid();
+
+    event.getEventDataValues().add(dataValue(de, fileUid));
+    manager.update(event);
+
+    assertStartsWith(
+        "FileResource with id " + fileUid,
+        GET(
+                "/tracker/events/{eventUid}/dataValues/{dataElementUid}/file",
+                event.getUid(),
+                de.getUid())
+            .error(HttpStatus.NOT_FOUND)
+            .getMessage());
+  }
+
+  @Test
+  void getDataValuesFileByDataElementIfUserDoesNotHaveReadAccessToTrackedentity()
+      throws ConflictException {
+    DataElement de = dataElement(ValueType.FILE_RESOURCE);
+    FileResource file = storeFile("text/plain", "file content");
+
+    Event event = event(enrollment(trackedEntityNotInSearchScope()));
+    event.getEventDataValues().add(dataValue(de, file.getUid()));
+    manager.update(event);
+
+    this.switchContextToUser(user);
+
+    GET("/tracker/events/{eventUid}/dataValues/{dataElementUid}/file", event.getUid(), de.getUid())
+        .error(HttpStatus.NOT_FOUND);
+  }
+
+  private FileResource storeFile(String contentType, String content) throws ConflictException {
+    byte[] data = content.getBytes();
+    FileResource fr = createFileResource('A', data);
+    fr.setContentType(contentType);
+    fileResourceService.syncSaveFileResource(fr, data);
+    fr.setStorageStatus(FileResourceStorageStatus.STORED);
+    return fr;
+  }
+
+  private DataElement dataElement(ValueType type) {
+    DataElement de = createDataElement('B');
+    de.setValueType(type);
+    de.getSharing().setOwner(owner);
+    manager.save(de, false);
+    return de;
+  }
+
+  private EventDataValue dataValue(DataElement de, String value) {
+    EventDataValue dv = new EventDataValue();
+    dv.setDataElement(de.getUid());
+    dv.setValue(value);
+    return dv;
   }
 
   private TrackedEntityType trackedEntityTypeAccessible() {

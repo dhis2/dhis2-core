@@ -106,6 +106,34 @@ class PostgreSqlBuilderTest {
   }
 
   @Test
+  void testQuote() {
+    assertEquals(
+        "\"Treated \"\"malaria\"\" at facility\"",
+        sqlBuilder.quote("Treated \"malaria\" at facility"));
+    assertEquals("\"quarterly\"", sqlBuilder.quote("quarterly"));
+    assertEquals("\"Fully immunized\"", sqlBuilder.quote("Fully immunized"));
+  }
+
+  @Test
+  void testSingleQuote() {
+    assertEquals("'jkhYg65ThbF'", sqlBuilder.singleQuote("jkhYg65ThbF"));
+    assertEquals("'Age ''<5'' years'", sqlBuilder.singleQuote("Age '<5' years"));
+    assertEquals(
+        "'Status \"not checked\" found'", sqlBuilder.singleQuote("Status \"not checked\" found"));
+  }
+
+  @Test
+  void testCommaSeparatedQuotedString() {
+    assertEquals(
+        "'dmPbDBKwXyF', 'zMl4kciwJtz', 'q1Nqu1r1GTn'",
+        sqlBuilder.quotedCommaDelimitedString(
+            List.of("dmPbDBKwXyF", "zMl4kciwJtz", "q1Nqu1r1GTn")));
+    assertEquals("'1', '3', '5'", sqlBuilder.quotedCommaDelimitedString(List.of("1", "3", "5")));
+    assertEquals("", sqlBuilder.quotedCommaDelimitedString(List.of()));
+    assertEquals("", sqlBuilder.quotedCommaDelimitedString(null));
+  }
+
+  @Test
   void testCreateTableA() {
     Table table = getTableA();
 

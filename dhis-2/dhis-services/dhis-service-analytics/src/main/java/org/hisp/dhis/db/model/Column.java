@@ -30,6 +30,7 @@ package org.hisp.dhis.db.model;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 import org.hisp.dhis.db.model.constraint.Nullable;
 
 /**
@@ -38,6 +39,7 @@ import org.hisp.dhis.db.model.constraint.Nullable;
  * @author Lars Helge Overland
  */
 @Getter
+@ToString
 @RequiredArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Column {

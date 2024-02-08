@@ -341,20 +341,20 @@ public class TextUtils {
 
   /**
    * Transforms a collection of strings into a comma delimited string, where each component is
-   * single-quoted.
+   * single quoted.
    *
    * @param elements the collection of Integers
    * @return a comma delimited String.
    */
-  public static String getQuotedCommaDelimitedString(Collection<? extends Object> elements) {
-    if (elements != null && elements.size() > 0) {
-      final StringBuffer buffer = new StringBuffer();
+  public static String getQuotedCommaDelimitedString(Collection<String> elements) {
+    if (elements != null && !elements.isEmpty()) {
+      final StringBuilder builder = new StringBuilder();
 
       for (Object element : elements) {
-        buffer.append("'").append(element.toString()).append("', ");
+        builder.append("'").append(element).append("', ");
       }
 
-      return buffer.substring(0, buffer.length() - ", ".length());
+      return builder.substring(0, builder.length() - ", ".length());
     }
 
     return null;

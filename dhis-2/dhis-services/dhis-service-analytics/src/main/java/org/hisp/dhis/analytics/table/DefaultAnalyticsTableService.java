@@ -173,7 +173,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
   public void dropTables() {
     Set<String> tables = tableManager.getExistingDatabaseTables();
 
-    tables.stream().forEach(tableManager::dropTableCascade);
+    tables.stream().forEach(tableManager::dropTable);
 
     log.info("Analytics tables dropped");
   }

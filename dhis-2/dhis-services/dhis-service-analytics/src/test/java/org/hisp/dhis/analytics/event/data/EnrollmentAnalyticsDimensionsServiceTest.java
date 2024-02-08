@@ -38,7 +38,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.stream.Collectors;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsDimensionsService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.PrefixedDimension;
@@ -73,7 +72,7 @@ class EnrollmentAnalyticsDimensionsServiceTest {
     Collection<BaseIdentifiableObject> analyticsDimensions =
         enrollmentAnalyticsDimensionsService.getQueryDimensionsByProgramId("anUid").stream()
             .map(PrefixedDimension::getItem)
-            .collect(Collectors.toList());
+            .toList();
 
     assertTrue(
         analyticsDimensions.stream()
@@ -94,7 +93,7 @@ class EnrollmentAnalyticsDimensionsServiceTest {
             .getAggregateDimensionsByProgramStageId("anUid")
             .stream()
             .map(PrefixedDimension::getItem)
-            .collect(Collectors.toList());
+            .toList();
 
     assertTrue(
         analyticsDimensions.stream()
