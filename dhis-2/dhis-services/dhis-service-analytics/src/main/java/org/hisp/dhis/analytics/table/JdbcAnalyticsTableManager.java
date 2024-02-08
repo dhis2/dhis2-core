@@ -302,7 +302,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
       Set<ValueType> valueTypes,
       String whereClause) {
     String tableName = partition.getName();
-    String valTypes = getQuotedCommaDelimitedString(ObjectUtils.asStringList(valueTypes));
+    String valTypes = quotedCommaDelimitedString(ObjectUtils.asStringList(valueTypes));
     boolean respectStartEndDates =
         systemSettingManager.getBoolSetting(
             SettingKey.RESPECT_META_DATA_START_END_DATES_IN_ANALYTICS_TABLE_EXPORT);
@@ -591,7 +591,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     sql.deleteCharAt(sql.length() - ",".length());
 
     sql.append(" where oulevel > " + aggregationLevel);
-    sql.append(" and dx in (" + getQuotedCommaDelimitedString(dataElements) + ")");
+    sql.append(" and dx in (" + quotedCommaDelimitedString(dataElements) + ")");
 
     log.debug("Aggregation level SQL: '{}'", sql);
 
