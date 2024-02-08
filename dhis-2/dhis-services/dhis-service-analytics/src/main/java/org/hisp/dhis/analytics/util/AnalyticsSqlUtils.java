@@ -85,16 +85,6 @@ public class AnalyticsSqlUtils {
   }
 
   /**
-   * Encodes and quotes the given value.
-   *
-   * @param value the value.
-   * @return the encoded and quoted value.
-   */
-  public static String singleQuote(String value) {
-    return SINGLE_QUOTE + escape(value) + SINGLE_QUOTE;
-  }
-
-  /**
    * Escapes the given value. Replaces single quotes with two single quotes. Replaces backslash with
    * two backslashes.
    *
