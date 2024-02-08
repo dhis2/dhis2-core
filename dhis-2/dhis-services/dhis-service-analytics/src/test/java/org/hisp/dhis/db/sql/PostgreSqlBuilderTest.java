@@ -28,6 +28,7 @@
 package org.hisp.dhis.db.sql;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.util.List;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
@@ -120,14 +121,17 @@ class PostgreSqlBuilderTest {
     assertEquals(
         "'Status \"not checked\" found'", sqlBuilder.singleQuote("Status \"not checked\" found"));
   }
-  
+
   @Test
   void testCommaSeparatedQuotedString() {
-    assertEquals("\"dmPbDBKwXyF\", \"zMl4kciwJtz\", \"q1Nqu1r1GTn\"", sqlBuilder.
-        quotedCommaDelimitedString(List.of("dmPbDBKwXyF", "zMl4kciwJtz", "q1Nqu1r1GTn")));
-    assertEquals("\"1\", \"3\", \"5\"", sqlBuilder.quotedCommaDelimitedString(List.of("1", "3", "5")));
-    assertEquals( "", sqlBuilder.quotedCommaDelimitedString(List.of()));
-    assertEquals( "", sqlBuilder.quotedCommaDelimitedString(null));
+    assertEquals(
+        "\"dmPbDBKwXyF\", \"zMl4kciwJtz\", \"q1Nqu1r1GTn\"",
+        sqlBuilder.quotedCommaDelimitedString(
+            List.of("dmPbDBKwXyF", "zMl4kciwJtz", "q1Nqu1r1GTn")));
+    assertEquals(
+        "\"1\", \"3\", \"5\"", sqlBuilder.quotedCommaDelimitedString(List.of("1", "3", "5")));
+    assertEquals("", sqlBuilder.quotedCommaDelimitedString(List.of()));
+    assertEquals("", sqlBuilder.quotedCommaDelimitedString(null));
   }
 
   @Test

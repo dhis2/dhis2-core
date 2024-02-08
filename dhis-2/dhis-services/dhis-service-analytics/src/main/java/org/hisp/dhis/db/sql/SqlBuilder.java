@@ -206,7 +206,7 @@ public interface SqlBuilder {
    * @return a single quoted value.
    */
   String singleQuote(String value);
-  
+
   /**
    * @param items the items to join.
    * @return a string representing the comma delimited and quoted item values.

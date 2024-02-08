@@ -29,6 +29,7 @@ package org.hisp.dhis.db.sql;
 
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
+
 import java.util.Collection;
 import java.util.stream.Collectors;
 import org.hisp.dhis.db.model.Collation;
@@ -194,10 +195,9 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String quotedCommaDelimitedString(Collection<String> items) {
-    return isEmpty(items) ? EMPTY :
-      items.stream()
-          .map(this::quote)
-          .collect(Collectors.joining(COMMA));
+    return isEmpty(items)
+        ? EMPTY
+        : items.stream().map(this::quote).collect(Collectors.joining(COMMA));
   }
 
   // Statements

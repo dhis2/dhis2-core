@@ -33,6 +33,7 @@ import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -546,6 +547,16 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    */
   protected String quote(String relation) {
     return sqlBuilder.quote(relation);
+  }
+
+  /**
+   * Returns a quoted and comma delimited string.
+   *
+   * @param items the items to join.
+   * @return a string representing the comma delimited and quoted item values.
+   */
+  protected String getQuotedCommaDelimitedString(Collection<String> items) {
+    return sqlBuilder.quotedCommaDelimitedString(items);
   }
 
   // -------------------------------------------------------------------------
