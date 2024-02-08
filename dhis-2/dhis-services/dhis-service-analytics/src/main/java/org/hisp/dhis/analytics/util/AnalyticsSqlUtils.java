@@ -31,7 +31,6 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -62,19 +61,6 @@ public class AnalyticsSqlUtils {
   private static final String SEPARATOR = ".";
 
   private static final String BACKSLASH = "\\";
-
-  /**
-   * Quotes and qualifies the given relation (typically a column). Quotes part of the given relation
-   * are encoded (replaced by double quotes that is).
-   *
-   * @param relation the relation (typically a column).
-   * @return the quoted relation.
-   */
-  public static String quote(String alias, String relation) {
-    Objects.requireNonNull(alias);
-
-    return alias + SEPARATOR + SqlUtils.quote(relation);
-  }
 
   /**
    * Quotes and qualifies the given relation (typically a column). Quotes part of the given relation

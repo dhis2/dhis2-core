@@ -41,12 +41,6 @@ import org.junit.jupiter.api.Test;
  */
 class AnalyticsSqlUtilsTest {
   @Test
-  void testQuoteWithAlias() {
-    assertEquals("ougs.\"Short name\"", AnalyticsSqlUtils.quote("ougs", "Short name"));
-    assertEquals("ous.\"uid\"", AnalyticsSqlUtils.quote("ous", "uid"));
-  }
-
-  @Test
   void testEscape() {
     assertEquals("Some ''special'' value", AnalyticsSqlUtils.escape("Some 'special' value"));
     assertEquals("Prescribed ''rx82''", AnalyticsSqlUtils.escape("Prescribed 'rx82'"));
