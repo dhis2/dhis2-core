@@ -45,7 +45,6 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAliasCommaSeparate;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteWithFunction;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
@@ -717,7 +716,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
         "periodAggregationType must be MIN or MAX, not " + periodAggregationType);
 
     String function = periodAggregationType.name().toLowerCase();
-    return quoteWithFunction(function, DAYSXVALUE, DAYSNO, VALUE, TEXTVALUE);
+    return toQuotedFunctionString(function, List.of(DAYSXVALUE, DAYSNO, VALUE, TEXTVALUE));
   }
 
   /**
@@ -842,8 +841,20 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
    * @param relation the relations.
    * @return a list of quoted relations.
    */
-  private List<String> toQuotedList(List<String> relations) {
+  protected List<String> toQuotedList(List<String> relations) {
     return relations.stream().map(AnalyticsSqlUtils::quote).collect(Collectors.toList());
+  }
+
+  /**
+   * Returns a list of quoted relations.
+   *
+   * @param relation the relations.
+   * @return a list of quoted relations.
+   */
+  public String toQuotedFunctionString(String function, List<String> items) {
+    return items.stream()
+        .map(item -> String.format("%s(%s) as %s", function, quote(item), quote(item)))
+        .collect(Collectors.joining(","));
   }
 
   /**

@@ -67,17 +67,6 @@ class AnalyticsSqlUtilsTest {
   }
 
   @Test
-  void testQuoteWithFunction() {
-    assertEquals(
-        "min(\"value\") as \"value\",min(\"textvalue\") as \"textvalue\"",
-        AnalyticsSqlUtils.quoteWithFunction("min", "value", "textvalue"));
-
-    assertEquals(
-        "max(\"daysxvalue\") as \"daysxvalue\",max(\"daysno\") as \"daysno\"",
-        AnalyticsSqlUtils.quoteWithFunction("max", "daysxvalue", "daysno"));
-  }
-
-  @Test
   void testGetClosingParentheses() {
     assertEquals("", AnalyticsSqlUtils.getClosingParentheses(null));
     assertEquals("", AnalyticsSqlUtils.getClosingParentheses(""));
