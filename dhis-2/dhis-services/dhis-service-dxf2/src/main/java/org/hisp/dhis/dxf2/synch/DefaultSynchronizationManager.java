@@ -29,10 +29,7 @@ package org.hisp.dhis.dxf2.synch;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -192,25 +189,13 @@ public class DefaultSynchronizationManager implements SynchronizationManager {
   }
 
   @Override
-  public ImportReport executeMetadataPull(String suppliedUrl) {
+  public ImportReport executeMetadataPull(String url) {
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     String userUid = currentUserDetails != null ? currentUserDetails.getUid() : null;
 
-    log.info(String.format("Metadata pull, url: %s, user: %s", suppliedUrl, userUid));
+    log.info(String.format("Metadata pull, url: %s, user: %s", url, userUid));
 
-    String json = "";
-
-    URI url = null;
-    if (!remoteServerIsInAllowedList(suppliedUrl))
-      throw new IllegalArgumentException("Invalid URL provided");
-
-    try {
-      url = new URI(suppliedUrl);
-    } catch (URISyntaxException e) {
-      throw new RuntimeException(e);
-    }
-    log.info("Remote server url `{}` is in allowed list, proceed with metadata pull", url);
-    json = restTemplate.getForObject(url, String.class);
+    String json = restTemplate.getForObject(url, String.class);
 
     Metadata metadata = null;
 
@@ -227,10 +212,5 @@ public class DefaultSynchronizationManager implements SynchronizationManager {
     return importService.importMetadata(
         importParams,
         new MetadataObjects().addMetadata(schemaService.getMetadataSchemas(), metadata));
-  }
-
-  private boolean remoteServerIsInAllowedList(String url) {
-    List<String> remoteServersAllowed = configProvider.getRemoteServersAllowed();
-    return remoteServersAllowed.stream().anyMatch(url::startsWith);
   }
 }

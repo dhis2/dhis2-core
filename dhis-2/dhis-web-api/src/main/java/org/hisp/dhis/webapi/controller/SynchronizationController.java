@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +40,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -65,6 +65,7 @@ public class SynchronizationController {
   public static final String RESOURCE_PATH = "/synchronization";
 
   private final SynchronizationManager synchronizationManager;
+  private final DhisConfigurationProvider configProvider;
   private final RestTemplate restTemplate;
 
   @PreAuthorize("hasRole('ALL') or hasRole('F_EXPORT_DATA')")
@@ -78,10 +79,7 @@ public class SynchronizationController {
   @PostMapping(value = "/metadataPull", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public ImportReport importMetaData(@RequestBody @Nonnull String url) {
-    // clean user-supplied string
-    List<String> whitelist = new ArrayList<>();
-    whitelist.add("test");
-    if (whitelist.contains(url)) {
+    if (remoteServerIsInAllowedList(url)) {
       String urlCleaned = url.replace("\n", "").replace("\r", "");
       return synchronizationManager.executeMetadataPull(urlCleaned);
     }
@@ -97,5 +95,10 @@ public class SynchronizationController {
   public @ResponseBody String getMetadataRepoIndex() {
     return restTemplate.getForObject(
         SettingKey.METADATA_REPO_URL.getDefaultValue().toString(), String.class);
+  }
+
+  private boolean remoteServerIsInAllowedList(String url) {
+    List<String> remoteServersAllowed = configProvider.getRemoteServersAllowed();
+    return remoteServersAllowed.stream().anyMatch(url::startsWith);
   }
 }
