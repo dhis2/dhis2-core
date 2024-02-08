@@ -188,6 +188,11 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
+  public String quote(String alias, String relation) {
+    return alias + DOT + quote(relation);
+  }
+
+  @Override
   public String singleQuote(String value) {
     String escapedValue = value.replaceAll(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE));
     return SINGLE_QUOTE + escapedValue + SINGLE_QUOTE;
