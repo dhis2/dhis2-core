@@ -28,14 +28,21 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Set;
 import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.sms.config.ClickatellGatewayConfig;
+import org.hisp.dhis.sms.config.GatewayAdministrationService;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.sms.SmsGatewayController} using (mocked) REST
@@ -44,6 +51,8 @@ import org.junit.jupiter.api.Test;
  * @author Jan Bernitt
  */
 class SmsGatewayControllerTest extends DhisControllerConvenienceTest {
+
+  @Autowired private GatewayAdministrationService gatewayAdministrationService;
 
   private String uid;
 
@@ -58,12 +67,9 @@ class SmsGatewayControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void testSetDefault() {
-    uid =
-        assertStatus(
-            HttpStatus.OK,
-            POST(
-                "/gateways",
-                "{'name':'test', 'username':'user', 'password':'pwd', 'type':'http'}"));
+    String json = "{'name':'test', 'username':'user', 'password':'pwd', 'type':'http'}";
+    uid = assertStatus(HttpStatus.OK, POST("/gateways", json));
+
     assertWebMessage(
         "OK",
         200,
@@ -78,25 +84,62 @@ class SmsGatewayControllerTest extends DhisControllerConvenienceTest {
         "Not Found",
         404,
         "ERROR",
-        "No gateway found",
+        "SmsGatewayConfig with id xyz could not be found.",
         PUT("/gateways/default/xyz").content(HttpStatus.NOT_FOUND));
   }
 
   @Test
   void testUpdateGateway() {
-    uid =
-        assertStatus(
-            HttpStatus.OK,
-            POST(
-                "/gateways",
-                "{'name':'test', 'username':'user', 'password':'pwd', 'type':'http'}"));
+    // language=JSON
+    String json = """
+      {"name":"test", "username":"user", "password":"pwd", "type":"http"}""";
+    uid = assertStatus(HttpStatus.OK, POST("/gateways", json));
+
     JsonObject gateway = GET("/gateways/{uid}", uid).content();
+    JsonObject gatewayNoPass = JsonMixed.of(gateway.node().removeMembers(Set.of("password")));
+    assertTrue(gatewayNoPass.getString("password").isUndefined());
+
     assertWebMessage(
         "OK",
         200,
         "OK",
         "Gateway with uid: " + uid + " has been updated",
-        PUT("/gateways/" + uid, gateway.toString()).content(HttpStatus.OK));
+        PUT("/gateways/" + uid, gatewayNoPass.toJson()).content(HttpStatus.OK));
+
+    String password =
+        gatewayAdministrationService.getByUid(gateway.getString("uid").string()).getPassword();
+    assertNotNull(password, "internally the password should still be set");
+    assertNotEquals("pwd", password, "password should be stored encoded but was plain");
+  }
+
+  @Test
+  void testUpdateGateway_Clickatell() {
+    // language=JSON
+    String json =
+        """
+      {"name":"testclick", "username":"user", "password":"pwd", "type":"clickatell", "authToken": "token"}""";
+    uid = assertStatus(HttpStatus.OK, POST("/gateways", json));
+
+    JsonObject gateway = GET("/gateways/{uid}", uid).content();
+    JsonObject gatewayNoAuth =
+        JsonMixed.of(gateway.node().removeMembers(Set.of("password", "authToken")));
+
+    assertTrue(gatewayNoAuth.getString("password").isUndefined());
+    assertTrue(gatewayNoAuth.getString("authToken").isUndefined());
+
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Gateway with uid: " + uid + " has been updated",
+        PUT("/gateways/" + uid, gatewayNoAuth.toJson()).content(HttpStatus.OK));
+
+    ClickatellGatewayConfig config =
+        (ClickatellGatewayConfig)
+            gatewayAdministrationService.getByUid(gateway.getString("uid").string());
+    assertNotNull(config.getPassword(), "internally the password should still be set");
+    assertNotEquals("pwd", config.getPassword(), "password should be stored encoded but was plain");
+    assertNotNull(config.getAuthToken(), "internally the authToken should still be set");
   }
 
   @Test
@@ -105,7 +148,7 @@ class SmsGatewayControllerTest extends DhisControllerConvenienceTest {
         "Not Found",
         404,
         "ERROR",
-        "No gateway found",
+        "SmsGatewayConfig with id xyz could not be found.",
         PUT("/gateways/xyz").content(HttpStatus.NOT_FOUND));
   }
 
@@ -142,7 +185,7 @@ class SmsGatewayControllerTest extends DhisControllerConvenienceTest {
         "Not Found",
         404,
         "ERROR",
-        "No gateway found with id: xyz",
+        "SmsGatewayConfig with id xyz could not be found.",
         DELETE("/gateways/xyz").content(HttpStatus.NOT_FOUND));
   }
 }

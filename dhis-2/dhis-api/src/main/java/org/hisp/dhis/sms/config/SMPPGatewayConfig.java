@@ -29,6 +29,8 @@ package org.hisp.dhis.sms.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import lombok.Getter;
+import lombok.Setter;
 import org.jsmpp.bean.BindType;
 import org.jsmpp.bean.NumberingPlanIndicator;
 import org.jsmpp.bean.TypeOfNumber;
@@ -36,18 +38,16 @@ import org.jsmpp.bean.TypeOfNumber;
 /**
  * @author Zubair Asghar
  */
+@Getter
+@Setter
 @JsonTypeName("smpp")
 public class SMPPGatewayConfig extends SmsGatewayConfig {
+
   @JsonProperty private String systemType;
-
   @JsonProperty private NumberingPlanIndicator numberPlanIndicator = NumberingPlanIndicator.UNKNOWN;
-
   @JsonProperty private TypeOfNumber typeOfNumber = TypeOfNumber.UNKNOWN;
-
   @JsonProperty private BindType bindType = BindType.BIND_TX;
-
   @JsonProperty private int port;
-
   @JsonProperty private boolean compressed;
 
   @Override
@@ -60,53 +60,5 @@ public class SMPPGatewayConfig extends SmsGatewayConfig {
   @JsonProperty(value = "systemId")
   public String getUsername() {
     return super.getUsername();
-  }
-
-  public int getPort() {
-    return port;
-  }
-
-  public void setPort(int port) {
-    this.port = port;
-  }
-
-  public String getSystemType() {
-    return systemType;
-  }
-
-  public void setSystemType(String systemType) {
-    this.systemType = systemType;
-  }
-
-  public NumberingPlanIndicator getNumberPlanIndicator() {
-    return numberPlanIndicator;
-  }
-
-  public void setNumberPlanIndicator(NumberingPlanIndicator numberPlanIndicator) {
-    this.numberPlanIndicator = numberPlanIndicator;
-  }
-
-  public TypeOfNumber getTypeOfNumber() {
-    return typeOfNumber;
-  }
-
-  public void setTypeOfNumber(TypeOfNumber typeOfNumber) {
-    this.typeOfNumber = typeOfNumber;
-  }
-
-  public BindType getBindType() {
-    return bindType;
-  }
-
-  public void setBindType(BindType bindType) {
-    this.bindType = bindType;
-  }
-
-  public boolean isCompressed() {
-    return compressed;
-  }
-
-  public void setCompressed(boolean compressed) {
-    this.compressed = compressed;
   }
 }
