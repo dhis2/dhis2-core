@@ -60,8 +60,6 @@ public class AnalyticsSqlUtils {
 
   private static final String SEPARATOR = ".";
 
-  private static final String BACKSLASH = "\\";
-
   /**
    * Quotes and qualifies the given relation (typically a column). Quotes part of the given relation
    * are encoded (replaced by double quotes that is). The alias used is {@link
@@ -82,19 +80,6 @@ public class AnalyticsSqlUtils {
    */
   public static String quoteAliasCommaSeparate(Collection<String> items) {
     return items.stream().map(AnalyticsSqlUtils::quoteAlias).collect(Collectors.joining(","));
-  }
-
-  /**
-   * Escapes the given value. Replaces single quotes with two single quotes. Replaces backslash with
-   * two backslashes.
-   *
-   * @param value the value to escape.
-   * @return the escaped value.
-   */
-  public static String escape(String value) {
-    return value
-        .replace(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE))
-        .replace(BACKSLASH, (BACKSLASH + BACKSLASH));
   }
 
   /**

@@ -40,14 +40,6 @@ import org.junit.jupiter.api.Test;
  */
 class AnalyticsSqlUtilsTest {
   @Test
-  void testEscape() {
-    assertEquals("Some ''special'' value", AnalyticsSqlUtils.escape("Some 'special' value"));
-    assertEquals("Prescribed ''rx82''", AnalyticsSqlUtils.escape("Prescribed 'rx82'"));
-    assertEquals("Some regular value", AnalyticsSqlUtils.escape("Some regular value"));
-    assertEquals("C:\\\\Downloads\\\\Temp", AnalyticsSqlUtils.escape("C:\\Downloads\\Temp"));
-  }
-
-  @Test
   void testQuoteAlias() {
     assertEquals("ax.\"uidlevel1\"", AnalyticsSqlUtils.quoteAlias("uidlevel1"));
     assertEquals("ax.\"quarterly\"", AnalyticsSqlUtils.quoteAlias("quarterly"));
