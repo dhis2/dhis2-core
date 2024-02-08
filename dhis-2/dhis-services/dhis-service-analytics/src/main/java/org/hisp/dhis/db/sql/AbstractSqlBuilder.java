@@ -41,6 +41,8 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
 
   protected static final String QUOTE = "\"";
   protected static final String SINGLE_QUOTE = "'";
+  protected static final String COMMA = ", ";
+  protected static final String EMPTY = "";
 
   /**
    * Returns the database name of the given data type.

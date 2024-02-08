@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.db.sql;
 
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
-
+import java.util.Collection;
 import java.util.stream.Collectors;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
@@ -191,6 +192,14 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
     return SINGLE_QUOTE + escapedValue + SINGLE_QUOTE;
   }
 
+  @Override
+  public String quotedCommaDelimitedString(Collection<String> items) {
+    return isEmpty(items) ? EMPTY :
+      items.stream()
+          .map(this::quote)
+          .collect(Collectors.joining(COMMA));
+  }
+
   // Statements
 
   @Override
@@ -214,7 +223,8 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
       sql.append(quote(column.getName()) + " ")
           .append(dataType)
           .append(nullable)
-          .append(collation + ", ");
+          .append(collation)
+          .append(COMMA);
     }
 
     // Primary key
@@ -223,17 +233,17 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
       sql.append("primary key (");
 
       for (String columnName : table.getPrimaryKey()) {
-        sql.append(quote(columnName) + ", ");
+        sql.append(quote(columnName)).append(COMMA);
       }
 
-      removeLastComma(sql).append("), ");
+      removeLastComma(sql).append(")").append(COMMA);
     }
 
     // Checks
 
     if (table.hasChecks()) {
       for (String check : table.getChecks()) {
-        sql.append("check(" + check + "), ");
+        sql.append("check(" + check + ")").append(COMMA);
       }
     }
 
@@ -330,7 +340,7 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
     String columns =
         index.getColumns().stream()
             .map(col -> toIndexColumn(index, col))
-            .collect(Collectors.joining(", "));
+            .collect(Collectors.joining(COMMA));
 
     return String.format(
         "create %sindex %s on %s using %s(%s);",
