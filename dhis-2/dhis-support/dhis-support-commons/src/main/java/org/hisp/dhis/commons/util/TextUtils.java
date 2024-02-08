@@ -346,7 +346,7 @@ public class TextUtils {
    * @param elements the collection of Integers
    * @return a comma delimited String.
    */
-  public static String getQuotedCommaDelimitedString(Collection<? extends Object> elements) {
+  public static String getQuotedCommaDelimitedString(Collection<?> elements) {
     if (elements != null && elements.size() > 0) {
       final StringBuilder builder = new StringBuilder();
 
