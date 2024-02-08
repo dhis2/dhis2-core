@@ -348,7 +348,7 @@ public class TextUtils {
    */
   public static String getQuotedCommaDelimitedString(Collection<? extends Object> elements) {
     if (elements != null && elements.size() > 0) {
-      final StringBuffer buffer = new StringBuffer();
+      final StringBuilder buffer = new StringBuilder();
 
       for (Object element : elements) {
         buffer.append("'").append(element.toString()).append("', ");
