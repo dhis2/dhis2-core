@@ -849,7 +849,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
    * Returns a list of quoted function relations.
    *
    * @param function the function.
-   * @param the list of relations.
+   * @param relations the list of relations.
    * @return a list of quoted function relations.
    */
   public String toQuotedFunctionString(String function, List<String> relations) {
