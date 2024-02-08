@@ -341,7 +341,7 @@ public class TextUtils {
 
   /**
    * Transforms a collection of strings into a comma delimited string, where each component is
-   * single-quoted.
+   * single quoted.
    *
    * @param elements the collection of Integers
    * @return a comma delimited String.
