@@ -55,7 +55,7 @@ class InQueryFilterTest {
 
   @Test
   void verifyInWithNullOnly() {
-    executeTest("NV", false, "aField is null ");
+    executeTest("NV", true, "aField is null ");
   }
 
   @Test
