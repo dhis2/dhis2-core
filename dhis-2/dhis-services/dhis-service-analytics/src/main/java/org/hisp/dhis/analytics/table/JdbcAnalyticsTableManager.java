@@ -389,7 +389,11 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     }
 
     if (whereClause != null) {
-      sql += "and " + whereClause;
+      sql += "and " + whereClause + " ";
+    }
+
+    if (analyticsExportSettings.isTableOrdering()) {
+      sql += "order by de.uid, co.uid";
     }
 
     invokeTimeAndLog(sql, String.format("Populate %s %s", tableName, valueTypes));
