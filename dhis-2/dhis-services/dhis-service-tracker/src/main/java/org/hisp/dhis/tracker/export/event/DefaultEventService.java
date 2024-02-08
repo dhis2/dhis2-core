@@ -119,11 +119,6 @@ class DefaultEventService implements EventService {
           "DataValue for data element " + dataElementUid.getValue() + " could not be found.");
     }
 
-    // Using getExistingFileResource instead of getFileResource, so we throw if the file is not
-    // found and to avoid a potential extra network call done by
-    // DefaultFileResourceService.getFileResource and checkStorageStatus.
-    // The same check will be done by fileResourceService.copyFileResourceContent anyway when trying
-    // to retrieve the file
     FileResource fileResource = fileResourceService.getExistingFileResource(fileResourceUid);
 
     return new FileResourceStream(
