@@ -198,8 +198,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   }
 
   private String encodeAndQuote(Collection<String> elements) {
-    return getQuotedCommaDelimitedString(
-        elements.stream().map(SqlUtils::escape).collect(Collectors.toList()));
+    return getQuotedCommaDelimitedString(elements.stream().map(SqlUtils::escape).toList());
   }
 
   private void checkMaxTrackedEntityCountReached(
