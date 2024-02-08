@@ -31,10 +31,10 @@ import com.google.common.collect.Sets;
 import java.sql.Array;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Objects;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.CodeGenerator;
-import org.springframework.util.Assert;
 
 /**
  * Utilities for SQL operations, compatible with PostgreSQL and H2 database platforms.
@@ -75,7 +75,7 @@ public class SqlUtils {
    * @return the quoted relation.
    */
   public static String quote(String alias, String relation) {
-    Assert.notNull(alias, "Alias must be specified");
+    Objects.requireNonNull(alias);
 
     return alias + SEPARATOR + quote(relation);
   }

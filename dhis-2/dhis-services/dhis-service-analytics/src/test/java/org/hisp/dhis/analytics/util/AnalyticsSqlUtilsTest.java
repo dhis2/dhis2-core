@@ -41,16 +41,6 @@ import org.junit.jupiter.api.Test;
  */
 class AnalyticsSqlUtilsTest {
   @Test
-  void testQuote() {
-    assertEquals(
-        "\"Some \"\"special\"\" value\"", AnalyticsSqlUtils.quote("Some \"special\" value"));
-    assertEquals(
-        "\"Prescribed drug \"\"rx01\"\" to 'John White'\"",
-        AnalyticsSqlUtils.quote("Prescribed drug \"rx01\" to 'John White'"));
-    assertEquals("\"Data element\"", AnalyticsSqlUtils.quote("Data element"));
-  }
-
-  @Test
   void testQuoteWithAlias() {
     assertEquals("ougs.\"Short name\"", AnalyticsSqlUtils.quote("ougs", "Short name"));
     assertEquals("ous.\"uid\"", AnalyticsSqlUtils.quote("ous", "uid"));

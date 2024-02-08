@@ -40,6 +40,9 @@ class SqlUtilsTest {
   void testQuote() {
     assertEquals("\"Some \"\"special\"\" value\"", SqlUtils.quote("Some \"special\" value"));
     assertEquals("\"Data element\"", SqlUtils.quote("Data element"));
+    assertEquals(
+        "\"Prescribed drug \"\"rx01\"\" to 'John White'\"",
+        SqlUtils.quote("Prescribed drug \"rx01\" to 'John White'"));
   }
 
   @Test

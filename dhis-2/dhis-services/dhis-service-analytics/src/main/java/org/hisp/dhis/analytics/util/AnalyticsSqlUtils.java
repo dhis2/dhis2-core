@@ -31,11 +31,12 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.util.Assert;
+import org.hisp.dhis.system.util.SqlUtils;
 
 /**
  * Utilities for analytics SQL operations.
@@ -63,21 +64,6 @@ public class AnalyticsSqlUtils {
   private static final String BACKSLASH = "\\";
 
   /**
-   * Quotes the given relation (typically a column). Quotes part of the given relation are encoded
-   * (replaced by double quotes that is).
-   *
-   * @param relation the relation (typically a column).
-   * @return the quoted relation.
-   */
-  public static String quote(String relation) {
-    Assert.notNull(relation, "Relation must be specified");
-
-    String rel = relation.replace(QUOTE, (QUOTE + QUOTE));
-
-    return QUOTE + rel + QUOTE;
-  }
-
-  /**
    * Quotes and qualifies the given relation (typically a column). Quotes part of the given relation
    * are encoded (replaced by double quotes that is).
    *
@@ -85,9 +71,9 @@ public class AnalyticsSqlUtils {
    * @return the quoted relation.
    */
   public static String quote(String alias, String relation) {
-    Assert.notNull(alias, "Alias must be specified");
+    Objects.requireNonNull(alias);
 
-    return alias + SEPARATOR + quote(relation);
+    return alias + SEPARATOR + SqlUtils.quote(relation);
   }
 
   /**
@@ -98,7 +84,7 @@ public class AnalyticsSqlUtils {
    * @return the quoted and qualified relation.
    */
   public static String quoteAlias(String relation) {
-    return ANALYTICS_TBL_ALIAS + SEPARATOR + quote(relation);
+    return ANALYTICS_TBL_ALIAS + SEPARATOR + SqlUtils.quote(relation);
   }
 
   /**
