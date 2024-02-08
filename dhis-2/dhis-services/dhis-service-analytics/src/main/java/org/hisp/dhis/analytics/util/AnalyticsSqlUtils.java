@@ -110,12 +110,6 @@ public class AnalyticsSqlUtils {
     return items.stream().map(AnalyticsSqlUtils::quoteAlias).collect(Collectors.joining(","));
   }
 
-  public static String quoteWithFunction(String function, List<String> items) {
-    return items.stream()
-        .map(item -> String.format("%s(%s) as %s", function, quote(item), quote(item)))
-        .collect(Collectors.joining(","));
-  }
-
   /**
    * Encodes and quotes the given value.
    *
