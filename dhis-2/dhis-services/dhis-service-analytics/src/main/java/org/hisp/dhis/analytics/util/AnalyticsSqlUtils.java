@@ -128,7 +128,7 @@ public class AnalyticsSqlUtils {
    * @return the encoded value.
    */
   public static String encode(String value, boolean quote) {
-    value = value.replace(SINGLE_QUOTE, SINGLE_QUOTE + SINGLE_QUOTE);
+    value = value.replace(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE));
 
     return quote ? (SINGLE_QUOTE + value + SINGLE_QUOTE) : value;
   }
