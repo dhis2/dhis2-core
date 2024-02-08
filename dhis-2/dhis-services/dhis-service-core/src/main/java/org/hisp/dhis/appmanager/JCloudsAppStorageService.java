@@ -137,7 +137,8 @@ public class JCloudsAppStorageService implements AppStorageService {
         new BlobStoreProperties(
             configurationProvider.getProperty(ConfigurationKey.FILESTORE_PROVIDER),
             configurationProvider.getProperty(ConfigurationKey.FILESTORE_LOCATION),
-            configurationProvider.getProperty(ConfigurationKey.FILESTORE_CONTAINER));
+            configurationProvider.getProperty(ConfigurationKey.FILESTORE_CONTAINER),
+            configurationProvider.getProperty(ConfigurationKey.FILESTORE_ENDPOINT));
 
     Pair<Credentials, Properties> providerConfig =
         configureForProvider(
@@ -149,11 +150,14 @@ public class JCloudsAppStorageService implements AppStorageService {
     // Set up JClouds context
     // ---------------------------------------------------------------------
 
-    blobStoreContext =
+    ContextBuilder contextBuilder =
         ContextBuilder.newBuilder(config.provider)
             .credentials(providerConfig.getLeft().identity, providerConfig.getLeft().credential)
-            .overrides(providerConfig.getRight())
-            .build(BlobStoreContext.class);
+            .overrides(providerConfig.getRight());
+    if (config.endpoint != null) {
+      contextBuilder.endpoint(config.endpoint);
+    }
+    blobStoreContext = contextBuilder.build(BlobStoreContext.class);
 
     blobStore = blobStoreContext.getBlobStore();
 
@@ -523,10 +527,13 @@ public class JCloudsAppStorageService implements AppStorageService {
 
     private String container;
 
-    BlobStoreProperties(String provider, String location, String container) {
+    private String endpoint;
+
+    BlobStoreProperties(String provider, String location, String container, String endpoint) {
       this.provider = provider;
       this.location = location;
       this.container = container;
+      this.endpoint = endpoint;
 
       validate();
       validateAndSelectProvider();
