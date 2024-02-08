@@ -295,7 +295,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             .withAggregationType(fromAggregationType(AggregationType.CUSTOM))
             .build();
 
-    assertThrows(IllegalArgumentException.class, () -> eventSubject.getAggregateClause(params));
+    assertThrows(NullPointerException.class, () -> eventSubject.getAggregateClause(params));
   }
 
   @Test
