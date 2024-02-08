@@ -28,6 +28,9 @@
 package org.hisp.dhis.dataelement;
 
 import static java.util.stream.Collectors.toUnmodifiableSet;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.common.DimensionalObject.TEXTVALUE_COLUMN_NAME;
 import static org.hisp.dhis.common.DimensionalObject.VALUE_COLUMN_NAME;
 import static org.hisp.dhis.dataset.DataSet.NO_EXPIRY;
@@ -382,7 +385,7 @@ public class DataElement extends BaseDimensionalItemObject
 
   /** Tests whether more than one aggregation level exists for the DataElement. */
   public boolean hasAggregationLevels() {
-    return aggregationLevels != null && aggregationLevels.size() > 0;
+    return isNotEmpty(aggregationLevels);
   }
 
   /**
@@ -427,7 +430,8 @@ public class DataElement extends BaseDimensionalItemObject
    * @return true if this data element has a description.
    */
   public boolean hasDescription() {
-    return description != null && !description.trim().isEmpty();
+
+    return isNotEmpty(description);
   }
 
   /**
@@ -436,7 +440,7 @@ public class DataElement extends BaseDimensionalItemObject
    * @return true if this data element has a URL.
    */
   public boolean hasUrl() {
-    return url != null && !url.trim().isEmpty();
+    return isNotEmpty(url);
   }
 
   /**
@@ -617,7 +621,8 @@ public class DataElement extends BaseDimensionalItemObject
    *     period and date.
    */
   public boolean isDataInputAllowedForPeriodAndDate(Period period, Date date) {
-    return getDataSets().isEmpty()
+
+    return isEmpty(dataSetElements)
         || getDataSets().stream()
             .anyMatch(dataSet -> dataSet.isDataInputPeriodAndDateAllowed(period, date));
   }

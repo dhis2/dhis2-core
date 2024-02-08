@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParentheses;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 
@@ -158,14 +157,14 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    * @param fromClause the SQL from clause.
    */
   protected void populateTableInternal(AnalyticsTablePartition partition, String fromClause) {
-    String tableName = partition.getTempName();
+    String tableName = partition.getName();
 
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
-    String sql = "insert into " + partition.getTempName() + " (";
+    String sql = "insert into " + tableName + " (";
 
     for (AnalyticsTableColumn col : columns) {
-      sql += col.getName() + ",";
+      sql += quote(col.getName()) + ",";
     }
 
     sql = TextUtils.removeLastComma(sql) + ") select ";
@@ -181,7 +180,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     invokeTimeAndLog(sql, String.format("Populate %s", tableName));
   }
 
-  protected List<AnalyticsTableColumn> addTrackedEntityAttributes(Program program) {
+  protected List<AnalyticsTableColumn> getTrackedEntityAttributeColumns(Program program) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     for (TrackedEntityAttribute attribute : program.getNonConfidentialTrackedEntityAttributes()) {
@@ -206,7 +205,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
               + " as "
               + quote(attribute.getUid());
 
-      columns.add(new AnalyticsTableColumn(quote(attribute.getUid()), dataType, sql, skipIndex));
+      columns.add(new AnalyticsTableColumn(attribute.getUid(), dataType, sql, skipIndex));
     }
 
     return columns;

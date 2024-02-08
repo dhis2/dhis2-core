@@ -37,6 +37,10 @@ import java.lang.annotation.Target;
  * should not be annotated with spring's {@code @Transactional} annotation as it uses a different
  * transaction management.
  *
+ * <p>This can also be used to indicate that a service method intentionally does not want to open a
+ * transaction scope for the annotated method as it only includes a single call to another service
+ * that will open a transaction scope once it is needed.
+ *
  * @see NonTransactional
  * @author Jan Bernitt
  */

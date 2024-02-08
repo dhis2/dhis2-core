@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.db.sql;
 
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
-import static org.hisp.dhis.system.util.SqlUtils.quote;
-import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
 
+import java.util.Collection;
 import java.util.stream.Collectors;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
@@ -179,6 +179,27 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
     return true;
   }
 
+  // Utilities
+
+  @Override
+  public String quote(String relation) {
+    String escapedRelation = relation.replace(QUOTE, (QUOTE + QUOTE));
+    return QUOTE + escapedRelation + QUOTE;
+  }
+
+  @Override
+  public String singleQuote(String value) {
+    String escapedValue = value.replaceAll(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE));
+    return SINGLE_QUOTE + escapedValue + SINGLE_QUOTE;
+  }
+
+  @Override
+  public String quotedCommaDelimitedString(Collection<String> items) {
+    return isEmpty(items)
+        ? EMPTY
+        : items.stream().map(this::singleQuote).collect(Collectors.joining(COMMA));
+  }
+
   // Statements
 
   @Override
@@ -202,7 +223,8 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
       sql.append(quote(column.getName()) + " ")
           .append(dataType)
           .append(nullable)
-          .append(collation + ", ");
+          .append(collation)
+          .append(COMMA);
     }
 
     // Primary key
@@ -211,17 +233,17 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
       sql.append("primary key (");
 
       for (String columnName : table.getPrimaryKey()) {
-        sql.append(quote(columnName) + ", ");
+        sql.append(quote(columnName)).append(COMMA);
       }
 
-      removeLastComma(sql).append("), ");
+      removeLastComma(sql).append(")").append(COMMA);
     }
 
     // Checks
 
     if (table.hasChecks()) {
       for (String check : table.getChecks()) {
-        sql.append("check(" + check + "), ");
+        sql.append("check(" + check + ")").append(COMMA);
       }
     }
 
@@ -236,12 +258,22 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String analyzeTable(Table table) {
-    return String.format("analyze %s;", quote(table.getName()));
+    return analyzeTable(table.getName());
+  }
+
+  @Override
+  public String analyzeTable(String name) {
+    return String.format("analyze %s;", quote(name));
   }
 
   @Override
   public String vacuumTable(Table table) {
-    return String.format("vacuum %s;", quote(table.getName()));
+    return vacuumTable(table.getName());
+  }
+
+  @Override
+  public String vacuumTable(String name) {
+    return String.format("vacuum %s;", quote(name));
   }
 
   @Override
@@ -270,6 +302,28 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
+  public String swapTable(Table table, String newName) {
+    return String.join(" ", dropTableIfExistsCascade(newName), renameTable(table, newName));
+  }
+
+  @Override
+  public String setParentTable(Table table, String parentName) {
+    return String.format("alter table %s inherit %s;", quote(table.getName()), quote(parentName));
+  }
+
+  @Override
+  public String removeParentTable(Table table, String parentName) {
+    return String.format(
+        "alter table %s no inherit %s;", quote(table.getName()), quote(parentName));
+  }
+
+  @Override
+  public String swapParentTable(Table table, String parentName, String newParentName) {
+    return String.join(
+        " ", removeParentTable(table, parentName), setParentTable(table, newParentName));
+  }
+
+  @Override
   public String tableExists(String name) {
     return String.format(
         "select t.table_name from information_schema.tables t "
@@ -278,17 +332,18 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String createIndex(Table table, Index index) {
+  public String createIndex(Index index) {
     String unique = index.getUnique() == Unique.UNIQUE ? "unique " : "";
+    String tableName = index.getTableName();
     String typeName = getIndexTypeName(index.getIndexType());
 
     String columns =
         index.getColumns().stream()
-            .map(c -> toIndexColumn(index, c))
-            .collect(Collectors.joining(", "));
+            .map(col -> toIndexColumn(index, col))
+            .collect(Collectors.joining(COMMA));
 
     return String.format(
         "create %sindex %s on %s using %s(%s);",
-        unique, quote(index.getName()), quote(table.getName()), typeName, columns);
+        unique, quote(index.getName()), quote(tableName), typeName, columns);
   }
 }

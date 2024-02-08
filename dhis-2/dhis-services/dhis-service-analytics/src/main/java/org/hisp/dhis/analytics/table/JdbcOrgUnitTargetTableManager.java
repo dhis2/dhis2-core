@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
@@ -51,7 +50,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.Logged;
-import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.resourcetable.ResourceTableService;
@@ -68,7 +66,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service("org.hisp.dhis.analytics.OrgUnitTargetTableManager")
 public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
-      List.of(new AnalyticsTableColumn(quote("oug"), CHARACTER_11, NOT_NULL, "oug.uid"));
+      List.of(new AnalyticsTableColumn("oug", CHARACTER_11, NOT_NULL, "oug.uid"));
 
   public JdbcOrgUnitTargetTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -118,31 +116,26 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
   }
 
   @Override
-  public String validState() {
-    return null;
-  }
-
-  @Override
   protected boolean hasUpdatedLatestData(Date startDate, Date endDate) {
     return false;
   }
 
   @Override
-  protected List<String> getPartitionChecks(AnalyticsTablePartition partition) {
+  protected List<String> getPartitionChecks(Integer year, Date endDate) {
     return List.of();
   }
 
   @Override
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
-    String tableName = partition.getTempName();
+    String tableName = partition.getName();
 
-    String sql = "insert into " + partition.getTempName() + " (";
+    String sql = "insert into " + tableName + " (";
 
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
     for (AnalyticsTableColumn col : columns) {
-      sql += col.getName() + ",";
+      sql += quote(col.getName()) + ",";
     }
 
     sql = TextUtils.removeLastComma(sql) + ") select ";
@@ -165,16 +158,9 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
   private List<AnalyticsTableColumn> getColumns() {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-    List<OrganisationUnitLevel> levels = organisationUnitService.getFilledOrganisationUnitLevels();
-
-    for (OrganisationUnitLevel level : levels) {
-      String column = quote(PREFIX_ORGUNITLEVEL + level.getLevel());
-      columns.add(
-          new AnalyticsTableColumn(column, CHARACTER_11, "ous." + column, level.getCreated()));
-    }
-
+    columns.addAll(getOrganisationUnitLevelColumns());
     columns.addAll(FIXED_COLS);
-    columns.add(new AnalyticsTableColumn(quote("value"), DOUBLE, NULL, FACT, "1 as value"));
+    columns.add(new AnalyticsTableColumn("value", DOUBLE, NULL, FACT, "1 as value"));
 
     return filterDimensionColumns(columns);
   }

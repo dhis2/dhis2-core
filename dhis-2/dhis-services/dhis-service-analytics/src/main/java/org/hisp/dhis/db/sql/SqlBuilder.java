@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.db.sql;
 
+import java.util.Collection;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.IndexFunction;
@@ -192,6 +193,26 @@ public interface SqlBuilder {
    */
   boolean supportsVacuum();
 
+  // Utilities
+
+  /**
+   * @param relation the relation to quote, e.g. a table or column name.
+   * @return a double quoted relation.
+   */
+  String quote(String relation);
+
+  /**
+   * @param value the value to quote.
+   * @return a single quoted value.
+   */
+  String singleQuote(String value);
+
+  /**
+   * @param items the items to join.
+   * @return a string representing the comma delimited and single quoted item values.
+   */
+  String quotedCommaDelimitedString(Collection<String> items);
+
   // Statements
 
   /**
@@ -207,10 +228,22 @@ public interface SqlBuilder {
   String analyzeTable(Table table);
 
   /**
+   * @param name the table name.
+   * @return an analyze table statement.
+   */
+  String analyzeTable(String name);
+
+  /**
    * @param table the {@link Table}.
    * @return a vacuum table statement.
    */
   String vacuumTable(Table table);
+
+  /**
+   * @param name the table name.
+   * @return a vacuum table statement.
+   */
+  String vacuumTable(String name);
 
   /**
    * @param table the {@link Table}.
@@ -244,6 +277,35 @@ public interface SqlBuilder {
   String dropTableIfExistsCascade(String name);
 
   /**
+   * @param table the {@link Table}.
+   * @param newName the new name for the table.
+   * @return a combined drop table if exists cascade and rename table statement.
+   */
+  String swapTable(Table table, String newName);
+
+  /**
+   * @param table the {@link Table}.
+   * @param parentName the parent table name.
+   * @return a table inherit statement.
+   */
+  String setParentTable(Table table, String parentName);
+
+  /**
+   * @param table the {@link Table}.
+   * @param parentName the parent table name.
+   * @return a table no inherit statement.
+   */
+  String removeParentTable(Table table, String parentName);
+
+  /**
+   * @param table the {@link Table}.
+   * @param parentName the name of the current parent table.
+   * @param newParentName the name of the new parent table.
+   * @return a combined table inherit and table no inherit statement.
+   */
+  String swapParentTable(Table table, String parentName, String newParentName);
+
+  /**
    * @param name the table name.
    * @return a statement which will return a single row with a single column with the table name if
    *     the table exists.
@@ -251,9 +313,8 @@ public interface SqlBuilder {
   String tableExists(String name);
 
   /**
-   * @param table the {@link Table}.
    * @param index the {@link Index}.
    * @return a create index statement.
    */
-  String createIndex(Table table, Index index);
+  String createIndex(Index index);
 }

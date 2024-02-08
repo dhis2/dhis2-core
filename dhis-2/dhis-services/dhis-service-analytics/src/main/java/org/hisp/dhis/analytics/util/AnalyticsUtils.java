@@ -61,6 +61,8 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -119,6 +121,7 @@ import org.springframework.util.Assert;
  * @author Lars Helge Overland
  */
 @Slf4j
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class AnalyticsUtils {
   private static final int DECIMALS_NO_ROUNDING = 10;
 

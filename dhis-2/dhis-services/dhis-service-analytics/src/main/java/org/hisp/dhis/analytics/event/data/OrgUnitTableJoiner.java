@@ -94,8 +94,7 @@ public final class OrgUnitTableJoiner {
             : plusOneDay(params.getLatestEndDate());
 
     String ownershipTable =
-        AnalyticsTable.getTableName(
-            AnalyticsTableType.OWNERSHIP.getTableName(), params.getProgram());
+        AnalyticsTable.getTableName(AnalyticsTableType.OWNERSHIP, params.getProgram());
 
     return "left join "
         + ownershipTable

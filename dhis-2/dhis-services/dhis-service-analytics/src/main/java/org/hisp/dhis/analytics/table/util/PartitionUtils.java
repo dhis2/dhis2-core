@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.table;
+package org.hisp.dhis.analytics.table.util;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,11 +33,13 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.model.Partitions;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -50,6 +52,7 @@ import org.springframework.util.Assert;
  *
  * @author Lars Helge Overland
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class PartitionUtils {
   public static final String SEP = "_";
 
@@ -156,7 +159,7 @@ public class PartitionUtils {
             ? getPartitions(params.getStartDate(), params.getEndDate())
             : getPartitions(params.getAllPeriods());
 
-    if (tableType.hasLatestPartition()) {
+    if (tableType.isLatestPartition()) {
       partitions.add(AnalyticsTablePartition.LATEST_PARTITION);
     }
 
@@ -208,12 +211,11 @@ public class PartitionUtils {
     List<AnalyticsTablePartition> partitions = new ArrayList<>();
 
     for (AnalyticsTable table : tables) {
-      if (table.hasPartitionTables()) {
+      if (table.hasTablePartitions()) {
         partitions.addAll(table.getTablePartitions());
       } else {
         // Fake partition representing the master table
-
-        partitions.add(new AnalyticsTablePartition(table, null, null, null));
+        partitions.add(new AnalyticsTablePartition(table, List.of(), null, null, null));
       }
     }
 
@@ -231,7 +233,7 @@ public class PartitionUtils {
   public static AnalyticsTablePartition getLatestTablePartition(List<AnalyticsTable> tables) {
     Assert.isTrue(tables.size() == 1, "Expecting a single analytics table in list");
 
-    return tables.get(0).getLatestPartition();
+    return tables.get(0).getLatestTablePartition();
   }
 
   /**

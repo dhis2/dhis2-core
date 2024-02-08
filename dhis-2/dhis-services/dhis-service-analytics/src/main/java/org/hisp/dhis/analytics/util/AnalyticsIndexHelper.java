@@ -29,13 +29,14 @@ package org.hisp.dhis.analytics.util;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.join;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.removeQuote;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 
 import java.util.ArrayList;
 import java.util.List;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsConstants;
@@ -46,8 +47,6 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.IndexFunction;
 import org.hisp.dhis.db.model.constraint.Unique;
-import org.hisp.dhis.db.sql.PostgreSqlBuilder;
-import org.hisp.dhis.db.sql.SqlBuilder;
 
 /**
  * Helper class that encapsulates methods responsible for supporting the creation of analytics
@@ -55,12 +54,9 @@ import org.hisp.dhis.db.sql.SqlBuilder;
  *
  * @author maikel arabori
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class AnalyticsIndexHelper {
   private static final String PREFIX_INDEX = "in_";
-
-  private static final SqlBuilder SQL_BUILDER = new PostgreSqlBuilder();
-
-  private AnalyticsIndexHelper() {}
 
   /**
    * Returns a queue of analytics table indexes.
@@ -82,38 +78,14 @@ public class AnalyticsIndexHelper {
           List<String> columns =
               col.hasIndexColumns() ? col.getIndexColumns() : List.of(col.getName());
 
-          indexes.add(new Index(name, partition.getTempName(), col.getIndexType(), columns));
+          indexes.add(new Index(name, partition.getName(), col.getIndexType(), columns));
 
-          maybeAddTextLowerIndex(indexes, name, partition.getTempName(), col, columns);
+          maybeAddTextLowerIndex(indexes, name, partition.getName(), col, columns);
         }
       }
     }
 
     return indexes;
-  }
-
-  /**
-   * Based on the given arguments, this method will apply specific logic and return the correct SQL
-   * statement for the index creation.
-   *
-   * @param index the {@link Index}
-   * @return the SQL index statement
-   */
-  public static String createIndexStatement(Index index) {
-    String indexTypeName = SQL_BUILDER.getIndexTypeName(index.getIndexType());
-    String indexColumns = maybeApplyFunctionToIndex(index, join(index.getColumns(), ","));
-
-    return "create index "
-        + quote(index.getName())
-        + " "
-        + "on "
-        + index.getTableName()
-        + " "
-        + "using "
-        + indexTypeName
-        + " ("
-        + indexColumns
-        + ");";
   }
 
   /**
@@ -151,23 +123,6 @@ public class AnalyticsIndexHelper {
     String shortenName = StringUtils.substringBetween(columnName, "'");
 
     return StringUtils.isEmpty(shortenName) ? columnName : shortenName;
-  }
-
-  /**
-   * If the given "index" has an associated function, this method will wrap the given "columns" into
-   * the index function.
-   *
-   * @param index the {@link Index}
-   * @param indexColumns the columns to be used in the function
-   * @return the columns inside the respective function
-   */
-  private static String maybeApplyFunctionToIndex(Index index, String indexColumns) {
-    if (index.hasFunction()) {
-      String functionName = SQL_BUILDER.getIndexFunctionName(index.getFunction());
-      return functionName + "(" + indexColumns + ")";
-    }
-
-    return indexColumns;
   }
 
   /**

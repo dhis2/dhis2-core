@@ -33,6 +33,7 @@ import static org.hisp.dhis.util.ObjectUtils.notNull;
 import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.Validate;
 
@@ -42,11 +43,12 @@ import org.apache.commons.lang3.Validate;
  * @author Lars Helge Overland
  */
 @Getter
+@ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Table {
-  private static final String STAGING_TABLE_SUFFIX = "_staging";
+  public static final String STAGING_TABLE_SUFFIX = "_temp";
 
-  private static final String STAGING_TABLE_SUFFIX_RGX = "\\_staging$";
+  private static final String STAGING_TABLE_SUFFIX_RGX = "\\_temp$";
 
   /** Table name. Required. */
   @EqualsAndHashCode.Include private final String name;
@@ -110,6 +112,7 @@ public class Table {
    * @param name the table name.
    * @param columns the list of {@link Column}.
    * @param primaryKey the primary key.
+   * @param checks the list of checks.
    * @param logged the {@link Logged} parameter.
    */
   public Table(
@@ -133,6 +136,7 @@ public class Table {
    * @param name the table name.
    * @param columns the list of {@link Column}.
    * @param primaryKey the primary key.
+   * @param checks the list of checks.
    * @param logged the {@link Logged} parameter.
    * @param parent the parent {@link Table}.
    */
@@ -155,7 +159,16 @@ public class Table {
   /** Validates this object. */
   public void validate() {
     Validate.notBlank(name);
-    Validate.isTrue(isNotEmpty(columns) || notNull(parent));
+    Validate.isTrue(hasColumns() || hasParent());
+  }
+
+  /**
+   * Indicates whether the table has at least one column.
+   *
+   * @return true if the table has at least one column.
+   */
+  public boolean hasColumns() {
+    return isNotEmpty(columns);
   }
 
   /**
@@ -164,7 +177,7 @@ public class Table {
    * @return true if the table has a primary key.
    */
   public boolean hasPrimaryKey() {
-    return !primaryKey.isEmpty();
+    return isNotEmpty(primaryKey);
   }
 
   /**
@@ -173,7 +186,7 @@ public class Table {
    * @return true if the table has at least one check.
    */
   public boolean hasChecks() {
-    return !checks.isEmpty();
+    return isNotEmpty(checks);
   }
 
   /**
@@ -191,7 +204,7 @@ public class Table {
    * @return true if table has a parent table.
    */
   public boolean hasParent() {
-    return parent != null;
+    return notNull(parent);
   }
 
   /**

@@ -35,6 +35,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.Assert;
 
@@ -43,6 +45,7 @@ import org.springframework.util.Assert;
  *
  * @author Lars Helge Overland
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class AnalyticsSqlUtils {
   public static final String QUOTE = "\"";
 
@@ -152,7 +155,7 @@ public class AnalyticsSqlUtils {
   public static String encode(String value, boolean quote) {
     if (value != null) {
       value = value.endsWith("\\") ? value.substring(0, value.length() - 1) : value;
-      value = value.replaceAll(SINGLE_QUOTE, SINGLE_QUOTE + SINGLE_QUOTE);
+      value = value.replace(SINGLE_QUOTE, SINGLE_QUOTE + SINGLE_QUOTE);
     }
 
     return quote ? (SINGLE_QUOTE + value + SINGLE_QUOTE) : value;

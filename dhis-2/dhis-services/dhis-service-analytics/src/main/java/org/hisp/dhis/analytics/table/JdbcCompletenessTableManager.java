@@ -27,10 +27,8 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static java.util.Collections.emptyList;
-import static org.hisp.dhis.analytics.table.PartitionUtils.getLatestTablePartition;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.analytics.table.util.PartitionUtils.getLatestTablePartition;
 import static org.hisp.dhis.db.model.DataType.BOOLEAN;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DATE;
@@ -43,6 +41,7 @@ import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -52,14 +51,10 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
-import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.resourcetable.ResourceTableService;
@@ -78,8 +73,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
-          new AnalyticsTableColumn(quote("dx"), CHARACTER_11, NOT_NULL, "ds.uid"),
-          new AnalyticsTableColumn(quote("year"), INTEGER, NOT_NULL, "ps.year"));
+          new AnalyticsTableColumn("dx", CHARACTER_11, NOT_NULL, "ds.uid"),
+          new AnalyticsTableColumn("year", INTEGER, NOT_NULL, "ps.year"));
 
   public JdbcCompletenessTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -122,7 +117,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             ? getLatestAnalyticsTable(params, getColumns())
             : getRegularAnalyticsTable(params, getDataYears(params), getColumns());
 
-    return table.hasPartitionTables() ? List.of(table) : List.of();
+    return table.hasTablePartitions() ? List.of(table) : List.of();
   }
 
   @Override
@@ -185,27 +180,26 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
   }
 
   @Override
-  protected List<String> getPartitionChecks(AnalyticsTablePartition partition) {
-    return partition.isLatestPartition()
-        ? emptyList()
-        : List.of("year = " + partition.getYear() + "");
+  protected List<String> getPartitionChecks(Integer year, Date endDate) {
+    Objects.requireNonNull(year);
+    return List.of("year = " + year + "");
   }
 
   @Override
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
-    String tableName = partition.getTempName();
+    String tableName = partition.getName();
     String partitionClause =
         partition.isLatestPartition()
             ? "and cdr.lastupdated >= '" + getLongDateString(partition.getStartDate()) + "' "
             : "and ps.year = " + partition.getYear() + " ";
 
-    String sql = "insert into " + partition.getTempName() + " (";
+    String sql = "insert into " + tableName + " (";
 
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
     for (AnalyticsTableColumn col : columns) {
-      sql += col.getName() + ",";
+      sql += quote(col.getName()) + ",";
     }
 
     sql = TextUtils.removeLastComma(sql) + ") select ";
@@ -245,59 +239,19 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     String idColAlias = "(ds.uid || '-' || ps.iso || '-' || ou.uid || '-' || ao.uid) as id ";
-    columns.add(new AnalyticsTableColumn(quote("id"), TEXT, idColAlias));
-
-    List<OrganisationUnitGroupSet> orgUnitGroupSets =
-        idObjectManager.getDataDimensionsNoAcl(OrganisationUnitGroupSet.class);
-
-    List<OrganisationUnitLevel> levels = organisationUnitService.getFilledOrganisationUnitLevels();
-
-    List<CategoryOptionGroupSet> attributeCategoryOptionGroupSets =
-        categoryService.getAttributeCategoryOptionGroupSetsNoAcl();
-
-    List<Category> attributeCategories = categoryService.getAttributeDataDimensionCategoriesNoAcl();
-
-    for (OrganisationUnitGroupSet groupSet : orgUnitGroupSets) {
-      columns.add(
-          new AnalyticsTableColumn(
-              quote(groupSet.getUid()),
-              CHARACTER_11,
-              "ougs." + quote(groupSet.getUid()),
-              groupSet.getCreated()));
-    }
-
-    for (OrganisationUnitLevel level : levels) {
-      String column = quote(PREFIX_ORGUNITLEVEL + level.getLevel());
-      columns.add(
-          new AnalyticsTableColumn(column, CHARACTER_11, "ous." + column, level.getCreated()));
-    }
-
-    for (CategoryOptionGroupSet groupSet : attributeCategoryOptionGroupSets) {
-      columns.add(
-          new AnalyticsTableColumn(
-              quote(groupSet.getUid()),
-              CHARACTER_11,
-              "acs." + quote(groupSet.getUid()),
-              groupSet.getCreated()));
-    }
-
-    for (Category category : attributeCategories) {
-      columns.add(
-          new AnalyticsTableColumn(
-              quote(category.getUid()),
-              CHARACTER_11,
-              "acs." + quote(category.getUid()),
-              category.getCreated()));
-    }
-
-    columns.addAll(getPeriodTypeColumns("ps"));
-
     String timelyDateDiff = "cast(cdr.date as date) - pe.enddate";
     String timelyAlias = "(select (" + timelyDateDiff + ") <= ds.timelydays) as timely";
 
-    columns.add(new AnalyticsTableColumn(quote("timely"), BOOLEAN, timelyAlias));
+    columns.add(new AnalyticsTableColumn("id", TEXT, idColAlias));
+    columns.addAll(getOrganisationUnitGroupSetColumns());
+    columns.addAll(getOrganisationUnitLevelColumns());
+    columns.addAll(getAttributeCategoryOptionGroupSetColumns());
+    columns.addAll(getAttributeCategoryColumns());
+    columns.addAll(getPeriodTypeColumns("ps"));
+    columns.add(new AnalyticsTableColumn("timely", BOOLEAN, timelyAlias));
     columns.addAll(FIXED_COLS);
-    columns.add(new AnalyticsTableColumn(quote("value"), DATE, NULL, FACT, "cdr.date as value"));
+    columns.add(new AnalyticsTableColumn("value", DATE, NULL, FACT, "cdr.date as value"));
+
     return filterDimensionColumns(columns);
   }
 

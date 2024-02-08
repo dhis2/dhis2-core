@@ -106,6 +106,34 @@ class PostgreSqlBuilderTest {
   }
 
   @Test
+  void testQuote() {
+    assertEquals(
+        "\"Treated \"\"malaria\"\" at facility\"",
+        sqlBuilder.quote("Treated \"malaria\" at facility"));
+    assertEquals("\"quarterly\"", sqlBuilder.quote("quarterly"));
+    assertEquals("\"Fully immunized\"", sqlBuilder.quote("Fully immunized"));
+  }
+
+  @Test
+  void testSingleQuote() {
+    assertEquals("'jkhYg65ThbF'", sqlBuilder.singleQuote("jkhYg65ThbF"));
+    assertEquals("'Age ''<5'' years'", sqlBuilder.singleQuote("Age '<5' years"));
+    assertEquals(
+        "'Status \"not checked\" found'", sqlBuilder.singleQuote("Status \"not checked\" found"));
+  }
+
+  @Test
+  void testCommaSeparatedQuotedString() {
+    assertEquals(
+        "'dmPbDBKwXyF', 'zMl4kciwJtz', 'q1Nqu1r1GTn'",
+        sqlBuilder.quotedCommaDelimitedString(
+            List.of("dmPbDBKwXyF", "zMl4kciwJtz", "q1Nqu1r1GTn")));
+    assertEquals("'1', '3', '5'", sqlBuilder.quotedCommaDelimitedString(List.of("1", "3", "5")));
+    assertEquals("", sqlBuilder.quotedCommaDelimitedString(List.of()));
+    assertEquals("", sqlBuilder.quotedCommaDelimitedString(null));
+  }
+
+  @Test
   void testCreateTableA() {
     Table table = getTableA();
 
@@ -200,6 +228,38 @@ class PostgreSqlBuilderTest {
   }
 
   @Test
+  void testSwapTable() {
+    String expected =
+        "drop table if exists \"vaccination\" cascade; "
+            + "alter table \"immunization\" rename to \"vaccination\";";
+
+    assertEquals(expected, sqlBuilder.swapTable(getTableA(), "vaccination"));
+  }
+
+  @Test
+  void testSetParent() {
+    String expected = "alter table \"immunization\" inherit \"vaccination\";";
+
+    assertEquals(expected, sqlBuilder.setParentTable(getTableA(), "vaccination"));
+  }
+
+  @Test
+  void testRemoveParent() {
+    String expected = "alter table \"immunization\" no inherit \"vaccination\";";
+
+    assertEquals(expected, sqlBuilder.removeParentTable(getTableA(), "vaccination"));
+  }
+
+  @Test
+  void testSwapParentTable() {
+    String expected =
+        "alter table \"immunization\" no inherit \"vaccination\"; "
+            + "alter table \"immunization\" inherit \"nutrition\";";
+
+    assertEquals(expected, sqlBuilder.swapParentTable(getTableA(), "vaccination", "nutrition"));
+  }
+
+  @Test
   void testTableExists() {
     String expected =
         "select t.table_name from information_schema.tables t "
@@ -210,45 +270,41 @@ class PostgreSqlBuilderTest {
 
   @Test
   void testCreateIndexA() {
-    Table table = getTableA();
     List<Index> indexes = getIndexesA();
 
     String expected =
         "create index \"in_immunization_data\" on \"immunization\" using btree(\"data\");";
 
-    assertEquals(expected, sqlBuilder.createIndex(table, indexes.get(0)));
+    assertEquals(expected, sqlBuilder.createIndex(indexes.get(0)));
   }
 
   @Test
   void testCreateIndexB() {
-    Table table = getTableA();
     List<Index> indexes = getIndexesA();
 
     String expected =
         "create index \"in_immunization_period_created\" on \"immunization\" using btree(\"period\", \"created\");";
 
-    assertEquals(expected, sqlBuilder.createIndex(table, indexes.get(1)));
+    assertEquals(expected, sqlBuilder.createIndex(indexes.get(1)));
   }
 
   @Test
   void testCreateIndexC() {
-    Table table = getTableA();
     List<Index> indexes = getIndexesA();
 
     String expected =
         "create index \"in_immunization_user\" on \"immunization\" using gin(\"user\");";
 
-    assertEquals(expected, sqlBuilder.createIndex(table, indexes.get(2)));
+    assertEquals(expected, sqlBuilder.createIndex(indexes.get(2)));
   }
 
   @Test
   void testCreateIndexD() {
-    Table table = getTableA();
     List<Index> indexes = getIndexesA();
 
     String expected =
         "create index \"in_immunization_data_period\" on \"immunization\" using btree(lower(\"data\"), lower(\"period\"));";
 
-    assertEquals(expected, sqlBuilder.createIndex(table, indexes.get(3)));
+    assertEquals(expected, sqlBuilder.createIndex(indexes.get(3)));
   }
 }

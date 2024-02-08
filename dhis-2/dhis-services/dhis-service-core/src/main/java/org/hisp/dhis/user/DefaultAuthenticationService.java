@@ -29,6 +29,8 @@ package org.hisp.dhis.user;
 
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.IndirectTransactional;
+import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
@@ -41,12 +43,14 @@ public class DefaultAuthenticationService implements AuthenticationService {
   private final UserService userService;
 
   @Override
+  @IndirectTransactional
   public void obtainAuthentication(@Nonnull String userId) throws NotFoundException {
     UserDetails user = userService.createUserDetails(userId);
     setupInContext(user);
   }
 
   @Override
+  @NonTransactional
   public void obtainSystemAuthentication() {
     setupInContext(new SystemUser());
   }
@@ -59,6 +63,7 @@ public class DefaultAuthenticationService implements AuthenticationService {
   }
 
   @Override
+  @NonTransactional
   public void clearAuthentication() {
     SecurityContext context = SecurityContextHolder.getContext();
     if (context != null) {
