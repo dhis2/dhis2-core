@@ -30,6 +30,8 @@ package org.hisp.dhis.webapi.controller;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -77,8 +79,13 @@ public class SynchronizationController {
   @ResponseBody
   public ImportReport importMetaData(@RequestBody @Nonnull String url) {
     // clean user-supplied string
-    String urlCleaned = url.replace("\n", "").replace("\r", "");
-    return synchronizationManager.executeMetadataPull(urlCleaned);
+    List<String> whitelist = new ArrayList<>();
+    whitelist.add("test");
+    if (whitelist.contains(url)) {
+      String urlCleaned = url.replace("\n", "").replace("\r", "");
+      return synchronizationManager.executeMetadataPull(urlCleaned);
+    }
+    return new ImportReport();
   }
 
   @GetMapping(value = "/availability", produces = APPLICATION_JSON_VALUE)
