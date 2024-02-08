@@ -52,7 +52,6 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.escape;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.singleQuote;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
@@ -65,6 +64,7 @@ import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
+import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
 import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
 
 import com.fasterxml.jackson.databind.JsonNode;

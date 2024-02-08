@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.common.FallbackCoordinateFieldType;
 import org.junit.jupiter.api.Test;
@@ -46,6 +45,12 @@ class AnalyticsSqlUtilsTest {
     assertEquals("Prescribed ''rx82''", AnalyticsSqlUtils.escape("Prescribed 'rx82'"));
     assertEquals("Some regular value", AnalyticsSqlUtils.escape("Some regular value"));
     assertEquals("C:\\\\Downloads\\\\Temp", AnalyticsSqlUtils.escape("C:\\Downloads\\Temp"));
+  }
+
+  @Test
+  void testQuoteAlias() {
+    assertEquals("ax.\"uidlevel1\"", AnalyticsSqlUtils.quoteAlias("uidlevel1"));
+    assertEquals("ax.\"quarterly\"", AnalyticsSqlUtils.quoteAlias("quarterly"));
   }
 
   @Test
@@ -71,7 +76,7 @@ class AnalyticsSqlUtilsTest {
     // when
     String sqlSnippet =
         AnalyticsSqlUtils.getCoalesce(
-            new ArrayList<>(), FallbackCoordinateFieldType.PSI_GEOMETRY.getValue());
+            List.of(), FallbackCoordinateFieldType.PSI_GEOMETRY.getValue());
 
     // then
     assertEquals(FallbackCoordinateFieldType.PSI_GEOMETRY.getValue(), sqlSnippet);

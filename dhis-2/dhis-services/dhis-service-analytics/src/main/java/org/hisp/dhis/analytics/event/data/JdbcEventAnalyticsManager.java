@@ -41,7 +41,6 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getCoalesce;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAliasCommaSeparate;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.singleQuote;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
@@ -50,6 +49,7 @@ import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.hisp.dhis.feedback.ErrorCode.E7132;
 import static org.hisp.dhis.feedback.ErrorCode.E7133;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
+import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.postgresql.util.PSQLState.DIVISION_BY_ZERO;
 
