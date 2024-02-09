@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.AnalyticsConstants;
 import org.hisp.dhis.system.util.SqlUtils;
 
 /**
@@ -46,8 +47,6 @@ public class AnalyticsSqlUtils {
   public static final String QUOTE = "\"";
 
   public static final String SINGLE_QUOTE = "'";
-
-  public static final String ANALYTICS_TBL_ALIAS = "ax";
 
   public static final String OWNERSHIP_TBL_ALIAS = "own";
 
@@ -67,7 +66,7 @@ public class AnalyticsSqlUtils {
    * @return the quoted and qualified relation.
    */
   public static String quoteAlias(String relation) {
-    return ANALYTICS_TBL_ALIAS + SEPARATOR + SqlUtils.quote(relation);
+    return AnalyticsConstants.ANALYTICS_TBL_ALIAS + SEPARATOR + SqlUtils.quote(relation);
   }
 
   /**
