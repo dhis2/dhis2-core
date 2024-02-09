@@ -211,7 +211,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
         ValueStatus valueStatus = ValueStatus.of(isDefined, isSet);
 
-        if (valueStatus != ValueStatus.NOT_DEFINED) {
+        if (valueStatus == ValueStatus.SET) {
           return true;
         }
 
