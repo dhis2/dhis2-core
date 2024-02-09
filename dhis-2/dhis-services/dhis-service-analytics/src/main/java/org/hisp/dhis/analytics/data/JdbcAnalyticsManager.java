@@ -42,15 +42,12 @@ import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.analytics.DataType.TEXT;
 import static org.hisp.dhis.analytics.data.SubexpressionPeriodOffsetUtils.getParamsWithOffsetPeriods;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAliasCommaSeparate;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.collection.CollectionUtils.concat;
-import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_SILENT_FALLBACK;
 import static org.hisp.dhis.util.SqlExceptionUtils.relationDoesNotExist;
@@ -90,6 +87,7 @@ import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -160,6 +158,8 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
   private final JdbcTemplate jdbcTemplate;
 
   private final ExecutionPlanStore executionPlanStore;
+
+  private final SqlBuilder sqlBuilder;
 
   // -------------------------------------------------------------------------
   // AnalyticsManager implementation
@@ -478,14 +478,9 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
     for (DimensionalObject dim : params.getDimensions()) {
       if (dim.hasItems() && !dim.isFixed()) {
         String col = quoteAlias(dim.getDimensionName());
+        String items = sqlBuilder.quotedCommaDelimitedString(getUids(dim.getItems()));
 
-        sql.append(
-            sqlHelper.whereAnd()
-                + " "
-                + col
-                + " in ("
-                + getQuotedCommaDelimitedString(getUids(dim.getItems()))
-                + ") ");
+        sql.append(sqlHelper.whereAnd() + " " + col + " in (" + items + ") ");
       }
     }
   }
@@ -507,10 +502,10 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
                 .map(
                     filter -> {
                       String col = quoteAlias(filter.getDimensionName());
-                      return col
-                          + " in ("
-                          + getQuotedCommaDelimitedString(getUids(filter.getItems()))
-                          + ") ";
+                      String items =
+                          sqlBuilder.quotedCommaDelimitedString(getUids(filter.getItems()));
+
+                      return col + " in (" + items + ") ";
                     })
                 .collect(Collectors.joining("or ")));
 
@@ -1023,5 +1018,21 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
         !(params.getAggregationType().isFirstOrLastPeriodAggregationType()
             && params.getPeriods().size() > 1),
         "Max one dimension period can be present per query for last period aggregation");
+  }
+
+  /**
+   * @param relation the relation to quote, e.g. a table or column name.
+   * @return a double quoted relation.
+   */
+  private String quote(String relation) {
+    return sqlBuilder.quote(relation);
+  }
+
+  /**
+   * @param relation the relation to quote.
+   * @return an "ax" aliased and double quoted relation.
+   */
+  private String quoteAlias(String relation) {
+    return sqlBuilder.quoteAx(relation);
   }
 }

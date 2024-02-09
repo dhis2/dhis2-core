@@ -208,6 +208,12 @@ public interface SqlBuilder {
   String quote(String alias, String relation);
 
   /**
+   * @param relation the relation to quote.
+   * @return an "ax" aliased and double quoted relation.
+   */
+  String quoteAx(String relation);
+
+  /**
    * @param value the value to quote.
    * @return a single quoted value.
    */
