@@ -35,8 +35,10 @@ import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -88,15 +90,13 @@ class JdbcAnalyticsManagerTest {
   public void setUp() {
     QueryPlanner queryPlanner = new DefaultQueryPlanner(partitionManager);
 
-    mockRowSet();
-
-    when(jdbcTemplate.queryForRowSet(sql.capture())).thenReturn(rowSet);
-
     subject = new JdbcAnalyticsManager(queryPlanner, jdbcTemplate, executionPlanStore);
   }
 
   @Test
   void verifyQueryGeneratedWhenDataElementHasLastAggregationType() {
+    mockRowSet();
+
     DataQueryParams params = createParams(AggregationType.LAST);
 
     subject.getAggregatedDataValues(params, AnalyticsTableType.DATA_VALUE, 20000);
@@ -106,6 +106,8 @@ class JdbcAnalyticsManagerTest {
 
   @Test
   void verifyQueryGeneratedWhenDataElementHasLastAvgOrgUnitAggregationType() {
+    mockRowSet();
+
     DataQueryParams params = createParams(AggregationType.LAST_AVERAGE_ORG_UNIT);
 
     subject.getAggregatedDataValues(params, AnalyticsTableType.DATA_VALUE, 20000);
@@ -115,6 +117,8 @@ class JdbcAnalyticsManagerTest {
 
   @Test
   void verifyQueryGeneratedWhenDataElementHasLastLastOrgUnitAggregationType() {
+    mockRowSet();
+
     DataQueryParams params = createParams(AggregationType.LAST_LAST_ORG_UNIT);
 
     subject.getAggregatedDataValues(params, AnalyticsTableType.DATA_VALUE, 20000);
@@ -131,6 +135,8 @@ class JdbcAnalyticsManagerTest {
 
   @Test
   void verifyQueryGeneratedWhenDataElementHasLastInPeriodAggregationType() {
+    mockRowSet();
+
     DataQueryParams params = createParams(AggregationType.LAST_IN_PERIOD);
 
     subject.getAggregatedDataValues(params, AnalyticsTableType.DATA_VALUE, 20000);
@@ -140,6 +146,8 @@ class JdbcAnalyticsManagerTest {
 
   @Test
   void verifyQueryGeneratedWhenDataElementHasLastInPeriodAvgOrgUnitAggregationType() {
+    mockRowSet();
+
     DataQueryParams params = createParams(AggregationType.LAST_IN_PERIOD_AVERAGE_ORG_UNIT);
 
     subject.getAggregatedDataValues(params, AnalyticsTableType.DATA_VALUE, 20000);
@@ -149,6 +157,8 @@ class JdbcAnalyticsManagerTest {
 
   @Test
   void verifyQueryGeneratedWhenDataElementHasMaxSumOrgUnitAggregationType() {
+    mockRowSet();
+
     DataQueryParams params = createParams(AggregationType.MAX_SUM_ORG_UNIT);
 
     subject.getAggregatedDataValues(params, AnalyticsTableType.DATA_VALUE, 20000);
@@ -158,6 +168,8 @@ class JdbcAnalyticsManagerTest {
 
   @Test
   void verifyQueryGeneratedWhenDataElementHasMinSumOrgUnitAggregationType() {
+    mockRowSet();
+
     DataQueryParams params = createParams(AggregationType.MIN_SUM_ORG_UNIT);
 
     subject.getAggregatedDataValues(params, AnalyticsTableType.DATA_VALUE, 20000);
@@ -165,13 +177,34 @@ class JdbcAnalyticsManagerTest {
     assertExpectedMaxMinSumOrgUnitSql("min");
   }
 
+  @Test
+  void testToQuotedFunctionString() {
+    assertEquals(
+        "min(\"value\") as \"value\",min(\"textvalue\") as \"textvalue\"",
+        subject.toQuotedFunctionString("min", List.of("value", "textvalue")));
+
+    assertEquals(
+        "max(\"daysxvalue\") as \"daysxvalue\",max(\"daysno\") as \"daysno\"",
+        subject.toQuotedFunctionString("max", List.of("daysxvalue", "daysno")));
+  }
+
+  @Test
+  void testToQuotedList() {
+    assertEquals(
+        List.of("\"a\"\"b\"\"c\"", "\"d\"\"e\"\"f\""),
+        subject.toQuotedList(List.of("a\"b\"c", "d\"e\"f")));
+
+    assertEquals(
+        List.of("\"ab\"", "\"cd\"", "\"ef\""), subject.toQuotedList(List.of("ab", "cd", "ef")));
+  }
+
   // -------------------------------------------------------------------------
   // Supportive methods
   // -------------------------------------------------------------------------
 
   private void mockRowSet() {
-    // Simulate no rows
     when(rowSet.next()).thenReturn(false);
+    when(jdbcTemplate.queryForRowSet(sql.capture())).thenReturn(rowSet);
   }
 
   private DataQueryParams createParams(AggregationType aggregationType) {

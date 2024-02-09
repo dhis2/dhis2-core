@@ -32,9 +32,9 @@ import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_END_DATE_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_START_DATE_ID;
 import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_START_DATE_NAME;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import java.util.ArrayList;
 import java.util.List;
