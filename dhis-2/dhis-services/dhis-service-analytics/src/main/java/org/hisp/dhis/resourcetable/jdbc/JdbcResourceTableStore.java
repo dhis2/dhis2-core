@@ -109,7 +109,6 @@ public class JdbcResourceTableStore implements ResourceTableStore {
       jdbcTemplate.execute(populateTableSql.get());
     } else if (populateTableContent.isPresent()) {
       List<Object[]> content = populateTableContent.get();
-
       log.debug("Populate table content rows: {}", content.size());
 
       if (content.size() > 0) {
