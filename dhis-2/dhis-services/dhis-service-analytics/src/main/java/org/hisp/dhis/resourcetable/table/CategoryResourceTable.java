@@ -33,6 +33,7 @@ import static org.hisp.dhis.system.util.SqlUtils.quote;
 import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -48,6 +49,7 @@ import org.hisp.dhis.resourcetable.util.UniqueNameContext;
 /**
  * @author Lars Helge Overland
  */
+@RequiredArgsConstructor
 public class CategoryResourceTable implements ResourceTable {
   private static final String TABLE_NAME = "_categorystructure";
 
@@ -56,13 +58,6 @@ public class CategoryResourceTable implements ResourceTable {
   private final List<CategoryOptionGroupSet> groupSets;
 
   private final Logged logged;
-
-  public CategoryResourceTable(
-      List<Category> categories, List<CategoryOptionGroupSet> groupSets, Logged logged) {
-    this.categories = categories;
-    this.groupSets = groupSets;
-    this.logged = logged;
-  }
 
   @Override
   public Table getTable() {

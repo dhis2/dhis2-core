@@ -36,6 +36,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
@@ -57,17 +58,13 @@ import org.joda.time.DateTime;
  * @author Lars Helge Overland
  */
 @Slf4j
+@RequiredArgsConstructor
 public class PeriodResourceTable implements ResourceTable {
   private static final String TABLE_NAME = "_periodstructure";
 
   private final List<Period> periods;
 
   private final Logged logged;
-
-  public PeriodResourceTable(List<Period> periods, Logged logged) {
-    this.periods = periods;
-    this.logged = logged;
-  }
 
   @Override
   public Table getTable() {

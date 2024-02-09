@@ -35,6 +35,7 @@ import static org.hisp.dhis.system.util.SqlUtils.quote;
 import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
@@ -49,6 +50,7 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 /**
  * @author Lars Helge Overland
  */
+@RequiredArgsConstructor
 public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
   private static final String TABLE_NAME = "_organisationunitgroupsetstructure";
 
@@ -57,13 +59,6 @@ public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
   private final int organisationUnitLevels;
 
   private final Logged logged;
-
-  public OrganisationUnitGroupSetResourceTable(
-      List<OrganisationUnitGroupSet> groupSets, int organisationUnitLevels, Logged logged) {
-    this.groupSets = groupSets;
-    this.organisationUnitLevels = organisationUnitLevels;
-    this.logged = logged;
-  }
 
   @Override
   public Table getTable() {
