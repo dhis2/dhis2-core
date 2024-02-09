@@ -80,17 +80,11 @@ import org.springframework.stereotype.Component;
 public class DefaultQueryPlanner implements QueryPlanner {
   private final PartitionManager partitionManager;
 
-  // -------------------------------------------------------------------------
-  // QueryPlanner implementation
-  // -------------------------------------------------------------------------
-
   @Override
   public DataQueryGroups planQuery(DataQueryParams params, QueryPlannerParams plannerParams) {
     params = PeriodOffsetUtils.addShiftedPeriods(params);
 
-    // ---------------------------------------------------------------------
     // Group queries which can be executed together
-    // ---------------------------------------------------------------------
 
     params = withTableNameAndPartitions(params, plannerParams);
 
@@ -119,9 +113,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
       currentQueries.forEach(query -> queries.addAll(grouper.apply(query)));
     }
 
-    // ---------------------------------------------------------------------
-    // Split queries until optimal number
-    // ---------------------------------------------------------------------
+    // Split queries until the optimal number is reached
 
     DataQueryGroups queryGroups = DataQueryGroups.newBuilder().withQueries(queries).build();
 
