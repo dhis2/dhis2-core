@@ -48,9 +48,7 @@ import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.analytics.SortOrder.DESC;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_GEOMETRY_COL_SUFFIX;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_NAME_COL_SUFFIX;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
@@ -63,7 +61,6 @@ import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 import static org.hisp.dhis.system.util.SqlUtils.escape;
-import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
 import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
 
@@ -115,6 +112,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -164,6 +162,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   protected final ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder;
 
   protected final ExecutionPlanStore executionPlanStore;
+
+  protected final SqlBuilder sqlBuilder;
 
   /**
    * Returns a SQL paging clause.
@@ -884,7 +884,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     String col = dimension.getDimensionName();
 
     if (params.hasTimeField() && DimensionType.PERIOD == dimension.getDimensionType()) {
-      return quote(DATE_PERIOD_STRUCT_ALIAS, col);
+      return sqlBuilder.quote(DATE_PERIOD_STRUCT_ALIAS, col);
     } else if (DimensionType.ORGANISATION_UNIT == dimension.getDimensionType()) {
       return params.getOrgUnitField().getOrgUnitStructCol(col, getAnalyticsType(), isGroupByClause);
     } else if (DimensionType.ORGANISATION_UNIT_GROUP_SET == dimension.getDimensionType()) {
@@ -892,7 +892,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
           .getOrgUnitField()
           .getOrgUnitGroupSetCol(col, getAnalyticsType(), isGroupByClause);
     } else {
-      return quote(ANALYTICS_TBL_ALIAS, col);
+      return quoteAlias(col);
     }
   }
 
@@ -1151,6 +1151,22 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     return helper.whereAnd()
         + " "
         + joinSql(Stream.concat(orConditions.stream(), andConditions.stream()), AND_JOINER);
+  }
+
+  /**
+   * @param relation the relation to quote, e.g. a table or column name.
+   * @return a double quoted relation.
+   */
+  protected String quote(String relation) {
+    return sqlBuilder.quote(relation);
+  }
+
+  /**
+   * @param relation the relation to quote.
+   * @return an "ax" aliased and double quoted relation.
+   */
+  protected String quoteAlias(String relation) {
+    return sqlBuilder.quoteAx(relation);
   }
 
   /**
