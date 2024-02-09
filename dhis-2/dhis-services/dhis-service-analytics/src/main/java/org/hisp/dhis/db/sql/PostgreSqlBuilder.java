@@ -193,6 +193,11 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
+  public String quoteAx(String relation) {
+    return ALIAS_AX + DOT + quote(relation);
+  }
+
+  @Override
   public String singleQuote(String value) {
     return SINGLE_QUOTE + escape(value) + SINGLE_QUOTE;
   }
@@ -203,7 +208,7 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String quotedCommaDelimitedString(Collection<String> items) {
+  public String singleQuotedCommaDelimited(Collection<String> items) {
     return isEmpty(items)
         ? EMPTY
         : items.stream().map(this::singleQuote).collect(Collectors.joining(COMMA));

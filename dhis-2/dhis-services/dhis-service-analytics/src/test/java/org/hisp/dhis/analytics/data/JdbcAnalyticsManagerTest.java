@@ -51,6 +51,8 @@ import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -80,6 +82,8 @@ class JdbcAnalyticsManagerTest {
 
   @Mock private NestedIndicatorCyclicDependencyInspector nestedIndicatorCyclicDependencyInspector;
 
+  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+
   @Captor private ArgumentCaptor<String> sql;
 
   private JdbcAnalyticsManager subject;
@@ -90,7 +94,7 @@ class JdbcAnalyticsManagerTest {
   public void setUp() {
     QueryPlanner queryPlanner = new DefaultQueryPlanner(partitionManager);
 
-    subject = new JdbcAnalyticsManager(queryPlanner, jdbcTemplate, executionPlanStore);
+    subject = new JdbcAnalyticsManager(queryPlanner, jdbcTemplate, executionPlanStore, sqlBuilder);
   }
 
   @Test

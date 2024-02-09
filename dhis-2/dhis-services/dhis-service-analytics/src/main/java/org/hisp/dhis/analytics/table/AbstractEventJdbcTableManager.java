@@ -46,6 +46,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.DataType;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
@@ -71,7 +72,8 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
       DatabaseInfoProvider databaseInfoProvider,
       JdbcTemplate jdbcTemplate,
       AnalyticsTableExportSettings analyticsExportSettings,
-      PeriodDataProvider periodDataProvider) {
+      PeriodDataProvider periodDataProvider,
+      SqlBuilder sqlBuilder) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -84,7 +86,8 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
         databaseInfoProvider,
         jdbcTemplate,
         analyticsExportSettings,
-        periodDataProvider);
+        periodDataProvider,
+        sqlBuilder);
   }
 
   protected final String getNumericClause() {

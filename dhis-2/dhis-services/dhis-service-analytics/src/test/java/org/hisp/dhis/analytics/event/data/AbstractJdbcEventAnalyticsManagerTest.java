@@ -90,6 +90,8 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodTypeEnum;
@@ -119,6 +121,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Mock private ExecutionPlanStore executionPlanStore;
 
+  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+
   private JdbcEventAnalyticsManager eventSubject;
 
   private JdbcEnrollmentAnalyticsManager enrollmentSubject;
@@ -146,7 +150,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             programIndicatorService,
             programIndicatorSubqueryBuilder,
             new EventTimeFieldSqlRenderer(),
-            executionPlanStore);
+            executionPlanStore,
+            sqlBuilder);
 
     enrollmentSubject =
         new JdbcEnrollmentAnalyticsManager(
@@ -154,7 +159,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             programIndicatorService,
             programIndicatorSubqueryBuilder,
             new EnrollmentTimeFieldSqlRenderer(),
-            executionPlanStore);
+            executionPlanStore,
+            sqlBuilder);
 
     programA = createProgram('A');
 

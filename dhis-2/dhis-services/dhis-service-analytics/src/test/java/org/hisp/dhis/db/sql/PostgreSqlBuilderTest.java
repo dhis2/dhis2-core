@@ -28,6 +28,7 @@
 package org.hisp.dhis.db.sql;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import org.hisp.dhis.db.model.Collation;
@@ -107,6 +108,18 @@ class PostgreSqlBuilderTest {
     assertEquals("gist", sqlBuilder.indexTypeGist());
   }
 
+  // Capabilities
+
+  @Test
+  void testSupportsAnalyze() {
+    assertTrue(sqlBuilder.supportsAnalyze());
+  }
+
+  @Test
+  void testSupportsVacuum() {
+    assertTrue(sqlBuilder.supportsVacuum());
+  }
+
   // Utilities
 
   @Test
@@ -119,12 +132,21 @@ class PostgreSqlBuilderTest {
   }
 
   @Test
-  void testQuoteWithAlias() {
+  void testQuoteAlias() {
     assertEquals(
         "ax.\"Treated \"\"malaria\"\" at facility\"",
         sqlBuilder.quote("ax", "Treated \"malaria\" at facility"));
     assertEquals("analytics.\"quarterly\"", sqlBuilder.quote("analytics", "quarterly"));
     assertEquals("dv.\"Fully immunized\"", sqlBuilder.quote("dv", "Fully immunized"));
+  }
+
+  @Test
+  void testQuoteAx() {
+    assertEquals(
+        "ax.\"Treated \"\"malaria\"\" at facility\"",
+        sqlBuilder.quoteAx("Treated \"malaria\" at facility"));
+    assertEquals("ax.\"quarterly\"", sqlBuilder.quoteAx("quarterly"));
+    assertEquals("ax.\"Fully immunized\"", sqlBuilder.quoteAx("Fully immunized"));
   }
 
   @Test
@@ -141,14 +163,14 @@ class PostgreSqlBuilderTest {
   }
 
   @Test
-  void testCommaSeparatedQuotedString() {
+  void testSinqleQuotedCommaDelimited() {
     assertEquals(
         "'dmPbDBKwXyF', 'zMl4kciwJtz', 'q1Nqu1r1GTn'",
-        sqlBuilder.quotedCommaDelimitedString(
+        sqlBuilder.singleQuotedCommaDelimited(
             List.of("dmPbDBKwXyF", "zMl4kciwJtz", "q1Nqu1r1GTn")));
-    assertEquals("'1', '3', '5'", sqlBuilder.quotedCommaDelimitedString(List.of("1", "3", "5")));
-    assertEquals("", sqlBuilder.quotedCommaDelimitedString(List.of()));
-    assertEquals("", sqlBuilder.quotedCommaDelimitedString(null));
+    assertEquals("'1', '3', '5'", sqlBuilder.singleQuotedCommaDelimited(List.of("1", "3", "5")));
+    assertEquals("", sqlBuilder.singleQuotedCommaDelimited(List.of()));
+    assertEquals("", sqlBuilder.singleQuotedCommaDelimited(null));
   }
 
   // Statements

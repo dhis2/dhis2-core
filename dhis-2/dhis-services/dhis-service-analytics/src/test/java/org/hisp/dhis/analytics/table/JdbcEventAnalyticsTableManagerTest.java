@@ -90,6 +90,8 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.db.model.IndexType;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -140,6 +142,8 @@ class JdbcEventAnalyticsTableManagerTest {
 
   @Mock private AnalyticsTableExportSettings analyticsExportSettings;
 
+  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+
   private JdbcEventAnalyticsTableManager subject;
 
   private Date today;
@@ -181,7 +185,8 @@ class JdbcEventAnalyticsTableManagerTest {
             databaseInfoProvider,
             jdbcTemplate,
             analyticsExportSettings,
-            periodDataProvider);
+            periodDataProvider,
+            sqlBuilder);
     assertThat(subject.getAnalyticsTableType(), is(AnalyticsTableType.EVENT));
   }
 

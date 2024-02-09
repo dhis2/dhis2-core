@@ -35,4 +35,12 @@ public class AnalyticsConstants {
   public static final String ANALYTICS_TBL_ALIAS = "ax";
 
   public static final String ANALYTICS_TBL_TEMP_SUFFIX = "_temp";
+
+  public static final String OWNERSHIP_TBL_ALIAS = "own";
+
+  public static final String DATE_PERIOD_STRUCT_ALIAS = "ps";
+
+  public static final String ORG_UNIT_STRUCT_ALIAS = "ous";
+
+  public static final String ORG_UNIT_GROUPSET_STRUCT_ALIAS = "ougs";
 }

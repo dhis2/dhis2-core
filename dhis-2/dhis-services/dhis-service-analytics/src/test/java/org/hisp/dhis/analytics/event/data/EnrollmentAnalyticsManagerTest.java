@@ -35,9 +35,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramIndicator;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
+import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.QueryKey.NV;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
 import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.IN;
@@ -67,6 +67,8 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -105,6 +107,8 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Mock private ProgramIndicatorService programIndicatorService;
 
+  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+
   @Captor private ArgumentCaptor<String> sql;
 
   private String DEFAULT_COLUMNS =
@@ -129,7 +133,8 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             programIndicatorService,
             programIndicatorSubqueryBuilder,
             new EnrollmentTimeFieldSqlRenderer(),
-            executionPlanStore);
+            executionPlanStore,
+            sqlBuilder);
   }
 
   @Test

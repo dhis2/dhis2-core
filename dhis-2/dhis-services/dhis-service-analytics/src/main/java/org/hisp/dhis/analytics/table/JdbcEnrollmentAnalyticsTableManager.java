@@ -56,6 +56,7 @@ import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
@@ -144,7 +145,8 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
       DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       AnalyticsTableExportSettings analyticsExportSettings,
-      PeriodDataProvider periodDataProvider) {
+      PeriodDataProvider periodDataProvider,
+      SqlBuilder sqlBuilder) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -157,7 +159,8 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
         databaseInfoProvider,
         jdbcTemplate,
         analyticsExportSettings,
-        periodDataProvider);
+        periodDataProvider,
+        sqlBuilder);
   }
 
   @Override
