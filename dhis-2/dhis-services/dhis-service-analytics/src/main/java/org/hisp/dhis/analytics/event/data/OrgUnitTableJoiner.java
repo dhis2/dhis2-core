@@ -28,10 +28,10 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
+import static org.hisp.dhis.analytics.AnalyticsConstants.ORG_UNIT_GROUPSET_STRUCT_ALIAS;
+import static org.hisp.dhis.analytics.AnalyticsConstants.ORG_UNIT_STRUCT_ALIAS;
+import static org.hisp.dhis.analytics.AnalyticsConstants.OWNERSHIP_TBL_ALIAS;
 import static org.hisp.dhis.analytics.OrgUnitFieldType.OWNER_AT_START;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ORG_UNIT_GROUPSET_STRUCT_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ORG_UNIT_STRUCT_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.OWNERSHIP_TBL_ALIAS;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.util.DateUtils.plusOneDay;
