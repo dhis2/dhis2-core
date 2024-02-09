@@ -229,7 +229,7 @@ public interface SqlBuilder {
    * @param items the items to join.
    * @return a string representing the comma delimited and single quoted item values.
    */
-  String quotedCommaDelimitedString(Collection<String> items);
+  String singleQuotedCommaDelimitedString(Collection<String> items);
 
   // Statements
 

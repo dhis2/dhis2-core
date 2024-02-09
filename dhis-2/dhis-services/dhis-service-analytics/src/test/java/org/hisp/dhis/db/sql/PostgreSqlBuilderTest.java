@@ -163,14 +163,15 @@ class PostgreSqlBuilderTest {
   }
 
   @Test
-  void testCommaSeparatedQuotedString() {
+  void testSinqleQuotedCommaDelimitedString() {
     assertEquals(
         "'dmPbDBKwXyF', 'zMl4kciwJtz', 'q1Nqu1r1GTn'",
-        sqlBuilder.quotedCommaDelimitedString(
+        sqlBuilder.singleQuotedCommaDelimitedString(
             List.of("dmPbDBKwXyF", "zMl4kciwJtz", "q1Nqu1r1GTn")));
-    assertEquals("'1', '3', '5'", sqlBuilder.quotedCommaDelimitedString(List.of("1", "3", "5")));
-    assertEquals("", sqlBuilder.quotedCommaDelimitedString(List.of()));
-    assertEquals("", sqlBuilder.quotedCommaDelimitedString(null));
+    assertEquals(
+        "'1', '3', '5'", sqlBuilder.singleQuotedCommaDelimitedString(List.of("1", "3", "5")));
+    assertEquals("", sqlBuilder.singleQuotedCommaDelimitedString(List.of()));
+    assertEquals("", sqlBuilder.singleQuotedCommaDelimitedString(null));
   }
 
   // Statements

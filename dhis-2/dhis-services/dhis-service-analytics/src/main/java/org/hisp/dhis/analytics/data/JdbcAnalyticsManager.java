@@ -478,7 +478,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
     for (DimensionalObject dim : params.getDimensions()) {
       if (dim.hasItems() && !dim.isFixed()) {
         String col = quoteAlias(dim.getDimensionName());
-        String items = sqlBuilder.quotedCommaDelimitedString(getUids(dim.getItems()));
+        String items = sqlBuilder.singleQuotedCommaDelimitedString(getUids(dim.getItems()));
 
         sql.append(sqlHelper.whereAnd() + " " + col + " in (" + items + ") ");
       }
@@ -503,7 +503,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
                     filter -> {
                       String col = quoteAlias(filter.getDimensionName());
                       String items =
-                          sqlBuilder.quotedCommaDelimitedString(getUids(filter.getItems()));
+                          sqlBuilder.singleQuotedCommaDelimitedString(getUids(filter.getItems()));
 
                       return col + " in (" + items + ") ";
                     })

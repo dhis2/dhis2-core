@@ -208,7 +208,7 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String quotedCommaDelimitedString(Collection<String> items) {
+  public String singleQuotedCommaDelimitedString(Collection<String> items) {
     return isEmpty(items)
         ? EMPTY
         : items.stream().map(this::singleQuote).collect(Collectors.joining(COMMA));
