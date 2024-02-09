@@ -80,6 +80,10 @@ import org.springframework.stereotype.Component;
 public class DefaultQueryPlanner implements QueryPlanner {
   private final PartitionManager partitionManager;
 
+  // -------------------------------------------------------------------------
+  // QueryPlanner implementation
+  // -------------------------------------------------------------------------
+
   @Override
   public DataQueryGroups planQuery(DataQueryParams params, QueryPlannerParams plannerParams) {
     params = PeriodOffsetUtils.addShiftedPeriods(params);
