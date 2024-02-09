@@ -27,11 +27,12 @@
  */
 package org.hisp.dhis.resourcetable.jdbc;
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -142,7 +143,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
    * @param indexes the list of {@link Index} to create.
    */
   private void createIndexes(List<Index> indexes) {
-    if (CollectionUtils.isNotEmpty(indexes)) {
+    if (isNotEmpty(indexes)) {
       for (Index index : indexes) {
         jdbcTemplate.execute(sqlBuilder.createIndex(index));
       }
