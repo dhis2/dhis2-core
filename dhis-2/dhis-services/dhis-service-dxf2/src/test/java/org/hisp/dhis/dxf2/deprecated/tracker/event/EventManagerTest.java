@@ -59,7 +59,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Zubair Asghar
  */
 @ExtendWith(MockitoExtension.class)
-public class EventManagerTest {
+class EventManagerTest {
 
   @Mock EventPersistenceService eventPersistenceService;
 
