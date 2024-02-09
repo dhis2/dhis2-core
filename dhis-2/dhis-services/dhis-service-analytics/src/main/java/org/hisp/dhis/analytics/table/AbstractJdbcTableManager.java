@@ -555,7 +555,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @return a string representing the comma delimited and quoted item values.
    */
   protected String quotedCommaDelimitedString(Collection<String> items) {
-    return sqlBuilder.singleQuotedCommaDelimitedString(items);
+    return sqlBuilder.singleQuotedCommaDelimited(items);
   }
 
   // -------------------------------------------------------------------------

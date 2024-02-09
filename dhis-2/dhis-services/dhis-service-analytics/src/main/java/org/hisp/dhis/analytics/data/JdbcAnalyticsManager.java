@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.data;
 
 import static java.lang.String.join;
-import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.AggregationType.AVERAGE;
 import static org.hisp.dhis.analytics.AggregationType.COUNT;
@@ -42,7 +41,6 @@ import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.analytics.DataType.TEXT;
 import static org.hisp.dhis.analytics.data.SubexpressionPeriodOffsetUtils.getParamsWithOffsetPeriods;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAliasCommaSeparate;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
@@ -76,7 +74,6 @@ import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.table.model.Partitions;
 import org.hisp.dhis.analytics.table.util.PartitionUtils;
-import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -92,7 +89,6 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.system.util.SqlUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
@@ -478,7 +474,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
     for (DimensionalObject dim : params.getDimensions()) {
       if (dim.hasItems() && !dim.isFixed()) {
         String col = quoteAlias(dim.getDimensionName());
-        String items = sqlBuilder.singleQuotedCommaDelimitedString(getUids(dim.getItems()));
+        String items = sqlBuilder.singleQuotedCommaDelimited(getUids(dim.getItems()));
 
         sql.append(sqlHelper.whereAnd() + " " + col + " in (" + items + ") ");
       }
@@ -503,7 +499,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
                     filter -> {
                       String col = quoteAlias(filter.getDimensionName());
                       String items =
-                          sqlBuilder.singleQuotedCommaDelimitedString(getUids(filter.getItems()));
+                          sqlBuilder.singleQuotedCommaDelimited(getUids(filter.getItems()));
 
                       return col + " in (" + items + ") ";
                     })
@@ -838,7 +834,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
    * @return a list of quoted relations.
    */
   protected List<String> toQuotedList(List<String> relations) {
-    return relations.stream().map(SqlUtils::quote).collect(Collectors.toList());
+    return relations.stream().map(this::quote).collect(Collectors.toList());
   }
 
   /**
@@ -848,7 +844,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
    * @param relations the list of relations.
    * @return a list of quoted function relations.
    */
-  public String toQuotedFunctionString(String function, List<String> relations) {
+  protected String toQuotedFunctionString(String function, List<String> relations) {
     return relations.stream()
         .map(item -> String.format("%s(%s) as %s", function, quote(item), quote(item)))
         .collect(Collectors.joining(","));
@@ -990,8 +986,8 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
     return dimensions.stream()
         .filter(d -> !d.isFixed())
         .map(DimensionalObject::getDimensionName)
-        .map(AnalyticsSqlUtils::quoteAlias)
-        .collect(toList());
+        .map(this::quoteAlias)
+        .collect(Collectors.toList());
   }
 
   /**
@@ -1034,5 +1030,13 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
    */
   private String quoteAlias(String relation) {
     return sqlBuilder.quoteAx(relation);
+  }
+
+  /**
+   * @param items the items to quote.
+   * @return a string representing the "ax" aliased and double quoted items separated by comma.
+   */
+  private String quoteAliasCommaSeparate(Collection<String> items) {
+    return items.stream().map(this::quoteAlias).collect(Collectors.joining(","));
   }
 }
