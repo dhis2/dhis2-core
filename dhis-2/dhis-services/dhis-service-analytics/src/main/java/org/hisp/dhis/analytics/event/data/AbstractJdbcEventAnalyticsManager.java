@@ -61,7 +61,6 @@ import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 import static org.hisp.dhis.system.util.SqlUtils.escape;
-import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
 import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -1167,6 +1166,14 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   protected String quoteAlias(String relation) {
     return sqlBuilder.quoteAx(relation);
+  }
+
+  /**
+   * @param value the value to quote.
+   * @return a single quoted value.
+   */
+  protected String singleQuote(String value) {
+    return sqlBuilder.singleQuote(value);
   }
 
   /**

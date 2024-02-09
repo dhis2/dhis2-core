@@ -43,11 +43,9 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAliasCommaSepa
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.hisp.dhis.feedback.ErrorCode.E7132;
 import static org.hisp.dhis.feedback.ErrorCode.E7133;
-import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.postgresql.util.PSQLState.DIVISION_BY_ZERO;
 
@@ -432,7 +430,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
               + " "
               + orgUnitCol
               + OPEN_IN
-              + getQuotedCommaDelimitedString(
+              + sqlBuilder.singleQuotedCommaDelimited(
                   getUids(params.getDimensionOrFilterItems(ORGUNIT_DIM_ID)))
               + ") ";
     } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CHILDREN)) {
@@ -443,7 +441,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
               + " "
               + orgUnitCol
               + OPEN_IN
-              + getQuotedCommaDelimitedString(getUids(params.getOrganisationUnitChildren()))
+              + sqlBuilder.singleQuotedCommaDelimited(getUids(params.getOrganisationUnitChildren()))
               + ") ";
     } else // Descendants
     {
@@ -472,7 +470,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
               + " "
               + col
               + OPEN_IN
-              + getQuotedCommaDelimitedString(getUids(dim.getItems()))
+              + sqlBuilder.singleQuotedCommaDelimited(getUids(dim.getItems()))
               + ") ";
     }
 
@@ -488,7 +486,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
                 + " "
                 + col
                 + OPEN_IN
-                + getQuotedCommaDelimitedString(getUids(dim.getItems()))
+                + sqlBuilder.singleQuotedCommaDelimited(getUids(dim.getItems()))
                 + ") ";
       }
     }

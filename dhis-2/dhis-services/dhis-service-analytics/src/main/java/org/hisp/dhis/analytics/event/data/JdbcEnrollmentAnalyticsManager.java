@@ -39,7 +39,6 @@ import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
-import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
 
 import com.google.common.collect.Sets;
 import java.util.Arrays;
