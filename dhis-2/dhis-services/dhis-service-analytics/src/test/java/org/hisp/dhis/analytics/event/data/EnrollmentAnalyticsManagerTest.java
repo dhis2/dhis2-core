@@ -451,9 +451,11 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + subSelect
             + " in ("
             + String.join(",", numericValues.split(OPTION_SEP))
-            + ") or "
+            + ") or ("
             + subSelect
-            + " is null )";
+            + " is null and exists("
+            + subSelect
+            + ")))";
     testIt(
         IN,
         numericValues + OPTION_SEP + NV,
