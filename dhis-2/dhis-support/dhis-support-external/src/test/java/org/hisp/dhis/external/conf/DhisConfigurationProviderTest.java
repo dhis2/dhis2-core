@@ -37,6 +37,9 @@ import org.hisp.dhis.external.location.DefaultLocationManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class DhisConfigurationProviderTest {
 
@@ -88,35 +91,14 @@ class DhisConfigurationProviderTest {
             List.of("https://validtesturl.com/", "https://validtesturl2.com/")));
   }
 
-  @Test
-  @DisplayName("an invalid url which is not in the allowed list should return false")
-  void invalidUrlNotInAllowedListTest() {
+  @ParameterizedTest
+  @NullSource
+  @ValueSource(strings = {"", " ", "https://invalidurl.com/fail"})
+  @DisplayName("invalid URLs should return false")
+  void invalidUrlTest(String url) {
     // given there are 2 remote servers in the test config allowed list
     // when we check if an invalid url is in the allowed list
-    boolean urlIsAllowed =
-        configProvider.remoteServerIsInAllowedList("https://invalidurl.com/fail");
-
-    // then it should be false
-    assertFalse(urlIsAllowed);
-  }
-
-  @Test
-  @DisplayName("an empty url returns false")
-  void emptyUrlInAllowedListTest() {
-    // given there are 2 remote servers in the test config allowed list
-    // when we check if a empty url is in the allowed list
-    boolean urlIsAllowed = configProvider.remoteServerIsInAllowedList("");
-
-    // then it should be true
-    assertFalse(urlIsAllowed);
-  }
-
-  @Test
-  @DisplayName("a null url returns false")
-  void nullUrlInAllowedListTest() {
-    // given there are 2 remote servers in the test config allowed list
-    // when we check if a null url is in the allowed list
-    boolean urlIsAllowed = configProvider.remoteServerIsInAllowedList(null);
+    boolean urlIsAllowed = configProvider.remoteServerIsInAllowedList(url);
 
     // then it should be false
     assertFalse(urlIsAllowed);
