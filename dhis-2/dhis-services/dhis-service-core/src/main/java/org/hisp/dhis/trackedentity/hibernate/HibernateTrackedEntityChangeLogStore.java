@@ -91,7 +91,7 @@ public class HibernateTrackedEntityChangeLogStore
           sb.append(singleQuote(audit.getAuditType().name())).append(",");
           sb.append(
               StringUtils.isNotEmpty(audit.getComment())
-                  ? SqlUtils.encode(audit.getComment())
+                  ? SqlUtils.singleQuote(audit.getComment())
                   : "''");
           sb.append(")");
           return sb.toString();

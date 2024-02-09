@@ -31,6 +31,7 @@ import static org.hisp.dhis.db.model.Table.toStaging;
 
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
@@ -55,14 +56,11 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
  *
  * @author Jim Grace
  */
+@RequiredArgsConstructor
 public class DataApprovalRemapLevelResourceTable implements ResourceTable {
   private static final String TABLE_NAME = "_dataapprovalremaplevel";
 
   private final Logged logged;
-
-  public DataApprovalRemapLevelResourceTable(Logged logged) {
-    this.logged = logged;
-  }
 
   @Override
   public Table getTable() {

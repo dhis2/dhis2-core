@@ -48,6 +48,8 @@ import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.resourcetable.ResourceTableService;
@@ -80,6 +82,8 @@ class JdbcAnalyticsTableManagerTest {
 
   @Mock private PeriodDataProvider periodDataProvider;
 
+  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+
   private AnalyticsTableManager subject;
 
   @BeforeEach
@@ -97,7 +101,8 @@ class JdbcAnalyticsTableManagerTest {
             mock(DatabaseInfoProvider.class),
             jdbcTemplate,
             analyticsExportSettings,
-            periodDataProvider);
+            periodDataProvider,
+            sqlBuilder);
   }
 
   @Test

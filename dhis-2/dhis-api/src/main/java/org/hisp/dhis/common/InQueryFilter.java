@@ -82,11 +82,17 @@ public class InQueryFilter extends QueryFilter {
                   .collect(Collectors.joining(",", " (", ")"));
 
       if (hasMissingValue(filterItems)) {
-        condition = "(" + condition + " or " + field + " is null )";
+        condition =
+            isNestedSqlStmtInField()
+                ? "(" + condition + " or (" + field + " is null and exists(" + field + "))" + ")"
+                : "(" + condition + " or " + field + " is null )";
       }
     } else {
       if (hasMissingValue(filterItems)) {
-        condition = field + " is null";
+        condition =
+            isNestedSqlStmtInField()
+                ? "(" + field + " is null and exists(" + field + "))"
+                : field + " is null";
       }
     }
 
@@ -119,5 +125,11 @@ public class InQueryFilter extends QueryFilter {
 
   private boolean isMissingItem(String filterItem) {
     return NV.equals(filterItem);
+  }
+
+  /** Select sql statement detection. The method retrieves true if sql statement detected. */
+  private boolean isNestedSqlStmtInField() {
+    String maybeSql = field.toLowerCase();
+    return maybeSql.contains("select ") && maybeSql.contains(" from ");
   }
 }

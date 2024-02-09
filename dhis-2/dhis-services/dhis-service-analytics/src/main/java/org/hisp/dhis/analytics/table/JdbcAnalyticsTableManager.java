@@ -29,8 +29,6 @@ package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getLatestTablePartition;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
@@ -69,6 +67,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
@@ -127,7 +126,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
       DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       AnalyticsTableExportSettings analyticsExportSettings,
-      PeriodDataProvider periodDataProvider) {
+      PeriodDataProvider periodDataProvider,
+      SqlBuilder sqlBuilder) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -140,7 +140,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         databaseInfoProvider,
         jdbcTemplate,
         analyticsExportSettings,
-        periodDataProvider);
+        periodDataProvider,
+        sqlBuilder);
   }
 
   // -------------------------------------------------------------------------
@@ -304,7 +305,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
       Set<ValueType> valueTypes,
       String whereClause) {
     String tableName = partition.getName();
-    String valTypes = TextUtils.getQuotedCommaDelimitedString(ObjectUtils.asStringList(valueTypes));
+    String valTypes = quotedCommaDelimitedString(ObjectUtils.asStringList(valueTypes));
     boolean respectStartEndDates =
         systemSettingManager.getBoolSetting(
             SettingKey.RESPECT_META_DATA_START_END_DATES_IN_ANALYTICS_TABLE_EXPORT);
@@ -384,7 +385,11 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     }
 
     if (whereClause != null) {
-      sql += "and " + whereClause;
+      sql += "and " + whereClause + " ";
+    }
+
+    if (analyticsExportSettings.isTableOrdering()) {
+      sql += "order by de.uid, co.uid";
     }
 
     invokeTimeAndLog(sql, String.format("Populate %s %s", tableName, valueTypes));
@@ -589,7 +594,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     sql.deleteCharAt(sql.length() - ",".length());
 
     sql.append(" where oulevel > " + aggregationLevel);
-    sql.append(" and dx in (" + getQuotedCommaDelimitedString(dataElements) + ")");
+    sql.append(" and dx in (" + quotedCommaDelimitedString(dataElements) + ")");
 
     log.debug("Aggregation level SQL: '{}'", sql);
 

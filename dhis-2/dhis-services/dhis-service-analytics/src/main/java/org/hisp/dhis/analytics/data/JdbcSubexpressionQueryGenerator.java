@@ -32,6 +32,7 @@ import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.hisp.dhis.analytics.AggregationType.MAX;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
+import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.DataType.fromValueType;
@@ -45,14 +46,13 @@ import static org.hisp.dhis.analytics.data.SubexpressionPeriodOffsetUtils.REPORT
 import static org.hisp.dhis.analytics.data.SubexpressionPeriodOffsetUtils.SHIFT;
 import static org.hisp.dhis.analytics.data.SubexpressionPeriodOffsetUtils.getParamsWithOffsetPeriodsWithoutData;
 import static org.hisp.dhis.analytics.data.SubexpressionPeriodOffsetUtils.joinPeriodOffsetValues;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.encode;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.commons.collection.CollectionUtils.addUnique;
 import static org.hisp.dhis.parser.expression.ParserUtils.castSql;
 import static org.hisp.dhis.subexpression.SubexpressionDimensionItem.getItemColumnName;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
+import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
 
 import java.util.List;
 import org.hisp.dhis.analytics.AggregationType;
@@ -186,7 +186,7 @@ public class JdbcSubexpressionQueryGenerator {
     String dimensions =
         jam.getCommaDelimitedQuotedDimensionColumns(paramsWithoutData.getDimensions());
 
-    String data = encode(subex.getDimensionItemWithQueryModsId()) + " as " + quote(DX);
+    String data = singleQuote(subex.getDimensionItemWithQueryModsId()) + " as " + quote(DX);
 
     String aggregate = getHighLevelAggregateFunction();
 
