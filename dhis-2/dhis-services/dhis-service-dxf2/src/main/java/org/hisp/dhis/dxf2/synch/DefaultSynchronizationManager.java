@@ -50,7 +50,6 @@ import org.hisp.dhis.dxf2.sync.SyncEndpoint;
 import org.hisp.dhis.dxf2.sync.SyncUtils;
 import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -77,7 +76,6 @@ public class DefaultSynchronizationManager implements SynchronizationManager {
   private final SystemSettingManager systemSettingManager;
   private final RestTemplate restTemplate;
   private final ObjectMapper jsonMapper;
-  private final DhisConfigurationProvider configProvider;
 
   // -------------------------------------------------------------------------
   // SynchronizationManager implementation

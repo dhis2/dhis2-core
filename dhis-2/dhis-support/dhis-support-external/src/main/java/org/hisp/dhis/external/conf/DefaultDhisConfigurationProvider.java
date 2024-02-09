@@ -238,9 +238,12 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
 
   @Override
   public boolean remoteServerIsInAllowedList(String url) {
-    List<String> remoteServersAllowed = getRemoteServersAllowed();
-    return !getRemoteServersAllowed().isEmpty()
-        && remoteServersAllowed.stream().anyMatch(url::startsWith);
+    if (StringUtils.isNotEmpty(url)) {
+      List<String> remoteServersAllowed = getRemoteServersAllowed();
+      return !getRemoteServersAllowed().isEmpty()
+          && remoteServersAllowed.stream().anyMatch(url::startsWith);
+    }
+    return false;
   }
 
   @Override

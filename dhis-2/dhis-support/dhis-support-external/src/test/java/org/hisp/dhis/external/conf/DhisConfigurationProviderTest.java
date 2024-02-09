@@ -74,7 +74,7 @@ class DhisConfigurationProviderTest {
   }
 
   @Test
-  @DisplayName("remote servers retrieved from config should show correctly")
+  @DisplayName("remote servers retrieved from config should have expected values")
   void getRemoteServersAllowedTest() {
     // given there are 2 remote servers in the test config allowed list
     // when we retrieve the remote servers allowed
@@ -101,7 +101,29 @@ class DhisConfigurationProviderTest {
   }
 
   @Test
-  @DisplayName("a valid url which is is in the allowed list returns true")
+  @DisplayName("an empty url returns false")
+  void emptyUrlInAllowedListTest() {
+    // given there are 2 remote servers in the test config allowed list
+    // when we check if a empty url is in the allowed list
+    boolean urlIsAllowed = configProvider.remoteServerIsInAllowedList("");
+
+    // then it should be true
+    assertFalse(urlIsAllowed);
+  }
+
+  @Test
+  @DisplayName("a null url returns false")
+  void nullUrlInAllowedListTest() {
+    // given there are 2 remote servers in the test config allowed list
+    // when we check if a null url is in the allowed list
+    boolean urlIsAllowed = configProvider.remoteServerIsInAllowedList(null);
+
+    // then it should be false
+    assertFalse(urlIsAllowed);
+  }
+
+  @Test
+  @DisplayName("a valid url which is in the allowed list returns true")
   void validUrlInAllowedListTest() {
     // given there are 2 remote servers in the test config allowed list
     // when we check if a valid url is in the allowed list
