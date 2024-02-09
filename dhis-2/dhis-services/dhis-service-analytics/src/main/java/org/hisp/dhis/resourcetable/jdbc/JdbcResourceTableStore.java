@@ -113,7 +113,6 @@ public class JdbcResourceTableStore implements ResourceTableStore {
 
       if (content.size() > 0) {
         int columns = content.get(0).length;
-
         batchUpdate(columns, table.getName(), content);
       }
     }
