@@ -50,8 +50,6 @@ import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_GE
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_NAME_COL_SUFFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.encode;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
@@ -64,6 +62,9 @@ import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
+import static org.hisp.dhis.system.util.SqlUtils.escape;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
+import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
 import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -262,9 +263,11 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     return "WHEN "
         + quotedAlias
         + "="
-        + encode(item.getUid())
+        + singleQuote(item.getUid())
         + " THEN "
-        + (dp == DisplayProperty.NAME ? encode(item.getName()) : encode(item.getShortName()));
+        + (dp == DisplayProperty.NAME
+            ? singleQuote(item.getName())
+            : singleQuote(item.getShortName()));
   }
 
   private boolean isSupported(DimensionalObject dimension) {
@@ -367,14 +370,14 @@ public abstract class AbstractJdbcEventAnalyticsManager {
               } else if (params.hasSinglePeriod()) {
                 Period period = (Period) params.getPeriods().get(0);
                 columns.add(
-                    encode(period.getIsoDate()) + " as " + period.getPeriodType().getName());
+                    singleQuote(period.getIsoDate()) + " as " + period.getPeriodType().getName());
               } else if (!params.hasPeriods() && params.hasFilterPeriods()) {
                 // Assuming same period type for all period filters, as the
                 // query planner splits into one query per period type
 
                 Period period = (Period) params.getFilterPeriods().get(0);
                 columns.add(
-                    encode(period.getIsoDate()) + " as " + period.getPeriodType().getName());
+                    singleQuote(period.getIsoDate()) + " as " + period.getPeriodType().getName());
               } else {
                 throw new IllegalStateException(
                     "Program indicator non-default boundary query must have "
@@ -865,9 +868,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   protected String getSqlFilter(QueryFilter queryFilter, QueryItem item) {
     String filter = getFilter(queryFilter.getFilter(), item);
-    String encodedFilter = encode(filter, false);
 
-    return item.getSqlFilter(queryFilter, encodedFilter, true);
+    return item.getSqlFilter(queryFilter, escape(filter), true);
   }
 
   /**
@@ -1244,7 +1246,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     if (IN.equals(filter.getOperator())) {
       InQueryFilter inQueryFilter =
-          new InQueryFilter(field, encode(filter.getFilter(), false), item.isText());
+          new InQueryFilter(field, escape(filter.getFilter()), item.isText());
 
       return inQueryFilter.getSqlFilter();
     } else {

@@ -38,11 +38,11 @@ import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.QueryKey.NV;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
 import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.QueryOperator.NEQ;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -446,9 +446,11 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + subSelect
             + " in ("
             + String.join(",", numericValues.split(OPTION_SEP))
-            + ") or "
+            + ") or ("
             + subSelect
-            + " is null )";
+            + " is null and exists("
+            + subSelect
+            + ")))";
     testIt(
         IN,
         numericValues + OPTION_SEP + NV,

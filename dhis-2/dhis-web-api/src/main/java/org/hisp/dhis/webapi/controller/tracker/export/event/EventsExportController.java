@@ -47,15 +47,21 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventParams;
@@ -65,8 +71,13 @@ import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.utils.ResponseEntityUtils;
 import org.mapstruct.factory.Mappers;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -265,10 +276,6 @@ class EventsExportController {
     return Objects.toString(filename, String.join(".", EVENTS, type));
   }
 
-  public String getContentDispositionHeaderValue(String filename) {
-    return "attachment; filename=" + filename;
-  }
-
   @OpenApi.Response(OpenApi.EntityType.class)
   @GetMapping("/{uid}")
   ResponseEntity<ObjectNode> getEventByUid(
@@ -280,5 +287,37 @@ class EventsExportController {
     Event event = EVENTS_MAPPER.from(eventService.getEvent(uid.getValue(), eventParams));
 
     return ResponseEntity.ok(fieldFilterService.toObjectNode(event, fields));
+  }
+
+  @GetMapping("/{event}/dataValues/{dataElement}/file")
+  ResponseEntity<InputStreamResource> getEventDataValueFile(
+      @OpenApi.Param({UID.class, Event.class}) @PathVariable UID event,
+      @OpenApi.Param({UID.class, DataElement.class}) @PathVariable UID dataElement,
+      HttpServletRequest request)
+      throws NotFoundException, ConflictException {
+    FileResourceStream file = eventService.getFileResource(event, dataElement);
+    FileResource fileResource = file.fileResource();
+
+    final String etag = fileResource.getContentMd5();
+    if (ResponseEntityUtils.checkNotModified(etag, request)) {
+      return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
+          .cacheControl(CacheControl.maxAge(0, TimeUnit.SECONDS).cachePrivate().mustRevalidate())
+          .eTag(etag)
+          .build();
+    }
+
+    return ResponseEntity.ok()
+        .cacheControl(CacheControl.maxAge(0, TimeUnit.SECONDS).cachePrivate().mustRevalidate())
+        .eTag(etag)
+        .contentType(MediaType.valueOf(fileResource.getContentType()))
+        .contentLength(fileResource.getContentLength())
+        .header(
+            HttpHeaders.CONTENT_DISPOSITION,
+            getContentDispositionHeaderValue(fileResource.getName()))
+        .body(new InputStreamResource(file.inputStream().get()));
+  }
+
+  private static String getContentDispositionHeaderValue(String filename) {
+    return "attachment; filename=" + filename;
   }
 }
