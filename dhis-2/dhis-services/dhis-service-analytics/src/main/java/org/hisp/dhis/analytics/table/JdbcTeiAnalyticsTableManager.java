@@ -68,6 +68,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
@@ -174,7 +175,8 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
       TrackedEntityTypeService trackedEntityTypeService,
       TrackedEntityAttributeService trackedEntityAttributeService,
       AnalyticsTableExportSettings settings,
-      PeriodDataProvider periodDataProvider) {
+      PeriodDataProvider periodDataProvider,
+      SqlBuilder sqlBuilder) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -187,7 +189,8 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
         databaseInfoProvider,
         jdbcTemplate,
         settings,
-        periodDataProvider);
+        periodDataProvider,
+        sqlBuilder);
     this.trackedEntityAttributeService = trackedEntityAttributeService;
     this.trackedEntityTypeService = trackedEntityTypeService;
   }

@@ -64,7 +64,6 @@ import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
-import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -133,7 +132,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   protected final PeriodDataProvider periodDataProvider;
 
-  protected final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+  protected final SqlBuilder sqlBuilder;
 
   protected Boolean spatialSupport;
 

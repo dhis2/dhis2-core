@@ -38,7 +38,6 @@ import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePhase;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
-import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableStore;
@@ -62,7 +61,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
 
   private final JdbcTemplate jdbcTemplate;
 
-  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+  private final SqlBuilder sqlBuilder;
 
   @Override
   public void generateResourceTable(ResourceTable resourceTable) {
