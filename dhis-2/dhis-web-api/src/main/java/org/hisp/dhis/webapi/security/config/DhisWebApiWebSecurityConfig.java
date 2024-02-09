@@ -47,7 +47,7 @@ import org.hisp.dhis.security.oidc.DhisCustomAuthorizationRequestResolver;
 import org.hisp.dhis.security.oidc.DhisOidcLogoutSuccessHandler;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.security.oidc.OIDCLoginEnabledCondition;
-import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
+import org.hisp.dhis.security.spring2fa.TwoFactorCapableAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.filter.CorsFilter;
@@ -178,7 +178,7 @@ public class DhisWebApiWebSecurityConfig {
   public static class ApiWebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
     @Autowired private DhisConfigurationProvider dhisConfig;
 
-    @Autowired private TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
+    @Autowired private TwoFactorCapableAuthenticationProvider twoFactorAuthenticationProvider;
 
     @Autowired
     @Qualifier("customLdapAuthenticationProvider")
@@ -260,6 +260,8 @@ public class DhisWebApiWebSecurityConfig {
           .antMatchers("/oauth2/**")
           .permitAll()
           .antMatchers(apiContextPath + "/loginConfig")
+          .permitAll()
+          .antMatchers(apiContextPath + "/auth/login")
           .permitAll()
           .antMatchers(apiContextPath + "/authentication/login")
           .permitAll()

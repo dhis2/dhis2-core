@@ -25,35 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.spring2fa;
+package org.hisp.dhis.webapi.json.domain;
 
-import javax.servlet.http.HttpServletRequest;
-import org.hisp.dhis.security.ForwardedIpAwareWebAuthenticationDetails;
+import org.hisp.dhis.jsontree.JsonObject;
 
 /**
- * @author Henning Håkonsen
- * @author Lars Helge Øverland
+ * Web API equivalent of an {@code LoginResponse}.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class TwoFactorWebAuthenticationDetails extends ForwardedIpAwareWebAuthenticationDetails {
-  private static final String TWO_FACTOR_AUTHENTICATION_GETTER = "2fa_code";
+public interface JsonLoginResponse extends JsonObject {
 
-  private String code;
-
-  public TwoFactorWebAuthenticationDetails(HttpServletRequest request) {
-    super(request);
-    code = request.getParameter(TWO_FACTOR_AUTHENTICATION_GETTER);
+  default String getRedirectUrl() {
+    return getString("redirectUrl").string();
   }
 
-  public TwoFactorWebAuthenticationDetails(HttpServletRequest request, String twoFactorCode) {
-    super(request);
-    code = twoFactorCode;
+  default String getLoginStatus() {
+    return getString("loginStatus").string();
   }
 
-  public String getCode() {
-    return code;
+  default String getLoginMessage() {
+    return getString("loginMessage").string();
   }
 
-  public void setCode(String code) {
-    this.code = code;
+  default String getTwoFactorQRCode() {
+    return getString("twoFactorQRCode").string();
   }
 }

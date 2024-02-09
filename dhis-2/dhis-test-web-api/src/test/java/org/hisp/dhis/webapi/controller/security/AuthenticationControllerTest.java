@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,35 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.spring2fa;
+package org.hisp.dhis.webapi.controller.security;
 
-import javax.servlet.http.HttpServletRequest;
-import org.hisp.dhis.security.ForwardedIpAwareWebAuthenticationDetails;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.hisp.dhis.webapi.json.domain.JsonLoginResponse;
+import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
+import org.junit.jupiter.api.Test;
 
 /**
- * @author Henning Håkonsen
- * @author Lars Helge Øverland
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class TwoFactorWebAuthenticationDetails extends ForwardedIpAwareWebAuthenticationDetails {
-  private static final String TWO_FACTOR_AUTHENTICATION_GETTER = "2fa_code";
+class AuthenticationControllerTest extends DhisControllerIntegrationTest {
 
-  private String code;
+  @Test
+  void testSuccessfulLogin() {
+    JsonLoginResponse response =
+        POST("/auth/login", "{'username':'admin','password':'district'}")
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
 
-  public TwoFactorWebAuthenticationDetails(HttpServletRequest request) {
-    super(request);
-    code = request.getParameter(TWO_FACTOR_AUTHENTICATION_GETTER);
+    assertEquals("SUCCESS", response.getLoginStatus());
+    assertEquals("/dhis-web-dashboard", response.getRedirectUrl());
   }
 
-  public TwoFactorWebAuthenticationDetails(HttpServletRequest request, String twoFactorCode) {
-    super(request);
-    code = twoFactorCode;
-  }
+  @Test
+  void testWrongUsernameOrPassword() {
+    JsonWebMessage response =
+        POST("/auth/login", "{'username':'admin','password':'district9'}")
+            .content(HttpStatus.UNAUTHORIZED)
+            .as(JsonWebMessage.class);
 
-  public String getCode() {
-    return code;
-  }
-
-  public void setCode(String code) {
-    this.code = code;
+    assertEquals("Bad credentials", response.getMessage());
+    assertEquals("Unauthorized", response.getHttpStatus());
+    assertEquals(401, response.getHttpStatusCode());
+    assertEquals("ERROR", response.getStatus());
   }
 }

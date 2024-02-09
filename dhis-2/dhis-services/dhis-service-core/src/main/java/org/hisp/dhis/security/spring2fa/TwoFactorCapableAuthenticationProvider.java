@@ -53,11 +53,11 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
+public class TwoFactorCapableAuthenticationProvider extends DaoAuthenticationProvider {
   private UserService userService;
 
   @Autowired
-  public TwoFactorAuthenticationProvider(
+  public TwoFactorCapableAuthenticationProvider(
       @Qualifier("userDetailsService") UserDetailsService detailsService,
       PasswordEncoder passwordEncoder,
       @Lazy UserService userService) {
@@ -84,9 +84,14 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
       throw new LockedException(String.format("IP is temporarily locked: %s", ip));
     }
 
+    // Calls the UserDetailsService#loadUserByUsername() to create the UserDetails object, when
+    // password is validated...
     Authentication result = super.authenticate(auth);
+
     UserDetails principal = (UserDetails) result.getPrincipal();
 
+    // External authentication methods (e.g. OAuth2/LDAP) should not be allowed to use password
+    // login
     if (principal.isExternalAuth()) {
       log.info(
           String.format(

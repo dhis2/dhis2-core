@@ -59,7 +59,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.PasswordManager;
-import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
+import org.hisp.dhis.security.spring2fa.TwoFactorCapableAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -107,7 +107,7 @@ public class AccountController {
 
   private final UserService userService;
 
-  private final TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
+  private final TwoFactorCapableAuthenticationProvider twoFactorAuthenticationProvider;
 
   private final ConfigurationService configurationService;
 

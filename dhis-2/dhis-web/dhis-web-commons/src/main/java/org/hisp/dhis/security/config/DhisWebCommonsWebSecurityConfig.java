@@ -40,7 +40,7 @@ import org.hisp.dhis.security.MappedRedirectStrategy;
 import org.hisp.dhis.security.authentication.CustomAuthFailureHandler;
 import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
 import org.hisp.dhis.security.oidc.DhisOidcLogoutSuccessHandler;
-import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
+import org.hisp.dhis.security.spring2fa.TwoFactorCapableAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
 import org.hisp.dhis.security.vote.ActionAccessVoter;
 import org.hisp.dhis.security.vote.ModuleAccessVoter;
@@ -115,7 +115,7 @@ public class DhisWebCommonsWebSecurityConfig {
 
     @Autowired private ExternalAccessVoter externalAccessVoter;
 
-    @Autowired TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
+    @Autowired TwoFactorCapableAuthenticationProvider twoFactorAuthenticationProvider;
 
     @Autowired private DhisOidcLogoutSuccessHandler dhisOidcLogoutSuccessHandler;
 
