@@ -33,8 +33,6 @@ import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_START_DATE_ID;
 import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_START_DATE_NAME;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,6 +51,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
@@ -72,6 +71,8 @@ import org.springframework.util.Assert;
 @Service("org.hisp.dhis.analytics.RawAnalyticsManager")
 public class JdbcRawAnalyticsManager implements RawAnalyticsManager {
   private static final String DIM_NAME_OU = "ou.path";
+
+  private final SqlBuilder sqlBuilder;
 
   @Qualifier("analyticsReadOnlyJdbcTemplate")
   private final JdbcTemplate jdbcTemplate;
@@ -158,7 +159,7 @@ public class JdbcRawAnalyticsManager implements RawAnalyticsManager {
 
     for (DimensionalObject dim : dimensions) {
       if (!dim.getItems().isEmpty() && !dim.isFixed()) {
-        String col = quote(dim.getDimensionName());
+        String col = sqlBuilder.quote(dim.getDimensionName());
 
         if (DimensionalObject.ORGUNIT_DIM_ID.equals(dim.getDimension())) {
           sql += sqlHelper.whereAnd() + " (";
@@ -176,7 +177,7 @@ public class JdbcRawAnalyticsManager implements RawAnalyticsManager {
                   + " "
                   + col
                   + " in ("
-                  + getQuotedCommaDelimitedString(getUids(dim.getItems()))
+                  + sqlBuilder.singleQuotedCommaDelimited(getUids(dim.getItems()))
                   + ") ";
         }
       }
@@ -205,13 +206,18 @@ public class JdbcRawAnalyticsManager implements RawAnalyticsManager {
    */
   private String asColumnSelect(DimensionalObject dimension, String idScheme) {
     if (DimensionType.ORGANISATION_UNIT == dimension.getDimensionType()) {
-      return ("ou." + idScheme + " as " + quote(dimension.getDimensionName()));
+      return ("ou." + idScheme + " as " + sqlBuilder.quote(dimension.getDimensionName()));
     } else if (DimensionType.ORGANISATION_UNIT_LEVEL == dimension.getDimensionType()) {
       int level = AnalyticsUtils.getLevelFromOrgUnitDimensionName(dimension.getDimensionName());
 
-      return ("ous." + idScheme + "level" + level + " as " + quote(dimension.getDimensionName()));
+      return ("ous."
+          + idScheme
+          + "level"
+          + level
+          + " as "
+          + sqlBuilder.quote(dimension.getDimensionName()));
     } else {
-      return quote(dimension.getDimensionName());
+      return sqlBuilder.quote(dimension.getDimensionName());
     }
   }
 }

@@ -1177,6 +1177,17 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   }
 
   /**
+   * Returns a concatenated string of the given items separated by comma where each item is quoted
+   * and aliased.
+   *
+   * @param items the collection of items.
+   * @return a string.
+   */
+  protected String quoteAliasCommaDelimited(Collection<String> items) {
+    return items.stream().map(this::quoteAlias).collect(Collectors.joining(","));
+  }
+
+  /**
    * Joins a stream of conditions using given join function. Returns empty string if collection is
    * empty.
    */

@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.util;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AccessLevel;
@@ -69,17 +68,6 @@ public class AnalyticsSqlUtils {
    */
   public static String quoteAlias(String relation) {
     return ANALYTICS_TBL_ALIAS + SEPARATOR + SqlUtils.quote(relation);
-  }
-
-  /**
-   * Returns a concatenated string of the given collection items separated by comma where each item
-   * is quoted and aliased.
-   *
-   * @param items the collection of items.
-   * @return a string.
-   */
-  public static String quoteAliasCommaSeparate(Collection<String> items) {
-    return items.stream().map(AnalyticsSqlUtils::quoteAlias).collect(Collectors.joining(","));
   }
 
   /**

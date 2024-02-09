@@ -39,7 +39,6 @@ import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_GE
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getCoalesce;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAliasCommaSeparate;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
@@ -740,7 +739,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     if (params.isAnyAggregationType(AggregationType.FIRST, AggregationType.LAST)) {
       return getFirstOrLastValuePartitionByColumns(params.getNonPeriodDimensions());
     } else {
-      return "partition by " + quoteAliasCommaSeparate(List.of("ou", "ao"));
+      return "partition by " + quoteAliasCommaDelimited(List.of("ou", "ao"));
     }
   }
 
