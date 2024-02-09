@@ -130,6 +130,10 @@ public interface FileResourceService {
   byte[] copyFileResourceContent(FileResource fileResource)
       throws IOException, NoSuchElementException;
 
+  /** Opens a stream to the file resource content. */
+  InputStream openContentStream(FileResource fileResource)
+      throws IOException, NoSuchElementException;
+
   boolean fileResourceExists(String uid);
 
   void updateFileResource(FileResource fileResource);

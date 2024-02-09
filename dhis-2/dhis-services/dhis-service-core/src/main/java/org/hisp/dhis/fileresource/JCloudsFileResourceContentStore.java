@@ -347,9 +347,7 @@ public class JCloudsFileResourceContentStore implements FileResourceContentStore
   @Override
   public void copyContent(String key, OutputStream output)
       throws IOException, NoSuchElementException {
-    if (!blobExists(key)) {
-      throw new NoSuchElementException("key '" + key + "' not found.");
-    }
+    ensureBlobExists(key);
 
     try (InputStream in = getBlob(key).getPayload().openStream()) {
       IOUtils.copy(in, output);
@@ -358,18 +356,25 @@ public class JCloudsFileResourceContentStore implements FileResourceContentStore
 
   @Override
   public byte[] copyContent(String key) throws IOException, NoSuchElementException {
-    if (!blobExists(key)) {
-      throw new NoSuchElementException("key '" + key + "' not found.");
-    }
+    ensureBlobExists(key);
 
     try (InputStream in = getBlob(key).getPayload().openStream()) {
       return IOUtils.toByteArray(in);
     }
   }
 
-  // -------------------------------------------------------------------------
-  // Supportive methods
-  // -------------------------------------------------------------------------
+  @Override
+  public InputStream openStream(String key) throws IOException, NoSuchElementException {
+    ensureBlobExists(key);
+
+    return getBlob(key).getPayload().openStream();
+  }
+
+  private void ensureBlobExists(String key) {
+    if (!blobExists(key)) {
+      throw new NoSuchElementException("key '" + key + "' not found.");
+    }
+  }
 
   private Blob getBlob(String key) {
     return blobStore.getBlob(config.container, key);
