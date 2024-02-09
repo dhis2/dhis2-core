@@ -32,7 +32,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import java.io.IOException;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
@@ -55,7 +54,6 @@ import org.springframework.web.client.RestTemplate;
 /**
  * @author Lars Helge Overland
  */
-@Slf4j
 @OpenApi.Tags("data")
 @Controller
 @RequestMapping(value = SynchronizationController.RESOURCE_PATH)
@@ -77,8 +75,9 @@ public class SynchronizationController {
 
   /**
    * This endpoint is used to perform a metadata pull from a remote url. It accepts a user-supplied
-   * url. The url should is cleaned by removing any newline characters. This is recommended when the
-   * parameter is logged (which occurs later in the call chain).
+   * string parameter. The url is trimmed to remove any {@linkplain Character#isWhitespace(int)
+   * white space}. This is recommended when the parameter could be logged (which occurs later in the
+   * call chain).
    *
    * @param url to retrieve metadata from
    * @return import report
@@ -87,9 +86,9 @@ public class SynchronizationController {
   @PostMapping(value = "/metadataPull", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public ImportReport importMetaData(@RequestBody @Nonnull String url) throws ConflictException {
-    if (configProvider.remoteServerIsInAllowedList(url)) {
-      String urlCleaned = url.replace("\n", "").replace("\r", "");
-      return synchronizationManager.executeMetadataPull(urlCleaned);
+    String urlTrimmed = url.trim();
+    if (configProvider.remoteServerIsInAllowedList(urlTrimmed)) {
+      return synchronizationManager.executeMetadataPull(urlTrimmed);
     } else throw new ConflictException("Provided URL is not in the remote servers allowed list");
   }
 
