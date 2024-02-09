@@ -299,7 +299,6 @@ class EventsExportController {
     return handleFileRequest(request, eventService.getFileResource(event, dataElement));
   }
 
-  // TODO set / document the default dimension
   @GetMapping("/{event}/dataValues/{dataElement}/image")
   ResponseEntity<InputStreamResource> getEventDataValueImage(
       @OpenApi.Param({UID.class, Event.class}) @PathVariable UID event,

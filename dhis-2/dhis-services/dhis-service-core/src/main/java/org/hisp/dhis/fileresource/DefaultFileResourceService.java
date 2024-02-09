@@ -288,7 +288,12 @@ public class DefaultFileResourceService implements FileResourceService {
   @Override
   public byte[] copyFileResourceContent(FileResource fileResource)
       throws IOException, NoSuchElementException {
-    return fileResourceContentStore.copyContent(fileResource.getStorageKey());
+    return this.copyFileResourceContent(fileResource.getStorageKey());
+  }
+
+  @Override
+  public byte[] copyFileResourceContent(String key) throws IOException, NoSuchElementException {
+    return fileResourceContentStore.copyContent(key);
   }
 
   @Override
@@ -301,13 +306,17 @@ public class DefaultFileResourceService implements FileResourceService {
   public InputStream openContentStreamToImage(
       FileResource fileResource, ImageFileDimension dimension)
       throws IOException, NoSuchElementException, BadRequestException {
-    if (!hasMultiDimensionImageSupport(fileResource)) {
-      throw new BadRequestException(
-          "File is not an image or does not have support for multiple dimensions");
+    if (!FileResource.isImage(fileResource.getContentType())) {
+      throw new BadRequestException("File is not an image");
     }
 
     ImageFileDimension imageDimension =
         ObjectUtils.firstNonNull(dimension, ImageFileDimension.ORIGINAL);
+    if (imageDimension != ImageFileDimension.ORIGINAL
+        && !hasMultiDimensionImageSupport(fileResource)) {
+      throw new BadRequestException("Image does not have support for multiple dimensions");
+    }
+
     if (imageDimension != ImageFileDimension.ORIGINAL
         && !fileResource.isHasMultipleStorageFiles()) {
       throw new BadRequestException("Image is not stored using multiple dimensions");

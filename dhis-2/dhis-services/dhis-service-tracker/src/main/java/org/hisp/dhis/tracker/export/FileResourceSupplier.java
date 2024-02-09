@@ -30,10 +30,6 @@ package org.hisp.dhis.tracker.export;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 
-/**
- * Use instead of {@link java.util.function.Supplier} when you need to throw a {@link
- * ConflictException} as checked exceptions cannot be thrown from lambdas.
- */
 @FunctionalInterface
 public interface FileResourceSupplier<T> {
   T get() throws ConflictException, BadRequestException;

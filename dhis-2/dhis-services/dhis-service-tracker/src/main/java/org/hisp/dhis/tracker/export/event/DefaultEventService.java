@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
+import com.google.common.hash.Hashing;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
@@ -35,6 +36,7 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -57,6 +59,7 @@ import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -110,8 +113,37 @@ class DefaultEventService implements EventService {
 
   @Override
   public FileResourceStream getFileResourceImage(
-      UID eventUid, UID dataElementUid, ImageFileDimension dimension) throws NotFoundException {
+      UID eventUid, UID dataElementUid, ImageFileDimension dimension)
+      throws NotFoundException, ConflictException {
     FileResource fileResource = getFileResourceMetadata(eventUid, dataElementUid);
+
+    ImageFileDimension imageDimension =
+        ObjectUtils.firstNonNull(dimension, ImageFileDimension.ORIGINAL);
+
+    // The FileResource only stores the storageKey, contentLength and md5Hash of the original image.
+    // At least for now we are losing the benefit of not fetching the file from storage if the
+    // client already has an up-to-date version of the image in the given dimension other than the
+    // original. We have to fetch and compute the length and hash of the image again.
+    if (imageDimension != ImageFileDimension.ORIGINAL) {
+      byte[] content;
+      try {
+        String key = StringUtils.join(fileResource.getStorageKey(), imageDimension.getDimension());
+        content = fileResourceService.copyFileResourceContent(key);
+      } catch (NoSuchElementException e) {
+        // Note: we are assuming that the file resource is not available yet. The same approach
+        // is taken in other file endpoints or code relying on the storageStatus = PENDING.
+        // All we know for sure is the file resource is in the DB but not in the store.
+        throw new ConflictException(
+            "The content is being processed and is not available yet. Try again later.");
+      } catch (IOException e) {
+        throw new ConflictException(
+            "Failed fetching the file from storage",
+            "There was an exception when trying to fetch the file from the storage backend. "
+                + "Depending on the provider the root cause could be network or file system related.");
+      }
+      fileResource.setContentLength(content.length);
+      fileResource.setContentMd5(Hashing.md5().hashBytes(content).toString());
+    }
 
     return new FileResourceStream(
         fileResource,

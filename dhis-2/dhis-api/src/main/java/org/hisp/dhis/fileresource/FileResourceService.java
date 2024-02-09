@@ -131,6 +131,9 @@ public interface FileResourceService {
   byte[] copyFileResourceContent(FileResource fileResource)
       throws IOException, NoSuchElementException;
 
+  /** Copy file content of file stored under given storage {@code key} to a byte array. */
+  byte[] copyFileResourceContent(String key) throws IOException, NoSuchElementException;
+
   /** Opens a stream to the file resource content. */
   InputStream openContentStream(FileResource fileResource)
       throws IOException, NoSuchElementException;
@@ -142,7 +145,7 @@ public interface FileResourceService {
    * @param dimension the dimension of the image to open
    * @return the stream to the image
    * @throws BadRequestException when the file resource is not an image, does not support multiple
-   *     dimensions or does not have multiple dimensions files stored
+   *     dimensions or does not have multiple dimension files stored
    */
   InputStream openContentStreamToImage(FileResource fileResource, ImageFileDimension dimension)
       throws IOException, NoSuchElementException, BadRequestException;
