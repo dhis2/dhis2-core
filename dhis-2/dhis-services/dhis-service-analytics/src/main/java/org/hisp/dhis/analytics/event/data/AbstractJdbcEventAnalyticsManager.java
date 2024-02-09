@@ -60,7 +60,6 @@ import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
-import static org.hisp.dhis.system.util.SqlUtils.escape;
 import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -868,7 +867,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   protected String getSqlFilter(QueryFilter queryFilter, QueryItem item) {
     String filter = getFilter(queryFilter.getFilter(), item);
 
-    return item.getSqlFilter(queryFilter, escape(filter), true);
+    return item.getSqlFilter(queryFilter, sqlBuilder.escape(filter), true);
   }
 
   /**
@@ -1280,7 +1279,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     if (IN.equals(filter.getOperator())) {
       InQueryFilter inQueryFilter =
-          new InQueryFilter(field, escape(filter.getFilter()), item.isText());
+          new InQueryFilter(field, sqlBuilder.escape(filter.getFilter()), item.isText());
 
       return inQueryFilter.getSqlFilter();
     } else {

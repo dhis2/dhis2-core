@@ -69,7 +69,6 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
-import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.util.DateUtils;
 import org.locationtech.jts.util.Assert;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -641,26 +640,27 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     return getColumn(item, "");
   }
 
-  private static String getExecutionDateFilter(Date startDate, Date endDate) {
+  private String getExecutionDateFilter(Date startDate, Date endDate) {
     StringBuilder sb = new StringBuilder();
 
     if (startDate != null) {
       sb.append(" and occurreddate >= ");
 
       sb.append(
-          String.format("%s ", SqlUtils.singleQuote(DateUtils.getMediumDateString(startDate))));
+          String.format("%s ", sqlBuilder.singleQuote(DateUtils.getMediumDateString(startDate))));
     }
 
     if (endDate != null) {
       sb.append(" and occurreddate <= ");
 
-      sb.append(String.format("%s ", SqlUtils.singleQuote(DateUtils.getMediumDateString(endDate))));
+      sb.append(
+          String.format("%s ", sqlBuilder.singleQuote(DateUtils.getMediumDateString(endDate))));
     }
 
     return sb.toString();
   }
 
-  private static String getLimit(int count) {
+  private String getLimit(int count) {
     if (count == Integer.MAX_VALUE) {
       return "";
     }
