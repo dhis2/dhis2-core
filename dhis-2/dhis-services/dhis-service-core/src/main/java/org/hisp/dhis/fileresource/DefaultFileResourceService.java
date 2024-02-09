@@ -288,12 +288,18 @@ public class DefaultFileResourceService implements FileResourceService {
   @Override
   public byte[] copyFileResourceContent(FileResource fileResource)
       throws IOException, NoSuchElementException {
-    return this.copyFileResourceContent(fileResource.getStorageKey());
+    return fileResourceContentStore.copyContent(fileResource.getStorageKey());
   }
 
   @Override
-  public byte[] copyFileResourceContent(String key) throws IOException, NoSuchElementException {
-    return fileResourceContentStore.copyContent(key);
+  public byte[] copyImageContent(FileResource fileResource, ImageFileDimension dimension)
+      throws NoSuchElementException, BadRequestException, IOException {
+    ImageFileDimension imageDimension =
+        ObjectUtils.firstNonNull(dimension, ImageFileDimension.ORIGINAL);
+
+    hasImageDimensionSupport(fileResource, imageDimension);
+
+    return fileResourceContentStore.copyContent(imageKey(fileResource, imageDimension));
   }
 
   @Override
@@ -306,12 +312,20 @@ public class DefaultFileResourceService implements FileResourceService {
   public InputStream openContentStreamToImage(
       FileResource fileResource, ImageFileDimension dimension)
       throws IOException, NoSuchElementException, BadRequestException {
+    ImageFileDimension imageDimension =
+        ObjectUtils.firstNonNull(dimension, ImageFileDimension.ORIGINAL);
+
+    hasImageDimensionSupport(fileResource, imageDimension);
+
+    return fileResourceContentStore.openStream(imageKey(fileResource, imageDimension));
+  }
+
+  private static void hasImageDimensionSupport(
+      FileResource fileResource, ImageFileDimension imageDimension) throws BadRequestException {
     if (!FileResource.isImage(fileResource.getContentType())) {
       throw new BadRequestException("File is not an image");
     }
 
-    ImageFileDimension imageDimension =
-        ObjectUtils.firstNonNull(dimension, ImageFileDimension.ORIGINAL);
     if (imageDimension != ImageFileDimension.ORIGINAL
         && !hasMultiDimensionImageSupport(fileResource)) {
       throw new BadRequestException("Image does not have support for multiple dimensions");
@@ -321,14 +335,15 @@ public class DefaultFileResourceService implements FileResourceService {
         && !fileResource.isHasMultipleStorageFiles()) {
       throw new BadRequestException("Image is not stored using multiple dimensions");
     }
-
-    String key = StringUtils.join(fileResource.getStorageKey(), imageDimension.getDimension());
-    return fileResourceContentStore.openStream(key);
   }
 
   private static boolean hasMultiDimensionImageSupport(FileResource fileResource) {
     return FileResource.isImage(fileResource.getContentType())
         && FileResourceDomain.isDomainForMultipleImages(fileResource.getDomain());
+  }
+
+  private static String imageKey(FileResource fileResource, ImageFileDimension imageDimension) {
+    return StringUtils.join(fileResource.getStorageKey(), imageDimension.getDimension());
   }
 
   @Override

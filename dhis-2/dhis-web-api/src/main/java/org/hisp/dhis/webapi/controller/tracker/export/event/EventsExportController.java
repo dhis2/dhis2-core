@@ -313,7 +313,7 @@ class EventsExportController {
   private static ResponseEntity<InputStreamResource> handleFileRequest(
       HttpServletRequest request, FileResourceStream file)
       throws ConflictException, BadRequestException {
-    FileResource fileResource = file.fileResource();
+    FileResource fileResource = file.getFileResource();
 
     final String etag = fileResource.getContentMd5();
     if (ResponseEntityUtils.checkNotModified(etag, request)) {
@@ -331,7 +331,7 @@ class EventsExportController {
         .header(
             HttpHeaders.CONTENT_DISPOSITION,
             getContentDispositionHeaderValue(fileResource.getName()))
-        .body(new InputStreamResource(file.inputStream().get()));
+        .body(new InputStreamResource(file.getInputStreamSupplier().get()));
   }
 
   private static String getContentDispositionHeaderValue(String filename) {

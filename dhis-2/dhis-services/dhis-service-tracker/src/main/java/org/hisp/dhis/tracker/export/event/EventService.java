@@ -49,7 +49,7 @@ public interface EventService {
 
   /** Get an image for an events' data element in the given dimension. */
   FileResourceStream getFileResourceImage(UID event, UID dataElement, ImageFileDimension dimension)
-      throws NotFoundException, ConflictException;
+      throws NotFoundException, ConflictException, BadRequestException;
 
   /** Get event matching given {@code UID} and params. */
   Event getEvent(String uid, EventParams eventParams) throws NotFoundException, ForbiddenException;
