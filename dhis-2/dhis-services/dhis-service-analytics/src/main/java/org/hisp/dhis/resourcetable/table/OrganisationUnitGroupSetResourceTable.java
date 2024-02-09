@@ -30,7 +30,6 @@ package org.hisp.dhis.resourcetable.table;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.db.model.Table.toStaging;
 import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
-import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import com.google.common.collect.Lists;
 import java.util.List;
@@ -43,6 +42,7 @@ import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.model.constraint.Unique;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
@@ -53,6 +53,8 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 @RequiredArgsConstructor
 public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
   private static final String TABLE_NAME = "_organisationunitgroupsetstructure";
+
+  private final SqlBuilder sqlBuilder;
 
   private final List<OrganisationUnitGroupSet> groupSets;
 
@@ -128,7 +130,7 @@ public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
                 + " "
                 + "where ougm.organisationunitid = ou.organisationunitid "
                 + "limit 1) as "
-                + quote(groupSet.getName())
+                + sqlBuilder.quote(groupSet.getName())
                 + ", ";
 
         sql +=
@@ -141,7 +143,7 @@ public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
                 + " "
                 + "where ougm.organisationunitid = ou.organisationunitid "
                 + "limit 1) as "
-                + quote(groupSet.getUid())
+                + sqlBuilder.quote(groupSet.getUid())
                 + ", ";
       } else {
         sql += "coalesce(";
@@ -164,7 +166,7 @@ public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
           sql += "null";
         }
 
-        sql = removeLastComma(sql) + ") as " + quote(groupSet.getName()) + ", ";
+        sql = removeLastComma(sql) + ") as " + sqlBuilder.quote(groupSet.getName()) + ", ";
 
         sql += "coalesce(";
 
@@ -186,7 +188,7 @@ public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
           sql += "null";
         }
 
-        sql = removeLastComma(sql) + ") as " + quote(groupSet.getUid()) + ", ";
+        sql = removeLastComma(sql) + ") as " + sqlBuilder.quote(groupSet.getUid()) + ", ";
       }
     }
 

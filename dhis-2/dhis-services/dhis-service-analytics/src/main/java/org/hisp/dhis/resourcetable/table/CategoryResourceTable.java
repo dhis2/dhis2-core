@@ -28,7 +28,6 @@
 package org.hisp.dhis.resourcetable.table;
 
 import static org.hisp.dhis.db.model.Table.toStaging;
-import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import com.google.common.collect.Lists;
 import java.util.List;
@@ -42,6 +41,7 @@ import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.hisp.dhis.resourcetable.util.UniqueNameContext;
@@ -52,6 +52,8 @@ import org.hisp.dhis.resourcetable.util.UniqueNameContext;
 @RequiredArgsConstructor
 public class CategoryResourceTable implements ResourceTable {
   private static final String TABLE_NAME = "_categorystructure";
+
+  private final SqlBuilder sqlBuilder;
 
   private final List<Category> categories;
 
@@ -117,7 +119,7 @@ public class CategoryResourceTable implements ResourceTable {
               + category.getId()
               + " "
               + "limit 1) as "
-              + quote(category.getName())
+              + sqlBuilder.quote(category.getName())
               + ", ";
 
       sql +=
@@ -130,7 +132,7 @@ public class CategoryResourceTable implements ResourceTable {
               + category.getId()
               + " "
               + "limit 1) as "
-              + quote(category.getUid())
+              + sqlBuilder.quote(category.getUid())
               + ", ";
     }
 
@@ -147,7 +149,7 @@ public class CategoryResourceTable implements ResourceTable {
               + groupSet.getId()
               + " "
               + "limit 1) as "
-              + quote(groupSet.getName())
+              + sqlBuilder.quote(groupSet.getName())
               + ", ";
 
       sql +=
@@ -162,7 +164,7 @@ public class CategoryResourceTable implements ResourceTable {
               + groupSet.getId()
               + " "
               + "limit 1) as "
-              + quote(groupSet.getUid())
+              + sqlBuilder.quote(groupSet.getUid())
               + ", ";
     }
 
