@@ -31,9 +31,9 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.Page;
@@ -44,8 +44,11 @@ import org.hisp.dhis.tracker.export.PageParams;
  */
 public interface EventService {
   /** Get a file for an events' data element. */
-  FileResourceStream getFileResource(UID event, UID dataElement)
-      throws NotFoundException, ConflictException;
+  FileResourceStream getFileResource(UID event, UID dataElement) throws NotFoundException;
+
+  /** Get an image for an events' data element in the given dimension. */
+  FileResourceStream getFileResourceImage(UID event, UID dataElement, ImageFileDimension dimension)
+      throws NotFoundException;
 
   /** Get event matching given {@code UID} and params. */
   Event getEvent(String uid, EventParams eventParams) throws NotFoundException, ForbiddenException;

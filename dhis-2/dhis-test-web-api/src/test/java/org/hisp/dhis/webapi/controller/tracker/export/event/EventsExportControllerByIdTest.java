@@ -521,6 +521,43 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
         .error(HttpStatus.NOT_FOUND);
   }
 
+  @Test
+  void getDataValuesImageByDataElement() throws ConflictException {
+    Event event = event(enrollment(trackedEntity()));
+    DataElement de = dataElement(ValueType.IMAGE);
+    FileResource file = storeFile("image/png", "file content");
+
+    event.getEventDataValues().add(dataValue(de, file.getUid()));
+    manager.update(event);
+
+    HttpResponse response =
+        GET(
+            "/tracker/events/{eventUid}/dataValues/{dataElementUid}/image",
+            event.getUid(),
+            de.getUid());
+
+    // TODO check original dimension
+    assertEquals(HttpStatus.OK, response.status());
+    assertEquals("\"" + file.getContentMd5() + "\"", response.header("Etag"));
+    assertEquals("max-age=0, must-revalidate, private", response.header("Cache-Control"));
+    assertEquals("attachment; filename=" + file.getName(), response.header("Content-Disposition"));
+    assertEquals(Long.toString(file.getContentLength()), response.header("Content-Length"));
+    assertEquals("file content", response.content("image/png"));
+  }
+
+  @Test
+  void getDataValuesImageByDataElementIfDataElementIsNotAnImage() throws ConflictException {
+    DataElement de = dataElement(ValueType.FILE_RESOURCE);
+    FileResource file = storeFile("text/plain", "file content");
+
+    Event event = event(enrollment(trackedEntity()));
+    event.getEventDataValues().add(dataValue(de, file.getUid()));
+    manager.update(event);
+
+    GET("/tracker/events/{eventUid}/dataValues/{dataElementUid}/image", event.getUid(), de.getUid())
+        .error(HttpStatus.BAD_REQUEST);
+  }
+
   private FileResource storeFile(String contentType, String content) throws ConflictException {
     byte[] data = content.getBytes();
     FileResource fr = createFileResource('A', data);

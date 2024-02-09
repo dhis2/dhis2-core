@@ -61,6 +61,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
@@ -294,8 +295,25 @@ class EventsExportController {
       @OpenApi.Param({UID.class, Event.class}) @PathVariable UID event,
       @OpenApi.Param({UID.class, DataElement.class}) @PathVariable UID dataElement,
       HttpServletRequest request)
-      throws NotFoundException, ConflictException {
-    FileResourceStream file = eventService.getFileResource(event, dataElement);
+      throws NotFoundException, ConflictException, BadRequestException {
+    return handleFileRequest(request, eventService.getFileResource(event, dataElement));
+  }
+
+  // TODO set / document the default dimension
+  @GetMapping("/{event}/dataValues/{dataElement}/image")
+  ResponseEntity<InputStreamResource> getEventDataValueImage(
+      @OpenApi.Param({UID.class, Event.class}) @PathVariable UID event,
+      @OpenApi.Param({UID.class, DataElement.class}) @PathVariable UID dataElement,
+      @RequestParam(required = false) ImageFileDimension dimension,
+      HttpServletRequest request)
+      throws NotFoundException, ConflictException, BadRequestException {
+    return handleFileRequest(
+        request, eventService.getFileResourceImage(event, dataElement, dimension));
+  }
+
+  private static ResponseEntity<InputStreamResource> handleFileRequest(
+      HttpServletRequest request, FileResourceStream file)
+      throws ConflictException, BadRequestException {
     FileResource fileResource = file.fileResource();
 
     final String etag = fileResource.getContentMd5();

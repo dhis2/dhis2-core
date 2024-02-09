@@ -42,7 +42,9 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -52,6 +54,7 @@ import org.hisp.dhis.fileresource.events.FileSavedEvent;
 import org.hisp.dhis.fileresource.events.ImageFileSavedEvent;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Hours;
@@ -183,8 +186,7 @@ public class DefaultFileResourceService implements FileResourceService {
     fileResourceStore.save(fileResource);
     entityManager.flush();
 
-    if (FileResource.isImage(fileResource.getContentType())
-        && FileResourceDomain.isDomainForMultipleImages(fileResource.getDomain())) {
+    if (hasMultiDimensionImageSupport(fileResource)) {
       Map<ImageFileDimension, File> imageFiles =
           imageProcessingService.createImages(fileResource, file);
 
@@ -293,6 +295,31 @@ public class DefaultFileResourceService implements FileResourceService {
   public InputStream openContentStream(FileResource fileResource)
       throws IOException, NoSuchElementException {
     return fileResourceContentStore.openStream(fileResource.getStorageKey());
+  }
+
+  @Override
+  public InputStream openContentStreamToImage(
+      FileResource fileResource, ImageFileDimension dimension)
+      throws IOException, NoSuchElementException, BadRequestException {
+    if (!hasMultiDimensionImageSupport(fileResource)) {
+      throw new BadRequestException(
+          "File is not an image or does not have support for multiple dimensions");
+    }
+
+    ImageFileDimension imageDimension =
+        ObjectUtils.firstNonNull(dimension, ImageFileDimension.ORIGINAL);
+    if (imageDimension != ImageFileDimension.ORIGINAL
+        && !fileResource.isHasMultipleStorageFiles()) {
+      throw new BadRequestException("Image is not stored using multiple dimensions");
+    }
+
+    String key = StringUtils.join(fileResource.getStorageKey(), imageDimension.getDimension());
+    return fileResourceContentStore.openStream(key);
+  }
+
+  private static boolean hasMultiDimensionImageSupport(FileResource fileResource) {
+    return FileResource.isImage(fileResource.getContentType())
+        && FileResourceDomain.isDomainForMultipleImages(fileResource.getDomain());
   }
 
   @Override
