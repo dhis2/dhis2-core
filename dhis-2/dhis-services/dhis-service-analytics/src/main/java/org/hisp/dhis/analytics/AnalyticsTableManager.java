@@ -157,7 +157,7 @@ public interface AnalyticsTableManager {
   /**
    * Performs a vacuum operation and analyze operation on the given table.
    *
-   * @param partitions the {@link Table}.
+   * @param table the {@link Table}.
    */
   void vacuumAnalyzeTable(Table table);
 
