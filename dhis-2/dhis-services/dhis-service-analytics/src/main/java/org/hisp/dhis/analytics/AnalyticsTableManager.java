@@ -112,8 +112,7 @@ public interface AnalyticsTableManager {
   void swapTable(AnalyticsTableUpdateParams params, AnalyticsTable table);
 
   /**
-   * Copies and denormalizes rows from the relevant transaction table into the relevant analytics
-   * table.
+   * Populats the analytics table.
    *
    * @param params the {@link AnalyticsTableUpdateParams}.
    * @param partition the analytics table partition to populate.
@@ -128,9 +127,9 @@ public interface AnalyticsTableManager {
   int invokeAnalyticsTableSqlHooks();
 
   /**
-   * Drops the given {@link Table}.
+   * Drops the given table.
    *
-   * @param table the analytics table.
+   * @param table the {@link Table}.
    */
   void dropTable(Table table);
 
@@ -156,7 +155,7 @@ public interface AnalyticsTableManager {
   void vacuumTable(String name);
 
   /**
-   * Performs a vacuum and analyze on the given table.
+   * Performs a vacuum operation and analyze operation on the given table.
    *
    * @param partitions the {@link Table}.
    */
