@@ -161,6 +161,11 @@ public interface AnalyticsTableManager {
    */
   void vacuumTable(String name);
 
+  /**
+   * Performs a vacuum and analyze on the given table partition.
+   *
+   * @param partitions the {@link AnalyticsTablePartition}.
+   */
   void vacuumAnalyzeTablePartition(AnalyticsTablePartition partitions);
 
   /**
