@@ -162,7 +162,7 @@ public interface AnalyticsTableManager {
   void vacuumTable(String name);
 
   void vacuumAnalyzeTablePartition(AnalyticsTablePartition partitions);
-  
+
   /**
    * Applies aggregation level logic to the analytics table.
    *
