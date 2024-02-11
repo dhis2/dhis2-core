@@ -231,13 +231,8 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   @Override
-  public void dropTable(AnalyticsTable table) {
+  public void dropTable(Table table) {
     dropTable(table.getName());
-  }
-
-  @Override
-  public void dropTablePartition(AnalyticsTablePartition tablePartition) {
-    dropTable(tablePartition.getName());
   }
 
   @Override
@@ -256,9 +251,9 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   @Override
-  public void vacuumAnalyzeTablePartition(AnalyticsTablePartition partition) {
-    vacuumTable(partition.getName());
-    analyzeTable(partition.getName());
+  public void vacuumAnalyzeTable(Table table) {
+    vacuumTable(table.getName());
+    analyzeTable(table.getName());
   }
 
   @Override

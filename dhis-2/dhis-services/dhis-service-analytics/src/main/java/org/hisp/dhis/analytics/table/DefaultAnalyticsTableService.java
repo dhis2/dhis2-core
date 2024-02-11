@@ -260,7 +260,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
         getParallelJobs(),
         partitions,
         AnalyticsTablePartition::getName,
-        tableManager::vacuumAnalyzeTablePartition);
+        tableManager::vacuumAnalyzeTable);
   }
 
   /** Creates indexes on the given analytics tables. */

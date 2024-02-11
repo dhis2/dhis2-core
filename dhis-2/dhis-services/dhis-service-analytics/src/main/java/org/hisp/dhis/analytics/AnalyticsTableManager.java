@@ -33,6 +33,7 @@ import java.util.Set;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.db.model.Index;
+import org.hisp.dhis.db.model.Table;
 
 /**
  * Manager for the analytics database tables.
@@ -127,18 +128,11 @@ public interface AnalyticsTableManager {
   int invokeAnalyticsTableSqlHooks();
 
   /**
-   * Drops the given {@link AnalyticsTable}.
+   * Drops the given {@link Table}.
    *
    * @param table the analytics table.
    */
-  void dropTable(AnalyticsTable table);
-
-  /**
-   * Drops the given {@link AnalyticsTablePartition}.
-   *
-   * @param tablePartition the analytics table partition.
-   */
-  void dropTablePartition(AnalyticsTablePartition tablePartition);
+  void dropTable(Table table);
 
   /**
    * Drops the given table and all potential partitions.
@@ -162,11 +156,11 @@ public interface AnalyticsTableManager {
   void vacuumTable(String name);
 
   /**
-   * Performs a vacuum and analyze on the given table partition.
+   * Performs a vacuum and analyze on the given table.
    *
-   * @param partitions the {@link AnalyticsTablePartition}.
+   * @param partitions the {@link Table}.
    */
-  void vacuumAnalyzeTablePartition(AnalyticsTablePartition partitions);
+  void vacuumAnalyzeTable(Table table);
 
   /**
    * Applies aggregation level logic to the analytics table.
