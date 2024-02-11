@@ -31,6 +31,7 @@ import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.helpers.MessageFormatter;
 
 /**
  * Utility class providing stopwatch-like functionality.
@@ -87,12 +88,12 @@ public class Clock extends StopWatch {
    * @param message the message to log.
    * @return this Clock.
    */
-  public Clock logTime(String message) {
+  public Clock logTime(String format, Object... arguments) {
     super.split();
 
     String time = DurationFormatUtils.formatDurationHMS(super.getSplitTime());
 
-    String msg = message + SEPARATOR + time;
+    String msg = toMessage(format, arguments) + SEPARATOR + time;
 
     if (log != null) {
       log.info(msg);
@@ -101,5 +102,16 @@ public class Clock extends StopWatch {
     }
 
     return this;
+  }
+
+  /**
+   * Returns a formatted message string.
+   *
+   * @param format the format string.
+   * @param arguments the format arguments.
+   * @return a formatted message string.
+   */
+  private String toMessage(String format, Object... arguments) {
+    return MessageFormatter.arrayFormat(format, arguments).getMessage();
   }
 }

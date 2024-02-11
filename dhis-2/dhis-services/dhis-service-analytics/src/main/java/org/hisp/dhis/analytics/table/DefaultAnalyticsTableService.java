@@ -88,9 +88,10 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
         new Clock(log)
             .startClock()
             .logTime(
-                String.format(
-                    "Starting update of type: %s, table name: '%s', parallel jobs: %d",
-                    tableType, tableType.getTableName(), parallelJobs));
+                "Starting update of type: {}, table name: '{}', parallel jobs: {}",
+                tableType,
+                tableType.getTableName(),
+                parallelJobs);
 
     progress.startingStage("Validating Analytics Table " + tableType);
     String validState = tableManager.validState();
@@ -104,18 +105,18 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
 
     if (tables.isEmpty()) {
       clock.logTime(
-          String.format(
-              "Table update aborted, no table or partitions to be updated: '%s'",
-              tableType.getTableName()));
+          "Table update aborted, no table or partitions to be updated: '{}'",
+          tableType.getTableName());
       progress.startingStage("Table updates " + tableType);
       progress.completedStage("Table updated aborted, no table or partitions to be updated");
       return;
     }
 
     clock.logTime(
-        String.format(
-            "Table update start: %s, earliest: %s, parameters: %s",
-            tableType.getTableName(), getLongDateString(params.getFromDate()), params));
+        "Table update start: {}, earliest: {}, parameters: {}",
+        tableType.getTableName(),
+        getLongDateString(params.getFromDate()),
+        params);
     progress.startingStage("Performing pre-create table work");
     progress.runStage(() -> tableManager.preCreateTables(params));
     clock.logTime("Performed pre-create table work " + tableType);
@@ -158,7 +159,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
 
     swapTables(params, tables, progress);
 
-    clock.logTime("Table update done: " + tableType.getTableName());
+    clock.logTime("Table update done: '{}'", tableType.getTableName());
   }
 
   @Override
