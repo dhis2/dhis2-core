@@ -32,15 +32,12 @@ import static org.hisp.dhis.analytics.table.util.PartitionUtils.getStartDate;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableManager;
@@ -78,6 +75,8 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -255,6 +254,12 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     executeSilently(sqlBuilder.vacuumTable(name));
   }
 
+  @Override
+  public void vacuumAnalyzeTablePartition(AnalyticsTablePartition partition) {
+    vacuumTable(partition.getName());
+    analyzeTable(partition.getName());
+  }
+  
   @Override
   public void populateTablePartition(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {

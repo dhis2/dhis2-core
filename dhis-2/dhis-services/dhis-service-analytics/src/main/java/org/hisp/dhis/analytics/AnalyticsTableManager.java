@@ -161,6 +161,8 @@ public interface AnalyticsTableManager {
    */
   void vacuumTable(String name);
 
+  void vacuumAnalyzeTablePartition(AnalyticsTablePartition partitions);
+  
   /**
    * Applies aggregation level logic to the analytics table.
    *
@@ -170,12 +172,4 @@ public interface AnalyticsTableManager {
    */
   default void applyAggregationLevels(
       AnalyticsTablePartition partition, Collection<String> dataElements, int aggregationLevel) {}
-
-  /**
-   * Performs vacuum or optimization of the given analytics table. The type of operation performed
-   * is dependent on the underlying DBMS.
-   *
-   * @param partition the analytics table partition.
-   */
-  default void vacuumTables(AnalyticsTablePartition partition) {}
 }
