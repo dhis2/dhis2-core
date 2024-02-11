@@ -204,7 +204,9 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String escape(String value) {
-    return value.replace(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE));
+    return value
+        .replace(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE))
+        .replace(BACKSLASH, (BACKSLASH + BACKSLASH));
   }
 
   @Override
