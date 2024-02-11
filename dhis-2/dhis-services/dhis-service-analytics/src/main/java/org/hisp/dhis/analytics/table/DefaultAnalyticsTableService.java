@@ -148,20 +148,14 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     createIndexes(indexes, progress);
     clock.logTime("Created indexes");
 
-    progress.startingStage("Analyzing analytics tables " + tableType, partitions.size());
-    analyzeTables(partitions, progress);
-    clock.logTime("Analyzed tables");
+    progress.startingStage("Vacuuming and analyzing tables " + tableType, partitions.size());
+    vacuumAnalyzeTablePartitions(partitions, progress);
+    clock.logTime("Tables vacuumed and analyzed");
 
     if (params.isLatestUpdate()) {
       progress.startingStage("Removing updated and deleted data " + tableType, SKIP_STAGE);
       progress.runStage(() -> tableManager.removeUpdatedData(tables));
       clock.logTime("Removed updated and deleted data");
-    }
-
-    if (tableUpdates > 0) {
-      progress.startingStage("Vacuuming and analyzing tables " + tableType, partitions.size());
-      vacuumAnalyzeTablePartitions(partitions, progress);
-      clock.logTime("Tables vacuumed and analyzed");
     }
 
     swapTables(params, tables, progress);
@@ -267,14 +261,6 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
   private void createIndexes(List<Index> indexes, JobProgress progress) {
     progress.runStageInParallel(
         getParallelJobs(), indexes, index -> index.getName(), tableManager::createIndex);
-  }
-
-  /** Analyzes the given analytics tables. */
-  private void analyzeTables(List<AnalyticsTablePartition> partitions, JobProgress progress) {
-    progress.runStage(
-        partitions,
-        AnalyticsTablePartition::getName,
-        table -> tableManager.analyzeTable(table.getName()));
   }
 
   /**
