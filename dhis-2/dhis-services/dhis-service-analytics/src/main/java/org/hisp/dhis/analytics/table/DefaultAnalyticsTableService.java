@@ -159,7 +159,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     }
 
     if (tableUpdates > 0) {
-      progress.startingStage("Vacuuming tables " + tableType, partitions.size());
+      progress.startingStage("Vacuuming and analyzing tables " + tableType, partitions.size());
       vacuumAnalyzeTablePartitions(partitions, progress);
       clock.logTime("Tables vacuumed and analyzed");
     }
