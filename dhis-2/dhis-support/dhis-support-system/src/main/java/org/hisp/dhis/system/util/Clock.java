@@ -94,7 +94,6 @@ public class Clock extends StopWatch {
     super.split();
 
     String time = DurationFormatUtils.formatDurationHMS(super.getSplitTime());
-
     String msg = toMessage(format, arguments) + SEPARATOR + time;
 
     if (log != null) {
