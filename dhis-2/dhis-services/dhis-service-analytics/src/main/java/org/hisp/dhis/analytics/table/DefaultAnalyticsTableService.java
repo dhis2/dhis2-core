@@ -143,12 +143,6 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     tableUpdates += applyAggregationLevels(tableType, partitions, progress);
     clock.logTime("Applied aggregation levels");
 
-    if (tableUpdates > 0) {
-      progress.startingStage("Vacuuming tables " + tableType, partitions.size());
-      vacuumAnalyzeTablePartitions(partitions, progress);
-      clock.logTime("Tables vacuumed");
-    }
-
     List<Index> indexes = getIndexes(partitions);
     progress.startingStage("Creating indexes " + tableType, indexes.size(), SKIP_ITEM_OUTLIER);
     createIndexes(indexes, progress);
@@ -162,6 +156,12 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
       progress.startingStage("Removing updated and deleted data " + tableType, SKIP_STAGE);
       progress.runStage(() -> tableManager.removeUpdatedData(tables));
       clock.logTime("Removed updated and deleted data");
+    }
+
+    if (tableUpdates > 0) {
+      progress.startingStage("Vacuuming tables " + tableType, partitions.size());
+      vacuumAnalyzeTablePartitions(partitions, progress);
+      clock.logTime("Tables vacuumed and analyzed");
     }
 
     swapTables(params, tables, progress);
