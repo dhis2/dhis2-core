@@ -42,6 +42,9 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.web.savedrequest.DefaultSavedRequest;
+import org.springframework.security.web.savedrequest.RequestCache;
+import org.springframework.security.web.savedrequest.SavedRequest;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -59,6 +62,7 @@ public class AuthenticationController {
 
   private final TwoFactorCapableAuthenticationProvider twoFactorAuthenticationProvider;
   private final SystemSettingManager settingManager;
+  private final RequestCache requestCache;
 
   @PostMapping("/login")
   public LoginResponse login(
@@ -66,15 +70,15 @@ public class AuthenticationController {
 
     Authentication authenticationToken = createAuthenticationToken(servletRequest, loginRequest);
 
-    return createResponse(authenticationToken);
+    return createResponse(servletRequest, authenticationToken);
   }
 
-  private LoginResponse createResponse(Authentication auth) {
+  private LoginResponse createResponse(HttpServletRequest servletRequest, Authentication auth) {
     try {
 
       Authentication authentication = authenticate(auth);
 
-      return createSuccessResponse(authentication);
+      return createSuccessResponse(servletRequest, authentication);
 
     } catch (TwoFactorAuthenticationException e) {
       return LoginResponse.builder().loginStatus(STATUS.INCORRECT_TWO_FACTOR_CODE).build();
@@ -85,9 +89,17 @@ public class AuthenticationController {
     }
   }
 
-  private LoginResponse createSuccessResponse(Authentication authenticate) {
-    String startApp = settingManager.getStringSetting(SettingKey.START_MODULE);
-    return LoginResponse.builder().loginStatus(STATUS.SUCCESS).redirectUrl("/" + startApp).build();
+  private LoginResponse createSuccessResponse(HttpServletRequest servletRequest,
+      Authentication authenticate) {
+
+    String redirectUrl = "/" + settingManager.getStringSetting(SettingKey.START_MODULE);
+    SavedRequest request = requestCache.getRequest(servletRequest, null);
+    if (request != null) {
+      DefaultSavedRequest defaultSavedRequest = (DefaultSavedRequest) request;
+      redirectUrl = defaultSavedRequest.getRequestURI();
+    }
+
+    return LoginResponse.builder().loginStatus(STATUS.SUCCESS).redirectUrl(redirectUrl).build();
   }
 
   private Authentication authenticate(Authentication auth) {

@@ -89,6 +89,8 @@ import org.springframework.security.web.authentication.switchuser.SwitchUserFilt
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.header.HeaderWriterFilter;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.util.UrlPathHelper;
 
@@ -117,6 +119,14 @@ public class DhisWebApiWebSecurityConfig {
   @Bean
   public SessionRegistry sessionRegistry() {
     return new SessionRegistryImpl();
+  }
+
+//  RequestCache requestCache = http.getSharedObject(RequestCache.class);
+//  public static RequestCache ArequestCache;
+
+  @Bean
+  public RequestCache requestCache() {
+    return new HttpSessionRequestCache();
   }
 
   /** This class is configuring the OIDC login endpoints */
@@ -212,6 +222,8 @@ public class DhisWebApiWebSecurityConfig {
 
     @Autowired private ApiTokenAuthManager apiTokenAuthManager;
 
+    @Autowired private RequestCache requestCache;
+
     @Override
     public void configure(AuthenticationManagerBuilder auth) {
       auth.authenticationProvider(customLdapAuthenticationProvider);
@@ -289,6 +301,10 @@ public class DhisWebApiWebSecurityConfig {
     /** This method configures almost everything security related to /api endpoints */
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+
+
+      http.requestCache().requestCache(requestCache);
+
       http.csrf().disable();
 
       configureMatchers(http);
@@ -446,7 +462,7 @@ public class DhisWebApiWebSecurityConfig {
 
     @Bean
     public FormLoginBasicAuthenticationEntryPoint
-        strutsLessFormLoginBasicAuthenticationEntryPoint() {
+    strutsLessFormLoginBasicAuthenticationEntryPoint() {
       return new FormLoginBasicAuthenticationEntryPoint("/login.html");
     }
   }
