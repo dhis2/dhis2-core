@@ -80,8 +80,6 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
   public void create(AnalyticsTableUpdateParams params, JobProgress progress) {
     int parallelJobs = getParallelJobs();
 
-    int tableUpdates = 0;
-
     log.info("Analytics table update parameters: {}", params);
 
     AnalyticsTableType tableType = getAnalyticsTableType();
@@ -137,10 +135,10 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     clock.logTime("Populated analytics tables");
 
     progress.startingStage("Invoking analytics table hooks " + tableType);
-    tableUpdates += progress.runStage(0, tableManager::invokeAnalyticsTableSqlHooks);
+    progress.runStage(0, tableManager::invokeAnalyticsTableSqlHooks);
     clock.logTime("Invoked analytics table hooks");
 
-    tableUpdates += applyAggregationLevels(tableType, partitions, progress);
+    applyAggregationLevels(tableType, partitions, progress);
     clock.logTime("Applied aggregation levels");
 
     List<Index> indexes = getIndexes(partitions);
