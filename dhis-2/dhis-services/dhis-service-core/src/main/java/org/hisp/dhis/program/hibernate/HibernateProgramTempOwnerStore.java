@@ -65,6 +65,6 @@ public class HibernateProgramTempOwnerStore extends HibernateGenericStore<Progra
             + "where programid = ? and trackedentityid=? and userid=? "
             + "and extract(epoch from validtill)-extract (epoch from now()::timestamp) > 0";
     return jdbcTemplate.queryForObject(
-        sql, new Object[] {program.getId(), entityInstance.getId(), user.getId()}, Integer.class);
+        sql, Integer.class, new Object[] {program.getId(), entityInstance.getId(), user.getId()});
   }
 }
