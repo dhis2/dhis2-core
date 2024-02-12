@@ -28,12 +28,20 @@
 package org.hisp.dhis.tracker.export;
 
 import java.io.InputStream;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.util.ConflictExceptionSupplier;
 
 /**
  * FileResourceStream holds a file resource and a supplier to open an input stream to the file
  * resource content if needed.
  */
-public record FileResourceStream(
-    FileResource fileResource, ConflictExceptionSupplier<InputStream> inputStream) {}
+@Getter
+@AllArgsConstructor
+@RequiredArgsConstructor
+public class FileResourceStream {
+  private final FileResource fileResource;
+  @Setter private FileResourceSupplier<InputStream> inputStreamSupplier;
+}

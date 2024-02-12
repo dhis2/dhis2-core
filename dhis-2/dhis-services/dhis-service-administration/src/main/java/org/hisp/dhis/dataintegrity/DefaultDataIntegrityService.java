@@ -741,7 +741,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
       DataIntegrityCheckErrorHandler<T> createErrorReport) {
     try {
       running.addAll(checks);
-      progress.startingProcess("Data Integrity check");
+      progress.startingProcess("Data integrity check");
       progress.startingStage(stageDesc, checks.size(), SKIP_ITEM);
       progress.runStage(
           checks.stream()
