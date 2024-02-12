@@ -79,6 +79,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
   @Override
   public void create(AnalyticsTableUpdateParams params, JobProgress progress) {
     int parallelJobs = getParallelJobs();
+    int tableUpdates = 0;
 
     log.info("Analytics table update parameters: {}", params);
 
@@ -136,10 +137,10 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     clock.logTime("Populated analytics tables");
 
     progress.startingStage("Invoking analytics table hooks " + tableType);
-    progress.runStage(0, tableManager::invokeAnalyticsTableSqlHooks);
+    tableUpdates += progress.runStage(0, tableManager::invokeAnalyticsTableSqlHooks);
     clock.logTime("Invoked analytics table hooks");
 
-    applyAggregationLevels(tableType, partitions, progress);
+    tableUpdates += applyAggregationLevels(tableType, partitions, progress);
     clock.logTime("Applied aggregation levels");
 
     List<Index> indexes = getIndexes(partitions);
@@ -147,9 +148,15 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     createIndexes(indexes, progress);
     clock.logTime("Created indexes");
 
-    progress.startingStage("Vacuuming and analyzing tables " + tableType, partitions.size());
-    vacuumAnalyzeTablePartitions(partitions, progress);
-    clock.logTime("Tables vacuumed and analyzed");
+    if (tableUpdates > 0) {
+      progress.startingStage("Vacuuming tables " + tableType, partitions.size());
+      vacuumTables(partitions, progress);
+      clock.logTime("Tables vacuumed");
+    }
+
+    progress.startingStage("Analyzing analytics tables " + tableType, partitions.size());
+    analyzeTables(partitions, progress);
+    clock.logTime("Analyzed tables");
 
     if (params.isLatestUpdate()) {
       progress.startingStage("Removing updated and deleted data " + tableType, SKIP_STAGE);
@@ -246,20 +253,25 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     return aggLevels;
   }
 
-  /** Vacuums the given analytics tables. */
-  private void vacuumAnalyzeTablePartitions(
-      List<AnalyticsTablePartition> partitions, JobProgress progress) {
-    progress.runStageInParallel(
-        getParallelJobs(),
-        partitions,
-        AnalyticsTablePartition::getName,
-        tableManager::vacuumAnalyzeTable);
-  }
-
   /** Creates indexes on the given analytics tables. */
   private void createIndexes(List<Index> indexes, JobProgress progress) {
     progress.runStageInParallel(
         getParallelJobs(), indexes, index -> index.getName(), tableManager::createIndex);
+  }
+
+  /** Vacuums the given analytics tables. */
+  private void vacuumTables(List<AnalyticsTablePartition> partitions, JobProgress progress) {
+    progress.runStageInParallel(
+        getParallelJobs(), partitions, AnalyticsTablePartition::getName, tableManager::vacuumTable);
+  }
+
+  /** Analyzes the given analytics tables. */
+  private void analyzeTables(List<AnalyticsTablePartition> partitions, JobProgress progress) {
+    progress.runStageInParallel(
+        getParallelJobs(),
+        partitions,
+        AnalyticsTablePartition::getName,
+        tableManager::analyzeTable);
   }
 
   /**

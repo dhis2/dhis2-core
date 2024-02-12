@@ -246,14 +246,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   @Override
-  public void vacuumTable(String name) {
-    executeSilently(sqlBuilder.vacuumTable(name));
+  public void vacuumTable(Table table) {
+    executeSilently(sqlBuilder.vacuumTable(table));
   }
 
   @Override
-  public void vacuumAnalyzeTable(Table table) {
-    vacuumTable(table.getName());
-    analyzeTable(table.getName());
+  public void analyzeTable(Table table) {
+    analyzeTable(table);
   }
 
   @Override

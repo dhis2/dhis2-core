@@ -152,14 +152,14 @@ public interface AnalyticsTableManager {
    *
    * @param name the table name.
    */
-  void vacuumTable(String name);
+  void vacuumTable(Table table);
 
   /**
-   * Performs a vacuum operation and analyze operation on the given table.
+   * Performs an analyze operation on the given table.
    *
    * @param table the {@link Table}.
    */
-  void vacuumAnalyzeTable(Table table);
+  void analyzeTable(Table table);
 
   /**
    * Applies aggregation level logic to the analytics table.
