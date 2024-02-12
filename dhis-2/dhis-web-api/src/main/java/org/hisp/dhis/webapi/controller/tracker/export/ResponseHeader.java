@@ -44,4 +44,10 @@ public class ResponseHeader {
   public static String contentDispositionValue(String filename) {
     return "attachment; filename=" + filename;
   }
+
+  public static void addContentTransferEncodingBinary(HttpServletResponse response) {
+    response.addHeader(
+        ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING,
+        ContextUtils.BINARY_HEADER_CONTENT_TRANSFER_ENCODING);
+  }
 }

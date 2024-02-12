@@ -61,10 +61,10 @@ import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
+import org.hisp.dhis.webapi.controller.tracker.export.ResponseHeader;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -168,10 +168,9 @@ class TrackedEntitiesExportController {
         paramsMapper.map(trackedEntityRequestParams, user, CSV_FIELDS);
 
     String attachment = getAttachmentOrDefault(trackedEntityRequestParams.getAttachment(), "csv");
-
+    ResponseHeader.addContentDisposition(response, attachment);
+    ResponseHeader.addContentTransferEncodingBinary(response);
     response.setContentType(CONTENT_TYPE_CSV);
-    response.setHeader(
-        HttpHeaders.CONTENT_DISPOSITION, getContentDispositionHeaderValue(attachment));
 
     csvEventService.write(
         response.getOutputStream(),
@@ -190,20 +189,13 @@ class TrackedEntitiesExportController {
     TrackedEntityOperationParams operationParams =
         paramsMapper.map(trackedEntityRequestParams, user, CSV_FIELDS);
 
-    OutputStream outputStream = response.getOutputStream();
-
     String attachment =
         getAttachmentOrDefault(trackedEntityRequestParams.getAttachment(), "csv", "zip");
-
-    response.addHeader(
-        ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING,
-        ContextUtils.BINARY_HEADER_CONTENT_TRANSFER_ENCODING);
+    ResponseHeader.addContentDisposition(response, attachment);
+    ResponseHeader.addContentTransferEncodingBinary(response);
     response.setContentType(CONTENT_TYPE_CSV_ZIP);
-    response.setHeader(
-        HttpHeaders.CONTENT_DISPOSITION, getContentDispositionHeaderValue(attachment));
 
-    csvEventService.writeZip(
-        outputStream,
+    csvEventService.writeZip(response.getOutputStream(),
         TRACKED_ENTITY_MAPPER.fromCollection(
             trackedEntityService.getTrackedEntities(operationParams)),
         !skipHeader,
@@ -222,13 +214,9 @@ class TrackedEntitiesExportController {
 
     String attachment =
         getAttachmentOrDefault(trackedEntityRequestParams.getAttachment(), "csv", "gz");
-
-    response.addHeader(
-        ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING,
-        ContextUtils.BINARY_HEADER_CONTENT_TRANSFER_ENCODING);
+    ResponseHeader.addContentDisposition(response, attachment);
+    ResponseHeader.addContentTransferEncodingBinary(response);
     response.setContentType(CONTENT_TYPE_CSV_GZIP);
-    response.setHeader(
-        HttpHeaders.CONTENT_DISPOSITION, getContentDispositionHeaderValue(attachment));
 
     csvEventService.writeGzip(
         response.getOutputStream(),
@@ -237,16 +225,12 @@ class TrackedEntitiesExportController {
         !skipHeader);
   }
 
-  private String getAttachmentOrDefault(String filename, String type, String compression) {
+  private static String getAttachmentOrDefault(String filename, String type, String compression) {
     return Objects.toString(filename, String.join(".", TRACKED_ENTITIES, type, compression));
   }
 
-  private String getAttachmentOrDefault(String filename, String type) {
+  private static String getAttachmentOrDefault(String filename, String type) {
     return Objects.toString(filename, String.join(".", TRACKED_ENTITIES, type));
-  }
-
-  public String getContentDispositionHeaderValue(String filename) {
-    return "attachment; filename=" + filename;
   }
 
   @OpenApi.Response(OpenApi.EntityType.class)
