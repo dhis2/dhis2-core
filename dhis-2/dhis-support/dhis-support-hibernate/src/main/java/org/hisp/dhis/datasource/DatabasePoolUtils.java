@@ -156,7 +156,7 @@ public final class DatabasePoolUtils {
     log.info( String.format( "Database pool type value is [%s]", dbType ) );
 
     switch (dbPoolType) {
-      case C3P0:
+    case C3P0, UNPOOLED:
         return createC3p0DbPool(config);
       case HIKARI:
         return createHikariDbPool(config);
@@ -293,7 +293,7 @@ public final class DatabasePoolUtils {
       final int numHelperThreads =
           parseInt(dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_NUM_THREADS)));
 
-      ComboPooledDataSource pooledDataSource = new ComboPooledDataSource();
+      final ComboPooledDataSource pooledDataSource = new ComboPooledDataSource();
 
           pooledDataSource.setDriverClass(driverClassName);
           pooledDataSource.setJdbcUrl(jdbcUrl);
