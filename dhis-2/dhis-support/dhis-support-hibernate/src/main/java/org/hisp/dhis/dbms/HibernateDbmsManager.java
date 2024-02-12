@@ -69,298 +69,331 @@ public class HibernateDbmsManager implements DbmsManager {
   // DbmsManager implementation
   // -------------------------------------------------------------------------
 
+  private void truncateTable(String table) {
+    try {
+      jdbcTemplate.update("truncate table " + table + " cascade");
+    } catch (BadSqlGrammarException ex) {
+      log.info("Table " + table + " does not exist");
+    }
+  }
+
   @Override
   public void emptyDatabase() {
-    emptyTable("keyjsonvalue");
-
-    emptyTable("maplegend");
-    emptyTable("maplegendset");
-
-    emptyTable("constant");
-    emptyTable("sqlview");
-
-    emptyTable("smscodes");
-    emptyTable("smscommandcodes");
-    emptyTable("smscommands");
-    emptyTable("incomingsms");
-
-    emptyTable("datavalueaudit");
-    emptyTable("datavalue");
-    emptyTable("completedatasetregistration");
-
-    emptyTable("pushanalysisrecipientusergroups");
-    emptyTable("pushanalysis");
-
-    emptyTable("potentialduplicate");
-
-    emptyTable("dashboarditem_users");
-    emptyTable("dashboarditem_resources");
-    emptyTable("dashboarditem_reports");
-    emptyTable("dashboard_items");
-    emptyTable("dashboarditem");
-    emptyTable("dashboard");
-
-    emptyTable("interpretation_comments");
-    emptyTable("interpretationcomment");
-    emptyTable("interpretation");
-
-    emptyTable("report");
-    emptyTable("datastatisticsevent");
-
-    emptyTable("visualization_yearlyseries");
-    emptyTable("visualization_rows");
-    emptyTable("visualization_periods");
-    emptyTable("visualization_orgunitlevels");
-    emptyTable("visualization_orgunitgroupsetdimensions");
-    emptyTable("visualization_organisationunits");
-    emptyTable("visualization_itemorgunitgroups");
-    emptyTable("visualization_filters");
-    emptyTable("visualization_dataelementgroupsetdimensions");
-    emptyTable("visualization_datadimensionitems");
-    emptyTable("visualization_columns");
-    emptyTable("visualization_categoryoptiongroupsetdimensions");
-    emptyTable("visualization_categorydimensions");
-    emptyTable("visualization_axis");
-    emptyTable("axis");
-    emptyTable("visualization");
-
-    emptyTable("eventreport_attributedimensions");
-    emptyTable("eventreport_columns");
-    emptyTable("eventreport_dataelementdimensions");
-    emptyTable("eventreport_filters");
-    emptyTable("eventreport_itemorgunitgroups");
-    emptyTable("eventreport_organisationunits");
-    emptyTable("eventreport_orgunitgroupsetdimensions");
-    emptyTable("eventreport_orgunitlevels");
-    emptyTable("eventreport_periods");
-    emptyTable("eventreport_programindicatordimensions");
-    emptyTable("eventreport_rows");
-    emptyTable("eventreport");
-
-    emptyTable("eventchart_attributedimensions");
-    emptyTable("eventchart_columns");
-    emptyTable("eventchart_dataelementdimensions");
-    emptyTable("eventchart_filters");
-    emptyTable("eventchart_itemorgunitgroups");
-    emptyTable("eventchart_organisationunits");
-    emptyTable("eventchart_orgunitgroupsetdimensions");
-    emptyTable("eventchart_orgunitlevels");
-    emptyTable("eventchart_periods");
-    emptyTable("eventchart_programindicatordimensions");
-    emptyTable("eventchart_rows");
-    emptyTable("eventchart");
-
-    emptyTable("eventvisualization_attributedimensions");
-    emptyTable("eventvisualization_columns");
-    emptyTable("eventvisualization_dataelementdimensions");
-    emptyTable("eventvisualization_filters");
-    emptyTable("eventvisualization_itemorgunitgroups");
-    emptyTable("eventvisualization_organisationunits");
-    emptyTable("eventvisualization_orgunitgroupsetdimensions");
-    emptyTable("eventvisualization_orgunitlevels");
-    emptyTable("eventvisualization_periods");
-    emptyTable("eventvisualization_programindicatordimensions");
-    emptyTable("eventvisualization_rows");
-    emptyTable("eventvisualization");
-
-    emptyTable("dataelementgroupsetdimension_items");
-    emptyTable("dataelementgroupsetdimension");
-    emptyTable("categoryoptiongroupsetdimension");
-    emptyTable("categoryoptiongroupsetdimension_items");
-    emptyTable("orgunitgroupsetdimension_items");
-    emptyTable("orgunitgroupsetdimension");
-
-    emptyTable("program_userroles");
-
-    emptyTable("users_catdimensionconstraints");
-    emptyTable("users_cogsdimensionconstraints");
-    emptyTable("userrolemembers");
-    emptyTable("userroleauthorities");
-    emptyTable("userdatavieworgunits");
-    emptyTable("usermembership");
-    emptyTable("userrole");
-
-    emptyTable("orgunitgroupsetmembers");
-    emptyTable("orgunitgroupset");
-
-    emptyTable("orgunitgroupmembers");
-    emptyTable("orgunitgroup");
-
-    emptyTable("validationrulegroupmembers");
-    emptyTable("validationrulegroup");
-
-    emptyTable("validationresult");
-
-    emptyTable("validationrule");
-
-    emptyTable("dataapproval");
-
-    emptyTable("lockexception");
-
-    emptyTable("sectiongreyedfields");
-    emptyTable("sectiondataelements");
-    emptyTable("sectionindicators");
-    emptyTable("section");
-
-    emptyTable("datasetsource");
-    emptyTable("datasetelement");
-    emptyTable("datasetindicators");
-    emptyTable("datasetoperands");
-    emptyTable("dataset");
-
-    emptyTable("dataapprovalaudit");
-    emptyTable("dataapprovalworkflowlevels");
-    emptyTable("dataapprovalworkflow");
-    emptyTable("dataapprovallevel");
-
-    emptyTable("predictorgroupmembers");
-    emptyTable("predictorgroup");
-
-    emptyTable("predictororgunitlevels");
-    emptyTable("predictor");
-
-    emptyTable("datadimensionitem");
-
-    emptyTable("programrulevariable");
-    emptyTable("programruleaction");
-    emptyTable("programrule");
-
-    emptyRelationships();
-
-    emptyTable("programnotificationinstance");
-    emptyTable("trackedentitydatavalueaudit");
-    emptyTable("trackedentityprogramowner");
-
-    emptyTable("event_notes");
-    emptyTable("enrollment_notes");
-    emptyTable("note");
-    emptyTable("event");
-    emptyTable("enrollment");
-    emptyTable("programnotificationtemplate");
-    emptyTable("programstagedataelement");
-    emptyTable("programstagesection_dataelements");
-    emptyTable("programstagesection");
-    emptyTable("programstage");
-    emptyTable("program_organisationunits");
-    emptyTable("program_attributes");
-    emptyTable("periodboundary");
-    emptyTable("programindicator");
-    emptyTable("programownershiphistory");
-    emptyTable("programtempownershipaudit");
-    emptyTable("programtempowner");
-    emptyTable("program");
-
-    emptyTable("eventfilter");
-
-    emptyTable("trackedentityattributevalue");
-    emptyTable("trackedentityattributevalueaudit");
-    emptyTable("trackedentitytypeattribute");
-    emptyTable("trackedentityattribute");
-    emptyTable("trackedentity");
-    emptyTable("trackedentitytype");
-
-    emptyTable("minmaxdataelement");
-
-    emptyTable("dataelementgroupsetmembers");
-    emptyTable("dataelementgroupset");
-
-    emptyTable("dataelementgroupmembers");
-    emptyTable("dataelementgroup");
-
-    emptyTable("dataelementaggregationlevels");
-    emptyTable("dataelementoperand");
-    emptyTable("dataelement");
-
-    emptyTable("categoryoptioncombos_categoryoptions");
-    emptyTable("categorycombos_optioncombos");
-    emptyTable("categorycombos_categories");
-    emptyTable("categories_categoryoptions");
-
-    emptyTable("userteisearchorgunits");
-    emptyTable("categoryoption_organisationunits");
-    emptyTable("userdatavieworgunits");
-    emptyTable("organisationunit");
-    emptyTable("orgunitlevel");
-
-    emptyTable("version");
-    emptyTable("deletedobject");
-    emptyTable("period");
-
-    emptyTable("configuration");
-    emptyTable("indicatorgroupsetmembers");
-    emptyTable("indicatorgroupset");
-
-    emptyTable("indicatorgroupmembers");
-    emptyTable("indicatorgroup");
-
-    emptyTable("indicator");
-    emptyTable("indicatortype");
-
-    emptyTable("categoryoptiongroupsetmembers");
-    emptyTable("categoryoptiongroupset");
-
-    emptyTable("categoryoptiongroupmembers");
-    emptyTable("categoryoptiongroup");
-
-    emptyTable("expression");
-    emptyTable("expressiondimensionitem");
-    emptyTable("categoryoptioncombo");
-    emptyTable("categorycombo");
-    emptyTable("category");
-    emptyTable("categoryoption");
-
-    emptyTable("optionvalue");
-    emptyTable("optionset");
-
-    emptyTable("systemsetting");
-
-    emptyTable("attribute");
-
-    emptyTable("messageconversation_usermessages");
-    emptyTable("usermessage");
-    emptyTable("messageconversation_messages");
-    emptyTable("messageconversation");
-    emptyTable("message");
-
-    emptyTable("usergroupmembers");
-    emptyTable("usergroup");
-
-    emptyTable("previouspasswords");
-    emptyTable("usersetting");
-    emptyTable("fileresource");
-    emptyTable("jobconfiguration");
-    // userinfo should be last, since many tables has a foreign key to it
-    emptyTable("userinfo");
-    emptyTable("route");
-
-    dropTable("_orgunitstructure");
-    dropTable("_datasetorganisationunitcategory");
-    dropTable("_categoryoptioncomboname");
-    dropTable("_dataelementgroupsetstructure");
-    dropTable("_indicatorgroupsetstructure");
-    dropTable("_organisationunitgroupsetstructure");
-    dropTable("_categorystructure");
-    dropTable("_dataelementstructure");
-    dropTable("_dateperiodstructure");
-    dropTable("_periodstructure");
-    dropTable("_dataelementcategoryoptioncombo");
-    dropTable("_dataapprovalminlevel");
-
-    emptyTable("reservedvalue");
-    emptyTable("sequentialnumbercounter");
-
-    emptyTable("audit");
-    emptyTable("eventhook");
-    emptyTable("dataentryform");
-
-    log.debug("Cleared database contents");
-
+    String getAllTables =
+        """
+           SELECT table_name
+           FROM information_schema.tables
+           WHERE table_schema='public'
+           AND table_type='BASE TABLE'
+        """;
+    try {
+      List<String> tables = jdbcTemplate.queryForList(getAllTables, String.class);
+      //      tables.forEach(this::truncateTable);
+      truncateTable("userinfo");
+      truncateTable("period");
+      truncateTable("systemsetting");
+      truncateTable("datastatisticsevent");
+      truncateTable("eventchart");
+      truncateTable("deletedobject");
+      truncateTable("reservedvalue");
+    } catch (BadSqlGrammarException ex) {
+    }
     cacheManager.clearCache();
-
-    log.debug("Cleared Hibernate cache");
-
     flushSession();
   }
+
+  //  @Override
+  //  public void emptyDatabase() {
+  //    emptyTable("keyjsonvalue");
+  //
+  //    emptyTable("maplegend");
+  //    emptyTable("maplegendset");
+  //
+  //    emptyTable("constant");
+  //    emptyTable("sqlview");
+  //
+  //    emptyTable("smscodes");
+  //    emptyTable("smscommandcodes");
+  //    emptyTable("smscommands");
+  //    emptyTable("incomingsms");
+  //
+  //    emptyTable("datavalueaudit");
+  //    emptyTable("datavalue");
+  //    emptyTable("completedatasetregistration");
+  //
+  //    emptyTable("pushanalysisrecipientusergroups");
+  //    emptyTable("pushanalysis");
+  //
+  //    emptyTable("potentialduplicate");
+  //
+  //    emptyTable("dashboarditem_users");
+  //    emptyTable("dashboarditem_resources");
+  //    emptyTable("dashboarditem_reports");
+  //    emptyTable("dashboard_items");
+  //    emptyTable("dashboarditem");
+  //    emptyTable("dashboard");
+  //
+  //    emptyTable("interpretation_comments");
+  //    emptyTable("interpretationcomment");
+  //    emptyTable("interpretation");
+  //
+  //    emptyTable("report");
+  //    emptyTable("datastatisticsevent");
+  //
+  //    emptyTable("visualization_yearlyseries");
+  //    emptyTable("visualization_rows");
+  //    emptyTable("visualization_periods");
+  //    emptyTable("visualization_orgunitlevels");
+  //    emptyTable("visualization_orgunitgroupsetdimensions");
+  //    emptyTable("visualization_organisationunits");
+  //    emptyTable("visualization_itemorgunitgroups");
+  //    emptyTable("visualization_filters");
+  //    emptyTable("visualization_dataelementgroupsetdimensions");
+  //    emptyTable("visualization_datadimensionitems");
+  //    emptyTable("visualization_columns");
+  //    emptyTable("visualization_categoryoptiongroupsetdimensions");
+  //    emptyTable("visualization_categorydimensions");
+  //    emptyTable("visualization_axis");
+  //    emptyTable("axis");
+  //    emptyTable("visualization");
+  //
+  //    emptyTable("eventreport_attributedimensions");
+  //    emptyTable("eventreport_columns");
+  //    emptyTable("eventreport_dataelementdimensions");
+  //    emptyTable("eventreport_filters");
+  //    emptyTable("eventreport_itemorgunitgroups");
+  //    emptyTable("eventreport_organisationunits");
+  //    emptyTable("eventreport_orgunitgroupsetdimensions");
+  //    emptyTable("eventreport_orgunitlevels");
+  //    emptyTable("eventreport_periods");
+  //    emptyTable("eventreport_programindicatordimensions");
+  //    emptyTable("eventreport_rows");
+  //    emptyTable("eventreport");
+  //
+  //    emptyTable("eventchart_attributedimensions");
+  //    emptyTable("eventchart_columns");
+  //    emptyTable("eventchart_dataelementdimensions");
+  //    emptyTable("eventchart_filters");
+  //    emptyTable("eventchart_itemorgunitgroups");
+  //    emptyTable("eventchart_organisationunits");
+  //    emptyTable("eventchart_orgunitgroupsetdimensions");
+  //    emptyTable("eventchart_orgunitlevels");
+  //    emptyTable("eventchart_periods");
+  //    emptyTable("eventchart_programindicatordimensions");
+  //    emptyTable("eventchart_rows");
+  //    emptyTable("eventchart");
+  //
+  //    emptyTable("eventvisualization_attributedimensions");
+  //    emptyTable("eventvisualization_columns");
+  //    emptyTable("eventvisualization_dataelementdimensions");
+  //    emptyTable("eventvisualization_filters");
+  //    emptyTable("eventvisualization_itemorgunitgroups");
+  //    emptyTable("eventvisualization_organisationunits");
+  //    emptyTable("eventvisualization_orgunitgroupsetdimensions");
+  //    emptyTable("eventvisualization_orgunitlevels");
+  //    emptyTable("eventvisualization_periods");
+  //    emptyTable("eventvisualization_programindicatordimensions");
+  //    emptyTable("eventvisualization_rows");
+  //    emptyTable("eventvisualization");
+  //
+  //    emptyTable("dataelementgroupsetdimension_items");
+  //    emptyTable("dataelementgroupsetdimension");
+  //    emptyTable("categoryoptiongroupsetdimension");
+  //    emptyTable("categoryoptiongroupsetdimension_items");
+  //    emptyTable("orgunitgroupsetdimension_items");
+  //    emptyTable("orgunitgroupsetdimension");
+  //
+  //    emptyTable("program_userroles");
+  //
+  //    emptyTable("users_catdimensionconstraints");
+  //    emptyTable("users_cogsdimensionconstraints");
+  //    emptyTable("userrolemembers");
+  //    emptyTable("userroleauthorities");
+  //    emptyTable("userdatavieworgunits");
+  //    emptyTable("usermembership");
+  //    emptyTable("userrole");
+  //
+  //    emptyTable("orgunitgroupsetmembers");
+  //    emptyTable("orgunitgroupset");
+  //
+  //    emptyTable("orgunitgroupmembers");
+  //    emptyTable("orgunitgroup");
+  //
+  //    emptyTable("validationrulegroupmembers");
+  //    emptyTable("validationrulegroup");
+  //
+  //    emptyTable("validationresult");
+  //
+  //    emptyTable("validationrule");
+  //
+  //    emptyTable("dataapproval");
+  //
+  //    emptyTable("lockexception");
+  //
+  //    emptyTable("sectiongreyedfields");
+  //    emptyTable("sectiondataelements");
+  //    emptyTable("sectionindicators");
+  //    emptyTable("section");
+  //
+  //    emptyTable("datasetsource");
+  //    emptyTable("datasetelement");
+  //    emptyTable("datasetindicators");
+  //    emptyTable("datasetoperands");
+  //    emptyTable("dataset");
+  //
+  //    emptyTable("dataapprovalaudit");
+  //    emptyTable("dataapprovalworkflowlevels");
+  //    emptyTable("dataapprovalworkflow");
+  //    emptyTable("dataapprovallevel");
+  //
+  //    emptyTable("predictorgroupmembers");
+  //    emptyTable("predictorgroup");
+  //
+  //    emptyTable("predictororgunitlevels");
+  //    emptyTable("predictor");
+  //
+  //    emptyTable("datadimensionitem");
+  //
+  //    emptyTable("programrulevariable");
+  //    emptyTable("programruleaction");
+  //    emptyTable("programrule");
+  //
+  //    emptyRelationships();
+  //
+  //    emptyTable("programnotificationinstance");
+  //    emptyTable("trackedentitydatavalueaudit");
+  //    emptyTable("trackedentityprogramowner");
+  //
+  //    emptyTable("event_notes");
+  //    emptyTable("enrollment_notes");
+  //    emptyTable("note");
+  //    emptyTable("event");
+  //    emptyTable("enrollment");
+  //    emptyTable("programnotificationtemplate");
+  //    emptyTable("programstagedataelement");
+  //    emptyTable("programstagesection_dataelements");
+  //    emptyTable("programstagesection");
+  //    emptyTable("programstage");
+  //    emptyTable("program_organisationunits");
+  //    emptyTable("program_attributes");
+  //    emptyTable("periodboundary");
+  //    emptyTable("programindicator");
+  //    emptyTable("programownershiphistory");
+  //    emptyTable("programtempownershipaudit");
+  //    emptyTable("programtempowner");
+  //    emptyTable("program");
+  //
+  //    emptyTable("eventfilter");
+  //
+  //    emptyTable("trackedentityattributevalue");
+  //    emptyTable("trackedentityattributevalueaudit");
+  //    emptyTable("trackedentitytypeattribute");
+  //    emptyTable("trackedentityattribute");
+  //    emptyTable("trackedentity");
+  //    emptyTable("trackedentitytype");
+  //
+  //    emptyTable("minmaxdataelement");
+  //
+  //    emptyTable("dataelementgroupsetmembers");
+  //    emptyTable("dataelementgroupset");
+  //
+  //    emptyTable("dataelementgroupmembers");
+  //    emptyTable("dataelementgroup");
+  //
+  //    emptyTable("dataelementaggregationlevels");
+  //    emptyTable("dataelementoperand");
+  //    emptyTable("dataelement");
+  //
+  //    emptyTable("categoryoptioncombos_categoryoptions");
+  //    emptyTable("categorycombos_optioncombos");
+  //    emptyTable("categorycombos_categories");
+  //    emptyTable("categories_categoryoptions");
+  //
+  //    emptyTable("userteisearchorgunits");
+  //    emptyTable("categoryoption_organisationunits");
+  //    emptyTable("userdatavieworgunits");
+  //    emptyTable("organisationunit");
+  //    emptyTable("orgunitlevel");
+  //
+  //    emptyTable("version");
+  //    emptyTable("deletedobject");
+  //    emptyTable("period");
+  //
+  //    emptyTable("configuration");
+  //    emptyTable("indicatorgroupsetmembers");
+  //    emptyTable("indicatorgroupset");
+  //
+  //    emptyTable("indicatorgroupmembers");
+  //    emptyTable("indicatorgroup");
+  //
+  //    emptyTable("indicator");
+  //    emptyTable("indicatortype");
+  //
+  //    emptyTable("categoryoptiongroupsetmembers");
+  //    emptyTable("categoryoptiongroupset");
+  //
+  //    emptyTable("categoryoptiongroupmembers");
+  //    emptyTable("categoryoptiongroup");
+  //
+  //    emptyTable("expression");
+  //    emptyTable("expressiondimensionitem");
+  //    emptyTable("categoryoptioncombo");
+  //    emptyTable("categorycombo");
+  //    emptyTable("category");
+  //    emptyTable("categoryoption");
+  //
+  //    emptyTable("optionvalue");
+  //    emptyTable("optionset");
+  //
+  //    emptyTable("systemsetting");
+  //
+  //    emptyTable("attribute");
+  //
+  //    emptyTable("messageconversation_usermessages");
+  //    emptyTable("usermessage");
+  //    emptyTable("messageconversation_messages");
+  //    emptyTable("messageconversation");
+  //    emptyTable("message");
+  //
+  //    emptyTable("usergroupmembers");
+  //    emptyTable("usergroup");
+  //
+  //    emptyTable("previouspasswords");
+  //    emptyTable("usersetting");
+  //    emptyTable("fileresource");
+  //    emptyTable("jobconfiguration");
+  //    // userinfo should be last, since many tables has a foreign key to it
+  //    emptyTable("userinfo");
+  //    emptyTable("route");
+  //
+  //    dropTable("_orgunitstructure");
+  //    dropTable("_datasetorganisationunitcategory");
+  //    dropTable("_categoryoptioncomboname");
+  //    dropTable("_dataelementgroupsetstructure");
+  //    dropTable("_indicatorgroupsetstructure");
+  //    dropTable("_organisationunitgroupsetstructure");
+  //    dropTable("_categorystructure");
+  //    dropTable("_dataelementstructure");
+  //    dropTable("_dateperiodstructure");
+  //    dropTable("_periodstructure");
+  //    dropTable("_dataelementcategoryoptioncombo");
+  //    dropTable("_dataapprovalminlevel");
+  //
+  //    emptyTable("reservedvalue");
+  //    emptyTable("sequentialnumbercounter");
+  //
+  //    emptyTable("audit");
+  //    emptyTable("eventhook");
+  //    emptyTable("dataentryform");
+  //
+  //    log.debug("Cleared database contents");
+  //
+  //    cacheManager.clearCache();
+  //
+  //    log.debug("Cleared Hibernate cache");
+  //
+  //    flushSession();
+  //  }
 
   @Override
   public void clearSession() {
