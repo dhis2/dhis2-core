@@ -270,24 +270,24 @@ class ProgramStageWorkingListControllerTest extends DhisControllerConvenienceTes
                 "/programStageWorkingLists",
                 """
                {
-               'program': {'id': '%s'},
-               'programStage': {'id': '%s'},
-               'name':'workingListName',
-               'programStageQueryCriteria': {
-                 "displayColumnOrder": [
-                   "w75KJ2mc4zz",
-                   "zDhUuAYrxNC",
-                   "APtutTb0nOY"
-                 ],
-                 'order': 'createdAt:desc',
-                 'enrollmentStatus': 'ACTIVE',
-                 'followUp': 'true',
-                 'eventOccurredAt': {
-                   'type': 'RELATIVE',
-                   'period': 'TODAY'
-                 }
-               }
-              }
+                 'program': {'id': '%s'},
+                 'programStage': {'id': '%s'},
+                 'name':'workingListName',
+                 'programStageQueryCriteria': {
+                   "displayColumnOrder": [
+                     "w75KJ2mc4zz",
+                     "zDhUuAYrxNC",
+                     "APtutTb0nOY"
+                   ],
+                   'order': 'createdAt:desc',
+                   'enrollmentStatus': 'ACTIVE',
+                   'followUp': 'true',
+                   'eventOccurredAt': {
+                     'type': 'RELATIVE',
+                     'period': 'TODAY'
+                    }
+                  }
+                }
               """
                     .formatted(programId, programStageId)));
 
@@ -326,9 +326,9 @@ class ProgramStageWorkingListControllerTest extends DhisControllerConvenienceTes
             "/programStageWorkingLists",
             """
                 {
-                'program': {'id': '%s'},
-                'programStage': {'id': '%s'},
-                'name':'%s'
+                  'program': {'id': '%s'},
+                  'programStage': {'id': '%s'},
+                  'name':'%s'
                 }
               """
                 .formatted(programId, programStageId, workingListName)));
