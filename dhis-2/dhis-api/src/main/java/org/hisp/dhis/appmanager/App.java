@@ -442,6 +442,7 @@ public class App implements Serializable {
     if(isBundled()) {
       return SEE_APP_AUTHORITY_PREFIX + AppManager.BUNDLED_APP_PREFIX + getShortName();
     }
+
     return SEE_APP_AUTHORITY_PREFIX
         + getShortName().trim().replaceAll("[^a-zA-Z0-9\\s]", "").replaceAll("\\s+", "_");
   }
