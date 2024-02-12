@@ -27,12 +27,14 @@
  */
 package org.hisp.dhis.sms.config;
 
-import java.util.ArrayList;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -144,42 +146,24 @@ public class DefaultGatewayAdministrationService implements GatewayAdministratio
 
     if (persisted instanceof GenericHttpGatewayConfig from
         && updated instanceof GenericHttpGatewayConfig to) {
-      // FIXME this logic below seems broken but it is unclear what it tries to do
-      // best guess: encrypt all new confidential parameters and add all existing that are not in
-      // the updated
-      // issues:
-      // - not all confidential new are encrypted
-      // - parameters equals compares all fields, hence any difference makes the parameter stay (I
-      // guess key should be compared)
-      // - it is unclear what stream().distinct() would leave behind, better build a map by key and
-      // then a list from values
+      Map<String, GenericGatewayParameter> oldParamsByKey =
+          from.getParameters().stream().collect(toMap(GenericGatewayParameter::getKey, identity()));
 
-      List<GenericGatewayParameter> newList = new ArrayList<>();
+      for (GenericGatewayParameter newParam : to.getParameters()) {
+        if (newParam.isConfidential()) {
+          GenericGatewayParameter oldParam = oldParamsByKey.get(newParam.getKey());
+          String newValue = newParam.getValue();
+          String oldValue = oldParam == null ? null : oldParam.getValue();
 
-      List<GenericGatewayParameter> persistedList =
-          from.getParameters().stream()
-              .filter(GenericGatewayParameter::isConfidential)
-              .collect(Collectors.toList());
-
-      List<GenericGatewayParameter> updatedList =
-          to.getParameters().stream()
-              .filter(GenericGatewayParameter::isConfidential)
-              .collect(Collectors.toList());
-
-      for (GenericGatewayParameter p : updatedList) {
-        if (!isPresent(persistedList, p)) {
-          p.setValue(pbeStringEncryptor.encrypt(p.getValue()));
+          if (isBlank(newValue)) {
+            // keep the old already encoded value
+            newParam.setValue(oldValue);
+          } else if (!Objects.equals(oldValue, newValue)) {
+            newParam.setValue(pbeStringEncryptor.encrypt(newValue));
+          }
+          // else: new=old => keep already encoded value
         }
-
-        newList.add(p);
       }
-
-      to.setParameters(
-          Stream.concat(to.getParameters().stream(), newList.stream())
-              .distinct()
-              .collect(Collectors.toList()));
-
-      updated = to;
     }
 
     SmsConfiguration configuration = getSmsConfiguration();
