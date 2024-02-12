@@ -479,7 +479,6 @@ public class AnalyticsUtils {
       dv.setAttributeOptionCombo(aoc != null ? String.valueOf(aoc) : null);
       dv.setValue(String.valueOf(row.get(vlInx)));
       dv.setComment(KEY_AGG_VALUE);
-      dv.setStoredBy(KEY_AGG_VALUE);
       dv.setCreated(created);
       dv.setLastUpdated(created);
 
