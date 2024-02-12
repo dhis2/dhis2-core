@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.scheduling;
 
-import static java.lang.String.format;
 import static org.hisp.dhis.scheduling.JobProgress.getMessage;
 
 import java.time.Duration;
@@ -177,42 +176,45 @@ public class RecordingJobProgress implements JobProgress {
   }
 
   @Override
-  public void startingProcess(String description) {
+  public void startingProcess(String description, Object... args) {
     if (isCancelled()) {
       throw new CancellationException();
     }
+    String message = format(description, args);
     observer.run();
-    tracker.startingProcess(description);
+    tracker.startingProcess(format(message, args));
     incompleteProcess.set(null);
     incompleteStage.set(null);
     incompleteItem.remove();
-    Process process = addProcessRecord(description);
-    logInfo(process, "started", description);
+    Process process = addProcessRecord(message);
+    logInfo(process, "started", message);
   }
 
   @Override
-  public void completedProcess(String summary) {
+  public void completedProcess(String summary, Object... args) {
+    String message = format(summary, args);
     observer.run();
-    tracker.completedProcess(summary);
+    tracker.completedProcess(message);
     Process process = getOrAddLastIncompleteProcess();
-    process.complete(summary);
-    logInfo(process, "completed", summary);
+    process.complete(message);
+    logInfo(process, "completed", format(message, args));
   }
 
   @Override
-  public void failedProcess(String error) {
+  public void failedProcess(String error, Object... args) {
+    String message = format(error, args);
     observer.run();
-    tracker.failedProcess(error);
+    tracker.failedProcess(message);
     Process process = progress.sequence.peekLast();
     if (process == null || process.getCompletedTime() != null) {
       return;
     }
     if (process.getStatus() != Status.CANCELLED) {
-      automaticAbort(false, error, null);
-      process.completeExceptionally(error, null);
-      logError(process, null, error);
+      automaticAbort(false, message, null);
+      process.completeExceptionally(message, null);
+      logError(process, null, message);
     } else {
-      process.completeExceptionally(error, null);
+      process.completeExceptionally(message, null);
     }
   }
 
@@ -303,15 +305,16 @@ public class RecordingJobProgress implements JobProgress {
   }
 
   @Override
-  public void failedWorkItem(String error) {
+  public void failedWorkItem(String error, Object... args) {
+    String message = format(error, args);
     observer.run();
-    tracker.failedWorkItem(error);
+    tracker.failedWorkItem(message);
     Item item = getOrAddLastIncompleteItem();
-    item.completeExceptionally(error, null);
+    item.completeExceptionally(message, null);
     if (!isSkipped(item)) {
-      automaticAbort(error, null);
+      automaticAbort(message, null);
     }
-    logError(item, null, error);
+    logError(item, null, message);
   }
 
   @Override

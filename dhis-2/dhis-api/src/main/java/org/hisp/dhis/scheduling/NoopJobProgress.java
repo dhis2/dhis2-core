@@ -42,17 +42,17 @@ public class NoopJobProgress implements JobProgress {
   }
 
   @Override
-  public void startingProcess(String description) {
+  public void startingProcess(String description, Object... args) {
     // as the name said we do nothing
   }
 
   @Override
-  public void completedProcess(String summary) {
+  public void completedProcess(String summary, Object... args) {
     // as the name said we do nothing
   }
 
   @Override
-  public void failedProcess(String error) {
+  public void failedProcess(String error, Object... args) {
     // as the name said we do nothing
   }
 
@@ -82,7 +82,7 @@ public class NoopJobProgress implements JobProgress {
   }
 
   @Override
-  public void failedWorkItem(String error) {
+  public void failedWorkItem(String error, Object... args) {
     // as the name said we do nothing
   }
 }
