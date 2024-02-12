@@ -532,7 +532,7 @@ public class AnalyticsUtils {
       objects.add(row.get(coInx));
       objects.add(row.get(aoInx));
       objects.add(row.get(vlInx));
-      objects.add(""); // Do not specify stored by
+      objects.add("");
       objects.add(created);
       objects.add(created);
       objects.add(KEY_AGG_VALUE);
