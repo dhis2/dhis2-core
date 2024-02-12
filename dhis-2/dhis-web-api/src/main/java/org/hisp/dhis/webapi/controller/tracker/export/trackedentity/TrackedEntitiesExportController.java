@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 import static org.hisp.dhis.common.OpenApi.Response.Status;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
+import static org.hisp.dhis.webapi.controller.tracker.export.FileResourceRequestHandler.handleFileRequest;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
 import static org.hisp.dhis.webapi.controller.tracker.export.trackedentity.TrackedEntityRequestParams.DEFAULT_FIELDS_PARAM;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
@@ -43,11 +44,13 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Objects;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
@@ -62,10 +65,12 @@ import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.export.ResponseHeader;
+import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -195,7 +200,8 @@ class TrackedEntitiesExportController {
     ResponseHeader.addContentTransferEncodingBinary(response);
     response.setContentType(CONTENT_TYPE_CSV_ZIP);
 
-    csvEventService.writeZip(response.getOutputStream(),
+    csvEventService.writeZip(
+        response.getOutputStream(),
         TRACKED_ENTITY_MAPPER.fromCollection(
             trackedEntityService.getTrackedEntities(operationParams)),
         !skipHeader,
@@ -272,5 +278,16 @@ class TrackedEntitiesExportController {
     response.setContentType(CONTENT_TYPE_CSV);
     response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=trackedEntity.csv");
     csvEventService.write(outputStream, List.of(trackedEntity), !skipHeader);
+  }
+
+  @GetMapping("/{trackedEntity}/attributes/{attribute}/file")
+  ResponseEntity<InputStreamResource> getEventDataValueFile(
+      @OpenApi.Param({UID.class, TrackedEntity.class}) @PathVariable UID trackedEntity,
+      @OpenApi.Param({UID.class, Attribute.class}) @PathVariable UID attribute,
+      @OpenApi.Param({UID.class, Program.class}) @RequestParam UID program,
+      HttpServletRequest request)
+      throws NotFoundException, ConflictException, BadRequestException {
+    return handleFileRequest(
+        request, trackedEntityService.getFileResource(trackedEntity, attribute, program));
   }
 }
