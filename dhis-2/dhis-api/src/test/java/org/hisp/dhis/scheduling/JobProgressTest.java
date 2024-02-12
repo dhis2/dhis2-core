@@ -214,6 +214,13 @@ class JobProgressTest {
     runStageInParallel_Success(max(2, Runtime.getRuntime().availableProcessors() / 2));
   }
 
+  @Test
+  void testFormat() {
+    JobProgress progress = newMockJobProgress();
+    assertEquals(
+        "Found 2 items of type text", progress.format("Found {} items of type {}", 2, "text"));
+  }
+
   private static void runStageInParallel_Success(int parallelism) {
     AtomicInteger enterCount = new AtomicInteger();
     AtomicInteger exitCount = new AtomicInteger();
