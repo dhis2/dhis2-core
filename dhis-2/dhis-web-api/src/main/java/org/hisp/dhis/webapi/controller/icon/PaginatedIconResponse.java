@@ -40,6 +40,6 @@ import org.hisp.dhis.common.Pager;
 @Getter
 @AllArgsConstructor
 public class PaginatedIconResponse {
-  @JsonProperty private Pager pager;
-  @JsonProperty private List<ObjectNode> icons;
+  @JsonProperty private final Pager pager;
+  @JsonProperty private final List<ObjectNode> icons;
 }
