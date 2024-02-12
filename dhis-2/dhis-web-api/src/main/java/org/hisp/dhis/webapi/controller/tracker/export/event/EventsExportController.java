@@ -32,6 +32,7 @@ import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
 import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeGzip;
 import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeZip;
+import static org.hisp.dhis.webapi.controller.tracker.export.FileResourceRequestHandler.handleFileRequest;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
 import static org.hisp.dhis.webapi.controller.tracker.export.event.EventRequestParams.DEFAULT_FIELDS_PARAM;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
@@ -46,7 +47,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -59,9 +59,7 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.ImageFileDimension;
-import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventParams;
@@ -71,13 +69,8 @@ import org.hisp.dhis.webapi.controller.tracker.export.ResponseHeader;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.utils.ResponseEntityUtils;
 import org.mapstruct.factory.Mappers;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.http.CacheControl;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -289,29 +282,5 @@ class EventsExportController {
       throws NotFoundException, ConflictException, BadRequestException {
     return handleFileRequest(
         request, eventService.getFileResourceImage(event, dataElement, dimension));
-  }
-
-  private static ResponseEntity<InputStreamResource> handleFileRequest(
-      HttpServletRequest request, FileResourceStream file)
-      throws ConflictException, BadRequestException {
-    FileResource fileResource = file.getFileResource();
-
-    final String etag = fileResource.getContentMd5();
-    if (ResponseEntityUtils.checkNotModified(etag, request)) {
-      return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
-          .cacheControl(CacheControl.maxAge(0, TimeUnit.SECONDS).cachePrivate().mustRevalidate())
-          .eTag(etag)
-          .build();
-    }
-
-    return ResponseEntity.ok()
-        .cacheControl(CacheControl.maxAge(0, TimeUnit.SECONDS).cachePrivate().mustRevalidate())
-        .eTag(etag)
-        .contentType(MediaType.valueOf(fileResource.getContentType()))
-        .contentLength(fileResource.getContentLength())
-        .header(
-            HttpHeaders.CONTENT_DISPOSITION,
-            ResponseHeader.contentDispositionValue(fileResource.getName()))
-        .body(new InputStreamResource(file.getInputStreamSupplier().get()));
   }
 }
