@@ -29,6 +29,7 @@ package org.hisp.dhis.external.conf;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
@@ -150,6 +151,21 @@ public interface DhisConfigurationProvider {
    * @return the url.
    */
   String getServerBaseUrl();
+
+  /**
+   * Returns the remote servers allowed to make calls to
+   *
+   * @return the remote servers.
+   */
+  List<String> getRemoteServersAllowed();
+
+  /**
+   * Checks whether the supplied url is contained in the remote servers allowed list.
+   *
+   * @param url the url to check
+   * @return true if in the remote servers allowed list.
+   */
+  boolean remoteServerIsInAllowedList(String url);
 
   /**
    * Indicates whether LDAP authentication is configured.
