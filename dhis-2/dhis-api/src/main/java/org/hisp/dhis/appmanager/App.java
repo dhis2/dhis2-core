@@ -134,10 +134,7 @@ public class App implements Serializable {
     return AppManager.BUNDLED_APPS.contains(getShortName());
   }
 
-  /**
-   * Determine if the app is configured as a coreApp (to be served at the root
-   * namespace)
-   */
+  /** Determine if the app is configured as a coreApp (to be served at the root namespace) */
   @JsonProperty("core_app")
   @JacksonXmlProperty(localName = "core_app", namespace = DxfNamespaces.DXF_2_0)
   public boolean isCoreApp() {
