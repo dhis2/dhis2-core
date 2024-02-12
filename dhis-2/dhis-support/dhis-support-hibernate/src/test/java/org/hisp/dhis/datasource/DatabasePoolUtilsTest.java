@@ -71,7 +71,7 @@ public class DatabasePoolUtilsTest {
   }
 
   @Test
-  public void testCreateDbPoolWhenDbPoolTypeIsUnPooled()
+  void testCreateDbPoolWhenDbPoolTypeIsUnPooled()
       throws PropertyVetoException, SQLException {
 
     DhisConfigurationProvider mockDhisConfigurationProvider = mock(DhisConfigurationProvider.class);
@@ -93,7 +93,7 @@ public class DatabasePoolUtilsTest {
   }
 
   @Test
-  public void testCreateDbPoolWhenDbPoolTypeIsC3P0() throws PropertyVetoException, SQLException {
+  void testCreateDbPoolWhenDbPoolTypeIsC3P0() throws PropertyVetoException, SQLException {
     DhisConfigurationProvider mockDhisConfigurationProvider = mock(DhisConfigurationProvider.class);
     given(mockDhisConfigurationProvider.getProperty(ConfigurationKey.CONNECTION_DRIVER_CLASS))
         .willReturn("mock");
@@ -132,7 +132,7 @@ public class DatabasePoolUtilsTest {
   }
 
   @Test
-  public void testCreateDbPoolWhenDbPoolTypeIsHikari() throws PropertyVetoException, SQLException {
+  void testCreateDbPoolWhenDbPoolTypeIsHikari() throws PropertyVetoException, SQLException {
     DhisConfigurationProvider mockDhisConfigurationProvider = mock(DhisConfigurationProvider.class);
     given(mockDhisConfigurationProvider.getProperty(ConfigurationKey.CONNECTION_DRIVER_CLASS))
         .willReturn("org.hisp.dhis.datasource.StubDriver");
