@@ -39,11 +39,9 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.scheduling.JobService;
 import org.hisp.dhis.scheduling.SchedulingType;
 import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Component;
@@ -57,7 +55,6 @@ import org.springframework.stereotype.Component;
 public class JobConfigurationObjectBundleHook extends AbstractObjectBundleHook<JobConfiguration> {
 
   private final JobConfigurationService jobConfigurationService;
-  private final JobService jobService;
 
   @Override
   public void validate(
@@ -153,8 +150,6 @@ public class JobConfigurationObjectBundleHook extends AbstractObjectBundleHook<J
             new ErrorReport(this.getClass(), ErrorCode.E4029, tempJobConfiguration.getJobType()));
       }
     }
-
-    validateJob(addReports, tempJobConfiguration, persistedJobConfiguration);
   }
 
   private JobConfiguration validatePersistedAndPrepareTempJobConfiguration(
@@ -196,26 +191,6 @@ public class JobConfigurationObjectBundleHook extends AbstractObjectBundleHook<J
         && jobConfiguration.getDelay() == null) {
       addReports.accept(
           new ErrorReport(JobConfiguration.class, ErrorCode.E7007, jobConfiguration.getUid()));
-    }
-  }
-
-  private void validateJob(
-      Consumer<ErrorReport> addReports,
-      JobConfiguration jobConfiguration,
-      JobConfiguration persistedJobConfiguration) {
-    Job job = jobService.getJob(jobConfiguration.getJobType());
-    ErrorReport jobValidation = job.validate();
-
-    if (jobValidation != null
-        && (jobValidation.getErrorCode() != ErrorCode.E7010
-            || persistedJobConfiguration == null
-            || jobConfiguration.isConfigurable())) {
-      // If the error is caused by the environment and the job is a
-      // non-configurable job that already exists,
-      // then the error can be ignored as the job has the issue with and
-      // without updating it.
-
-      addReports.accept(jobValidation);
     }
   }
 
