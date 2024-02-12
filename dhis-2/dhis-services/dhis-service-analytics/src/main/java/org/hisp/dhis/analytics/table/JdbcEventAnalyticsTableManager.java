@@ -46,6 +46,7 @@ import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
+
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -53,7 +54,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -91,7 +92,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -527,13 +527,13 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         program.getAnalyticsDataElements().stream()
             .map(de -> getColumnFromDataElement(de, false))
             .flatMap(Collection::stream)
-            .collect(Collectors.toList()));
+            .toList());
 
     columns.addAll(
         program.getAnalyticsDataElementsWithLegendSet().stream()
             .map(de -> getColumnFromDataElement(de, true))
             .flatMap(Collection::stream)
-            .collect(Collectors.toList()));
+            .toList());
 
     columns.addAll(
         program.getNonConfidentialTrackedEntityAttributes().stream()
@@ -542,7 +542,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                     getColumnFromTrackedEntityAttribute(
                         tea, getNumericClause(), getDateClause(), false))
             .flatMap(Collection::stream)
-            .collect(Collectors.toList()));
+            .toList());
 
     columns.addAll(
         program.getNonConfidentialTrackedEntityAttributesWithLegendSet().stream()
@@ -551,7 +551,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                     getColumnFromTrackedEntityAttribute(
                         tea, getNumericClause(), getDateClause(), true))
             .flatMap(Collection::stream)
-            .collect(toList()));
+            .toList());
 
     columns.addAll(FIXED_COLS);
 
