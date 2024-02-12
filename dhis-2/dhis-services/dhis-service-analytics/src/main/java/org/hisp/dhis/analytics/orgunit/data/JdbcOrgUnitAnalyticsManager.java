@@ -35,7 +35,6 @@ import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.feedback.ErrorCode.E7302;
-import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -46,6 +45,7 @@ import org.hisp.dhis.analytics.common.TableInfoReader;
 import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsManager;
 import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
 import org.hisp.dhis.common.QueryRuntimeException;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
@@ -61,6 +61,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class JdbcOrgUnitAnalyticsManager implements OrgUnitAnalyticsManager {
   private final TableInfoReader tableInfoReader;
+
+  private final SqlBuilder sqlBuilder;
 
   @Qualifier("analyticsJdbcTemplate")
   private final JdbcTemplate jdbcTemplate;
@@ -148,7 +150,7 @@ public class JdbcOrgUnitAnalyticsManager implements OrgUnitAnalyticsManager {
     Set<String> quotedGroupSets =
         params.getOrgUnitGroupSets().stream()
             .map(OrganisationUnitGroupSet::getUid)
-            .map(uid -> quote("ougs", uid))
+            .map(uid -> sqlBuilder.quote("ougs", uid))
             .collect(toSet());
 
     return "select "
@@ -158,10 +160,10 @@ public class JdbcOrgUnitAnalyticsManager implements OrgUnitAnalyticsManager {
         + ", "
         + "count(ougs.organisationunitid) as count "
         + "from "
-        + quote("_orgunitstructure")
+        + sqlBuilder.quote("_orgunitstructure")
         + " ous "
         + "inner join "
-        + quote("_organisationunitgroupsetstructure")
+        + sqlBuilder.quote("_organisationunitgroupsetstructure")
         + " "
         + "ougs on ous.organisationunitid = ougs.organisationunitid "
         + "where "

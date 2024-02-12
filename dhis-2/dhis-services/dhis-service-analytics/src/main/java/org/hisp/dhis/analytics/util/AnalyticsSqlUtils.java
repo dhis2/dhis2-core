@@ -29,12 +29,12 @@ package org.hisp.dhis.analytics.util;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.AnalyticsConstants;
 import org.hisp.dhis.system.util.SqlUtils;
 
 /**
@@ -44,20 +44,6 @@ import org.hisp.dhis.system.util.SqlUtils;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class AnalyticsSqlUtils {
-  public static final String QUOTE = "\"";
-
-  public static final String SINGLE_QUOTE = "'";
-
-  public static final String ANALYTICS_TBL_ALIAS = "ax";
-
-  public static final String OWNERSHIP_TBL_ALIAS = "own";
-
-  public static final String DATE_PERIOD_STRUCT_ALIAS = "ps";
-
-  public static final String ORG_UNIT_STRUCT_ALIAS = "ous";
-
-  public static final String ORG_UNIT_GROUPSET_STRUCT_ALIAS = "ougs";
-
   private static final String SEPARATOR = ".";
 
   /**
@@ -68,18 +54,7 @@ public class AnalyticsSqlUtils {
    * @return the quoted and qualified relation.
    */
   public static String quoteAlias(String relation) {
-    return ANALYTICS_TBL_ALIAS + SEPARATOR + SqlUtils.quote(relation);
-  }
-
-  /**
-   * Returns a concatenated string of the given collection items separated by comma where each item
-   * is quoted and aliased.
-   *
-   * @param items the collection of items.
-   * @return a string.
-   */
-  public static String quoteAliasCommaSeparate(Collection<String> items) {
-    return items.stream().map(AnalyticsSqlUtils::quoteAlias).collect(Collectors.joining(","));
+    return AnalyticsConstants.ANALYTICS_TBL_ALIAS + SEPARATOR + SqlUtils.quote(relation);
   }
 
   /**

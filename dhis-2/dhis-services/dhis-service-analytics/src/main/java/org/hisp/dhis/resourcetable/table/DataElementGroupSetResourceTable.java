@@ -28,11 +28,11 @@
 package org.hisp.dhis.resourcetable.table;
 
 import static org.hisp.dhis.db.model.Table.toStaging;
-import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.db.model.Column;
@@ -40,23 +40,22 @@ import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
 /**
  * @author Lars Helge Overland
  */
+@RequiredArgsConstructor
 public class DataElementGroupSetResourceTable implements ResourceTable {
   private static final String TABLE_NAME = "_dataelementgroupsetstructure";
+
+  private final SqlBuilder sqlBuilder;
 
   private final List<DataElementGroupSet> groupSets;
 
   private final Logged logged;
-
-  public DataElementGroupSetResourceTable(List<DataElementGroupSet> groupSets, Logged logged) {
-    this.groupSets = groupSets;
-    this.logged = logged;
-  }
 
   @Override
   public Table getTable() {
@@ -107,7 +106,7 @@ public class DataElementGroupSetResourceTable implements ResourceTable {
               + " "
               + "where degm.dataelementid = d.dataelementid "
               + "limit 1) as "
-              + quote(groupSet.getName())
+              + sqlBuilder.quote(groupSet.getName())
               + ", ";
 
       sql +=
@@ -120,7 +119,7 @@ public class DataElementGroupSetResourceTable implements ResourceTable {
               + " "
               + "where degm.dataelementid = d.dataelementid "
               + "limit 1) as "
-              + quote(groupSet.getUid())
+              + sqlBuilder.quote(groupSet.getUid())
               + ", ";
     }
 

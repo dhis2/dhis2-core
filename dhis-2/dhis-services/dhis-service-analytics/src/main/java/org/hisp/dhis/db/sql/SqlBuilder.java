@@ -208,6 +208,12 @@ public interface SqlBuilder {
   String quote(String alias, String relation);
 
   /**
+   * @param relation the relation to quote.
+   * @return an "ax" aliased and double quoted relation.
+   */
+  String quoteAx(String relation);
+
+  /**
    * @param value the value to quote.
    * @return a single quoted value.
    */
@@ -223,7 +229,7 @@ public interface SqlBuilder {
    * @param items the items to join.
    * @return a string representing the comma delimited and single quoted item values.
    */
-  String quotedCommaDelimitedString(Collection<String> items);
+  String singleQuotedCommaDelimited(Collection<String> items);
 
   // Statements
 

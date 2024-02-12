@@ -40,6 +40,8 @@ import java.util.Set;
 import org.hisp.dhis.analytics.common.TableInfoReader;
 import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
 import org.hisp.dhis.common.QueryRuntimeException;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -63,11 +65,14 @@ class JdbcOrgUnitAnalyticsManagerTest {
 
   @Mock private TableInfoReader tableInfoReader;
 
+  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+
   private JdbcOrgUnitAnalyticsManager jdbcOrgUnitAnalyticsManager;
 
   @BeforeEach
   public void beforeAll() {
-    jdbcOrgUnitAnalyticsManager = new JdbcOrgUnitAnalyticsManager(tableInfoReader, jdbcTemplate);
+    jdbcOrgUnitAnalyticsManager =
+        new JdbcOrgUnitAnalyticsManager(tableInfoReader, sqlBuilder, jdbcTemplate);
   }
 
   @Test

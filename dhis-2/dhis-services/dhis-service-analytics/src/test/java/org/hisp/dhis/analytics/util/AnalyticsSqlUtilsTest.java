@@ -46,16 +46,6 @@ class AnalyticsSqlUtilsTest {
   }
 
   @Test
-  void testQuoteAliasCommaSeparate() {
-    assertEquals(
-        "ax.\"de\",ax.\"pe\",ax.\"ou\"",
-        AnalyticsSqlUtils.quoteAliasCommaSeparate(List.of("de", "pe", "ou")));
-    assertEquals(
-        "ax.\"gender\",ax.\"date of \"\"birth\"\"\"",
-        AnalyticsSqlUtils.quoteAliasCommaSeparate(List.of("gender", "date of \"birth\"")));
-  }
-
-  @Test
   void testGetClosingParentheses() {
     assertEquals("", AnalyticsSqlUtils.getClosingParentheses(null));
     assertEquals("", AnalyticsSqlUtils.getClosingParentheses(""));
