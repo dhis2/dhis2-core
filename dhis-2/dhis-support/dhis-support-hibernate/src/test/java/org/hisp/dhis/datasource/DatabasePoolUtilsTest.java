@@ -71,8 +71,7 @@ public class DatabasePoolUtilsTest {
   }
 
   @Test
-  void testCreateDbPoolWhenDbPoolTypeIsUnPooled()
-      throws PropertyVetoException, SQLException {
+  void testCreateDbPoolWhenDbPoolTypeIsUnPooled() throws PropertyVetoException, SQLException {
 
     DhisConfigurationProvider mockDhisConfigurationProvider = mock(DhisConfigurationProvider.class);
     given(mockDhisConfigurationProvider.getProperty(ConfigurationKey.CONNECTION_DRIVER_CLASS))
