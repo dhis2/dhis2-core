@@ -93,16 +93,16 @@ public class NotifierJobProgress implements JobProgress {
   }
 
   @Override
-  public void completedStage(String summary) {
+  public void completedStage(String summary, Object... args) {
     if (isNotEmpty(summary)) {
-      notifier.notify(jobId, summary);
+      notifier.notify(jobId, format(summary, args));
     }
   }
 
   @Override
-  public void failedStage(String error) {
+  public void failedStage(String error, Object... args) {
     if (isNotEmpty(error)) {
-      notifier.notify(jobId, NotificationLevel.ERROR, error, false);
+      notifier.notify(jobId, NotificationLevel.ERROR, format(error, args), false);
     }
   }
 
@@ -116,10 +116,10 @@ public class NotifierJobProgress implements JobProgress {
   }
 
   @Override
-  public void completedWorkItem(String summary) {
+  public void completedWorkItem(String summary, Object... args) {
     if (isNotEmpty(summary)) {
       String nOf = "[" + (stageItems > 0 ? stageItem + "/" + stageItems : "" + stageItem) + "] ";
-      notifier.notify(jobId, NotificationLevel.LOOP, nOf + summary, false);
+      notifier.notify(jobId, NotificationLevel.LOOP, nOf + format(summary, args), false);
     }
   }
 

@@ -252,24 +252,26 @@ public class RecordingJobProgress implements JobProgress {
   }
 
   @Override
-  public void completedStage(String summary) {
+  public void completedStage(String summary, Object... args) {
+    String message = format(summary, args);
     observer.run();
-    tracker.completedStage(summary);
+    tracker.completedStage(message);
     Stage stage = getOrAddLastIncompleteStage();
-    stage.complete(summary);
-    logInfo(stage, "completed", summary);
+    stage.complete(message);
+    logInfo(stage, "completed", message);
   }
 
   @Override
-  public void failedStage(String error) {
+  public void failedStage(String error, Object... args) {
+    String message = format(error, args);
     observer.run();
-    tracker.failedStage(error);
+    tracker.failedStage(message);
     Stage stage = getOrAddLastIncompleteStage();
-    stage.completeExceptionally(error, null);
+    stage.completeExceptionally(message, null);
     if (stage.getOnFailure() != FailurePolicy.SKIP_STAGE) {
-      automaticAbort(error, null);
+      automaticAbort(message, null);
     }
-    logError(stage, null, error);
+    logError(stage, null, message);
   }
 
   @Override
@@ -296,12 +298,13 @@ public class RecordingJobProgress implements JobProgress {
   }
 
   @Override
-  public void completedWorkItem(String summary) {
+  public void completedWorkItem(String summary, Object... args) {
+    String message = format(summary, args);
     observer.run();
-    tracker.completedWorkItem(summary);
+    tracker.completedWorkItem(message);
     Item item = getOrAddLastIncompleteItem();
-    item.complete(summary);
-    logDebug(item, "completed", summary);
+    item.complete(message);
+    logDebug(item, "completed", message);
   }
 
   @Override

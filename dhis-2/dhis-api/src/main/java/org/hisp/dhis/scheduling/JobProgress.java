@@ -240,16 +240,16 @@ public interface JobProgress {
     startingStage(format(format, args), FailurePolicy.PARENT);
   }
 
-  void completedStage(String summary);
+  void completedStage(String summary, Object... args);
 
-  void failedStage(String error);
+  void failedStage(String error, Object... args);
 
   default void failedStage(Exception cause) {
     failedStage(getMessage(cause));
   }
 
-  default void startingWorkItem(String description) {
-    startingWorkItem(description, FailurePolicy.PARENT);
+  default void startingWorkItem(String description, Object... args) {
+    startingWorkItem(format(description, args), FailurePolicy.PARENT);
   }
 
   void startingWorkItem(String description, FailurePolicy onFailure);
@@ -258,7 +258,7 @@ public interface JobProgress {
     startingWorkItem("#" + (i + 1));
   }
 
-  void completedWorkItem(String summary);
+  void completedWorkItem(String summary, Object... args);
 
   void failedWorkItem(String error, Object... args);
 
@@ -317,7 +317,7 @@ public interface JobProgress {
         items,
         description,
         work,
-        (success, failed) -> format("%d successful and %d failed items", success, failed));
+        (success, failed) -> format("{} successful and {} failed items", success, failed));
   }
 
   /**
@@ -547,7 +547,7 @@ public interface JobProgress {
       } else {
         autoSkipStage(
             (s, f) ->
-                format("parallel processing aborted after %d successful and %d failed items", s, f),
+                format("parallel processing aborted after {} successful and {} failed items", s, f),
             success.get(),
             failed.get());
       }

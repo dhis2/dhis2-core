@@ -62,12 +62,12 @@ public class NoopJobProgress implements JobProgress {
   }
 
   @Override
-  public void completedStage(String summary) {
+  public void completedStage(String summary, Object... args) {
     // as the name said we do nothing
   }
 
   @Override
-  public void failedStage(String error) {
+  public void failedStage(String error, Object... args) {
     // as the name said we do nothing
   }
 
@@ -77,7 +77,7 @@ public class NoopJobProgress implements JobProgress {
   }
 
   @Override
-  public void completedWorkItem(String summary) {
+  public void completedWorkItem(String summary, Object... args) {
     // as the name said we do nothing
   }
 
