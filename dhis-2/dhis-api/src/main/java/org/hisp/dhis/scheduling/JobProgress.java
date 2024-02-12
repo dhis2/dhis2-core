@@ -236,8 +236,8 @@ public interface JobProgress {
     startingStage(description, 0, onFailure);
   }
 
-  default void startingStage(String format, Object... args) {
-    startingStage(format(format, args), FailurePolicy.PARENT);
+  default void startingStage(String description, Object... args) {
+    startingStage(format(description, args), FailurePolicy.PARENT);
   }
 
   void completedStage(String summary, Object... args);
