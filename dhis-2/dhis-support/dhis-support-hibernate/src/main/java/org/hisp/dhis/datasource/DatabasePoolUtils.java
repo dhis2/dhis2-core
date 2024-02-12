@@ -71,6 +71,7 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_USERNAME;
 
 import com.google.common.collect.ImmutableMap;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
+import com.mchange.v2.c3p0.DriverManagerDataSource;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import java.beans.PropertyVetoException;
@@ -92,7 +93,7 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
-public class DatabasePoolUtils {
+public final class DatabasePoolUtils {
 
   /**
    * This enum maps each database configuration key into a corresponding analytics configuration
@@ -143,14 +144,16 @@ public class DatabasePoolUtils {
 
   public enum DbPoolType {
     C3P0,
-    HIKARI
+    HIKARI,
+    UNPOOLED
   }
 
   public static DataSource createDbPool(PoolConfig config)
       throws PropertyVetoException, SQLException {
     Objects.requireNonNull(config);
 
-    DbPoolType dbPoolType = DbPoolType.valueOf(config.getDbPoolType().toUpperCase());
+    DbPoolType dbPoolType = DbPoolType.valueOf(config.getDbPoolType().toUpperCase());     log.info( String.format( "Database pool type value is [%s]", dbType ) );
+    log.info( String.format( "Database pool type value is [%s]", dbType ) );
 
     switch (dbPoolType) {
       case C3P0:
@@ -219,83 +222,99 @@ public class DatabasePoolUtils {
     ConfigKeyMapper mapper = config.getMapper();
 
     DhisConfigurationProvider dhisConfig = config.getDhisConfig();
+      final String driverClassName =
+          dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_DRIVER_CLASS));
+      final String jdbcUrl =
+          firstNonNull(
+              config.getJdbcUrl(), dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_URL)));
+      final String username =
+          firstNonNull(
+              config.getUsername(), dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_USERNAME)));
+      final String password =
+          firstNonNull(
+              config.getPassword(), dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_PASSWORD)));
 
-    final String driverClassName =
-        dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_DRIVER_CLASS));
-    final String jdbcUrl =
-        firstNonNull(
-            config.getJdbcUrl(), dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_URL)));
-    final String username =
-        firstNonNull(
-            config.getUsername(), dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_USERNAME)));
-    final String password =
-        firstNonNull(
-            config.getPassword(), dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_PASSWORD)));
-    final int maxPoolSize =
-        parseInt(
-            firstNonNull(
-                config.getMaxPoolSize(),
-                dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_MAX_SIZE))));
-    final int acquireIncrement =
-        parseInt(
-            firstNonNull(
-                config.getAcquireIncrement(),
-                dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_ACQUIRE_INCR))));
-    final int acquireRetryAttempts =
-        parseInt(
-            firstNonNull(
-                config.getAcquireRetryAttempts(),
-                dhisConfig.getProperty(
-                    mapper.getConfigKey(CONNECTION_POOL_ACQUIRE_RETRY_ATTEMPTS))));
-    final int acquireRetryDelay =
-        parseInt(
-            firstNonNull(
-                config.getAcquireRetryDelay(),
-                dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_ACQUIRE_RETRY_DELAY))));
-    final int maxIdleTime =
-        parseInt(
-            firstNonNull(
-                config.getMaxIdleTime(),
-                dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_MAX_IDLE_TIME))));
+      final DataSource dataSource;
+      final DbPoolType dbPoolType = DbPoolType.valueOf(config.dbPoolType.toUpperCase());
+      if (dbPoolType.equals(DbPoolType.UNPOOLED)) {
+          final DriverManagerDataSource unpooledDataSource = new DriverManagerDataSource();
+          unpooledDataSource.setDriverClass(driverClassName);
+          unpooledDataSource.setJdbcUrl(jdbcUrl);
+          unpooledDataSource.setUser(username);
+          unpooledDataSource.setPassword(password);
 
-    final int minPoolSize =
-        parseInt(dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_MIN_SIZE)));
-    final int initialSize =
-        parseInt(dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_INITIAL_SIZE)));
-    boolean testOnCheckIn =
-        dhisConfig.isEnabled(mapper.getConfigKey(CONNECTION_POOL_TEST_ON_CHECKIN));
-    boolean testOnCheckOut =
-        dhisConfig.isEnabled(mapper.getConfigKey(CONNECTION_POOL_TEST_ON_CHECKOUT));
-    final int maxIdleTimeExcessConnections =
-        parseInt(
-            dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON)));
-    final int idleConnectionTestPeriod =
-        parseInt(dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_IDLE_CON_TEST_PERIOD)));
-    final String preferredTestQuery =
-        dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_TEST_QUERY));
-    final int numHelperThreads =
-        parseInt(dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_NUM_THREADS)));
+          dataSource = unpooledDataSource;
+    } else {
+      final int maxPoolSize =
+          parseInt(
+              firstNonNull(
+                  config.getMaxPoolSize(),
+                  dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_MAX_SIZE))));
+      final int acquireIncrement =
+          parseInt(
+              firstNonNull(
+                  config.getAcquireIncrement(),
+                  dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_ACQUIRE_INCR))));
+      final int acquireRetryAttempts =
+          parseInt(
+              firstNonNull(
+                  config.getAcquireRetryAttempts(),
+                  dhisConfig.getProperty(
+                      mapper.getConfigKey(CONNECTION_POOL_ACQUIRE_RETRY_ATTEMPTS))));
+      final int acquireRetryDelay =
+          parseInt(
+              firstNonNull(
+                  config.getAcquireRetryDelay(),
+                  dhisConfig.getProperty(
+                      mapper.getConfigKey(CONNECTION_POOL_ACQUIRE_RETRY_DELAY))));
+      final int maxIdleTime =
+          parseInt(
+              firstNonNull(
+                  config.maxIdleTime,
+                  dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_MAX_IDLE_TIME))));
 
-    ComboPooledDataSource dataSource = new ComboPooledDataSource();
+      final int minPoolSize =
+          parseInt(dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_MIN_SIZE)));
+      final int initialSize =
+          parseInt(dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_INITIAL_SIZE)));
+      boolean testOnCheckIn =
+          dhisConfig.isEnabled(mapper.getConfigKey(CONNECTION_POOL_TEST_ON_CHECKIN));
+      boolean testOnCheckOut =
+          dhisConfig.isEnabled(mapper.getConfigKey(CONNECTION_POOL_TEST_ON_CHECKOUT));
+      final int maxIdleTimeExcessConnections =
+          parseInt(
+              dhisConfig.getProperty(
+                  mapper.getConfigKey(CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON)));
+      final int idleConnectionTestPeriod =
+          parseInt(
+              dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_IDLE_CON_TEST_PERIOD)));
+      final String preferredTestQuery =
+          dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_TEST_QUERY));
+      final int numHelperThreads =
+          parseInt(dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_NUM_THREADS)));
 
-    dataSource.setDriverClass(driverClassName);
-    dataSource.setJdbcUrl(jdbcUrl);
-    dataSource.setUser(username);
-    dataSource.setPassword(password);
-    dataSource.setMaxPoolSize(maxPoolSize);
-    dataSource.setMinPoolSize(minPoolSize);
-    dataSource.setInitialPoolSize(initialSize);
-    dataSource.setAcquireIncrement(acquireIncrement);
-    dataSource.setAcquireRetryAttempts(acquireRetryAttempts);
-    dataSource.setAcquireRetryDelay(acquireRetryDelay);
-    dataSource.setMaxIdleTime(maxIdleTime);
-    dataSource.setTestConnectionOnCheckin(testOnCheckIn);
-    dataSource.setTestConnectionOnCheckout(testOnCheckOut);
-    dataSource.setMaxIdleTimeExcessConnections(maxIdleTimeExcessConnections);
-    dataSource.setIdleConnectionTestPeriod(idleConnectionTestPeriod);
-    dataSource.setPreferredTestQuery(preferredTestQuery);
-    dataSource.setNumHelperThreads(numHelperThreads);
+      ComboPooledDataSource pooledDataSource = new ComboPooledDataSource();
 
+          pooledDataSource.setDriverClass(driverClassName);
+          pooledDataSource.setJdbcUrl(jdbcUrl);
+          pooledDataSource.setUser(username);
+          pooledDataSource.setPassword(password);
+          pooledDataSource.setMaxPoolSize(maxPoolSize);
+          pooledDataSource.setMinPoolSize(minPoolSize);
+          pooledDataSource.setInitialPoolSize(initialSize);
+          pooledDataSource.setAcquireIncrement(acquireIncrement);
+          pooledDataSource.setAcquireRetryAttempts(acquireRetryAttempts);
+          pooledDataSource.setAcquireRetryDelay(acquireRetryDelay);
+          pooledDataSource.setMaxIdleTime(maxIdleTime);
+          pooledDataSource.setTestConnectionOnCheckin(testOnCheckIn);
+          pooledDataSource.setTestConnectionOnCheckout(testOnCheckOut);
+          pooledDataSource.setMaxIdleTimeExcessConnections(maxIdleTimeExcessConnections);
+          pooledDataSource.setIdleConnectionTestPeriod(idleConnectionTestPeriod);
+          pooledDataSource.setPreferredTestQuery(preferredTestQuery);
+          pooledDataSource.setNumHelperThreads(numHelperThreads);
+
+          dataSource = pooledDataSource;
+      }
     testConnection(dataSource);
 
     return dataSource;
