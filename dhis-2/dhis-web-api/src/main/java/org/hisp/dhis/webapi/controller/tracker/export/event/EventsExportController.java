@@ -61,6 +61,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
@@ -294,9 +295,25 @@ class EventsExportController {
       @OpenApi.Param({UID.class, Event.class}) @PathVariable UID event,
       @OpenApi.Param({UID.class, DataElement.class}) @PathVariable UID dataElement,
       HttpServletRequest request)
-      throws NotFoundException, ConflictException {
-    FileResourceStream file = eventService.getFileResource(event, dataElement);
-    FileResource fileResource = file.fileResource();
+      throws NotFoundException, ConflictException, BadRequestException {
+    return handleFileRequest(request, eventService.getFileResource(event, dataElement));
+  }
+
+  @GetMapping("/{event}/dataValues/{dataElement}/image")
+  ResponseEntity<InputStreamResource> getEventDataValueImage(
+      @OpenApi.Param({UID.class, Event.class}) @PathVariable UID event,
+      @OpenApi.Param({UID.class, DataElement.class}) @PathVariable UID dataElement,
+      @RequestParam(required = false) ImageFileDimension dimension,
+      HttpServletRequest request)
+      throws NotFoundException, ConflictException, BadRequestException {
+    return handleFileRequest(
+        request, eventService.getFileResourceImage(event, dataElement, dimension));
+  }
+
+  private static ResponseEntity<InputStreamResource> handleFileRequest(
+      HttpServletRequest request, FileResourceStream file)
+      throws ConflictException, BadRequestException {
+    FileResource fileResource = file.getFileResource();
 
     final String etag = fileResource.getContentMd5();
     if (ResponseEntityUtils.checkNotModified(etag, request)) {
@@ -314,7 +331,7 @@ class EventsExportController {
         .header(
             HttpHeaders.CONTENT_DISPOSITION,
             getContentDispositionHeaderValue(fileResource.getName()))
-        .body(new InputStreamResource(file.inputStream().get()));
+        .body(new InputStreamResource(file.getInputStreamSupplier().get()));
   }
 
   private static String getContentDispositionHeaderValue(String filename) {

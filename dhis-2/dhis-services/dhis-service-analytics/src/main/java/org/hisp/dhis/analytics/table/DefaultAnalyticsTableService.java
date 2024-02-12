@@ -94,7 +94,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
                     "Starting update of type: %s, table name: '%s', parallel jobs: %d",
                     tableType, tableType.getTableName(), parallelJobs));
 
-    progress.startingStage("Validating Analytics Table " + tableType);
+    progress.startingStage("Validating analytics table: {}", tableType);
     String validState = tableManager.validState();
     progress.completedStage(validState);
 
@@ -109,7 +109,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
           String.format(
               "Table update aborted, no table or partitions to be updated: '%s'",
               tableType.getTableName()));
-      progress.startingStage("Table updates " + tableType);
+      progress.startingStage("Table updates: {}", tableType);
       progress.completedStage("Table updated aborted, no table or partitions to be updated");
       return;
     }
