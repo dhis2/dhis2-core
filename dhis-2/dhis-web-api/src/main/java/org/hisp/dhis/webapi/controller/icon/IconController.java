@@ -143,7 +143,6 @@ public class IconController {
 
     if (iconRequestParams.isPaging()) {
       long total = iconService.count(iconOperationParams);
-
       pager = new Pager(iconRequestParams.getPage(), total, iconRequestParams.getPageSize());
       iconOperationParams.setPager(pager);
     }
