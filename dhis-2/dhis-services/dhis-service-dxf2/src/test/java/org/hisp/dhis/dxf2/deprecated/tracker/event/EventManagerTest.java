@@ -46,7 +46,6 @@ import org.hisp.dhis.dxf2.deprecated.tracker.importer.EventProcessorExecutor;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.EventProcessorPhase;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.context.WorkContext;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -76,7 +75,7 @@ class EventManagerTest {
   @InjectMocks EventManager subject;
 
   @Test
-  void verifyUpdatedEventDataValues() throws JsonProcessingException {
+  void updateEventDataValuesShouldTriggerProgramRuleNotification() throws JsonProcessingException {
 
     Event event = new Event();
     WorkContext workContext = WorkContext.builder().build();
@@ -96,7 +95,6 @@ class EventManagerTest {
 
     List<EventProcessorPhase> phases = eventProcessorPhaseArgumentCaptor.getAllValues();
 
-    Assertions.assertNotNull(phases);
     assertContainsOnly(
         List.of(EventProcessorPhase.UPDATE_PRE, EventProcessorPhase.UPDATE_POST), phases);
   }
