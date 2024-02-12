@@ -25,15 +25,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.util;
+package org.hisp.dhis.tracker.export;
 
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 
-/**
- * Use instead of {@link java.util.function.Supplier} when you need to throw a {@link
- * ConflictException} as checked exceptions cannot be thrown from lambdas.
- */
 @FunctionalInterface
-public interface ConflictExceptionSupplier<T> {
-  T get() throws ConflictException;
+public interface FileResourceSupplier<T> {
+  T get() throws ConflictException, BadRequestException;
 }
