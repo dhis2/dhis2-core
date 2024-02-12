@@ -153,8 +153,7 @@ public final class DatabasePoolUtils {
     Objects.requireNonNull(config);
 
     DbPoolType dbPoolType = DbPoolType.valueOf(config.getDbPoolType().toUpperCase());
-    log.info(String.format("Database pool type value is [%s]", dbType));
-    log.info(String.format("Database pool type value is [%s]", dbType));
+    log.info("Database pool type value is [{}]", dbType);
 
     switch (dbPoolType) {
       case C3P0:
