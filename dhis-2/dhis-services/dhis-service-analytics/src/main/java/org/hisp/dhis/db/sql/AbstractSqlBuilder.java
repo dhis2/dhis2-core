@@ -41,6 +41,7 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
 
   protected static final String QUOTE = "\"";
   protected static final String SINGLE_QUOTE = "'";
+  protected static final String BACKSLASH = "\\";
   protected static final String COMMA = ", ";
   protected static final String DOT = ".";
   protected static final String EMPTY = "";

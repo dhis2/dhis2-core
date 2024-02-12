@@ -601,11 +601,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     jdbcTemplate.execute(sql.toString());
   }
 
-  @Override
-  public void vacuumTables(AnalyticsTablePartition partition) {
-    vacuumTable(partition.getName());
-  }
-
   /**
    * Indicates whether the system should ignore data which has not been approved in analytics
    * tables.
