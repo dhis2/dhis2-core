@@ -50,6 +50,6 @@ public interface JsonProgramStageQueryCriteria extends JsonObject {
   }
 
   default boolean getFollowUp() {
-    return getBoolean("followup").booleanValue();
+    return getBoolean("followUp").booleanValue();
   }
 }

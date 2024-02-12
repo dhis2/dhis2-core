@@ -263,33 +263,32 @@ class ProgramStageWorkingListControllerTest extends DhisControllerConvenienceTes
 
   @Test
   void shouldCreateWorkingListWithProgramStageQueryCriteria() {
-
     String workingListJson =
         assertStatus(
             HttpStatus.CREATED,
             POST(
                 "/programStageWorkingLists",
                 """
-         {
-         'program': {'id': '%s'},
-         'programStage': {'id': '%s'},
-         'name':'workingListName',
-         'programStageQueryCriteria': {
-           "displayColumnOrder": [
-             "w75KJ2mc4zz",
-             "zDhUuAYrxNC",
-             "APtutTb0nOY"
-           ],
-           'order': 'createdAt:desc',
-           'enrollmentStatus': 'ACTIVE',
-           'followup': 'true',
-           'eventOccurredAt': {
-             'type': 'RELATIVE',
-             'period': 'TODAY'
-           }
-         }
-        }
-        """
+               {
+               'program': {'id': '%s'},
+               'programStage': {'id': '%s'},
+               'name':'workingListName',
+               'programStageQueryCriteria': {
+                 "displayColumnOrder": [
+                   "w75KJ2mc4zz",
+                   "zDhUuAYrxNC",
+                   "APtutTb0nOY"
+                 ],
+                 'order': 'createdAt:desc',
+                 'enrollmentStatus': 'ACTIVE',
+                 'followUp': 'true',
+                 'eventOccurredAt': {
+                   'type': 'RELATIVE',
+                   'period': 'TODAY'
+                 }
+               }
+              }
+              """
                     .formatted(programId, programStageId)));
 
     JsonWorkingList workingList =
