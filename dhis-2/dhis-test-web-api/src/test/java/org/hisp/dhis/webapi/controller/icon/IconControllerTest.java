@@ -157,13 +157,14 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     String fileResourceId3 = createFileResource();
     createCustomIcon(fileResourceId3, keyword, iconKey3);
 
-    JsonObject iconResponse = GET("/icons?type=CUSTOM&page=1&pageSize=2").content(HttpStatus.OK);
+    JsonObject iconResponse = GET("/icons?type=CUSTOM&page=2&pageSize=2").content(HttpStatus.OK);
     JsonPager pager = iconResponse.get("pager", JsonPager.class);
 
     JsonList<JsonIcon> icons = iconResponse.getList("icons", JsonIcon.class);
 
     assertHasMember(iconResponse, "pager");
 
+    assertEquals(2, pager.getPage());
     assertEquals(3, pager.getTotal());
     assertEquals(2, pager.getPageSize());
     assertEquals(2, pager.getPageCount());
