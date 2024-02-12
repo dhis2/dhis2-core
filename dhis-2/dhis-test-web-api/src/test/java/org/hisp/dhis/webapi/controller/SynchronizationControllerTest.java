@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,15 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.util;
+package org.hisp.dhis.webapi.controller;
 
-import org.hisp.dhis.feedback.ConflictException;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 /**
- * Use instead of {@link java.util.function.Supplier} when you need to throw a {@link
- * ConflictException} as checked exceptions cannot be thrown from lambdas.
+ * Tests the {@link SynchronizationController} using (mocked) REST requests.
+ *
+ * @author david mackessy
  */
-@FunctionalInterface
-public interface ConflictExceptionSupplier<T> {
-  T get() throws ConflictException;
+class SynchronizationControllerTest extends DhisControllerConvenienceTest {
+
+  @Test
+  @DisplayName("Calling the metadataPull endpoint with an invalid url returns an error message")
+  void invalidUrlTest() {
+    JsonMixed content =
+        POST("/synchronization/metadataPull", "https://invalidurl.com/metadata")
+            .content(HttpStatus.CONFLICT);
+
+    assertEquals(
+        "Provided URL is not in the remote servers allowed list",
+        content.getString("message").string());
+  }
 }

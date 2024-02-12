@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,21 +27,10 @@
  */
 package org.hisp.dhis.tracker.export;
 
-import java.io.InputStream;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 
-/**
- * FileResourceStream holds a file resource and a supplier to open an input stream to the file
- * resource content if needed.
- */
-@Getter
-@AllArgsConstructor
-@RequiredArgsConstructor
-public class FileResourceStream {
-  private final FileResource fileResource;
-  @Setter private FileResourceSupplier<InputStream> inputStreamSupplier;
+@FunctionalInterface
+public interface FileResourceSupplier<T> {
+  T get() throws ConflictException, BadRequestException;
 }
