@@ -184,8 +184,7 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
         .orElse(List.of());
   }
 
-  private Collection<TrackedEntityAttribute> getTeasIfRegistrationAndNotConfidential(
-      Program program) {
+  private List<TrackedEntityAttribute> getTeasIfRegistrationAndNotConfidential(Program program) {
     return Optional.of(program)
         .filter(Program::isRegistration)
         .map(Program::getTrackedEntityAttributes)
