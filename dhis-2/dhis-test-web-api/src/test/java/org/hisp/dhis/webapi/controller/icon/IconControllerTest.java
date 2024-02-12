@@ -38,7 +38,7 @@ import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
-import org.hisp.dhis.webapi.controller.metadata.JsonPage;
+import org.hisp.dhis.webapi.controller.json.JsonPager;
 import org.hisp.dhis.webapi.json.domain.JsonIcon;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -158,14 +158,11 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     createCustomIcon(fileResourceId3, keyword, iconKey3);
 
     JsonObject iconResponse = GET("/icons?type=CUSTOM&page=1&pageSize=2").content(HttpStatus.OK);
-    JsonPage pager = iconResponse.get("pager", JsonPage.class);
+    JsonPager pager = iconResponse.get("pager", JsonPager.class);
 
     JsonList<JsonIcon> icons = iconResponse.getList("icons", JsonIcon.class);
 
     assertHasMember(iconResponse, "pager");
-    assertHasMember(pager, "total");
-    assertHasMember(pager, "pageSize");
-    assertHasMember(pager, "pageCount");
 
     assertEquals(3, pager.getTotal());
     assertEquals(2, pager.getPageSize());
@@ -190,14 +187,11 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     createCustomIcon(fileResourceId3, keyword, iconKey3);
 
     JsonObject iconResponse = GET("/icons?type=CUSTOM").content(HttpStatus.OK);
-    JsonPage pager = iconResponse.get("pager", JsonPage.class);
+    JsonPager pager = iconResponse.get("pager", JsonPager.class);
 
     JsonList<JsonIcon> icons = iconResponse.getList("icons", JsonIcon.class);
 
     assertHasMember(iconResponse, "pager");
-    assertHasMember(pager, "total");
-    assertHasMember(pager, "pageSize");
-    assertHasMember(pager, "pageCount");
 
     assertEquals(3, pager.getTotal());
     assertEquals(50, pager.getPageSize());
@@ -223,12 +217,11 @@ class IconControllerTest extends DhisControllerIntegrationTest {
 
     JsonObject iconResponse = GET("/icons?type=CUSTOM&paging=false").content(HttpStatus.OK);
 
-    JsonPage pager = iconResponse.get("pager", JsonPage.class);
+    JsonPager pager = iconResponse.get("pager", JsonPager.class);
 
     JsonList<JsonIcon> icons = iconResponse.getList("icons", JsonIcon.class);
 
     assertHasNoMember(iconResponse, "pager");
-    assertHasNoMember(pager, "total");
     assertEquals(
         3,
         icons.size(),

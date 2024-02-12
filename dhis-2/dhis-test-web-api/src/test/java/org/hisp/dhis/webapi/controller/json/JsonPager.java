@@ -25,12 +25,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.metadata;
+package org.hisp.dhis.webapi.controller.json;
 
 import org.hisp.dhis.jsontree.JsonObject;
 
 /** Representation of {@link org.hisp.dhis.common.Pager}. */
-public interface JsonPage extends JsonObject {
+public interface JsonPager extends JsonObject {
 
   default Integer getPage() {
     return getNumber("page").integer();
