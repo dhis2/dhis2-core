@@ -262,9 +262,4 @@ public class DefaultGatewayAdministrationService implements GatewayAdministratio
 
     hasGateways.set(true);
   }
-
-  private boolean isPresent(
-      List<GenericGatewayParameter> parameters, GenericGatewayParameter parameter) {
-    return parameters.stream().anyMatch(p -> p.equals(parameter));
-  }
 }
