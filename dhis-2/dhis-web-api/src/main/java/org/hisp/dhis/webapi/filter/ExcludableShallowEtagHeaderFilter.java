@@ -72,18 +72,24 @@ import org.springframework.web.filter.ShallowEtagHeaderFilter;
       @WebInitParam(name = "excludeUriRegex", value = ExcludableShallowEtagHeaderFilter.ENDPOINTS)
     })
 public class ExcludableShallowEtagHeaderFilter extends ShallowEtagHeaderFilter {
-  private static final String EXCLUDE_URI_REGEX_VAR_NAME = "excludeUriRegex";
+  private static final String UID_REGEXP = "[a-zA-Z][a-zA-Z0-9]{10}";
+  static final String EXCLUDE_URI_REGEX_VAR_NAME = "excludeUriRegex";
 
   static final String ENDPOINTS =
       "/api/(\\d{2}/)?dataValueSets|"
           + "/api/(\\d{2}/)?dataValues|"
           + "/api/(\\d{2}/)?fileResources|"
-          + "/api/(\\d{2}/)?dataEntry/metadata";
+          + "/api/(\\d{2}/)?dataEntry/metadata|"
+          + "/api/(\\d{2}/)?tracker/events/"
+          + UID_REGEXP
+          + "/dataValues/"
+          + UID_REGEXP
+          + "/(file|image)";
 
   private Pattern pattern = null;
 
   @Override
-  protected void initFilterBean() throws ServletException {
+  protected void initFilterBean() {
     FilterConfig filterConfig = getFilterConfig();
 
     String excludeRegex =

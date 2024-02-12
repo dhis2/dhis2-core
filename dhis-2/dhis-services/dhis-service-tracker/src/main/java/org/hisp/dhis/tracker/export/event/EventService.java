@@ -29,10 +29,14 @@ package org.hisp.dhis.tracker.export.event;
 
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 
@@ -40,9 +44,15 @@ import org.hisp.dhis.tracker.export.PageParams;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface EventService {
-  Event getEvent(String uid, EventParams eventParams) throws NotFoundException, ForbiddenException;
+  /** Get a file for an events' data element. */
+  FileResourceStream getFileResource(UID event, UID dataElement) throws NotFoundException;
 
-  Event getEvent(Event event, EventParams eventParams) throws ForbiddenException;
+  /** Get an image for an events' data element in the given dimension. */
+  FileResourceStream getFileResourceImage(UID event, UID dataElement, ImageFileDimension dimension)
+      throws NotFoundException, ConflictException, BadRequestException;
+
+  /** Get event matching given {@code UID} and params. */
+  Event getEvent(String uid, EventParams eventParams) throws NotFoundException, ForbiddenException;
 
   /** Get all events matching given params. */
   List<Event> getEvents(EventOperationParams params) throws BadRequestException, ForbiddenException;
