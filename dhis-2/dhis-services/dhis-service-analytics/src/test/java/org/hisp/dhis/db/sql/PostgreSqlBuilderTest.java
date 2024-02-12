@@ -160,6 +160,7 @@ class PostgreSqlBuilderTest {
   void testEscape() {
     assertEquals("Age group ''under 5'' years", sqlBuilder.escape("Age group 'under 5' years"));
     assertEquals("Level ''high'' found", sqlBuilder.escape("Level 'high' found"));
+    assertEquals("C:\\\\Downloads\\\\File.doc", sqlBuilder.escape("C:\\Downloads\\File.doc"));
   }
 
   @Test

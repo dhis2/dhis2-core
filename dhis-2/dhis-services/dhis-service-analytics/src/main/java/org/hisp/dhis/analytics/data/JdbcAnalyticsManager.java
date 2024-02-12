@@ -316,7 +316,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
 
     builder.append(getFromClause(params, tableType));
 
-    // Skip the where clause here if it's already in the subquery
+    // Skip the where clause here if already in sub query
     if (!params.getAggregationType().isMinOrMaxInPeriodAggregationType()) {
       builder.append(getWhereClause(params, tableType));
     }
