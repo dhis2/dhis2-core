@@ -263,7 +263,6 @@ class ProgramStageWorkingListControllerTest extends DhisControllerConvenienceTes
 
   @Test
   void shouldCreateWorkingListWithProgramStageQueryCriteria() {
-
     String workingListJson =
         assertStatus(
             HttpStatus.CREATED,
@@ -284,7 +283,7 @@ class ProgramStageWorkingListControllerTest extends DhisControllerConvenienceTes
                         + "],"
                         + "'order': 'createdAt:desc',"
                         + "'enrollmentStatus': 'ACTIVE',"
-                        + "'followup': 'true',"
+                        + "'followUp': 'true',"
                         + "'eventOccurredAt': "
                         + "{"
                         + "'type': 'RELATIVE',"
