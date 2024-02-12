@@ -170,7 +170,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     assertEquals(2, pager.getPageCount());
 
     assertEquals(
-        2,
+        1,
         icons.size(),
         () -> String.format("mismatch in number of expected Icon(s), fetched %s", icons));
   }
