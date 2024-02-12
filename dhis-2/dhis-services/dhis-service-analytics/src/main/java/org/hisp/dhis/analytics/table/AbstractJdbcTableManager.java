@@ -252,7 +252,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   @Override
   public void analyzeTable(Table table) {
-    analyzeTable(table);
+    executeSilently(sqlBuilder.analyzeTable(table));
   }
 
   @Override
