@@ -20,7 +20,7 @@
     <jackson.version>2.16.1</jackson.version>
     <guava.version>33.0.0-jre</guava.version>
     <json-tree.version>1.0</json-tree.version>
-    <epam-reportportal.version>5.2.0</epam-reportportal.version>
+    <epam-reportportal.version>5.2.1</epam-reportportal.version>
     <javafaker.version>1.0.2</javafaker.version>
     <opencsv.version>5.9</opencsv.version>
     <owner.version>1.0.12</owner.version>
@@ -34,7 +34,7 @@
     <selenium-java.version>4.17.0</selenium-java.version>
     <slf4j-simple.version>2.0.12</slf4j-simple.version>
     <fluent-hc.version>4.5.14</fluent-hc.version>
-    <httpclient5.version>5.3</httpclient5.version>
+    <httpclient5.version>5.3.1</httpclient5.version>
     <commons-io.version>2.15.1</commons-io.version>
   </properties>
 

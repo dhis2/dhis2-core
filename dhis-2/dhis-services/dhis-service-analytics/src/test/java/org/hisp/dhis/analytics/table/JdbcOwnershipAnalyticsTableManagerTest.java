@@ -71,6 +71,8 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
@@ -130,6 +132,8 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
 
   @Mock private PeriodDataProvider periodDataProvider;
 
+  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+
   private static final Program programA = createProgram('A');
 
   private static final Program programB = createProgramWithoutRegistration('B');
@@ -158,7 +162,8 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
             jdbcTemplate,
             jdbcConfiguration,
             analyticsExportSettings,
-            periodDataProvider);
+            periodDataProvider,
+            sqlBuilder);
 
     tableA =
         new AnalyticsTable(

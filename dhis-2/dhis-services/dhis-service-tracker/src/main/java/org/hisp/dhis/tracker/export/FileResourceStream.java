@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,21 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.variable;
+package org.hisp.dhis.tracker.export;
 
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.system.util.SqlUtils;
-import org.hisp.dhis.util.DateUtils;
+import java.io.InputStream;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import org.hisp.dhis.fileresource.FileResource;
 
 /**
- * Program indicator variable: analytics period start
- *
- * @author Jim Grace
+ * FileResourceStream holds a file resource and a supplier to open an input stream to the file
+ * resource content if needed.
  */
-public class vAnalyticsPeriodStart extends ProgramDateVariable {
-  @Override
-  public Object getSql(CommonExpressionVisitor visitor) {
-    return SqlUtils.singleQuote(
-        DateUtils.getSqlDateString(visitor.getProgParams().getReportingStartDate()));
-  }
+@Getter
+@AllArgsConstructor
+@RequiredArgsConstructor
+public class FileResourceStream {
+  private final FileResource fileResource;
+  @Setter private FileResourceSupplier<InputStream> inputStreamSupplier;
 }

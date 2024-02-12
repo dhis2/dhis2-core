@@ -70,6 +70,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.ResourceHttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConverter;
@@ -255,6 +256,7 @@ public class MvcTestConfig implements WebMvcConfigurer {
 
     converters.add(mappingJackson2HttpMessageConverter());
     converters.add(mappingJackson2XmlHttpMessageConverter());
+    converters.add(new ResourceHttpMessageConverter());
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,21 +25,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.variable;
+package org.hisp.dhis.tracker.export;
 
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.system.util.SqlUtils;
-import org.hisp.dhis.util.DateUtils;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 
-/**
- * Program indicator variable: analytics period start
- *
- * @author Jim Grace
- */
-public class vAnalyticsPeriodStart extends ProgramDateVariable {
-  @Override
-  public Object getSql(CommonExpressionVisitor visitor) {
-    return SqlUtils.singleQuote(
-        DateUtils.getSqlDateString(visitor.getProgParams().getReportingStartDate()));
-  }
+@FunctionalInterface
+public interface FileResourceSupplier<T> {
+  T get() throws ConflictException, BadRequestException;
 }

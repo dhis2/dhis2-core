@@ -83,13 +83,12 @@ public class GeoJsonImportJob implements Job {
 
       ImportCount count = report.getImportCount();
       progress.completedProcess(
-          "GeoJSON import completed with status %s, %d created, %d updated, %d deleted, %d ignored"
-              .formatted(
-                  report.getStatus(),
-                  count.getImported(),
-                  count.getUpdated(),
-                  count.getDeleted(),
-                  count.getIgnored()));
+          "GeoJSON import completed with status {}, {} created, {} updated, {} deleted, {} ignored",
+          report.getStatus(),
+          count.getImported(),
+          count.getUpdated(),
+          count.getDeleted(),
+          count.getIgnored());
 
       notifier.addJobSummary(jobConfig, report, GeoJsonImportReport.class);
     } catch (IOException e) {
