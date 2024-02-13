@@ -1161,6 +1161,7 @@ public class DefaultDataValueSetService implements DataValueSetService {
         .dataValueBatchHandler(dataValueBatchHandler.init())
         .auditBatchHandler(skipAudit ? null : auditBatchHandler.init())
         .singularNameForType(klass -> schemaService.getDynamicSchema(klass).getSingular())
+        .stageConflicts(false)
         .build();
   }
 

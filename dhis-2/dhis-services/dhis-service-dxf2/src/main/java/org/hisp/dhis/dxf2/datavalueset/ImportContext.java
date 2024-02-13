@@ -201,10 +201,16 @@ public final class ImportContext {
   private final Function<Class<? extends IdentifiableObject>, String> singularNameForType;
 
   public String getCurrentUserName() {
+    if (currentUser == null) {
+      return "unknown";
+    }
     return currentUser.getUsername();
   }
 
   public Boolean currentUserIsSuperUser() {
+    if (currentUser == null) {
+      return false;
+    }
     return currentUser.isSuper();
   }
 
