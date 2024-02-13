@@ -37,7 +37,6 @@ import java.sql.SQLException;
 import javax.sql.DataSource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.datasource.DatabasePoolUtils;
@@ -71,7 +70,7 @@ public class AnalyticsDataSourceConfig {
   @Bean("internalAnalyticsDataSource")
   public DataSource jdbcActualDataSource(
       @Qualifier("actualDataSource") DataSource actualDataSource) {
-    if (isAnalyticsDataSourceConfigured()) {
+    if (dhisConfig.isAnalyticsDatabaseConfigured()) {
       return getAnalyticsDataSource();
     } else {
       log.info(
@@ -154,14 +153,5 @@ public class AnalyticsDataSourceConfig {
     JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
     jdbcTemplate.setFetchSize(FETCH_SIZE);
     return jdbcTemplate;
-  }
-
-  /**
-   * Indicates whether an analytics data source is configured.
-   *
-   * @return true if an analytics data source is configured.
-   */
-  private boolean isAnalyticsDataSourceConfigured() {
-    return StringUtils.isNotBlank(dhisConfig.getProperty(ANALYTICS_CONNECTION_URL));
   }
 }

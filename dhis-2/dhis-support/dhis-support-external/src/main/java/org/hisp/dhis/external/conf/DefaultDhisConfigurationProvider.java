@@ -28,6 +28,7 @@
 package org.hisp.dhis.external.conf;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_URL;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -239,7 +240,7 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
 
   @Override
   public boolean remoteServerIsInAllowedList(String url) {
-    if (StringUtils.isNotEmpty(url)) {
+    if (StringUtils.isNotBlank(url)) {
       List<String> remoteServersAllowed = getRemoteServersAllowed();
       return !getRemoteServersAllowed().isEmpty()
           && remoteServersAllowed.stream().anyMatch(url::startsWith);
@@ -255,6 +256,11 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
     return !(ConfigurationKey.LDAP_URL.getDefaultValue().equals(ldapUrl)
         || ldapUrl == null
         || managerDn == null);
+  }
+
+  @Override
+  public boolean isAnalyticsDatabaseConfigured() {
+    return StringUtils.isNotBlank(getProperty(ANALYTICS_CONNECTION_URL));
   }
 
   @Override

@@ -31,8 +31,9 @@ import org.hisp.dhis.analytics.AnalyticsTableManager;
 import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.analytics.table.DefaultAnalyticsTableService;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.db.sql.SqlBuilderProvider;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -46,8 +47,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration("analyticsServiceConfig")
 public class ServiceConfig {
   @Bean
-  public SqlBuilder sqlBuilder() {
-    return new PostgreSqlBuilder();
+  public SqlBuilder sqlBuilder(DhisConfigurationProvider config) {
+    return new SqlBuilderProvider(config).getSqlBuilder();
   }
 
   @Bean("org.hisp.dhis.analytics.TeiAnalyticsTableService")

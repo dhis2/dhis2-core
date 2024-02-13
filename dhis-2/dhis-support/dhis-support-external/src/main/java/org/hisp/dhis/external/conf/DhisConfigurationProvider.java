@@ -182,6 +182,8 @@ public interface DhisConfigurationProvider {
    */
   EncryptionStatus getEncryptionStatus();
 
+  boolean isAnalyticsDatabaseConfigured();
+
   /**
    * Gets map of all properties except those which are confidential
    *
