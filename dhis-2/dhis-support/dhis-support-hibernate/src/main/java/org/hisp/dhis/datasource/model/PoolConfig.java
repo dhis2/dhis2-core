@@ -29,7 +29,7 @@ package org.hisp.dhis.datasource.model;
 
 import java.util.Optional;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Value;
 import org.hisp.dhis.datasource.DatabasePoolUtils.ConfigKeyMapper;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 
@@ -38,7 +38,7 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Data
+@Value
 @Builder
 public class PoolConfig {
   private String dbPoolType;
