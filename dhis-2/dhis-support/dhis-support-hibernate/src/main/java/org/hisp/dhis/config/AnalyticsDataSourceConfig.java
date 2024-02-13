@@ -39,6 +39,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.datasource.DatabasePoolUtils;
 import org.hisp.dhis.datasource.ReadOnlyDataSourceManager;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -67,21 +68,27 @@ public class AnalyticsDataSourceConfig {
   @Bean("analyticsActualDataSource")
   public DataSource jdbcActualDataSource(
       @Qualifier("actualDataSource") DataSource actualDataSource) {
-
-    String jdbcUrl = dhisConfig.getProperty(ANALYTICS_CONNECTION_URL);
-
-    if (StringUtils.isNotBlank(jdbcUrl)) {
-      return createActualDataSourceFromAnalyticsConfiguration();
+    if (isAnalyticsDataSourceConfigured()) {
+      return getAnalyticsDataSource();
     }
-    // if no analytics connection url is specified, use the same datasource as the main database
+
     log.info(
-        "No analytics connection url is specified ("
-            + ANALYTICS_CONNECTION_URL.getKey()
-            + "). Analytics won't have a dedicated datasource");
+        "Analytics data source connection URL not specified with key: '{}'",
+        ANALYTICS_CONNECTION_URL.getKey());
+
     return actualDataSource;
   }
 
-  private DataSource createActualDataSourceFromAnalyticsConfiguration() {
+  /**
+   * Indicates whether an analytics data source is configured.
+   *
+   * @return true if an analytics data source is configured.
+   */
+  private boolean isAnalyticsDataSourceConfigured() {
+    return StringUtils.isNotBlank(dhisConfig.getProperty(ANALYTICS_CONNECTION_URL));
+  }
+
+  private DataSource getAnalyticsDataSource() {
     String jdbcUrl = dhisConfig.getProperty(ANALYTICS_CONNECTION_URL);
     String dbPoolType = dhisConfig.getProperty(ConfigurationKey.DB_POOL_TYPE);
 
@@ -94,15 +101,15 @@ public class AnalyticsDataSourceConfig {
 
     try {
       return DatabasePoolUtils.createDbPool(poolConfig);
-    } catch (SQLException | PropertyVetoException e) {
+    } catch (SQLException | PropertyVetoException ex) {
       String message =
-          String.format(
-              "Connection test failed for analytics database pool, " + "jdbcUrl: '%s'", jdbcUrl);
+          TextUtils.format(
+              "Connection test failed for analytics database pool, JDBC URL: '{}'", jdbcUrl);
 
       log.error(message);
-      log.error(DebugUtils.getStackTrace(e));
+      log.error(DebugUtils.getStackTrace(ex));
 
-      throw new IllegalStateException(message, e);
+      throw new IllegalStateException(message, ex);
     }
   }
 
