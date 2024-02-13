@@ -1013,14 +1013,14 @@ public class DataQueryParams {
   public List<DimensionalObject> getDimensionsAndFilters(DimensionType dimensionType) {
     return getDimensionsAndFilters().stream()
         .filter(d -> dimensionType == d.getDimensionType())
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /** Returns a list of dimensions and filters of the given set of dimension types. */
   public List<DimensionalObject> getDimensionsAndFilters(Set<DimensionType> dimensionTypes) {
     return getDimensionsAndFilters().stream()
         .filter(d -> dimensionTypes.contains(d.getDimensionType()))
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /** Returns all dimensions except any period dimension. */
@@ -1094,7 +1094,7 @@ public class DataQueryParams {
     return getDimensionsAndFilters(dimensionType).stream()
         .map(DimensionalObject::getItems)
         .flatMap(Collection::stream)
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /**
@@ -1130,7 +1130,7 @@ public class DataQueryParams {
       String dimension) {
     return getDimensionItemObjects(dimension).stream()
         .map(item -> new EventAnalyticsDimensionalItem(item, dimension))
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /**
@@ -1454,7 +1454,7 @@ public class DataQueryParams {
     return dataElements.stream()
         .filter(de -> de.getCategoryCombo().isSkipTotal())
         .filter(de -> !isAllCategoriesDimensionOrFilterWithItems(de))
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /**
@@ -1693,7 +1693,7 @@ public class DataQueryParams {
             AnalyticsUtils.getByDataDimensionItemType(
                 DataDimensionItemType.REPORTING_RATE, dimension.getItems()));
 
-    items = items.stream().filter(r -> metric == r.getMetric()).collect(Collectors.toList());
+    items = items.stream().filter(r -> metric == r.getMetric()).toList();
 
     dimension.getItems().clear();
     dimension.getItems().addAll(items);
@@ -2236,9 +2236,7 @@ public class DataQueryParams {
   /** Returns all typed organisation part of a dimension or filter. */
   public List<OrganisationUnit> getAllTypedOrganisationUnits() {
     return ImmutableList.copyOf(
-        getAllOrganisationUnits().stream()
-            .map(OrganisationUnit.class::cast)
-            .collect(Collectors.toList()));
+        getAllOrganisationUnits().stream().map(OrganisationUnit.class::cast).toList());
   }
 
   /** Returns all data element group sets specified as dimensions or filters. */
@@ -2341,12 +2339,12 @@ public class DataQueryParams {
         getDataElementOperands().stream()
             .map(DataElementOperand.class::cast)
             .map(DataElementOperand::getDataElement)
-            .collect(Collectors.toList()));
+            .toList());
     dataElements.addAll(
         getProgramDataElements().stream()
             .map(ProgramDataElementDimensionItem.class::cast)
             .map(ProgramDataElementDimensionItem::getDataElement)
-            .collect(Collectors.toList()));
+            .toList());
 
     return ImmutableList.copyOf(dataElements);
   }
