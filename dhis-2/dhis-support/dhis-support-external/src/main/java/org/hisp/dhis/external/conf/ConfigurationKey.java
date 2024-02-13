@@ -81,6 +81,9 @@ public enum ConfigurationKey {
   /** Hibernate SQL dialect. */
   CONNECTION_DIALECT("connection.dialect", "", false),
 
+  /** Analytics database platform. */
+  ANALYTICS_CONNECTION_DATABASE("analytics.connection.database", "", false),
+
   /** JDBC driver class. */
   CONNECTION_DRIVER_CLASS("connection.driver_class", "org.postgresql.Driver", false),
 
@@ -376,9 +379,6 @@ public enum ConfigurationKey {
   FLYWAY_REPAIR_BEFORE_MIGRATION("flyway.repair_before_migration", Constants.OFF, false),
 
   PROGRAM_TEMPORARY_OWNERSHIP_TIMEOUT("tracker.temporary.ownership.timeout", "3", false),
-
-  /** Analytics server-side cache expiration in seconds. (default: 0) */
-  ANALYTICS_CACHE_EXPIRATION("analytics.cache.expiration", "0"),
 
   /** Use unlogged tables during analytics export. (default: off) */
   ANALYTICS_TABLE_UNLOGGED("analytics.table.unlogged", Constants.OFF),
