@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,34 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.db.sql;
 
-import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.TEI_ALIAS;
+import java.util.Objects;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 
-import java.util.stream.Stream;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.analytics.common.query.AndCondition;
-import org.hisp.dhis.analytics.common.query.BaseRenderable;
-import org.hisp.dhis.analytics.common.query.Field;
+@RequiredArgsConstructor
+public class SqlBuilderProvider {
+  private final DhisConfigurationProvider config;
 
-/**
- * A condition that checks if the given entity has coordinates. Renders to tei."latitude" is not
- * null and tei."longitude" is not null"
- */
-public class CoordinatesOnlyCondition extends BaseRenderable {
-  public static final CoordinatesOnlyCondition INSTANCE = new CoordinatesOnlyCondition();
-
-  private static final String LATITUDE = "latitude";
-
-  private static final String LONGITUDE = "longitude";
-
-  @Override
-  public String render() {
-    return AndCondition.of(
-            Stream.of(LATITUDE, LONGITUDE)
-                .map(field -> Field.of(TEI_ALIAS, () -> field, StringUtils.EMPTY))
-                .map(IsNotNullCondition::of)
-                .toList())
-        .render();
+  /**
+   * Returns a {@link SqlBuilder} implementation based on the system configuration.
+   *
+   * @return a {@link SqlBuilder}.
+   */
+  public SqlBuilder getSqlBuilder() {
+    Objects.requireNonNull(config);
+    return new PostgreSqlBuilder();
   }
 }
