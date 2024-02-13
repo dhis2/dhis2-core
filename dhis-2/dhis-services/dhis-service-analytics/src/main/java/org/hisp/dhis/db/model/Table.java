@@ -33,6 +33,7 @@ import static org.hisp.dhis.util.ObjectUtils.notNull;
 import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.Validate;
 
@@ -42,6 +43,7 @@ import org.apache.commons.lang3.Validate;
  * @author Lars Helge Overland
  */
 @Getter
+@ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Table {
   public static final String STAGING_TABLE_SUFFIX = "_temp";
@@ -63,10 +65,7 @@ public class Table {
   /** Whether table is logged or unlogged. PostgreSQL-only feature. */
   private final Logged logged;
 
-  /**
-   * The parent table. This table will inherit from the parent table, if specified. Optional, may be
-   * null.
-   */
+  /** Parent table. This table will inherit from the parent table, if specified. Optional. */
   private final Table parent;
 
   /**
@@ -110,6 +109,7 @@ public class Table {
    * @param name the table name.
    * @param columns the list of {@link Column}.
    * @param primaryKey the primary key.
+   * @param checks the list of checks.
    * @param logged the {@link Logged} parameter.
    */
   public Table(
@@ -133,6 +133,7 @@ public class Table {
    * @param name the table name.
    * @param columns the list of {@link Column}.
    * @param primaryKey the primary key.
+   * @param checks the list of checks.
    * @param logged the {@link Logged} parameter.
    * @param parent the parent {@link Table}.
    */

@@ -33,7 +33,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -60,34 +59,24 @@ public class StdDevOutlierAnalysisService implements DataAnalysisService {
 
   @Override
   public final List<DeflatedDataValue> analyse(
-      Collection<OrganisationUnit> parents,
+      OrganisationUnit orgUnit,
       Collection<DataElement> dataElements,
       Collection<Period> periods,
       Double stdDevFactor,
       Date from) {
-    log.info(
-        "Starting std dev analysis, no of org units: "
-            + parents.size()
-            + ", factor: "
-            + stdDevFactor
-            + ", from: "
-            + from);
+    log.info("Starting std dev analysis, factor: {}, from: {}", stdDevFactor, from);
 
     List<DeflatedDataValue> outlierCollection = new ArrayList<>();
 
-    List<String> parentsPaths =
-        parents.stream().map(OrganisationUnit::getPath).collect(Collectors.toList());
-
     loop:
     for (DataElement dataElement : dataElements) {
-      // TODO filter periods with data element period type
 
       if (dataElement.getValueType().isNumeric() && stdDevFactor != null) {
         Set<CategoryOptionCombo> categoryOptionCombos = dataElement.getCategoryOptionCombos();
 
         List<DataAnalysisMeasures> measuresList =
             dataAnalysisStore.getDataAnalysisMeasures(
-                dataElement, categoryOptionCombos, parentsPaths, from);
+                dataElement, categoryOptionCombos, orgUnit, from);
 
         MapMap<Long, Long, Integer> lowBoundMapMap = new MapMap<>();
         MapMap<Long, Long, Integer> highBoundMapMap = new MapMap<>();

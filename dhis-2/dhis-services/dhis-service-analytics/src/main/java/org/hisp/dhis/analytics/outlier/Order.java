@@ -54,7 +54,7 @@ public enum Order {
   VALUE("value", "value"),
   MEDIAN(ColumnHeader.MEDIAN.getItem(), "middle_value"),
   MEAN(ColumnHeader.MEAN.getItem(), "middle_value"),
-  STD_DEV(STANDARD_DEVIATION.getName(), "std_dev"),
+  STD_DEV(STANDARD_DEVIATION.getItem(), "std_dev"),
   MEDIAN_ABS_DEV(MEDIAN_ABS_DEVIATION.getItem(), "mad"),
   ABS_DEV(ABSOLUTE_DEVIATION.getItem(), "middle_value_abs_dev"),
   LOWER_BOUND(LOWER_BOUNDARY.getItem(), "lower_bound"),

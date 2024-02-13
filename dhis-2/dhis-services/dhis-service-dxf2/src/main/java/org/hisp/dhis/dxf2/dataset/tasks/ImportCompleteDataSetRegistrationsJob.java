@@ -72,7 +72,7 @@ public class ImportCompleteDataSetRegistrationsJob implements Job {
     try (InputStream input =
         progress.runStage(() -> fileResourceService.getFileResourceContent(data))) {
       String contentType = data.getContentType();
-      progress.startingStage("Importing data...");
+      progress.startingStage("Importing data");
       ImportSummary summary =
           switch (contentType) {
             case "application/json" ->
@@ -82,7 +82,7 @@ public class ImportCompleteDataSetRegistrationsJob implements Job {
                 progress.runStage(
                     () -> registrationService.saveCompleteDataSetRegistrationsXml(input, options));
             default -> {
-              progress.failedStage("Unknown format: " + contentType);
+              progress.failedStage("Unknown format: {}", contentType);
               yield null;
             }
           };
@@ -92,13 +92,12 @@ public class ImportCompleteDataSetRegistrationsJob implements Job {
       }
       ImportCount count = summary.getImportCount();
       progress.completedProcess(
-          "Import complete with status %s, %d created, %d updated, %d deleted, %d ignored"
-              .formatted(
-                  summary.getStatus(),
-                  count.getImported(),
-                  count.getUpdated(),
-                  count.getDeleted(),
-                  count.getIgnored()));
+          "Import complete with status {}, {} created, {} updated, {} deleted, {} ignored",
+          summary.getStatus(),
+          count.getImported(),
+          count.getUpdated(),
+          count.getDeleted(),
+          count.getIgnored());
       notifier.addJobSummary(jobConfig, summary, ImportSummary.class);
     } catch (IOException ex) {
       progress.failedProcess(ex);

@@ -51,6 +51,7 @@ import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -102,6 +103,8 @@ public class DefaultResourceTableService implements ResourceTableService {
 
   private final PeriodDataProvider periodDataProvider;
 
+  private final SqlBuilder sqlBuilder;
+
   @Override
   @Transactional
   public void generateOrganisationUnitStructureTable() {
@@ -136,6 +139,7 @@ public class DefaultResourceTableService implements ResourceTableService {
   public void generateDataElementGroupSetTable() {
     resourceTableStore.generateResourceTable(
         new DataElementGroupSetResourceTable(
+            sqlBuilder,
             idObjectManager.getDataDimensionsNoAcl(DataElementGroupSet.class),
             analyticsExportSettings.getTableLogged()));
   }
@@ -145,6 +149,7 @@ public class DefaultResourceTableService implements ResourceTableService {
   public void generateIndicatorGroupSetTable() {
     resourceTableStore.generateResourceTable(
         new IndicatorGroupSetResourceTable(
+            sqlBuilder,
             idObjectManager.getAllNoAcl(IndicatorGroupSet.class),
             analyticsExportSettings.getTableLogged()));
   }
@@ -154,6 +159,7 @@ public class DefaultResourceTableService implements ResourceTableService {
   public void generateOrganisationUnitGroupSetTable() {
     resourceTableStore.generateResourceTable(
         new OrganisationUnitGroupSetResourceTable(
+            sqlBuilder,
             idObjectManager.getDataDimensionsNoAcl(OrganisationUnitGroupSet.class),
             organisationUnitService.getNumberOfOrganisationalLevels(),
             analyticsExportSettings.getTableLogged()));
@@ -164,6 +170,7 @@ public class DefaultResourceTableService implements ResourceTableService {
   public void generateCategoryTable() {
     resourceTableStore.generateResourceTable(
         new CategoryResourceTable(
+            sqlBuilder,
             idObjectManager.getDataDimensionsNoAcl(Category.class),
             idObjectManager.getDataDimensionsNoAcl(CategoryOptionGroupSet.class),
             analyticsExportSettings.getTableLogged()));

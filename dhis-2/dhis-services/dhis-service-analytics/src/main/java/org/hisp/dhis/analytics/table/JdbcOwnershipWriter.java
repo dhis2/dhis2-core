@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.table;
 import static java.util.Calendar.DECEMBER;
 import static java.util.Calendar.JANUARY;
 import static org.apache.commons.lang3.time.DateUtils.truncate;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.util.DateUtils.addDays;
 
 import java.util.Calendar;
@@ -58,13 +57,13 @@ public class JdbcOwnershipWriter {
   /** Row of the current write, possibly modified. */
   private Map<String, Object> newRow;
 
-  public static final String TEIUID = quote("teiuid");
+  public static final String TEIUID = "teiuid";
 
-  public static final String STARTDATE = quote("startdate");
+  public static final String STARTDATE = "startdate";
 
-  public static final String ENDDATE = quote("enddate");
+  public static final String ENDDATE = "enddate";
 
-  public static final String OU = quote("ou");
+  public static final String OU = "ou";
 
   private static final Date FAR_PAST_DATE = new GregorianCalendar(1000, JANUARY, 1).getTime();
 
@@ -176,8 +175,8 @@ public class JdbcOwnershipWriter {
   }
 
   /**
-   * Returns true if the column has the same value between the previous row and the new row. (Note
-   * that the new row may have a null value!)
+   * Returns true if the column has the same value between the previous row and the new row. Note
+   * that the new row may have a null value.
    */
   private boolean sameValue(String colName) {
     return Objects.equals(prevRow.get(colName), newRow.get(colName));

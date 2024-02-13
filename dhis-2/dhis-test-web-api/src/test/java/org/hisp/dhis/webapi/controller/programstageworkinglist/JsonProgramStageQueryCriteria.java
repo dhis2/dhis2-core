@@ -25,14 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.config.views;
+package org.hisp.dhis.webapi.controller.programstageworkinglist;
 
-/**
- * Json view to keep confidential parameters from exposing through API and make sure their
- * availability while de-serialisation. @Author Zubair Asghar.
- */
-public class SmsConfigurationViews {
-  public static class Public {}
+import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonObject;
 
-  public static class Internal extends Public {}
+/** Representation of {@link org.hisp.dhis.programstageworkinglist.ProgramStageQueryCriteria}. */
+public interface JsonProgramStageQueryCriteria extends JsonObject {
+
+  default String getEnrollmentStatus() {
+    return getString("enrollmentStatus").string();
+  }
+
+  default String getOrder() {
+    return getString("order").string();
+  }
+
+  default JsonArray getDisplayColumnOrder() {
+    return getArray("displayColumnOrder");
+  }
+
+  default JsonDatePeriod getEventOccurredAt() {
+    return get("eventOccurredAt").as(JsonDatePeriod.class);
+  }
+
+  default boolean getFollowUp() {
+    return getBoolean("followUp").booleanValue();
+  }
 }

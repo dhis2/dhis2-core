@@ -35,7 +35,6 @@ import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.ENDDATE;
 import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.OU;
 import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.STARTDATE;
 import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.TEIUID;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DATE;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
@@ -72,6 +71,8 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
@@ -131,6 +132,8 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
 
   @Mock private PeriodDataProvider periodDataProvider;
 
+  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+
   private static final Program programA = createProgram('A');
 
   private static final Program programB = createProgramWithoutRegistration('B');
@@ -159,7 +162,8 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
             jdbcTemplate,
             jdbcConfiguration,
             analyticsExportSettings,
-            periodDataProvider);
+            periodDataProvider,
+            sqlBuilder);
 
     tableA =
         new AnalyticsTable(
@@ -319,10 +323,10 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
   void testGetFixedColumns() {
     List<AnalyticsTableColumn> expected =
         List.of(
-            new AnalyticsTableColumn(quote("teiuid"), CHARACTER_11, "tei.uid"),
-            new AnalyticsTableColumn(quote("startdate"), DATE, "a.startdate"),
-            new AnalyticsTableColumn(quote("enddate"), DATE, "a.enddate"),
-            new AnalyticsTableColumn(quote("ou"), CHARACTER_11, NOT_NULL, "ou.uid"));
+            new AnalyticsTableColumn("teiuid", CHARACTER_11, "tei.uid"),
+            new AnalyticsTableColumn("startdate", DATE, "a.startdate"),
+            new AnalyticsTableColumn("enddate", DATE, "a.enddate"),
+            new AnalyticsTableColumn("ou", CHARACTER_11, NOT_NULL, "ou.uid"));
 
     assertEquals(expected, JdbcOwnershipAnalyticsTableManager.FIXED_COLS);
   }

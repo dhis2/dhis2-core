@@ -27,17 +27,14 @@
  */
 package org.hisp.dhis.analytics.table.model;
 
-import static org.hisp.dhis.db.model.Table.fromStaging;
-import static org.hisp.dhis.db.model.Table.toStaging;
-
 import java.util.Date;
 import java.util.List;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.springframework.util.Assert;
@@ -50,19 +47,12 @@ import org.springframework.util.Assert;
  * @author Lars Helge Overland
  */
 @Getter
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class AnalyticsTable {
-  /** Table name. */
-  @EqualsAndHashCode.Include private final String name;
-
+public class AnalyticsTable extends Table {
   /** Analytics table type. */
   private final AnalyticsTableType tableType;
 
   /** Columns representing dimensions. */
   private final List<AnalyticsTableColumn> analyticsTableColumns;
-
-  /** Whether table is logged or unlogged. PostgreSQL-only feature. */
-  private final Logged logged;
 
   /** Program of events in analytics table. */
   private Program program;
@@ -86,10 +76,9 @@ public class AnalyticsTable {
    */
   public AnalyticsTable(
       AnalyticsTableType tableType, List<AnalyticsTableColumn> columns, Logged logged) {
-    this.name = toStaging(tableType.getTableName());
+    super(toStaging(tableType.getTableName()), toColumns(columns), List.of(), logged);
     this.tableType = tableType;
     this.analyticsTableColumns = columns;
-    this.logged = logged;
   }
 
   /**
@@ -105,10 +94,9 @@ public class AnalyticsTable {
       List<AnalyticsTableColumn> columns,
       Logged logged,
       Program program) {
-    this.name = toStaging(getTableName(tableType, program));
+    super(toStaging(getTableName(tableType, program)), toColumns(columns), List.of(), logged);
     this.tableType = tableType;
     this.analyticsTableColumns = columns;
-    this.logged = logged;
     this.program = program;
   }
 
@@ -125,10 +113,13 @@ public class AnalyticsTable {
       List<AnalyticsTableColumn> columns,
       Logged logged,
       TrackedEntityType trackedEntityType) {
-    this.name = toStaging(getTableName(tableType, trackedEntityType));
+    super(
+        toStaging(getTableName(tableType, trackedEntityType)),
+        toColumns(columns),
+        List.of(),
+        logged);
     this.tableType = tableType;
     this.analyticsTableColumns = columns;
-    this.logged = logged;
     this.trackedEntityType = trackedEntityType;
   }
 
@@ -142,7 +133,7 @@ public class AnalyticsTable {
    * @param columns the list of {@link AnalyticsTableColumn}.
    * @return a list of {@link Column}.
    */
-  protected static List<Column> toColumns(List<AnalyticsTableColumn> columns) {
+  private static List<Column> toColumns(List<AnalyticsTableColumn> columns) {
     return columns.stream()
         .map(c -> new Column(c.getName(), c.getDataType(), c.getNullable(), c.getCollation()))
         .toList();
@@ -181,7 +172,7 @@ public class AnalyticsTable {
    * @return the name which represents the main analytics table.
    */
   public String getMainName() {
-    return fromStaging(name);
+    return fromStaging(getName());
   }
 
   /**
@@ -204,24 +195,6 @@ public class AnalyticsTable {
     return analyticsTableColumns.stream()
         .filter(c -> AnalyticsValueType.FACT == c.getValueType())
         .toList();
-  }
-
-  /**
-   * Returns the count of all columns.
-   *
-   * @return the count of all columns.
-   */
-  public int getColumnCount() {
-    return getAnalyticsTableColumns().size();
-  }
-
-  /**
-   * Indicates whether the table is unlogged.
-   *
-   * @return true if the table is unlogged.
-   */
-  public boolean isUnlogged() {
-    return Logged.UNLOGGED == logged;
   }
 
   /**
@@ -269,5 +242,21 @@ public class AnalyticsTable {
   @Override
   public String toString() {
     return "[Table name: " + getName() + ", partitions: " + tablePartitions + "]";
+  }
+
+  @Override
+  public int hashCode() {
+    return super.hashCode();
+  }
+
+  @Override
+  public boolean equals(Object object) {
+    if (this == object) {
+      return true;
+    }
+    if (object != null && getClass() != object.getClass()) {
+      return false;
+    }
+    return super.equals(object);
   }
 }

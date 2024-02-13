@@ -28,6 +28,7 @@
 package org.hisp.dhis.db.sql;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import org.hisp.dhis.db.model.Collation;
@@ -93,6 +94,8 @@ class PostgreSqlBuilderTest {
     return new Table("nutrition", columns, List.of(), List.of(), Logged.LOGGED, getTableB());
   }
 
+  // Data types
+
   @Test
   void testDataType() {
     assertEquals("double precision", sqlBuilder.dataTypeDouble());
@@ -104,6 +107,74 @@ class PostgreSqlBuilderTest {
     assertEquals("btree", sqlBuilder.indexTypeBtree());
     assertEquals("gist", sqlBuilder.indexTypeGist());
   }
+
+  // Capabilities
+
+  @Test
+  void testSupportsAnalyze() {
+    assertTrue(sqlBuilder.supportsAnalyze());
+  }
+
+  @Test
+  void testSupportsVacuum() {
+    assertTrue(sqlBuilder.supportsVacuum());
+  }
+
+  // Utilities
+
+  @Test
+  void testQuote() {
+    assertEquals(
+        "\"Treated \"\"malaria\"\" at facility\"",
+        sqlBuilder.quote("Treated \"malaria\" at facility"));
+    assertEquals("\"quarterly\"", sqlBuilder.quote("quarterly"));
+    assertEquals("\"Fully immunized\"", sqlBuilder.quote("Fully immunized"));
+  }
+
+  @Test
+  void testQuoteAlias() {
+    assertEquals(
+        "ax.\"Treated \"\"malaria\"\" at facility\"",
+        sqlBuilder.quote("ax", "Treated \"malaria\" at facility"));
+    assertEquals("analytics.\"quarterly\"", sqlBuilder.quote("analytics", "quarterly"));
+    assertEquals("dv.\"Fully immunized\"", sqlBuilder.quote("dv", "Fully immunized"));
+  }
+
+  @Test
+  void testQuoteAx() {
+    assertEquals(
+        "ax.\"Treated \"\"malaria\"\" at facility\"",
+        sqlBuilder.quoteAx("Treated \"malaria\" at facility"));
+    assertEquals("ax.\"quarterly\"", sqlBuilder.quoteAx("quarterly"));
+    assertEquals("ax.\"Fully immunized\"", sqlBuilder.quoteAx("Fully immunized"));
+  }
+
+  @Test
+  void testSingleQuote() {
+    assertEquals("'jkhYg65ThbF'", sqlBuilder.singleQuote("jkhYg65ThbF"));
+    assertEquals("'Age ''<5'' years'", sqlBuilder.singleQuote("Age '<5' years"));
+    assertEquals("'Status \"not checked\"'", sqlBuilder.singleQuote("Status \"not checked\""));
+  }
+
+  @Test
+  void testEscape() {
+    assertEquals("Age group ''under 5'' years", sqlBuilder.escape("Age group 'under 5' years"));
+    assertEquals("Level ''high'' found", sqlBuilder.escape("Level 'high' found"));
+    assertEquals("C:\\\\Downloads\\\\File.doc", sqlBuilder.escape("C:\\Downloads\\File.doc"));
+  }
+
+  @Test
+  void testSinqleQuotedCommaDelimited() {
+    assertEquals(
+        "'dmPbDBKwXyF', 'zMl4kciwJtz', 'q1Nqu1r1GTn'",
+        sqlBuilder.singleQuotedCommaDelimited(
+            List.of("dmPbDBKwXyF", "zMl4kciwJtz", "q1Nqu1r1GTn")));
+    assertEquals("'1', '3', '5'", sqlBuilder.singleQuotedCommaDelimited(List.of("1", "3", "5")));
+    assertEquals("", sqlBuilder.singleQuotedCommaDelimited(List.of()));
+    assertEquals("", sqlBuilder.singleQuotedCommaDelimited(null));
+  }
+
+  // Statements
 
   @Test
   void testCreateTableA() {

@@ -46,6 +46,7 @@ import org.hisp.dhis.actions.analytics.AnalyticsTeiActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.json.JSONException;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -836,6 +837,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
   }
 
   @Test
+  @Disabled("Support for Program Indicators in the query API is not yet properly implemented")
   public void queryWithProgramAndProgramIndicatorOrdering() {
     // Given
     QueryParamsBuilder params =
@@ -2717,6 +2719,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
   }
 
   @Test
+  @Disabled("Support for Program Indicators in the query API is not yet properly implemented")
   public void queryProgramIndicator() {
     // Given
     QueryParamsBuilder params =
@@ -2779,6 +2782,31 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Male",
             "",
             "2994.5"));
+  }
+
+  @Test
+  // Support for Program Indicators in the query API is not yet properly implemented - DHIS2-16732
+  public void queryProgramIndicatorShouldFail() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("program=IpHINAT79UW")
+            .add("dimension=IpHINAT79UW.GxdhnY5wmHq");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(409)
+        .body("httpStatus", equalTo("Conflict"))
+        .body("httpStatusCode", equalTo(409))
+        .body("status", equalTo("ERROR"))
+        .body(
+            "message",
+            equalTo("Query does not support program indicators: `IpHINAT79UW.GxdhnY5wmHq`"))
+        .body("errorCode", equalTo("E7251"));
   }
 
   @Test
@@ -2871,8 +2899,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
     response
         .validate()
         .statusCode(200)
-        .body("rows", hasSize(equalTo(50)))
-        .body("height", equalTo(50))
+        .body("rows", hasSize(equalTo(32)))
+        .body("height", equalTo(32))
         .body("width", equalTo(1))
         .body("headerWidth", equalTo(1))
         .body("headers", hasSize(equalTo(1)));
@@ -2920,6 +2948,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
   }
 
   @Test
+  @Disabled("This test use program indicators that are currently disabled - DHIS2-16732")
   public void noNaNinRows() {
     // Given
     QueryParamsBuilder params =
@@ -3034,5 +3063,24 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
 
     // Then
     response.validate().statusCode(200);
+  }
+
+  @Test
+  public void multipleDateFiltersShouldUseOr() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("headers=w75KJ2mc4zz,zDhUuAYrxNC")
+            .add("created=2014-04-28,2014-03-06")
+            .add("desc=lastUpdated");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response.validate().statusCode(200);
+
+    validateRow(response, 0, List.of("John", "Kelly"));
+    validateRow(response, 1, List.of("John", "Doe"));
   }
 }

@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.table;
 
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.SPACE;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DATE;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
@@ -58,6 +57,7 @@ import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.jdbc.batchhandler.MappingBatchHandler;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
@@ -89,10 +89,10 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
 
   protected static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
-          new AnalyticsTableColumn(quote("teiuid"), CHARACTER_11, "tei.uid"),
-          new AnalyticsTableColumn(quote("startdate"), DATE, "a.startdate"),
-          new AnalyticsTableColumn(quote("enddate"), DATE, "a.enddate"),
-          new AnalyticsTableColumn(quote("ou"), CHARACTER_11, NOT_NULL, "ou.uid"));
+          new AnalyticsTableColumn("teiuid", CHARACTER_11, "tei.uid"),
+          new AnalyticsTableColumn("startdate", DATE, "a.startdate"),
+          new AnalyticsTableColumn("enddate", DATE, "a.enddate"),
+          new AnalyticsTableColumn("ou", CHARACTER_11, NOT_NULL, "ou.uid"));
 
   public JdbcOwnershipAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -107,7 +107,8 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       JdbcConfiguration jdbcConfiguration,
       AnalyticsTableExportSettings analyticsExportSettings,
-      PeriodDataProvider periodDataProvider) {
+      PeriodDataProvider periodDataProvider,
+      SqlBuilder sqlBuilder) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -120,7 +121,8 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
         databaseInfoProvider,
         jdbcTemplate,
         analyticsExportSettings,
-        periodDataProvider);
+        periodDataProvider,
+        sqlBuilder);
     this.jdbcConfiguration = jdbcConfiguration;
   }
 
@@ -287,7 +289,6 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
 
     columns.addAll(getOrganisationUnitLevelColumns());
     columns.addAll(getOrganisationUnitGroupSetColumns());
-
     columns.addAll(FIXED_COLS);
 
     return filterDimensionColumns(columns);
