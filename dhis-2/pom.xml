@@ -82,7 +82,7 @@
 
     <!-- DHIS2 Rule Engine -->
     <dhis2-rule-engine.version>3.0.0-20240119.134348-12</dhis2-rule-engine.version>
-    <kotlinx-datetime.version>0.4.0</kotlinx-datetime.version>
+    <kotlinx-datetime.version>0.5.0</kotlinx-datetime.version>
 
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.3</dhis-hisp-quick.version>
@@ -145,7 +145,7 @@
     <jclouds.version>2.5.0</jclouds.version>
 
     <!-- Reporting -->
-    <jasperreports.version>6.21.0</jasperreports.version>
+    <jasperreports.version>6.20.0</jasperreports.version>
     <jfreechart.version>1.5.4</jfreechart.version>
     <htmlparser.version>2.1</htmlparser.version>
     <htmllexer.version>2.1</htmllexer.version>
@@ -160,7 +160,7 @@
     <jts.version>1.19.0</jts.version>
 
     <!-- Apache Artemis -->
-    <artemis.version>2.31.2</artemis.version>
+    <artemis.version>2.32.0</artemis.version>
     <netty-all.version>4.1.106.Final</netty-all.version>
     <classgraph.version>4.8.165</classgraph.version>
 
@@ -180,7 +180,7 @@
     <google-api-client.version>2.2.0</google-api-client.version>
     <lombok.version>1.18.30</lombok.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
-    <joda-time.version>2.12.6</joda-time.version>
+    <joda-time.version>2.12.7</joda-time.version>
     <cron-utils.version>9.2.1</cron-utils.version>
     <commons-collections4.version>4.4</commons-collections4.version>
     <commons-beanutils.version>1.9.4</commons-beanutils.version>
@@ -211,7 +211,7 @@
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>2.2</hamcrest.version>
     <hamcrest-date.version>2.0.8</hamcrest-date.version>
-    <testcontainers.version>1.19.4</testcontainers.version>
+    <testcontainers.version>1.19.5</testcontainers.version>
     <jsonassert.version>1.5.1</jsonassert.version>
     <awaitility.version>4.2.0</awaitility.version>
     <swagger.version>2.1.20</swagger.version>

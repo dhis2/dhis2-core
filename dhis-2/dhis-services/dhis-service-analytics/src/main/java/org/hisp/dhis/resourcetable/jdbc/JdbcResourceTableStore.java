@@ -27,18 +27,18 @@
  */
 package org.hisp.dhis.resourcetable.jdbc;
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePhase;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
-import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableStore;
@@ -62,7 +62,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
 
   private final JdbcTemplate jdbcTemplate;
 
-  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+  private final SqlBuilder sqlBuilder;
 
   @Override
   public void generateResourceTable(ResourceTable resourceTable) {
@@ -109,12 +109,10 @@ public class JdbcResourceTableStore implements ResourceTableStore {
       jdbcTemplate.execute(populateTableSql.get());
     } else if (populateTableContent.isPresent()) {
       List<Object[]> content = populateTableContent.get();
-
       log.debug("Populate table content rows: {}", content.size());
 
       if (content.size() > 0) {
         int columns = content.get(0).length;
-
         batchUpdate(columns, table.getName(), content);
       }
     }
@@ -143,7 +141,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
    * @param indexes the list of {@link Index} to create.
    */
   private void createIndexes(List<Index> indexes) {
-    if (CollectionUtils.isNotEmpty(indexes)) {
+    if (isNotEmpty(indexes)) {
       for (Index index : indexes) {
         jdbcTemplate.execute(sqlBuilder.createIndex(index));
       }

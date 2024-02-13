@@ -67,6 +67,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
@@ -125,7 +126,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
       DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       AnalyticsTableExportSettings analyticsExportSettings,
-      PeriodDataProvider periodDataProvider) {
+      PeriodDataProvider periodDataProvider,
+      SqlBuilder sqlBuilder) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -138,7 +140,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         databaseInfoProvider,
         jdbcTemplate,
         analyticsExportSettings,
-        periodDataProvider);
+        periodDataProvider,
+        sqlBuilder);
   }
 
   // -------------------------------------------------------------------------
@@ -356,7 +359,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             + "inner join _categoryoptioncomboname aon on dv.attributeoptioncomboid=aon.categoryoptioncomboid "
             + "inner join _categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid ";
 
-    if (!skipOutliers(params)) {
+    if (!params.isSkipOutliers()) {
       sql += getOutliersJoinStatement();
     }
 
@@ -488,7 +491,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     columns.addAll(getPeriodTypeColumns("ps"));
     columns.addAll(FIXED_COLS);
 
-    if (!skipOutliers(params)) {
+    if (!params.isSkipOutliers()) {
       columns.addAll(getOutlierStatsColumns());
     }
 
@@ -598,11 +601,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     jdbcTemplate.execute(sql.toString());
   }
 
-  @Override
-  public void vacuumTables(AnalyticsTablePartition partition) {
-    vacuumTable(partition.getName());
-  }
-
   /**
    * Indicates whether the system should ignore data which has not been approved in analytics
    * tables.
@@ -708,9 +706,5 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         + "on dv.dataelementid = stats.dataelementid and dv.sourceid = stats.sourceid and "
         + "dv.categoryoptioncomboid = stats.categoryoptioncomboid and "
         + "dv.attributeoptioncomboid = stats.attributeoptioncomboid ";
-  }
-
-  private boolean skipOutliers(AnalyticsTableUpdateParams params) {
-    return params != null && params.isSkipOutliers();
   }
 }

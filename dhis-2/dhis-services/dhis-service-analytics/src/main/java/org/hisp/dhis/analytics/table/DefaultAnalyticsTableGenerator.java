@@ -93,7 +93,7 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
         "Last successful analytics table update: '{}'", getLongDateString(lastSuccessfulUpdate));
 
     progress.startingProcess(
-        "Analytics table update process" + (params.isLatestUpdate() ? "(latest partition)" : ""));
+        "Analytics table update process{}", (params.isLatestUpdate() ? " (latest partition)" : ""));
 
     if (!params.isSkipResourceTables() && !params.isLatestUpdate()) {
       generateResourceTablesInternal(progress);
@@ -109,13 +109,13 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
       }
     }
 
-    progress.startingStage("Updating settings");
+    progress.startingStage("Updating system settings");
     progress.runStage(() -> updateLastSuccessfulSystemSettings(params, clock));
 
     progress.startingStage("Invalidate analytics caches", SKIP_STAGE);
     progress.runStage(analyticsCache::invalidateAll);
     progress.runStage(outliersCache::invalidateAll);
-    progress.completedProcess("Analytics tables updated: " + clock.time());
+    progress.completedProcess("Analytics tables updated: {}", clock.time());
   }
 
   private void updateLastSuccessfulSystemSettings(AnalyticsTableUpdateParams params, Clock clock) {
@@ -141,9 +141,9 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
     try {
       generateResourceTablesInternal(progress);
 
-      progress.completedProcess("Resource tables generated: " + clock.time());
+      progress.completedProcess("Resource tables generated: {}", clock.time());
     } catch (RuntimeException ex) {
-      progress.failedProcess("Resource tables generation: " + ex.getMessage());
+      progress.failedProcess("Resource tables generation: {}", ex.getMessage());
       throw ex;
     }
   }

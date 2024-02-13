@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,15 +25,56 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.util;
+package org.hisp.dhis.datasource;
 
-import org.hisp.dhis.feedback.ConflictException;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 
-/**
- * Use instead of {@link java.util.function.Supplier} when you need to throw a {@link
- * ConflictException} as checked exceptions cannot be thrown from lambdas.
- */
-@FunctionalInterface
-public interface ConflictExceptionSupplier<T> {
-  T get() throws ConflictException;
+import java.sql.Connection;
+import java.sql.Driver;
+import java.sql.DriverPropertyInfo;
+import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
+import java.sql.Statement;
+import java.util.Properties;
+import java.util.logging.Logger;
+
+public class StubDriver implements Driver {
+  @Override
+  public Connection connect(String s, Properties properties) throws SQLException {
+    Statement mockStatement = mock(Statement.class);
+    Connection mockConnection = mock(Connection.class);
+    given(mockConnection.createStatement()).willReturn(mockStatement);
+    return mockConnection;
+  }
+
+  @Override
+  public boolean acceptsURL(String url) throws SQLException {
+    return url.equals("jdbc:fake:db");
+  }
+
+  @Override
+  public DriverPropertyInfo[] getPropertyInfo(String s, Properties properties) throws SQLException {
+    return new DriverPropertyInfo[0];
+  }
+
+  @Override
+  public int getMajorVersion() {
+    return 0;
+  }
+
+  @Override
+  public int getMinorVersion() {
+    return 0;
+  }
+
+  @Override
+  public boolean jdbcCompliant() {
+    return false;
+  }
+
+  @Override
+  public Logger getParentLogger() throws SQLFeatureNotSupportedException {
+    return null;
+  }
 }

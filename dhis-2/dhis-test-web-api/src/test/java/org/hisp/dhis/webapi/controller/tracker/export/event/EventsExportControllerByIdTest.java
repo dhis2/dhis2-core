@@ -36,8 +36,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -46,8 +53,10 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceContentStore;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.FileResourceStorageStatus;
+import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.note.Note;
@@ -76,6 +85,7 @@ import org.hisp.dhis.webapi.controller.tracker.JsonRelationship;
 import org.hisp.dhis.webapi.controller.tracker.JsonRelationshipItem;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
@@ -84,6 +94,8 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private FileResourceService fileResourceService;
+
+  @Autowired private FileResourceContentStore fileResourceContentStore;
 
   private OrganisationUnit orgUnit;
 
@@ -519,6 +531,136 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
 
     GET("/tracker/events/{eventUid}/dataValues/{dataElementUid}/file", event.getUid(), de.getUid())
         .error(HttpStatus.NOT_FOUND);
+  }
+
+  @Test
+  void getDataValuesImageByDataElement() throws ConflictException {
+    Event event = event(enrollment(trackedEntity()));
+    DataElement de = dataElement(ValueType.IMAGE);
+    FileResource file = storeFile("image/png", "file content");
+
+    event.getEventDataValues().add(dataValue(de, file.getUid()));
+    manager.update(event);
+
+    HttpResponse response =
+        GET(
+            "/tracker/events/{eventUid}/dataValues/{dataElementUid}/image",
+            event.getUid(),
+            de.getUid());
+
+    assertEquals(HttpStatus.OK, response.status());
+    assertEquals("\"" + file.getContentMd5() + "\"", response.header("Etag"));
+    assertEquals("max-age=0, must-revalidate, private", response.header("Cache-Control"));
+    assertEquals("attachment; filename=" + file.getName(), response.header("Content-Disposition"));
+    assertEquals(Long.toString(file.getContentLength()), response.header("Content-Length"));
+    assertEquals("file content", response.content("image/png"));
+  }
+
+  @Test
+  void getDataValuesImageByDataElementUsingAnotherDimension(@TempDir Path tempDir)
+      throws ConflictException, IOException {
+    Event event = event(enrollment(trackedEntity()));
+    DataElement de = dataElement(ValueType.IMAGE);
+    // simulating the work of the ImageResizingJob
+    // original "image"
+    FileResource file = storeFile("image/png", "original image");
+    file.setHasMultipleStorageFiles(true);
+    manager.update(file);
+    // small "image"
+    Path smallImage = tempDir.resolve("small.png");
+    String smallFileContent = "small file";
+    Files.writeString(smallImage, smallFileContent);
+    fileResourceContentStore.saveFileResourceContent(
+        file, Map.of(ImageFileDimension.SMALL, smallImage.toFile()));
+
+    event.getEventDataValues().add(dataValue(de, file.getUid()));
+    manager.update(event);
+
+    HttpResponse response =
+        GET(
+            "/tracker/events/{eventUid}/dataValues/{dataElementUid}/image?dimension=small",
+            event.getUid(),
+            de.getUid());
+
+    assertEquals(HttpStatus.OK, response.status());
+    HashCode expectedHashCode = Hashing.md5().hashString(smallFileContent, StandardCharsets.UTF_8);
+    assertEquals("\"" + expectedHashCode + "\"", response.header("Etag"));
+    assertEquals("max-age=0, must-revalidate, private", response.header("Cache-Control"));
+    assertEquals("attachment; filename=" + file.getName(), response.header("Content-Disposition"));
+    assertEquals(
+        Long.toString(smallFileContent.getBytes().length), response.header("Content-Length"));
+    assertEquals(smallFileContent, response.content("image/png"));
+  }
+
+  @Test
+  void getDataValuesImageByDataElementWithInvalidDimension() throws ConflictException {
+    Event event = event(enrollment(trackedEntity()));
+    DataElement de = dataElement(ValueType.IMAGE);
+    FileResource file = storeFile("image/png", "file content");
+
+    event.getEventDataValues().add(dataValue(de, file.getUid()));
+    manager.update(event);
+
+    String message =
+        GET(
+                "/tracker/events/{eventUid}/dataValues/{dataElementUid}/image?dimension=tiny",
+                event.getUid(),
+                de.getUid())
+            .error(HttpStatus.BAD_REQUEST)
+            .getMessage();
+
+    assertStartsWith("Value 'tiny' is not valid", message);
+  }
+
+  @Test
+  void getDataValuesImageByDataElementIfDataElementIsNotAnImage() throws ConflictException {
+    DataElement de = dataElement(ValueType.FILE_RESOURCE);
+    FileResource file = storeFile("text/plain", "file content");
+
+    Event event = event(enrollment(trackedEntity()));
+    event.getEventDataValues().add(dataValue(de, file.getUid()));
+    manager.update(event);
+
+    String message =
+        GET(
+                "/tracker/events/{eventUid}/dataValues/{dataElementUid}/image",
+                event.getUid(),
+                de.getUid())
+            .error(HttpStatus.BAD_REQUEST)
+            .getMessage();
+
+    assertStartsWith("File is not an image", message);
+  }
+
+  @Test
+  void getDataValuesImageByDataElementUsingAnotherDimensionIfDoesNotHaveMultipleStoredFiles(
+      @TempDir Path tempDir) throws ConflictException, IOException {
+    Event event = event(enrollment(trackedEntity()));
+    DataElement de = dataElement(ValueType.IMAGE);
+    // simulating the work of the ImageResizingJob
+    // original "image"
+    FileResource file = storeFile("image/png", "original image");
+    file.setHasMultipleStorageFiles(false);
+    manager.update(file);
+    // small "image"
+    Path smallImage = tempDir.resolve("small.png");
+    String smallFileContent = "small file";
+    Files.writeString(smallImage, smallFileContent);
+    fileResourceContentStore.saveFileResourceContent(
+        file, Map.of(ImageFileDimension.SMALL, smallImage.toFile()));
+
+    event.getEventDataValues().add(dataValue(de, file.getUid()));
+    manager.update(event);
+
+    String message =
+        GET(
+                "/tracker/events/{eventUid}/dataValues/{dataElementUid}/image?dimension=small",
+                event.getUid(),
+                de.getUid())
+            .error(HttpStatus.BAD_REQUEST)
+            .getMessage();
+
+    assertStartsWith("Image is not stored using multiple dimensions", message);
   }
 
   private FileResource storeFile(String contentType, String content) throws ConflictException {

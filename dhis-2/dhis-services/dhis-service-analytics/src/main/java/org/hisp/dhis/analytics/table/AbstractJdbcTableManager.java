@@ -64,7 +64,6 @@ import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
-import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -133,7 +132,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   protected final PeriodDataProvider periodDataProvider;
 
-  protected final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+  protected final SqlBuilder sqlBuilder;
 
   protected Boolean spatialSupport;
 
@@ -232,13 +231,8 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   @Override
-  public void dropTable(AnalyticsTable table) {
+  public void dropTable(Table table) {
     dropTable(table.getName());
-  }
-
-  @Override
-  public void dropTablePartition(AnalyticsTablePartition tablePartition) {
-    dropTable(tablePartition.getName());
   }
 
   @Override
@@ -252,8 +246,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   @Override
-  public void vacuumTable(String name) {
-    executeSilently(sqlBuilder.vacuumTable(name));
+  public void vacuumTable(Table table) {
+    executeSilently(sqlBuilder.vacuumTable(table));
+  }
+
+  @Override
+  public void analyzeTable(Table table) {
+    executeSilently(sqlBuilder.analyzeTable(table));
   }
 
   @Override
@@ -556,7 +555,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @return a string representing the comma delimited and quoted item values.
    */
   protected String quotedCommaDelimitedString(Collection<String> items) {
-    return sqlBuilder.quotedCommaDelimitedString(items);
+    return sqlBuilder.singleQuotedCommaDelimited(items);
   }
 
   // -------------------------------------------------------------------------

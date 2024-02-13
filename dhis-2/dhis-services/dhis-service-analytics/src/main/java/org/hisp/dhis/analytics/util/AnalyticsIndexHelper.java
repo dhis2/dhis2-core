@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.util;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.join;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.removeQuote;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 
@@ -101,7 +100,7 @@ public class AnalyticsIndexHelper {
     String columnName = join(columns, "_");
 
     return PREFIX_INDEX
-        + removeQuote(maybeShortenColumnName(columnName))
+        + maybeShortenColumnName(columnName)
         + "_"
         + shortenTableName(tableName, tableType)
         + "_"

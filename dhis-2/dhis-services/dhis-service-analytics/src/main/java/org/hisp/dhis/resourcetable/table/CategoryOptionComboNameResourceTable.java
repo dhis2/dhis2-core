@@ -33,6 +33,7 @@ import static org.hisp.dhis.db.model.Table.toStaging;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -48,17 +49,13 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
  * @author Lars Helge Overland
  */
 @Slf4j
+@RequiredArgsConstructor
 public class CategoryOptionComboNameResourceTable implements ResourceTable {
   private static final String TABLE_NAME = "_categoryoptioncomboname";
 
   private final List<CategoryCombo> categoryCombos;
 
   private final Logged logged;
-
-  public CategoryOptionComboNameResourceTable(List<CategoryCombo> categoryCombos, Logged logged) {
-    this.categoryCombos = categoryCombos;
-    this.logged = logged;
-  }
 
   @Override
   public Table getTable() {
