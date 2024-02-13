@@ -25,30 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.config;
+package org.hisp.dhis.webapi.controller.programstageworkinglist;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serial;
-import java.io.Serializable;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import org.hisp.dhis.jsontree.JsonObject;
 
-/**
- * @author Zubair <rajazubair.asghar@gmail.com>
- */
-@Getter
-@Setter
-@ToString
-@EqualsAndHashCode
-public class GenericGatewayParameter implements Serializable {
+/** Representation of {@link org.hisp.dhis.programstageworkinglist.ProgramStageWorkingList}. */
+public interface JsonWorkingList extends JsonObject {
+  default String getProgram() {
+    return get("program").asObject().getString("id").string();
+  }
 
-  @Serial private static final long serialVersionUID = -863990758156009672L;
+  default String getProgramStage() {
+    return get("programStage").asObject().getString("id").string();
+  }
 
-  @JsonProperty private String key;
-  @JsonProperty private String value;
-  @JsonProperty private boolean header;
-  @JsonProperty private boolean encode;
-  @JsonProperty private boolean confidential;
+  default JsonProgramStageQueryCriteria getProgramStageQueryCriteria() {
+    return get("programStageQueryCriteria").as(JsonProgramStageQueryCriteria.class);
+  }
 }

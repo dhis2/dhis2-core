@@ -25,30 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.config;
+package org.hisp.dhis.webapi.controller.programstageworkinglist;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serial;
-import java.io.Serializable;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonObject;
 
-/**
- * @author Zubair <rajazubair.asghar@gmail.com>
- */
-@Getter
-@Setter
-@ToString
-@EqualsAndHashCode
-public class GenericGatewayParameter implements Serializable {
+/** Representation of {@link org.hisp.dhis.programstageworkinglist.ProgramStageQueryCriteria}. */
+public interface JsonProgramStageQueryCriteria extends JsonObject {
 
-  @Serial private static final long serialVersionUID = -863990758156009672L;
+  default String getEnrollmentStatus() {
+    return getString("enrollmentStatus").string();
+  }
 
-  @JsonProperty private String key;
-  @JsonProperty private String value;
-  @JsonProperty private boolean header;
-  @JsonProperty private boolean encode;
-  @JsonProperty private boolean confidential;
+  default String getOrder() {
+    return getString("order").string();
+  }
+
+  default JsonArray getDisplayColumnOrder() {
+    return getArray("displayColumnOrder");
+  }
+
+  default JsonDatePeriod getEventOccurredAt() {
+    return get("eventOccurredAt").as(JsonDatePeriod.class);
+  }
+
+  default boolean getFollowUp() {
+    return getBoolean("followUp").booleanValue();
+  }
 }
