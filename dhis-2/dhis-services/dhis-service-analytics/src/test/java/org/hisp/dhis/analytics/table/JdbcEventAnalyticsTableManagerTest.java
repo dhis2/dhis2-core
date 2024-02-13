@@ -68,7 +68,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -163,7 +162,7 @@ class JdbcEventAnalyticsTableManagerTest {
                 String column = pt.getName().toLowerCase();
                 return new AnalyticsTableColumn(column, TEXT, "dps" + "." + quote(column));
               })
-          .collect(Collectors.toList());
+          .toList();
 
   private final BeanRandomizer rnd = BeanRandomizer.create();
 
@@ -738,8 +737,7 @@ class JdbcEventAnalyticsTableManagerTest {
 
   @Test
   void verifyGetAnalyticsTableWithOuLevels() {
-    List<OrganisationUnitLevel> ouLevels =
-        rnd.objects(OrganisationUnitLevel.class, 2).collect(Collectors.toList());
+    List<OrganisationUnitLevel> ouLevels = rnd.objects(OrganisationUnitLevel.class, 2).toList();
     Program programA = rnd.nextObject(Program.class);
     programA.setId(0);
 
@@ -799,7 +797,7 @@ class JdbcEventAnalyticsTableManagerTest {
   @Test
   void verifyGetAnalyticsTableWithOuGroupSet() {
     List<OrganisationUnitGroupSet> ouGroupSet =
-        rnd.objects(OrganisationUnitGroupSet.class, 2).collect(Collectors.toList());
+        rnd.objects(OrganisationUnitGroupSet.class, 2).toList();
     Program programA = rnd.nextObject(Program.class);
     programA.setId(0);
 
@@ -841,8 +839,7 @@ class JdbcEventAnalyticsTableManagerTest {
 
   @Test
   void verifyGetAnalyticsTableWithOptionGroupSets() {
-    List<CategoryOptionGroupSet> cogs =
-        rnd.objects(CategoryOptionGroupSet.class, 2).collect(Collectors.toList());
+    List<CategoryOptionGroupSet> cogs = rnd.objects(CategoryOptionGroupSet.class, 2).toList();
     Program programA = rnd.nextObject(Program.class);
     programA.setId(0);
 
