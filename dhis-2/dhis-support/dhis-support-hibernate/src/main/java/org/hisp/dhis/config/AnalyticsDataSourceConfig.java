@@ -88,6 +88,11 @@ public class AnalyticsDataSourceConfig {
     return StringUtils.isNotBlank(dhisConfig.getProperty(ANALYTICS_CONNECTION_URL));
   }
 
+  /**
+   * Returns a data source for the analytics database.
+   *
+   * @return a {@link DataSource}.
+   */
   private DataSource getAnalyticsDataSource() {
     String jdbcUrl = dhisConfig.getProperty(ANALYTICS_CONNECTION_URL);
     String dbPoolType = dhisConfig.getProperty(ConfigurationKey.DB_POOL_TYPE);
