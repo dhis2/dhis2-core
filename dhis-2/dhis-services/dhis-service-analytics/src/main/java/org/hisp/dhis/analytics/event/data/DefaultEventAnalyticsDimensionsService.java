@@ -168,7 +168,7 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
             unused ->
                 categoryService.getAllCategoryOptionGroupSets().stream()
                     .filter(this::isTypeAttribute)
-                    .collect(Collectors.toList()))
+                    .toList())
         .orElse(List.of());
   }
 
@@ -191,7 +191,7 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
         .orElse(List.of())
         .stream()
         .filter(this::isNotConfidential)
-        .collect(Collectors.toList());
+        .toList();
   }
 
   private boolean isNotConfidential(TrackedEntityAttribute trackedEntityAttribute) {

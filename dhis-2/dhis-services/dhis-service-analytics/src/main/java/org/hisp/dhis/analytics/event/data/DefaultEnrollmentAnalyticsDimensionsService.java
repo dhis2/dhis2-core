@@ -92,7 +92,7 @@ public class DefaultEnrollmentAnalyticsDimensionsService
                 filterByValueType(
                     operationType, ofProgramStageDataElements(programStageDataElements)))
         .flatMap(Collection::stream)
-        .collect(Collectors.toList());
+        .toList();
   }
 
   @Override
@@ -118,7 +118,7 @@ public class DefaultEnrollmentAnalyticsDimensionsService
         .orElse(List.of())
         .stream()
         .filter(this::isNotConfidential)
-        .collect(Collectors.toList());
+        .toList();
   }
 
   private boolean isNotConfidential(TrackedEntityAttribute trackedEntityAttribute) {

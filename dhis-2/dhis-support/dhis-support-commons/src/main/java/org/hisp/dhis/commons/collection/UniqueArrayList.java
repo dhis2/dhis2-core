@@ -40,47 +40,31 @@ public class UniqueArrayList<E> extends ArrayList<E> {
     super();
   }
 
-  public UniqueArrayList(Collection<? extends E> c) {
+  public UniqueArrayList(Collection<? extends E> collection) {
     super();
-    addAll(c);
+    addAll(collection);
   }
 
   @Override
-  public boolean add(E e) {
-    return super.contains(e) ? false : super.add(e);
+  public boolean add(E element) {
+    return super.contains(element) ? false : super.add(element);
   }
 
   @Override
-  public void add(int index, E e) {
-    if (!super.contains(e)) {
-      super.add(index, e);
+  public void add(int index, E element) {
+    if (!super.contains(element)) {
+      super.add(index, element);
     }
   }
 
   @Override
-  public boolean addAll(Collection<? extends E> c) {
+  public boolean addAll(Collection<? extends E> collection) {
     boolean modified = false;
 
-    if (c != null) {
-      for (E e : c) {
-        if (!super.contains(e)) {
-          super.add(e);
-          modified = true;
-        }
-      }
-    }
-
-    return modified;
-  }
-
-  @Override
-  public boolean addAll(int index, Collection<? extends E> c) {
-    boolean modified = false;
-
-    if (c != null) {
-      for (E e : c) {
-        if (!super.contains(e)) {
-          super.add(index++, e);
+    if (collection != null) {
+      for (E element : collection) {
+        if (!super.contains(element)) {
+          super.add(element);
           modified = true;
         }
       }
