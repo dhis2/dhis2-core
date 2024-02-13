@@ -137,7 +137,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
         response,
         15,
         "modifiedzscore",
-        "Modified zScore",
+        "Modified Z-score",
         "NUMBER",
         "java.lang.Double",
         false,
@@ -660,7 +660,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
         response,
         15,
         "modifiedzscore",
-        "Modified zScore",
+        "Modified Z-score",
         "NUMBER",
         "java.lang.Double",
         false,
@@ -1173,7 +1173,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
         response, 13, "stddev", "Standard deviation", "NUMBER", "java.lang.Double", false, false);
     validateHeader(
         response, 14, "absdev", "Absolute deviation", "NUMBER", "java.lang.Double", false, false);
-    validateHeader(response, 15, "zscore", "zScore", "NUMBER", "java.lang.Double", false, false);
+    validateHeader(response, 15, "zscore", "Z-score", "NUMBER", "java.lang.Double", false, false);
     validateHeader(
         response, 16, "lowerbound", "Lower boundary", "NUMBER", "java.lang.Double", false, false);
     validateHeader(
@@ -1325,7 +1325,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
         response, 13, "stddev", "Standard deviation", "NUMBER", "java.lang.Double", false, false);
     validateHeader(
         response, 14, "absdev", "Absolute deviation", "NUMBER", "java.lang.Double", false, false);
-    validateHeader(response, 15, "zscore", "zScore", "NUMBER", "java.lang.Double", false, false);
+    validateHeader(response, 15, "zscore", "Z-score", "NUMBER", "java.lang.Double", false, false);
     validateHeader(
         response, 16, "lowerbound", "Lower boundary", "NUMBER", "java.lang.Double", false, false);
     validateHeader(

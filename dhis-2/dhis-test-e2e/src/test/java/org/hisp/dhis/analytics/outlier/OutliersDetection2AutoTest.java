@@ -170,7 +170,7 @@ public class OutliersDetection2AutoTest extends AnalyticsApiTest {
         response, 13, "stddev", "Standard deviation", "NUMBER", "java.lang.Double", false, false);
     validateHeader(
         response, 14, "absdev", "Absolute deviation", "NUMBER", "java.lang.Double", false, false);
-    validateHeader(response, 15, "zscore", "zScore", "NUMBER", "java.lang.Double", false, false);
+    validateHeader(response, 15, "zscore", "Z-score", "NUMBER", "java.lang.Double", false, false);
     validateHeader(
         response, 16, "lowerbound", "Lower boundary", "NUMBER", "java.lang.Double", false, false);
     validateHeader(
@@ -286,7 +286,7 @@ public class OutliersDetection2AutoTest extends AnalyticsApiTest {
         response,
         2,
         "modifiedzscore",
-        "Modified zScore",
+        "Modified Z-score",
         "NUMBER",
         "java.lang.Double",
         false,
@@ -337,7 +337,7 @@ public class OutliersDetection2AutoTest extends AnalyticsApiTest {
     // Assert headers.
     validateHeader(response, 0, "dx", "Data", "TEXT", "java.lang.String", false, false);
     validateHeader(response, 1, "dxname", "Data name", "TEXT", "java.lang.String", false, false);
-    validateHeader(response, 2, "zscore", "zScore", "NUMBER", "java.lang.Double", false, false);
+    validateHeader(response, 2, "zscore", "Z-score", "NUMBER", "java.lang.Double", false, false);
 
     // Assert rows.
     validateRow(response, 0, List.of("l6byfWFUGaP", "Yellow Fever doses given", "3.65607"));
