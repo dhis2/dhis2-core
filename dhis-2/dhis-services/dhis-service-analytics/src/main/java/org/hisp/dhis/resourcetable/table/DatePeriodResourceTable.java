@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
-import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.db.model.Table.toStaging;
 
 import com.google.common.collect.Lists;
@@ -35,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.db.model.Column;
@@ -52,17 +52,13 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 /**
  * @author Lars Helge Overland
  */
+@RequiredArgsConstructor
 public class DatePeriodResourceTable implements ResourceTable {
   private static final String TABLE_NAME = "_dateperiodstructure";
 
   private final List<Integer> years;
 
   private final Logged logged;
-
-  public DatePeriodResourceTable(List<Integer> years, Logged logged) {
-    this.years = years;
-    this.logged = logged;
-  }
 
   @Override
   public Table getTable() {
@@ -107,7 +103,7 @@ public class DatePeriodResourceTable implements ResourceTable {
     List<Period> dailyPeriods = new DailyPeriodType().generatePeriods(startDate, endDate);
 
     List<Date> days =
-        new UniqueArrayList<>(dailyPeriods.stream().map(Period::getStartDate).collect(toList()));
+        new UniqueArrayList<>(dailyPeriods.stream().map(Period::getStartDate).toList());
 
     Calendar calendar = PeriodType.getCalendar();
 

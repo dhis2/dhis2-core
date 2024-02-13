@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,14 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.config.views;
+package org.hisp.dhis.webapi.controller;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 /**
- * Json view to keep confidential parameters from exposing through API and make sure their
- * availability while de-serialisation. @Author Zubair Asghar.
+ * Tests the {@link SynchronizationController} using (mocked) REST requests.
+ *
+ * @author david mackessy
  */
-public class SmsConfigurationViews {
-  public static class Public {}
+class SynchronizationControllerTest extends DhisControllerConvenienceTest {
 
-  public static class Internal extends Public {}
+  @Test
+  @DisplayName("Calling the metadataPull endpoint with an invalid url returns an error message")
+  void invalidUrlTest() {
+    JsonMixed content =
+        POST("/synchronization/metadataPull", "https://invalidurl.com/metadata")
+            .content(HttpStatus.CONFLICT);
+
+    assertEquals(
+        "Provided URL is not in the remote servers allowed list",
+        content.getString("message").string());
+  }
 }

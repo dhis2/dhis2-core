@@ -29,11 +29,11 @@ package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getEndDate;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getStartDate;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -64,7 +64,6 @@ import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
-import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -133,7 +132,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   protected final PeriodDataProvider periodDataProvider;
 
-  protected final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+  protected final SqlBuilder sqlBuilder;
 
   protected Boolean spatialSupport;
 
@@ -232,13 +231,8 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   @Override
-  public void dropTable(AnalyticsTable table) {
+  public void dropTable(Table table) {
     dropTable(table.getName());
-  }
-
-  @Override
-  public void dropTablePartition(AnalyticsTablePartition tablePartition) {
-    dropTable(tablePartition.getName());
   }
 
   @Override
@@ -252,8 +246,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   @Override
-  public void vacuumTable(String name) {
-    executeSilently(sqlBuilder.vacuumTable(name));
+  public void vacuumTable(Table table) {
+    executeSilently(sqlBuilder.vacuumTable(table));
+  }
+
+  @Override
+  public void analyzeTable(Table table) {
+    executeSilently(sqlBuilder.analyzeTable(table));
   }
 
   @Override
@@ -537,6 +536,26 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
                   name, CHARACTER_11, "acs." + quote(name), category.getCreated());
             })
         .toList();
+  }
+
+  /**
+   * Quotes the given relation.
+   *
+   * @param relation the relation to quote, e.g. a table or column name.
+   * @return a double quoted relation.
+   */
+  protected String quote(String relation) {
+    return sqlBuilder.quote(relation);
+  }
+
+  /**
+   * Returns a quoted and comma delimited string.
+   *
+   * @param items the items to join.
+   * @return a string representing the comma delimited and quoted item values.
+   */
+  protected String quotedCommaDelimitedString(Collection<String> items) {
+    return sqlBuilder.singleQuotedCommaDelimited(items);
   }
 
   // -------------------------------------------------------------------------
