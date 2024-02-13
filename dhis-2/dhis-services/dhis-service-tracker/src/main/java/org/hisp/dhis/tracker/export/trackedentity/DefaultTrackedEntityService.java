@@ -77,7 +77,6 @@ import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.TrackedEntityAggregate;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -145,7 +144,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     }
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    TrackedEntityAttribute attribute = validateDataReadAccess(currentUser, attributeUid);
+    TrackedEntityAttribute attribute = validateDataReadAccess(attributeUid);
     if (!attribute.getValueType().isFile()) {
       throw new NotFoundException(
           "Tracked entity attribute " + attributeUid.getValue() + " is not a file (or image).");
@@ -185,11 +184,9 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     return fileResourceService.getExistingFileResource(fileResourceUid);
   }
 
-  private TrackedEntityAttribute validateDataReadAccess(User currentUser, UID attributeUid)
-      throws NotFoundException {
+  private TrackedEntityAttribute validateDataReadAccess(UID attributeUid) throws NotFoundException {
     Set<TrackedEntityAttribute> readableAttributes =
-        trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes(
-            UserDetails.fromUser(currentUser));
+        trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes();
 
     TrackedEntityAttribute attribute = null;
     for (TrackedEntityAttribute readableAttribute : readableAttributes) {
@@ -306,8 +303,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     if (params.isIncludeProgramOwners()) {
       result.setProgramOwners(trackedEntity.getProgramOwners());
     }
-    result.setTrackedEntityAttributeValues(
-        getTrackedEntityAttributeValues(trackedEntity, currentUser));
+    result.setTrackedEntityAttributeValues(getTrackedEntityAttributeValues(trackedEntity));
 
     return result;
   }
@@ -348,10 +344,9 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   private Set<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(
-      TrackedEntity trackedEntity, User user) {
+      TrackedEntity trackedEntity) {
     Set<TrackedEntityAttribute> readableAttributes =
-        trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes(
-            UserDetails.fromUser(user));
+        trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes();
     return trackedEntity.getTrackedEntityAttributeValues().stream()
         .filter(av -> readableAttributes.contains(av.getAttribute()))
         .collect(Collectors.toCollection(LinkedHashSet::new));
