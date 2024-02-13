@@ -82,9 +82,12 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
     Collection<ProgramStage> programStages = getProgramStages(programId, programStageId);
 
     if (CollectionUtils.isNotEmpty(programStages)) {
-      return programStages.stream().map(this::dimensions).flatMap(Collection::stream).toList();
+      return programStages.stream()
+          .map(this::dimensions)
+          .flatMap(Collection::stream)
+          .collect(Collectors.toList());
     }
-    return Collections.emptyList();
+    return List.of();
   }
 
   private Collection<ProgramStage> getProgramStages(String programId, String programStageId) {
@@ -137,7 +140,7 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
                             ofItemsWithProgram(p, getTeasIfRegistrationAndNotConfidential(p))),
                         ofItemsWithProgram(p, getCategoriesIfNeeded(p)),
                         ofItemsWithProgram(p, getAttributeCategoryOptionGroupSetsIfNeeded(p)))))
-        .orElse(Collections.emptyList());
+        .orElse(List.of());
   }
 
   @Override
@@ -157,7 +160,7 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
                         ofItemsWithProgram(
                             ps.getProgram(),
                             getAttributeCategoryOptionGroupSetsIfNeeded(ps.getProgram())))))
-        .orElse(Collections.emptyList());
+        .orElse(List.of());
   }
 
   private List<CategoryOptionGroupSet> getAttributeCategoryOptionGroupSetsIfNeeded(
@@ -169,7 +172,7 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
                 categoryService.getAllCategoryOptionGroupSets().stream()
                     .filter(this::isTypeAttribute)
                     .collect(Collectors.toList()))
-        .orElse(Collections.emptyList());
+        .orElse(List.of());
   }
 
   private boolean isTypeAttribute(CategoryOptionGroupSet categoryOptionGroupSet) {
@@ -181,15 +184,14 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
         .filter(Program::hasNonDefaultCategoryCombo)
         .map(Program::getCategoryCombo)
         .map(CategoryCombo::getCategories)
-        .orElse(Collections.emptyList());
+        .orElse(List.of());
   }
 
-  private Collection<TrackedEntityAttribute> getTeasIfRegistrationAndNotConfidential(
-      Program program) {
+  private List<TrackedEntityAttribute> getTeasIfRegistrationAndNotConfidential(Program program) {
     return Optional.of(program)
         .filter(Program::isRegistration)
         .map(Program::getTrackedEntityAttributes)
-        .orElse(Collections.emptyList())
+        .orElse(List.of())
         .stream()
         .filter(this::isNotConfidential)
         .collect(Collectors.toList());

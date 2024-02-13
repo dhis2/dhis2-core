@@ -40,26 +40,20 @@ import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteria
 public interface RelationshipStore extends IdentifiableObjectStore<Relationship> {
   String ID = RelationshipStore.class.getName();
 
-  default List<Relationship> getByTrackedEntity(TrackedEntity trackedEntity) {
-    return getByTrackedEntity(trackedEntity, null);
-  }
-
   List<Relationship> getByTrackedEntity(
-      TrackedEntity te, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter);
-
-  default List<Relationship> getByEnrollment(Enrollment enrollment) {
-    return getByEnrollment(enrollment, null);
-  }
+      TrackedEntity te,
+      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
+      boolean includeDeleted);
 
   List<Relationship> getByEnrollment(
-      Enrollment enrollment, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter);
-
-  default List<Relationship> getByEvent(Event event) {
-    return getByEvent(event, null);
-  }
+      Enrollment enrollment,
+      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
+      boolean includeDeleted);
 
   List<Relationship> getByEvent(
-      Event event, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter);
+      Event event,
+      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
+      boolean includeDeleted);
 
   List<Relationship> getByRelationshipType(RelationshipType relationshipType);
 

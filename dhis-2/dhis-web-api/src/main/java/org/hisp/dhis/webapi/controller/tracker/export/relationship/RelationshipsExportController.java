@@ -111,7 +111,7 @@ class RelationshipsExportController {
               RELATIONSHIP_MAPPER.fromCollection(relationshipsPage.getItems()),
               requestParams.getFields());
 
-      return Page.withPager(objectNodes, relationshipsPage);
+      return Page.withPager(RELATIONSHIPS, objectNodes, relationshipsPage);
     }
 
     List<org.hisp.dhis.relationship.Relationship> relationships =
@@ -120,7 +120,7 @@ class RelationshipsExportController {
         fieldFilterService.toObjectNodes(
             RELATIONSHIP_MAPPER.fromCollection(relationships), requestParams.getFields());
 
-    return Page.withoutPager(objectNodes);
+    return Page.withoutPager(RELATIONSHIPS, objectNodes);
   }
 
   @GetMapping("/{uid}")

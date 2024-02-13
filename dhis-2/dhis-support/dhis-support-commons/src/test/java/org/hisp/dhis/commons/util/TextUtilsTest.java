@@ -36,7 +36,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import java.util.AbstractSequentialList;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.junit.jupiter.api.Test;
@@ -100,10 +99,9 @@ class TextUtilsTest {
   @Test
   void testGetTokens() {
     assertEquals(
-        new ArrayList<>(Arrays.asList("John", "Doe", "Main", "Road", "25")),
-        TextUtils.getTokens("John Doe Main Road 25"));
+        List.of("John", "Doe", "Main", "Road", "25"), TextUtils.getTokens("John Doe Main Road 25"));
     assertEquals(
-        new ArrayList<>(Arrays.asList("Ted,Johnson", "Upper-Road", "45")),
+        List.of("Ted,Johnson", "Upper-Road", "45"),
         TextUtils.getTokens("Ted,Johnson Upper-Road 45"));
   }
 
@@ -142,6 +140,7 @@ class TextUtilsTest {
 
     assertEquals(null, TextUtils.removeLastComma(nullValue));
     assertEquals("", TextUtils.removeLastComma(""));
+    assertEquals("tom", TextUtils.removeLastComma("tom"));
     assertEquals("tom,john", TextUtils.removeLastComma("tom,john,"));
     assertEquals("tom, john", TextUtils.removeLastComma("tom, john, "));
     assertEquals("tom, john", TextUtils.removeLastComma("tom, john,  "));
@@ -153,6 +152,7 @@ class TextUtilsTest {
 
     assertEquals(null, TextUtils.removeLastComma(nullValue));
     assertEquals("", TextUtils.removeLastComma(new StringBuilder()).toString());
+    assertEquals("tom", TextUtils.removeLastComma(new StringBuilder("tom")).toString());
     assertEquals("tom,john", TextUtils.removeLastComma(new StringBuilder("tom,john,")).toString());
     assertEquals(
         "tom, john", TextUtils.removeLastComma(new StringBuilder("tom, john, ")).toString());
@@ -234,8 +234,8 @@ class TextUtilsTest {
   @Test
   void testGetCommaDelimitedString() {
     assertThat(
-        TextUtils.getCommaDelimitedString(Arrays.asList(1, 2, 3, 4, 5)), is("1, 2, 3, 4, 5"));
-    assertThat(TextUtils.getCommaDelimitedString(Collections.singletonList(1)), is("1"));
+        TextUtils.getCommaDelimitedString(List.of("1", "2", "3", "4", "5")), is("1, 2, 3, 4, 5"));
+    assertThat(TextUtils.getCommaDelimitedString(List.of("1")), is("1"));
     assertThat(TextUtils.getCommaDelimitedString(null), is(""));
   }
 
@@ -269,5 +269,11 @@ class TextUtilsTest {
     String strWithSlash = "/path";
     String slashRemoved = removeAnyTrailingSlash(strWithSlash);
     assertEquals("/path", slashRemoved);
+  }
+
+  @Test
+  void testFormat() {
+    assertEquals(
+        "Found 2 items of type text", TextUtils.format("Found {} items of type {}", 2, "text"));
   }
 }

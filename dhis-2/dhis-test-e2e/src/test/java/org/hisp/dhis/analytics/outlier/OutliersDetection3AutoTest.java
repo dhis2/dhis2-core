@@ -137,7 +137,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
         response,
         15,
         "modifiedzscore",
-        "Modified zScore",
+        "Modified Z-score",
         "NUMBER",
         "java.lang.Double",
         false,
@@ -157,7 +157,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202206",
             "scc4QyxenJd",
             "Makali CHC",
-            "/Sierra Leone/Tonkolili/Kunike Barina/Makali CHC",
+            "Sierra Leone / Tonkolili / Kunike Barina / Makali CHC",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
@@ -178,7 +178,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202206",
             "Qc9lf4VM9bD",
             "Wellington Health Centre",
-            "/Sierra Leone/Western Area/Freetown/Wellington Health Centre",
+            "Sierra Leone / Western Area / Freetown / Wellington Health Centre",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
@@ -199,7 +199,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202205",
             "OzjRQLn3G24",
             "Koidu Govt. Hospital",
-            "/Sierra Leone/Kono/Gbense/Koidu Govt. Hospital",
+            "Sierra Leone / Kono / Gbense / Koidu Govt. Hospital",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
@@ -220,7 +220,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202208",
             "tSBcgrTDdB8",
             "Paramedical CHC",
-            "/Sierra Leone/Bo/Kakua/Paramedical CHC",
+            "Sierra Leone / Bo / Kakua / Paramedical CHC",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
@@ -241,7 +241,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202205",
             "OzjRQLn3G24",
             "Koidu Govt. Hospital",
-            "/Sierra Leone/Kono/Gbense/Koidu Govt. Hospital",
+            "Sierra Leone / Kono / Gbense / Koidu Govt. Hospital",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
@@ -262,7 +262,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202202",
             "oLuhRyYPxRO",
             "Senehun CHC",
-            "/Sierra Leone/Moyamba/Kamaje/Senehun CHC",
+            "Sierra Leone / Moyamba / Kamaje / Senehun CHC",
             "psbwp3CQEhs",
             "Fixed, >1y",
             "HllvX50cXC0",
@@ -283,7 +283,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202208",
             "tSBcgrTDdB8",
             "Paramedical CHC",
-            "/Sierra Leone/Bo/Kakua/Paramedical CHC",
+            "Sierra Leone / Bo / Kakua / Paramedical CHC",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
@@ -304,7 +304,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202208",
             "tSBcgrTDdB8",
             "Paramedical CHC",
-            "/Sierra Leone/Bo/Kakua/Paramedical CHC",
+            "Sierra Leone / Bo / Kakua / Paramedical CHC",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
@@ -325,7 +325,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202207",
             "PQEpIeuSTCN",
             "Tobanda CHC",
-            "/Sierra Leone/Kenema/Small Bo/Tobanda CHC",
+            "Sierra Leone / Kenema / Small Bo / Tobanda CHC",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
@@ -346,7 +346,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202201",
             "agEKP19IUKI",
             "Tambiama CHC",
-            "/Sierra Leone/Bombali/Gbendembu Ngowahun/Tambiama CHC",
+            "Sierra Leone / Bombali / Gbendembu Ngowahun / Tambiama CHC",
             "psbwp3CQEhs",
             "Fixed, >1y",
             "HllvX50cXC0",
@@ -367,7 +367,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202202",
             "agEKP19IUKI",
             "Tambiama CHC",
-            "/Sierra Leone/Bombali/Gbendembu Ngowahun/Tambiama CHC",
+            "Sierra Leone / Bombali / Gbendembu Ngowahun / Tambiama CHC",
             "psbwp3CQEhs",
             "Fixed, >1y",
             "HllvX50cXC0",
@@ -388,7 +388,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202208",
             "tSBcgrTDdB8",
             "Paramedical CHC",
-            "/Sierra Leone/Bo/Kakua/Paramedical CHC",
+            "Sierra Leone / Bo / Kakua / Paramedical CHC",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
@@ -409,7 +409,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202208",
             "tSBcgrTDdB8",
             "Paramedical CHC",
-            "/Sierra Leone/Bo/Kakua/Paramedical CHC",
+            "Sierra Leone / Bo / Kakua / Paramedical CHC",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
@@ -430,7 +430,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202208",
             "tSBcgrTDdB8",
             "Paramedical CHC",
-            "/Sierra Leone/Bo/Kakua/Paramedical CHC",
+            "Sierra Leone / Bo / Kakua / Paramedical CHC",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
@@ -451,7 +451,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202208",
             "tSBcgrTDdB8",
             "Paramedical CHC",
-            "/Sierra Leone/Bo/Kakua/Paramedical CHC",
+            "Sierra Leone / Bo / Kakua / Paramedical CHC",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
@@ -472,7 +472,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202209",
             "RhJbg8UD75Q",
             "Yemoh Town CHC",
-            "/Sierra Leone/Bo/Kakua/Yemoh Town CHC",
+            "Sierra Leone / Bo / Kakua / Yemoh Town CHC",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
@@ -493,7 +493,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202209",
             "RhJbg8UD75Q",
             "Yemoh Town CHC",
-            "/Sierra Leone/Bo/Kakua/Yemoh Town CHC",
+            "Sierra Leone / Bo / Kakua / Yemoh Town CHC",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
@@ -514,7 +514,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202208",
             "tSBcgrTDdB8",
             "Paramedical CHC",
-            "/Sierra Leone/Bo/Kakua/Paramedical CHC",
+            "Sierra Leone / Bo / Kakua / Paramedical CHC",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
@@ -535,7 +535,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202202",
             "EUUkKEDoNsf",
             "Wilberforce CHC",
-            "/Sierra Leone/Western Area/Freetown/Wilberforce CHC",
+            "Sierra Leone / Western Area / Freetown / Wilberforce CHC",
             "hEFKSsPV5et",
             "Outreach, >1y",
             "HllvX50cXC0",
@@ -556,7 +556,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202201",
             "EXbPGmEUdnc",
             "Mateboi CHC",
-            "/Sierra Leone/Bombali/Sanda Tendaren/Mateboi CHC",
+            "Sierra Leone / Bombali / Sanda Tendaren / Mateboi CHC",
             "psbwp3CQEhs",
             "Fixed, >1y",
             "HllvX50cXC0",
@@ -660,7 +660,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
         response,
         15,
         "modifiedzscore",
-        "Modified zScore",
+        "Modified Z-score",
         "NUMBER",
         "java.lang.Double",
         false,
@@ -680,7 +680,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202106",
             "scc4QyxenJd",
             "Makali CHC",
-            "/Sierra Leone/Tonkolili/Kunike Barina/Makali CHC",
+            "Sierra Leone / Tonkolili / Kunike Barina / Makali CHC",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
@@ -701,7 +701,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202106",
             "Qc9lf4VM9bD",
             "Wellington Health Centre",
-            "/Sierra Leone/Western Area/Freetown/Wellington Health Centre",
+            "Sierra Leone / Western Area / Freetown / Wellington Health Centre",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
@@ -722,7 +722,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202111",
             "mzsOsz0NwNY",
             "New Police Barracks CHC",
-            "/Sierra Leone/Bo/Kakua/New Police Barracks CHC",
+            "Sierra Leone / Bo / Kakua / New Police Barracks CHC",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
@@ -743,7 +743,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202110",
             "tSBcgrTDdB8",
             "Paramedical CHC",
-            "/Sierra Leone/Bo/Kakua/Paramedical CHC",
+            "Sierra Leone / Bo / Kakua / Paramedical CHC",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
@@ -764,7 +764,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202105",
             "OzjRQLn3G24",
             "Koidu Govt. Hospital",
-            "/Sierra Leone/Kono/Gbense/Koidu Govt. Hospital",
+            "Sierra Leone / Kono / Gbense / Koidu Govt. Hospital",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
@@ -785,7 +785,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202111",
             "mzsOsz0NwNY",
             "New Police Barracks CHC",
-            "/Sierra Leone/Bo/Kakua/New Police Barracks CHC",
+            "Sierra Leone / Bo / Kakua / New Police Barracks CHC",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
@@ -806,7 +806,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202110",
             "tSBcgrTDdB8",
             "Paramedical CHC",
-            "/Sierra Leone/Bo/Kakua/Paramedical CHC",
+            "Sierra Leone / Bo / Kakua / Paramedical CHC",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
@@ -827,7 +827,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202110",
             "tSBcgrTDdB8",
             "Paramedical CHC",
-            "/Sierra Leone/Bo/Kakua/Paramedical CHC",
+            "Sierra Leone / Bo / Kakua / Paramedical CHC",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
@@ -848,7 +848,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202108",
             "tSBcgrTDdB8",
             "Paramedical CHC",
-            "/Sierra Leone/Bo/Kakua/Paramedical CHC",
+            "Sierra Leone / Bo / Kakua / Paramedical CHC",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
@@ -869,7 +869,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202111",
             "mzsOsz0NwNY",
             "New Police Barracks CHC",
-            "/Sierra Leone/Bo/Kakua/New Police Barracks CHC",
+            "Sierra Leone / Bo / Kakua / New Police Barracks CHC",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
@@ -890,7 +890,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202111",
             "mzsOsz0NwNY",
             "New Police Barracks CHC",
-            "/Sierra Leone/Bo/Kakua/New Police Barracks CHC",
+            "Sierra Leone / Bo / Kakua / New Police Barracks CHC",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
@@ -911,7 +911,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202105",
             "OzjRQLn3G24",
             "Koidu Govt. Hospital",
-            "/Sierra Leone/Kono/Gbense/Koidu Govt. Hospital",
+            "Sierra Leone / Kono / Gbense / Koidu Govt. Hospital",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
@@ -932,7 +932,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202111",
             "mzsOsz0NwNY",
             "New Police Barracks CHC",
-            "/Sierra Leone/Bo/Kakua/New Police Barracks CHC",
+            "Sierra Leone / Bo / Kakua / New Police Barracks CHC",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
@@ -953,7 +953,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202111",
             "mzsOsz0NwNY",
             "New Police Barracks CHC",
-            "/Sierra Leone/Bo/Kakua/New Police Barracks CHC",
+            "Sierra Leone / Bo / Kakua / New Police Barracks CHC",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
@@ -974,7 +974,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202112",
             "ui12Hyvn6jR",
             "Wilberforce Military Hospital",
-            "/Sierra Leone/Western Area/Freetown/Wilberforce Military Hospital",
+            "Sierra Leone / Western Area / Freetown / Wilberforce Military Hospital",
             "V6L425pT3A0",
             "Outreach, <1y",
             "HllvX50cXC0",
@@ -995,7 +995,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202102",
             "oLuhRyYPxRO",
             "Senehun CHC",
-            "/Sierra Leone/Moyamba/Kamaje/Senehun CHC",
+            "Sierra Leone / Moyamba / Kamaje / Senehun CHC",
             "psbwp3CQEhs",
             "Fixed, >1y",
             "HllvX50cXC0",
@@ -1016,7 +1016,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202110",
             "tSBcgrTDdB8",
             "Paramedical CHC",
-            "/Sierra Leone/Bo/Kakua/Paramedical CHC",
+            "Sierra Leone / Bo / Kakua / Paramedical CHC",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
@@ -1037,7 +1037,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202110",
             "tSBcgrTDdB8",
             "Paramedical CHC",
-            "/Sierra Leone/Bo/Kakua/Paramedical CHC",
+            "Sierra Leone / Bo / Kakua / Paramedical CHC",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
@@ -1058,7 +1058,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202110",
             "tSBcgrTDdB8",
             "Paramedical CHC",
-            "/Sierra Leone/Bo/Kakua/Paramedical CHC",
+            "Sierra Leone / Bo / Kakua / Paramedical CHC",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
@@ -1079,7 +1079,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "202108",
             "tSBcgrTDdB8",
             "Paramedical CHC",
-            "/Sierra Leone/Bo/Kakua/Paramedical CHC",
+            "Sierra Leone / Bo / Kakua / Paramedical CHC",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
@@ -1091,5 +1091,309 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "70.31663",
             "-505.334",
             "531.334"));
+  }
+
+  @Test
+  public void queryQueryoutliertest11() throws JSONException {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("endDate=2022-10-26")
+            .add("ou=ImspTQPwCqd")
+            .add("maxResults=5")
+            .add("outputIdScheme=uid")
+            .add("sortOrder=asc")
+            .add("orderBy=mean")
+            .add("startDate=2022-07-26")
+            .add("ds=BfMAe6Itzgt")
+            .add("algorithm=Z_SCORE");
+
+    // When
+    ApiResponse response = actions.query().get("", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(18)))
+        .body("rows", hasSize(equalTo(3)))
+        .body("height", equalTo(3))
+        .body("width", equalTo(18))
+        .body("headerWidth", equalTo(18));
+
+    // Assert metaData.
+    String expectedMetaData =
+        "{\"count\":3,\"orderBy\":\"MEAN\",\"threshold\":\"3.0\",\"maxResults\":5,\"algorithm\":\"Z_SCORE\"}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Assert headers.
+    validateHeader(response, 0, "dx", "Data", "TEXT", "java.lang.String", false, false);
+    validateHeader(response, 1, "dxname", "Data name", "TEXT", "java.lang.String", false, false);
+    validateHeader(response, 2, "pe", "Period", "TEXT", "java.lang.String", false, false);
+    validateHeader(response, 3, "pename", "Period name", "TEXT", "java.lang.String", false, false);
+    validateHeader(
+        response, 4, "ou", "Organisation unit", "TEXT", "java.lang.String", false, false);
+    validateHeader(
+        response, 5, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, false);
+    validateHeader(
+        response,
+        6,
+        "ounamehierarchy",
+        "Organisation unit name hierarchy",
+        "TEXT",
+        "java.lang.String",
+        false,
+        false);
+    validateHeader(
+        response, 7, "coc", "Category option combo", "TEXT", "java.lang.String", false, false);
+    validateHeader(
+        response,
+        8,
+        "cocname",
+        "Category option combo name",
+        "TEXT",
+        "java.lang.String",
+        false,
+        false);
+    validateHeader(
+        response, 9, "aoc", "Attribute option combo", "TEXT", "java.lang.String", false, false);
+    validateHeader(
+        response,
+        10,
+        "aocname",
+        "Attribute option combo name",
+        "TEXT",
+        "java.lang.String",
+        false,
+        false);
+    validateHeader(response, 11, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+    validateHeader(response, 12, "mean", "Mean", "NUMBER", "java.lang.Double", false, false);
+    validateHeader(
+        response, 13, "stddev", "Standard deviation", "NUMBER", "java.lang.Double", false, false);
+    validateHeader(
+        response, 14, "absdev", "Absolute deviation", "NUMBER", "java.lang.Double", false, false);
+    validateHeader(response, 15, "zscore", "Z-score", "NUMBER", "java.lang.Double", false, false);
+    validateHeader(
+        response, 16, "lowerbound", "Lower boundary", "NUMBER", "java.lang.Double", false, false);
+    validateHeader(
+        response, 17, "upperbound", "Upper boundary", "NUMBER", "java.lang.Double", false, false);
+
+    // Assert rows.
+    validateRow(
+        response,
+        List.of(
+            "dU0GquGkGQr",
+            "Q_Early breastfeeding (within 1 hr after delivery) at BCG",
+            "202209",
+            "September 2022",
+            "Mi4dWRtfIOC",
+            "Sandaru CHC",
+            "Sierra Leone / Kailahun / Penguia / Sandaru CHC",
+            "Prlt0C1RF0s",
+            "Fixed, <1y",
+            "HllvX50cXC0",
+            "default",
+            "105.0",
+            "18.26357",
+            "28.70554",
+            "86.73643",
+            "3.02159",
+            "-67.85306",
+            "104.38019"));
+    validateRow(
+        response,
+        List.of(
+            "s46m5MS0hxu",
+            "BCG doses given",
+            "202208",
+            "August 2022",
+            "CvBAqD6RzLZ",
+            "Ngalu CHC",
+            "Sierra Leone / Bo / Bargbe / Ngalu CHC",
+            "Prlt0C1RF0s",
+            "Fixed, <1y",
+            "HllvX50cXC0",
+            "default",
+            "220.0",
+            "41.64407",
+            "57.44954",
+            "178.35593",
+            "3.10457",
+            "-130.70455",
+            "213.99269"));
+    validateRow(
+        response,
+        List.of(
+            "l6byfWFUGaP",
+            "Yellow Fever doses given",
+            "202209",
+            "September 2022",
+            "RhJbg8UD75Q",
+            "Yemoh Town CHC",
+            "Sierra Leone / Bo / Kakua / Yemoh Town CHC",
+            "Prlt0C1RF0s",
+            "Fixed, <1y",
+            "HllvX50cXC0",
+            "default",
+            "466.0",
+            "48.18605",
+            "114.27966",
+            "417.81395",
+            "3.65607",
+            "-294.65294",
+            "391.02504"));
+  }
+
+  @Test
+  public void queryQueryoutliertest12() throws JSONException {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("endDate=2022-10-26")
+            .add("ou=ImspTQPwCqd")
+            .add("maxResults=5")
+            .add("outputIdScheme=uid")
+            .add("sortOrder=asc")
+            .add("orderBy=stddev")
+            .add("startDate=2022-07-26")
+            .add("ds=BfMAe6Itzgt")
+            .add("algorithm=Z_SCORE");
+
+    // When
+    ApiResponse response = actions.query().get("", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(18)))
+        .body("rows", hasSize(equalTo(3)))
+        .body("height", equalTo(3))
+        .body("width", equalTo(18))
+        .body("headerWidth", equalTo(18));
+
+    // Assert metaData.
+    String expectedMetaData =
+        "{\"count\":3,\"orderBy\":\"STD_DEV\",\"threshold\":\"3.0\",\"maxResults\":5,\"algorithm\":\"Z_SCORE\"}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Assert headers.
+    validateHeader(response, 0, "dx", "Data", "TEXT", "java.lang.String", false, false);
+    validateHeader(response, 1, "dxname", "Data name", "TEXT", "java.lang.String", false, false);
+    validateHeader(response, 2, "pe", "Period", "TEXT", "java.lang.String", false, false);
+    validateHeader(response, 3, "pename", "Period name", "TEXT", "java.lang.String", false, false);
+    validateHeader(
+        response, 4, "ou", "Organisation unit", "TEXT", "java.lang.String", false, false);
+    validateHeader(
+        response, 5, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, false);
+    validateHeader(
+        response,
+        6,
+        "ounamehierarchy",
+        "Organisation unit name hierarchy",
+        "TEXT",
+        "java.lang.String",
+        false,
+        false);
+    validateHeader(
+        response, 7, "coc", "Category option combo", "TEXT", "java.lang.String", false, false);
+    validateHeader(
+        response,
+        8,
+        "cocname",
+        "Category option combo name",
+        "TEXT",
+        "java.lang.String",
+        false,
+        false);
+    validateHeader(
+        response, 9, "aoc", "Attribute option combo", "TEXT", "java.lang.String", false, false);
+    validateHeader(
+        response,
+        10,
+        "aocname",
+        "Attribute option combo name",
+        "TEXT",
+        "java.lang.String",
+        false,
+        false);
+    validateHeader(response, 11, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+    validateHeader(response, 12, "mean", "Mean", "NUMBER", "java.lang.Double", false, false);
+    validateHeader(
+        response, 13, "stddev", "Standard deviation", "NUMBER", "java.lang.Double", false, false);
+    validateHeader(
+        response, 14, "absdev", "Absolute deviation", "NUMBER", "java.lang.Double", false, false);
+    validateHeader(response, 15, "zscore", "Z-score", "NUMBER", "java.lang.Double", false, false);
+    validateHeader(
+        response, 16, "lowerbound", "Lower boundary", "NUMBER", "java.lang.Double", false, false);
+    validateHeader(
+        response, 17, "upperbound", "Upper boundary", "NUMBER", "java.lang.Double", false, false);
+
+    // Assert rows.
+    validateRow(
+        response,
+        List.of(
+            "dU0GquGkGQr",
+            "Q_Early breastfeeding (within 1 hr after delivery) at BCG",
+            "202209",
+            "September 2022",
+            "Mi4dWRtfIOC",
+            "Sandaru CHC",
+            "Sierra Leone / Kailahun / Penguia / Sandaru CHC",
+            "Prlt0C1RF0s",
+            "Fixed, <1y",
+            "HllvX50cXC0",
+            "default",
+            "105.0",
+            "18.26357",
+            "28.70554",
+            "86.73643",
+            "3.02159",
+            "-67.85306",
+            "104.38019"));
+    validateRow(
+        response,
+        List.of(
+            "s46m5MS0hxu",
+            "BCG doses given",
+            "202208",
+            "August 2022",
+            "CvBAqD6RzLZ",
+            "Ngalu CHC",
+            "Sierra Leone / Bo / Bargbe / Ngalu CHC",
+            "Prlt0C1RF0s",
+            "Fixed, <1y",
+            "HllvX50cXC0",
+            "default",
+            "220.0",
+            "41.64407",
+            "57.44954",
+            "178.35593",
+            "3.10457",
+            "-130.70455",
+            "213.99269"));
+    validateRow(
+        response,
+        List.of(
+            "l6byfWFUGaP",
+            "Yellow Fever doses given",
+            "202209",
+            "September 2022",
+            "RhJbg8UD75Q",
+            "Yemoh Town CHC",
+            "Sierra Leone / Bo / Kakua / Yemoh Town CHC",
+            "Prlt0C1RF0s",
+            "Fixed, <1y",
+            "HllvX50cXC0",
+            "default",
+            "466.0",
+            "48.18605",
+            "114.27966",
+            "417.81395",
+            "3.65607",
+            "-294.65294",
+            "391.02504"));
   }
 }

@@ -31,6 +31,7 @@ import static org.hisp.dhis.common.coordinate.CoordinateUtils.getCoordinatesAsLi
 import static org.hisp.dhis.system.util.GeoUtils.getCoordinatesFromGeometry;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,6 +39,8 @@ import java.util.List;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.CoordinatesTuple;
 import org.hisp.dhis.organisationunit.FeatureType;
@@ -59,6 +62,7 @@ import org.springframework.core.io.ClassPathResource;
 class GmlImportServiceTest extends TransactionalIntegrationTest {
 
   private InputStream inputStream;
+  private InputStream maliciousInputStream;
 
   private User user;
 
@@ -80,6 +84,8 @@ class GmlImportServiceTest extends TransactionalIntegrationTest {
   @Override
   public void setUpTest() throws IOException {
     inputStream = new ClassPathResource("dxf2/gml/testGmlPayload.gml").getInputStream();
+    maliciousInputStream =
+        new ClassPathResource("dxf2/gml/testMaliciousGmlPayload.gml").getInputStream();
     /*
      * Create orgunits present in testGmlPayload.gml and set ID properties.
      * Name - FeatureType - ID property Bo - Poly - Name Bonthe - Multi -
@@ -142,6 +148,29 @@ class GmlImportServiceTest extends TransactionalIntegrationTest {
     assertEquals(1, getCoordinates(ojdOrgUnit).get(0).getNumberOfCoordinates());
     assertEquals(1, getCoordinates(bliOrgUnit).get(0).getNumberOfCoordinates());
     assertEquals(76, getCoordinates(forskOrgUnit).get(0).getNumberOfCoordinates());
+  }
+
+  @Test
+  void testMaliciousImportGml() {
+    MetadataImportParams importParams = new MetadataImportParams();
+    importParams.setUser(UID.of(user));
+
+    ImportReport importReport =
+        gmlImportService.importGml(maliciousInputStream, importParams, NoopJobProgress.INSTANCE);
+
+    ErrorReport errorReport = importReport.getFirstObjectReport().getErrorReports().get(0);
+    assertTrue(
+        errorReport
+            .getMessage()
+            .contains(
+                "GML import failed: External Entity: Failed to read external document &#39;passwd&#39"));
+    assertTrue(
+        errorReport
+            .getMessage()
+            .contains(
+                "access is not allowed due to restriction set by the accessExternalDTD property"));
+    assertEquals("ERROR", importReport.getStatus().name());
+    assertTrue(importReport.hasErrorReports());
   }
 
   private List<CoordinatesTuple> getCoordinates(OrganisationUnit orgUnit) {

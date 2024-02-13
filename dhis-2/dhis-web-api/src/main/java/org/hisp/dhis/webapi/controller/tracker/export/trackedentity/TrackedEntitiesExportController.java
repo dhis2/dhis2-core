@@ -145,7 +145,7 @@ class TrackedEntitiesExportController {
               TRACKED_ENTITY_MAPPER.fromCollection(trackedEntitiesPage.getItems()),
               requestParams.getFields());
 
-      return Page.withPager(objectNodes, trackedEntitiesPage);
+      return Page.withPager(TRACKED_ENTITIES, objectNodes, trackedEntitiesPage);
     }
 
     List<org.hisp.dhis.trackedentity.TrackedEntity> trackedEntities =
@@ -154,7 +154,7 @@ class TrackedEntitiesExportController {
         fieldFilterService.toObjectNodes(
             TRACKED_ENTITY_MAPPER.fromCollection(trackedEntities), requestParams.getFields());
 
-    return Page.withoutPager(objectNodes);
+    return Page.withoutPager(TRACKED_ENTITIES, objectNodes);
   }
 
   @GetMapping(produces = {CONTENT_TYPE_CSV, CONTENT_TYPE_TEXT_CSV})

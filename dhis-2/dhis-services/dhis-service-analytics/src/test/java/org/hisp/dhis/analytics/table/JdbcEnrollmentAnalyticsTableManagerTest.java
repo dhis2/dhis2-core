@@ -42,10 +42,13 @@ import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
+import org.hisp.dhis.analytics.table.util.PartitionUtils;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
@@ -79,6 +82,8 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
 
   @Mock private PeriodDataProvider periodDataProvider;
 
+  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+
   private JdbcEnrollmentAnalyticsTableManager subject;
 
   private static final Date START_TIME = new DateTime(2019, 8, 1, 0, 0).toDate();
@@ -99,7 +104,8 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
             databaseInfoProvider,
             jdbcTemplate,
             analyticsExportSettings,
-            periodDataProvider);
+            periodDataProvider,
+            sqlBuilder);
   }
 
   @Test

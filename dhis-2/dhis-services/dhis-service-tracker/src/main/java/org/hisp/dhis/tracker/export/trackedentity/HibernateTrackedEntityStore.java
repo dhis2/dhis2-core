@@ -32,7 +32,7 @@ import static java.util.Map.entry;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.system.util.SqlUtils.encode;
+import static org.hisp.dhis.system.util.SqlUtils.escape;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
@@ -65,6 +65,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.export.Order;
@@ -197,8 +198,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   }
 
   private String encodeAndQuote(Collection<String> elements) {
-    return getQuotedCommaDelimitedString(
-        elements.stream().map(element -> encode(element, false)).collect(Collectors.toList()));
+    return getQuotedCommaDelimitedString(elements.stream().map(SqlUtils::escape).toList());
   }
 
   private void checkMaxTrackedEntityCountReached(
@@ -539,7 +539,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
           .append(" = TE.trackedentityid ");
 
       for (QueryFilter filter : filters.getValue()) {
-        String encodedFilter = encode(filter.getFilter(), false);
+        String encodedFilter = escape(filter.getFilter());
         attributes
             .append("AND ")
             .append(teav)

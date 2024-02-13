@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,20 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.table.model;
+package org.hisp.dhis.webapi.controller;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 /**
- * Represents SQL functions that can be used by indexes.
+ * Tests the {@link SynchronizationController} using (mocked) REST requests.
  *
- * @author maikel arabori
+ * @author david mackessy
  */
-@Getter
-@RequiredArgsConstructor
-public enum IndexFunction {
-  LOWER("lower");
+class SynchronizationControllerTest extends DhisControllerConvenienceTest {
 
-  private final String value;
+  @Test
+  @DisplayName("Calling the metadataPull endpoint with an invalid url returns an error message")
+  void invalidUrlTest() {
+    JsonMixed content =
+        POST("/synchronization/metadataPull", "https://invalidurl.com/metadata")
+            .content(HttpStatus.CONFLICT);
+
+    assertEquals(
+        "Provided URL is not in the remote servers allowed list",
+        content.getString("message").string());
+  }
 }

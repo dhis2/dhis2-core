@@ -108,7 +108,7 @@ public class RelationshipController {
           .map(
               tei ->
                   relationshipService.getRelationshipsByTrackedEntityInstance(
-                      tei, relationshipCriteria, false))
+                      tei, relationshipCriteria, false, relationshipCriteria.isIncludeDeleted()))
           .orElseThrow(
               () ->
                   new WebMessageException(
@@ -120,7 +120,9 @@ public class RelationshipController {
       return Optional.ofNullable(
               enrollmentService.getEnrollment(relationshipCriteria.getEnrollment()))
           .map(
-              e -> relationshipService.getRelationshipsByEnrollment(e, relationshipCriteria, false))
+              e ->
+                  relationshipService.getRelationshipsByEnrollment(
+                      e, relationshipCriteria, false, relationshipCriteria.isIncludeDeleted()))
           .orElseThrow(
               () ->
                   new WebMessageException(
@@ -130,7 +132,8 @@ public class RelationshipController {
       return Optional.ofNullable(eventService.getEvent(relationshipCriteria.getEvent()))
           .map(
               event ->
-                  relationshipService.getRelationshipsByEvent(event, relationshipCriteria, false))
+                  relationshipService.getRelationshipsByEvent(
+                      event, relationshipCriteria, false, relationshipCriteria.isIncludeDeleted()))
           .orElseThrow(
               () ->
                   new WebMessageException(

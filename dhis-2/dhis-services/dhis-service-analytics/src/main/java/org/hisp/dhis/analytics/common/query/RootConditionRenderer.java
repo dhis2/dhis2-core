@@ -65,7 +65,7 @@ public class RootConditionRenderer implements Renderable {
                 mapping(GroupableCondition::getRenderable, Collectors.toList())))
         .values()
         .stream()
-        .map(OrCondition::of)
+        .map(OrCondition::ofList)
         .collect(Collectors.toList());
   }
 }

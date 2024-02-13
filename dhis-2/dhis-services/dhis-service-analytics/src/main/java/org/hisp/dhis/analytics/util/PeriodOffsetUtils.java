@@ -40,6 +40,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -55,10 +57,8 @@ import org.hisp.dhis.period.WeeklyAbstractPeriodType;
  * @author Luciano Fiandesio
  * @author Jim Grace
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class PeriodOffsetUtils {
-  private PeriodOffsetUtils() {
-    throw new UnsupportedOperationException("util");
-  }
 
   /**
    * If the query parameters contain any dimensional item objects with a periodOffset, return query

@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -56,6 +57,7 @@ import org.hisp.dhis.util.DateUtils;
 /**
  * @author Lars Helge Overland
  */
+@RequiredArgsConstructor
 public class DataSetOrganisationUnitCategoryResourceTable implements ResourceTable {
   private static final String TABLE_NAME = "_datasetorganisationunitcategory";
 
@@ -65,16 +67,9 @@ public class DataSetOrganisationUnitCategoryResourceTable implements ResourceTab
 
   private final Logged logged;
 
-  public DataSetOrganisationUnitCategoryResourceTable(
-      List<DataSet> dataSets, CategoryOptionCombo defaultOptionCombo, Logged logged) {
-    this.dataSets = dataSets;
-    this.defaultOptionCombo = defaultOptionCombo;
-    this.logged = logged;
-  }
-
   @Override
   public Table getTable() {
-    return new Table(toStaging(TABLE_NAME), getColumns(), List.of(), getIndexes(), logged);
+    return new Table(toStaging(TABLE_NAME), getColumns(), List.of(), logged);
   }
 
   private List<Column> getColumns() {
@@ -86,10 +81,12 @@ public class DataSetOrganisationUnitCategoryResourceTable implements ResourceTab
         new Column("coenddate", DataType.DATE));
   }
 
-  private List<Index> getIndexes() {
+  @Override
+  public List<Index> getIndexes() {
     return List.of(
         new Index(
             appendRandom("_datasetorganisationunitcategory"),
+            toStaging(TABLE_NAME),
             Unique.UNIQUE,
             List.of("datasetid", "organisationunitid", "attributeoptioncomboid")));
   }

@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParentheses;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 
@@ -47,6 +46,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.DataType;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
@@ -72,7 +72,8 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
       DatabaseInfoProvider databaseInfoProvider,
       JdbcTemplate jdbcTemplate,
       AnalyticsTableExportSettings analyticsExportSettings,
-      PeriodDataProvider periodDataProvider) {
+      PeriodDataProvider periodDataProvider,
+      SqlBuilder sqlBuilder) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -85,7 +86,8 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
         databaseInfoProvider,
         jdbcTemplate,
         analyticsExportSettings,
-        periodDataProvider);
+        periodDataProvider,
+        sqlBuilder);
   }
 
   protected final String getNumericClause() {
@@ -99,6 +101,35 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
   protected Skip skipIndex(ValueType valueType, boolean hasOptionSet) {
     boolean skipIndex = NO_INDEX_VAL_TYPES.contains(valueType) && !hasOptionSet;
     return skipIndex ? Skip.SKIP : Skip.INCLUDE;
+  }
+
+  /**
+   * Returns the select clause, potentially with a cast statement, based on the given value type.
+   *
+   * @param valueType the value type to represent as database column type.
+   */
+  protected String getSelectClause(ValueType valueType, String columnName) {
+    if (valueType.isDecimal()) {
+      return "cast(" + columnName + " as double precision)";
+    } else if (valueType.isInteger()) {
+      return "cast(" + columnName + " as bigint)";
+    } else if (valueType.isBoolean()) {
+      return "case when "
+          + columnName
+          + " = 'true' then 1 when "
+          + columnName
+          + " = 'false' then 0 else null end";
+    } else if (valueType.isDate()) {
+      return "cast(" + columnName + " as timestamp)";
+    } else if (valueType.isGeo() && isSpatialSupport()) {
+      return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || ("
+          + columnName
+          + ") || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
+    } else if (valueType.isOrganisationUnit()) {
+      return "ou.uid from organisationunit ou where ou.uid = (select " + columnName;
+    } else {
+      return columnName;
+    }
   }
 
   @Override
@@ -129,14 +160,14 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    * @param fromClause the SQL from clause.
    */
   protected void populateTableInternal(AnalyticsTablePartition partition, String fromClause) {
-    String tableName = partition.getTempName();
+    String tableName = partition.getName();
 
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
-    String sql = "insert into " + partition.getTempName() + " (";
+    String sql = "insert into " + tableName + " (";
 
     for (AnalyticsTableColumn col : columns) {
-      sql += col.getName() + ",";
+      sql += quote(col.getName()) + ",";
     }
 
     sql = TextUtils.removeLastComma(sql) + ") select ";
@@ -152,7 +183,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     invokeTimeAndLog(sql, String.format("Populate %s", tableName));
   }
 
-  protected List<AnalyticsTableColumn> addTrackedEntityAttributes(Program program) {
+  protected List<AnalyticsTableColumn> getTrackedEntityAttributeColumns(Program program) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     for (TrackedEntityAttribute attribute : program.getNonConfidentialTrackedEntityAttributes()) {
@@ -177,7 +208,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
               + " as "
               + quote(attribute.getUid());
 
-      columns.add(new AnalyticsTableColumn(quote(attribute.getUid()), dataType, sql, skipIndex));
+      columns.add(new AnalyticsTableColumn(attribute.getUid(), dataType, sql, skipIndex));
     }
 
     return columns;

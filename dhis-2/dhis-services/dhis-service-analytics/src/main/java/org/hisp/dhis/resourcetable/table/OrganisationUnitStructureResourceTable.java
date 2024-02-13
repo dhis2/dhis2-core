@@ -36,6 +36,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
@@ -51,6 +52,7 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 /**
  * @author Lars Helge Overland
  */
+@RequiredArgsConstructor
 public class OrganisationUnitStructureResourceTable implements ResourceTable {
   private static final String TABLE_NAME = "_orgunitstructure";
 
@@ -60,16 +62,9 @@ public class OrganisationUnitStructureResourceTable implements ResourceTable {
 
   private final Logged logged;
 
-  public OrganisationUnitStructureResourceTable(
-      OrganisationUnitService organisationUnitService, int organisationUnitLevels, Logged logged) {
-    this.organisationUnitService = organisationUnitService;
-    this.organisationUnitLevels = organisationUnitLevels;
-    this.logged = logged;
-  }
-
   @Override
   public Table getTable() {
-    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), getIndexes(), logged);
+    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);
   }
 
   private List<Column> getColumns() {
@@ -94,10 +89,12 @@ public class OrganisationUnitStructureResourceTable implements ResourceTable {
     return List.of("organisationunitid");
   }
 
-  private List<Index> getIndexes() {
+  @Override
+  public List<Index> getIndexes() {
     return List.of(
         new Index(
             appendRandom("in_orgunitstructure_organisationunituid"),
+            toStaging(TABLE_NAME),
             Unique.UNIQUE,
             List.of("organisationunituid")));
   }

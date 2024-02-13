@@ -100,4 +100,7 @@ public class ProgramStageQueryCriteria implements Serializable {
   /** Property to filter tracked entity instances based on tracked entity attribute values */
   @JsonProperty @Builder.Default
   private List<AttributeValueFilter> attributeValueFilters = Collections.emptyList();
+
+  /** Property to filter events based on {@link org.hisp.dhis.program.Enrollment#followup property */
+  @JsonProperty private boolean followUp;
 }

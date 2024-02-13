@@ -71,6 +71,7 @@ import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.table.model.Partitions;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -1012,14 +1013,14 @@ public class DataQueryParams {
   public List<DimensionalObject> getDimensionsAndFilters(DimensionType dimensionType) {
     return getDimensionsAndFilters().stream()
         .filter(d -> dimensionType == d.getDimensionType())
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /** Returns a list of dimensions and filters of the given set of dimension types. */
   public List<DimensionalObject> getDimensionsAndFilters(Set<DimensionType> dimensionTypes) {
     return getDimensionsAndFilters().stream()
         .filter(d -> dimensionTypes.contains(d.getDimensionType()))
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /** Returns all dimensions except any period dimension. */
@@ -1093,7 +1094,7 @@ public class DataQueryParams {
     return getDimensionsAndFilters(dimensionType).stream()
         .map(DimensionalObject::getItems)
         .flatMap(Collection::stream)
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /**
@@ -1453,7 +1454,7 @@ public class DataQueryParams {
     return dataElements.stream()
         .filter(de -> de.getCategoryCombo().isSkipTotal())
         .filter(de -> !isAllCategoriesDimensionOrFilterWithItems(de))
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /**
@@ -2223,7 +2224,7 @@ public class DataQueryParams {
     return Stream.concat(dimensions.stream(), filters.stream())
         .filter(d -> PERIOD == d.getDimensionType())
         .flatMap(d -> d.getItems().stream())
-        .toList();
+        .collect(Collectors.toList());
   }
 
   /** Returns all organisation units part of a dimension or filter. */

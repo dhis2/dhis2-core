@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.collection.ListUtils;
+import org.slf4j.helpers.MessageFormatter;
 
 /**
  * Utility class with methods for managing strings.
@@ -225,15 +226,17 @@ public class TextUtils {
    * character after the comma. It changes the object by reference, and returns the same object for
    * convenience.
    *
-   * @param stringBuilder the StringBuilder.
+   * @param builder the StringBuilder.
    * @return the chopped StringBuilder.
    */
-  public static StringBuilder removeLastComma(StringBuilder stringBuilder) {
-    if (stringBuilder != null && stringBuilder.length() > 0) {
-      stringBuilder.delete(stringBuilder.lastIndexOf(","), stringBuilder.length());
+  public static StringBuilder removeLastComma(StringBuilder builder) {
+    int index = -1;
+
+    if (builder != null && ((index = builder.lastIndexOf(",")) != -1)) {
+      builder.delete(index, builder.length());
     }
 
-    return stringBuilder;
+    return builder;
   }
 
   /**
@@ -339,20 +342,20 @@ public class TextUtils {
 
   /**
    * Transforms a collection of strings into a comma delimited string, where each component is
-   * single-quoted.
+   * single quoted.
    *
    * @param elements the collection of Integers
    * @return a comma delimited String.
    */
-  public static String getQuotedCommaDelimitedString(Collection<? extends Object> elements) {
-    if (elements != null && elements.size() > 0) {
-      final StringBuffer buffer = new StringBuffer();
+  public static String getQuotedCommaDelimitedString(Collection<String> elements) {
+    if (elements != null && !elements.isEmpty()) {
+      final StringBuilder builder = new StringBuilder();
 
       for (Object element : elements) {
-        buffer.append("'").append(element.toString()).append("', ");
+        builder.append("'").append(element).append("', ");
       }
 
-      return buffer.substring(0, buffer.length() - ", ".length());
+      return builder.substring(0, builder.length() - ", ".length());
     }
 
     return null;
@@ -689,5 +692,16 @@ public class TextUtils {
    */
   public static String removeAnyTrailingSlash(@Nonnull String string) {
     return string.endsWith("/") ? StringUtils.chop(string) : string;
+  }
+
+  /**
+   * Returns a formatted message string, a pair of curly braces represents a variable.
+   *
+   * @param pattern the pattern string.
+   * @param arguments the pattern arguments.
+   * @return a formatted message string.
+   */
+  public static String format(String pattern, Object... arguments) {
+    return MessageFormatter.arrayFormat(pattern, arguments).getMessage();
   }
 }

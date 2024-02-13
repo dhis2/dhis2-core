@@ -29,38 +29,30 @@ package org.hisp.dhis.analytics.table.model;
 
 import java.util.Date;
 import java.util.List;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.springframework.util.Assert;
 
 /**
- * Class representing an analytics database table.
+ * Class representing an analytics database table. Note that the table name initially represents a
+ * staging table. The name of the main table can be retrieved with {@link
+ * AnalyticsTable#getMainName()}.
  *
  * @author Lars Helge Overland
  */
 @Getter
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class AnalyticsTable {
-  /** Table name. */
-  @EqualsAndHashCode.Include private final String name;
-
-  /** Temporary table name. */
-  private final String tempName;
-
+public class AnalyticsTable extends Table {
   /** Analytics table type. */
   private final AnalyticsTableType tableType;
 
   /** Columns representing dimensions. */
   private final List<AnalyticsTableColumn> analyticsTableColumns;
-
-  /** Whether table is logged or unlogged. PostgreSQL-only feature. */
-  private final Logged logged;
 
   /** Program of events in analytics table. */
   private Program program;
@@ -75,43 +67,64 @@ public class AnalyticsTable {
   // Constructors
   // -------------------------------------------------------------------------
 
+  /**
+   * Constructor. Sets the name to represent a staging table.
+   *
+   * @param tableType the {@link AnalyticsTableType}.
+   * @param columns the list of {@link Column}.
+   * @param logged the {@link Logged} property.
+   */
   public AnalyticsTable(
       AnalyticsTableType tableType, List<AnalyticsTableColumn> columns, Logged logged) {
-    this.name = tableType.getTableName();
-    this.tempName = tableType.getTempTableName();
+    super(toStaging(tableType.getTableName()), toColumns(columns), List.of(), logged);
     this.tableType = tableType;
     this.analyticsTableColumns = columns;
-    this.logged = logged;
   }
 
+  /**
+   * Constructor. Sets the name to represent a staging table.
+   *
+   * @param tableType the {@link AnalyticsTableType}.
+   * @param columns the list of {@link Column}.
+   * @param logged the {@link Logged} property.
+   * @param program the {@link Program}.
+   */
   public AnalyticsTable(
       AnalyticsTableType tableType,
       List<AnalyticsTableColumn> columns,
       Logged logged,
       Program program) {
-    this.name = getTableName(tableType.getTableName(), program);
-    this.tempName = getTableName(tableType.getTempTableName(), program);
+    super(toStaging(getTableName(tableType, program)), toColumns(columns), List.of(), logged);
     this.tableType = tableType;
     this.analyticsTableColumns = columns;
-    this.logged = logged;
     this.program = program;
   }
 
+  /**
+   * Constructor. Sets the name to represent a staging table.
+   *
+   * @param tableType the {@link AnalyticsTableType}.
+   * @param columns the list of {@link Column}.
+   * @param logged the {@link Logged} property.
+   * @param trackedEntityType the {@link TrackedEntityType}.
+   */
   public AnalyticsTable(
       AnalyticsTableType tableType,
       List<AnalyticsTableColumn> columns,
       Logged logged,
       TrackedEntityType trackedEntityType) {
-    this.name = getTableName(tableType.getTableName(), trackedEntityType);
-    this.tempName = getTableName(tableType.getTempTableName(), trackedEntityType);
+    super(
+        toStaging(getTableName(tableType, trackedEntityType)),
+        toColumns(columns),
+        List.of(),
+        logged);
     this.tableType = tableType;
     this.analyticsTableColumns = columns;
-    this.logged = logged;
     this.trackedEntityType = trackedEntityType;
   }
 
   // -------------------------------------------------------------------------
-  // Logic
+  // Static methods
   // -------------------------------------------------------------------------
 
   /**
@@ -120,7 +133,7 @@ public class AnalyticsTable {
    * @param columns the list of {@link AnalyticsTableColumn}.
    * @return a list of {@link Column}.
    */
-  protected static List<Column> toColumns(List<AnalyticsTableColumn> columns) {
+  private static List<Column> toColumns(List<AnalyticsTableColumn> columns) {
     return columns.stream()
         .map(c -> new Column(c.getName(), c.getDataType(), c.getNullable(), c.getCollation()))
         .toList();
@@ -129,23 +142,37 @@ public class AnalyticsTable {
   /**
    * Returns a table name.
    *
-   * @param baseName the table base name.
+   * @param tableType the {@link AnalyticsTableType}.
    * @param program the {@link Program}.
    * @return the table name.
    */
-  public static String getTableName(String baseName, Program program) {
-    return baseName + "_" + program.getUid().toLowerCase();
+  public static String getTableName(AnalyticsTableType tableType, Program program) {
+    return tableType.getTableName() + "_" + program.getUid().toLowerCase();
   }
 
   /**
    * Returns a table name.
    *
-   * @param baseName the table base name.
+   * @param tableType the {@link AnalyticsTableType}.
    * @param trackedEntityType the {@link TrackedEntityType}.
    * @return the table name.
    */
-  public static String getTableName(String baseName, TrackedEntityType trackedEntityType) {
-    return baseName + "_" + trackedEntityType.getUid().toLowerCase();
+  public static String getTableName(
+      AnalyticsTableType tableType, TrackedEntityType trackedEntityType) {
+    return tableType.getTableName() + "_" + trackedEntityType.getUid().toLowerCase();
+  }
+
+  // -------------------------------------------------------------------------
+  // Logic methods
+  // -------------------------------------------------------------------------
+
+  /**
+   * Returns the name which represents the main analytics table.
+   *
+   * @return the name which represents the main analytics table.
+   */
+  public String getMainName() {
+    return fromStaging(getName());
   }
 
   /**
@@ -171,36 +198,20 @@ public class AnalyticsTable {
   }
 
   /**
-   * Returns the count of all columns.
-   *
-   * @return the count of all columns.
-   */
-  public int getColumnCount() {
-    return getAnalyticsTableColumns().size();
-  }
-
-  /**
-   * Indicates whether the table is unlogged.
-   *
-   * @return true if the table is unlogged.
-   */
-  public boolean isUnlogged() {
-    return Logged.UNLOGGED == logged;
-  }
-
-  /**
    * Adds an analytics partition table to this master table.
    *
+   * @param checks the partition checks.
    * @param year the year.
    * @param startDate the start date.
    * @param endDate the end date.
    * @return this analytics table.
    */
-  public AnalyticsTable addPartitionTable(Integer year, Date startDate, Date endDate) {
+  public AnalyticsTable addTablePartition(
+      List<String> checks, Integer year, Date startDate, Date endDate) {
     Assert.notNull(year, "Year must be specified");
 
     AnalyticsTablePartition tablePartition =
-        new AnalyticsTablePartition(this, year, startDate, endDate);
+        new AnalyticsTablePartition(this, checks, year, startDate, endDate);
 
     this.tablePartitions.add(tablePartition);
 
@@ -212,7 +223,7 @@ public class AnalyticsTable {
    *
    * @return true if this analytics table has any partitions.
    */
-  public boolean hasPartitionTables() {
+  public boolean hasTablePartitions() {
     return !tablePartitions.isEmpty();
   }
 
@@ -221,7 +232,7 @@ public class AnalyticsTable {
    *
    * @return a {@link AnalyticsTablePartition} or null.
    */
-  public AnalyticsTablePartition getLatestPartition() {
+  public AnalyticsTablePartition getLatestTablePartition() {
     return tablePartitions.stream()
         .filter(AnalyticsTablePartition::isLatestPartition)
         .findAny()
@@ -231,5 +242,21 @@ public class AnalyticsTable {
   @Override
   public String toString() {
     return "[Table name: " + getName() + ", partitions: " + tablePartitions + "]";
+  }
+
+  @Override
+  public int hashCode() {
+    return super.hashCode();
+  }
+
+  @Override
+  public boolean equals(Object object) {
+    if (this == object) {
+      return true;
+    }
+    if (object != null && getClass() != object.getClass()) {
+      return false;
+    }
+    return super.equals(object);
   }
 }

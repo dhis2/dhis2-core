@@ -30,7 +30,7 @@ package org.hisp.dhis.db.model;
 /**
  * Enumeration of database collations.
  *
- * @author Lars Helge Overland
+ * @author Maikel Arabori
  */
 public enum Collation {
   DEFAULT,
