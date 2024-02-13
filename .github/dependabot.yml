@@ -64,6 +64,9 @@ updates:
       - dependency-name: "org.slf4j:slf4j-api" # will update in https://dhis2.atlassian.net/browse/DHIS2-16504
         versions:
           - ">= 2.0"
+      - dependency-name: "net.sf.jasperreports:jasperreports" # will update in https://dhis2.atlassian.net/browse/DHIS2-16796
+        versions:
+          - ">= 6.20.1"
   - package-ecosystem: "maven"
     directory: "/dhis-2/dhis-test-e2e"
     schedule:
@@ -147,6 +150,9 @@ updates:
       - dependency-name: "org.slf4j:slf4j-api" # will update in https://dhis2.atlassian.net/browse/DHIS2-16504
         versions:
           - ">= 2.0"
+      - dependency-name: "net.sf.jasperreports:jasperreports" # will update in https://dhis2.atlassian.net/browse/DHIS2-16796
+        versions:
+          - ">= 6.20.1"
   # 2.39
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -220,6 +226,9 @@ updates:
       - dependency-name: "org.slf4j:slf4j-api" # will update in https://dhis2.atlassian.net/browse/DHIS2-16504
         versions:
           - ">= 2.0"
+      - dependency-name: "net.sf.jasperreports:jasperreports" # will update in https://dhis2.atlassian.net/browse/DHIS2-16796
+        versions:
+          - ">= 6.20.1"
     target-branch: "2.39"
     open-pull-requests-limit: 1 # only initially so we do not take away too many CI resources
   # 2.38
@@ -295,5 +304,8 @@ updates:
       - dependency-name: "org.slf4j:slf4j-api" # will update in https://dhis2.atlassian.net/browse/DHIS2-16504
         versions:
           - ">= 2.0"
+      - dependency-name: "net.sf.jasperreports:jasperreports" # will update in https://dhis2.atlassian.net/browse/DHIS2-16796
+        versions:
+          - ">= 6.20.1"
     target-branch: "2.38"
     open-pull-requests-limit: 1 # only initially so we do not take away too many CI resources
