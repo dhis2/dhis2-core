@@ -55,6 +55,8 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.subexpression.SubexpressionDimensionItem;
@@ -76,9 +78,11 @@ class JdbcSubexpressionQueryGeneratorTest {
 
   @Mock private JdbcTemplate jdbcTemplate;
 
-  private JdbcAnalyticsManager jam;
-
   @Mock private ExecutionPlanStore executionPlanStore;
+
+  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+
+  private JdbcAnalyticsManager jam;
 
   /** Matches a UID with an initial single quote. */
   private static final Pattern QUOTED_UID = Pattern.compile("'\\w{11}'");
@@ -87,7 +91,7 @@ class JdbcSubexpressionQueryGeneratorTest {
   public void setUp() {
     QueryPlanner queryPlanner = new DefaultQueryPlanner(partitionManager);
 
-    jam = new JdbcAnalyticsManager(queryPlanner, jdbcTemplate, executionPlanStore);
+    jam = new JdbcAnalyticsManager(queryPlanner, jdbcTemplate, executionPlanStore, sqlBuilder);
   }
 
   @Test

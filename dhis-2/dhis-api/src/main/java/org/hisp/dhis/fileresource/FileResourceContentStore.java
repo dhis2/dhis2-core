@@ -128,4 +128,12 @@ public interface FileResourceContentStore {
    * @return byte array of the content
    */
   byte[] copyContent(String key) throws IOException, NoSuchElementException;
+
+  /**
+   * Opens a stream to the resource stored under key.
+   *
+   * @param key the key used to store a resource
+   * @return content stream
+   */
+  InputStream openStream(String key) throws IOException, NoSuchElementException;
 }

@@ -29,7 +29,6 @@ package org.hisp.dhis.resourcetable;
 
 import static java.time.temporal.ChronoUnit.YEARS;
 import static java.util.Comparator.reverseOrder;
-import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
@@ -51,6 +50,7 @@ import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -102,6 +102,8 @@ public class DefaultResourceTableService implements ResourceTableService {
 
   private final PeriodDataProvider periodDataProvider;
 
+  private final SqlBuilder sqlBuilder;
+
   @Override
   @Transactional
   public void generateOrganisationUnitStructureTable() {
@@ -136,6 +138,7 @@ public class DefaultResourceTableService implements ResourceTableService {
   public void generateDataElementGroupSetTable() {
     resourceTableStore.generateResourceTable(
         new DataElementGroupSetResourceTable(
+            sqlBuilder,
             idObjectManager.getDataDimensionsNoAcl(DataElementGroupSet.class),
             analyticsExportSettings.getTableLogged()));
   }
@@ -145,6 +148,7 @@ public class DefaultResourceTableService implements ResourceTableService {
   public void generateIndicatorGroupSetTable() {
     resourceTableStore.generateResourceTable(
         new IndicatorGroupSetResourceTable(
+            sqlBuilder,
             idObjectManager.getAllNoAcl(IndicatorGroupSet.class),
             analyticsExportSettings.getTableLogged()));
   }
@@ -154,6 +158,7 @@ public class DefaultResourceTableService implements ResourceTableService {
   public void generateOrganisationUnitGroupSetTable() {
     resourceTableStore.generateResourceTable(
         new OrganisationUnitGroupSetResourceTable(
+            sqlBuilder,
             idObjectManager.getDataDimensionsNoAcl(OrganisationUnitGroupSet.class),
             organisationUnitService.getNumberOfOrganisationalLevels(),
             analyticsExportSettings.getTableLogged()));
@@ -164,6 +169,7 @@ public class DefaultResourceTableService implements ResourceTableService {
   public void generateCategoryTable() {
     resourceTableStore.generateResourceTable(
         new CategoryResourceTable(
+            sqlBuilder,
             idObjectManager.getDataDimensionsNoAcl(Category.class),
             idObjectManager.getDataDimensionsNoAcl(CategoryOptionGroupSet.class),
             analyticsExportSettings.getTableLogged()));
@@ -273,7 +279,7 @@ public class DefaultResourceTableService implements ResourceTableService {
   public void createAllSqlViews(JobProgress progress) {
     List<SqlView> nonQueryViews =
         new ArrayList<>(sqlViewService.getAllSqlViewsNoAcl())
-            .stream().sorted().filter(view -> !view.isQuery()).collect(toList());
+            .stream().sorted().filter(view -> !view.isQuery()).toList();
 
     progress.startingStage("Create SQL views", nonQueryViews.size(), SKIP_ITEM);
     progress.runStage(
@@ -296,7 +302,7 @@ public class DefaultResourceTableService implements ResourceTableService {
   public void dropAllSqlViews(JobProgress progress) {
     List<SqlView> nonQueryViews =
         new ArrayList<>(sqlViewService.getAllSqlViewsNoAcl())
-            .stream().filter(view -> !view.isQuery()).sorted(reverseOrder()).collect(toList());
+            .stream().filter(view -> !view.isQuery()).sorted(reverseOrder()).toList();
     progress.startingStage("Drop SQL views", nonQueryViews.size(), SKIP_ITEM);
     progress.runStage(nonQueryViews, SqlView::getViewName, sqlViewService::dropViewTable);
   }

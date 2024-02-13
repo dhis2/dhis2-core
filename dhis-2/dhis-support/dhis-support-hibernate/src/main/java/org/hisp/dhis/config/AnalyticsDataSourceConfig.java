@@ -37,10 +37,11 @@ import java.sql.SQLException;
 import javax.sql.DataSource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.datasource.DatabasePoolUtils;
 import org.hisp.dhis.datasource.ReadOnlyDataSourceManager;
+import org.hisp.dhis.datasource.model.PoolConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -50,10 +51,12 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
-@Configuration
 @Slf4j
+@Configuration
 @RequiredArgsConstructor
 public class AnalyticsDataSourceConfig {
+
+  private static final int FETCH_SIZE = 1000;
 
   private final DhisConfigurationProvider dhisConfig;
 
@@ -67,43 +70,13 @@ public class AnalyticsDataSourceConfig {
   @Bean("analyticsActualDataSource")
   public DataSource jdbcActualDataSource(
       @Qualifier("actualDataSource") DataSource actualDataSource) {
-
-    String jdbcUrl = dhisConfig.getProperty(ANALYTICS_CONNECTION_URL);
-
-    if (StringUtils.isNotBlank(jdbcUrl)) {
-      return createActualDataSourceFromAnalyticsConfiguration();
-    }
-    // if no analytics connection url is specified, use the same datasource as the main database
-    log.info(
-        "No analytics connection url is specified ("
-            + ANALYTICS_CONNECTION_URL.getKey()
-            + "). Analytics won't have a dedicated datasource");
-    return actualDataSource;
-  }
-
-  private DataSource createActualDataSourceFromAnalyticsConfiguration() {
-    String jdbcUrl = dhisConfig.getProperty(ANALYTICS_CONNECTION_URL);
-
-    String dbPoolType = dhisConfig.getProperty(ConfigurationKey.DB_POOL_TYPE);
-
-    DatabasePoolUtils.PoolConfig poolConfig =
-        DatabasePoolUtils.PoolConfig.builder()
-            .dhisConfig(dhisConfig)
-            .mapper(ANALYTICS)
-            .dbPoolType(dbPoolType)
-            .build();
-
-    try {
-      return DatabasePoolUtils.createDbPool(poolConfig);
-    } catch (SQLException | PropertyVetoException e) {
-      String message =
-          String.format(
-              "Connection test failed for analytics database pool, " + "jdbcUrl: '%s'", jdbcUrl);
-
-      log.error(message);
-      log.error(DebugUtils.getStackTrace(e));
-
-      throw new IllegalStateException(message, e);
+    if (dhisConfig.isAnalyticsDatabaseConfigured()) {
+      return getAnalyticsDataSource();
+    } else {
+      log.info(
+          "Analytics data source connection URL not specified with key: '{}'",
+          ANALYTICS_CONNECTION_URL.getKey());
+      return actualDataSource;
     }
   }
 
@@ -118,10 +91,7 @@ public class AnalyticsDataSourceConfig {
   @DependsOn("analyticsDataSource")
   public JdbcTemplate executionPlanJdbcTemplate(
       @Qualifier("analyticsDataSource") DataSource dataSource) {
-    JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-    jdbcTemplate.setFetchSize(1000);
-    jdbcTemplate.setQueryTimeout(10);
-    return jdbcTemplate;
+    return getJdbcTemplate(dataSource);
   }
 
   @Bean("analyticsReadOnlyJdbcTemplate")
@@ -129,19 +99,59 @@ public class AnalyticsDataSourceConfig {
   public JdbcTemplate readOnlyJdbcTemplate(
       @Qualifier("analyticsDataSource") DataSource dataSource) {
     ReadOnlyDataSourceManager manager = new ReadOnlyDataSourceManager(dhisConfig);
-
-    JdbcTemplate jdbcTemplate =
-        new JdbcTemplate(MoreObjects.firstNonNull(manager.getReadOnlyDataSource(), dataSource));
-    jdbcTemplate.setFetchSize(1000);
-
-    return jdbcTemplate;
+    DataSource ds = MoreObjects.firstNonNull(manager.getReadOnlyDataSource(), dataSource);
+    return getJdbcTemplate(ds);
   }
 
   @Bean("analyticsJdbcTemplate")
   @DependsOn("analyticsDataSource")
   public JdbcTemplate jdbcTemplate(@Qualifier("analyticsDataSource") DataSource dataSource) {
+    return getJdbcTemplate(dataSource);
+  }
+
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+
+  /**
+   * Returns a data source for the analytics database.
+   *
+   * @return a {@link DataSource}.
+   */
+  private DataSource getAnalyticsDataSource() {
+    String jdbcUrl = dhisConfig.getProperty(ANALYTICS_CONNECTION_URL);
+    String dbPoolType = dhisConfig.getProperty(ConfigurationKey.DB_POOL_TYPE);
+
+    PoolConfig poolConfig =
+        PoolConfig.builder()
+            .dhisConfig(dhisConfig)
+            .mapper(ANALYTICS)
+            .dbPoolType(dbPoolType)
+            .build();
+
+    try {
+      return DatabasePoolUtils.createDbPool(poolConfig);
+    } catch (SQLException | PropertyVetoException ex) {
+      String message =
+          TextUtils.format(
+              "Connection test failed for analytics database pool, JDBC URL: '{}'", jdbcUrl);
+
+      log.error(message);
+      log.error(DebugUtils.getStackTrace(ex));
+
+      throw new IllegalStateException(message, ex);
+    }
+  }
+
+  /**
+   * Returns a {@link JdbcTemplate}.
+   *
+   * @param dataSource the {@link DataSource}.
+   * @return a {@link JdbcTemplate}.
+   */
+  private JdbcTemplate getJdbcTemplate(DataSource dataSource) {
     JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-    jdbcTemplate.setFetchSize(1000);
+    jdbcTemplate.setFetchSize(FETCH_SIZE);
     return jdbcTemplate;
   }
 }

@@ -65,10 +65,7 @@ public class Table {
   /** Whether table is logged or unlogged. PostgreSQL-only feature. */
   private final Logged logged;
 
-  /**
-   * The parent table. This table will inherit from the parent table, if specified. Optional, may be
-   * null.
-   */
+  /** Parent table. This table will inherit from the parent table, if specified. Optional. */
   private final Table parent;
 
   /**
