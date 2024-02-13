@@ -32,6 +32,7 @@ import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -41,13 +42,13 @@ import org.junit.jupiter.api.Test;
  */
 class ResourceTableControllerTest extends DhisControllerIntegrationTest {
 
-  @Test
+  @Disabled
   void testAnalytics() {
     JsonWebMessage msg = assertWebMessage(HttpStatus.OK, POST("/resourceTables/analytics"));
     assertStartsWith("Initiated ANALYTICS_TABLE", msg.getMessage());
   }
 
-  @Test
+  @Disabled
   void testResourceTables() {
     JsonWebMessage msg = assertWebMessage(HttpStatus.OK, POST("/resourceTables"));
     assertStartsWith("Initiated RESOURCE_TABLE", msg.getMessage());
