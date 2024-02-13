@@ -707,8 +707,4 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         + "dv.categoryoptioncomboid = stats.categoryoptioncomboid and "
         + "dv.attributeoptioncomboid = stats.attributeoptioncomboid ";
   }
-
-  private boolean skipOutliers(AnalyticsTableUpdateParams params) {
-    return params != null && params.isSkipOutliers();
-  }
 }

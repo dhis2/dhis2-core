@@ -1013,14 +1013,14 @@ public class DataQueryParams {
   public List<DimensionalObject> getDimensionsAndFilters(DimensionType dimensionType) {
     return getDimensionsAndFilters().stream()
         .filter(d -> dimensionType == d.getDimensionType())
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /** Returns a list of dimensions and filters of the given set of dimension types. */
   public List<DimensionalObject> getDimensionsAndFilters(Set<DimensionType> dimensionTypes) {
     return getDimensionsAndFilters().stream()
         .filter(d -> dimensionTypes.contains(d.getDimensionType()))
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /** Returns all dimensions except any period dimension. */
@@ -1086,7 +1086,7 @@ public class DataQueryParams {
         .filter(dimensionalObject -> StringUtils.equals(dimensionalObject.getDimension(), key))
         .map(DimensionalObject::getItems)
         .flatMap(Collection::stream)
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /** Returns all dimension items part of dimensions of the given dimension type. */
@@ -1094,7 +1094,7 @@ public class DataQueryParams {
     return getDimensionsAndFilters(dimensionType).stream()
         .map(DimensionalObject::getItems)
         .flatMap(Collection::stream)
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /**

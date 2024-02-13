@@ -68,7 +68,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -163,7 +162,7 @@ class JdbcEventAnalyticsTableManagerTest {
                 String column = pt.getName().toLowerCase();
                 return new AnalyticsTableColumn(column, TEXT, "dps" + "." + quote(column));
               })
-          .collect(Collectors.toList());
+          .toList();
 
   private final BeanRandomizer rnd = BeanRandomizer.create();
 
