@@ -56,6 +56,8 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 @RequiredArgsConstructor
 public class AnalyticsDataSourceConfig {
 
+  private static final int FETCH_SIZE = 1000;
+
   private final DhisConfigurationProvider dhisConfig;
 
   @Bean("analyticsDataSource")
@@ -91,8 +93,7 @@ public class AnalyticsDataSourceConfig {
   public JdbcTemplate executionPlanJdbcTemplate(
       @Qualifier("analyticsDataSource") DataSource dataSource) {
     JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-    jdbcTemplate.setFetchSize(1000);
-    jdbcTemplate.setQueryTimeout(10);
+    jdbcTemplate.setFetchSize(FETCH_SIZE);
     return jdbcTemplate;
   }
 
@@ -101,10 +102,10 @@ public class AnalyticsDataSourceConfig {
   public JdbcTemplate readOnlyJdbcTemplate(
       @Qualifier("analyticsDataSource") DataSource dataSource) {
     ReadOnlyDataSourceManager manager = new ReadOnlyDataSourceManager(dhisConfig);
+    DataSource ds = MoreObjects.firstNonNull(manager.getReadOnlyDataSource(), dataSource);
 
-    JdbcTemplate jdbcTemplate =
-        new JdbcTemplate(MoreObjects.firstNonNull(manager.getReadOnlyDataSource(), dataSource));
-    jdbcTemplate.setFetchSize(1000);
+    JdbcTemplate jdbcTemplate = new JdbcTemplate(ds);
+    jdbcTemplate.setFetchSize(FETCH_SIZE);
 
     return jdbcTemplate;
   }
@@ -113,7 +114,7 @@ public class AnalyticsDataSourceConfig {
   @DependsOn("analyticsDataSource")
   public JdbcTemplate jdbcTemplate(@Qualifier("analyticsDataSource") DataSource dataSource) {
     JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-    jdbcTemplate.setFetchSize(1000);
+    jdbcTemplate.setFetchSize(FETCH_SIZE);
     return jdbcTemplate;
   }
 
