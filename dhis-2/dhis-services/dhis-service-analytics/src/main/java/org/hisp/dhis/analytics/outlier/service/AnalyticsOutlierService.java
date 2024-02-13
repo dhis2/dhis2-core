@@ -309,7 +309,7 @@ public class AnalyticsOutlierService {
           grid.addValue(getIdProperty(object, outlier.getOu(), outlierRequest.getOutputIdScheme()));
           grid.addValue(getIdProperty(object, outlier.getOu(), IdScheme.NAME));
 
-          grid.addValue(ou.getParentNameGraph(roots, true));
+          grid.addValue(ou.getParentNameGraph(roots, true, " / ", false));
 
           object = idObjectManager.get(CategoryOptionCombo.class, outlier.getCoc());
           grid.addValue(
