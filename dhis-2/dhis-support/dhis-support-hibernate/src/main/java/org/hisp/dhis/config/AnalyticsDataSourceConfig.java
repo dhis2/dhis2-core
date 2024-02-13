@@ -83,7 +83,6 @@ public class AnalyticsDataSourceConfig {
 
   private DataSource createActualDataSourceFromAnalyticsConfiguration() {
     String jdbcUrl = dhisConfig.getProperty(ANALYTICS_CONNECTION_URL);
-
     String dbPoolType = dhisConfig.getProperty(ConfigurationKey.DB_POOL_TYPE);
 
     DatabasePoolUtils.PoolConfig poolConfig =
