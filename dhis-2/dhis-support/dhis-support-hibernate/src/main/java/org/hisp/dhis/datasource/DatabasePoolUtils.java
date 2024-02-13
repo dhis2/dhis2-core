@@ -77,7 +77,6 @@ import java.beans.PropertyVetoException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import javax.sql.DataSource;
@@ -133,7 +132,7 @@ public class DatabasePoolUtils {
                 ANALYTICS_CONNECTION_POOL_IDLE_CON_TEST_PERIOD)
             .put(CONNECTION_POOL_NUM_THREADS, ANALYTICS_CONNECTION_POOL_NUM_THREADS)
             .build()),
-    POSTGRESQL(Collections.emptyMap());
+    POSTGRESQL(Map.of());
 
     private final Map<ConfigurationKey, ConfigurationKey> keyMap;
 
@@ -151,21 +150,19 @@ public class DatabasePoolUtils {
       throws PropertyVetoException, SQLException {
     Objects.requireNonNull(config);
 
-    DbPoolType dbType = DbPoolType.valueOf(config.getDbPoolType().toUpperCase());
+    DbPoolType dbPoolType = DbPoolType.valueOf(config.getDbPoolType().toUpperCase());
 
-    if (dbType == DbPoolType.C3P0) {
-      return createC3p0DbPool(config);
-    } else if (dbType == DbPoolType.HIKARI) {
-      return createHikariDbPool(config);
+    switch (dbPoolType) {
+      case C3P0:
+        return createC3p0DbPool(config);
+      case HIKARI:
+        return createHikariDbPool(config);
+      default:
+        throw new IllegalArgumentException(
+            TextUtils.format(
+                "Database pool type value is invalid, could not create database pool: '{}'",
+                config.getDbPoolType()));
     }
-
-    String msg =
-        TextUtils.format(
-            "Database pool type value is invalid, could not create a database pool: '{}'",
-            config.getDbPoolType());
-    log.error(msg);
-
-    throw new IllegalArgumentException(msg);
   }
 
   private static DataSource createHikariDbPool(PoolConfig config) throws SQLException {
