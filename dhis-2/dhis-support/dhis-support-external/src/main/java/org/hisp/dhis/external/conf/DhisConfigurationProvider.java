@@ -161,9 +161,9 @@ public interface DhisConfigurationProvider {
   List<String> getRemoteServersAllowed();
 
   /**
-   * Checks whether the supplied url is contained in the remote servers allowed list.
+   * Checks whether the supplied URL is contained in the remote servers allowed list.
    *
-   * @param url the url to check
+   * @param url the URL to check.
    * @return true if in the remote servers allowed list.
    */
   boolean remoteServerIsInAllowedList(String url);
