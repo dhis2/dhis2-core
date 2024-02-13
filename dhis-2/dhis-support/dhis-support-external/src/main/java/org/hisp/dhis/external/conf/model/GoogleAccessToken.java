@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,34 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.external.conf.model;
 
-import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.TEI_ALIAS;
-
-import java.util.stream.Stream;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.analytics.common.query.AndCondition;
-import org.hisp.dhis.analytics.common.query.BaseRenderable;
-import org.hisp.dhis.analytics.common.query.Field;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.LocalDateTime;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
- * A condition that checks if the given entity has coordinates. Renders to tei."latitude" is not
- * null and tei."longitude" is not null"
+ * @author Lars Helge Overland
  */
-public class CoordinatesOnlyCondition extends BaseRenderable {
-  public static final CoordinatesOnlyCondition INSTANCE = new CoordinatesOnlyCondition();
+@Getter
+@Setter
+@NoArgsConstructor
+public class GoogleAccessToken {
+  @JsonProperty(value = "access_token")
+  private String accessToken;
 
-  private static final String LATITUDE = "latitude";
+  @JsonProperty(value = "client_id")
+  private String clientId;
 
-  private static final String LONGITUDE = "longitude";
+  @JsonProperty(value = "expires_in")
+  private long expiresInSeconds;
 
-  @Override
-  public String render() {
-    return AndCondition.of(
-            Stream.of(LATITUDE, LONGITUDE)
-                .map(field -> Field.of(TEI_ALIAS, () -> field, StringUtils.EMPTY))
-                .map(IsNotNullCondition::of)
-                .toList())
-        .render();
-  }
+  @JsonIgnore private LocalDateTime expiresOn;
 }

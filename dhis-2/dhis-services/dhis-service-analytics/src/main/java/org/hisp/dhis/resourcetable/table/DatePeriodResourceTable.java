@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
-import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.db.model.Table.toStaging;
 
 import com.google.common.collect.Lists;
@@ -104,7 +103,7 @@ public class DatePeriodResourceTable implements ResourceTable {
     List<Period> dailyPeriods = new DailyPeriodType().generatePeriods(startDate, endDate);
 
     List<Date> days =
-        new UniqueArrayList<>(dailyPeriods.stream().map(Period::getStartDate).collect(toList()));
+        new UniqueArrayList<>(dailyPeriods.stream().map(Period::getStartDate).toList());
 
     Calendar calendar = PeriodType.getCalendar();
 

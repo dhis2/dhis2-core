@@ -77,16 +77,14 @@ import java.beans.PropertyVetoException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import javax.sql.DataSource;
-import lombok.Builder;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.datasource.model.PoolConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 
@@ -97,8 +95,9 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 public class DatabasePoolUtils {
 
   /**
-   * This enums maps each database config key into a corresponding analytics config key. This is
-   * used to allow the analytics database to be configured separately from the main database.
+   * This enum maps each database configuration key into a corresponding analytics configuration
+   * key. This is used to allow an analytics database to be configured separately from the main
+   * database.
    */
   @RequiredArgsConstructor
   public enum ConfigKeyMapper {
@@ -133,7 +132,7 @@ public class DatabasePoolUtils {
                 ANALYTICS_CONNECTION_POOL_IDLE_CON_TEST_PERIOD)
             .put(CONNECTION_POOL_NUM_THREADS, ANALYTICS_CONNECTION_POOL_NUM_THREADS)
             .build()),
-    POSTGRESQL(Collections.emptyMap());
+    POSTGRESQL(Map.of());
 
     private final Map<ConfigurationKey, ConfigurationKey> keyMap;
 
@@ -147,54 +146,23 @@ public class DatabasePoolUtils {
     HIKARI
   }
 
-  @Data
-  @Builder
-  public static class PoolConfig {
-    private String dbPoolType;
-
-    private DhisConfigurationProvider dhisConfig;
-
-    private String jdbcUrl;
-
-    private String username;
-
-    private String password;
-
-    private String maxPoolSize;
-
-    private String acquireIncrement;
-
-    private String acquireRetryAttempts;
-    private String acquireRetryDelay;
-
-    private String maxIdleTime;
-
-    private ConfigKeyMapper mapper;
-
-    public ConfigKeyMapper getMapper() {
-      return Optional.ofNullable(mapper).orElse(ConfigKeyMapper.POSTGRESQL);
-    }
-  }
-
   public static DataSource createDbPool(PoolConfig config)
       throws PropertyVetoException, SQLException {
     Objects.requireNonNull(config);
 
-    DbPoolType dbType = DbPoolType.valueOf(config.dbPoolType.toUpperCase());
+    DbPoolType dbPoolType = DbPoolType.valueOf(config.getDbPoolType().toUpperCase());
 
-    if (dbType == DbPoolType.C3P0) {
-      return createC3p0DbPool(config);
-    } else if (dbType == DbPoolType.HIKARI) {
-      return createHikariDbPool(config);
+    switch (dbPoolType) {
+      case C3P0:
+        return createC3p0DbPool(config);
+      case HIKARI:
+        return createHikariDbPool(config);
+      default:
+        throw new IllegalArgumentException(
+            TextUtils.format(
+                "Database pool type value is invalid, could not create database pool: '{}'",
+                config.getDbPoolType()));
     }
-
-    String msg =
-        String.format(
-            "Database pool type value is invalid, can not create a database pool! Value='%s'",
-            config.dbPoolType);
-    log.error(msg);
-
-    throw new IllegalArgumentException(msg);
   }
 
   private static DataSource createHikariDbPool(PoolConfig config) throws SQLException {
@@ -204,30 +172,24 @@ public class DatabasePoolUtils {
 
     final String driverClassName =
         dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_DRIVER_CLASS));
-
     final String jdbcUrl =
         firstNonNull(
             config.getJdbcUrl(), dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_URL)));
-
     final String username =
         firstNonNull(
             config.getUsername(), dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_USERNAME)));
-
     final String password =
         firstNonNull(
             config.getPassword(), dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_PASSWORD)));
-
     final long connectionTimeout =
         parseLong(dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_TIMEOUT)));
     final long validationTimeout =
         parseLong(dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_VALIDATION_TIMEOUT)));
-
     final int maxPoolSize =
         Integer.parseInt(
             firstNonNull(
                 config.getMaxPoolSize(),
                 dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_MAX_SIZE))));
-
     final String connectionTestQuery =
         dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_TEST_QUERY));
 
@@ -293,7 +255,7 @@ public class DatabasePoolUtils {
     final int maxIdleTime =
         parseInt(
             firstNonNull(
-                config.maxIdleTime,
+                config.getMaxIdleTime(),
                 dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_MAX_IDLE_TIME))));
 
     final int minPoolSize =
@@ -315,6 +277,7 @@ public class DatabasePoolUtils {
         parseInt(dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_NUM_THREADS)));
 
     ComboPooledDataSource dataSource = new ComboPooledDataSource();
+
     dataSource.setDriverClass(driverClassName);
     dataSource.setJdbcUrl(jdbcUrl);
     dataSource.setUser(username);
@@ -339,7 +302,6 @@ public class DatabasePoolUtils {
   }
 
   public static void testConnection(DataSource dataSource) throws SQLException {
-
     try (Connection conn = dataSource.getConnection();
         Statement stmt = conn.createStatement()) {
       stmt.executeQuery("select 'connection_test' as connection_test;");

@@ -41,7 +41,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.hisp.dhis.analytics.common.params.CommonParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
@@ -124,9 +123,7 @@ class OrganisationUnitConditionTest {
     String render = organisationUnitCondition.render();
 
     List<String> expected =
-        ous.stream()
-            .flatMap(ouId -> Stream.of(ouId + "_children1", ouId + "_children2"))
-            .collect(Collectors.toList());
+        ous.stream().flatMap(ouId -> Stream.of(ouId + "_children1", ouId + "_children2")).toList();
 
     // Then
     assertEquals("t_1.\"ou\" in (:1)", render);
@@ -359,9 +356,7 @@ class OrganisationUnitConditionTest {
     DimensionParam dimensionParam =
         DimensionParam.ofObject(
             new BaseDimensionalObject(
-                "ou",
-                ORGANISATION_UNIT,
-                ous.stream().map(orgUnitCreator).collect(Collectors.toList())),
+                "ou", ORGANISATION_UNIT, ous.stream().map(orgUnitCreator).toList()),
             DIMENSIONS,
             ous);
 

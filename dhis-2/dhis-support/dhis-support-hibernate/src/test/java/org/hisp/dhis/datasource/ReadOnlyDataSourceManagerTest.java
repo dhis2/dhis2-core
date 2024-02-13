@@ -34,8 +34,8 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Properties;
+import org.hisp.dhis.datasource.model.ReadOnlyDataSourceConfig;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.hibernate.ReadOnlyDataSourceConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;

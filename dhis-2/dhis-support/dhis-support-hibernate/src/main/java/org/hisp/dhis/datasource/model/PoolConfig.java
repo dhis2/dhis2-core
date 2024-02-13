@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,34 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.datasource.model;
 
-import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.TEI_ALIAS;
-
-import java.util.stream.Stream;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.analytics.common.query.AndCondition;
-import org.hisp.dhis.analytics.common.query.BaseRenderable;
-import org.hisp.dhis.analytics.common.query.Field;
+import java.util.Optional;
+import lombok.Builder;
+import lombok.Value;
+import org.hisp.dhis.datasource.DatabasePoolUtils.ConfigKeyMapper;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 
 /**
- * A condition that checks if the given entity has coordinates. Renders to tei."latitude" is not
- * null and tei."longitude" is not null"
+ * Encapsulation of a database connection pool configuration.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class CoordinatesOnlyCondition extends BaseRenderable {
-  public static final CoordinatesOnlyCondition INSTANCE = new CoordinatesOnlyCondition();
+@Value
+@Builder
+public class PoolConfig {
+  private String dbPoolType;
 
-  private static final String LATITUDE = "latitude";
+  private DhisConfigurationProvider dhisConfig;
 
-  private static final String LONGITUDE = "longitude";
+  private String jdbcUrl;
 
-  @Override
-  public String render() {
-    return AndCondition.of(
-            Stream.of(LATITUDE, LONGITUDE)
-                .map(field -> Field.of(TEI_ALIAS, () -> field, StringUtils.EMPTY))
-                .map(IsNotNullCondition::of)
-                .toList())
-        .render();
+  private String username;
+
+  private String password;
+
+  private String maxPoolSize;
+
+  private String acquireIncrement;
+
+  private String acquireRetryAttempts;
+
+  private String acquireRetryDelay;
+
+  private String maxIdleTime;
+
+  private ConfigKeyMapper mapper;
+
+  public ConfigKeyMapper getMapper() {
+    return Optional.ofNullable(mapper).orElse(ConfigKeyMapper.POSTGRESQL);
   }
 }

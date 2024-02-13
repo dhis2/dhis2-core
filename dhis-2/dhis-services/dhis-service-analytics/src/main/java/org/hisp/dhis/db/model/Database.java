@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,30 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.external.conf;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.time.LocalDateTime;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+package org.hisp.dhis.db.model;
 
 /**
+ * Enumeration of database platforms.
+ *
  * @author Lars Helge Overland
  */
-@Getter
-@Setter
-@NoArgsConstructor
-public class GoogleAccessToken {
-  @JsonProperty(value = "access_token")
-  private String accessToken;
-
-  @JsonProperty(value = "client_id")
-  private String clientId;
-
-  @JsonProperty(value = "expires_in")
-  private long expiresInSeconds;
-
-  @JsonIgnore private LocalDateTime expiresOn;
+public enum Database {
+  POSTGRESQL;
 }

@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.collection.ListUtils;
+import org.slf4j.helpers.MessageFormatter;
 
 /**
  * Utility class with methods for managing strings.
@@ -691,5 +692,16 @@ public class TextUtils {
    */
   public static String removeAnyTrailingSlash(@Nonnull String string) {
     return string.endsWith("/") ? StringUtils.chop(string) : string;
+  }
+
+  /**
+   * Returns a formatted message string, a pair of curly braces represents a variable.
+   *
+   * @param pattern the pattern string.
+   * @param arguments the pattern arguments.
+   * @return a formatted message string.
+   */
+  public static String format(String pattern, Object... arguments) {
+    return MessageFormatter.arrayFormat(pattern, arguments).getMessage();
   }
 }
