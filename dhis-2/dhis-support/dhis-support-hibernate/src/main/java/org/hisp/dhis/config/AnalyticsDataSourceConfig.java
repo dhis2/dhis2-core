@@ -70,13 +70,13 @@ public class AnalyticsDataSourceConfig {
       @Qualifier("actualDataSource") DataSource actualDataSource) {
     if (isAnalyticsDataSourceConfigured()) {
       return getAnalyticsDataSource();
+    } else {
+      log.info(
+          "Analytics data source connection URL not specified with key: '{}'",
+          ANALYTICS_CONNECTION_URL.getKey());
+
+      return actualDataSource;
     }
-
-    log.info(
-        "Analytics data source connection URL not specified with key: '{}'",
-        ANALYTICS_CONNECTION_URL.getKey());
-
-    return actualDataSource;
   }
 
   @Bean("analyticsNamedParameterJdbcTemplate")
