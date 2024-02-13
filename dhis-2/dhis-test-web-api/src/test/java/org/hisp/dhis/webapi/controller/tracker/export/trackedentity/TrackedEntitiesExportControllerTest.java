@@ -639,6 +639,8 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
         Set.of(attributeValue(tea, trackedEntity, file.getUid())));
     enrollmentService.enrollTrackedEntity(trackedEntity, program, new Date(), new Date(), orgUnit);
 
+    this.switchContextToUser(user);
+
     HttpResponse response =
         GET(
             "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file?program={programUid}",
@@ -663,14 +665,14 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
     FileResource file = storeFile("text/plain", "file content");
     trackedEntity.setTrackedEntityAttributeValues(
         Set.of(attributeValue(tea, trackedEntity, file.getUid())));
-    enrollmentService.enrollTrackedEntity(trackedEntity, program, new Date(), new Date(), orgUnit);
+
+    this.switchContextToUser(user);
 
     HttpResponse response =
         GET(
-            "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file?program={programUid}",
+            "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file",
             trackedEntity.getUid(),
-            tea.getUid(),
-            program.getUid());
+            tea.getUid());
 
     assertEquals(HttpStatus.OK, response.status());
     assertEquals("\"" + file.getContentMd5() + "\"", response.header("Etag"));
@@ -730,6 +732,27 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   }
 
   @Test
+  void getAttributeValuesFileByAttributeIfAttributeIsNotAFile() {
+    TrackedEntity trackedEntity = trackedEntity();
+    TrackedEntityAttribute tea = attribute(ValueType.BOOLEAN);
+    programAttribute(program, tea);
+
+    trackedEntity.setTrackedEntityAttributeValues(
+        Set.of(attributeValue(tea, trackedEntity, "true")));
+    enrollmentService.enrollTrackedEntity(trackedEntity, program, new Date(), new Date(), orgUnit);
+
+    assertStartsWith(
+        "Tracked entity attribute " + tea.getUid() + " is not a file",
+        GET(
+                "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file?program={programUid}",
+                trackedEntity.getUid(),
+                tea.getUid(),
+                program.getUid())
+            .error(HttpStatus.NOT_FOUND)
+            .getMessage());
+  }
+
+  @Test
   void getAttributeValuesFileByAttributeIfProgramDoesNotExist() throws ConflictException {
     TrackedEntity trackedEntity = trackedEntity();
     TrackedEntityAttribute tea = attribute(ValueType.FILE_RESOURCE);
@@ -754,24 +777,56 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   }
 
   @Test
-  void getAttributeValuesFileByAttributeIfAttributeIsNotAFile() {
+  void getAttributeValuesFileByAttributeAndProgramIfUserDoesNotHaveReadAccessToTrackedEntityType()
+      throws ConflictException {
     TrackedEntity trackedEntity = trackedEntity();
-    TrackedEntityAttribute tea = attribute(ValueType.BOOLEAN);
+    TrackedEntityAttribute tea = attribute(ValueType.FILE_RESOURCE);
     programAttribute(program, tea);
 
+    // remove public access
+    trackedEntityType.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    trackedEntityType.getSharing().setUserAccesses(Set.of());
+    manager.save(trackedEntityType, false);
+
+    FileResource file = storeFile("text/plain", "file content");
     trackedEntity.setTrackedEntityAttributeValues(
-        Set.of(attributeValue(tea, trackedEntity, "true")));
+        Set.of(attributeValue(tea, trackedEntity, file.getUid())));
     enrollmentService.enrollTrackedEntity(trackedEntity, program, new Date(), new Date(), orgUnit);
 
-    assertStartsWith(
-        "Tracked entity attribute " + tea.getUid() + " is not a file",
-        GET(
-                "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file?program={programUid}",
-                trackedEntity.getUid(),
-                tea.getUid(),
-                program.getUid())
-            .error(HttpStatus.NOT_FOUND)
-            .getMessage());
+    this.switchContextToUser(user);
+
+    GET(
+            "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file?program={programUid}",
+            trackedEntity.getUid(),
+            tea.getUid(),
+            program.getUid())
+        .error(HttpStatus.NOT_FOUND);
+  }
+
+  @Test
+  void getAttributeValuesFileByAttributeIfUserDoesNotHaveReadAccessToTrackedEntityType()
+      throws ConflictException {
+    TrackedEntity trackedEntity = trackedEntity();
+    TrackedEntityAttribute tea = attribute(ValueType.FILE_RESOURCE);
+    programAttribute(program, tea);
+
+    // remove public access
+    trackedEntityType.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    trackedEntityType.getSharing().setUserAccesses(Set.of());
+    manager.save(trackedEntityType, false);
+
+    FileResource file = storeFile("text/plain", "file content");
+    trackedEntity.setTrackedEntityAttributeValues(
+        Set.of(attributeValue(tea, trackedEntity, file.getUid())));
+    enrollmentService.enrollTrackedEntity(trackedEntity, program, new Date(), new Date(), orgUnit);
+
+    this.switchContextToUser(user);
+
+    GET(
+            "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file",
+            trackedEntity.getUid(),
+            tea.getUid())
+        .error(HttpStatus.NOT_FOUND);
   }
 
   @Test
@@ -828,35 +883,6 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
     assertStartsWith(
         "FileResource with id " + fileUid,
-        GET(
-                "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file?program={programUid}",
-                trackedEntity.getUid(),
-                tea.getUid(),
-                program.getUid())
-            .error(HttpStatus.NOT_FOUND)
-            .getMessage());
-  }
-
-  @Test
-  void getAttributeValuesFileByAttributeHasNoDataReadAccessToTrackedEntity()
-      throws ConflictException {
-    TrackedEntity trackedEntity = trackedEntity();
-    TrackedEntityAttribute tea = attribute(ValueType.FILE_RESOURCE);
-    programAttribute(program, tea);
-
-    // remove public access
-    program.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
-    manager.save(program, false);
-
-    FileResource file = storeFile("text/plain", "file content");
-    trackedEntity.setTrackedEntityAttributeValues(
-        Set.of(attributeValue(tea, trackedEntity, file.getUid())));
-    enrollmentService.enrollTrackedEntity(trackedEntity, program, new Date(), new Date(), orgUnit);
-
-    this.switchContextToUser(user);
-
-    assertStartsWith(
-        "Program",
         GET(
                 "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file?program={programUid}",
                 trackedEntity.getUid(),

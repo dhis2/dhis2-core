@@ -150,22 +150,19 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       throw new NotFoundException(TrackedEntityAttribute.class, attributeUid.getValue());
     }
 
-    Program program = null;
-    if (programUid != null) {
-      program = programService.getProgram(programUid.getValue());
-      if (program == null) {
-        throw new NotFoundException(Program.class, programUid.getValue());
-      }
-    }
-
     if (!attribute.getValueType().isFile()) {
       throw new NotFoundException(
           "Tracked entity attribute " + attributeUid.getValue() + " is not a file (or image).");
     }
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     List<String> errors;
-    if (program != null) {
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    if (programUid != null) {
+      Program program = programService.getProgram(programUid.getValue());
+      if (program == null) {
+        throw new NotFoundException(Program.class, programUid.getValue());
+      }
+
       errors = trackerAccessManager.canRead(currentUser, trackedEntity, program, false);
     } else {
       errors = trackerAccessManager.canRead(currentUser, trackedEntity);

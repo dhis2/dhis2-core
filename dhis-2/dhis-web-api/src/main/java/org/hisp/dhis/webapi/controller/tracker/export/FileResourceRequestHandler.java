@@ -41,7 +41,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
-/** FileResourceRequestHandler serves files and images given a {@link FileResourceStream}. */
+/**
+ * FileResourceRequestHandler serves files and images given a {@link FileResourceStream}. The {@link
+ * FileResourceStream#getInputStreamSupplier()} will not be called if the client has an up-to-date
+ * file according to its {@link FileResource#getContentMd5()} value.
+ */
 public class FileResourceRequestHandler {
 
   private static final CacheControl MUST_REVALIDATE =
