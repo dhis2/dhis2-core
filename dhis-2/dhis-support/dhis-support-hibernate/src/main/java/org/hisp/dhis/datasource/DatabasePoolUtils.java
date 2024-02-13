@@ -80,14 +80,12 @@ import java.sql.Statement;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import javax.sql.DataSource;
-import lombok.Builder;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.datasource.model.PoolConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 
@@ -149,41 +147,11 @@ public class DatabasePoolUtils {
     HIKARI
   }
 
-  @Data
-  @Builder
-  public static class PoolConfig {
-    private String dbPoolType;
-
-    private DhisConfigurationProvider dhisConfig;
-
-    private String jdbcUrl;
-
-    private String username;
-
-    private String password;
-
-    private String maxPoolSize;
-
-    private String acquireIncrement;
-
-    private String acquireRetryAttempts;
-
-    private String acquireRetryDelay;
-
-    private String maxIdleTime;
-
-    private ConfigKeyMapper mapper;
-
-    public ConfigKeyMapper getMapper() {
-      return Optional.ofNullable(mapper).orElse(ConfigKeyMapper.POSTGRESQL);
-    }
-  }
-
   public static DataSource createDbPool(PoolConfig config)
       throws PropertyVetoException, SQLException {
     Objects.requireNonNull(config);
 
-    DbPoolType dbType = DbPoolType.valueOf(config.dbPoolType.toUpperCase());
+    DbPoolType dbType = DbPoolType.valueOf(config.getDbPoolType().toUpperCase());
 
     if (dbType == DbPoolType.C3P0) {
       return createC3p0DbPool(config);
@@ -194,7 +162,7 @@ public class DatabasePoolUtils {
     String msg =
         TextUtils.format(
             "Database pool type value is invalid, could not create a database pool: '{}'",
-            config.dbPoolType);
+            config.getDbPoolType());
     log.error(msg);
 
     throw new IllegalArgumentException(msg);
@@ -290,7 +258,7 @@ public class DatabasePoolUtils {
     final int maxIdleTime =
         parseInt(
             firstNonNull(
-                config.maxIdleTime,
+                config.getMaxIdleTime(),
                 dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_MAX_IDLE_TIME))));
 
     final int minPoolSize =

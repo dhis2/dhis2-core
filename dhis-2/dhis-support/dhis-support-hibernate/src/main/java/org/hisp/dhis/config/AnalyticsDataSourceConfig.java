@@ -42,6 +42,7 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.datasource.DatabasePoolUtils;
 import org.hisp.dhis.datasource.ReadOnlyDataSourceManager;
+import org.hisp.dhis.datasource.model.PoolConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -51,8 +52,8 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
-@Configuration
 @Slf4j
+@Configuration
 @RequiredArgsConstructor
 public class AnalyticsDataSourceConfig {
 
@@ -131,8 +132,8 @@ public class AnalyticsDataSourceConfig {
     String jdbcUrl = dhisConfig.getProperty(ANALYTICS_CONNECTION_URL);
     String dbPoolType = dhisConfig.getProperty(ConfigurationKey.DB_POOL_TYPE);
 
-    DatabasePoolUtils.PoolConfig poolConfig =
-        DatabasePoolUtils.PoolConfig.builder()
+    PoolConfig poolConfig =
+        PoolConfig.builder()
             .dhisConfig(dhisConfig)
             .mapper(ANALYTICS)
             .dbPoolType(dbPoolType)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,24 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.hibernate;
+package org.hisp.dhis.datasource.model;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import java.util.Optional;
+import lombok.Builder;
+import lombok.Data;
+import org.hisp.dhis.datasource.DatabasePoolUtils.ConfigKeyMapper;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 
-/**
- * Encapsulation of a read only data source configuration.
- *
- * @author Lars Helge Overland
- */
-@Getter
-@Setter
-@RequiredArgsConstructor
-public class ReadOnlyDataSourceConfig {
-  private final String url;
+/** Class representing a database connection pool configuration. */
+@Data
+@Builder
+public class PoolConfig {
+  private String dbPoolType;
 
-  private final String username;
+  private DhisConfigurationProvider dhisConfig;
 
-  private final String password;
+  private String jdbcUrl;
+
+  private String username;
+
+  private String password;
+
+  private String maxPoolSize;
+
+  private String acquireIncrement;
+
+  private String acquireRetryAttempts;
+
+  private String acquireRetryDelay;
+
+  private String maxIdleTime;
+
+  private ConfigKeyMapper mapper;
+
+  public ConfigKeyMapper getMapper() {
+    return Optional.ofNullable(mapper).orElse(ConfigKeyMapper.POSTGRESQL);
+  }
 }
