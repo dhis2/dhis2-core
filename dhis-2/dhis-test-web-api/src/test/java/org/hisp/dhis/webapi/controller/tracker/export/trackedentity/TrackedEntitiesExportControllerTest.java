@@ -665,6 +665,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
     FileResource file = storeFile("text/plain", "file content");
     trackedEntity.setTrackedEntityAttributeValues(
         Set.of(attributeValue(tea, trackedEntity, file.getUid())));
+    manager.save(trackedEntity, false);
 
     this.switchContextToUser(user);
 
@@ -1136,7 +1137,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
     TrackedEntityAttribute tea = createTrackedEntityAttribute('C');
     tea.setValueType(type);
     tea.getSharing().setOwner(owner);
-    tea2.getSharing().addUserAccess(userAccess());
+    tea.getSharing().addUserAccess(userAccess());
     manager.save(tea, false);
     return tea;
   }

@@ -144,19 +144,14 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       throw new NotFoundException(TrackedEntity.class, trackedEntityUid.getValue());
     }
 
-    TrackedEntityAttribute attribute =
-        trackedEntityAttributeService.getTrackedEntityAttribute(attributeUid.getValue());
-    if (attribute == null) {
-      throw new NotFoundException(TrackedEntityAttribute.class, attributeUid.getValue());
-    }
-
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    TrackedEntityAttribute attribute = validateDataReadAccess(currentUser, attributeUid);
     if (!attribute.getValueType().isFile()) {
       throw new NotFoundException(
           "Tracked entity attribute " + attributeUid.getValue() + " is not a file (or image).");
     }
 
     List<String> errors;
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     if (programUid != null) {
       Program program = programService.getProgram(programUid.getValue());
       if (program == null) {
@@ -188,6 +183,25 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     }
 
     return fileResourceService.getExistingFileResource(fileResourceUid);
+  }
+
+  private TrackedEntityAttribute validateDataReadAccess(User currentUser, UID attributeUid)
+      throws NotFoundException {
+    Set<TrackedEntityAttribute> readableAttributes =
+        trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes(
+            UserDetails.fromUser(currentUser));
+
+    TrackedEntityAttribute attribute = null;
+    for (TrackedEntityAttribute readableAttribute : readableAttributes) {
+      if (attributeUid.getValue().equals(readableAttribute.getUid())) {
+        attribute = readableAttribute;
+        break;
+      }
+    }
+    if (attribute == null) {
+      throw new NotFoundException(TrackedEntityAttribute.class, attributeUid.getValue());
+    }
+    return attribute;
   }
 
   @Override
