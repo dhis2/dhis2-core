@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,35 +27,58 @@
  */
 package org.hisp.dhis.analytics.table.model;
 
-import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexName;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.QUOTE;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.analytics.AnalyticsTableType;
-import org.hisp.dhis.db.model.IndexType;
+import org.hisp.dhis.db.model.DataType;
+import org.hisp.dhis.db.model.Logged;
+import org.joda.time.LocalDate;
 import org.junit.jupiter.api.Test;
 
-class AnalyticsIndexTest {
-  @Test
-  void testGetIndexName() {
-    AnalyticsIndex indexA =
-        new AnalyticsIndex("analytics_2017_temp", IndexType.BTREE, List.of(quote("quarterly")));
-    AnalyticsIndex indexB =
-        new AnalyticsIndex(
-            "analytics_2018_temp", IndexType.BTREE, List.of(quote("ax"), quote("co")));
-    AnalyticsIndex indexC =
-        new AnalyticsIndex("analytics_2019_temp", IndexType.BTREE, List.of(quote("YtbsuPPo010")));
+/**
+ * @author Lars Helge Overland
+ */
+class AnalyticsTablePartitionTest {
+  private final List<AnalyticsTableColumn> columnsA =
+      List.of(
+          new AnalyticsTableColumn("id", DataType.BIGINT, "id"),
+          new AnalyticsTableColumn("data", DataType.CHARACTER_11, "data"),
+          new AnalyticsTableColumn("value", DataType.DOUBLE, "value"));
 
-    assertTrue(
-        getIndexName(indexA, AnalyticsTableType.DATA_VALUE)
-            .startsWith(QUOTE + "in_quarterly_ax_2017_"));
-    assertTrue(
-        getIndexName(indexB, AnalyticsTableType.DATA_VALUE)
-            .startsWith(QUOTE + "in_ax_co_ax_2018_"));
-    assertTrue(
-        getIndexName(indexC, AnalyticsTableType.DATA_VALUE)
-            .startsWith(QUOTE + "in_YtbsuPPo010_ax_2019_"));
+  @Test
+  void testGetName() {
+    AnalyticsTable table =
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, Logged.UNLOGGED);
+
+    List<String> checks = List.of("value = 2023");
+
+    AnalyticsTablePartition partition =
+        new AnalyticsTablePartition(
+            table,
+            checks,
+            2023,
+            new LocalDate(2023, 1, 1).toDate(),
+            new LocalDate(2023, 12, 31).toDate());
+
+    assertEquals("analytics_2023_temp", partition.getName());
+    assertEquals("analytics_2023", partition.getMainName());
+    assertTrue(partition.hasChecks());
+    assertFalse(partition.isLatestPartition());
+  }
+
+  @Test
+  void testIsLatestPartition() {
+    AnalyticsTable table =
+        new AnalyticsTable(AnalyticsTableType.COMPLETENESS, columnsA, Logged.UNLOGGED);
+
+    AnalyticsTablePartition partition =
+        new AnalyticsTablePartition(
+            table, List.of(), AnalyticsTablePartition.LATEST_PARTITION, new Date(), new Date());
+
+    assertTrue(partition.isLatestPartition());
   }
 }

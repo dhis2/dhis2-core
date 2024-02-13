@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.resourcetable.jdbc;
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +39,6 @@ import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePhase;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
-import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableStore;
@@ -61,12 +62,13 @@ public class JdbcResourceTableStore implements ResourceTableStore {
 
   private final JdbcTemplate jdbcTemplate;
 
-  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+  private final SqlBuilder sqlBuilder;
 
   @Override
   public void generateResourceTable(ResourceTable resourceTable) {
     final Clock clock = new Clock().startClock();
     final Table stagingTable = resourceTable.getTable();
+    final List<Index> indexes = resourceTable.getIndexes();
     final String tableName = Table.fromStaging(stagingTable.getName());
     final ResourceTableType tableType = resourceTable.getTableType();
 
@@ -80,9 +82,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
 
     invokeTableHooks(tableType);
 
-    for (Index index : stagingTable.getIndexes()) {
-      jdbcTemplate.execute(sqlBuilder.createIndex(stagingTable, index));
-    }
+    createIndexes(indexes);
 
     jdbcTemplate.execute(sqlBuilder.analyzeTable(stagingTable));
 
@@ -109,12 +109,10 @@ public class JdbcResourceTableStore implements ResourceTableStore {
       jdbcTemplate.execute(populateTableSql.get());
     } else if (populateTableContent.isPresent()) {
       List<Object[]> content = populateTableContent.get();
-
       log.debug("Populate table content rows: {}", content.size());
 
       if (content.size() > 0) {
         int columns = content.get(0).length;
-
         batchUpdate(columns, table.getName(), content);
       }
     }
@@ -134,6 +132,19 @@ public class JdbcResourceTableStore implements ResourceTableStore {
       analyticsTableHookService.executeAnalyticsTableSqlHooks(hooks);
 
       log.info("Invoked resource table hooks: '{}'", hooks.size());
+    }
+  }
+
+  /**
+   * Creates indexes for the given table.
+   *
+   * @param indexes the list of {@link Index} to create.
+   */
+  private void createIndexes(List<Index> indexes) {
+    if (isNotEmpty(indexes)) {
+      for (Index index : indexes) {
+        jdbcTemplate.execute(sqlBuilder.createIndex(index));
+      }
     }
   }
 

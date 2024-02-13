@@ -103,8 +103,7 @@ public enum SettingKey {
   ACCOUNT_EXPIRES_IN_DAYS("accountExpiresInDays", 7, Integer.class),
   ACCOUNT_EXPIRY_ALERT("accountExpiryAlert", false, Boolean.class),
   SELF_REGISTRATION_NO_RECAPTCHA("keySelfRegistrationNoRecaptcha", Boolean.FALSE, Boolean.class),
-  RECAPTCHA_SECRET(
-      "recaptchaSecret", "6LcVwT0UAAAAAAtMWnPoerWwLx_DSwrcEncHCiWu", String.class, true, false),
+  RECAPTCHA_SECRET("recaptchaSecret", "", String.class, true, false),
   RECAPTCHA_SITE(
       "recaptchaSite", "6LcVwT0UAAAAAAkO_EGPiYOiymIszZUeHfqWIYX5", String.class, true, false),
   CAN_GRANT_OWN_USER_ROLES("keyCanGrantOwnUserAuthorityGroups", Boolean.FALSE, Boolean.class),
@@ -187,8 +186,7 @@ public enum SettingKey {
   REMOTE_INSTANCE_URL("keyRemoteInstanceUrl", "", String.class),
   REMOTE_INSTANCE_USERNAME("keyRemoteInstanceUsername", "", String.class),
   REMOTE_INSTANCE_PASSWORD("keyRemoteInstancePassword", "", String.class, true, false),
-  GOOGLE_MAPS_API_KEY(
-      "keyGoogleMapsApiKey", "AIzaSyBjlDmwuON9lJbPMDlh_LI3zGpGtpK9erc", String.class, false, false),
+  GOOGLE_MAPS_API_KEY("keyGoogleMapsApiKey", "", String.class, false, false),
   BING_MAPS_API_KEY(
       "keyBingMapsApiKey",
       "AoifMs0zqvpAEuI6OX5Kk93rEM-oLrvQIJe_xdCv1BF4J3yquFnUozze-M7gEf0b",

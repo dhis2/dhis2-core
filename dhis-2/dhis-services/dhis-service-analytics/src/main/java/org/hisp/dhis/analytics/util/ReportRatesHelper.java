@@ -30,6 +30,8 @@ package org.hisp.dhis.analytics.util;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 import java.util.List;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -41,8 +43,8 @@ import org.hisp.dhis.period.PeriodTypeEnum;
  *
  * @author maikel arabori
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ReportRatesHelper {
-  private ReportRatesHelper() {}
 
   /**
    * Use number of days for daily data sets as target, as query periods might

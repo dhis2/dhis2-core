@@ -122,4 +122,25 @@ public class TeiUpdateTests extends TrackerApiTest {
         .body("errorCode", equalTo("E1063"))
         .body("message", containsStringIgnoringCase("does not exist"));
   }
+
+  @Test
+  public void shouldUpdateExportedTrackedEntity() throws Exception {
+    String teUID = importTei();
+    JsonObjectBuilder trackedEntities =
+        trackerImportExportActions
+            .getTrackedEntities(
+                new QueryParamsBuilder().add("fields", "*").add("trackedEntity", teUID))
+            .getBodyAsJsonBuilder()
+            .addPropertyByJsonPath("trackedEntities[0].attributes[0].value", "Rabbit");
+
+    ApiResponse response =
+        trackerImportExportActions.postAndGetJobReport(
+            trackedEntities.build(), new QueryParamsBuilder().add("importStrategy=UPDATE"));
+
+    response
+        .validate()
+        .statusCode(200)
+        .body("status", equalTo("OK"))
+        .body("stats.updated", equalTo(1));
+  }
 }

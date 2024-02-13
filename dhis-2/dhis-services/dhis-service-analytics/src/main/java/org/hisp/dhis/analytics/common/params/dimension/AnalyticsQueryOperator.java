@@ -47,6 +47,7 @@ public class AnalyticsQueryOperator {
       Map.of(
           QueryOperator.EQ, QueryOperator.NEQ,
           QueryOperator.NEQ, QueryOperator.EQ,
+          QueryOperator.IEQ, QueryOperator.NIEQ,
           QueryOperator.LIKE, QueryOperator.NLIKE,
           QueryOperator.NLIKE, QueryOperator.LIKE,
           QueryOperator.ILIKE, QueryOperator.NILIKE,

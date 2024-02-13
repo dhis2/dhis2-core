@@ -73,25 +73,25 @@ import org.skyscreamer.jsonassert.JSONAssert;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class TrackerExportTests extends TrackerApiTest {
-  private static final String TEI = "Kj6vYde4LHh";
+  private static final String TE = "Kj6vYde4LHh";
 
-  private static final String TEI_POTENTIAL_DUPLICATE = "Nav6inZRw1u";
+  private static final String TE_POTENTIAL_DUPLICATE = "Nav6inZRw1u";
 
-  private static String teiA;
+  private static String trackedEntityA;
 
-  private static String teiB;
+  private static String trackedEntityB;
 
   private static String enrollment;
 
   private static String event;
 
-  private static String teiToTeiRelationship;
+  private static String trackedEntityToTrackedEntityRelationship;
 
-  private static String enrollmentToTeiRelationship;
+  private static String enrollmentToTrackedEntityRelationship;
 
-  private static String eventToTeiRelationship;
+  private static String eventToTrackedEntityRelationship;
 
-  private static JsonObject teiWithEnrollmentAndEventsTemplate;
+  private static JsonObject trackedEntityWithEnrollmentAndEventsTemplate;
 
   @BeforeAll
   public void beforeAll() throws Exception {
@@ -101,22 +101,26 @@ public class TrackerExportTests extends TrackerApiTest {
         trackerImportExportActions.postAndGetJobReport(
             new File("src/test/resources/tracker/importer/teis/teisWithEnrollmentsAndEvents.json"));
 
-    teiA = response.validateSuccessfulImport().extractImportedTeis().get(0);
-    teiB = response.validateSuccessfulImport().extractImportedTeis().get(1);
+    trackedEntityA = response.validateSuccessfulImport().extractImportedTeis().get(0);
+    trackedEntityB = response.validateSuccessfulImport().extractImportedTeis().get(1);
 
     enrollment = response.extractImportedEnrollments().get(0);
 
     event = response.extractImportedEvents().get(0);
 
-    teiToTeiRelationship =
-        importRelationshipBetweenTeis(teiA, teiB).extractImportedRelationships().get(0);
-    enrollmentToTeiRelationship =
-        importRelationshipEnrollmentToTei(enrollment, teiB).extractImportedRelationships().get(0);
+    trackedEntityToTrackedEntityRelationship =
+        importRelationshipBetweenTeis(trackedEntityA, trackedEntityB)
+            .extractImportedRelationships()
+            .get(0);
+    enrollmentToTrackedEntityRelationship =
+        importRelationshipEnrollmentToTei(enrollment, trackedEntityB)
+            .extractImportedRelationships()
+            .get(0);
 
-    eventToTeiRelationship =
-        importRelationshipEventToTei(event, teiB).extractImportedRelationships().get(0);
+    eventToTrackedEntityRelationship =
+        importRelationshipEventToTei(event, trackedEntityB).extractImportedRelationships().get(0);
 
-    teiWithEnrollmentAndEventsTemplate =
+    trackedEntityWithEnrollmentAndEventsTemplate =
         new FileReaderUtils()
             .read(
                 new File(
@@ -125,7 +129,7 @@ public class TrackerExportTests extends TrackerApiTest {
   }
 
   @Test
-  public void shouldGetTeiWhenAttributeFilterValueContainsComma() {
+  public void shouldGetTrackedEntityWhenAttributeFilterValueContainsComma() {
     trackerImportExportActions
         .getTrackedEntities(
             new QueryParamsBuilder()
@@ -134,11 +138,11 @@ public class TrackerExportTests extends TrackerApiTest {
                 .add("filter", "kZeSYCgaHTk:eq:Test/,Test"))
         .validate()
         .statusCode(200)
-        .body("instances[0].attributes.value", hasItem("Test,Test"));
+        .body("trackedEntities[0].attributes.value", hasItem("Test,Test"));
   }
 
   @Test
-  public void shouldGetTeiWhenAttributeFilterValueContainsColon() {
+  public void shouldGetTrackedEntityWhenAttributeFilterValueContainsColon() {
     trackerImportExportActions
         .getTrackedEntities(
             new QueryParamsBuilder()
@@ -147,32 +151,32 @@ public class TrackerExportTests extends TrackerApiTest {
                 .add("filter", "dIVt4l5vIOa:eq:Test/:Test"))
         .validate()
         .statusCode(200)
-        .body("instances[0].attributes.value", hasItem("Test:Test"));
+        .body("trackedEntities[0].attributes.value", hasItem("Test:Test"));
   }
 
   private Stream<Arguments> shouldReturnRequestedFields() {
     return Stream.of(
         Arguments.of(
-            "/trackedEntities/" + teiA,
+            "/trackedEntities/" + trackedEntityA,
             "enrollments[createdAt],relationships[from[trackedEntity[trackedEntity]],to[trackedEntity[trackedEntity]]]",
             "enrollments.createdAt,relationships.from.trackedEntity.trackedEntity,relationships.to.trackedEntity.trackedEntity"),
-        Arguments.of("/trackedEntities/" + teiA, "trackedEntity,enrollments", null),
+        Arguments.of("/trackedEntities/" + trackedEntityA, "trackedEntity,enrollments", null),
         Arguments.of(
             "/enrollments/" + enrollment,
             "program,status,enrolledAt,relationships,attributes",
             null),
         Arguments.of(
-            "/trackedEntities/" + teiA,
+            "/trackedEntities/" + trackedEntityA,
             "*",
             "trackedEntity,trackedEntityType,createdAt,updatedAt,orgUnit,inactive,deleted,potentialDuplicate,updatedBy,attributes",
             null),
         Arguments.of("/events/" + event, "enrollment,createdAt", null),
         Arguments.of(
-            "/relationships/" + teiToTeiRelationship,
+            "/relationships/" + trackedEntityToTrackedEntityRelationship,
             "from,to[trackedEntity[trackedEntity]]",
             "from,to.trackedEntity.trackedEntity"),
         Arguments.of(
-            "/relationships/" + enrollmentToTeiRelationship,
+            "/relationships/" + enrollmentToTrackedEntityRelationship,
             "from,from[enrollment[enrollment]]",
             "from,from.enrollment.enrollment"));
   }
@@ -188,19 +192,20 @@ public class TrackerExportTests extends TrackerApiTest {
         fieldsToValidate == null ? splitFields(fields) : splitFields(fieldsToValidate);
 
     fieldList.forEach(
-        p -> {
-          response
-              .validate()
-              .body(p, allOf(not(nullValue()), not(contains(nullValue())), not(emptyIterable())));
-        });
+        p ->
+            response
+                .validate()
+                .body(
+                    p, allOf(not(nullValue()), not(contains(nullValue())), not(emptyIterable()))));
   }
 
   @Test
-  public void shouldGetSingleTeiWithNoEventsWhenEventsAreSoftDeleted() {
+  public void shouldGetSingleTrackedEntityWithNoEventsWhenEventsAreSoftDeleted() {
     TrackerApiResponse response =
         trackerImportExportActions
             .postAndGetJobReport(
-                teiWithEnrollmentAndEventsTemplate, new QueryParamsBuilder().add("async=false"))
+                trackedEntityWithEnrollmentAndEventsTemplate,
+                new QueryParamsBuilder().add("async=false"))
             .validateSuccessfulImport();
 
     assertEquals(1, response.extractImportedEvents().size());
@@ -220,7 +225,8 @@ public class TrackerExportTests extends TrackerApiTest {
     TrackerApiResponse response =
         trackerImportExportActions
             .postAndGetJobReport(
-                teiWithEnrollmentAndEventsTemplate, new QueryParamsBuilder().add("async=false"))
+                trackedEntityWithEnrollmentAndEventsTemplate,
+                new QueryParamsBuilder().add("async=false"))
             .validateSuccessfulImport();
 
     assertEquals(1, response.extractImportedEvents().size());
@@ -236,11 +242,12 @@ public class TrackerExportTests extends TrackerApiTest {
   }
 
   @Test
-  public void shouldGetTeisWithSofDeletedEventsWhenIncludeDeletedInRequest() {
+  public void shouldGetTrackedEntitiesWithSofDeletedEventsWhenIncludeDeletedInRequest() {
     TrackerApiResponse response =
         trackerImportExportActions
             .postAndGetJobReport(
-                teiWithEnrollmentAndEventsTemplate, new QueryParamsBuilder().add("async=false"))
+                trackedEntityWithEnrollmentAndEventsTemplate,
+                new QueryParamsBuilder().add("async=false"))
             .validateSuccessfulImport();
 
     assertEquals(1, response.extractImportedEvents().size());
@@ -256,7 +263,7 @@ public class TrackerExportTests extends TrackerApiTest {
         .validate()
         .statusCode(200)
         .body(
-            "instances.enrollments.flatten().findAll { it.trackedEntity == '"
+            "trackedEntities.enrollments.flatten().findAll { it.trackedEntity == '"
                 + response.extractImportedTeis().get(0)
                 + "' }.events.flatten()",
             empty());
@@ -271,7 +278,7 @@ public class TrackerExportTests extends TrackerApiTest {
                 .add("includeDeleted", "true"))
         .validate()
         .statusCode(200)
-        .body("instances[0].enrollments.events", hasSize(1));
+        .body("trackedEntities[0].enrollments.events", hasSize(1));
   }
 
   @Test
@@ -279,7 +286,8 @@ public class TrackerExportTests extends TrackerApiTest {
     TrackerApiResponse response =
         trackerImportExportActions
             .postAndGetJobReport(
-                teiWithEnrollmentAndEventsTemplate, new QueryParamsBuilder().add("async=false"))
+                trackedEntityWithEnrollmentAndEventsTemplate,
+                new QueryParamsBuilder().add("async=false"))
             .validateSuccessfulImport();
 
     assertEquals(1, response.extractImportedEvents().size());
@@ -294,7 +302,7 @@ public class TrackerExportTests extends TrackerApiTest {
                 .add("enrollment", response.extractImportedEnrollments().get(0)))
         .validate()
         .statusCode(200)
-        .body("instances[0].events.flatten()", empty());
+        .body("enrollments[0].events.flatten()", empty());
 
     trackerImportExportActions
         .getEnrollments(
@@ -306,7 +314,7 @@ public class TrackerExportTests extends TrackerApiTest {
                 .add("includeDeleted", "true"))
         .validate()
         .statusCode(200)
-        .body("instances[0].events", hasSize(1));
+        .body("enrollments[0].events", hasSize(1));
   }
 
   private TrackerApiResponse deleteEvent(String eventToDelete) {
@@ -318,7 +326,8 @@ public class TrackerExportTests extends TrackerApiTest {
   }
 
   @Test
-  public void singleTeiAndCollectionTeiShouldReturnSameResult() throws Exception {
+  public void singleTrackedEntitiesAndCollectionTrackedEntityShouldReturnSameResult()
+      throws Exception {
 
     TrackerApiResponse trackedEntity =
         trackerImportExportActions.getTrackedEntity(
@@ -333,7 +342,7 @@ public class TrackerExportTests extends TrackerApiTest {
 
     JSONAssert.assertEquals(
         trackedEntity.getBody().toString(),
-        trackedEntities.extractJsonObject("instances[0]").toString(),
+        trackedEntities.extractJsonObject("trackedEntities[0]").toString(),
         false);
   }
 
@@ -365,18 +374,18 @@ public class TrackerExportTests extends TrackerApiTest {
   }
 
   @Test
-  public void shouldReturnSingleTeiGivenFilter() {
+  public void shouldReturnSingleTrackedEntityGivenFilter() {
     trackerImportExportActions
         .get("trackedEntities?orgUnit=O6uvpzGd5pu&program=f1AyMswryyQ&filter=kZeSYCgaHTk:in:Bravo")
         .validate()
         .statusCode(200)
-        .body("instances.findAll { it.trackedEntity == 'Kj6vYde4LHh' }.size()", is(1))
+        .body("trackedEntities.findAll { it.trackedEntity == 'Kj6vYde4LHh' }.size()", is(1))
         .body(
-            "instances.attributes.flatten().findAll { it.attribute == 'kZeSYCgaHTk' }.value",
+            "trackedEntities.attributes.flatten().findAll { it.attribute == 'kZeSYCgaHTk' }.value",
             everyItem(is("Bravo")));
   }
 
-  Stream<Arguments> shouldReturnTeisMatchingAttributeCriteria() {
+  Stream<Arguments> shouldReturnTrackedEntitiesMatchingAttributeCriteria() {
     return Stream.of(
         Arguments.of("like", "av", containsString("av")),
         Arguments.of("sw", "Te", startsWith("Te")),
@@ -387,7 +396,7 @@ public class TrackerExportTests extends TrackerApiTest {
 
   @MethodSource()
   @ParameterizedTest
-  public void shouldReturnTeisMatchingAttributeCriteria(
+  public void shouldReturnTrackedEntitiesMatchingAttributeCriteria(
       String operator, String searchCriteria, Matcher<?> everyItemMatcher) {
     QueryParamsBuilder queryParamsBuilder =
         new QueryParamsBuilder()
@@ -399,36 +408,36 @@ public class TrackerExportTests extends TrackerApiTest {
         .getTrackedEntities(queryParamsBuilder)
         .validate()
         .statusCode(200)
-        .body("instances", hasSize(greaterThanOrEqualTo(1)))
+        .body("trackedEntities", hasSize(greaterThanOrEqualTo(1)))
         .body(
-            "instances.attributes.flatten().findAll { it.attribute == 'kZeSYCgaHTk' }.value",
+            "trackedEntities.attributes.flatten().findAll { it.attribute == 'kZeSYCgaHTk' }.value",
             everyItem(everyItemMatcher));
   }
 
   @Test
-  public void shouldReturnSingleTeiGivenFilterWhileSkippingPaging() {
+  public void shouldReturnSingleTrackedEntityGivenFilterWhileSkippingPaging() {
     trackerImportExportActions
         .get(
             "trackedEntities?skipPaging=true&orgUnit=O6uvpzGd5pu&program=f1AyMswryyQ&filter=kZeSYCgaHTk:in:Bravo")
         .validate()
         .statusCode(200)
-        .body("instances.findAll { it.trackedEntity == 'Kj6vYde4LHh' }.size()", is(1))
+        .body("trackedEntities.findAll { it.trackedEntity == 'Kj6vYde4LHh' }.size()", is(1))
         .body(
-            "instances.attributes.flatten().findAll { it.attribute == 'kZeSYCgaHTk' }.value",
+            "trackedEntities.attributes.flatten().findAll { it.attribute == 'kZeSYCgaHTk' }.value",
             everyItem(is("Bravo")));
   }
 
   @Test
-  public void shouldReturnRelationshipsByTei() {
+  public void shouldReturnRelationshipsByTrackedEntity() {
     trackerImportExportActions
-        .getRelationship("?trackedEntity=" + teiA)
+        .getRelationship("?trackedEntity=" + trackedEntityA)
         .validate()
         .statusCode(200)
-        .body("instances", hasSize(greaterThanOrEqualTo(1)))
-        .rootPath("instances[0]")
-        .body("relationship", equalTo(teiToTeiRelationship))
-        .body("from.trackedEntity.trackedEntity", equalTo(teiA))
-        .body("to.trackedEntity.trackedEntity", equalTo(teiB));
+        .body("relationships", hasSize(greaterThanOrEqualTo(1)))
+        .rootPath("relationships[0]")
+        .body("relationship", equalTo(trackedEntityToTrackedEntityRelationship))
+        .body("from.trackedEntity.trackedEntity", equalTo(trackedEntityA))
+        .body("to.trackedEntity.trackedEntity", equalTo(trackedEntityB));
   }
 
   @Test
@@ -437,11 +446,11 @@ public class TrackerExportTests extends TrackerApiTest {
         .get("events?event=" + event + "&fields=relationships")
         .validate()
         .statusCode(200)
-        .body("instances", hasSize(greaterThanOrEqualTo(1)))
-        .rootPath("instances[0].relationships[0]")
-        .body("relationship", equalTo(eventToTeiRelationship))
+        .body("events", hasSize(greaterThanOrEqualTo(1)))
+        .rootPath("events[0].relationships[0]")
+        .body("relationship", equalTo(eventToTrackedEntityRelationship))
         .body("from.event.event", equalTo(event))
-        .body("to.trackedEntity.trackedEntity", equalTo(teiB));
+        .body("to.trackedEntity.trackedEntity", equalTo(trackedEntityB));
   }
 
   @Test
@@ -450,7 +459,7 @@ public class TrackerExportTests extends TrackerApiTest {
         .get("events?event=" + event)
         .validate()
         .statusCode(200)
-        .body("instances[0].relationships", emptyOrNullString());
+        .body("events[0].relationships", emptyOrNullString());
   }
 
   @Test
@@ -460,28 +469,28 @@ public class TrackerExportTests extends TrackerApiTest {
             "events?enrollmentOccurredAfter=2019-08-16&enrollmentOccurredBefore=2019-08-20&event=ZwwuwNp6gVd")
         .validate()
         .statusCode(200)
-        .rootPath("instances[0]")
+        .rootPath("events[0]")
         .body("event", equalTo("ZwwuwNp6gVd"));
   }
 
   @Test
-  public void shouldReturnDescOrderedEventByTEIAttribute() {
+  public void shouldReturnDescOrderedEventByTrackedEntityAttribute() {
     ApiResponse response =
         trackerImportExportActions.get(
             "events?order=dIVt4l5vIOa:desc&event=olfXZzSGacW;ZwwuwNp6gVd");
-    response.validate().statusCode(200).body("instances", hasSize(equalTo(2)));
-    List<String> events = response.extractList("instances.event.flatten()");
+    response.validate().statusCode(200).body("events", hasSize(equalTo(2)));
+    List<String> events = response.extractList("events.event.flatten()");
     assertEquals(
         List.of("olfXZzSGacW", "ZwwuwNp6gVd"), events, "Events are not in the correct order");
   }
 
   @Test
-  public void shouldReturnAscOrderedEventByTEIAttribute() {
+  public void shouldReturnAscOrderedEventByTrackedEntityAttribute() {
     ApiResponse response =
         trackerImportExportActions.get(
             "events?order=dIVt4l5vIOa:asc&event=olfXZzSGacW;ZwwuwNp6gVd");
-    response.validate().statusCode(200).body("instances", hasSize(equalTo(2)));
-    List<String> events = response.extractList("instances.event.flatten()");
+    response.validate().statusCode(200).body("events", hasSize(equalTo(2)));
+    List<String> events = response.extractList("events.event.flatten()");
     assertEquals(
         List.of("ZwwuwNp6gVd", "olfXZzSGacW"), events, "Events are not in the correct order");
   }
@@ -492,17 +501,17 @@ public class TrackerExportTests extends TrackerApiTest {
         trackerImportExportActions.getTrackedEntities(
             paramsForTrackedEntitiesIncludingPotentialDuplicate());
 
-    response.validate().statusCode(200).body("instances", iterableWithSize(2));
+    response.validate().statusCode(200).body("trackedEntities", iterableWithSize(2));
 
     assertThat(
         response.getBody().getAsJsonObject(),
         matchesJSON(
             new JsonObjectBuilder()
                 .addArray(
-                    "instances",
-                    new JsonObjectBuilder().addProperty("trackedEntity", TEI).build(),
+                    "trackedEntities",
+                    new JsonObjectBuilder().addProperty("trackedEntity", TE).build(),
                     new JsonObjectBuilder()
-                        .addProperty("trackedEntity", TEI_POTENTIAL_DUPLICATE)
+                        .addProperty("trackedEntity", TE_POTENTIAL_DUPLICATE)
                         .build())
                 .build()));
   }
@@ -516,9 +525,9 @@ public class TrackerExportTests extends TrackerApiTest {
     response
         .validate()
         .statusCode(200)
-        .body("instances", iterableWithSize(1))
-        .body("instances[0].trackedEntity", equalTo(TEI))
-        .body("instances[0].potentialDuplicate", equalTo(false));
+        .body("trackedEntities", iterableWithSize(1))
+        .body("trackedEntities[0].trackedEntity", equalTo(TE))
+        .body("trackedEntities[0].potentialDuplicate", equalTo(false));
   }
 
   @Test
@@ -530,15 +539,15 @@ public class TrackerExportTests extends TrackerApiTest {
     response
         .validate()
         .statusCode(200)
-        .body("instances", iterableWithSize(1))
-        .body("instances[0].trackedEntity", equalTo(TEI_POTENTIAL_DUPLICATE))
-        .body("instances[0].potentialDuplicate", equalTo(true));
+        .body("trackedEntities", iterableWithSize(1))
+        .body("trackedEntities[0].trackedEntity", equalTo(TE_POTENTIAL_DUPLICATE))
+        .body("trackedEntities[0].potentialDuplicate", equalTo(true));
   }
 
   private static QueryParamsBuilder paramsForTrackedEntitiesIncludingPotentialDuplicate() {
     return new QueryParamsBuilder()
         .addAll(
-            "trackedEntity=" + TEI + ";" + TEI_POTENTIAL_DUPLICATE,
+            "trackedEntity=" + TE + ";" + TE_POTENTIAL_DUPLICATE,
             "trackedEntityType=" + "Q9GufDoplCL",
             "orgUnit=" + "O6uvpzGd5pu");
   }

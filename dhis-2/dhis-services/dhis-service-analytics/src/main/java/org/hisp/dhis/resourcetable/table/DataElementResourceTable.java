@@ -34,6 +34,7 @@ import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.db.model.Column;
@@ -50,6 +51,7 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 /**
  * @author Lars Helge Overland
  */
+@RequiredArgsConstructor
 public class DataElementResourceTable implements ResourceTable {
   private static final String TABLE_NAME = "_dataelementstructure";
 
@@ -57,14 +59,9 @@ public class DataElementResourceTable implements ResourceTable {
 
   private final Logged logged;
 
-  public DataElementResourceTable(List<DataElement> dataElements, Logged logged) {
-    this.dataElements = dataElements;
-    this.logged = logged;
-  }
-
   @Override
   public Table getTable() {
-    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), getIndexes(), logged);
+    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);
   }
 
   private List<Column> getColumns() {
@@ -85,16 +82,30 @@ public class DataElementResourceTable implements ResourceTable {
     return List.of("dataelementid");
   }
 
-  private List<Index> getIndexes() {
+  @Override
+  public List<Index> getIndexes() {
     return List.of(
         new Index(
             appendRandom("in_dataelementstructure_dataelementuid"),
+            toStaging(TABLE_NAME),
             Unique.UNIQUE,
             List.of("dataelementuid")),
-        new Index(appendRandom("in_dataelementstructure_datasetid"), List.of("datasetid")),
-        new Index(appendRandom("in_dataelementstructure_datasetuid"), List.of("datasetuid")),
-        new Index(appendRandom("in_dataelementstructure_periodtypeid"), List.of("periodtypeid")),
-        new Index(appendRandom("in_dataelementstructure_workflowid"), List.of("workflowid")));
+        new Index(
+            appendRandom("in_dataelementstructure_datasetid"),
+            toStaging(TABLE_NAME),
+            List.of("datasetid")),
+        new Index(
+            appendRandom("in_dataelementstructure_datasetuid"),
+            toStaging(TABLE_NAME),
+            List.of("datasetuid")),
+        new Index(
+            appendRandom("in_dataelementstructure_periodtypeid"),
+            toStaging(TABLE_NAME),
+            List.of("periodtypeid")),
+        new Index(
+            appendRandom("in_dataelementstructure_workflowid"),
+            toStaging(TABLE_NAME),
+            List.of("workflowid")));
   }
 
   @Override

@@ -36,6 +36,9 @@ import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.junit.jupiter.api.Test;
 
+/**
+ * @author Lars Helge Overland
+ */
 class AnalyticsTableColumnTest {
 
   @Test

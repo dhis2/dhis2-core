@@ -36,6 +36,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
@@ -57,6 +58,7 @@ import org.joda.time.DateTime;
  * @author Lars Helge Overland
  */
 @Slf4j
+@RequiredArgsConstructor
 public class PeriodResourceTable implements ResourceTable {
   private static final String TABLE_NAME = "_periodstructure";
 
@@ -64,14 +66,9 @@ public class PeriodResourceTable implements ResourceTable {
 
   private final Logged logged;
 
-  public PeriodResourceTable(List<Period> periods, Logged logged) {
-    this.periods = periods;
-    this.logged = logged;
-  }
-
   @Override
   public Table getTable() {
-    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), getIndexes(), logged);
+    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);
   }
 
   private List<Column> getColumns() {
@@ -95,9 +92,14 @@ public class PeriodResourceTable implements ResourceTable {
     return List.of("periodid");
   }
 
-  private List<Index> getIndexes() {
+  @Override
+  public List<Index> getIndexes() {
     return List.of(
-        new Index(appendRandom("in_periodstructure_iso"), Unique.UNIQUE, List.of("iso")));
+        new Index(
+            appendRandom("in_periodstructure_iso"),
+            toStaging(TABLE_NAME),
+            Unique.UNIQUE,
+            List.of("iso")));
   }
 
   @Override

@@ -209,7 +209,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
                 + "&updatedAfter="
                 + futureDate)
             .content(HttpStatus.OK)
-            .getList("instances", JsonTrackedEntity.class);
+            .getList("trackedEntities", JsonTrackedEntity.class);
 
     assertEquals(0, instances.size());
   }

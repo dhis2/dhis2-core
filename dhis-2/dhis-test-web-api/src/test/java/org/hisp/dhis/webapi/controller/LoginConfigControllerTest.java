@@ -46,31 +46,67 @@ class LoginConfigControllerTest extends DhisControllerIntegrationTest {
 
   @Test
   void shouldGetLoginConfig() {
+    systemSettingManager.saveSystemSetting(SettingKey.APPLICATION_TITLE, "DHIS2");
+    systemSettingManager.saveSystemSettingTranslation(
+        SettingKey.APPLICATION_TITLE, "no", "Distrikstshelsesinformasjonssystem versjon 2");
+
     systemSettingManager.saveSystemSetting(SettingKey.LOGIN_POPUP, "<html>TEXT</html>");
+    systemSettingManager.saveSystemSettingTranslation(
+        SettingKey.LOGIN_POPUP, "no", "<html>tekst</html>");
+
     systemSettingManager.saveSystemSetting(SettingKey.APPLICATION_FOOTER, "APPLICATION_FOOTER");
+    systemSettingManager.saveSystemSettingTranslation(
+        SettingKey.APPLICATION_FOOTER, "no", "Søknadsbunntekst");
+
     systemSettingManager.saveSystemSetting(SettingKey.APPLICATION_INTRO, "APPLICATION_INTRO");
+    systemSettingManager.saveSystemSettingTranslation(
+        SettingKey.APPLICATION_INTRO, "no", "Søknadsintroduksjon");
+
     systemSettingManager.saveSystemSetting(
         SettingKey.APPLICATION_NOTIFICATION, "APPLICATION_NOTIFICATION");
-    systemSettingManager.saveSystemSetting(SettingKey.APPLICATION_FOOTER, "APPLICATION_FOOTER");
+    systemSettingManager.saveSystemSettingTranslation(
+        SettingKey.APPLICATION_NOTIFICATION, "no", "Søknadsmelding");
+
     systemSettingManager.saveSystemSetting(SettingKey.FLAG_IMAGE, "FLAG_IMAGE");
     systemSettingManager.saveSystemSetting(SettingKey.CUSTOM_LOGIN_PAGE_LOGO, true);
     systemSettingManager.saveSystemSetting(SettingKey.CUSTOM_TOP_MENU_LOGO, true);
 
-    JsonObject response = GET("/loginConfig").content();
-    assertEquals("DHIS 2", response.getString("applicationTitle").string());
-    assertEquals("APPLICATION_INTRO", response.getString("applicationDescription").string());
-    assertEquals(
-        "APPLICATION_NOTIFICATION", response.getString("applicationNotification").string());
-    assertEquals("APPLICATION_FOOTER", response.getString("applicationLeftSideFooter").string());
-    assertEquals("FLAG_IMAGE", response.getString("countryFlag").string());
-    assertEquals("en", response.getString("uiLocale").string());
-    assertEquals("/api/staticContent/logo_front.png", response.getString("loginPageLogo").string());
-    assertEquals("/external-static/logo_banner.png", response.getString("topMenuLogo").string());
-    assertEquals("light_blue/light_blue.css", response.getString("style").string());
-    assertEquals("<html>TEXT</html>", response.getString("loginPopup").string());
+    JsonObject responseDefaultLocale = GET("/loginConfig").content();
+    JsonObject responseNorwegianLocale = GET("/loginConfig?locale=no").content();
 
-    assertFalse(response.getBoolean("selfRegistrationNoRecaptcha").booleanValue());
-    assertFalse(response.getBoolean("selfRegistrationEnabled").booleanValue());
-    assertFalse(response.getBoolean("emailConfigured").booleanValue());
+    assertEquals("DHIS2", responseDefaultLocale.getString("applicationTitle").string());
+    assertEquals(
+        "Distrikstshelsesinformasjonssystem versjon 2",
+        responseNorwegianLocale.getString("applicationTitle").string());
+
+    assertEquals(
+        "APPLICATION_INTRO", responseDefaultLocale.getString("applicationDescription").string());
+    assertEquals(
+        "Søknadsintroduksjon",
+        responseNorwegianLocale.getString("applicationDescription").string());
+
+    assertEquals(
+        "APPLICATION_NOTIFICATION",
+        responseDefaultLocale.getString("applicationNotification").string());
+    assertEquals(
+        "Søknadsmelding", responseNorwegianLocale.getString("applicationNotification").string());
+
+    assertEquals(
+        "APPLICATION_FOOTER",
+        responseDefaultLocale.getString("applicationLeftSideFooter").string());
+    assertEquals(
+        "Søknadsbunntekst",
+        responseNorwegianLocale.getString("applicationLeftSideFooter").string());
+
+    assertEquals("FLAG_IMAGE", responseDefaultLocale.getString("countryFlag").string());
+    assertEquals("en", responseDefaultLocale.getString("uiLocale").string());
+    assertEquals(
+        "/api/staticContent/logo_front.png",
+        responseDefaultLocale.getString("loginPageLogo").string());
+    assertEquals("<html>TEXT</html>", responseDefaultLocale.getString("loginPopup").string());
+
+    assertFalse(responseDefaultLocale.getBoolean("selfRegistrationNoRecaptcha").booleanValue());
+    assertFalse(responseDefaultLocale.getBoolean("selfRegistrationEnabled").booleanValue());
+    assertFalse(responseDefaultLocale.getBoolean("emailConfigured").booleanValue());
   }
 }

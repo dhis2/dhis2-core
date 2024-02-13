@@ -28,11 +28,9 @@
 package org.hisp.dhis.analytics.table;
 
 import static java.lang.String.join;
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.groupingBy;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
@@ -66,9 +64,11 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
@@ -96,72 +96,68 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
 
   private static final List<AnalyticsTableColumn> FIXED_GROUP_BY_COLS =
       List.of(
+          new AnalyticsTableColumn("trackedentityid", INTEGER, NOT_NULL, "tei.trackedentityid"),
+          new AnalyticsTableColumn("trackedentityinstanceuid", CHARACTER_11, NOT_NULL, "tei.uid"),
+          new AnalyticsTableColumn("created", TIMESTAMP, "tei.created"),
+          new AnalyticsTableColumn("lastupdated", TIMESTAMP, "tei.lastupdated"),
+          new AnalyticsTableColumn("inactive", BOOLEAN, "tei.inactive"),
+          new AnalyticsTableColumn("createdatclient", TIMESTAMP, "tei.createdatclient"),
+          new AnalyticsTableColumn("lastupdatedatclient", TIMESTAMP, "tei.lastupdatedatclient"),
+          new AnalyticsTableColumn("lastsynchronized", TIMESTAMP, "tei.lastsynchronized"),
+          new AnalyticsTableColumn("geometry", GEOMETRY, "tei.geometry", IndexType.GIST),
           new AnalyticsTableColumn(
-              quote("trackedentityid"), INTEGER, NOT_NULL, "tei.trackedentityid"),
-          new AnalyticsTableColumn(
-              quote("trackedentityinstanceuid"), CHARACTER_11, NOT_NULL, "tei.uid"),
-          new AnalyticsTableColumn(quote("created"), TIMESTAMP, "tei.created"),
-          new AnalyticsTableColumn(quote("lastupdated"), TIMESTAMP, "tei.lastupdated"),
-          new AnalyticsTableColumn(quote("inactive"), BOOLEAN, "tei.inactive"),
-          new AnalyticsTableColumn(quote("createdatclient"), TIMESTAMP, "tei.createdatclient"),
-          new AnalyticsTableColumn(
-              quote("lastupdatedatclient"), TIMESTAMP, "tei.lastupdatedatclient"),
-          new AnalyticsTableColumn(quote("lastsynchronized"), TIMESTAMP, "tei.lastsynchronized"),
-          new AnalyticsTableColumn(quote("geometry"), GEOMETRY, "tei.geometry", IndexType.GIST),
-          new AnalyticsTableColumn(
-              quote("longitude"),
+              "longitude",
               DOUBLE,
               "case when 'POINT' = GeometryType(tei.geometry) then ST_X(tei.geometry) else null end"),
           new AnalyticsTableColumn(
-              quote("latitude"),
+              "latitude",
               DOUBLE,
               "case when 'POINT' = GeometryType(tei.geometry) then ST_Y(tei.geometry) else null end"),
-          new AnalyticsTableColumn(quote("featuretype"), VARCHAR_255, NULL, "tei.featuretype"),
-          new AnalyticsTableColumn(quote("coordinates"), TEXT, NULL, "tei.coordinates"),
-          new AnalyticsTableColumn(quote("storedby"), VARCHAR_255, "tei.storedby"),
-          new AnalyticsTableColumn(
-              quote("potentialduplicate"), BOOLEAN, NULL, "tei.potentialduplicate"),
-          new AnalyticsTableColumn(quote("uidlevel1"), CHARACTER_11, NULL, "ous.uidlevel1"),
-          new AnalyticsTableColumn(quote("uidlevel2"), CHARACTER_11, NULL, "ous.uidlevel2"),
-          new AnalyticsTableColumn(quote("uidlevel3"), CHARACTER_11, NULL, "ous.uidlevel3"),
-          new AnalyticsTableColumn(quote("uidlevel4"), CHARACTER_11, NULL, "ous.uidlevel4"),
-          new AnalyticsTableColumn(quote("ou"), CHARACTER_11, NULL, "ou.uid"),
-          new AnalyticsTableColumn(quote("ouname"), VARCHAR_255, NULL, "ou.name"),
-          new AnalyticsTableColumn(quote("oucode"), VARCHAR_50, NULL, "ou.code"),
-          new AnalyticsTableColumn(quote("oulevel"), INTEGER, NULL, "ous.level"));
+          new AnalyticsTableColumn("featuretype", VARCHAR_255, NULL, "tei.featuretype"),
+          new AnalyticsTableColumn("coordinates", TEXT, NULL, "tei.coordinates"),
+          new AnalyticsTableColumn("storedby", VARCHAR_255, "tei.storedby"),
+          new AnalyticsTableColumn("potentialduplicate", BOOLEAN, NULL, "tei.potentialduplicate"),
+          new AnalyticsTableColumn("uidlevel1", CHARACTER_11, NULL, "ous.uidlevel1"),
+          new AnalyticsTableColumn("uidlevel2", CHARACTER_11, NULL, "ous.uidlevel2"),
+          new AnalyticsTableColumn("uidlevel3", CHARACTER_11, NULL, "ous.uidlevel3"),
+          new AnalyticsTableColumn("uidlevel4", CHARACTER_11, NULL, "ous.uidlevel4"),
+          new AnalyticsTableColumn("ou", CHARACTER_11, NULL, "ou.uid"),
+          new AnalyticsTableColumn("ouname", VARCHAR_255, NULL, "ou.name"),
+          new AnalyticsTableColumn("oucode", VARCHAR_50, NULL, "ou.code"),
+          new AnalyticsTableColumn("oulevel", INTEGER, NULL, "ous.level"));
 
   private static final List<AnalyticsTableColumn> FIXED_NON_GROUP_BY_COLS =
       List.of(
           new AnalyticsTableColumn(
-              quote("createdbyusername"),
+              "createdbyusername",
               VARCHAR_255,
               "tei.createdbyuserinfo ->> 'username' as createdbyusername"),
           new AnalyticsTableColumn(
-              quote("createdbyname"),
+              "createdbyname",
               VARCHAR_255,
               "tei.createdbyuserinfo ->> 'firstName' as createdbyname"),
           new AnalyticsTableColumn(
-              quote("createdbylastname"),
+              "createdbylastname",
               VARCHAR_255,
               "tei.createdbyuserinfo ->> 'surname' as createdbylastname"),
           new AnalyticsTableColumn(
-              quote("createdbydisplayname"),
+              "createdbydisplayname",
               VARCHAR_255,
               getDisplayName("createdbyuserinfo", "tei", "createdbydisplayname")),
           new AnalyticsTableColumn(
-              quote("lastupdatedbyusername"),
+              "lastupdatedbyusername",
               VARCHAR_255,
               "tei.lastupdatedbyuserinfo ->> 'username' as lastupdatedbyusername"),
           new AnalyticsTableColumn(
-              quote("lastupdatedbyname"),
+              "lastupdatedbyname",
               VARCHAR_255,
               "tei.lastupdatedbyuserinfo ->> 'firstName' as lastupdatedbyname"),
           new AnalyticsTableColumn(
-              quote("lastupdatedbylastname"),
+              "lastupdatedbylastname",
               VARCHAR_255,
               "tei.lastupdatedbyuserinfo ->> 'surname' as lastupdatedbylastname"),
           new AnalyticsTableColumn(
-              quote("lastupdatedbydisplayname"),
+              "lastupdatedbydisplayname",
               VARCHAR_255,
               getDisplayName("lastupdatedbyuserinfo", "tei", "lastupdatedbydisplayname")));
 
@@ -179,7 +175,8 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
       TrackedEntityTypeService trackedEntityTypeService,
       TrackedEntityAttributeService trackedEntityAttributeService,
       AnalyticsTableExportSettings settings,
-      PeriodDataProvider periodDataProvider) {
+      PeriodDataProvider periodDataProvider,
+      SqlBuilder sqlBuilder) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -192,7 +189,8 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
         databaseInfoProvider,
         jdbcTemplate,
         settings,
-        periodDataProvider);
+        periodDataProvider,
+        sqlBuilder);
     this.trackedEntityAttributeService = trackedEntityAttributeService;
     this.trackedEntityTypeService = trackedEntityTypeService;
   }
@@ -256,7 +254,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
             program ->
                 columns.add(
                     new AnalyticsTableColumn(
-                        quote(program.getUid()),
+                        program.getUid(),
                         BOOLEAN,
                         " exists(select 1 from enrollment pi_0"
                             + " where pi_0.trackedentityid = tei.trackedentityid"
@@ -280,12 +278,44 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
             .map(
                 tea ->
                     new AnalyticsTableColumn(
-                        quote(tea.getUid()),
+                        tea.getUid(),
                         getColumnType(tea.getValueType(), isSpatialSupport()),
-                        getSelectClause(tea.getValueType(), "\"" + tea.getUid() + "\".value")))
+                        castBasedOnType(tea.getValueType(), "\"" + tea.getUid() + "\".value")))
             .toList());
 
     return columns;
+  }
+
+  /**
+   * Returns the select clause, potentially with a cast statement, based on the given value type.
+   * (this method is an adapted version of {@link
+   * JdbcEventAnalyticsTableManager#getSelectClause(ValueType, String)})
+   *
+   * @param valueType the value type to represent as database column type.
+   */
+  private String castBasedOnType(ValueType valueType, String columnName) {
+    if (valueType.isDecimal()) {
+      return "cast(" + columnName + " as double precision)";
+    }
+    if (valueType.isInteger()) {
+      return "cast(" + columnName + " as bigint)";
+    }
+    if (valueType.isBoolean()) {
+      return "case when "
+          + columnName
+          + " = 'true' then 1 when "
+          + columnName
+          + " = 'false' then 0 end";
+    }
+    if (valueType.isDate()) {
+      return "cast(" + columnName + " as timestamp)";
+    }
+    if (valueType.isGeo() && isSpatialSupport()) {
+      return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || ("
+          + columnName
+          + ") || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
+    }
+    return columnName;
   }
 
   private List<TrackedEntityAttribute> getAllTrackedEntityAttributes(
@@ -305,16 +335,6 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
   }
 
   /**
-   * Checks if the database content is in valid state for analytics table generation.
-   *
-   * @return null if valid, a descriptive string if invalid.
-   */
-  @Override
-  public String validState() {
-    return null;
-  }
-
-  /**
    * Returns a list of non-dynamic {@link AnalyticsTableColumn}.
    *
    * @return a List of {@link AnalyticsTableColumn}.
@@ -327,14 +347,9 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
     return allFixedColumns;
   }
 
-  /**
-   * Returns a list of table checks (constraints) for the given analytics table partition.
-   *
-   * @param partition the {@link AnalyticsTablePartition}.
-   */
   @Override
-  protected List<String> getPartitionChecks(AnalyticsTablePartition partition) {
-    return emptyList();
+  protected List<String> getPartitionChecks(Integer year, Date endDate) {
+    return List.of();
   }
 
   /**
@@ -347,12 +362,14 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
   @SuppressWarnings("unchecked")
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+    String tableName = partition.getName();
+
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
-    StringBuilder sql = new StringBuilder("insert into " + partition.getTempName() + " (");
+    StringBuilder sql = new StringBuilder("insert into " + tableName + " (");
 
     for (AnalyticsTableColumn col : columns) {
-      sql.append(col.getName() + ",");
+      sql.append(quote(col.getName()) + ",");
     }
 
     removeLastComma(sql).append(") select ");
@@ -399,7 +416,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
         .append(" and tei.created is not null ")
         .append(" and tei.deleted is false");
 
-    invokeTimeAndLog(sql.toString(), partition.getTempName());
+    invokeTimeAndLog(sql.toString(), tableName);
   }
 
   /**

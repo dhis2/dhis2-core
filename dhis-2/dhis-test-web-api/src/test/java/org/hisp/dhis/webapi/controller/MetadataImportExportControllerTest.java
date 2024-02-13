@@ -441,4 +441,66 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
     assertTrue(user.getString("username").exists());
     assertTrue(user.getString("userRoles").exists());
   }
+
+  @Test
+  void testImportWithInvalidCreatedBy() {
+    JsonMixed report =
+        POST(
+                "/metadata",
+                "{\"optionSets\":\n"
+                    + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\",\"createdBy\": \"invalid\"}]}")
+            .content(HttpStatus.OK);
+
+    assertNotNull(report.get("response"));
+
+    JsonMixed optionSet = GET("/optionSets/{uid}", "RHqFlB1Wm4d").content(HttpStatus.OK);
+    assertTrue(optionSet.get("createdBy").exists());
+  }
+
+  @Test
+  void testImportWithInvalidCreatedByAndSkipSharing() {
+    JsonMixed report =
+        POST(
+                "/metadata?skipSharing=true",
+                "{\"optionSets\":\n"
+                    + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\",\"createdBy\": \"invalid\"}]}")
+            .content(HttpStatus.OK);
+
+    assertNotNull(report.get("response"));
+
+    JsonMixed optionSet = GET("/optionSets/{uid}", "RHqFlB1Wm4d").content(HttpStatus.OK);
+    assertTrue(optionSet.get("createdBy").exists());
+  }
+
+  @Test
+  @DisplayName(
+      "Should return error in import report if deleting object is referenced by other object")
+  void testDeleteWithException() {
+    POST(
+            "/metadata",
+            """
+             {'optionSets':
+                 [{'name': 'Device category','id': 'RHqFlB1Wm4d','version': 2,'valueType': 'TEXT'}]
+             ,'dataElements':
+             [{'name':'test DataElement with OptionSet', 'shortName':'test DataElement', 'aggregationType':'SUM','domainType':'AGGREGATE','categoryCombo':{'id':'bjDvmb4bfuf'},'valueType':'NUMBER','optionSet':{'id':'RHqFlB1Wm4d'}
+             }]}""")
+        .content(HttpStatus.OK);
+    JsonImportSummary report =
+        POST(
+                "/metadata?importStrategy=DELETE",
+                """
+                {'optionSets':
+                [{'name': 'Device category','id': 'RHqFlB1Wm4d','version': 2,'valueType': 'TEXT'}]}""")
+            .content(HttpStatus.CONFLICT)
+            .get("response")
+            .as(JsonImportSummary.class);
+    assertEquals(0, report.getStats().getDeleted());
+    assertEquals(1, report.getStats().getIgnored());
+    assertEquals(
+        "Object could not be deleted because it is associated with another object: DataElement",
+        report
+            .find(
+                JsonErrorReport.class, errorReport -> errorReport.getErrorCode() == ErrorCode.E4030)
+            .getMessage());
+  }
 }

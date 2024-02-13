@@ -44,7 +44,10 @@ public class Index {
   /** Index name. Required. */
   private final String name;
 
-  /** Index type, defaults to {@link IndexType.BTREE}. Required. */
+  /** Name of index table. Required. */
+  private final String tableName;
+
+  /** Index type. Required. */
   private final IndexType indexType;
 
   /** Index uniqueness constraint. Required. */
@@ -63,10 +66,12 @@ public class Index {
    * Constructor.
    *
    * @param name the index name.
+   * @param tableName the index table name.
    * @param columns the list of index column names.
    */
-  public Index(String name, List<String> columns) {
+  public Index(String name, String tableName, List<String> columns) {
     this.name = name;
+    this.tableName = tableName;
     this.indexType = IndexType.BTREE;
     this.unique = Unique.NON_UNIQUE;
     this.columns = columns;
@@ -78,11 +83,13 @@ public class Index {
    * Constructor.
    *
    * @param name the index name.
+   * @param tableName the index table name.
    * @param indexType the index type.
    * @param columns the list of index column names.
    */
-  public Index(String name, IndexType indexType, List<String> columns) {
+  public Index(String name, String tableName, IndexType indexType, List<String> columns) {
     this.name = name;
+    this.tableName = tableName;
     this.indexType = indexType;
     this.unique = Unique.NON_UNIQUE;
     this.columns = columns;
@@ -94,11 +101,13 @@ public class Index {
    * Constructor.
    *
    * @param name the index name.
+   * @param tableName the index table name.
    * @param unique the uniqueness property.
    * @param columns the list of index column names.
    */
-  public Index(String name, Unique unique, List<String> columns) {
+  public Index(String name, String tableName, Unique unique, List<String> columns) {
     this.name = name;
+    this.tableName = tableName;
     this.indexType = IndexType.BTREE;
     this.unique = unique;
     this.columns = columns;
@@ -110,13 +119,22 @@ public class Index {
    * Constructor.
    *
    * @param name the index name.
+   * @param tableName the index table name.
+   * @param indexType the index type.
    * @param unique the uniqueness property.
    * @param columns the list of index column names.
    * @param function the index function.
    */
-  public Index(String name, Unique unique, List<String> columns, IndexFunction function) {
+  public Index(
+      String name,
+      String tableName,
+      IndexType indexType,
+      Unique unique,
+      List<String> columns,
+      IndexFunction function) {
     this.name = name;
-    this.indexType = IndexType.BTREE;
+    this.tableName = tableName;
+    this.indexType = indexType;
     this.unique = unique;
     this.columns = columns;
     this.condition = null;
@@ -127,14 +145,16 @@ public class Index {
    * Constructor.
    *
    * @param name the index name.
+   * @param tableName the index table name.
    * @param unique the uniqueness property.
    * @param columns the list of index column names.
    * @param condition the SQL condition for the index.
    */
   public Index(
-      String name, IndexType indexType, Unique unique, List<String> columns, String condition) {
+      String name, String tableName, Unique unique, List<String> columns, String condition) {
     this.name = name;
-    this.indexType = indexType;
+    this.tableName = tableName;
+    this.indexType = IndexType.BTREE;
     this.unique = unique;
     this.columns = columns;
     this.condition = condition;

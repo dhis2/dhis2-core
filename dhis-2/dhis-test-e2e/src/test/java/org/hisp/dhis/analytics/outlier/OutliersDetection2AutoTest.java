@@ -170,7 +170,7 @@ public class OutliersDetection2AutoTest extends AnalyticsApiTest {
         response, 13, "stddev", "Standard deviation", "NUMBER", "java.lang.Double", false, false);
     validateHeader(
         response, 14, "absdev", "Absolute deviation", "NUMBER", "java.lang.Double", false, false);
-    validateHeader(response, 15, "zscore", "zScore", "NUMBER", "java.lang.Double", false, false);
+    validateHeader(response, 15, "zscore", "Z-score", "NUMBER", "java.lang.Double", false, false);
     validateHeader(
         response, 16, "lowerbound", "Lower boundary", "NUMBER", "java.lang.Double", false, false);
     validateHeader(
@@ -187,7 +187,7 @@ public class OutliersDetection2AutoTest extends AnalyticsApiTest {
             "September 2022",
             "RhJbg8UD75Q",
             "Yemoh Town CHC",
-            "/Sierra Leone/Bo/Kakua/Yemoh Town CHC",
+            "Sierra Leone / Bo / Kakua / Yemoh Town CHC",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
@@ -209,7 +209,7 @@ public class OutliersDetection2AutoTest extends AnalyticsApiTest {
             "August 2022",
             "CvBAqD6RzLZ",
             "Ngalu CHC",
-            "/Sierra Leone/Bo/Bargbe/Ngalu CHC",
+            "Sierra Leone / Bo / Bargbe / Ngalu CHC",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
@@ -231,7 +231,7 @@ public class OutliersDetection2AutoTest extends AnalyticsApiTest {
             "September 2022",
             "Mi4dWRtfIOC",
             "Sandaru CHC",
-            "/Sierra Leone/Kailahun/Penguia/Sandaru CHC",
+            "Sierra Leone / Kailahun / Penguia / Sandaru CHC",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
@@ -286,7 +286,7 @@ public class OutliersDetection2AutoTest extends AnalyticsApiTest {
         response,
         2,
         "modifiedzscore",
-        "Modified zScore",
+        "Modified Z-score",
         "NUMBER",
         "java.lang.Double",
         false,
@@ -337,7 +337,7 @@ public class OutliersDetection2AutoTest extends AnalyticsApiTest {
     // Assert headers.
     validateHeader(response, 0, "dx", "Data", "TEXT", "java.lang.String", false, false);
     validateHeader(response, 1, "dxname", "Data name", "TEXT", "java.lang.String", false, false);
-    validateHeader(response, 2, "zscore", "zScore", "NUMBER", "java.lang.Double", false, false);
+    validateHeader(response, 2, "zscore", "Z-score", "NUMBER", "java.lang.Double", false, false);
 
     // Assert rows.
     validateRow(response, 0, List.of("l6byfWFUGaP", "Yellow Fever doses given", "3.65607"));
