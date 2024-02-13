@@ -27,20 +27,22 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static org.hisp.dhis.analytics.common.DimensionsServiceCommon.collectDimensions;
-import static org.hisp.dhis.analytics.common.DimensionsServiceCommon.filterByValueType;
 import static org.hisp.dhis.analytics.common.DimensionsServiceCommon.OperationType.AGGREGATE;
 import static org.hisp.dhis.analytics.common.DimensionsServiceCommon.OperationType.QUERY;
+import static org.hisp.dhis.analytics.common.DimensionsServiceCommon.collectDimensions;
+import static org.hisp.dhis.analytics.common.DimensionsServiceCommon.filterByValueType;
 import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
 import static org.hisp.dhis.common.PrefixedDimensions.ofDataElements;
 import static org.hisp.dhis.common.PrefixedDimensions.ofItemsWithProgram;
 import static org.hisp.dhis.common.PrefixedDimensions.ofProgramIndicators;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.event.EventAnalyticsDimensionsService;
@@ -61,7 +63,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
-import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
