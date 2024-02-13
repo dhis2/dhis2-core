@@ -2878,7 +2878,7 @@ public abstract class DhisConvenienceTest {
   }
 
   protected User preCreateInjectAdminUserWithoutPersistence() {
-    UserRole role = createUserRole("Superuser_Test", "ALL");
+    UserRole role = createUserRole("Superuser_Test", UserRole.AUTHORITY_ALL);
     role.setUid(CodeGenerator.generateUid());
 
     User user = new User();
@@ -2892,7 +2892,9 @@ public abstract class DhisConvenienceTest {
         userService.validateAndCreateUserDetails(user, user.getPassword());
     Authentication authentication =
         new UsernamePasswordAuthenticationToken(
-            currentUserDetails, DEFAULT_ADMIN_PASSWORD, List.of(new SimpleGrantedAuthority("ALL")));
+            currentUserDetails,
+            DEFAULT_ADMIN_PASSWORD,
+            List.of(new SimpleGrantedAuthority(UserRole.AUTHORITY_ALL)));
 
     SecurityContext context = SecurityContextHolder.createEmptyContext();
     context.setAuthentication(authentication);

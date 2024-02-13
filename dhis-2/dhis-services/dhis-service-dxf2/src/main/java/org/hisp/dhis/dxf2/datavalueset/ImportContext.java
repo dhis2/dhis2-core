@@ -204,6 +204,10 @@ public final class ImportContext {
     return currentUser.getUsername();
   }
 
+  public Boolean currentUserIsSuperUser() {
+    return currentUser.isSuper();
+  }
+
   public ImportContext error() {
     summary.setStatus(ImportStatus.ERROR);
     return this;

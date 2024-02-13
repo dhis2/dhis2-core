@@ -818,11 +818,15 @@ public class DefaultDataValueSetService implements DataValueSetService {
         !context.isSkipExistingCheck()
             ? context.getDataValueBatchHandler().findObject(internalValue)
             : null;
-
     // -----------------------------------------------------------------
     // Preserve any existing created date unless overwritten by import
     // -----------------------------------------------------------------
     if (existingValue != null && !dataValue.hasCreated()) {
+      internalValue.setCreated(existingValue.getCreated());
+    }
+
+    // Do not allow non-super users to override the created date
+    if (existingValue != null && !context.currentUserIsSuperUser()) {
       internalValue.setCreated(existingValue.getCreated());
     }
 
@@ -1289,11 +1293,18 @@ public class DefaultDataValueSetService implements DataValueSetService {
     internalValue.setSource(valueContext.getOrgUnit());
     internalValue.setCategoryOptionCombo(valueContext.getCategoryOptionCombo());
     internalValue.setAttributeOptionCombo(valueContext.getAttrOptionCombo());
+    // Allow the superuser to override from the payload values
+    if (context.currentUserIsSuperUser()) {
+      internalValue.setStoredBy(context.getStoredBy(dataValue));
+      internalValue.setLastUpdated(
+          dataValue.hasLastUpdated() ? parseDate(dataValue.getLastUpdated()) : now);
+      internalValue.setCreated(dataValue.hasCreated() ? parseDate(dataValue.getCreated()) : now);
+    } else {
+      internalValue.setStoredBy(context.getCurrentUserName());
+      internalValue.setLastUpdated(now);
+      internalValue.setCreated(now);
+    }
     internalValue.setValue(trimToNull(value));
-    internalValue.setStoredBy(context.getStoredBy(dataValue));
-    internalValue.setCreated(dataValue.hasCreated() ? parseDate(dataValue.getCreated()) : now);
-    internalValue.setLastUpdated(
-        dataValue.hasLastUpdated() ? parseDate(dataValue.getLastUpdated()) : now);
     internalValue.setComment(trimToNull(dataValue.getComment()));
     internalValue.setFollowup(dataValue.getFollowup());
     internalValue.setDeleted(BooleanUtils.isTrue(dataValue.getDeleted()));
