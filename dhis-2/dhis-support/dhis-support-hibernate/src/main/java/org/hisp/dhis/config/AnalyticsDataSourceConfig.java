@@ -61,13 +61,13 @@ public class AnalyticsDataSourceConfig {
   private final DhisConfigurationProvider dhisConfig;
 
   @Bean("analyticsDataSource")
-  @DependsOn("analyticsActualDataSource")
+  @DependsOn("internalAnalyticsDataSource")
   public DataSource jdbcDataSource(
-      @Qualifier("analyticsActualDataSource") DataSource actualDataSource) {
+      @Qualifier("internalAnalyticsDataSource") DataSource actualDataSource) {
     return createLoggingDataSource(dhisConfig, actualDataSource);
   }
 
-  @Bean("analyticsActualDataSource")
+  @Bean("internalAnalyticsDataSource")
   public DataSource jdbcActualDataSource(
       @Qualifier("actualDataSource") DataSource actualDataSource) {
     if (isAnalyticsDataSourceConfigured()) {
