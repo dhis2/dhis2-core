@@ -147,6 +147,11 @@ public abstract class TestConfigurationProvider implements DhisConfigurationProv
   }
 
   @Override
+  public boolean isAnalyticsDatabaseConfigured() {
+    return false;
+  }
+
+  @Override
   public EncryptionStatus getEncryptionStatus() {
     return EncryptionStatus.OK;
   }
