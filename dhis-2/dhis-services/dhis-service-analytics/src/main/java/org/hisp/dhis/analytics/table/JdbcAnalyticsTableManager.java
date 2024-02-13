@@ -359,7 +359,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             + "inner join _categoryoptioncomboname aon on dv.attributeoptioncomboid=aon.categoryoptioncomboid "
             + "inner join _categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid ";
 
-    if (!skipOutliers(params)) {
+    if (!params.isSkipOutliers()) {
       sql += getOutliersJoinStatement();
     }
 
@@ -491,7 +491,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     columns.addAll(getPeriodTypeColumns("ps"));
     columns.addAll(FIXED_COLS);
 
-    if (!skipOutliers(params)) {
+    if (!params.isSkipOutliers()) {
       columns.addAll(getOutlierStatsColumns());
     }
 
@@ -706,9 +706,5 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         + "on dv.dataelementid = stats.dataelementid and dv.sourceid = stats.sourceid and "
         + "dv.categoryoptioncomboid = stats.categoryoptioncomboid and "
         + "dv.attributeoptioncomboid = stats.attributeoptioncomboid ";
-  }
-
-  private boolean skipOutliers(AnalyticsTableUpdateParams params) {
-    return params != null && params.isSkipOutliers();
   }
 }

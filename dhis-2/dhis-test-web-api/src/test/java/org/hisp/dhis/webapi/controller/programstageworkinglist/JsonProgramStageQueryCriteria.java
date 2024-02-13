@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,24 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.hibernate;
+package org.hisp.dhis.webapi.controller.programstageworkinglist;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonObject;
 
-/**
- * Encapsulation of a read only data source configuration.
- *
- * @author Lars Helge Overland
- */
-@Getter
-@Setter
-@RequiredArgsConstructor
-public class ReadOnlyDataSourceConfig {
-  private final String url;
+/** Representation of {@link org.hisp.dhis.programstageworkinglist.ProgramStageQueryCriteria}. */
+public interface JsonProgramStageQueryCriteria extends JsonObject {
 
-  private final String username;
+  default String getEnrollmentStatus() {
+    return getString("enrollmentStatus").string();
+  }
 
-  private final String password;
+  default String getOrder() {
+    return getString("order").string();
+  }
+
+  default JsonArray getDisplayColumnOrder() {
+    return getArray("displayColumnOrder");
+  }
+
+  default JsonDatePeriod getEventOccurredAt() {
+    return get("eventOccurredAt").as(JsonDatePeriod.class);
+  }
+
+  default boolean getFollowUp() {
+    return getBoolean("followUp").booleanValue();
+  }
 }

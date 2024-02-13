@@ -38,7 +38,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.QueryItemHelper;
@@ -263,11 +262,7 @@ class QueryItemHelperTest extends DhisConvenienceTest {
 
     Map<String, List<Option>> options = QueryItemHelper.getItemOptions(grid, params.getItems());
 
-    assertTrue(
-        options.values().stream()
-            .flatMap(Collection::stream)
-            .collect(Collectors.toList())
-            .contains(option));
+    assertTrue(options.values().stream().flatMap(Collection::stream).toList().contains(option));
   }
 
   @Test
@@ -284,11 +279,7 @@ class QueryItemHelperTest extends DhisConvenienceTest {
 
     Map<String, List<Option>> options = QueryItemHelper.getItemOptions(grid, params.getItems());
 
-    assertTrue(
-        options.values().stream()
-            .flatMap(Collection::stream)
-            .collect(Collectors.toList())
-            .contains(option));
+    assertTrue(options.values().stream().flatMap(Collection::stream).toList().contains(option));
   }
 
   @Test

@@ -171,7 +171,7 @@ public class RecordingJobProgress implements JobProgress {
       // Note: we use empty string in case the UID is not known/defined yet to allow use in maps
       progress.addError(new Error(code, uid == null ? "" : uid, type, args));
     } catch (Exception ex) {
-      log.error("Failed to add error: %s %s %s %s".formatted(code, uid, type, args), ex);
+      log.error(format("Failed to add error: {} {} {} {}", code, uid, type, args), ex);
     }
   }
 
@@ -481,7 +481,12 @@ public class RecordingJobProgress implements JobProgress {
     String msg = message == null ? "" : ": " + message;
     String type = source instanceof Stage ? "" : source.getClass().getSimpleName() + " ";
     return format(
-        "[%s %s] %s%s%s%s",
-        configuration.getJobType().name(), configuration.getUid(), type, action, duration, msg);
+        "[{} {}] {}{}{}{}",
+        configuration.getJobType().name(),
+        configuration.getUid(),
+        type,
+        action,
+        duration,
+        msg);
   }
 }

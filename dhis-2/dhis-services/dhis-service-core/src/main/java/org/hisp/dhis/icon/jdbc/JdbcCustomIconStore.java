@@ -29,6 +29,7 @@ package org.hisp.dhis.icon.jdbc;
 
 import java.sql.Types;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -97,7 +98,32 @@ public class JdbcCustomIconStore implements CustomIconStore {
 
     sql = buildIconQuery(iconOperationParams, sql, parameterSource);
 
+    if (iconOperationParams.isPaging()) {
+      sql =
+          getPaginatedQuery(
+              iconOperationParams.getPager().getPage(),
+              iconOperationParams.getPager().getPageSize(),
+              sql,
+              parameterSource);
+    }
+
     return namedParameterJdbcTemplate.query(sql, parameterSource, customIconRowMapper).stream();
+  }
+
+  @Override
+  public long count(IconOperationParams iconOperationParams) {
+
+    String sql = """
+     select count(*) from customicon c
+                      """;
+
+    MapSqlParameterSource parameterSource = new MapSqlParameterSource();
+
+    sql = buildIconQuery(iconOperationParams, sql, parameterSource);
+
+    return Optional.ofNullable(
+            namedParameterJdbcTemplate.queryForObject(sql, parameterSource, Long.class))
+        .orElse(0L);
   }
 
   @Override
@@ -181,6 +207,19 @@ public class JdbcCustomIconStore implements CustomIconStore {
 
       parameterSource.addValue("keys", iconOperationParams.getKeys());
     }
+
+    return sql;
+  }
+
+  private String getPaginatedQuery(
+      int page, int pageSize, String sql, MapSqlParameterSource mapSqlParameterSource) {
+
+    sql = sql + " LIMIT :limit OFFSET :offset ";
+
+    int offset = (page - 1) * pageSize;
+
+    mapSqlParameterSource.addValue("limit", pageSize);
+    mapSqlParameterSource.addValue("offset", offset);
 
     return sql;
   }
