@@ -585,7 +585,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
               + " is null)) ");
     }
 
-    if (tableType.isPeriodDimension() && params.hasStartDate()) {
+    if (tableType.hasPeriodDimension() && params.hasStartDate()) {
       sql.append(
           sqlHelper.whereAnd()
               + " "
@@ -595,7 +595,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
               + "' ");
     }
 
-    if (tableType.isPeriodDimension() && params.hasEndDate()) {
+    if (tableType.hasPeriodDimension() && params.hasEndDate()) {
       sql.append(
           sqlHelper.whereAnd()
               + " "
