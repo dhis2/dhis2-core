@@ -38,7 +38,7 @@ updates:
           - ">= 6.0"
       - dependency-name: "org.springframework.data:spring-data-redis" # Spring data redis 3.x requires Spring 6 (see above)
         versions:
-          - ">= 3.0"          
+          - ">= 3.0"
       - dependency-name: "org.springframework.retry:spring-retry" # Spring retry 2.x requires Spring 6 (see above)
         versions:
           - ">= 2.0"
@@ -57,6 +57,9 @@ updates:
       - dependency-name: "org.hisp.dhis.rules:*" # Rule engine must be upgraded manually due to circular dependency with ANTLR parser
         versions:
           - ">= 2.0"
+      - dependency-name: "net.sf.jasperreports:jasperreports" # will update in https://dhis2.atlassian.net/browse/DHIS2-16796
+        versions:
+          - ">= 6.20.1"
   # 2.39
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -117,6 +120,9 @@ updates:
       - dependency-name: "org.hisp.dhis.rules:*" # Rule engine must be upgraded manually due to circular dependency with ANTLR parser
         versions:
           - ">= 2.0"
+      - dependency-name: "net.sf.jasperreports:jasperreports" # will update in https://dhis2.atlassian.net/browse/DHIS2-16796
+        versions:
+          - ">= 6.20.1"
     target-branch: "2.39"
     open-pull-requests-limit: 1 # only initially so we do not take away too many CI resources
   # 2.38
@@ -160,7 +166,7 @@ updates:
           - ">= 6.0"
       - dependency-name: "org.springframework.data:spring-data-redis" # Spring data redis 3.x requires Spring 6 (see above)
         versions:
-          - ">= 3.0"          
+          - ">= 3.0"
       - dependency-name: "org.springframework.retry:spring-retry" # Spring retry 2.x requires Spring 6 (see above)
         versions:
           - ">= 2.0"
@@ -179,6 +185,9 @@ updates:
       - dependency-name: "org.hisp.dhis.rules:*" # Rule engine must be upgraded manually due to circular dependency with ANTLR parser
         versions:
           - ">= 2.0"
+      - dependency-name: "net.sf.jasperreports:jasperreports" # will update in https://dhis2.atlassian.net/browse/DHIS2-16796
+        versions:
+          - ">= 6.20.1"
     target-branch: "2.38"
     open-pull-requests-limit: 1 # only initially so we do not take away too many CI resources
   # 2.37
@@ -225,7 +234,7 @@ updates:
           - ">= 6.0"
       - dependency-name: "org.springframework.data:spring-data-redis" # Spring data redis 3.x requires Spring 6 (see above)
         versions:
-          - ">= 3.0"          
+          - ">= 3.0"
       - dependency-name: "org.springframework.retry:spring-retry" # Spring retry 2.x requires Spring 6 (see above)
         versions:
           - ">= 2.0"
@@ -244,5 +253,8 @@ updates:
       - dependency-name: "org.hisp.dhis.rules:*" # Rule engine must be upgraded manually due to circular dependency with ANTLR parser
         versions:
           - ">= 2.0"
+      - dependency-name: "net.sf.jasperreports:jasperreports" # will update in https://dhis2.atlassian.net/browse/DHIS2-16796
+        versions:
+          - ">= 6.20.1"
     target-branch: "2.37"
     open-pull-requests-limit: 1 # only initially so we do not take away too many CI resources
