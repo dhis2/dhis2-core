@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,30 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.config;
+package org.hisp.dhis.db.sql;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serial;
-import java.io.Serializable;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import java.util.Objects;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 
-/**
- * @author Zubair <rajazubair.asghar@gmail.com>
- */
-@Getter
-@Setter
-@ToString
-@EqualsAndHashCode
-public class GenericGatewayParameter implements Serializable {
+@RequiredArgsConstructor
+public class SqlBuilderProvider {
+  private final DhisConfigurationProvider config;
 
-  @Serial private static final long serialVersionUID = -863990758156009672L;
-
-  @JsonProperty private String key;
-  @JsonProperty private String value;
-  @JsonProperty private boolean header;
-  @JsonProperty private boolean encode;
-  @JsonProperty private boolean confidential;
+  /**
+   * Returns a {@link SqlBuilder} implementation based on the system configuration.
+   *
+   * @return a {@link SqlBuilder}.
+   */
+  public SqlBuilder getSqlBuilder() {
+    Objects.requireNonNull(config);
+    return new PostgreSqlBuilder();
+  }
 }

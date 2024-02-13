@@ -81,6 +81,9 @@ public enum ConfigurationKey {
   /** Hibernate SQL dialect. */
   CONNECTION_DIALECT("connection.dialect", "", false),
 
+  /** Analytics database platform. */
+  ANALYTICS_CONNECTION_DATABASE("analytics.connection.database", "", false),
+
   /** JDBC driver class. */
   CONNECTION_DRIVER_CLASS("connection.driver_class", "org.postgresql.Driver", false),
 
@@ -377,9 +380,6 @@ public enum ConfigurationKey {
 
   PROGRAM_TEMPORARY_OWNERSHIP_TIMEOUT("tracker.temporary.ownership.timeout", "3", false),
 
-  /** Analytics server-side cache expiration in seconds. (default: 0) */
-  ANALYTICS_CACHE_EXPIRATION("analytics.cache.expiration", "0"),
-
   /** Use unlogged tables during analytics export. (default: off) */
   ANALYTICS_TABLE_UNLOGGED("analytics.table.unlogged", Constants.OFF),
 
@@ -589,7 +589,7 @@ public enum ConfigurationKey {
   /** Database debugging feature. Enable time query logging. */
   ELAPSED_TIME_QUERY_LOGGING_ENABLED("elapsed.time.query.logging.enabled", Constants.OFF, false),
 
-  /** Database datasource pool type. Supported pool types are: c3p0 (default) or hikari */
+  /** Database datasource pool type. Supported pool types are: c3p0 (default), hikari */
   DB_POOL_TYPE("db.pool.type", "c3p0", false),
 
   ACTIVE_READ_REPLICAS("active.read.replicas", "0", false),

@@ -564,12 +564,12 @@ public interface JobProgress {
   /**
    * Returns a formatted string, or null if the given format is null.
    *
-   * @param format the format string.
-   * @param args the format arguments.
+   * @param pattern the pattern string.
+   * @param args the pattern arguments.
    * @return a formatted message string.
    */
-  default String format(String format, Object... args) {
-    return format != null ? MessageFormatter.arrayFormat(format, args).getMessage() : null;
+  default String format(String pattern, Object... args) {
+    return pattern != null ? MessageFormatter.arrayFormat(pattern, args).getMessage() : null;
   }
 
   /*
