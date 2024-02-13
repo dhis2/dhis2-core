@@ -33,6 +33,7 @@ import java.util.Set;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.db.model.Index;
+import org.hisp.dhis.db.model.Table;
 
 /**
  * Manager for the analytics database tables.
@@ -111,8 +112,7 @@ public interface AnalyticsTableManager {
   void swapTable(AnalyticsTableUpdateParams params, AnalyticsTable table);
 
   /**
-   * Copies and denormalizes rows from the relevant transaction table into the relevant analytics
-   * table.
+   * Populats the analytics table.
    *
    * @param params the {@link AnalyticsTableUpdateParams}.
    * @param partition the analytics table partition to populate.
@@ -127,18 +127,11 @@ public interface AnalyticsTableManager {
   int invokeAnalyticsTableSqlHooks();
 
   /**
-   * Drops the given {@link AnalyticsTable}.
+   * Drops the given table.
    *
-   * @param table the analytics table.
+   * @param table the {@link Table}.
    */
-  void dropTable(AnalyticsTable table);
-
-  /**
-   * Drops the given {@link AnalyticsTablePartition}.
-   *
-   * @param tablePartition the analytics table partition.
-   */
-  void dropTablePartition(AnalyticsTablePartition tablePartition);
+  void dropTable(Table table);
 
   /**
    * Drops the given table and all potential partitions.
@@ -159,7 +152,14 @@ public interface AnalyticsTableManager {
    *
    * @param name the table name.
    */
-  void vacuumTable(String name);
+  void vacuumTable(Table table);
+
+  /**
+   * Performs an analyze operation on the given table.
+   *
+   * @param table the {@link Table}.
+   */
+  void analyzeTable(Table table);
 
   /**
    * Applies aggregation level logic to the analytics table.
@@ -170,12 +170,4 @@ public interface AnalyticsTableManager {
    */
   default void applyAggregationLevels(
       AnalyticsTablePartition partition, Collection<String> dataElements, int aggregationLevel) {}
-
-  /**
-   * Performs vacuum or optimization of the given analytics table. The type of operation performed
-   * is dependent on the underlying DBMS.
-   *
-   * @param partition the analytics table partition.
-   */
-  default void vacuumTables(AnalyticsTablePartition partition) {}
 }

@@ -31,6 +31,7 @@ import static org.hisp.dhis.db.model.Table.toStaging;
 
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
@@ -44,17 +45,13 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 /**
  * @author Lars Helge Overland
  */
+@RequiredArgsConstructor
 public class DataApprovalMinLevelResourceTable implements ResourceTable {
   private static final String TABLE_NAME = "_dataapprovalminlevel";
 
   private final List<OrganisationUnitLevel> levels;
 
   private final Logged logged;
-
-  public DataApprovalMinLevelResourceTable(List<OrganisationUnitLevel> levels, Logged logged) {
-    this.levels = levels;
-    this.logged = logged;
-  }
 
   @Override
   public Table getTable() {

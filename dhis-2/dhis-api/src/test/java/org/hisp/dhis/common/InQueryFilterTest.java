@@ -58,7 +58,17 @@ class InQueryFilterTest {
     executeTest("NV", true, "aField is null ");
   }
 
+  @Test
+  void verifyNestedSqlStmtInFieldWithNullOnly() {
+    String field = "(select * from xy)";
+    executeTest(field, "NV", true, "(" + field + " is null and exists((select * from xy))) ");
+  }
+
   private void executeTest(String filterValue, boolean isText, String expected) {
-    assertEquals(new InQueryFilter("aField", filterValue, isText).getSqlFilter(), expected);
+    executeTest("aField", filterValue, isText, expected);
+  }
+
+  private void executeTest(String field, String filterValue, boolean isText, String expected) {
+    assertEquals(new InQueryFilter(field, filterValue, isText).getSqlFilter(), expected);
   }
 }

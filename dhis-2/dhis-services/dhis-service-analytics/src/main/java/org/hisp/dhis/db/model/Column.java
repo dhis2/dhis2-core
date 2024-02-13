@@ -91,7 +91,11 @@ public class Column {
     return Nullable.NOT_NULL == nullable;
   }
 
-  /** Indicates whether the collation is set to a non-default value. */
+  /**
+   * Indicates whether the collation is set to a non-default value.
+   *
+   * @return true if the collation is set to a non-default value.
+   */
   public boolean hasCollation() {
     return collation != null && Collation.DEFAULT != collation;
   }
