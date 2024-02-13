@@ -75,7 +75,8 @@ class EventManagerTest {
   @InjectMocks EventManager subject;
 
   @Test
-  void updateEventDataValuesShouldTriggerUpdatePostProcessors() throws JsonProcessingException {
+  void shouldTriggerUpdatePostProcessorsWhenEventDataValuesUpdated()
+      throws JsonProcessingException {
 
     Event event = new Event();
     WorkContext workContext = WorkContext.builder().build();
