@@ -185,20 +185,11 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   private TrackedEntityAttribute validateDataReadAccess(UID attributeUid) throws NotFoundException {
-    Set<TrackedEntityAttribute> readableAttributes =
-        trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes();
-
-    TrackedEntityAttribute attribute = null;
-    for (TrackedEntityAttribute readableAttribute : readableAttributes) {
-      if (attributeUid.getValue().equals(readableAttribute.getUid())) {
-        attribute = readableAttribute;
-        break;
-      }
-    }
-    if (attribute == null) {
-      throw new NotFoundException(TrackedEntityAttribute.class, attributeUid.getValue());
-    }
-    return attribute;
+    return trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes().stream()
+        .filter(att -> attributeUid.getValue().equals(att.getUid()))
+        .findFirst()
+        .orElseThrow(
+            () -> new NotFoundException(TrackedEntityAttribute.class, attributeUid.getValue()));
   }
 
   @Override
