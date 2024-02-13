@@ -1454,7 +1454,7 @@ public class DataQueryParams {
     return dataElements.stream()
         .filter(de -> de.getCategoryCombo().isSkipTotal())
         .filter(de -> !isAllCategoriesDimensionOrFilterWithItems(de))
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /**
