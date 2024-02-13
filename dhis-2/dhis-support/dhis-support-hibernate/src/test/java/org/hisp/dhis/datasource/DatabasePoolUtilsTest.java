@@ -33,7 +33,6 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
-import com.mchange.v2.c3p0.DriverManagerDataSource;
 import com.zaxxer.hikari.HikariDataSource;
 import java.beans.PropertyVetoException;
 import java.sql.DriverManager;
@@ -50,6 +49,7 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 public class DatabasePoolUtilsTest {
 
@@ -76,7 +76,7 @@ public class DatabasePoolUtilsTest {
 
     DhisConfigurationProvider mockDhisConfigurationProvider = mock(DhisConfigurationProvider.class);
     given(mockDhisConfigurationProvider.getProperty(ConfigurationKey.CONNECTION_DRIVER_CLASS))
-        .willReturn("mock");
+        .willReturn("org.hisp.dhis.datasource.StubDriver");
 
     PoolConfig.PoolConfigBuilder poolConfigBuilder =
         PoolConfig.builder()

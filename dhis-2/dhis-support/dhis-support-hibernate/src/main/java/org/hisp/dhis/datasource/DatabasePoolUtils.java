@@ -71,7 +71,6 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_USERNAME;
 
 import com.google.common.collect.ImmutableMap;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
-import com.mchange.v2.c3p0.DriverManagerDataSource;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import java.beans.PropertyVetoException;
@@ -88,6 +87,7 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.datasource.model.PoolConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -152,27 +152,11 @@ public final class DatabasePoolUtils {
       throws PropertyVetoException, SQLException {
     Objects.requireNonNull(config);
 
+    ConfigKeyMapper mapper = config.getMapper();
     DbPoolType dbPoolType = DbPoolType.valueOf(config.getDbPoolType().toUpperCase());
     log.info("Database pool type value is [{}]", dbPoolType);
 
-    switch (dbPoolType) {
-      case C3P0, UNPOOLED:
-        return createC3p0DataSource(config);
-      case HIKARI:
-        return createHikariDbPool(config);
-      default:
-        throw new IllegalArgumentException(
-            TextUtils.format(
-                "Database pool type value is invalid, could not create database pool: '{}'",
-                config.getDbPoolType()));
-    }
-  }
-
-  private static DataSource createHikariDbPool(PoolConfig config) {
-    ConfigKeyMapper mapper = config.getMapper();
-
     DhisConfigurationProvider dhisConfig = config.getDhisConfig();
-
     final String driverClassName =
         dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_DRIVER_CLASS));
     final String jdbcUrl =
@@ -184,6 +168,29 @@ public final class DatabasePoolUtils {
     final String password =
         firstNonNull(
             config.getPassword(), dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_PASSWORD)));
+
+    final DataSource dataSource =
+        switch (dbPoolType) {
+          case C3P0 -> createC3p0DbPool(username, password, driverClassName, jdbcUrl, config);
+          case HIKARI -> createHikariDbPool(username, password, driverClassName, jdbcUrl, config);
+          case UNPOOLED -> createUnPooledDataSource(username, password, driverClassName, jdbcUrl);
+          default ->
+              throw new IllegalArgumentException(
+                  TextUtils.format(
+                      "Database pool type value is invalid, could not create database pool: '{}'",
+                      config.getDbPoolType()));
+        };
+
+    testConnection(dataSource);
+    return dataSource;
+  }
+
+  private static DataSource createHikariDbPool(
+      String username, String password, String driverClassName, String jdbcUrl, PoolConfig config) {
+    ConfigKeyMapper mapper = config.getMapper();
+
+    DhisConfigurationProvider dhisConfig = config.getDhisConfig();
+
     final long connectionTimeout =
         parseLong(dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_TIMEOUT)));
     final long validationTimeout =
@@ -212,46 +219,15 @@ public final class DatabasePoolUtils {
     ds.setValidationTimeout(validationTimeout);
     ds.setMaximumPoolSize(maxPoolSize);
 
-    testConnection(ds);
-
     return ds;
-  }
-
-  private static DataSource createC3p0DataSource(PoolConfig config) throws PropertyVetoException {
-    ConfigKeyMapper mapper = config.getMapper();
-
-    DhisConfigurationProvider dhisConfig = config.getDhisConfig();
-
-    final String driverClassName =
-        dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_DRIVER_CLASS));
-    final String jdbcUrl =
-        firstNonNull(
-            config.getJdbcUrl(), dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_URL)));
-    final String username =
-        firstNonNull(
-            config.getUsername(), dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_USERNAME)));
-    final String password =
-        firstNonNull(
-            config.getPassword(), dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_PASSWORD)));
-
-    final DataSource dataSource;
-    final DbPoolType dbPoolType = DbPoolType.valueOf(config.getDbPoolType().toUpperCase());
-    if (dbPoolType.equals(DbPoolType.UNPOOLED)) {
-      dataSource = createUnPooledDataSource(username, password, driverClassName, jdbcUrl);
-    } else {
-      dataSource = createC3p0DbPool(username, password, driverClassName, jdbcUrl, config);
-    }
-
-    testConnection(dataSource);
-    return dataSource;
   }
 
   private static DriverManagerDataSource createUnPooledDataSource(
       String username, String password, String driverClassName, String jdbcUrl) {
     final DriverManagerDataSource unPooledDataSource = new DriverManagerDataSource();
-    unPooledDataSource.setDriverClass(driverClassName);
-    unPooledDataSource.setJdbcUrl(jdbcUrl);
-    unPooledDataSource.setUser(username);
+    unPooledDataSource.setDriverClassName(driverClassName);
+    unPooledDataSource.setUrl(jdbcUrl);
+    unPooledDataSource.setUsername(username);
     unPooledDataSource.setPassword(password);
 
     return unPooledDataSource;
