@@ -153,7 +153,7 @@ public final class DatabasePoolUtils {
     Objects.requireNonNull(config);
 
     DbPoolType dbPoolType = DbPoolType.valueOf(config.getDbPoolType().toUpperCase());
-    log.info("Database pool type value is [{}]", dbType);
+    log.info("Database pool type value is [{}]", dbPoolType);
 
     switch (dbPoolType) {
       case C3P0, UNPOOLED:
@@ -168,7 +168,7 @@ public final class DatabasePoolUtils {
     }
   }
 
-  private static DataSource createHikariDbPool(PoolConfig config) throws SQLException {
+  private static DataSource createHikariDbPool(PoolConfig config) {
     ConfigKeyMapper mapper = config.getMapper();
 
     DhisConfigurationProvider dhisConfig = config.getDhisConfig();
@@ -221,6 +221,7 @@ public final class DatabasePoolUtils {
     ConfigKeyMapper mapper = config.getMapper();
 
     DhisConfigurationProvider dhisConfig = config.getDhisConfig();
+
     final String driverClassName =
         dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_DRIVER_CLASS));
     final String jdbcUrl =
@@ -234,7 +235,7 @@ public final class DatabasePoolUtils {
             config.getPassword(), dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_PASSWORD)));
 
     final DataSource dataSource;
-    final DbPoolType dbPoolType = DbPoolType.valueOf(config.dbPoolType.toUpperCase());
+    final DbPoolType dbPoolType = DbPoolType.valueOf(config.getDbPoolType().toUpperCase());
     if (dbPoolType.equals(DbPoolType.UNPOOLED)) {
       dataSource = createUnPooledDataSource(username, password, driverClassName, jdbcUrl);
     } else {
@@ -286,7 +287,7 @@ public final class DatabasePoolUtils {
     final int maxIdleTime =
         parseInt(
             firstNonNull(
-                config.maxIdleTime,
+                config.getMaxIdleTime(),
                 dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_MAX_IDLE_TIME))));
 
     final int minPoolSize =

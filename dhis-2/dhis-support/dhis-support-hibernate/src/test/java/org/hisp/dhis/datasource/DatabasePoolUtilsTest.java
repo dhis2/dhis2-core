@@ -44,6 +44,7 @@ import javax.sql.DataSource;
 import org.apache.logging.log4j.core.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.test.appender.ListAppender;
+import org.hisp.dhis.datasource.model.PoolConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.junit.jupiter.api.BeforeAll;
@@ -77,8 +78,8 @@ public class DatabasePoolUtilsTest {
     given(mockDhisConfigurationProvider.getProperty(ConfigurationKey.CONNECTION_DRIVER_CLASS))
         .willReturn("mock");
 
-    DatabasePoolUtils.PoolConfig.PoolConfigBuilder poolConfigBuilder =
-        new DatabasePoolUtils.PoolConfig.PoolConfigBuilder()
+    PoolConfig.PoolConfigBuilder poolConfigBuilder =
+        PoolConfig.builder()
             .dbPoolType(DatabasePoolUtils.DbPoolType.UNPOOLED.name())
             .jdbcUrl("jdbc:fake:db")
             .username("")
@@ -111,8 +112,8 @@ public class DatabasePoolUtilsTest {
     given(mockDhisConfigurationProvider.getProperty(ConfigurationKey.CONNECTION_POOL_NUM_THREADS))
         .willReturn("1");
 
-    DatabasePoolUtils.PoolConfig.PoolConfigBuilder poolConfigBuilder =
-        new DatabasePoolUtils.PoolConfig.PoolConfigBuilder()
+    PoolConfig.PoolConfigBuilder poolConfigBuilder =
+        PoolConfig.builder()
             .dbPoolType(DatabasePoolUtils.DbPoolType.C3P0.name())
             .jdbcUrl("jdbc:fake:db")
             .username("")
@@ -142,8 +143,8 @@ public class DatabasePoolUtilsTest {
                 ConfigurationKey.CONNECTION_POOL_VALIDATION_TIMEOUT))
         .willReturn("250");
 
-    DatabasePoolUtils.PoolConfig.PoolConfigBuilder poolConfigBuilder =
-        new DatabasePoolUtils.PoolConfig.PoolConfigBuilder()
+    PoolConfig.PoolConfigBuilder poolConfigBuilder =
+        PoolConfig.builder()
             .dbPoolType(DatabasePoolUtils.DbPoolType.HIKARI.name())
             .jdbcUrl("jdbc:fake:db")
             .username("")
