@@ -207,7 +207,7 @@ public final class ImportContext {
     return currentUser.getUsername();
   }
 
-  public Boolean currentUserIsSuperUser() {
+  public boolean currentUserIsSuperUser() {
     if (currentUser == null) {
       return false;
     }

@@ -1295,7 +1295,7 @@ public class DefaultDataValueSetService implements DataValueSetService {
     internalValue.setCategoryOptionCombo(valueContext.getCategoryOptionCombo());
     internalValue.setAttributeOptionCombo(valueContext.getAttrOptionCombo());
     // Allow the superuser to override from the payload values
-    if (context.currentUserIsSuperUser()) {
+    if (Boolean.TRUE.equals(context.currentUserIsSuperUser())) {
       internalValue.setStoredBy(context.getStoredBy(dataValue));
       internalValue.setLastUpdated(
           dataValue.hasLastUpdated() ? parseDate(dataValue.getLastUpdated()) : now);
