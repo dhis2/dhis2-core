@@ -77,7 +77,6 @@ public class AnalyticsDataSourceConfig {
       log.info(
           "Analytics data source connection URL not specified with key: '{}'",
           ANALYTICS_CONNECTION_URL.getKey());
-
       return actualDataSource;
     }
   }
