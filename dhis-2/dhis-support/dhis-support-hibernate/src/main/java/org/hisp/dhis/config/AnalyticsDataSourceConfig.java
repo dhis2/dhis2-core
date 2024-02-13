@@ -79,45 +79,6 @@ public class AnalyticsDataSourceConfig {
     return actualDataSource;
   }
 
-  /**
-   * Indicates whether an analytics data source is configured.
-   *
-   * @return true if an analytics data source is configured.
-   */
-  private boolean isAnalyticsDataSourceConfigured() {
-    return StringUtils.isNotBlank(dhisConfig.getProperty(ANALYTICS_CONNECTION_URL));
-  }
-
-  /**
-   * Returns a data source for the analytics database.
-   *
-   * @return a {@link DataSource}.
-   */
-  private DataSource getAnalyticsDataSource() {
-    String jdbcUrl = dhisConfig.getProperty(ANALYTICS_CONNECTION_URL);
-    String dbPoolType = dhisConfig.getProperty(ConfigurationKey.DB_POOL_TYPE);
-
-    DatabasePoolUtils.PoolConfig poolConfig =
-        DatabasePoolUtils.PoolConfig.builder()
-            .dhisConfig(dhisConfig)
-            .mapper(ANALYTICS)
-            .dbPoolType(dbPoolType)
-            .build();
-
-    try {
-      return DatabasePoolUtils.createDbPool(poolConfig);
-    } catch (SQLException | PropertyVetoException ex) {
-      String message =
-          TextUtils.format(
-              "Connection test failed for analytics database pool, JDBC URL: '{}'", jdbcUrl);
-
-      log.error(message);
-      log.error(DebugUtils.getStackTrace(ex));
-
-      throw new IllegalStateException(message, ex);
-    }
-  }
-
   @Bean("analyticsNamedParameterJdbcTemplate")
   @DependsOn("analyticsDataSource")
   public NamedParameterJdbcTemplate namedParameterJdbcTemplate(
@@ -154,5 +115,48 @@ public class AnalyticsDataSourceConfig {
     JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
     jdbcTemplate.setFetchSize(1000);
     return jdbcTemplate;
+  }
+
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+
+  /**
+   * Returns a data source for the analytics database.
+   *
+   * @return a {@link DataSource}.
+   */
+  private DataSource getAnalyticsDataSource() {
+    String jdbcUrl = dhisConfig.getProperty(ANALYTICS_CONNECTION_URL);
+    String dbPoolType = dhisConfig.getProperty(ConfigurationKey.DB_POOL_TYPE);
+
+    DatabasePoolUtils.PoolConfig poolConfig =
+        DatabasePoolUtils.PoolConfig.builder()
+            .dhisConfig(dhisConfig)
+            .mapper(ANALYTICS)
+            .dbPoolType(dbPoolType)
+            .build();
+
+    try {
+      return DatabasePoolUtils.createDbPool(poolConfig);
+    } catch (SQLException | PropertyVetoException ex) {
+      String message =
+          TextUtils.format(
+              "Connection test failed for analytics database pool, JDBC URL: '{}'", jdbcUrl);
+
+      log.error(message);
+      log.error(DebugUtils.getStackTrace(ex));
+
+      throw new IllegalStateException(message, ex);
+    }
+  }
+
+  /**
+   * Indicates whether an analytics data source is configured.
+   *
+   * @return true if an analytics data source is configured.
+   */
+  private boolean isAnalyticsDataSourceConfigured() {
+    return StringUtils.isNotBlank(dhisConfig.getProperty(ANALYTICS_CONNECTION_URL));
   }
 }
