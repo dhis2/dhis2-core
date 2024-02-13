@@ -93,9 +93,7 @@ public class AnalyticsDataSourceConfig {
   @DependsOn("analyticsDataSource")
   public JdbcTemplate executionPlanJdbcTemplate(
       @Qualifier("analyticsDataSource") DataSource dataSource) {
-    JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-    jdbcTemplate.setFetchSize(FETCH_SIZE);
-    return jdbcTemplate;
+    return getJdbcTemplate(dataSource);
   }
 
   @Bean("analyticsReadOnlyJdbcTemplate")
@@ -104,19 +102,13 @@ public class AnalyticsDataSourceConfig {
       @Qualifier("analyticsDataSource") DataSource dataSource) {
     ReadOnlyDataSourceManager manager = new ReadOnlyDataSourceManager(dhisConfig);
     DataSource ds = MoreObjects.firstNonNull(manager.getReadOnlyDataSource(), dataSource);
-
-    JdbcTemplate jdbcTemplate = new JdbcTemplate(ds);
-    jdbcTemplate.setFetchSize(FETCH_SIZE);
-
-    return jdbcTemplate;
+    return getJdbcTemplate(ds);
   }
 
   @Bean("analyticsJdbcTemplate")
   @DependsOn("analyticsDataSource")
   public JdbcTemplate jdbcTemplate(@Qualifier("analyticsDataSource") DataSource dataSource) {
-    JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-    jdbcTemplate.setFetchSize(FETCH_SIZE);
-    return jdbcTemplate;
+    return getJdbcTemplate(dataSource);
   }
 
   // -------------------------------------------------------------------------
@@ -151,6 +143,18 @@ public class AnalyticsDataSourceConfig {
 
       throw new IllegalStateException(message, ex);
     }
+  }
+
+  /**
+   * Returns a {@link JdbcTemplate}.
+   *
+   * @param dataSource the {@link DataSource}.
+   * @return a {@link JdbcTemplate}.
+   */
+  private JdbcTemplate getJdbcTemplate(DataSource dataSource) {
+    JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+    jdbcTemplate.setFetchSize(FETCH_SIZE);
+    return jdbcTemplate;
   }
 
   /**
