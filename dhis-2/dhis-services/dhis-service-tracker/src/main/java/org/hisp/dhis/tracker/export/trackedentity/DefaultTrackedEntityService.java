@@ -36,6 +36,7 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -111,8 +112,8 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   private final UserService userService;
 
   @Override
-  public FileResourceStream getFileResource(UID trackedEntity, UID attribute, UID program)
-      throws NotFoundException {
+  public FileResourceStream getFileResource(
+      UID trackedEntity, UID attribute, @CheckForNull UID program) throws NotFoundException {
     FileResource fileResource = getFileResourceMetadata(trackedEntity, attribute, program);
 
     return new FileResourceStream(
@@ -136,7 +137,8 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   private FileResource getFileResourceMetadata(
-      UID trackedEntityUid, UID attributeUid, UID programUid) throws NotFoundException {
+      UID trackedEntityUid, UID attributeUid, @CheckForNull UID programUid)
+      throws NotFoundException {
     TrackedEntity trackedEntity = trackedEntityStore.getByUid(trackedEntityUid.getValue());
     if (trackedEntity == null) {
       throw new NotFoundException(TrackedEntity.class, trackedEntityUid.getValue());
@@ -148,9 +150,12 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       throw new NotFoundException(TrackedEntityAttribute.class, attributeUid.getValue());
     }
 
-    Program program = programService.getProgram(programUid.getValue());
-    if (program == null) {
-      throw new NotFoundException(Program.class, programUid.getValue());
+    Program program = null;
+    if (programUid != null) {
+      program = programService.getProgram(programUid.getValue());
+      if (program == null) {
+        throw new NotFoundException(Program.class, programUid.getValue());
+      }
     }
 
     if (!attribute.getValueType().isFile()) {
@@ -159,7 +164,12 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     }
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    List<String> errors = trackerAccessManager.canRead(currentUser, trackedEntity, program, false);
+    List<String> errors;
+    if (program != null) {
+      errors = trackerAccessManager.canRead(currentUser, trackedEntity, program, false);
+    } else {
+      errors = trackerAccessManager.canRead(currentUser, trackedEntity);
+    }
     if (!errors.isEmpty()) {
       throw new NotFoundException(TrackedEntityAttribute.class, attributeUid.getValue());
     }

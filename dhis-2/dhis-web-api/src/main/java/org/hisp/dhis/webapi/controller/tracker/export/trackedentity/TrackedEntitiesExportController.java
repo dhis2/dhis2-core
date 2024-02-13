@@ -284,7 +284,7 @@ class TrackedEntitiesExportController {
   ResponseEntity<InputStreamResource> getEventDataValueFile(
       @OpenApi.Param({UID.class, TrackedEntity.class}) @PathVariable UID trackedEntity,
       @OpenApi.Param({UID.class, Attribute.class}) @PathVariable UID attribute,
-      @OpenApi.Param({UID.class, Program.class}) @RequestParam UID program,
+      @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) UID program,
       HttpServletRequest request)
       throws NotFoundException, ConflictException, BadRequestException {
     return handleFileRequest(
