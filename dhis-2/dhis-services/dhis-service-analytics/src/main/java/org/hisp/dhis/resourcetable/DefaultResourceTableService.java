@@ -32,13 +32,10 @@ import static java.util.Comparator.reverseOrder;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
-
-import com.google.common.collect.Lists;
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.stream.Collectors;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -76,6 +73,9 @@ import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.google.common.collect.Lists;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -279,7 +279,7 @@ public class DefaultResourceTableService implements ResourceTableService {
   public void createAllSqlViews(JobProgress progress) {
     List<SqlView> nonQueryViews =
         new ArrayList<>(sqlViewService.getAllSqlViewsNoAcl())
-            .stream().sorted().filter(view -> !view.isQuery()).toList();
+            .stream().sorted().filter(view -> !view.isQuery()).collect(Collectors.toList());
 
     progress.startingStage("Create SQL views", nonQueryViews.size(), SKIP_ITEM);
     progress.runStage(
@@ -302,7 +302,7 @@ public class DefaultResourceTableService implements ResourceTableService {
   public void dropAllSqlViews(JobProgress progress) {
     List<SqlView> nonQueryViews =
         new ArrayList<>(sqlViewService.getAllSqlViewsNoAcl())
-            .stream().filter(view -> !view.isQuery()).sorted(reverseOrder()).toList();
+            .stream().filter(view -> !view.isQuery()).sorted(reverseOrder()).collect(Collectors.toList());
     progress.startingStage("Drop SQL views", nonQueryViews.size(), SKIP_ITEM);
     progress.runStage(nonQueryViews, SqlView::getViewName, sqlViewService::dropViewTable);
   }

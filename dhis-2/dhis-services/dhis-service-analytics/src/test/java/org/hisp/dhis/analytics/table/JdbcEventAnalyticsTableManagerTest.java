@@ -58,7 +58,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import java.time.LocalDate;
 import java.time.Year;
 import java.time.ZoneId;
@@ -68,6 +67,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -162,7 +162,7 @@ class JdbcEventAnalyticsTableManagerTest {
                 String column = pt.getName().toLowerCase();
                 return new AnalyticsTableColumn(column, TEXT, "dps" + "." + quote(column));
               })
-          .toList();
+          .collect(Collectors.toList());
 
   private final BeanRandomizer rnd = BeanRandomizer.create();
 
