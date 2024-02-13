@@ -39,7 +39,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -66,8 +65,6 @@ class PreheatServiceTest extends TransactionalIntegrationTest {
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private RenderService _renderService;
-
-  @Autowired private AttributeService attributeService;
 
   @Autowired private UserService _userService;
 
