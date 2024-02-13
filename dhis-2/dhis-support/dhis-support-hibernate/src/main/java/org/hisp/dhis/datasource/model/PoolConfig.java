@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,30 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.config;
+package org.hisp.dhis.datasource.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serial;
-import java.io.Serializable;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import java.util.Optional;
+import lombok.Builder;
+import lombok.Value;
+import org.hisp.dhis.datasource.DatabasePoolUtils.ConfigKeyMapper;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 
 /**
- * @author Zubair <rajazubair.asghar@gmail.com>
+ * Encapsulation of a database connection pool configuration.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Getter
-@Setter
-@ToString
-@EqualsAndHashCode
-public class GenericGatewayParameter implements Serializable {
+@Value
+@Builder
+public class PoolConfig {
+  private String dbPoolType;
 
-  @Serial private static final long serialVersionUID = -863990758156009672L;
+  private DhisConfigurationProvider dhisConfig;
 
-  @JsonProperty private String key;
-  @JsonProperty private String value;
-  @JsonProperty private boolean header;
-  @JsonProperty private boolean encode;
-  @JsonProperty private boolean confidential;
+  private String jdbcUrl;
+
+  private String username;
+
+  private String password;
+
+  private String maxPoolSize;
+
+  private String acquireIncrement;
+
+  private String acquireRetryAttempts;
+
+  private String acquireRetryDelay;
+
+  private String maxIdleTime;
+
+  private ConfigKeyMapper mapper;
+
+  public ConfigKeyMapper getMapper() {
+    return Optional.ofNullable(mapper).orElse(ConfigKeyMapper.POSTGRESQL);
+  }
 }

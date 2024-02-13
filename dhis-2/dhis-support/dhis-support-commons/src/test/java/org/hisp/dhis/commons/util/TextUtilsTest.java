@@ -270,4 +270,10 @@ class TextUtilsTest {
     String slashRemoved = removeAnyTrailingSlash(strWithSlash);
     assertEquals("/path", slashRemoved);
   }
+
+  @Test
+  void testFormat() {
+    assertEquals(
+        "Found 2 items of type text", TextUtils.format("Found {} items of type {}", 2, "text"));
+  }
 }

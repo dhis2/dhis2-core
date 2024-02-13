@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,30 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.config;
+package org.hisp.dhis.webapi.controller.icon;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serial;
-import java.io.Serializable;
-import lombok.EqualsAndHashCode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.List;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import org.hisp.dhis.common.Pager;
 
 /**
- * @author Zubair <rajazubair.asghar@gmail.com>
+ * @author Zubair Asghar
  */
 @Getter
-@Setter
-@ToString
-@EqualsAndHashCode
-public class GenericGatewayParameter implements Serializable {
-
-  @Serial private static final long serialVersionUID = -863990758156009672L;
-
-  @JsonProperty private String key;
-  @JsonProperty private String value;
-  @JsonProperty private boolean header;
-  @JsonProperty private boolean encode;
-  @JsonProperty private boolean confidential;
+@AllArgsConstructor
+public class PaginatedIconResponse {
+  @JsonProperty private final Pager pager;
+  @JsonProperty private final List<ObjectNode> icons;
 }

@@ -25,30 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.config;
+package org.hisp.dhis.external.conf.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serial;
-import java.io.Serializable;
-import lombok.EqualsAndHashCode;
+import java.time.LocalDateTime;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 
 /**
- * @author Zubair <rajazubair.asghar@gmail.com>
+ * @author Lars Helge Overland
  */
 @Getter
 @Setter
-@ToString
-@EqualsAndHashCode
-public class GenericGatewayParameter implements Serializable {
+@NoArgsConstructor
+public class GoogleAccessToken {
+  @JsonProperty(value = "access_token")
+  private String accessToken;
 
-  @Serial private static final long serialVersionUID = -863990758156009672L;
+  @JsonProperty(value = "client_id")
+  private String clientId;
 
-  @JsonProperty private String key;
-  @JsonProperty private String value;
-  @JsonProperty private boolean header;
-  @JsonProperty private boolean encode;
-  @JsonProperty private boolean confidential;
+  @JsonProperty(value = "expires_in")
+  private long expiresInSeconds;
+
+  @JsonIgnore private LocalDateTime expiresOn;
 }

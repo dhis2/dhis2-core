@@ -31,7 +31,6 @@ import static org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset.
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
-import java.util.stream.Collectors;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParamType;
@@ -72,7 +71,7 @@ class TeiAttributeConditionTest {
             new BaseDimensionalObject(
                 attr,
                 DimensionType.PROGRAM_ATTRIBUTE,
-                items.stream().map(BaseDimensionalItemObject::new).collect(Collectors.toList())),
+                items.stream().map(BaseDimensionalItemObject::new).toList()),
             DimensionParamType.DIMENSIONS,
             items);
 

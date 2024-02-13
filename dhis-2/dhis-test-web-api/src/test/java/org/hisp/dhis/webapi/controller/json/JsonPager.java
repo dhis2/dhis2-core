@@ -25,59 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.icon;
+package org.hisp.dhis.webapi.controller.json;
 
-import java.util.Set;
-import java.util.stream.Stream;
-import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.jsontree.JsonObject;
 
-public interface CustomIconStore {
-  /**
-   * Returns a custom icon that contains a given key
-   *
-   * @param key of the icon
-   * @return the custom icon matching the key, or null instead
-   */
-  CustomIcon getIconByKey(String key);
+/** Representation of {@link org.hisp.dhis.common.Pager}. */
+public interface JsonPager extends JsonObject {
 
-  /**
-   * Returns a list of custom icons that contain all the specified keywords
-   *
-   * @param iconOperationParams contains query params for CustomIcon
-   * @return the list of custom icons that contain all the keywords
-   */
-  Stream<CustomIcon> getIcons(IconOperationParams iconOperationParams);
+  default Integer getPage() {
+    return getNumber("page").integer();
+  }
 
-  /**
-   * Returns a list with all the custom icon keywords
-   *
-   * @return a list with all the custom icon keywords
-   */
-  Set<String> getKeywords();
+  default Integer getPageSize() {
+    return getNumber("pageSize").integer();
+  }
 
-  /**
-   * Persists a custom icon to the database
-   *
-   * @param customIcon Icon to be saved
-   * @param fileResource file resource linked to the custom icon
-   * @param createdByUser user that created the custom icon
-   */
-  void save(CustomIcon customIcon, FileResource fileResource, UserDetails createdByUser);
+  default Integer getTotal() {
+    return getNumber("total").integer();
+  }
 
-  /**
-   * Deletes a custom icon from the database
-   *
-   * @param customIconKey Key of the icon to be deleted
-   */
-  void delete(String customIconKey);
-
-  /**
-   * Updates a custom icon from the database
-   *
-   * @param customIcon Icon to be updated
-   */
-  void update(CustomIcon customIcon);
-
-  long count(IconOperationParams iconOperationParams);
+  default Integer getPageCount() {
+    return getNumber("pageCount").integer();
+  }
 }

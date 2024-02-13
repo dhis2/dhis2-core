@@ -59,7 +59,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.OutputFormat;
 import org.hisp.dhis.analytics.common.params.CommonParams;
@@ -822,9 +821,7 @@ class SchemeIdResponseMapperTest {
         new BaseDimensionalObject(
             dimensionUid,
             DATA_X,
-            ous.stream()
-                .map(item -> new BaseDimensionalItemObject(item))
-                .collect(Collectors.toList()),
+            ous.stream().map(item -> new BaseDimensionalItemObject(item)).toList(),
             TEXT);
 
     DimensionParam dimensionParam = DimensionParam.ofObject(tea, DIMENSIONS, ous);
