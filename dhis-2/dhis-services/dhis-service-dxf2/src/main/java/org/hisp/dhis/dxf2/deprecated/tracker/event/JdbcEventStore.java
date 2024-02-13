@@ -54,7 +54,6 @@ import static org.hisp.dhis.dxf2.deprecated.tracker.event.EventUtils.eventDataVa
 import static org.hisp.dhis.dxf2.deprecated.tracker.event.EventUtils.jsonToUserInfo;
 import static org.hisp.dhis.dxf2.deprecated.tracker.event.EventUtils.userInfoToJson;
 import static org.hisp.dhis.system.util.SqlUtils.castToNumber;
-import static org.hisp.dhis.system.util.SqlUtils.encode;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 
@@ -951,7 +950,7 @@ public class JdbcEventStore implements EventStore {
           .append(AND)
           .append(teaCol + ".UID")
           .append(EQUALS)
-          .append(encode(queryItem.getItem().getUid()));
+          .append(SqlUtils.singleQuote(queryItem.getItem().getUid()));
 
       attributes.append(getAttributeFilterQuery(queryItem, teaCol, teaValueCol));
     }

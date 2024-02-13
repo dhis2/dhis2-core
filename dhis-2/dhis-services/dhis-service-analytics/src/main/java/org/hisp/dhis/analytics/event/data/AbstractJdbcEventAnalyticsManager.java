@@ -40,6 +40,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.hisp.dhis.analytics.AggregationType.CUSTOM;
 import static org.hisp.dhis.analytics.AggregationType.NONE;
+import static org.hisp.dhis.analytics.AnalyticsConstants.DATE_PERIOD_STRUCT_ALIAS;
 import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_DENOMINATOR_PROPERTIES_COUNT;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
@@ -48,11 +49,6 @@ import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.analytics.SortOrder.DESC;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_GEOMETRY_COL_SUFFIX;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_NAME_COL_SUFFIX;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.encode;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
@@ -114,6 +110,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -163,6 +160,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   protected final ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder;
 
   protected final ExecutionPlanStore executionPlanStore;
+
+  protected final SqlBuilder sqlBuilder;
 
   /**
    * Returns a SQL paging clause.
@@ -262,9 +261,11 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     return "WHEN "
         + quotedAlias
         + "="
-        + encode(item.getUid())
+        + singleQuote(item.getUid())
         + " THEN "
-        + (dp == DisplayProperty.NAME ? encode(item.getName()) : encode(item.getShortName()));
+        + (dp == DisplayProperty.NAME
+            ? singleQuote(item.getName())
+            : singleQuote(item.getShortName()));
   }
 
   private boolean isSupported(DimensionalObject dimension) {
@@ -367,14 +368,14 @@ public abstract class AbstractJdbcEventAnalyticsManager {
               } else if (params.hasSinglePeriod()) {
                 Period period = (Period) params.getPeriods().get(0);
                 columns.add(
-                    encode(period.getIsoDate()) + " as " + period.getPeriodType().getName());
+                    singleQuote(period.getIsoDate()) + " as " + period.getPeriodType().getName());
               } else if (!params.hasPeriods() && params.hasFilterPeriods()) {
                 // Assuming same period type for all period filters, as the
                 // query planner splits into one query per period type
 
                 Period period = (Period) params.getFilterPeriods().get(0);
                 columns.add(
-                    encode(period.getIsoDate()) + " as " + period.getPeriodType().getName());
+                    singleQuote(period.getIsoDate()) + " as " + period.getPeriodType().getName());
               } else {
                 throw new IllegalStateException(
                     "Program indicator non-default boundary query must have "
@@ -865,9 +866,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   protected String getSqlFilter(QueryFilter queryFilter, QueryItem item) {
     String filter = getFilter(queryFilter.getFilter(), item);
-    String encodedFilter = encode(filter, false);
 
-    return item.getSqlFilter(queryFilter, encodedFilter, true);
+    return item.getSqlFilter(queryFilter, sqlBuilder.escape(filter), true);
   }
 
   /**
@@ -882,7 +882,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     String col = dimension.getDimensionName();
 
     if (params.hasTimeField() && DimensionType.PERIOD == dimension.getDimensionType()) {
-      return quote(DATE_PERIOD_STRUCT_ALIAS, col);
+      return sqlBuilder.quote(DATE_PERIOD_STRUCT_ALIAS, col);
     } else if (DimensionType.ORGANISATION_UNIT == dimension.getDimensionType()) {
       return params.getOrgUnitField().getOrgUnitStructCol(col, getAnalyticsType(), isGroupByClause);
     } else if (DimensionType.ORGANISATION_UNIT_GROUP_SET == dimension.getDimensionType()) {
@@ -890,7 +890,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
           .getOrgUnitField()
           .getOrgUnitGroupSetCol(col, getAnalyticsType(), isGroupByClause);
     } else {
-      return quote(ANALYTICS_TBL_ALIAS, col);
+      return quoteAlias(col);
     }
   }
 
@@ -1152,6 +1152,41 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   }
 
   /**
+   * @param relation the relation to quote, e.g. a table or column name.
+   * @return a double quoted relation.
+   */
+  protected String quote(String relation) {
+    return sqlBuilder.quote(relation);
+  }
+
+  /**
+   * @param relation the relation to quote.
+   * @return an "ax" aliased and double quoted relation.
+   */
+  protected String quoteAlias(String relation) {
+    return sqlBuilder.quoteAx(relation);
+  }
+
+  /**
+   * @param value the value to quote.
+   * @return a single quoted value.
+   */
+  protected String singleQuote(String value) {
+    return sqlBuilder.singleQuote(value);
+  }
+
+  /**
+   * Returns a concatenated string of the given items separated by comma where each item is quoted
+   * and aliased.
+   *
+   * @param items the collection of items.
+   * @return a string.
+   */
+  protected String quoteAliasCommaDelimited(Collection<String> items) {
+    return items.stream().map(this::quoteAlias).collect(Collectors.joining(","));
+  }
+
+  /**
    * Joins a stream of conditions using given join function. Returns empty string if collection is
    * empty.
    */
@@ -1244,7 +1279,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     if (IN.equals(filter.getOperator())) {
       InQueryFilter inQueryFilter =
-          new InQueryFilter(field, encode(filter.getFilter(), false), item.isText());
+          new InQueryFilter(field, sqlBuilder.escape(filter.getFilter()), item.isText());
 
       return inQueryFilter.getSqlFilter();
     } else {

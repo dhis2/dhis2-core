@@ -78,4 +78,6 @@ public interface CustomIconStore {
    * @param customIcon Icon to be updated
    */
   void update(CustomIcon customIcon);
+
+  long count(IconOperationParams iconOperationParams);
 }

@@ -60,7 +60,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -479,7 +478,6 @@ public class AnalyticsUtils {
       dv.setAttributeOptionCombo(aoc != null ? String.valueOf(aoc) : null);
       dv.setValue(String.valueOf(row.get(vlInx)));
       dv.setComment(KEY_AGG_VALUE);
-      dv.setStoredBy(KEY_AGG_VALUE);
       dv.setCreated(created);
       dv.setLastUpdated(created);
 
@@ -533,7 +531,7 @@ public class AnalyticsUtils {
       objects.add(row.get(coInx));
       objects.add(row.get(aoInx));
       objects.add(row.get(vlInx));
-      objects.add(KEY_AGG_VALUE);
+      objects.add("");
       objects.add(created);
       objects.add(created);
       objects.add(KEY_AGG_VALUE);
@@ -1054,7 +1052,7 @@ public class AnalyticsUtils {
             dio ->
                 dio.getDimensionItem() != null
                     && dio.getDimensionItemWithQueryModsId().equals(dimensionIdentifier))
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /**

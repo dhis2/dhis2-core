@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.db.sql;
 
-import static org.hisp.dhis.system.util.SqlUtils.quote;
-
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.IndexFunction;
@@ -40,6 +38,15 @@ import org.hisp.dhis.db.model.IndexType;
  * @author Lars Helge Overland
  */
 public abstract class AbstractSqlBuilder implements SqlBuilder {
+
+  protected static final String QUOTE = "\"";
+  protected static final String SINGLE_QUOTE = "'";
+  protected static final String BACKSLASH = "\\";
+  protected static final String COMMA = ", ";
+  protected static final String DOT = ".";
+  protected static final String EMPTY = "";
+  protected static final String ALIAS_AX = "ax";
+
   /**
    * Returns the database name of the given data type.
    *

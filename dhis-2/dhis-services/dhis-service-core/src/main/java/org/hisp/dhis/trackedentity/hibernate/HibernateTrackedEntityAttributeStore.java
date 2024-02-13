@@ -122,7 +122,7 @@ public class HibernateTrackedEntityAttributeStore
     for (QueryItem item : params.getAttributes()) {
       for (QueryFilter filter : item.getFilters()) {
         final String encodedFilter =
-            filter.getSqlFilter(SqlUtils.encode(StringUtils.lowerCase(filter.getFilter()), false));
+            filter.getSqlFilter(SqlUtils.escape(StringUtils.lowerCase(filter.getFilter())));
 
         hql +=
             hlp.whereAnd()

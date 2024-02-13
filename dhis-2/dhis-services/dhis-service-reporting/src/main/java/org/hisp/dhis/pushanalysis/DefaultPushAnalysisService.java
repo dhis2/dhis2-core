@@ -147,34 +147,29 @@ public class DefaultPushAnalysisService implements PushAnalysisService {
 
     if (pushAnalysis == null) {
       progress.failedStage(
-          "PushAnalysis with uid '" + uid + "' was not found. Terminating PushAnalysis");
+          "PushAnalysis with uid '{}' was not found. Terminating PushAnalysis.", uid);
       return;
     }
     if (pushAnalysis.getRecipientUserGroups().isEmpty()) {
       progress.failedStage(
-          "PushAnalysis with uid '"
-              + uid
-              + "' has no userGroups assigned. Terminating PushAnalysis.");
+          "PushAnalysis with uid '{}' has no userGroups assigned. Terminating PushAnalysis.", uid);
       return;
     }
 
     if (pushAnalysis.getDashboard() == null) {
       progress.failedStage(
-          "PushAnalysis with uid '"
-              + uid
-              + "' has no dashboard assigned. Terminating PushAnalysis.");
+          "PushAnalysis with uid '{}' has no dashboard assigned. Terminating PushAnalysis.", uid);
       return;
     }
 
     if (dhisConfigurationProvider.getServerBaseUrl() == null) {
       progress.failedStage(
-          "Missing configuration '"
-              + ConfigurationKey.SERVER_BASE_URL.getKey()
-              + "'. Terminating PushAnalysis.");
+          "Missing configuration '{}'. Terminating PushAnalysis.",
+          ConfigurationKey.SERVER_BASE_URL.getKey());
       return;
     }
 
-    progress.completedStage("pre-check completed successfully");
+    progress.completedStage("Pre-check completed successfully");
 
     // ----------------------------------------------------------------------
     // Compose list of users that can receive PushAnalysis
@@ -193,11 +188,9 @@ public class DefaultPushAnalysisService implements PushAnalysisService {
       }
     }
     progress.completedStage(
-        "List composed. "
-            + receivingUsers.size()
-            + " eligible users found."
-            + "Skipping users without valid email: "
-            + skippedUsers.stream().map(User::getUsername).collect(joining(",")));
+        "List composed. {} eligible users found. Skipping users without valid email: {}",
+        receivingUsers.size(),
+        skippedUsers.stream().map(User::getUsername).collect(joining(",")));
 
     // ----------------------------------------------------------------------
     // Generating reports

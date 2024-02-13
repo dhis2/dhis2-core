@@ -186,8 +186,7 @@ public enum SettingKey {
   REMOTE_INSTANCE_URL("keyRemoteInstanceUrl", "", String.class),
   REMOTE_INSTANCE_USERNAME("keyRemoteInstanceUsername", "", String.class),
   REMOTE_INSTANCE_PASSWORD("keyRemoteInstancePassword", "", String.class, true, false),
-  GOOGLE_MAPS_API_KEY(
-      "keyGoogleMapsApiKey", "AIzaSyBjlDmwuON9lJbPMDlh_LI3zGpGtpK9erc", String.class, false, false),
+  GOOGLE_MAPS_API_KEY("keyGoogleMapsApiKey", "", String.class, false, false),
   BING_MAPS_API_KEY(
       "keyBingMapsApiKey",
       "AoifMs0zqvpAEuI6OX5Kk93rEM-oLrvQIJe_xdCv1BF4J3yquFnUozze-M7gEf0b",

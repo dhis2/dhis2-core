@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.table.model;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -87,6 +88,11 @@ public class Partitions {
   /** Returns a partition. */
   public Integer getAny() {
     return hasAny() ? partitions.iterator().next() : null;
+  }
+
+  /** Returns the partitions as string values. */
+  public Set<String> getPartitionsAsString() {
+    return partitions.stream().map(String::valueOf).collect(Collectors.toSet());
   }
 
   // -------------------------------------------------------------------------
