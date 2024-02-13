@@ -52,6 +52,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.encryption.EncryptionStatus;
+import org.hisp.dhis.external.conf.model.GoogleAccessToken;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
 import org.hisp.dhis.external.util.LogOnceLogger;

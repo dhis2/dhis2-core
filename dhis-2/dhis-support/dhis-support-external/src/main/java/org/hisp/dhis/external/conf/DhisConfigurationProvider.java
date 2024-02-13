@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import org.hisp.dhis.encryption.EncryptionStatus;
+import org.hisp.dhis.external.conf.model.GoogleAccessToken;
 
 /**
  * Provider of DHIS 2 configuration properties specified in the {@code dhis.conf} file.

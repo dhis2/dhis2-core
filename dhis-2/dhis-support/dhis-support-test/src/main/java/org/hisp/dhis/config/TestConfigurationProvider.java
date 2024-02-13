@@ -42,7 +42,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.external.conf.GoogleAccessToken;
+import org.hisp.dhis.external.conf.model.GoogleAccessToken;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
 
