@@ -147,14 +147,14 @@ public interface DhisConfigurationProvider {
   boolean isClusterEnabled();
 
   /**
-   * Returns the server base url
+   * Returns the server base URL.
    *
-   * @return the url.
+   * @return the server base URL.
    */
   String getServerBaseUrl();
 
   /**
-   * Returns the remote servers allowed to make calls to
+   * Returns the remote servers allowed to make calls to.
    *
    * @return the remote servers.
    */
@@ -182,10 +182,15 @@ public interface DhisConfigurationProvider {
    */
   EncryptionStatus getEncryptionStatus();
 
+  /**
+   * Indicates whether an analytics database instance is configured.
+   *
+   * @return true if an analytics database instance is configured.
+   */
   boolean isAnalyticsDatabaseConfigured();
 
   /**
-   * Gets map of all properties except those which are confidential
+   * Gets map of all properties except those which are confidential.
    *
    * @return map containing name of property and its value.
    */
