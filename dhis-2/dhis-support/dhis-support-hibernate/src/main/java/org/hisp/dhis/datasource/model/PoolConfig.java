@@ -33,7 +33,11 @@ import lombok.Data;
 import org.hisp.dhis.datasource.DatabasePoolUtils.ConfigKeyMapper;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 
-/** Class representing a database connection pool configuration. */
+/**
+ * Encapsulation of a database connection pool configuration.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
 @Data
 @Builder
 public class PoolConfig {
