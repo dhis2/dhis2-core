@@ -124,7 +124,6 @@ public interface TrackedEntityAttributeService {
 
   Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes(UserDetails userDetails);
 
-  @Transactional(readOnly = true)
   Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes(Program program);
 
   Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes(
