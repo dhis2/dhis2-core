@@ -472,7 +472,8 @@ class AclEventExporterTest extends TrackerTest {
             "RojfDTBhoGC",
             "tSsGrtfRzjY",
             "h4w96yEMlzO",
-            "DiszpKrYNg8"),
+            "DiszpKrYNg8",
+            "g4w96yEMlzO"),
         events.stream().map(e -> e.getOrganisationUnit().getUid()).collect(Collectors.toSet()));
   }
 
@@ -496,7 +497,8 @@ class AclEventExporterTest extends TrackerTest {
             "RojfDTBhoGC",
             "tSsGrtfRzjY",
             "h4w96yEMlzO",
-            "DiszpKrYNg8"),
+            "DiszpKrYNg8",
+            "g4w96yEMlzO"),
         events.stream().map(e -> e.getOrganisationUnit().getUid()).collect(Collectors.toSet()));
   }
 

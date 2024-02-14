@@ -49,6 +49,7 @@ import java.util.List;
 import java.util.Objects;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.hisp.dhis.changelog.EventDataValueChangeLog;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
@@ -61,6 +62,7 @@ import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.tracker.export.PageParams;
+import org.hisp.dhis.tracker.export.changelog.ChangeLogService;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
@@ -101,19 +103,23 @@ class EventsExportController {
 
   private final ObjectMapper objectMapper;
 
+  private final ChangeLogService changeLogService;
+
   public EventsExportController(
       EventService eventService,
       EventRequestParamsMapper eventParamsMapper,
       CsvService<Event> csvEventService,
       FieldFilterService fieldFilterService,
       EventFieldsParamMapper eventsMapper,
-      ObjectMapper objectMapper) {
+      ObjectMapper objectMapper,
+      ChangeLogService changeLogService) {
     this.eventService = eventService;
     this.eventParamsMapper = eventParamsMapper;
     this.csvEventService = csvEventService;
     this.fieldFilterService = fieldFilterService;
     this.eventsMapper = eventsMapper;
     this.objectMapper = objectMapper;
+    this.changeLogService = changeLogService;
 
     assertUserOrderableFieldsAreSupported(
         "event", EventMapper.ORDERABLE_FIELDS, eventService.getOrderableFields());
@@ -282,5 +288,12 @@ class EventsExportController {
       throws NotFoundException, ConflictException, BadRequestException {
     return handleFileRequest(
         request, eventService.getFileResourceImage(event, dataElement, dimension));
+  }
+
+  @GetMapping("/{uid}/changelog")
+  List<EventDataValueChangeLog> getEventByUid(
+      @OpenApi.Param({UID.class, Event.class}) @PathVariable UID uid) throws NotFoundException {
+
+    return changeLogService.getEventDataValueChangeLog(uid);
   }
 }

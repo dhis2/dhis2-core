@@ -1,0 +1,100 @@
+/*
+ * Copyright (c) 2004-2024, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.tracker.export.changelog;
+
+import java.util.List;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.changelog.EventDataValueChangeLog;
+import org.hisp.dhis.changelog.EventDataValueChangeLog.Change;
+import org.hisp.dhis.program.UserInfoSnapshot;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Repository;
+
+@Slf4j
+@Repository("org.hisp.dhis.tracker.export.changelog.ChangeLogStore")
+@RequiredArgsConstructor
+public class JdbcChangeLogStore implements ChangeLogStore {
+
+  private final JdbcTemplate jdbcTemplate;
+
+  private static final RowMapper<EventDataValueChangeLog> customEventChangeLogRowMapper =
+      (rs, rowNum) -> {
+        UserInfoSnapshot user = new UserInfoSnapshot();
+        user.setUsername(rs.getString("userName"));
+        user.setFirstName(rs.getString("firstname"));
+        user.setSurname(rs.getString("surname"));
+        user.setUid(rs.getString("useruid"));
+
+        return new EventDataValueChangeLog(
+            user,
+            rs.getTimestamp("updatedAt"),
+            new Change(
+                new EventDataValueChangeLog.DataValueChange(
+                    rs.getString("dataElementUid"),
+                    rs.getString("previousValue"),
+                    rs.getString("currentValue"))));
+      };
+
+  @Override
+  public List<EventDataValueChangeLog> getEventChangeLog(String eventUid) {
+    final String sql =
+        """
+            select
+              case
+                when cl.audittype = 'CREATE' and cl.currentchangelogvalue is null then cl.previouschangelogvalue
+                when cl.audittype = 'CREATE' and cl.currentchangelogvalue is not null then cl.previouschangelogvalue
+                when cl.audittype = 'DELETE' and cl.currentchangelogvalue is not null then null
+                when cl.audittype = 'UPDATE' and cl.currentchangelogvalue is null then cl.currentValue
+                when cl.audittype = 'UPDATE' and cl.currentchangelogvalue is not null then cl.currentchangelogvalue
+              end as currentValue,
+              case
+                when cl.audittype = 'CREATE' and cl.currentchangelogvalue is null then null
+                when cl.audittype = 'CREATE' and cl.previouschangelogvalue is not null then null
+                when cl.audittype = 'DELETE' then cl.previouschangelogvalue
+                when cl.audittype = 'UPDATE' and cl.currentchangelogvalue is null then cl.previouschangelogvalue
+                when cl.audittype = 'UPDATE' and cl.currentchangelogvalue is not null then cl.previouschangelogvalue
+              end as previousValue, cl.created as updatedAt, cl.modifiedby as userName, cl.dataElementUid as dataElementUid, cl.firstname, cl.surname, cl.username, cl.useruid
+            from
+              (select t.created, d.uid as dataElementUid, t.modifiedby, t.audittype, u.firstname, u.surname, u.username, u.uid as useruid,
+                  LAG (t.value) OVER (PARTITION BY t.eventid, t.dataelementid ORDER BY t.created DESC) AS currentchangelogvalue,
+                  t.value as previouschangelogvalue,
+                  e.eventdatavalues -> d.uid  ->> 'value' as currentValue
+              from trackedentitydatavalueaudit t
+              join event e using (eventid)
+              join dataelement d using (dataelementid)
+              join userinfo u on u.username = t.modifiedby
+              where t.audittype in ('CREATE', 'UPDATE', 'DELETE')
+              and e.uid = ?
+              order by t.created desc) cl
+            """;
+
+    return jdbcTemplate.query(sql, customEventChangeLogRowMapper, eventUid);
+  }
+}

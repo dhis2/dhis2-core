@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import java.io.IOException;
@@ -46,6 +47,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -65,6 +67,7 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.relationship.Relationship;
@@ -83,6 +86,7 @@ import org.hisp.dhis.webapi.controller.tracker.JsonEvent;
 import org.hisp.dhis.webapi.controller.tracker.JsonNote;
 import org.hisp.dhis.webapi.controller.tracker.JsonRelationship;
 import org.hisp.dhis.webapi.controller.tracker.JsonRelationshipItem;
+import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -132,27 +136,31 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit));
     this.userService.updateUser(user);
 
+    trackedEntityType = trackedEntityTypeAccessible();
+
     program = createProgram('A');
     program.addOrganisationUnit(orgUnit);
     program.getSharing().setOwner(owner);
     program.getSharing().addUserAccess(userAccess());
+    program.setTrackedEntityType(trackedEntityType);
     manager.save(program, false);
+
+    de = createDataElement('A', ValueType.TEXT, AggregationType.NONE);
+    de.getSharing().setOwner(owner);
+    manager.save(de, false);
 
     programStage = createProgramStage('A', program);
     programStage.getSharing().setOwner(owner);
     programStage.getSharing().addUserAccess(userAccess());
+    ProgramStageDataElement programStageDataElement =
+        createProgramStageDataElement(programStage, de, 1, false);
+    programStage.setProgramStageDataElements(Sets.newHashSet(programStageDataElement));
     manager.save(programStage, false);
-
-    de = createDataElement('A');
-    de.getSharing().setOwner(owner);
-    manager.save(de, false);
 
     dv = new EventDataValue();
     dv.setDataElement(de.getUid());
     dv.setStoredBy("user");
     dv.setValue(DATA_ELEMENT_VALUE);
-
-    trackedEntityType = trackedEntityTypeAccessible();
   }
 
   @Test
@@ -685,6 +693,69 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
     dv.setDataElement(de.getUid());
     dv.setValue(value);
     return dv;
+  }
+
+  @Test
+  void getEventChangeLog() {
+    Event event = event(enrollment(trackedEntity()));
+    event.getEventDataValues().add(dv);
+    manager.update(event);
+
+    String json =
+        """
+      {
+        "events": [
+          {
+            "event": "%s",
+            "status": "COMPLETED",
+            "program": "%s",
+            "programStage": "%s",
+            "enrollment": "%s",
+            "trackedEntity": "%s",
+            "orgUnit": "%s",
+            "occurredAt": "2023-01-10",
+            "scheduledAt": "2023-01-10",
+            "storedBy": "tracker",
+            "followUp": false,
+            "deleted": false,
+            "createdAt": "2018-01-20T10:44:03.222",
+            "createdAtClient": "2017-01-20T10:44:03.222",
+            "updatedAt": "2018-01-20T10:44:33.777",
+            "completedBy": "tracker",
+            "completedAt": "2023-01-20",
+            "notes": [],
+            "followup": false,
+            "geometry": null,
+            "dataValues": [
+              {
+                "dataElement": "%s",
+                "value": "new value"
+              }
+            ]
+          }
+        ]
+      }}
+        """
+            .formatted(
+                event.getUid(),
+                program.getUid(),
+                programStage.getUid(),
+                event.getEnrollment().getUid(),
+                event.getEnrollment().getTrackedEntity().getUid(),
+                event.getOrganisationUnit().getUid(),
+                event.getEventDataValues().iterator().next().getDataElement());
+
+    JsonWebMessage msg =
+        POST("/tracker?async=false&importStrategy=UPDATE", json)
+            .content(HttpStatus.OK)
+            .as(JsonWebMessage.class);
+
+    JsonEvent changeLogJson =
+        GET("/tracker/events/{id}/changelog", event.getUid())
+            .content(HttpStatus.OK)
+            .as(JsonEvent.class);
+
+    assertDefaultResponse(changeLogJson, event);
   }
 
   private TrackedEntityType trackedEntityTypeAccessible() {
