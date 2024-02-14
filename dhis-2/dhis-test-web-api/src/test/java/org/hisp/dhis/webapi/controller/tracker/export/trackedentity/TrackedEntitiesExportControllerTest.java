@@ -682,6 +682,18 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   }
 
   @Test
+  void getAttributeValuesFileByAttributeIfGivenParameterDimension() {
+    assertStartsWith(
+        "Request parameter 'dimension'",
+        GET(
+                "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file?dimension=small",
+                CodeGenerator.generateUid(),
+                CodeGenerator.generateUid())
+            .error(HttpStatus.BAD_REQUEST)
+            .getMessage());
+  }
+
+  @Test
   void getAttributeValuesFileByAttributeIfAttributeIsNotFound() throws ConflictException {
     TrackedEntity trackedEntity = trackedEntity();
     TrackedEntityAttribute tea = attribute(ValueType.FILE_RESOURCE);

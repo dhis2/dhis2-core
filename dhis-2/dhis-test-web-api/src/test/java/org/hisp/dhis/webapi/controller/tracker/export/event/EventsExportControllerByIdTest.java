@@ -420,6 +420,18 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
   }
 
   @Test
+  void getDataValuesFileByDataElementIfGivenDimensionParameter() {
+    assertStartsWith(
+        "Request parameter 'dimension'",
+        GET(
+                "/tracker/events/{eventUid}/dataValues/{dataElementUid}/file?dimension=small",
+                CodeGenerator.generateUid(),
+                CodeGenerator.generateUid())
+            .error(HttpStatus.BAD_REQUEST)
+            .getMessage());
+  }
+
+  @Test
   void getDataValuesFileByDataElementIfDataElementIsNotFound() {
     Event event = event(enrollment(trackedEntity()));
 
