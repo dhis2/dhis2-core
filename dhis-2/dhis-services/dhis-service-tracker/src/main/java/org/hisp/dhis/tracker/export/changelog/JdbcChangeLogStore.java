@@ -70,13 +70,10 @@ public class JdbcChangeLogStore implements ChangeLogStore {
               case
                 when cl.audittype = 'CREATE' and cl.currentchangelogvalue is null then cl.previouschangelogvalue
                 when cl.audittype = 'CREATE' and cl.currentchangelogvalue is not null then cl.previouschangelogvalue
-                when cl.audittype = 'DELETE' and cl.currentchangelogvalue is not null then null
                 when cl.audittype = 'UPDATE' and cl.currentchangelogvalue is null then cl.currentValue
                 when cl.audittype = 'UPDATE' and cl.currentchangelogvalue is not null then cl.currentchangelogvalue
               end as currentValue,
               case
-                when cl.audittype = 'CREATE' and cl.currentchangelogvalue is null then null
-                when cl.audittype = 'CREATE' and cl.previouschangelogvalue is not null then null
                 when cl.audittype = 'DELETE' then cl.previouschangelogvalue
                 when cl.audittype = 'UPDATE' and cl.currentchangelogvalue is null then cl.previouschangelogvalue
                 when cl.audittype = 'UPDATE' and cl.currentchangelogvalue is not null then cl.previouschangelogvalue

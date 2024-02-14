@@ -67,7 +67,7 @@ public class DefaultChangeLogService implements ChangeLogService {
       throw new NotFoundException(Event.class, eventUid.getValue());
     }
 
-    // TODO Validate event/program stage data element access too
+    // TODO Validate event/program stage data element access
 
     return changeLogStore.getEventChangeLog(eventUid.getValue());
   }

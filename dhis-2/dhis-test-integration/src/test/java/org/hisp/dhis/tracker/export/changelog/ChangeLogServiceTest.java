@@ -32,6 +32,7 @@ import static org.hisp.dhis.utils.Assertions.assertNotEmpty;
 import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
@@ -113,16 +114,29 @@ class ChangeLogServiceTest extends TrackerTest {
   }
 
   @Test
-  void shouldReturnChangeLogListWhenEventExistsIsAccessibleAndDataValueIsChanged()
-      throws NotFoundException, IOException {
+  void shouldFailWhenProgramTrackedEntityTypeIsNotAccessible() {
+    fail();
+  }
+
+  @Test
+  void shouldReturnChangeLogListWhenDataValueIsCreated() {
+    fail();
+  }
+
+  @Test
+  void shouldReturnChangeLogListWhenDataValueIsDeleted() {
+    fail();
+  }
+
+  @Test
+  void shouldReturnChangeLogListWhenDataValueIsUpdated() throws NotFoundException, IOException {
     injectSecurityContextUser(manager.get(User.class, "M5zQapPyTZI"));
 
     Event event = manager.get(Event.class, "D9PbzJY8bJM");
-    assert event != null;
-    // TODO Assert in tests? Error message not clear enough and might be disabled
+    assertNotNull(event);
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
     DataElement dataElement = manager.get(DataElement.class, dataElementUid);
-    assert dataElement != null;
+    assertNotNull(dataElement);
 
     TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
     trackerObjects.getEvents().stream()
@@ -151,5 +165,10 @@ class ChangeLogServiceTest extends TrackerTest {
           assertEquals("value00002", changeLogList.get(0).change().dataValue().previousValue());
           assertEquals(dataElementUid, changeLogList.get(0).change().dataValue().dataElement());
         });
+  }
+
+  @Test
+  void shouldReturnChangeLogListWhenDataValueIsCreatedUpdatedAndDeleted() {
+    fail();
   }
 }
