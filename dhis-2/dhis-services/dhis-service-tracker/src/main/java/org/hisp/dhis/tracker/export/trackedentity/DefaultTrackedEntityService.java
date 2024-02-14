@@ -151,10 +151,10 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       if (program == null) {
         throw new NotFoundException(Program.class, programUid.getValue());
       }
-      attribute = validateDataReadAccess(attributeUid, program);
+      attribute = validateAttributeDataReadAccess(attributeUid, program);
       errors = trackerAccessManager.canRead(currentUser, trackedEntity, program, false);
     } else {
-      attribute = validateDataReadAccess(attributeUid, null);
+      attribute = validateAttributeDataReadAccess(attributeUid, null);
       errors = trackerAccessManager.canRead(currentUser, trackedEntity);
     }
     if (!errors.isEmpty()) {
@@ -185,8 +185,8 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     return fileResourceService.getExistingFileResource(fileResourceUid);
   }
 
-  private TrackedEntityAttribute validateDataReadAccess(
-      UID attributeUid, @CheckForNull Program program) throws NotFoundException {
+  private TrackedEntityAttribute validateAttributeDataReadAccess(UID attributeUid, Program program)
+      throws NotFoundException {
     Set<TrackedEntityAttribute> readableAttributes;
     if (program != null) {
       readableAttributes =
