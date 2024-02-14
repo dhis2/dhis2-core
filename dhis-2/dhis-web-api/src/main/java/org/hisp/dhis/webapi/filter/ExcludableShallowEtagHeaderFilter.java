@@ -84,6 +84,11 @@ public class ExcludableShallowEtagHeaderFilter extends ShallowEtagHeaderFilter {
           + UID_REGEXP
           + "/dataValues/"
           + UID_REGEXP
+          + "/(file|image)|"
+          + "/api/(\\d{2}/)?tracker/trackedEntities/"
+          + UID_REGEXP
+          + "/attributes/"
+          + UID_REGEXP
           + "/(file|image)";
 
   private Pattern pattern = null;

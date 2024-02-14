@@ -54,6 +54,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -527,13 +528,14 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         program.getAnalyticsDataElements().stream()
             .map(de -> getColumnFromDataElement(de, false))
             .flatMap(Collection::stream)
-            .toList());
+            .collect(Collectors.toList()));
 
     columns.addAll(
         program.getAnalyticsDataElementsWithLegendSet().stream()
             .map(de -> getColumnFromDataElement(de, true))
             .flatMap(Collection::stream)
-            .toList());
+            .collect(Collectors.toList()));
+    ;
 
     columns.addAll(
         program.getNonConfidentialTrackedEntityAttributes().stream()
@@ -542,7 +544,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                     getColumnFromTrackedEntityAttribute(
                         tea, getNumericClause(), getDateClause(), false))
             .flatMap(Collection::stream)
-            .toList());
+            .collect(Collectors.toList()));
 
     columns.addAll(
         program.getNonConfidentialTrackedEntityAttributesWithLegendSet().stream()
@@ -551,7 +553,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                     getColumnFromTrackedEntityAttribute(
                         tea, getNumericClause(), getDateClause(), true))
             .flatMap(Collection::stream)
-            .toList());
+            .collect(Collectors.toList()));
 
     columns.addAll(FIXED_COLS);
 

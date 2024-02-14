@@ -37,6 +37,7 @@ import com.google.common.collect.Lists;
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
@@ -279,7 +280,7 @@ public class DefaultResourceTableService implements ResourceTableService {
   public void createAllSqlViews(JobProgress progress) {
     List<SqlView> nonQueryViews =
         new ArrayList<>(sqlViewService.getAllSqlViewsNoAcl())
-            .stream().sorted().filter(view -> !view.isQuery()).toList();
+            .stream().sorted().filter(view -> !view.isQuery()).collect(Collectors.toList());
 
     progress.startingStage("Create SQL views", nonQueryViews.size(), SKIP_ITEM);
     progress.runStage(
@@ -302,7 +303,10 @@ public class DefaultResourceTableService implements ResourceTableService {
   public void dropAllSqlViews(JobProgress progress) {
     List<SqlView> nonQueryViews =
         new ArrayList<>(sqlViewService.getAllSqlViewsNoAcl())
-            .stream().filter(view -> !view.isQuery()).sorted(reverseOrder()).toList();
+            .stream()
+                .filter(view -> !view.isQuery())
+                .sorted(reverseOrder())
+                .collect(Collectors.toList());
     progress.startingStage("Drop SQL views", nonQueryViews.size(), SKIP_ITEM);
     progress.runStage(nonQueryViews, SqlView::getViewName, sqlViewService::dropViewTable);
   }
