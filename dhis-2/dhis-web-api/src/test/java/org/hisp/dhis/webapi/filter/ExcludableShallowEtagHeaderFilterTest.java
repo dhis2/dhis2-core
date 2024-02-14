@@ -69,7 +69,9 @@ class ExcludableShallowEtagHeaderFilterTest {
         "/api/tracker/events/RkV9CZzmV2E/dataValues/q33Wv8jNvFA/image",
         "/api/41/tracker/events/RkV9CZzmV2E/dataValues/q33Wv8jNvFA/image",
         "/api/tracker/trackedEntities/vOxUH373fy5/attributes/nDlikr3TUS6/file",
-        "/api/41/tracker/trackedEntities/vOxUH373fy5/attributes/nDlikr3TUS6/file"
+        "/api/41/tracker/trackedEntities/vOxUH373fy5/attributes/nDlikr3TUS6/file",
+        "/api/tracker/trackedEntities/vOxUH373fy5/attributes/nDlikr3TUS6/image",
+        "/api/41/tracker/trackedEntities/vOxUH373fy5/attributes/nDlikr3TUS6/image"
       })
   void shouldNotAddEtagHeader(String URI) throws Exception {
     final MockHttpServletRequest request = new MockHttpServletRequest("GET", URI);
