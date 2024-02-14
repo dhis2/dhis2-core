@@ -667,8 +667,6 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
         Set.of(attributeValue(tea, trackedEntity, file.getUid())));
     manager.save(trackedEntity, false);
 
-    this.switchContextToUser(user);
-
     HttpResponse response =
         GET(
             "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file",
@@ -726,7 +724,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
     this.switchContextToUser(user);
 
     assertStartsWith(
-        "TrackedEntityAttribute",
+        "Program",
         GET(
                 "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file?program={programUid}",
                 trackedEntity.getUid(),

@@ -143,26 +143,27 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       throw new NotFoundException(TrackedEntity.class, trackedEntityUid.getValue());
     }
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    TrackedEntityAttribute attribute = validateDataReadAccess(attributeUid);
-    if (!attribute.getValueType().isFile()) {
-      throw new NotFoundException(
-          "Tracked entity attribute " + attributeUid.getValue() + " is not a file (or image).");
-    }
-
+    TrackedEntityAttribute attribute;
     List<String> errors;
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     if (programUid != null) {
       Program program = programService.getProgram(programUid.getValue());
       if (program == null) {
         throw new NotFoundException(Program.class, programUid.getValue());
       }
-
+      attribute = validateDataReadAccess(attributeUid, program);
       errors = trackerAccessManager.canRead(currentUser, trackedEntity, program, false);
     } else {
+      attribute = validateDataReadAccess(attributeUid, null);
       errors = trackerAccessManager.canRead(currentUser, trackedEntity);
     }
     if (!errors.isEmpty()) {
       throw new NotFoundException(TrackedEntityAttribute.class, attributeUid.getValue());
+    }
+
+    if (!attribute.getValueType().isFile()) {
+      throw new NotFoundException(
+          "Tracked entity attribute " + attributeUid.getValue() + " is not a file (or image).");
     }
 
     String fileResourceUid = null;
@@ -184,8 +185,18 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     return fileResourceService.getExistingFileResource(fileResourceUid);
   }
 
-  private TrackedEntityAttribute validateDataReadAccess(UID attributeUid) throws NotFoundException {
-    return trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes().stream()
+  private TrackedEntityAttribute validateDataReadAccess(
+      UID attributeUid, @CheckForNull Program program) throws NotFoundException {
+    Set<TrackedEntityAttribute> readableAttributes;
+    if (program != null) {
+      readableAttributes =
+          trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes(program);
+    } else {
+      readableAttributes =
+          trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes();
+    }
+
+    return readableAttributes.stream()
         .filter(att -> attributeUid.getValue().equals(att.getUid()))
         .findFirst()
         .orElseThrow(
