@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,56 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import java.util.Date;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import javax.servlet.http.HttpServletResponse;
+import org.hisp.dhis.webapi.utils.ContextUtils;
 
-/** Parameters for repeatable stage values. */
-@Getter
-@Setter
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
-@EqualsAndHashCode(of = {"startIndex", "count", "startDate", "endDate"})
-public class RepeatableStageParams {
-  private int startIndex;
+/** ResponseHeader sets HTTP headers common in tracker export endpoints. */
+public class ResponseHeader {
 
-  private int count = 1;
-
-  // Related to execution date
-  private Date startDate;
-
-  // Related to execution date
-  private Date endDate;
-
-  private boolean defaultObject = true;
-
-  private String dimension;
-
-  @Override
-  public String toString() {
-    return "startIndex:"
-        + startIndex
-        + " count:"
-        + (count == Integer.MAX_VALUE ? "all" : count)
-        + " startDate:"
-        + startDate
-        + " endDate: "
-        + endDate;
+  private ResponseHeader() {
+    throw new IllegalStateException("Utility class");
   }
 
-  /** Indicates whether value type should be considered as a number. */
-  public boolean simpleStageValueExpected() {
-    return count == 1;
+  public static void addContentDisposition(HttpServletResponse response, String filename) {
+    response.addHeader(ContextUtils.HEADER_CONTENT_DISPOSITION, contentDispositionValue(filename));
   }
 
-  public static RepeatableStageParams ofStartIndex(int startIndex) {
-    return RepeatableStageParams.builder().startIndex(startIndex).build();
+  public static String contentDispositionValue(String filename) {
+    return "attachment; filename=" + filename;
+  }
+
+  public static void addContentTransferEncodingBinary(HttpServletResponse response) {
+    response.addHeader(
+        ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING,
+        ContextUtils.BINARY_HEADER_CONTENT_TRANSFER_ENCODING);
   }
 }

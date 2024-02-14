@@ -27,22 +27,29 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
@@ -60,6 +67,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
@@ -69,7 +77,6 @@ import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.TrackedEntityAggregate;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -97,9 +104,104 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
   private final EventService eventService;
 
+  private final FileResourceService fileResourceService;
+
   private final TrackedEntityOperationParamsMapper mapper;
 
   private final UserService userService;
+
+  @Override
+  public FileResourceStream getFileResource(
+      UID trackedEntity, UID attribute, @CheckForNull UID program) throws NotFoundException {
+    FileResource fileResource = getFileResourceMetadata(trackedEntity, attribute, program);
+
+    return new FileResourceStream(
+        fileResource,
+        () -> {
+          try {
+            return fileResourceService.openContentStream(fileResource);
+          } catch (NoSuchElementException e) {
+            // Note: we are assuming that the file resource is not available yet. The same approach
+            // is taken in other file endpoints or code relying on the storageStatus = PENDING.
+            // All we know for sure is the file resource is in the DB but not in the store.
+            throw new ConflictException(
+                "The content is being processed and is not available yet. Try again later.");
+          } catch (IOException e) {
+            throw new ConflictException(
+                "Failed fetching the file from storage",
+                "There was an exception when trying to fetch the file from the storage backend. "
+                    + "Depending on the provider the root cause could be network or file system related.");
+          }
+        });
+  }
+
+  private FileResource getFileResourceMetadata(
+      UID trackedEntityUid, UID attributeUid, @CheckForNull UID programUid)
+      throws NotFoundException {
+    TrackedEntity trackedEntity = trackedEntityStore.getByUid(trackedEntityUid.getValue());
+    if (trackedEntity == null) {
+      throw new NotFoundException(TrackedEntity.class, trackedEntityUid.getValue());
+    }
+
+    TrackedEntityAttribute attribute;
+    List<String> errors;
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    if (programUid != null) {
+      Program program = programService.getProgram(programUid.getValue());
+      if (program == null) {
+        throw new NotFoundException(Program.class, programUid.getValue());
+      }
+      attribute = validateAttributeDataReadAccess(attributeUid, program);
+      errors = trackerAccessManager.canRead(currentUser, trackedEntity, program, false);
+    } else {
+      attribute = validateAttributeDataReadAccess(attributeUid, null);
+      errors = trackerAccessManager.canRead(currentUser, trackedEntity);
+    }
+    if (!errors.isEmpty()) {
+      throw new NotFoundException(TrackedEntityAttribute.class, attributeUid.getValue());
+    }
+
+    if (!attribute.getValueType().isFile()) {
+      throw new NotFoundException(
+          "Tracked entity attribute " + attributeUid.getValue() + " is not a file (or image).");
+    }
+
+    String fileResourceUid = null;
+    for (TrackedEntityAttributeValue attributeValue :
+        trackedEntity.getTrackedEntityAttributeValues()) {
+      if (attributeUid.getValue().equals(attributeValue.getAttribute().getUid())) {
+        fileResourceUid = attributeValue.getValue();
+        break;
+      }
+    }
+
+    if (fileResourceUid == null) {
+      throw new NotFoundException(
+          "Attribute value for tracked entity attribute "
+              + attributeUid.getValue()
+              + " could not be found.");
+    }
+
+    return fileResourceService.getExistingFileResource(fileResourceUid);
+  }
+
+  private TrackedEntityAttribute validateAttributeDataReadAccess(UID attributeUid, Program program)
+      throws NotFoundException {
+    Set<TrackedEntityAttribute> readableAttributes;
+    if (program != null) {
+      readableAttributes =
+          trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes(program);
+    } else {
+      readableAttributes =
+          trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes();
+    }
+
+    return readableAttributes.stream()
+        .filter(att -> attributeUid.getValue().equals(att.getUid()))
+        .findFirst()
+        .orElseThrow(
+            () -> new NotFoundException(TrackedEntityAttribute.class, attributeUid.getValue()));
+  }
 
   @Override
   public TrackedEntity getTrackedEntity(
@@ -203,8 +305,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     if (params.isIncludeProgramOwners()) {
       result.setProgramOwners(trackedEntity.getProgramOwners());
     }
-    result.setTrackedEntityAttributeValues(
-        getTrackedEntityAttributeValues(trackedEntity, currentUser));
+    result.setTrackedEntityAttributeValues(getTrackedEntityAttributeValues(trackedEntity));
 
     return result;
   }
@@ -245,10 +346,9 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   private Set<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(
-      TrackedEntity trackedEntity, User user) {
+      TrackedEntity trackedEntity) {
     Set<TrackedEntityAttribute> readableAttributes =
-        trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes(
-            UserDetails.fromUser(user));
+        trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes();
     return trackedEntity.getTrackedEntityAttributeValues().stream()
         .filter(av -> readableAttributes.contains(av.getAttribute()))
         .collect(Collectors.toCollection(LinkedHashSet::new));
