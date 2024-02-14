@@ -49,7 +49,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import javax.sql.rowset.RowSetMetaDataImpl;
 import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.DhisConvenienceTest;
@@ -263,9 +262,7 @@ class GridAdaptorTest extends DhisConvenienceTest {
         new BaseDimensionalObject(
             dimensionUid,
             DATA_X,
-            ous.stream()
-                .map(item -> new BaseDimensionalItemObject(item))
-                .collect(Collectors.toList()),
+            ous.stream().map(item -> new BaseDimensionalItemObject(item)).toList(),
             TEXT);
 
     DimensionParam dimensionParam = DimensionParam.ofObject(tea, DIMENSIONS, ous);

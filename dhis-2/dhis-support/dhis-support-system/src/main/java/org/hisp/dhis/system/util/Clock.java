@@ -29,11 +29,12 @@ package org.hisp.dhis.system.util;
 
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.commons.lang3.time.StopWatch;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Utility class providing stopwatch-like functionality.
+ * Utility class providing stop watch functionality.
  *
  * @author Lars Helge Overland
  */
@@ -44,7 +45,7 @@ public class Clock extends StopWatch {
 
   private Logger log;
 
-  /** Create a new instance. */
+  /** Constructor. */
   public Clock() {
     super();
   }
@@ -53,6 +54,7 @@ public class Clock extends StopWatch {
    * Create a new instance with a given logger.
    *
    * @param log the logger.
+   * @return this {@link Clock}.
    */
   public Clock(Logger log) {
     super();
@@ -62,7 +64,7 @@ public class Clock extends StopWatch {
   /**
    * Start the clock.
    *
-   * @return the Clock.
+   * @return this {@link Clock}.
    */
   public Clock startClock() {
     this.start();
@@ -82,17 +84,17 @@ public class Clock extends StopWatch {
   }
 
   /**
-   * Timestamps the given message using the elapsed time of this Clock and logs it using the logger.
+   * Logs the timestamp of the elapsed time with the given message.
    *
-   * @param message the message to log.
-   * @return this Clock.
+   * @param format the message format.
+   * @param arguments the message arguments.
+   * @return this {@link Clock}.
    */
-  public Clock logTime(String message) {
+  public Clock logTime(String format, Object... arguments) {
     super.split();
 
     String time = DurationFormatUtils.formatDurationHMS(super.getSplitTime());
-
-    String msg = message + SEPARATOR + time;
+    String msg = TextUtils.format(format, arguments) + SEPARATOR + time;
 
     if (log != null) {
       log.info(msg);

@@ -82,7 +82,10 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
     Collection<ProgramStage> programStages = getProgramStages(programId, programStageId);
 
     if (CollectionUtils.isNotEmpty(programStages)) {
-      return programStages.stream().map(this::dimensions).flatMap(Collection::stream).toList();
+      return programStages.stream()
+          .map(this::dimensions)
+          .flatMap(Collection::stream)
+          .collect(Collectors.toList());
     }
     return List.of();
   }
@@ -184,8 +187,7 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
         .orElse(List.of());
   }
 
-  private Collection<TrackedEntityAttribute> getTeasIfRegistrationAndNotConfidential(
-      Program program) {
+  private List<TrackedEntityAttribute> getTeasIfRegistrationAndNotConfidential(Program program) {
     return Optional.of(program)
         .filter(Program::isRegistration)
         .map(Program::getTrackedEntityAttributes)

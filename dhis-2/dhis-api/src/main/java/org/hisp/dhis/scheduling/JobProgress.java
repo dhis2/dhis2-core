@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.scheduling;
 
-import static java.lang.String.format;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -64,6 +63,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
+import org.slf4j.helpers.MessageFormatter;
 
 /**
  *
@@ -194,18 +194,18 @@ public interface JobProgress {
    * Tracking API:
    */
 
-  void startingProcess(String description);
+  void startingProcess(String description, Object... args);
 
   default void startingProcess() {
     startingProcess(null);
   }
 
-  void completedProcess(String summary);
+  void completedProcess(String summary, Object... args);
 
-  void failedProcess(String error);
+  void failedProcess(String error, Object... args);
 
   default void failedProcess(Exception cause) {
-    failedProcess("Process failed: " + getMessage(cause));
+    failedProcess("Process failed: {}", getMessage(cause));
   }
 
   default void endingProcess(boolean success) {
@@ -236,20 +236,20 @@ public interface JobProgress {
     startingStage(description, 0, onFailure);
   }
 
-  default void startingStage(String description) {
-    startingStage(description, FailurePolicy.PARENT);
+  default void startingStage(String description, Object... args) {
+    startingStage(format(description, args), FailurePolicy.PARENT);
   }
 
-  void completedStage(String summary);
+  void completedStage(String summary, Object... args);
 
-  void failedStage(String error);
+  void failedStage(String error, Object... args);
 
   default void failedStage(Exception cause) {
     failedStage(getMessage(cause));
   }
 
-  default void startingWorkItem(String description) {
-    startingWorkItem(description, FailurePolicy.PARENT);
+  default void startingWorkItem(String description, Object... args) {
+    startingWorkItem(format(description, args), FailurePolicy.PARENT);
   }
 
   void startingWorkItem(String description, FailurePolicy onFailure);
@@ -258,9 +258,9 @@ public interface JobProgress {
     startingWorkItem("#" + (i + 1));
   }
 
-  void completedWorkItem(String summary);
+  void completedWorkItem(String summary, Object... args);
 
-  void failedWorkItem(String error);
+  void failedWorkItem(String error, Object... args);
 
   default void failedWorkItem(Exception cause) {
     failedWorkItem(getMessage(cause));
@@ -317,7 +317,7 @@ public interface JobProgress {
         items,
         description,
         work,
-        (success, failed) -> format("%d successful and %d failed items", success, failed));
+        (success, failed) -> format("{} successful and {} failed items", success, failed));
   }
 
   /**
@@ -547,7 +547,7 @@ public interface JobProgress {
       } else {
         autoSkipStage(
             (s, f) ->
-                format("parallel processing aborted after %d successful and %d failed items", s, f),
+                format("parallel processing aborted after {} successful and {} failed items", s, f),
             success.get(),
             failed.get());
       }
@@ -559,6 +559,17 @@ public interface JobProgress {
     } finally {
       pool.shutdown();
     }
+  }
+
+  /**
+   * Returns a formatted string, or null if the given format is null.
+   *
+   * @param pattern the pattern string.
+   * @param args the pattern arguments.
+   * @return a formatted message string.
+   */
+  default String format(String pattern, Object... args) {
+    return pattern != null ? MessageFormatter.arrayFormat(pattern, args).getMessage() : null;
   }
 
   /*

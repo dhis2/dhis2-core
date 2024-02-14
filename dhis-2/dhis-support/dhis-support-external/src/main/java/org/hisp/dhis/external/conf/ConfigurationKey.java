@@ -81,6 +81,9 @@ public enum ConfigurationKey {
   /** Hibernate SQL dialect. */
   CONNECTION_DIALECT("connection.dialect", "", false),
 
+  /** Analytics database platform. */
+  ANALYTICS_CONNECTION_DATABASE("analytics.connection.database", "", false),
+
   /** JDBC driver class. */
   CONNECTION_DRIVER_CLASS("connection.driver_class", "org.postgresql.Driver", false),
 
@@ -377,11 +380,11 @@ public enum ConfigurationKey {
 
   PROGRAM_TEMPORARY_OWNERSHIP_TIMEOUT("tracker.temporary.ownership.timeout", "3", false),
 
-  /** Analytics server-side cache expiration in seconds. (default: 0) */
-  ANALYTICS_CACHE_EXPIRATION("analytics.cache.expiration", "0"),
-
   /** Use unlogged tables during analytics export. (default: off) */
   ANALYTICS_TABLE_UNLOGGED("analytics.table.unlogged", Constants.OFF),
+
+  /** Order analytics tables data on insert. */
+  ANALYTICS_TABLE_ORDERING("analytics.table.ordering", Constants.OFF),
 
   /**
    * Artemis support mode, 2 modes supported: EMBEDDED (starts up an embedded Artemis which lives in
@@ -442,6 +445,14 @@ public enum ConfigurationKey {
 
   /** Base URL to the DHIS 2 instance. */
   SERVER_BASE_URL("server.base.url", "", false),
+
+  /**
+   * Remote servers allowed to call. <br>
+   * Default is empty. <br>
+   * Servers should be in a comma-separated style and always end with '/' for security reasons <br>
+   * e.g. system.remote_servers_allowed = https://server1.com/,https://server2.com/
+   */
+  REMOTE_SERVERS_ALLOWED("system.remote_servers_allowed", "", false),
 
   /** Enable secure settings if system is deployed on HTTPS, can be 'off', 'on'. */
   SERVER_HTTPS("server.https", Constants.OFF),
@@ -578,7 +589,7 @@ public enum ConfigurationKey {
   /** Database debugging feature. Enable time query logging. */
   ELAPSED_TIME_QUERY_LOGGING_ENABLED("elapsed.time.query.logging.enabled", Constants.OFF, false),
 
-  /** Database datasource pool type. Supported pool types are: c3p0 (default) or hikari */
+  /** Database datasource pool type. Supported pool types are: c3p0 (default), hikari, unpooled */
   DB_POOL_TYPE("db.pool.type", "c3p0", false),
 
   ACTIVE_READ_REPLICAS("active.read.replicas", "0", false),

@@ -95,6 +95,12 @@ public class DefaultIconService implements IconService {
 
   @Override
   @Transactional(readOnly = true)
+  public long count(IconOperationParams iconOperationParams) {
+    return customIconStore.count(iconOperationParams);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public Icon getIcon(String key) throws NotFoundException {
     if (defaultIcons.containsKey(key)) {
       return defaultIcons.get(key);
