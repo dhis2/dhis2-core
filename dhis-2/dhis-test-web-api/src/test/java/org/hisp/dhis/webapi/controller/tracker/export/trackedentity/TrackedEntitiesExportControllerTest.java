@@ -895,6 +895,34 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
             .getMessage());
   }
 
+  @Test
+  void getAttributeValuesImageByProgramAttribute() throws ConflictException {
+    TrackedEntity trackedEntity = trackedEntity();
+    TrackedEntityAttribute tea = attribute(ValueType.IMAGE);
+    programAttribute(program, tea);
+
+    FileResource file = storeFile("image/png", "file content");
+    trackedEntity.setTrackedEntityAttributeValues(
+        Set.of(attributeValue(tea, trackedEntity, file.getUid())));
+    enrollmentService.enrollTrackedEntity(trackedEntity, program, new Date(), new Date(), orgUnit);
+
+    this.switchContextToUser(user);
+
+    HttpResponse response =
+        GET(
+            "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/image?program={programUid}",
+            trackedEntity.getUid(),
+            tea.getUid(),
+            program.getUid());
+
+    assertEquals(HttpStatus.OK, response.status());
+    assertEquals("\"" + file.getContentMd5() + "\"", response.header("Etag"));
+    assertEquals("max-age=0, must-revalidate, private", response.header("Cache-Control"));
+    assertEquals("attachment; filename=" + file.getName(), response.header("Content-Disposition"));
+    assertEquals(Long.toString(file.getContentLength()), response.header("Content-Length"));
+    assertEquals("file content", response.content("image/png"));
+  }
+
   private Event eventWithDataValue(Enrollment enrollment) {
     Event event = new Event(enrollment, programStage, enrollment.getOrganisationUnit());
     event.setAutoFields();
