@@ -3083,4 +3083,44 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
     validateRow(response, 0, List.of("John", "Kelly"));
     validateRow(response, 1, List.of("John", "Doe"));
   }
+
+  @Test
+  public void headerShouldContainOffsetIfPresent() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=IpHINAT79UW.A03MvHHogjR[-1].bx6fsa0t90x")
+            .add("headers=IpHINAT79UW.A03MvHHogjR[-1].bx6fsa0t90x")
+            .add("pageSize=0");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers[0].name", equalTo("IpHINAT79UW.A03MvHHogjR[-1].bx6fsa0t90x"))
+        .body("headers[0].stageOffset", equalTo(-1));
+  }
+
+  @Test
+  public void headerShouldNotContainOffsetIfNotPresent() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x")
+            .add("headers=IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x")
+            .add("pageSize=0");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers[0].name", equalTo("IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x"))
+        .body("headers[0]", not(hasKey("stageOffset")));
+  }
 }
