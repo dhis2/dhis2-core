@@ -44,17 +44,21 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
-public class DatabasePoolUtils {
+public final class DatabasePoolUtils {
 
   public enum dbPoolTypes {
     C3P0,
-    HIKARI
+    HIKARI,
+    UNPOOLED
   }
+
+  private DatabasePoolUtils() {}
 
   @Data
   @Builder
@@ -83,25 +87,9 @@ public class DatabasePoolUtils {
     Objects.requireNonNull(config);
 
     dbPoolTypes dbType = dbPoolTypes.valueOf(config.dbPoolType.toUpperCase());
+    log.info("Database pool type value is [{}]", dbType);
 
-    if (dbType == dbPoolTypes.C3P0) {
-      return createC3p0DbPool(config);
-    } else if (dbType == dbPoolTypes.HIKARI) {
-      return createHikariDbPool(config);
-    }
-
-    String msg =
-        String.format(
-            "Database pool type value is invalid, can not create a database pool! Value='%s'",
-            config.dbPoolType);
-    log.error(msg);
-
-    throw new IllegalArgumentException(msg);
-  }
-
-  public static DataSource createHikariDbPool(PoolConfig config) throws SQLException {
     DhisConfigurationProvider dhisConfig = config.getDhisConfig();
-
     final String driverClassName = dhisConfig.getProperty(ConfigurationKey.CONNECTION_DRIVER_CLASS);
     final String jdbcUrl =
         MoreObjects.firstNonNull(
@@ -112,6 +100,36 @@ public class DatabasePoolUtils {
     final String password =
         MoreObjects.firstNonNull(
             config.getPassword(), dhisConfig.getProperty(ConfigurationKey.CONNECTION_PASSWORD));
+
+    final DataSource dataSource;
+    switch (dbType) {
+      case C3P0:
+        dataSource = createC3p0DbPool(username, password, driverClassName, jdbcUrl, config);
+        break;
+      case HIKARI:
+        dataSource = createHikariDbPool(username, password, driverClassName, jdbcUrl, config);
+        break;
+      case UNPOOLED:
+        dataSource = createUnPooledDataSource(username, password, driverClassName, jdbcUrl);
+        break;
+      default:
+        String msg =
+            String.format(
+                "Database pool type value is invalid, can not create a database pool! Value='%s'",
+                config.dbPoolType);
+        log.error(msg);
+
+        throw new IllegalArgumentException(msg);
+    }
+
+    testConnection(dataSource);
+    return dataSource;
+  }
+
+  private static DataSource createHikariDbPool(
+      String username, String password, String driverClassName, String jdbcUrl, PoolConfig config) {
+    DhisConfigurationProvider dhisConfig = config.getDhisConfig();
+
     final long connectionTimeout =
         Long.parseLong(dhisConfig.getProperty(ConfigurationKey.CONNECTION_POOL_TIMEOUT));
     final long validationTimeout =
@@ -140,25 +158,25 @@ public class DatabasePoolUtils {
     ds.setValidationTimeout(validationTimeout);
     ds.setMaximumPoolSize(maxPoolSize);
 
-    testConnection(ds);
-
     return ds;
   }
 
-  public static DataSource createC3p0DbPool(PoolConfig config)
-      throws PropertyVetoException, SQLException {
+  private static DriverManagerDataSource createUnPooledDataSource(
+      String username, String password, String driverClassName, String jdbcUrl) {
+    final DriverManagerDataSource unPooledDataSource = new DriverManagerDataSource();
+    unPooledDataSource.setDriverClassName(driverClassName);
+    unPooledDataSource.setUrl(jdbcUrl);
+    unPooledDataSource.setUsername(username);
+    unPooledDataSource.setPassword(password);
+
+    return unPooledDataSource;
+  }
+
+  private static DataSource createC3p0DbPool(
+      String username, String password, String driverClassName, String jdbcUrl, PoolConfig config)
+      throws PropertyVetoException {
     DhisConfigurationProvider dhisConfig = config.getDhisConfig();
 
-    final String driverClassName = dhisConfig.getProperty(ConfigurationKey.CONNECTION_DRIVER_CLASS);
-    final String jdbcUrl =
-        MoreObjects.firstNonNull(
-            config.getJdbcUrl(), dhisConfig.getProperty(ConfigurationKey.CONNECTION_URL));
-    final String username =
-        MoreObjects.firstNonNull(
-            config.getUsername(), dhisConfig.getProperty(ConfigurationKey.CONNECTION_USERNAME));
-    final String password =
-        MoreObjects.firstNonNull(
-            config.getPassword(), dhisConfig.getProperty(ConfigurationKey.CONNECTION_PASSWORD));
     final int maxPoolSize =
         Integer.parseInt(
             MoreObjects.firstNonNull(
@@ -209,8 +227,6 @@ public class DatabasePoolUtils {
     dataSource.setIdleConnectionTestPeriod(idleConnectionTestPeriod);
     dataSource.setPreferredTestQuery(preferredTestQuery);
     dataSource.setNumHelperThreads(numHelperThreads);
-
-    testConnection(dataSource);
 
     return dataSource;
   }
