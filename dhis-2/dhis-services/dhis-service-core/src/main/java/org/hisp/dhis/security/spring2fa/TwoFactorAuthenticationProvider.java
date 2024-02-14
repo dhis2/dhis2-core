@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.security.spring2fa;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.security.ForwardedIpAwareWebAuthenticationDetails;
 import org.hisp.dhis.security.TwoFactoryAuthenticationUtils;
@@ -46,7 +47,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedCredentialsNotFoundException;
 import org.springframework.stereotype.Component;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Henning Håkonsen
@@ -88,7 +88,8 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
     UserDetails principal = (UserDetails) result.getPrincipal();
 
     if (principal.isExternalAuth()) {
-      log.info("User is using external authentication, password login attempt aborted: '{}'", username);
+      log.info(
+          "User is using external authentication, password login attempt aborted: '{}'", username);
       throw new BadCredentialsException(
           "Invalid login method, user is using external authentication");
     }

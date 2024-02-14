@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.security.ldap.authentication;
 
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserStore;
 import org.springframework.ldap.core.DirContextOperations;
@@ -35,7 +36,6 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.ldap.authentication.BindAuthenticator;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Authenticator which checks whether LDAP authentication is configured. If not, the authentication
@@ -62,7 +62,8 @@ public class DhisBindAuthenticator extends BindAuthenticator {
     }
 
     if (user.hasLdapId()) {
-      log.debug("Attemping username/password LDAP authentication for user: '{}'", user.getUsername());
+      log.debug(
+          "Attemping username/password LDAP authentication for user: '{}'", user.getUsername());
       authentication =
           new UsernamePasswordAuthenticationToken(
               user.getLdapId(), authentication.getCredentials());
