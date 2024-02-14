@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.webapi.controller.userdatastore;
 
 import static org.hisp.dhis.utils.JavaToJson.toJson;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
@@ -35,6 +35,7 @@ import java.util.Map;
 import org.hisp.dhis.utils.JavaToJson;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.controller.UserDatastoreController;
 
 /**
  * Base class for testing the {@link UserDatastoreController} providing helpers to set up entries in

@@ -30,6 +30,8 @@ package org.hisp.dhis.userdatastore;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.datastore.DatastoreFields;
 import org.hisp.dhis.datastore.DatastoreQuery;
@@ -77,9 +79,15 @@ public class DefaultUserDatastoreService implements UserDatastoreService {
 
   @Override
   @Transactional
-  public void updateEntry(UserDatastoreEntry entry) throws BadRequestException {
-    validateEntry(entry);
-    store.update(entry);
+  public void updateEntry(
+      @Nonnull String ns,
+      @Nonnull String key,
+      @CheckForNull String value,
+      @CheckForNull String path,
+      @CheckForNull Integer roll)
+      throws BadRequestException {
+    validateEntry(key, value);
+    store.updateEntry(ns, key, value, path, roll);
   }
 
   @Override
@@ -122,11 +130,15 @@ public class DefaultUserDatastoreService implements UserDatastoreService {
   }
 
   private void validateEntry(UserDatastoreEntry entry) throws BadRequestException {
+    validateEntry(entry.getKey(), entry.getValue());
+  }
+
+  private static void validateEntry(String key, String value) throws BadRequestException {
+    if (value == null) return;
     try {
-      JsonNode.of(entry.getValue()).visit(JsonNode::value);
+      JsonNode.of(value).visit(JsonNode::value);
     } catch (RuntimeException e) {
-      throw new BadRequestException(
-          String.format("Invalid JSON value for key '%s'", entry.getKey()));
+      throw new BadRequestException(String.format("Invalid JSON value for key '%s'", key));
     }
   }
 }

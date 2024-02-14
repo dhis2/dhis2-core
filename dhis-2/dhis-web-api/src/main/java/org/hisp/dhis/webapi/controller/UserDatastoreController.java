@@ -194,15 +194,12 @@ public class UserDatastoreController extends AbstractDatastoreController {
   public WebMessage addEntry(
       @PathVariable String namespace,
       @PathVariable String key,
-      @RequestParam(required = false) String username,
       @RequestBody String value,
       @RequestParam(defaultValue = "false") boolean encrypt)
       throws BadRequestException, ConflictException {
-    User user = getUser(username);
 
     UserDatastoreEntry entry = new UserDatastoreEntry();
     entry.setKey(key);
-    entry.setCreatedBy(user);
     entry.setNamespace(namespace);
     entry.setValue(value);
     entry.setEncrypted(encrypt);
@@ -231,17 +228,20 @@ public class UserDatastoreController extends AbstractDatastoreController {
   public WebMessage putUserValue(
       @PathVariable String namespace,
       @PathVariable String key,
+      @RequestBody(required = false) String value,
       @RequestParam(required = false) String username,
-      @RequestBody String value,
+      @RequestParam(required = false) String path,
+      @RequestParam(required = false) Integer roll,
       @RequestParam(defaultValue = "false") boolean encrypt)
       throws BadRequestException, ConflictException {
 
     UserDatastoreEntry userEntry =
         userDatastoreService.getUserEntry(getUser(username), namespace, key);
 
-    return userEntry != null
-        ? updateEntry(userEntry, key, value)
-        : addEntry(namespace, key, username, value, encrypt);
+    if (userEntry == null) return addEntry(namespace, key, value, encrypt);
+
+    userDatastoreService.updateEntry(namespace, key, value, path, roll);
+    return ok(String.format("Key updated: '%s'", key));
   }
 
   /** Delete a key. */
@@ -288,11 +288,11 @@ public class UserDatastoreController extends AbstractDatastoreController {
     return user;
   }
 
-  private WebMessage updateEntry(UserDatastoreEntry entry, String key, String value)
-      throws BadRequestException {
-    entry.setValue(value);
-    userDatastoreService.updateEntry(entry);
-
-    return ok(String.format("Key updated: '%s'", key));
-  }
+  //  private WebMessage updateEntry(String namespace, String key, String value, String path, int
+  // roll)
+  //      throws BadRequestException {
+  //    //    entry.setValue(value);
+  //    userDatastoreService.updateEntry(namespace, key, value, path, roll);
+  //    return ok(String.format("Key updated: '%s'", key));
+  //  }
 }
