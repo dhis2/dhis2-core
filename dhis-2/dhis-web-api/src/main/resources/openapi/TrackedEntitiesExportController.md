@@ -26,6 +26,25 @@ for how to use it.
 
 NOTE: this query parameter has no effect on a response in CSV!
 
+### `getAttributeValueFile`
+
+Get a tracked entity attribute value file or image for given tracked entity and tracked entity
+attribute UID. Images are returned in their original dimension.
+
+### `getAttributeValueFile.parameter.program`
+
+Provide a program UID for program attributes.
+
+### `getAttributeValueImage`
+
+Get an event data value image for given event and data element UID. Images are returned in their
+original dimension by default. This endpoint is only supported for data elements of value type
+image.
+
+### `getAttributeValueImage.parameter.program`
+
+Provide a program UID for program attributes.
+
 ## Common for all endpoints
 
 ### `*.parameter.TrackedEntityRequestParams.orgUnits`
