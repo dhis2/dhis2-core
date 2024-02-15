@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.outlier.data;
 
-import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.analytics.outlier.Order.getOrderBy;
 
 import java.util.ArrayList;
@@ -129,7 +128,7 @@ public class OutlierQueryParser {
             .flatMap(Collection::stream)
             .filter(d -> d.getValueType().isNumeric())
             .map(DataElement::getUid)
-            .collect(toList());
+            .toList();
 
     List<DataDimension> dataDimensions =
         new ArrayList<>(
