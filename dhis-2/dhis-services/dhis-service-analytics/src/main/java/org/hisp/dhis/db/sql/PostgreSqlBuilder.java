@@ -35,7 +35,6 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Index;
-import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.model.constraint.Unique;
@@ -220,7 +219,7 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String createTable(Table table) {
-    String unlogged = table.getLogged() == Logged.UNLOGGED ? " unlogged" : "";
+    String unlogged = table.isUnlogged() ? " unlogged" : "";
 
     StringBuilder sql =
         new StringBuilder("create")
