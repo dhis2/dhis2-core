@@ -58,7 +58,7 @@ class PostgreSqlBuilderTest {
 
     List<String> primaryKey = List.of("id");
 
-    return new Table("immunization", columns, primaryKey);
+    return new Table("immunization", columns, primaryKey, Logged.LOGGED);
   }
 
   private List<Index> getIndexesA() {
