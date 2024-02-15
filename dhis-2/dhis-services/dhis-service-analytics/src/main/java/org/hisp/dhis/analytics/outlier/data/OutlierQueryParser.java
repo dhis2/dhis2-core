@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.outlier.data;
 
-import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.analytics.outlier.Order.getOrderBy;
 
 import java.util.ArrayList;
@@ -38,6 +37,7 @@ import java.util.Set;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.analytics.data.DimensionalObjectProducer;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdScheme;
@@ -67,25 +67,11 @@ public class OutlierQueryParser {
    * @return a {@link OutlierRequest}.
    */
   public OutlierRequest getFromQuery(OutlierQueryParams queryParams, boolean analyzeOnly) {
-    List<DataSet> dataSets = idObjectManager.getByUid(DataSet.class, queryParams.getDs());
-
-    // Re-fetch data elements to maintain access control.
-    // Only data elements are supported for now.
-    List<String> de =
-        dataSets.stream()
-            .map(DataSet::getDataElements)
-            .flatMap(Collection::stream)
-            .filter(d -> d.getValueType().isNumeric())
-            .map(DataElement::getUid)
-            .collect(toList());
-
-    de.addAll(queryParams.getDx());
-
-    List<DataElement> dataElements = idObjectManager.getByUid(DataElement.class, de);
+    List<DataDimension> dimensions = getDataDimensions(queryParams);
 
     OutlierRequest.OutlierRequestBuilder builder =
         OutlierRequest.builder()
-            .dataElements(dataElements)
+            .dataDimensions(dimensions)
             .startDate(queryParams.getStartDate())
             .endDate(queryParams.getEndDate())
             .periods(getPeriods(queryParams.getPe(), queryParams.getRelativePeriodDate()))
@@ -121,6 +107,57 @@ public class OutlierQueryParser {
     }
 
     return builder.build();
+  }
+
+  /**
+   * Retrieves the list of outlier data dimensions
+   *
+   * @param queryParams the {@link OutlierQueryParams}.
+   * @return the list of {@link DataDimension}.
+   */
+  private List<DataDimension> getDataDimensions(OutlierQueryParams queryParams) {
+    List<DataSet> dataSets = idObjectManager.getByUid(DataSet.class, queryParams.getDs());
+
+    // Re-fetch data elements to maintain access control.
+    // Only data elements and category option combos are supported for now.
+
+    // DataSet
+    List<String> dx =
+        dataSets.stream()
+            .map(DataSet::getDataElements)
+            .flatMap(Collection::stream)
+            .filter(d -> d.getValueType().isNumeric())
+            .map(DataElement::getUid)
+            .toList();
+
+    List<DataDimension> dataDimensions =
+        new ArrayList<>(
+            idObjectManager.getByUid(DataElement.class, dx).stream()
+                .map(de -> new DataDimension(de, null))
+                .toList());
+
+    // DataElement and CategoryOptionCombo
+    dataDimensions.addAll(
+        queryParams.getDx().stream()
+            .map(
+                dd -> {
+                  String[] tokens = dd.split("\\.");
+                  List<DataElement> dataElements =
+                      idObjectManager.getByUid(DataElement.class, List.of(tokens[0]));
+                  List<CategoryOptionCombo> categoryOptionCombos =
+                      tokens.length == 2
+                          ? idObjectManager.getByUid(CategoryOptionCombo.class, List.of(tokens[1]))
+                          : new ArrayList<>();
+                  if (dataElements.size() == 1 && categoryOptionCombos.size() == 1) {
+                    return new DataDimension(dataElements.get(0), categoryOptionCombos.get(0));
+                  } else if (dataElements.size() == 1) {
+                    return new DataDimension(dataElements.get(0), null);
+                  }
+                  return null;
+                })
+            .toList());
+
+    return dataDimensions;
   }
 
   /**
