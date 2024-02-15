@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,28 +27,15 @@
  */
 package org.hisp.dhis.analytics.outlier.data;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElement;
 
-/** Enum for named params of parametrized sql query */
-@RequiredArgsConstructor
-public enum OutlierSqlParams {
-  // ZScore (modified ZScore) factor.
-  // For example the threshold=3 means all data lying outside 3 sigma (3 * standard deviation)
-  // are considered as the outliers
-  THRESHOLD("threshold"),
-  DATA_ELEMENT_ID("data_element_id"),
-  CATEGORY_OPTION_COMBO_ID("category_option_combo_id"),
-  ATTRIBUTE_OPTION_ID("attribute_option_id"),
-  START_DATE("start_date"),
-  END_DATE("end_date"),
-  // start date criteria of statistic data collection (the stats will be based on data starting on
-  // this date)
-  DATA_START_DATE("data_start_date"),
-  // start date criteria of statistic data collection (the stats will be based on data ending on
-  // this date)
-  DATA_END_DATE("data_end_date"),
-  MAX_RESULTS("max_results");
-
-  @Getter private final String key;
+/* Represent the container for outliers elements*/
+@AllArgsConstructor
+@Getter
+public class DataDimension {
+  private DataElement dataElement;
+  private CategoryOptionCombo categoryOptionCombo;
 }
