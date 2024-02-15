@@ -33,7 +33,9 @@ attribute UID. Images are returned in their original dimension.
 
 ### `getAttributeValueFile.parameter.program`
 
-The program to be used for evaluating the users access to the file content. A program is required when requesting a program-specific tracked entity attributes. When no program is specified, access to the file content is evaluated based on the users access to the relevant tracked entity type.
+The program to be used for evaluating the users access to the file content. A program is required
+when requesting a program-specific tracked entity attribute. When no program is specified, access
+to the file content is evaluated based on the users access to the relevant tracked entity type.
 
 ### `getAttributeValueImage`
 
@@ -43,7 +45,9 @@ image.
 
 ### `getAttributeValueImage.parameter.program`
 
-The program to be used for evaluating the users access to the image. A program is required when requesting a program-specific tracked entity attributes. When no program is specified, access to the image is evaluated based on the users access to the relevant tracked entity type.
+The program to be used for evaluating the users access to the image. A program is required when
+requesting a program-specific tracked entity attribute. When no program is specified, access to the
+image is evaluated based on the users access to the relevant tracked entity type.
 
 ## Common for all endpoints
 
@@ -191,13 +195,17 @@ NOTE: this query parameter has no effect on a CSV response!
 
 `<filter1>[,<filter2>...]`
 
-Get tracked entities matching given filters on attributes. A filter is a colon separated attribute UID 
-with optional operator and value pairs. Example: `filter=H9IlTX2X6SL:sw:A` with operator starts with `sw` 
-followed by a value. Special characters like `+` need to be percent-encoded so `%2B` instead of `+`. 
-Characters such as `:` (colon) or `,` (comma), as part of the filter value, need to be escaped by `/` (slash).
-Likewise, `/` needs to be escaped. Multiple operator/value pairs for the same attribute 
-as `filter=AuPLng5hLbE:gt:438901703:lt:448901704` are allowed. Repeating the same attribute UID 
-is not allowed.  A user needs metadata read access to the attribute and data read access to the program 
+Get tracked entities matching given filters on attributes. A filter is a colon separated attribute
+UID
+with optional operator and value pairs. Example: `filter=H9IlTX2X6SL:sw:A` with operator starts
+with `sw`
+followed by a value. Special characters like `+` need to be percent-encoded so `%2B` instead of `+`.
+Characters such as `:` (colon) or `,` (comma), as part of the filter value, need to be escaped
+by `/` (slash).
+Likewise, `/` needs to be escaped. Multiple operator/value pairs for the same attribute
+as `filter=AuPLng5hLbE:gt:438901703:lt:448901704` are allowed. Repeating the same attribute UID
+is not allowed. A user needs metadata read access to the attribute and data read access to the
+program
 (if the program is without registration) or the program stage (if the program is with registration).
 
 Valid operators are:
@@ -221,5 +229,7 @@ Valid operators are:
 
 ### `*.parameter.TrackedEntityRequestParams.attachment`
 
-It allows you to specify the attachment file name when extracting in a binary format such as CSV, zip, or gzip.
-If not specified, it defaults to `trackedEntities.<type>.<compression>` (for example, `trackedEntities.csv.zip` for zip compression of a csv list)
+It allows you to specify the attachment file name when extracting in a binary format such as CSV,
+zip, or gzip.
+If not specified, it defaults to `trackedEntities.<type>.<compression>` (for
+example, `trackedEntities.csv.zip` for zip compression of a csv list)
