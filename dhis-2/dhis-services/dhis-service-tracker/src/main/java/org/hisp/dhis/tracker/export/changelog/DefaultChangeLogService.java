@@ -46,7 +46,7 @@ public class DefaultChangeLogService implements ChangeLogService {
 
   private final org.hisp.dhis.program.EventService eventService;
 
-  private final ChangeLogStore changeLogStore;
+  private final JdbcChangeLogStore jdbcChangeLogStore;
 
   private final TrackerAccessManager trackerAccessManager;
 
@@ -65,6 +65,6 @@ public class DefaultChangeLogService implements ChangeLogService {
       throw new NotFoundException(Event.class, eventUid.getValue());
     }
 
-    return changeLogStore.getEventChangeLog(eventUid.getValue());
+    return jdbcChangeLogStore.getEventChangeLog(eventUid.getValue());
   }
 }

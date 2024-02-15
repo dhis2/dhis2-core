@@ -37,7 +37,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository("org.hisp.dhis.tracker.export.changelog.ChangeLogStore")
 @RequiredArgsConstructor
-class JdbcChangeLogStore implements ChangeLogStore {
+class JdbcChangeLogStore {
 
   private final JdbcTemplate jdbcTemplate;
 
@@ -59,7 +59,6 @@ class JdbcChangeLogStore implements ChangeLogStore {
                     rs.getString("currentValue"))));
       };
 
-  @Override
   public List<EventChangeLog> getEventChangeLog(String eventUid) {
     final String sql =
         """
