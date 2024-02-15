@@ -193,7 +193,7 @@ public class HibernateUserDatastoreStore
             -- undefined => same as null, start an array
             else jsonb_set(jbvalue, cast(:path as text[]), to_jsonb(ARRAY[cast(:value as jsonb)]))
             end
-          where namespace = :ns and namespacekey = :key""";
+          where namespace = :ns and userkey = :key""";
     return getSession()
             .createNativeQuery(sql)
             .setParameter("ns", ns)
@@ -219,7 +219,7 @@ public class HibernateUserDatastoreStore
           end
         else cast(:value as jsonb)
         end
-      where namespace = :ns and namespacekey = :key""";
+      where namespace = :ns and userkey = :key""";
     return getSession()
             .createNativeQuery(sql)
             .setParameter("ns", ns)
@@ -234,7 +234,7 @@ public class HibernateUserDatastoreStore
       @Nonnull String ns, @Nonnull String key, @Nonnull String value, @Nonnull String path) {
     return getSession()
             .createNativeQuery(
-                "update userkeyjsonvalue set jbvalue = jsonb_set(jbvalue, cast(:path as text[]), cast(:value as jsonb), false) where namespace = :ns and namespacekey = :key")
+                "update userkeyjsonvalue set jbvalue = jsonb_set(jbvalue, cast(:path as text[]), cast(:value as jsonb), false) where namespace = :ns and userkey = :key")
             .setParameter("ns", ns)
             .setParameter("key", key)
             .setParameter("value", value)
@@ -247,7 +247,7 @@ public class HibernateUserDatastoreStore
       @Nonnull String ns, @Nonnull String key, @Nonnull String value) {
     return getSession()
             .createNativeQuery(
-                "update userkeyjsonvalue set jbvalue = cast(:value as jsonb) where namespace = :ns and namespacekey = :key")
+                "update userkeyjsonvalue set jbvalue = cast(:value as jsonb) where namespace = :ns and userkey = :key")
             .setParameter("ns", ns)
             .setParameter("key", key)
             .setParameter("value", value)
@@ -259,7 +259,7 @@ public class HibernateUserDatastoreStore
       @Nonnull String ns, @Nonnull String key, @Nonnull String path) {
     return getSession()
             .createNativeQuery(
-                "update userkeyjsonvalue set jbvalue = jsonb_set(jbvalue, cast(:path as text[]), 'null', false) where namespace = :ns and namespacekey = :key")
+                "update userkeyjsonvalue set jbvalue = jsonb_set(jbvalue, cast(:path as text[]), 'null', false) where namespace = :ns and userkey = :key")
             .setParameter("ns", ns)
             .setParameter("key", key)
             .setParameter("path", toJsonbPath(path))
@@ -271,7 +271,7 @@ public class HibernateUserDatastoreStore
     // delete
     return getSession()
             .createNativeQuery(
-                "delete from userkeyjsonvalue where namespace = :ns and namespacekey = :key")
+                "delete from userkeyjsonvalue where namespace = :ns and userkey = :key")
             .setParameter("ns", ns)
             .setParameter("key", key)
             .executeUpdate()

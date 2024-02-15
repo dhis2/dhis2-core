@@ -60,9 +60,8 @@ public interface UserDatastoreService {
    * Adds a new UserKeyJsonValue
    *
    * @param entry the UserKeyJsonValue to be stored
-   * @return the id of the UserKeyJsonValue stored
    */
-  long addEntry(UserDatastoreEntry entry) throws ConflictException, BadRequestException;
+  void addEntry(UserDatastoreEntry entry) throws ConflictException, BadRequestException;
 
   /**
    * Updates the entry value (path is undefined or empty) or updates the existing value the the *

@@ -258,6 +258,19 @@ public class RestApiActions {
     return new ApiResponse(response);
   }
 
+  /**
+   * Sends PUT request will null body to specified resource.
+   *
+   * @param resourceId Id of resource
+   */
+//  public ApiResponse updateWithNull(String resourceId) {
+//    Response put = given().body(null).put(resourceId);
+//    Response response = put(resourceId, null);
+//
+//    addCoverage("PUT", resourceId);
+//    return new ApiResponse(response);
+//  }
+
   /** Sends PATCH request to specified resource */
   public ApiResponse patch(String resourceId, Object object, QueryParamsBuilder paramsBuilder) {
     Response response =

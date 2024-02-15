@@ -66,7 +66,7 @@ public class DefaultUserDatastoreService implements UserDatastoreService {
 
   @Override
   @Transactional
-  public long addEntry(UserDatastoreEntry entry) throws ConflictException, BadRequestException {
+  public void addEntry(UserDatastoreEntry entry) throws ConflictException, BadRequestException {
     if (getUserEntry(entry.getUser(), entry.getNamespace(), entry.getKey()) != null) {
       throw new ConflictException(
           String.format(
@@ -74,7 +74,6 @@ public class DefaultUserDatastoreService implements UserDatastoreService {
     }
     validateEntry(entry);
     store.save(entry);
-    return entry.getId();
   }
 
   @Override
