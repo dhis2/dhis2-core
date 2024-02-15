@@ -157,7 +157,7 @@ public class EnrollmentSMSListener extends CompressionSMSListener {
       log.info("Tracked entity exists: '{}'. Updating.", teUid);
       trackedEntity = teService.getTrackedEntity(teUid.getUid());
     } else {
-      log.info("Tracked entity does not exist: '%s'. Creating.", teUid);
+      log.info("Tracked entity does not exist: '{}'. Creating.", teUid);
       trackedEntity = new TrackedEntity();
       trackedEntity.setUid(teUid.getUid());
       trackedEntity.setOrganisationUnit(orgUnit);
