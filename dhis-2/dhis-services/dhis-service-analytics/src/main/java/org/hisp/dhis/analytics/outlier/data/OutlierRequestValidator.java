@@ -115,7 +115,7 @@ public class OutlierRequestValidator {
   private ErrorMessage getErrorMessage(OutlierRequest request, int maxLimit) {
     ErrorMessage error = null;
 
-    if (request.getDataElements().isEmpty()) {
+    if (request.getDataDimensions().isEmpty()) {
       error = new ErrorMessage(E2200);
     } else if (!request.hasStartEndDate() && !request.hasPeriods()) {
       error = new ErrorMessage(E2201);
