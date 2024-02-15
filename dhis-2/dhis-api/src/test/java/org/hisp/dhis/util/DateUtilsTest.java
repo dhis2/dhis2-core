@@ -313,15 +313,15 @@ class DateUtilsTest {
 
   @Test
   void getNextDate() {
-    Date now1 = new DateTime(2023, 4, 6, 15, 2, 24).toDate();
-    Date now2 = new DateTime(2023, 4, 7, 3, 2, 35).toDate();
-    assertEquals(new DateTime(2023, 4, 6, 19, 0, 0, 0).toDate(), DateUtils.getNextDate(19, now1));
-    assertEquals(new DateTime(2023, 4, 6, 21, 0, 0, 0).toDate(), DateUtils.getNextDate(21, now1));
-    assertEquals(new DateTime(2023, 4, 7, 4, 0, 0, 0).toDate(), DateUtils.getNextDate(4, now1));
-    assertEquals(new DateTime(2023, 4, 7, 15, 0, 0, 0).toDate(), DateUtils.getNextDate(15, now1));
-    assertEquals(new DateTime(2023, 4, 8, 2, 0, 0, 0).toDate(), DateUtils.getNextDate(2, now2));
-    assertEquals(new DateTime(2023, 4, 7, 5, 0, 0, 0).toDate(), DateUtils.getNextDate(5, now2));
-    assertEquals(new DateTime(2023, 4, 7, 17, 0, 0, 0).toDate(), DateUtils.getNextDate(17, now2));
+    Date dateA = new DateTime(2023, 4, 6, 15, 2, 24).toDate();
+    Date dateB = new DateTime(2023, 4, 7, 3, 2, 35).toDate();
+    assertEquals(new DateTime(2023, 4, 6, 19, 0, 0, 0).toDate(), DateUtils.getNextDate(19, dateA));
+    assertEquals(new DateTime(2023, 4, 6, 21, 0, 0, 0).toDate(), DateUtils.getNextDate(21, dateA));
+    assertEquals(new DateTime(2023, 4, 7, 4, 0, 0, 0).toDate(), DateUtils.getNextDate(4, dateA));
+    assertEquals(new DateTime(2023, 4, 7, 15, 0, 0, 0).toDate(), DateUtils.getNextDate(15, dateA));
+    assertEquals(new DateTime(2023, 4, 8, 2, 0, 0, 0).toDate(), DateUtils.getNextDate(2, dateB));
+    assertEquals(new DateTime(2023, 4, 7, 5, 0, 0, 0).toDate(), DateUtils.getNextDate(5, dateB));
+    assertEquals(new DateTime(2023, 4, 7, 17, 0, 0, 0).toDate(), DateUtils.getNextDate(17, dateB));
   }
 
   @Test
