@@ -60,6 +60,8 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -77,6 +79,10 @@ class AggregateDataExchangeServiceTest {
   @Mock private DataValueSetService dataValueSetService;
 
   @InjectMocks private AggregateDataExchangeService service;
+
+  @Mock private AclService aclService;
+
+  @InjectMocks private AggregateDataExchangeService aclServiceInjectedService;
 
   @Test
   @SuppressWarnings("unchecked")
@@ -118,6 +124,8 @@ class AggregateDataExchangeServiceTest {
                 DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of()));
     when(dataValueSetService.importDataValueSet(any(DataValueSet.class), any(ImportOptions.class)))
         .thenReturn(new ImportSummary(ImportStatus.SUCCESS));
+
+    when(aclService.canDataWrite((UserDetails) any(), any())).thenReturn(true);
 
     SourceRequest sourceRequest =
         new SourceRequest()
