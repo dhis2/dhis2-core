@@ -315,7 +315,6 @@ class DateUtilsTest {
   void getNextDate() {
     Date dateA = new DateTime(2023, 4, 6, 15, 2, 24).toDate();
     Date dateB = new DateTime(2023, 4, 7, 3, 2, 35).toDate();
-
     assertEquals(new DateTime(2023, 4, 6, 19, 0, 0, 0).toDate(), DateUtils.getNextDate(19, dateA));
     assertEquals(new DateTime(2023, 4, 6, 21, 0, 0, 0).toDate(), DateUtils.getNextDate(21, dateA));
     assertEquals(new DateTime(2023, 4, 7, 4, 0, 0, 0).toDate(), DateUtils.getNextDate(4, dateA));
