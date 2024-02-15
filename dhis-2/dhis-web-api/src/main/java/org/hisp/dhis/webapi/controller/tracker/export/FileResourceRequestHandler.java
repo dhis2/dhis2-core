@@ -27,11 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import java.util.concurrent.TimeUnit;
 import javax.servlet.http.HttpServletRequest;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.webapi.utils.ResponseEntityUtils;
 import org.springframework.core.io.InputStreamResource;
@@ -43,13 +41,13 @@ import org.springframework.http.ResponseEntity;
 
 /**
  * FileResourceRequestHandler serves files and images given a {@link FileResourceStream}. The {@link
- * FileResourceStream#getInputStreamSupplier()} will not be called if the client has an up-to-date
- * file according to its {@link FileResource#getContentMd5()} value.
+ * FileResourceStream#contentSupplier()} will not be called if the client has an up-to-date file
+ * according to its {@link FileResourceStream#getUid()} value.
  */
 public class FileResourceRequestHandler {
 
-  private static final CacheControl MUST_REVALIDATE =
-      CacheControl.maxAge(0, TimeUnit.SECONDS).cachePrivate().mustRevalidate();
+  private static final CacheControl CACHE_CONTROL_DIRECTIVES =
+      CacheControl.noCache().cachePrivate();
 
   private FileResourceRequestHandler() {
     throw new IllegalStateException("Utility class");
@@ -58,24 +56,21 @@ public class FileResourceRequestHandler {
   public static ResponseEntity<InputStreamResource> handleFileRequest(
       HttpServletRequest request, FileResourceStream file)
       throws ConflictException, BadRequestException {
-    FileResource fileResource = file.getFileResource();
-
-    final String etag = fileResource.getContentMd5();
+    final String etag = file.uid();
     if (ResponseEntityUtils.checkNotModified(etag, request)) {
       return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
-          .cacheControl(MUST_REVALIDATE)
+          .cacheControl(CACHE_CONTROL_DIRECTIVES)
           .eTag(etag)
           .build();
     }
 
     return ResponseEntity.ok()
-        .cacheControl(MUST_REVALIDATE)
+        .cacheControl(CACHE_CONTROL_DIRECTIVES)
         .eTag(etag)
-        .contentType(MediaType.valueOf(fileResource.getContentType()))
-        .contentLength(fileResource.getContentLength())
+        .contentType(MediaType.valueOf(file.contentType()))
         .header(
-            HttpHeaders.CONTENT_DISPOSITION,
-            ResponseHeader.contentDispositionInline(fileResource.getName()))
-        .body(new InputStreamResource(file.getInputStreamSupplier().get()));
+            HttpHeaders.CONTENT_DISPOSITION, ResponseHeader.contentDispositionInline(file.name()))
+        .contentLength(file.contentSupplier().get().length())
+        .body(new InputStreamResource(file.contentSupplier().get().stream()));
   }
 }
