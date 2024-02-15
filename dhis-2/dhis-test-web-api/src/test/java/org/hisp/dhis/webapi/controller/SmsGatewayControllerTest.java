@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -38,6 +39,7 @@ import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.sms.config.ClickatellGatewayConfig;
 import org.hisp.dhis.sms.config.GatewayAdministrationService;
+import org.hisp.dhis.sms.config.GenericHttpGatewayConfig;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.AfterEach;
@@ -127,12 +129,7 @@ class SmsGatewayControllerTest extends DhisControllerConvenienceTest {
     assertTrue(gatewayNoAuth.getString("password").isUndefined());
     assertTrue(gatewayNoAuth.getString("authToken").isUndefined());
 
-    assertWebMessage(
-        "OK",
-        200,
-        "OK",
-        "Gateway with uid: " + uid + " has been updated",
-        PUT("/gateways/" + uid, gatewayNoAuth.toJson()).content(HttpStatus.OK));
+    assertStatus(HttpStatus.OK, PUT("/gateways/" + uid, gatewayNoAuth.toJson()));
 
     ClickatellGatewayConfig config =
         (ClickatellGatewayConfig)
@@ -140,6 +137,49 @@ class SmsGatewayControllerTest extends DhisControllerConvenienceTest {
     assertNotNull(config.getPassword(), "internally the password should still be set");
     assertNotEquals("pwd", config.getPassword(), "password should be stored encoded but was plain");
     assertNotNull(config.getAuthToken(), "internally the authToken should still be set");
+  }
+
+  @Test
+  void testUpdateGateway_Generic() {
+    // language=JSON
+    String json =
+        """
+        {
+        "type": "http",
+        "configurationTemplate": "/foo",
+        "contentType": "APPLICATION_JSON",
+        "name": "test",
+        "parameters": [
+          {
+            "key": "foo",
+            "value": "bar",
+            "header": false,
+            "encode": false,
+            "confidential": true
+          }
+        ],
+        "sendUrlParameters": false,
+        "urlTemplate": "http://example.com",
+        "useGet": false
+      }""";
+    uid = assertStatus(HttpStatus.OK, POST("/gateways", json));
+
+    JsonObject gateway = GET("/gateways/{uid}", uid).content();
+    JsonObject param0 = gateway.getArray("parameters").getObject(0);
+    String value = param0.getString("value").string();
+    assertNotNull(value);
+    assertNotEquals("bar", value, "should be encoded");
+
+    JsonObject gatewayNoParamValue = JsonMixed.of(param0.node().removeMembers(Set.of("value")));
+    assertTrue(gatewayNoParamValue.getArray("parameters").getObject(0).isUndefined("value"));
+
+    assertStatus(HttpStatus.OK, PUT("/gateways/" + uid, gatewayNoParamValue.toJson()));
+    GenericHttpGatewayConfig config =
+        (GenericHttpGatewayConfig)
+            gatewayAdministrationService.getByUid(gateway.getString("uid").string());
+    String updatedValue = config.getParameters().get(0).getValue();
+    assertNotNull(updatedValue);
+    assertEquals(value, updatedValue);
   }
 
   @Test

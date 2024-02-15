@@ -157,7 +157,7 @@ public class JdbcOwnershipWriter {
    * <p>After, there will be no previous row for this TEI.
    */
   private void writeRowIfLast(Map<String, Object> row) {
-    if (hasNullValue(row, ENDDATE)) // If the last row...
+    if (hasNullValue(row, ENDDATE)) // If the last row
     {
       row.put(ENDDATE, FAR_FUTURE_DATE);
 

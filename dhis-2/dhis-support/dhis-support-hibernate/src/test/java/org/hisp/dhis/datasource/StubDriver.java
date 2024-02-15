@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,30 +25,56 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.external.conf;
+package org.hisp.dhis.datasource;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.time.LocalDateTime;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 
-/**
- * @author Lars Helge Overland
- */
-@Getter
-@Setter
-@NoArgsConstructor
-public class GoogleAccessToken {
-  @JsonProperty(value = "access_token")
-  private String accessToken;
+import java.sql.Connection;
+import java.sql.Driver;
+import java.sql.DriverPropertyInfo;
+import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
+import java.sql.Statement;
+import java.util.Properties;
+import java.util.logging.Logger;
 
-  @JsonProperty(value = "client_id")
-  private String clientId;
+public class StubDriver implements Driver {
+  @Override
+  public Connection connect(String s, Properties properties) throws SQLException {
+    Statement mockStatement = mock(Statement.class);
+    Connection mockConnection = mock(Connection.class);
+    given(mockConnection.createStatement()).willReturn(mockStatement);
+    return mockConnection;
+  }
 
-  @JsonProperty(value = "expires_in")
-  private long expiresInSeconds;
+  @Override
+  public boolean acceptsURL(String url) throws SQLException {
+    return url.equals("jdbc:fake:db");
+  }
 
-  @JsonIgnore private LocalDateTime expiresOn;
+  @Override
+  public DriverPropertyInfo[] getPropertyInfo(String s, Properties properties) throws SQLException {
+    return new DriverPropertyInfo[0];
+  }
+
+  @Override
+  public int getMajorVersion() {
+    return 0;
+  }
+
+  @Override
+  public int getMinorVersion() {
+    return 0;
+  }
+
+  @Override
+  public boolean jdbcCompliant() {
+    return false;
+  }
+
+  @Override
+  public Logger getParentLogger() throws SQLFeatureNotSupportedException {
+    return null;
+  }
 }

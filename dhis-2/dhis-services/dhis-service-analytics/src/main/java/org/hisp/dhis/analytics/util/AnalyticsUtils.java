@@ -60,7 +60,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -1053,7 +1052,7 @@ public class AnalyticsUtils {
             dio ->
                 dio.getDimensionItem() != null
                     && dio.getDimensionItemWithQueryModsId().equals(dimensionIdentifier))
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /**

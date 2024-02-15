@@ -32,6 +32,7 @@ import java.util.Date;
 import java.util.List;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.icon.IconTypeFilter;
@@ -53,6 +54,9 @@ public class IconRequestParams {
   private Date createdEndDate;
   private Date lastUpdatedStartDate;
   private Date lastUpdatedEndDate;
+  private boolean paging = true;
+  private int pageSize = Pager.DEFAULT_PAGE_SIZE;
+  private int page = 1;
 
   private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
 

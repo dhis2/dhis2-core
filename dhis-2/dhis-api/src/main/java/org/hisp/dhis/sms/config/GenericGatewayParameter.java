@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.sms.config;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serial;
 import java.io.Serializable;
 import lombok.EqualsAndHashCode;
@@ -45,9 +46,9 @@ public class GenericGatewayParameter implements Serializable {
 
   @Serial private static final long serialVersionUID = -863990758156009672L;
 
-  private String key;
-  private String value;
-  private boolean header;
-  private boolean encode;
-  private boolean confidential;
+  @JsonProperty private String key;
+  @JsonProperty private String value;
+  @JsonProperty private boolean header;
+  @JsonProperty private boolean encode;
+  @JsonProperty private boolean confidential;
 }

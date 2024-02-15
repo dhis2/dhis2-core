@@ -120,4 +120,6 @@ public interface IconService {
    * @throws NotFoundException when no icon with the provided key exists
    */
   void deleteCustomIcon(String key) throws BadRequestException, NotFoundException;
+
+  long count(IconOperationParams iconOperationParams);
 }
