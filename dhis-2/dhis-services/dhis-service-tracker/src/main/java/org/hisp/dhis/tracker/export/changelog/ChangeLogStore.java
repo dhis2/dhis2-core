@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.export.changelog;
 
 import java.util.List;
-import org.hisp.dhis.changelog.EventDataValueChangeLog;
 
 public interface ChangeLogStore {
 
@@ -37,5 +36,5 @@ public interface ChangeLogStore {
    *
    * @return a list of events change logs, if any
    */
-  List<EventDataValueChangeLog> getEventChangeLog(String eventUid);
+  List<EventChangeLog> getEventChangeLog(String eventUid);
 }

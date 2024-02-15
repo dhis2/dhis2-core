@@ -28,16 +28,14 @@
 package org.hisp.dhis.tracker.export.changelog;
 
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
-import static org.hisp.dhis.utils.Assertions.assertNotEmpty;
-import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.util.List;
-import org.hisp.dhis.changelog.EventDataValueChangeLog;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
@@ -82,7 +80,7 @@ class ChangeLogServiceTest extends TrackerTest {
   void shouldFailWhenEventDoesNotExist() {
     assertThrows(
         NotFoundException.class,
-        () -> changeLogService.getEventDataValueChangeLog(UID.of(CodeGenerator.generateUid())));
+        () -> changeLogService.getEventChangeLog(UID.of(CodeGenerator.generateUid())));
   }
 
   @Test
@@ -90,8 +88,7 @@ class ChangeLogServiceTest extends TrackerTest {
     injectSecurityContextUser(manager.get(User.class, "o1HMTIzBGo7"));
 
     assertThrows(
-        NotFoundException.class,
-        () -> changeLogService.getEventDataValueChangeLog(UID.of("D9PbzJY8bJM")));
+        NotFoundException.class, () -> changeLogService.getEventChangeLog(UID.of("D9PbzJY8bJM")));
   }
 
   @Test
@@ -99,48 +96,131 @@ class ChangeLogServiceTest extends TrackerTest {
     injectSecurityContextUser(manager.get(User.class, "o1HMTIzBGo7"));
 
     assertThrows(
-        NotFoundException.class,
-        () -> changeLogService.getEventDataValueChangeLog(UID.of("G9PbzJY8bJG")));
-  }
-
-  @Test
-  void shouldFailWhenEventDataElementIsNotAccessible() {
-    /*    injectSecurityContextUser(manager.get(User.class, "FIgVWzUCkpw"));
-
-    assertThrows(
-        NotFoundException.class,
-        () -> changeLogService.getEventDataValueChangeLog(UID.of("pTzf9KYMk72")));*/
-    fail();
+        NotFoundException.class, () -> changeLogService.getEventChangeLog(UID.of("G9PbzJY8bJG")));
   }
 
   @Test
   void shouldFailWhenProgramTrackedEntityTypeIsNotAccessible() {
-    fail();
+    injectSecurityContextUser(manager.get(User.class, "FIgVWzUCkpw"));
+
+    assertThrows(
+        NotFoundException.class, () -> changeLogService.getEventChangeLog(UID.of("H0PbzJY8bJG")));
   }
 
   @Test
-  void shouldReturnChangeLogListWhenDataValueIsCreated() {
-    fail();
+  void shouldFailWhenProgramWithoutRegistrationAndNoAccessToEventOrgUnit() {
+    injectSecurityContextUser(manager.get(User.class, "o1HMTIzBGo7"));
+
+    assertThrows(
+        NotFoundException.class, () -> changeLogService.getEventChangeLog(UID.of("G9PbzJY8bJG")));
   }
 
   @Test
-  void shouldReturnChangeLogListWhenDataValueIsDeleted() {
-    fail();
-  }
-
-  @Test
-  void shouldReturnChangeLogListWhenDataValueIsUpdated() throws NotFoundException, IOException {
+  void shouldReturnchangeLogsWhenDataValueIsCreated() throws NotFoundException {
     injectSecurityContextUser(manager.get(User.class, "M5zQapPyTZI"));
 
-    Event event = manager.get(Event.class, "D9PbzJY8bJM");
+    Event event = manager.get(Event.class, "QRYjLTiJTrA");
+    assertNotNull(event);
+    String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
+    DataElement dataElement = manager.get(DataElement.class, dataElementUid);
+    assertNotNull(dataElement);
+
+    List<EventChangeLog> changeLogs = changeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"));
+
+    assertAll(
+        () -> {
+          validateNonValueElements(1, changeLogs, importUser, dataElementUid);
+          assertEquals("15", changeLogs.get(0).change().dataValue().currentValue());
+          assertNull(changeLogs.get(0).change().dataValue().previousValue());
+        });
+  }
+
+  @Test
+  void shouldReturnchangeLogsWhenDataValueIsDeleted() throws NotFoundException, IOException {
+    injectSecurityContextUser(manager.get(User.class, "M5zQapPyTZI"));
+
+    Event event = manager.get(Event.class, "QRYjLTiJTrA");
     assertNotNull(event);
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
     DataElement dataElement = manager.get(DataElement.class, dataElementUid);
     assertNotNull(dataElement);
 
     TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
+    updateDataValue(trackerObjects, event.getUid(), dataElementUid, "");
+    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
+
+    List<EventChangeLog> changeLogs = changeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"));
+
+    assertAll(
+        () -> {
+          validateNonValueElements(2, changeLogs, importUser, dataElementUid);
+          assertNull(changeLogs.get(0).change().dataValue().currentValue());
+          assertEquals("15", changeLogs.get(0).change().dataValue().previousValue());
+        });
+  }
+
+  @Test
+  void shouldReturnchangeLogsWhenDataValueIsUpdated() throws NotFoundException, IOException {
+    injectSecurityContextUser(manager.get(User.class, "M5zQapPyTZI"));
+
+    Event event = manager.get(Event.class, "QRYjLTiJTrA");
+    assertNotNull(event);
+    String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
+    DataElement dataElement = manager.get(DataElement.class, dataElementUid);
+    assertNotNull(dataElement);
+
+    TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
+    updateDataValue(trackerObjects, event.getUid(), dataElementUid, "20");
+    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
+
+    List<EventChangeLog> changeLogs = changeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"));
+
+    assertAll(
+        () -> {
+          validateNonValueElements(2, changeLogs, importUser, dataElementUid);
+          assertEquals("20", changeLogs.get(0).change().dataValue().currentValue());
+          assertEquals("15", changeLogs.get(0).change().dataValue().previousValue());
+        });
+  }
+
+  @Test
+  void shouldReturnchangeLogsWhenDataValueIsCreatedUpdatedAndDeleted()
+      throws IOException, NotFoundException {
+    injectSecurityContextUser(manager.get(User.class, "M5zQapPyTZI"));
+
+    Event event = manager.get(Event.class, "QRYjLTiJTrA");
+    assertNotNull(event);
+    String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
+    DataElement dataElement = manager.get(DataElement.class, dataElementUid);
+    assertNotNull(dataElement);
+
+    TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
+    updateDataValue(trackerObjects, event.getUid(), dataElementUid, "20");
+    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
+
+    updateDataValue(trackerObjects, event.getUid(), dataElementUid, "");
+    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
+
+    List<EventChangeLog> changeLogs = changeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"));
+
+    assertAll(
+        () -> {
+          validateNonValueElements(3, changeLogs, importUser, dataElementUid);
+          assertNull(changeLogs.get(0).change().dataValue().currentValue());
+          assertEquals("20", changeLogs.get(0).change().dataValue().previousValue());
+
+          assertEquals("20", changeLogs.get(1).change().dataValue().currentValue());
+          assertEquals("15", changeLogs.get(1).change().dataValue().previousValue());
+
+          assertEquals("15", changeLogs.get(2).change().dataValue().currentValue());
+          assertNull(changeLogs.get(2).change().dataValue().previousValue());
+        });
+  }
+
+  private void updateDataValue(
+      TrackerObjects trackerObjects, String eventUid, String dataElementUid, String newValue) {
     trackerObjects.getEvents().stream()
-        .filter(e -> e.getEvent().equalsIgnoreCase(event.getUid()))
+        .filter(e -> e.getEvent().equalsIgnoreCase(eventUid))
         .findFirst()
         .flatMap(
             e ->
@@ -148,27 +228,22 @@ class ChangeLogServiceTest extends TrackerTest {
                     .filter(
                         dv -> dv.getDataElement().getIdentifier().equalsIgnoreCase(dataElementUid))
                     .findFirst())
-        .ifPresent(dv -> dv.setValue("new value"));
-    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
-
-    List<EventDataValueChangeLog> changeLogList =
-        changeLogService.getEventDataValueChangeLog(UID.of("D9PbzJY8bJM"));
-
-    assertAll(
-        () -> {
-          assertNotEmpty(changeLogList);
-          assertEquals(importUser.getUsername(), changeLogList.get(0).updatedBy().getUsername());
-          assertEquals(importUser.getFirstName(), changeLogList.get(0).updatedBy().getFirstName());
-          assertEquals(importUser.getSurname(), changeLogList.get(0).updatedBy().getSurname());
-          assertEquals(importUser.getUid(), changeLogList.get(0).updatedBy().getUid());
-          assertEquals("new value", changeLogList.get(0).change().dataValue().currentValue());
-          assertEquals("value00002", changeLogList.get(0).change().dataValue().previousValue());
-          assertEquals(dataElementUid, changeLogList.get(0).change().dataValue().dataElement());
-        });
+        .ifPresent(dv -> dv.setValue(newValue));
   }
 
-  @Test
-  void shouldReturnChangeLogListWhenDataValueIsCreatedUpdatedAndDeleted() {
-    fail();
+  private void validateNonValueElements(
+      int expectedListSize,
+      List<EventChangeLog> changeLogs,
+      User importUser,
+      String dataElementUid) {
+    assertEquals(expectedListSize, changeLogs.size());
+
+    for (EventChangeLog eventChangeLog : changeLogs) {
+      assertEquals(importUser.getUsername(), eventChangeLog.updatedBy().getUsername());
+      assertEquals(importUser.getFirstName(), eventChangeLog.updatedBy().getFirstName());
+      assertEquals(importUser.getSurname(), eventChangeLog.updatedBy().getSurname());
+      assertEquals(importUser.getUid(), eventChangeLog.updatedBy().getUid());
+      assertEquals(dataElementUid, eventChangeLog.change().dataValue().dataElement());
+    }
   }
 }

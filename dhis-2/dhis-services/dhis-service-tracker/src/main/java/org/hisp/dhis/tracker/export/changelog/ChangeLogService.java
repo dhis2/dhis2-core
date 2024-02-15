@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.export.changelog;
 
 import java.util.List;
-import org.hisp.dhis.changelog.EventDataValueChangeLog;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.NotFoundException;
 
@@ -39,5 +38,5 @@ public interface ChangeLogService {
    *
    * @return list with the change logs of the supplied event, if any
    */
-  List<EventDataValueChangeLog> getEventDataValueChangeLog(UID eventUid) throws NotFoundException;
+  List<EventChangeLog> getEventChangeLog(UID eventUid) throws NotFoundException;
 }

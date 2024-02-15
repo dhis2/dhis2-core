@@ -29,22 +29,19 @@ package org.hisp.dhis.tracker.export.changelog;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.changelog.EventDataValueChangeLog;
-import org.hisp.dhis.changelog.EventDataValueChangeLog.Change;
 import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.tracker.export.changelog.EventChangeLog.Change;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
-@Slf4j
 @Repository("org.hisp.dhis.tracker.export.changelog.ChangeLogStore")
 @RequiredArgsConstructor
-public class JdbcChangeLogStore implements ChangeLogStore {
+class JdbcChangeLogStore implements ChangeLogStore {
 
   private final JdbcTemplate jdbcTemplate;
 
-  private static final RowMapper<EventDataValueChangeLog> customEventChangeLogRowMapper =
+  private static final RowMapper<EventChangeLog> customEventChangeLogRowMapper =
       (rs, rowNum) -> {
         UserInfoSnapshot user = new UserInfoSnapshot();
         user.setUsername(rs.getString("userName"));
@@ -52,24 +49,23 @@ public class JdbcChangeLogStore implements ChangeLogStore {
         user.setSurname(rs.getString("surname"));
         user.setUid(rs.getString("useruid"));
 
-        return new EventDataValueChangeLog(
+        return new EventChangeLog(
             user,
             rs.getTimestamp("updatedAt"),
             new Change(
-                new EventDataValueChangeLog.DataValueChange(
+                new EventChangeLog.DataValueChange(
                     rs.getString("dataElementUid"),
                     rs.getString("previousValue"),
                     rs.getString("currentValue"))));
       };
 
   @Override
-  public List<EventDataValueChangeLog> getEventChangeLog(String eventUid) {
+  public List<EventChangeLog> getEventChangeLog(String eventUid) {
     final String sql =
         """
             select
               case
-                when cl.audittype = 'CREATE' and cl.currentchangelogvalue is null then cl.previouschangelogvalue
-                when cl.audittype = 'CREATE' and cl.currentchangelogvalue is not null then cl.previouschangelogvalue
+                when cl.audittype = 'CREATE' then cl.previouschangelogvalue
                 when cl.audittype = 'UPDATE' and cl.currentchangelogvalue is null then cl.currentValue
                 when cl.audittype = 'UPDATE' and cl.currentchangelogvalue is not null then cl.currentchangelogvalue
               end as currentValue,

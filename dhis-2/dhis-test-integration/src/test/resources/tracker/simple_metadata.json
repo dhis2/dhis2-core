@@ -394,7 +394,42 @@
       "attributeValues": [],
       "trackedEntityTypeAttributes": [],
       "translations": [],
-      "userAccesses": []
+      "userAccesses": [],
+      "sharing": {
+        "external": false,
+        "users": {},
+        "userGroups": {},
+        "public": "rwrw----"
+      }
+    },
+    {
+      "created": "2020-05-31T08:59:52.758",
+      "lastUpdated": "2020-05-31T11:41:22.419",
+      "name": "Inaccessible person",
+      "id": "Ip8NY4PW7Xm",
+      "publicAccess": "rw------",
+      "description": "person",
+      "maxTeiCountToReturn": 0,
+      "allowAuditLog": false,
+      "featureType": "NONE",
+      "minAttributesRequiredToSearch": 1,
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "trackedEntityTypeAttributes": [],
+      "translations": [],
+      "userAccesses": [],
+      "sharing": {
+        "external": false,
+        "users": {},
+        "userGroups": {},
+        "public": "--------"
+      }
     }
   ],
   "relationshipTypes": [
@@ -1526,6 +1561,48 @@
       "userAccesses": [],
       "programStageSections": [],
       "programStageDataElements": []
+    },
+    {
+      "lastUpdated": "2020-05-31T11:41:22.426",
+      "id": "aZdGjigJcJb",
+      "created": "2020-05-31T09:02:52.687",
+      "name": "test-program-stage-inaccessible-tet",
+      "allowGenerateNextVisit": false,
+      "preGenerateUID": false,
+      "publicAccess": "rwrw----",
+      "description": "test-program-stage-inaccessible-tet",
+      "openAfterEnrollment": false,
+      "repeatable": true,
+      "remindCompleted": false,
+      "displayGenerateEventBox": true,
+      "generatedByEnrollmentDate": false,
+      "validationStrategy": "ON_COMPLETE",
+      "autoGenerateEvent": true,
+      "sortOrder": 1,
+      "hideDueDate": false,
+      "blockEntryForm": false,
+      "enableUserAssignment": false,
+      "minDaysFromStart": 0,
+      "program": {
+        "id": "TsngICFQjvH"
+      },
+      "lastUpdatedBy": {
+        "id": "FIgVWzUCkpw"
+      },
+      "user": {
+        "id": "FIgVWzUCkpw"
+      },
+      "notificationTemplates": [
+        {
+          "id": "FdIeUL4gyoB"
+        }
+      ],
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "programStageSections": [],
+      "programStageDataElements": []
     }
   ],
   "users": [
@@ -2539,6 +2616,58 @@
       "programStages": [
         {
           "id": "zydGjigJcJb"
+        }
+      ],
+      "userAccesses": []
+    },
+    {
+      "id": "TsngICFQjvH",
+      "name": "test-program-unaccessible-tet",
+      "shortName": "test-program-unaccessible-tet",
+      "lastUpdated": "2020-05-31T11:41:22.438",
+      "created": "2020-05-31T09:02:52.718",
+      "publicAccess": "rwrw----",
+      "completeEventsExpiryDays": 0,
+      "ignoreOverdueEvents": false,
+      "skipOffline": false,
+      "minAttributesRequiredToSearch": 1,
+      "displayFrontPageList": false,
+      "onlyEnrollOnce": false,
+      "programType": "WITH_REGISTRATION",
+      "accessLevel": "OPEN",
+      "version": 2,
+      "maxTeiCountToReturn": 0,
+      "selectIncidentDatesInFuture": false,
+      "displayIncidentDate": true,
+      "selectEnrollmentDatesInFuture": false,
+      "expiryDays": 0,
+      "useFirstStageDuringRegistration": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "FIgVWzUCkpw"
+      },
+      "trackedEntityType": {
+        "id": "Ip8NY4PW7Xm"
+      },
+      "user": {
+        "id": "FIgVWzUCkpw"
+      },
+      "programTrackedEntityAttributes": [],
+      "notificationTemplates": [],
+      "translations": [],
+      "organisationUnits": [
+        {
+          "id": "DiszpKrYNg8"
+        }
+      ],
+      "userGroupAccesses": [],
+      "programSections": [],
+      "attributeValues": [],
+      "programStages": [
+        {
+          "id": "aZdGjigJcJb"
         }
       ],
       "userAccesses": []

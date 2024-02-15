@@ -25,13 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.changelog;
+package org.hisp.dhis.tracker.export.changelog;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
 import org.hisp.dhis.program.UserInfoSnapshot;
 
-public record EventDataValueChangeLog(
+public record EventChangeLog(
     @JsonProperty UserInfoSnapshot updatedBy,
     @JsonProperty Date date,
     @JsonProperty Change change) {

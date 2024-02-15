@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.export.changelog;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.changelog.EventDataValueChangeLog;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
@@ -54,8 +53,7 @@ public class DefaultChangeLogService implements ChangeLogService {
   private final UserService userService;
 
   @Override
-  public List<EventDataValueChangeLog> getEventDataValueChangeLog(UID eventUid)
-      throws NotFoundException {
+  public List<EventChangeLog> getEventChangeLog(UID eventUid) throws NotFoundException {
     Event event = eventService.getEvent(eventUid.getValue());
     if (event == null) {
       throw new NotFoundException(Event.class, eventUid.getValue());
@@ -66,8 +64,6 @@ public class DefaultChangeLogService implements ChangeLogService {
     if (!errors.isEmpty()) {
       throw new NotFoundException(Event.class, eventUid.getValue());
     }
-
-    // TODO Validate event/program stage data element access
 
     return changeLogStore.getEventChangeLog(eventUid.getValue());
   }
