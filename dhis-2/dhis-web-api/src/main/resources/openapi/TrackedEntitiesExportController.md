@@ -33,7 +33,7 @@ attribute UID. Images are returned in their original dimension.
 
 ### `getAttributeValueFile.parameter.program`
 
-Provide a program UID for program attributes.
+The program to be used for evaluating the users access to the file content. A program is required when requesting a program-specific tracked entity attributes. When no program is specified, access to the file content is evaluated based on the users access to the relevant tracked entity type.
 
 ### `getAttributeValueImage`
 
@@ -43,7 +43,7 @@ image.
 
 ### `getAttributeValueImage.parameter.program`
 
-Provide a program UID for program attributes.
+The program to be used for evaluating the users access to the image. A program is required when requesting a program-specific tracked entity attributes. When no program is specified, access to the image is evaluated based on the users access to the relevant tracked entity type.
 
 ## Common for all endpoints
 
