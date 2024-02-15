@@ -56,6 +56,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
@@ -281,7 +282,7 @@ class TrackedEntitiesExportController {
   }
 
   @GetMapping("/{trackedEntity}/attributes/{attribute}/file")
-  ResponseEntity<InputStreamResource> getEventDataValueFile(
+  ResponseEntity<InputStreamResource> getAttributeValueFile(
       @OpenApi.Param({UID.class, TrackedEntity.class}) @PathVariable UID trackedEntity,
       @OpenApi.Param({UID.class, Attribute.class}) @PathVariable UID attribute,
       @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) UID program,
@@ -289,5 +290,18 @@ class TrackedEntitiesExportController {
       throws NotFoundException, ConflictException, BadRequestException {
     return handleFileRequest(
         request, trackedEntityService.getFileResource(trackedEntity, attribute, program));
+  }
+
+  @GetMapping("/{trackedEntity}/attributes/{attribute}/image")
+  ResponseEntity<InputStreamResource> getAttributeValueImage(
+      @OpenApi.Param({UID.class, TrackedEntity.class}) @PathVariable UID trackedEntity,
+      @OpenApi.Param({UID.class, Attribute.class}) @PathVariable UID attribute,
+      @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) UID program,
+      @RequestParam(required = false) ImageFileDimension dimension,
+      HttpServletRequest request)
+      throws NotFoundException, ConflictException, BadRequestException {
+    return handleFileRequest(
+        request,
+        trackedEntityService.getFileResourceImage(trackedEntity, attribute, program, dimension));
   }
 }
