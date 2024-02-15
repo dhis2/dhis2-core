@@ -86,7 +86,6 @@ import org.hisp.dhis.webapi.controller.tracker.JsonEvent;
 import org.hisp.dhis.webapi.controller.tracker.JsonNote;
 import org.hisp.dhis.webapi.controller.tracker.JsonRelationship;
 import org.hisp.dhis.webapi.controller.tracker.JsonRelationshipItem;
-import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -693,69 +692,6 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
     dv.setDataElement(de.getUid());
     dv.setValue(value);
     return dv;
-  }
-
-  @Test
-  void getEventChangeLog() {
-    Event event = event(enrollment(trackedEntity()));
-    event.getEventDataValues().add(dv);
-    manager.update(event);
-
-    String json =
-        """
-      {
-        "events": [
-          {
-            "event": "%s",
-            "status": "COMPLETED",
-            "program": "%s",
-            "programStage": "%s",
-            "enrollment": "%s",
-            "trackedEntity": "%s",
-            "orgUnit": "%s",
-            "occurredAt": "2023-01-10",
-            "scheduledAt": "2023-01-10",
-            "storedBy": "tracker",
-            "followUp": false,
-            "deleted": false,
-            "createdAt": "2018-01-20T10:44:03.222",
-            "createdAtClient": "2017-01-20T10:44:03.222",
-            "updatedAt": "2018-01-20T10:44:33.777",
-            "completedBy": "tracker",
-            "completedAt": "2023-01-20",
-            "notes": [],
-            "followup": false,
-            "geometry": null,
-            "dataValues": [
-              {
-                "dataElement": "%s",
-                "value": "new value"
-              }
-            ]
-          }
-        ]
-      }}
-        """
-            .formatted(
-                event.getUid(),
-                program.getUid(),
-                programStage.getUid(),
-                event.getEnrollment().getUid(),
-                event.getEnrollment().getTrackedEntity().getUid(),
-                event.getOrganisationUnit().getUid(),
-                event.getEventDataValues().iterator().next().getDataElement());
-
-    JsonWebMessage msg =
-        POST("/tracker?async=false&importStrategy=UPDATE", json)
-            .content(HttpStatus.OK)
-            .as(JsonWebMessage.class);
-
-    JsonEvent changeLogJson =
-        GET("/tracker/events/{id}/changelog", event.getUid())
-            .content(HttpStatus.OK)
-            .as(JsonEvent.class);
-
-    assertDefaultResponse(changeLogJson, event);
   }
 
   private TrackedEntityType trackedEntityTypeAccessible() {

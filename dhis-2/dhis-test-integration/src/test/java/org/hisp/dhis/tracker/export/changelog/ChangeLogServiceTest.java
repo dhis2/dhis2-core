@@ -116,7 +116,7 @@ class ChangeLogServiceTest extends TrackerTest {
   }
 
   @Test
-  void shouldReturnchangeLogsWhenDataValueIsCreated() throws NotFoundException {
+  void shouldReturnChangeLogsWhenDataValueIsCreated() throws NotFoundException {
     injectSecurityContextUser(manager.get(User.class, "M5zQapPyTZI"));
 
     Event event = manager.get(Event.class, "QRYjLTiJTrA");
@@ -136,7 +136,7 @@ class ChangeLogServiceTest extends TrackerTest {
   }
 
   @Test
-  void shouldReturnchangeLogsWhenDataValueIsDeleted() throws NotFoundException, IOException {
+  void shouldReturnChangeLogsWhenDataValueIsDeleted() throws NotFoundException, IOException {
     injectSecurityContextUser(manager.get(User.class, "M5zQapPyTZI"));
 
     Event event = manager.get(Event.class, "QRYjLTiJTrA");
@@ -160,7 +160,7 @@ class ChangeLogServiceTest extends TrackerTest {
   }
 
   @Test
-  void shouldReturnchangeLogsWhenDataValueIsUpdated() throws NotFoundException, IOException {
+  void shouldReturnChangeLogsWhenDataValueIsUpdated() throws NotFoundException, IOException {
     injectSecurityContextUser(manager.get(User.class, "M5zQapPyTZI"));
 
     Event event = manager.get(Event.class, "QRYjLTiJTrA");
@@ -184,7 +184,7 @@ class ChangeLogServiceTest extends TrackerTest {
   }
 
   @Test
-  void shouldReturnchangeLogsWhenDataValueIsCreatedUpdatedAndDeleted()
+  void shouldReturnChangeLogsWhenDataValueIsCreatedUpdatedAndDeleted()
       throws IOException, NotFoundException {
     injectSecurityContextUser(manager.get(User.class, "M5zQapPyTZI"));
 
