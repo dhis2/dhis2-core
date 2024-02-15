@@ -380,8 +380,8 @@ public enum ConfigurationKey {
 
   PROGRAM_TEMPORARY_OWNERSHIP_TIMEOUT("tracker.temporary.ownership.timeout", "3", false),
 
-  /** Use unlogged tables during analytics export. (default: off) */
-  ANALYTICS_TABLE_UNLOGGED("analytics.table.unlogged", Constants.OFF),
+  /** Use unlogged tables during analytics export. (default: ON) */
+  ANALYTICS_TABLE_UNLOGGED("analytics.table.unlogged", Constants.ON),
 
   /** Order analytics tables data on insert. */
   ANALYTICS_TABLE_ORDERING("analytics.table.ordering", Constants.OFF),
