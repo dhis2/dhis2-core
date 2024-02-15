@@ -242,7 +242,7 @@ public class DefaultAclService implements AclService {
     Schema schema = schemaService.getSchema(objType);
 
     if (object instanceof AggregateDataExchange) {
-      return checkSharingPermission( userDetails, object, Permission.DATA_WRITE);
+      return checkSharingPermission(userDetails, object, Permission.DATA_WRITE);
     }
 
     // returned unmodifiable list does not need to be cloned since it is not
