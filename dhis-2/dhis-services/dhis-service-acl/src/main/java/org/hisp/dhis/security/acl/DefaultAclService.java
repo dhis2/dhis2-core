@@ -38,6 +38,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
@@ -239,6 +240,10 @@ public class DefaultAclService implements AclService {
     }
 
     Schema schema = schemaService.getSchema(objType);
+
+    if (object instanceof AggregateDataExchange) {
+      return checkSharingPermission( userDetails, object, Permission.DATA_WRITE);
+    }
 
     // returned unmodifiable list does not need to be cloned since it is not
     // modified

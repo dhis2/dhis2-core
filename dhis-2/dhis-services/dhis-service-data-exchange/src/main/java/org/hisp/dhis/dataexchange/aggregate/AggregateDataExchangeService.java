@@ -61,6 +61,9 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobProgress.FailurePolicy;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.security.acl.AclService;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -87,6 +90,8 @@ public class AggregateDataExchangeService {
   @Qualifier(AES_128_STRING_ENCRYPTOR)
   private final PBEStringCleanablePasswordEncryptor encryptor;
 
+  private final AclService aclService;
+
   /**
    * Retrieves an {@link AggregateDataExchange} by identifier. Throws an exception if no object with
    * the given identifier exists.
@@ -111,7 +116,6 @@ public class AggregateDataExchangeService {
   @Transactional
   public ImportSummaries exchangeData(String uid, JobProgress progress) {
     AggregateDataExchange exchange = aggregateDataExchangeStore.loadByUid(uid);
-
     return exchangeData(exchange, progress);
   }
 
@@ -125,6 +129,13 @@ public class AggregateDataExchangeService {
   @Transactional
   public ImportSummaries exchangeData(AggregateDataExchange exchange, JobProgress progress) {
     ImportSummaries summaries = new ImportSummaries();
+
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+    if (!aclService.canDataWrite( currentUser, exchange)) {
+      ImportSummary summary = new ImportSummary(ImportStatus.ERROR, "You do not have write access for this data exchange!");
+      summaries.addImportSummary(summary);
+      return summaries;
+    }
 
     progress.startingStage(toStageDescription(exchange), FailurePolicy.SKIP_ITEM);
     progress.runStage(
