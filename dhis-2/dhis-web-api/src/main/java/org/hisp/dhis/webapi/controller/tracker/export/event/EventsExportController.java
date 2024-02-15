@@ -158,7 +158,7 @@ class EventsExportController {
     List<org.hisp.dhis.program.Event> events = eventService.getEvents(eventOperationParams);
 
     String attachment = getAttachmentOrDefault(eventRequestParams.getAttachment(), "json", "gz");
-    ResponseHeader.addContentDisposition(response, attachment);
+    ResponseHeader.addContentDispositionAttachment(response, attachment);
     ResponseHeader.addContentTransferEncodingBinary(response);
     response.setContentType(CONTENT_TYPE_JSON_GZIP);
 
@@ -176,7 +176,7 @@ class EventsExportController {
     List<org.hisp.dhis.program.Event> events = eventService.getEvents(eventOperationParams);
 
     String attachment = getAttachmentOrDefault(eventRequestParams.getAttachment(), "json", "zip");
-    ResponseHeader.addContentDisposition(response, attachment);
+    ResponseHeader.addContentDispositionAttachment(response, attachment);
     ResponseHeader.addContentTransferEncodingBinary(response);
     response.setContentType(CONTENT_TYPE_JSON_ZIP);
 
@@ -198,7 +198,7 @@ class EventsExportController {
     List<org.hisp.dhis.program.Event> events = eventService.getEvents(eventOperationParams);
 
     String attachment = getAttachmentOrDefault(eventRequestParams.getAttachment(), "csv");
-    ResponseHeader.addContentDisposition(response, attachment);
+    ResponseHeader.addContentDispositionAttachment(response, attachment);
     response.setContentType(CONTENT_TYPE_CSV);
 
     csvEventService.write(
@@ -216,7 +216,7 @@ class EventsExportController {
     List<org.hisp.dhis.program.Event> events = eventService.getEvents(eventOperationParams);
 
     String attachment = getAttachmentOrDefault(eventRequestParams.getAttachment(), "csv", "gz");
-    ResponseHeader.addContentDisposition(response, attachment);
+    ResponseHeader.addContentDispositionAttachment(response, attachment);
     ResponseHeader.addContentTransferEncodingBinary(response);
     response.setContentType(CONTENT_TYPE_CSV_GZIP);
 
@@ -235,7 +235,7 @@ class EventsExportController {
     List<org.hisp.dhis.program.Event> events = eventService.getEvents(eventOperationParams);
 
     String attachment = getAttachmentOrDefault(eventRequestParams.getAttachment(), "csv", "zip");
-    ResponseHeader.addContentDisposition(response, attachment);
+    ResponseHeader.addContentDispositionAttachment(response, attachment);
     ResponseHeader.addContentTransferEncodingBinary(response);
     response.setContentType(CONTENT_TYPE_CSV_ZIP);
 

@@ -652,7 +652,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
     assertEquals("\"" + file.getContentMd5() + "\"", response.header("Etag"));
     assertEquals("max-age=0, must-revalidate, private", response.header("Cache-Control"));
     assertEquals(Long.toString(file.getContentLength()), response.header("Content-Length"));
-    assertEquals("attachment; filename=" + file.getName(), response.header("Content-Disposition"));
+    assertEquals("filename=" + file.getName(), response.header("Content-Disposition"));
     assertEquals("file content", response.content("text/plain"));
   }
 
@@ -677,7 +677,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
     assertEquals("\"" + file.getContentMd5() + "\"", response.header("Etag"));
     assertEquals("max-age=0, must-revalidate, private", response.header("Cache-Control"));
     assertEquals(Long.toString(file.getContentLength()), response.header("Content-Length"));
-    assertEquals("attachment; filename=" + file.getName(), response.header("Content-Disposition"));
+    assertEquals("filename=" + file.getName(), response.header("Content-Disposition"));
     assertEquals("file content", response.content("text/plain"));
   }
 
@@ -930,7 +930,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
     assertEquals(HttpStatus.OK, response.status());
     assertEquals("\"" + file.getContentMd5() + "\"", response.header("Etag"));
     assertEquals("max-age=0, must-revalidate, private", response.header("Cache-Control"));
-    assertEquals("attachment; filename=" + file.getName(), response.header("Content-Disposition"));
+    assertEquals("filename=" + file.getName(), response.header("Content-Disposition"));
     assertEquals(Long.toString(file.getContentLength()), response.header("Content-Length"));
     assertEquals("file content", response.content("image/png"));
   }

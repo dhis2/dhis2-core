@@ -175,7 +175,7 @@ class TrackedEntitiesExportController {
         paramsMapper.map(trackedEntityRequestParams, user, CSV_FIELDS);
 
     String attachment = getAttachmentOrDefault(trackedEntityRequestParams.getAttachment(), "csv");
-    ResponseHeader.addContentDisposition(response, attachment);
+    ResponseHeader.addContentDispositionAttachment(response, attachment);
     ResponseHeader.addContentTransferEncodingBinary(response);
     response.setContentType(CONTENT_TYPE_CSV);
 
@@ -198,7 +198,7 @@ class TrackedEntitiesExportController {
 
     String attachment =
         getAttachmentOrDefault(trackedEntityRequestParams.getAttachment(), "csv", "zip");
-    ResponseHeader.addContentDisposition(response, attachment);
+    ResponseHeader.addContentDispositionAttachment(response, attachment);
     ResponseHeader.addContentTransferEncodingBinary(response);
     response.setContentType(CONTENT_TYPE_CSV_ZIP);
 
@@ -222,7 +222,7 @@ class TrackedEntitiesExportController {
 
     String attachment =
         getAttachmentOrDefault(trackedEntityRequestParams.getAttachment(), "csv", "gz");
-    ResponseHeader.addContentDisposition(response, attachment);
+    ResponseHeader.addContentDispositionAttachment(response, attachment);
     ResponseHeader.addContentTransferEncodingBinary(response);
     response.setContentType(CONTENT_TYPE_CSV_GZIP);
 

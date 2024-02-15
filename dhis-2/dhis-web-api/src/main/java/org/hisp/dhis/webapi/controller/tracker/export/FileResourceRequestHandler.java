@@ -75,7 +75,7 @@ public class FileResourceRequestHandler {
         .contentLength(fileResource.getContentLength())
         .header(
             HttpHeaders.CONTENT_DISPOSITION,
-            ResponseHeader.contentDispositionValue(fileResource.getName()))
+            ResponseHeader.contentDispositionInline(fileResource.getName()))
         .body(new InputStreamResource(file.getInputStreamSupplier().get()));
   }
 }
