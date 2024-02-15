@@ -759,7 +759,7 @@ public class DataQueryParams {
 
   /** Returns the filter periods as period objects. */
   public List<Period> getTypedFilterPeriods() {
-    return getFilterPeriods().stream().map(Period.class::cast).toList();
+    return getFilterPeriods().stream().map(Period.class::cast).collect(Collectors.toList());
   }
 
   /** Returns a list of dimensions which occur more than once, not including the first duplicate. */
@@ -1130,7 +1130,7 @@ public class DataQueryParams {
       String dimension) {
     return getDimensionItemObjects(dimension).stream()
         .map(item -> new EventAnalyticsDimensionalItem(item, dimension))
-        .toList();
+        .collect(Collectors.toList());
   }
 
   /**
@@ -1693,7 +1693,7 @@ public class DataQueryParams {
             AnalyticsUtils.getByDataDimensionItemType(
                 DataDimensionItemType.REPORTING_RATE, dimension.getItems()));
 
-    items = items.stream().filter(r -> metric == r.getMetric()).toList();
+    items = items.stream().filter(r -> metric == r.getMetric()).collect(Collectors.toList());
 
     dimension.getItems().clear();
     dimension.getItems().addAll(items);
@@ -2224,7 +2224,7 @@ public class DataQueryParams {
     return Stream.concat(dimensions.stream(), filters.stream())
         .filter(d -> PERIOD == d.getDimensionType())
         .flatMap(d -> d.getItems().stream())
-        .toList();
+        .collect(Collectors.toList());
   }
 
   /** Returns all organisation units part of a dimension or filter. */
@@ -2236,7 +2236,9 @@ public class DataQueryParams {
   /** Returns all typed organisation part of a dimension or filter. */
   public List<OrganisationUnit> getAllTypedOrganisationUnits() {
     return ImmutableList.copyOf(
-        getAllOrganisationUnits().stream().map(OrganisationUnit.class::cast).toList());
+        getAllOrganisationUnits().stream()
+            .map(OrganisationUnit.class::cast)
+            .collect(Collectors.toList()));
   }
 
   /** Returns all data element group sets specified as dimensions or filters. */
@@ -2339,12 +2341,12 @@ public class DataQueryParams {
         getDataElementOperands().stream()
             .map(DataElementOperand.class::cast)
             .map(DataElementOperand::getDataElement)
-            .toList());
+            .collect(Collectors.toList()));
     dataElements.addAll(
         getProgramDataElements().stream()
             .map(ProgramDataElementDimensionItem.class::cast)
             .map(ProgramDataElementDimensionItem::getDataElement)
-            .toList());
+            .collect(Collectors.toList()));
 
     return ImmutableList.copyOf(dataElements);
   }

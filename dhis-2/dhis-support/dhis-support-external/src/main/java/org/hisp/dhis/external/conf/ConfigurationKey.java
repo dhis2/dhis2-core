@@ -589,7 +589,7 @@ public enum ConfigurationKey {
   /** Database debugging feature. Enable time query logging. */
   ELAPSED_TIME_QUERY_LOGGING_ENABLED("elapsed.time.query.logging.enabled", Constants.OFF, false),
 
-  /** Database datasource pool type. Supported pool types are: c3p0 (default), hikari */
+  /** Database datasource pool type. Supported pool types are: c3p0 (default), hikari, unpooled */
   DB_POOL_TYPE("db.pool.type", "c3p0", false),
 
   ACTIVE_READ_REPLICAS("active.read.replicas", "0", false),

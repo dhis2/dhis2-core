@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,56 +25,56 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.datasource;
 
-import java.util.Date;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 
-/** Parameters for repeatable stage values. */
-@Getter
-@Setter
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
-@EqualsAndHashCode(of = {"startIndex", "count", "startDate", "endDate"})
-public class RepeatableStageParams {
-  private int startIndex;
+import java.sql.Connection;
+import java.sql.Driver;
+import java.sql.DriverPropertyInfo;
+import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
+import java.sql.Statement;
+import java.util.Properties;
+import java.util.logging.Logger;
 
-  private int count = 1;
-
-  // Related to execution date
-  private Date startDate;
-
-  // Related to execution date
-  private Date endDate;
-
-  private boolean defaultObject = true;
-
-  private String dimension;
+public class StubDriver implements Driver {
+  @Override
+  public Connection connect(String s, Properties properties) throws SQLException {
+    Statement mockStatement = mock(Statement.class);
+    Connection mockConnection = mock(Connection.class);
+    given(mockConnection.createStatement()).willReturn(mockStatement);
+    return mockConnection;
+  }
 
   @Override
-  public String toString() {
-    return "startIndex:"
-        + startIndex
-        + " count:"
-        + (count == Integer.MAX_VALUE ? "all" : count)
-        + " startDate:"
-        + startDate
-        + " endDate: "
-        + endDate;
+  public boolean acceptsURL(String url) throws SQLException {
+    return url.equals("jdbc:fake:db");
   }
 
-  /** Indicates whether value type should be considered as a number. */
-  public boolean simpleStageValueExpected() {
-    return count == 1;
+  @Override
+  public DriverPropertyInfo[] getPropertyInfo(String s, Properties properties) throws SQLException {
+    return new DriverPropertyInfo[0];
   }
 
-  public static RepeatableStageParams ofStartIndex(int startIndex) {
-    return RepeatableStageParams.builder().startIndex(startIndex).build();
+  @Override
+  public int getMajorVersion() {
+    return 0;
+  }
+
+  @Override
+  public int getMinorVersion() {
+    return 0;
+  }
+
+  @Override
+  public boolean jdbcCompliant() {
+    return false;
+  }
+
+  @Override
+  public Logger getParentLogger() throws SQLFeatureNotSupportedException {
+    return null;
   }
 }

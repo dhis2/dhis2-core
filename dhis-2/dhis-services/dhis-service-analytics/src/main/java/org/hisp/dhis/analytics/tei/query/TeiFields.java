@@ -51,6 +51,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.common.params.CommonParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
@@ -175,11 +176,33 @@ public class TeiFields {
         .filter(Objects::nonNull)
         .map(
             dimIdentifier ->
-                getHeaderForDimensionParam(dimIdentifier, teiQueryParams.getCommonParams()))
+                Pair.of(
+                    dimIdentifier,
+                    getHeaderForDimensionParam(dimIdentifier, teiQueryParams.getCommonParams())))
+        .map(pair -> withStageOffsetIfNecessary(pair.getLeft(), pair.getRight()))
         .filter(Objects::nonNull)
         .forEach(g -> headersMap.put(g.getName(), g));
 
     return reorder(headersMap, fields);
+  }
+
+  /**
+   * Adds the stage offset to the given {@link GridHeader} if necessary.
+   *
+   * @param dimIdentifier the {@link DimensionIdentifier}.
+   * @param gridHeader the {@link GridHeader}.
+   * @return the updated {@link GridHeader}.
+   */
+  private static GridHeader withStageOffsetIfNecessary(
+      DimensionIdentifier<DimensionParam> dimIdentifier, GridHeader gridHeader) {
+    return Optional.of(dimIdentifier)
+        .filter(DimensionIdentifier::hasProgramStage)
+        .map(DimensionIdentifier::getProgramStage)
+        .map(ElementWithOffset::getOffset)
+        .map(
+            offset ->
+                gridHeader.withRepeatableStageParams(RepeatableStageParams.ofStartIndex(offset)))
+        .orElse(gridHeader);
   }
 
   /**
