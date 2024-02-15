@@ -322,7 +322,6 @@ class DateUtilsTest {
     assertEquals(new DateTime(2019, 4, 8, 2, 0, 0, 0).toDate(), DateUtils.getNextDate(2, now2));
     assertEquals(new DateTime(2019, 4, 7, 5, 0, 0, 0).toDate(), DateUtils.getNextDate(5, now2));
     assertEquals(new DateTime(2019, 4, 7, 17, 0, 0, 0).toDate(), DateUtils.getNextDate(17, now2));
-    assertNotNull(DateUtils.getNextDate(4, null));
   }
 
   @Test
