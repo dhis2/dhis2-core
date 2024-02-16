@@ -35,6 +35,7 @@ import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.IndexFunction;
 import org.hisp.dhis.db.model.IndexType;
+import org.hisp.dhis.db.model.Table;
 
 /**
  * Abstract SQL builder class.
@@ -51,8 +52,36 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
   protected static final String EMPTY = "";
   protected static final String ALIAS_AX = "ax";
 
+  // Utilities
+
   @Override
-  public String getDataTypeName(DataType dataType) {
+  public String quoteAx(String relation) {
+    return ALIAS_AX + DOT + quote(relation);
+  }
+
+  @Override
+  public String singleQuotedCommaDelimited(Collection<String> items) {
+    return isEmpty(items)
+        ? EMPTY
+        : items.stream().map(this::singleQuote).collect(Collectors.joining(COMMA));
+  }
+
+  // Statements
+
+  @Override
+  public String analyzeTable(Table table) {
+    return analyzeTable(table.getName());
+  }
+
+  // Mapping
+
+  /**
+   * Returns the database name of the given data type.
+   *
+   * @param dataType the {@link DataType}.
+   * @return the database name of the given data type.
+   */
+  protected String getDataTypeName(DataType dataType) {
     switch (dataType) {
       case SMALLINT:
         return dataTypeSmallInt();
@@ -98,8 +127,31 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
     }
   }
 
-  @Override
-  public String getIndexTypeName(IndexType indexType) {
+  /**
+   * Returns the database name of the given index function.
+   *
+   * @param indexFunction the {@link IndexFunction}.
+   * @return the database name of the given index function.
+   */
+  protected String getIndexFunctionName(IndexFunction indexFunction) {
+    switch (indexFunction) {
+      case UPPER:
+        return indexFunctionUpper();
+      case LOWER:
+        return indexFunctionLower();
+      default:
+        throw new UnsupportedOperationException(
+            String.format("Unsuported index function: %s", indexFunction));
+    }
+  }
+
+  /**
+   * Returns the database name of the given index type.
+   *
+   * @param indexType the {@link IndexType}.
+   * @return the database name of the given index type.
+   */
+  protected String getIndexTypeName(IndexType indexType) {
     switch (indexType) {
       case BTREE:
         return indexTypeBtree();
@@ -113,30 +165,7 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
     }
   }
 
-  @Override
-  public String getIndexFunctionName(IndexFunction indexFunction) {
-    switch (indexFunction) {
-      case UPPER:
-        return indexFunctionUpper();
-      case LOWER:
-        return indexFunctionLower();
-      default:
-        throw new UnsupportedOperationException(
-            String.format("Unsuported index function: %s", indexFunction));
-    }
-  }
-
-  @Override
-  public String quoteAx(String relation) {
-    return ALIAS_AX + DOT + quote(relation);
-  }
-
-  @Override
-  public String singleQuotedCommaDelimited(Collection<String> items) {
-    return isEmpty(items)
-        ? EMPTY
-        : items.stream().map(this::singleQuote).collect(Collectors.joining(COMMA));
-  }
+  // Supportive
 
   /**
    * Returns a quoted column string. If the index has a function, the quoted column is wrapped in

@@ -191,11 +191,6 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String analyzeTable(Table table) {
-    return notSupported();
-  }
-
-  @Override
   public String analyzeTable(String name) {
     return notSupported();
   }

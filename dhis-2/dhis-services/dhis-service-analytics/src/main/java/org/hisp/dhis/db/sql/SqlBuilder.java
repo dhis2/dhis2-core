@@ -28,10 +28,7 @@
 package org.hisp.dhis.db.sql;
 
 import java.util.Collection;
-import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
-import org.hisp.dhis.db.model.IndexFunction;
-import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Table;
 
 /**
@@ -124,12 +121,6 @@ public interface SqlBuilder {
    */
   String dataTypeJson();
 
-  /**
-   * @param dataType the {@link DataType}.
-   * @return he database name of the given data type.
-   */
-  String getDataTypeName(DataType dataType);
-
   // Index types
 
   /**
@@ -147,12 +138,6 @@ public interface SqlBuilder {
    */
   String indexTypeGin();
 
-  /**
-   * @param indexType the {@link IndexType}.
-   * @return the database name of the given index type.
-   */
-  String getIndexTypeName(IndexType indexType);
-
   // Index functions
 
   /**
@@ -164,12 +149,6 @@ public interface SqlBuilder {
    * @return the name of the lower index function.
    */
   String indexFunctionLower();
-
-  /**
-   * @param indexFunction the {@link IndexFunction}.
-   * @return the database name of the given index function.
-   */
-  String getIndexFunctionName(IndexFunction indexFunction);
 
   // Capabilities
 
