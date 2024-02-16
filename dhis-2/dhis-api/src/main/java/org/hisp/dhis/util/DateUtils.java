@@ -454,24 +454,24 @@ public class DateUtils {
   }
 
   /**
-   * Returns the nearest date forward in time with the given hour of day, with the minute, second
+   * Calculates the nearest date forward in time with the given hour of day, with the minute, second
    * and millisecond to zero. If the hour equals the current hour of day, the next following day is
    * used.
    *
    * @param hourOfDay the hour of the day.
-   * @param now the date representing the current time, if null, the current time is used.
+   * @param date the date representing the base time for the calculation.
    * @return the nearest date forward in time with the given hour of day.
    */
-  public static Date getNextDate(int hourOfDay, Date now) {
-    now = now != null ? now : new Date();
+  public static Date getNextDate(int hourOfDay, Date date) {
+    Objects.requireNonNull(date);
 
-    DateTime date = new DateTime(now).plusHours(1);
+    DateTime dateTime = new DateTime(date).plusHours(1);
 
-    while (date.getHourOfDay() != hourOfDay) {
-      date = date.plusHours(1);
+    while (dateTime.getHourOfDay() != hourOfDay) {
+      dateTime = dateTime.plusHours(1);
     }
 
-    return date.withMinuteOfHour(0).withSecondOfMinute(0).withMillisOfSecond(0).toDate();
+    return dateTime.withMinuteOfHour(0).withSecondOfMinute(0).withMillisOfSecond(0).toDate();
   }
 
   /**

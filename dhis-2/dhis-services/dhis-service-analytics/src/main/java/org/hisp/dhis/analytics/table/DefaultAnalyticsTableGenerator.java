@@ -89,8 +89,7 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
 
     log.info("Found {} analytics table types: {}", availableTypes.size(), availableTypes);
     log.info("Analytics table update: {}", params);
-    log.info(
-        "Last successful analytics table update: '{}'", getLongDateString(lastSuccessfulUpdate));
+    log.info("Last successful analytics table update: {}", getLongDateString(lastSuccessfulUpdate));
 
     progress.startingProcess(
         "Analytics table update process{}", (params.isLatestUpdate() ? " (latest partition)" : ""));
