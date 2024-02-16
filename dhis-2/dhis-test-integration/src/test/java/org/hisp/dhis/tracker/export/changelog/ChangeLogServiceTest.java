@@ -84,7 +84,7 @@ class ChangeLogServiceTest extends TrackerTest {
 
   @Test
   void shouldFailWhenEventOrgUnitIsNotAccessible() {
-    injectSecurityContextUser(manager.get(User.class, "o1HMTIzBGo7"));
+    testAsUser("o1HMTIzBGo7");
 
     assertThrows(
         NotFoundException.class, () -> changeLogService.getEventChangeLog(UID.of("D9PbzJY8bJM")));
@@ -92,7 +92,7 @@ class ChangeLogServiceTest extends TrackerTest {
 
   @Test
   void shouldFailWhenEventProgramIsNotAccessible() {
-    injectSecurityContextUser(manager.get(User.class, "o1HMTIzBGo7"));
+    testAsUser("o1HMTIzBGo7");
 
     assertThrows(
         NotFoundException.class, () -> changeLogService.getEventChangeLog(UID.of("G9PbzJY8bJG")));
@@ -100,7 +100,7 @@ class ChangeLogServiceTest extends TrackerTest {
 
   @Test
   void shouldFailWhenProgramTrackedEntityTypeIsNotAccessible() {
-    injectSecurityContextUser(manager.get(User.class, "FIgVWzUCkpw"));
+    testAsUser("FIgVWzUCkpw");
 
     assertThrows(
         NotFoundException.class, () -> changeLogService.getEventChangeLog(UID.of("H0PbzJY8bJG")));
@@ -109,6 +109,7 @@ class ChangeLogServiceTest extends TrackerTest {
   @Test
   void shouldFailWhenProgramWithoutRegistrationAndNoAccessToEventOrgUnit() {
     injectSecurityContextUser(manager.get(User.class, "o1HMTIzBGo7"));
+    testAsUser("o1HMTIzBGo7");
 
     assertThrows(
         NotFoundException.class, () -> changeLogService.getEventChangeLog(UID.of("G9PbzJY8bJG")));
@@ -116,7 +117,7 @@ class ChangeLogServiceTest extends TrackerTest {
 
   @Test
   void shouldReturnChangeLogsWhenDataValueIsCreated() throws NotFoundException {
-    injectSecurityContextUser(manager.get(User.class, "M5zQapPyTZI"));
+    testAsUser("M5zQapPyTZI");
     Event event = getEvent("QRYjLTiJTrA");
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
 
@@ -130,7 +131,7 @@ class ChangeLogServiceTest extends TrackerTest {
 
   @Test
   void shouldReturnChangeLogsWhenDataValueIsDeleted() throws NotFoundException, IOException {
-    injectSecurityContextUser(manager.get(User.class, "M5zQapPyTZI"));
+    testAsUser("M5zQapPyTZI");
 
     Event event = getEvent("QRYjLTiJTrA");
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
@@ -150,7 +151,7 @@ class ChangeLogServiceTest extends TrackerTest {
   @Test
   void shouldNotUpdateChangeLogsWhenDataValueIsDeletedTwiceInARow()
       throws NotFoundException, IOException {
-    injectSecurityContextUser(manager.get(User.class, "M5zQapPyTZI"));
+    testAsUser("M5zQapPyTZI");
 
     Event event = getEvent("QRYjLTiJTrA");
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
@@ -171,7 +172,7 @@ class ChangeLogServiceTest extends TrackerTest {
 
   @Test
   void shouldReturnChangeLogsWhenDataValueIsUpdated() throws NotFoundException, IOException {
-    injectSecurityContextUser(manager.get(User.class, "M5zQapPyTZI"));
+    testAsUser("M5zQapPyTZI");
 
     Event event = getEvent("QRYjLTiJTrA");
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
@@ -191,7 +192,7 @@ class ChangeLogServiceTest extends TrackerTest {
   @Test
   void shouldReturnChangeLogsWhenDataValueIsUpdatedTwiceInARow()
       throws NotFoundException, IOException {
-    injectSecurityContextUser(manager.get(User.class, "M5zQapPyTZI"));
+    testAsUser("M5zQapPyTZI");
 
     Event event = getEvent("QRYjLTiJTrA");
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
@@ -213,7 +214,7 @@ class ChangeLogServiceTest extends TrackerTest {
   @Test
   void shouldReturnChangeLogsWhenDataValueIsCreatedUpdatedAndDeleted()
       throws IOException, NotFoundException {
-    injectSecurityContextUser(manager.get(User.class, "M5zQapPyTZI"));
+    testAsUser("M5zQapPyTZI");
 
     Event event = getEvent("QRYjLTiJTrA");
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
@@ -285,5 +286,9 @@ class ChangeLogServiceTest extends TrackerTest {
 
   private List<Object> createValueList(Object... values) {
     return Arrays.stream(values).toList();
+  }
+
+  private void testAsUser(String user) {
+    injectSecurityContextUser(manager.get(User.class, user));
   }
 }
