@@ -60,6 +60,9 @@ public class SqlBuilderProvider {
   private SqlBuilder getSqlBuilder(AnalyticsTableSettings config) {
     Database database = config.getAnalyticsDatabase();
     Objects.requireNonNull(database);
-    return new PostgreSqlBuilder();
+    switch (database) {
+      default:
+        return new PostgreSqlBuilder();
+    }
   }
 }
