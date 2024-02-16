@@ -200,6 +200,6 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
    * @throws UnsupportedOperationException
    */
   protected String notSupported() {
-    throw new UnsupportedOperationException();
+    throw new UnsupportedOperationException("Feature or SQL syntax not supported");
   }
 }
