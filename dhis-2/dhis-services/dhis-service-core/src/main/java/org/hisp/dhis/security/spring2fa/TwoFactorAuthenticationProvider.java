@@ -76,11 +76,11 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
       ip = details.getIp();
     }
 
-    log.debug(String.format("Login attempt: %s", username));
+    log.debug("Login attempt: {}", username);
 
     // If enabled, temporarily block user with too many failed attempts
     if (userService.isLocked(username)) {
-      log.debug(String.format("Temporary lockout for user: %s and IP: %s", username, ip));
+      log.debug("Temporary lockout for user: '{}' and IP: {}", username, ip);
       throw new LockedException(String.format("IP is temporarily locked: %s", ip));
     }
 
@@ -89,11 +89,9 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
 
     if (principal.isExternalAuth()) {
       log.info(
-          String.format(
-              "User '%s' is using external authentication, password login attempt aborted",
-              username));
+          "User is using external authentication, password login attempt aborted: '{}'", username);
       throw new BadCredentialsException(
-          "Invalid login method, user is using external authentication.");
+          "Invalid login method, user is using external authentication");
     }
 
     validateTwoFactor(principal, auth.getDetails());
@@ -107,7 +105,7 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
     if (userDetails.isTwoFactorEnabled()
         && !(details instanceof TwoFactorWebAuthenticationDetails)) {
       throw new PreAuthenticatedCredentialsNotFoundException(
-          "User has 2FA enabled, but tried to authenticate with a non-form based login method; username="
+          "User has 2FA enabled, but attempted to authenticate with a non-form based login method: "
               + userDetails.getUsername());
     }
 
@@ -121,9 +119,9 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
     if (userDetails.isTwoFactorEnabled()) {
       TwoFactorWebAuthenticationDetails authDetails = (TwoFactorWebAuthenticationDetails) details;
       if (authDetails == null) {
-        log.info("Missing authentication details in authentication request.");
+        log.info("Missing authentication details in authentication request");
         throw new PreAuthenticatedCredentialsNotFoundException(
-            "Missing authentication details in authentication request.");
+            "Missing authentication details in authentication request");
       }
 
       validateTwoFactorCode(
@@ -137,8 +135,7 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
     code = StringUtils.deleteWhitespace(code);
 
     if (!TwoFactoryAuthenticationUtils.verify(code, user.getSecret())) {
-      log.debug(
-          String.format("Two-factor authentication failure for user: %s", user.getUsername()));
+      log.debug("Two-factor authentication failure for user: '{}'", user.getUsername());
 
       if (UserService.hasTwoFactorSecretForApproval(user)) {
         userService.resetTwoFactor(user);

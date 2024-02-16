@@ -264,6 +264,8 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
     removeLastComma(sql).append(")");
 
+    // Parent
+
     if (table.hasParent()) {
       sql.append(" inherits (").append(quote(table.getParent().getName())).append(")");
     }
