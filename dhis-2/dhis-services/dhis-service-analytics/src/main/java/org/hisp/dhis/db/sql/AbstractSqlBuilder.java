@@ -127,6 +127,11 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
   }
 
   @Override
+  public String quoteAx(String relation) {
+    return ALIAS_AX + DOT + quote(relation);
+  }
+
+  @Override
   public String singleQuotedCommaDelimited(Collection<String> items) {
     return isEmpty(items)
         ? EMPTY

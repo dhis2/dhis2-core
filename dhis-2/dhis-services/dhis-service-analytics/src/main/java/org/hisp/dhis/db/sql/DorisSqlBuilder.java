@@ -172,11 +172,6 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String quoteAx(String relation) {
-    return null;
-  }
-
-  @Override
   public String singleQuote(String value) {
     return SINGLE_QUOTE + escape(value) + SINGLE_QUOTE;
   }
