@@ -43,6 +43,9 @@ import org.hisp.dhis.db.model.constraint.Unique;
  * @author Lars Helge Overland
  */
 public class PostgreSqlBuilder extends AbstractSqlBuilder {
+
+  private static final String QUOTE = "\"";
+
   // Data types
 
   @Override

@@ -31,6 +31,9 @@ import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 
 public class DorisSqlBuilder extends AbstractSqlBuilder {
+
+  private static final String QUOTE = "`";
+
   // Data types
 
   @Override
@@ -163,12 +166,12 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String quote(String relation) {
-    return null;
+    return QUOTE + escape(relation) + QUOTE;
   }
 
   @Override
   public String quote(String alias, String relation) {
-    return null;
+    return alias + DOT + quote(relation);
   }
 
   @Override
