@@ -28,7 +28,6 @@
 package org.hisp.dhis.db.sql;
 
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
-
 import java.util.Collection;
 import java.util.stream.Collectors;
 import org.hisp.dhis.db.model.DataType;
@@ -60,10 +59,10 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
         return dataTypeInteger();
       case BIGINT:
         return dataTypeBigInt();
-      case NUMERIC:
-        return dataTypeNumeric();
+      case DECIMAL:
+        return dataTypeDecimal();
       case REAL:
-        return dataTypeReal();
+        return dataTypeFloat();
       case DOUBLE:
         return dataTypeDouble();
       case BOOLEAN:
@@ -86,16 +85,12 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
         return dataTypeTimestamp();
       case TIMESTAMPTZ:
         return dataTypeTimestampTz();
-      case TIME:
-        return dataTypeTime();
-      case TIMETZ:
-        return dataTypeTimeTz();
       case GEOMETRY:
         return dataTypeGeometry();
       case GEOMETRY_POINT:
         return dataTypeGeometryPoint();
       case JSONB:
-        return dataTypeJsonb();
+        return dataTypeJson();
       default:
         throw new UnsupportedOperationException(
             String.format("Unsuported data type: %s", dataType));

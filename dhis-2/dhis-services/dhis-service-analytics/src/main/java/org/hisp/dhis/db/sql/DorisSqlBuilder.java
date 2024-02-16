@@ -35,82 +35,72 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String dataTypeSmallInt() {
-    return null;
+    return "smallint";
   }
 
   @Override
   public String dataTypeInteger() {
-    return null;
+    return "int";
   }
 
   @Override
   public String dataTypeBigInt() {
-    return null;
+    return "bigint";
   }
 
   @Override
-  public String dataTypeNumeric() {
-    return null;
+  public String dataTypeDecimal() {
+    return "decimal(18,6)";
   }
 
   @Override
-  public String dataTypeReal() {
-    return null;
+  public String dataTypeFloat() {
+    return "float";
   }
 
   @Override
   public String dataTypeDouble() {
-    return null;
+    return "double";
   }
 
   @Override
   public String dataTypeBoolean() {
-    return null;
+    return "boolean";
   }
 
   @Override
   public String dataTypeCharacter(int length) {
-    return null;
+    return String.format("char(%d)", length);
   }
 
   @Override
   public String dataTypeVarchar(int length) {
-    return null;
+    return String.format("varchar(%d)", length);
   }
 
   @Override
   public String dataTypeText() {
-    return null;
+    return "string";
   }
 
   @Override
   public String dataTypeDate() {
-    return null;
+    return "date";
   }
 
   @Override
   public String dataTypeTimestamp() {
-    return null;
+    return "datetime";
   }
 
   @Override
   public String dataTypeTimestampTz() {
-    return null;
-  }
-
-  @Override
-  public String dataTypeTime() {
-    return null;
-  }
-
-  @Override
-  public String dataTypeTimeTz() {
-    return null;
+    return "datetime";  // to do
   }
 
   @Override
   public String dataTypeGeometry() {
-    return null;
+    return "string";
   }
 
   @Override
@@ -119,8 +109,8 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String dataTypeJsonb() {
-    return null;
+  public String dataTypeJson() {
+    return "json";
   }
 
   // Index types
@@ -154,6 +144,11 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   // Capabilities
 
+  @Override
+  public boolean supportsGeospatialData() {
+    return false;
+  }
+  
   @Override
   public boolean supportsAnalyze() {
     return false;

@@ -58,14 +58,14 @@ public interface SqlBuilder {
   String dataTypeBigInt();
 
   /**
-   * @return the name of the numeric data type.
+   * @return the name of the decimal data type.
    */
-  String dataTypeNumeric();
+  String dataTypeDecimal();
 
   /**
-   * @return the name of the real data type.
+   * @return the name of the float data type.
    */
-  String dataTypeReal();
+  String dataTypeFloat();
 
   /**
    * @return the name of the double data type.
@@ -110,16 +110,6 @@ public interface SqlBuilder {
   String dataTypeTimestampTz();
 
   /**
-   * @return the name of the time data type.
-   */
-  String dataTypeTime();
-
-  /**
-   * @return the name of the time with time zone data type.
-   */
-  String dataTypeTimeTz();
-
-  /**
    * @return the name of the geometry data type.
    */
   String dataTypeGeometry();
@@ -130,9 +120,9 @@ public interface SqlBuilder {
   String dataTypeGeometryPoint();
 
   /**
-   * @return the name of the JSONB data type.
+   * @return the name of the JSON data type.
    */
-  String dataTypeJsonb();
+  String dataTypeJson();
 
   /**
    * @param dataType the {@link DataType}.
@@ -183,6 +173,11 @@ public interface SqlBuilder {
 
   // Capabilities
 
+  /**
+   * @return true if the DBMS supports geospatial data types and functions.
+   */
+  boolean supportsGeospatialData();
+  
   /**
    * @return true if the DBMS supports table analysis.
    */
