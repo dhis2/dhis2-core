@@ -162,7 +162,8 @@ class ChangeLogServiceTest extends TrackerTest {
   }
 
   @Test
-  void shouldNotUpdateChangeLogsWhenDataValueIsDeletedTwiceInARow() throws NotFoundException, IOException {
+  void shouldNotUpdateChangeLogsWhenDataValueIsDeletedTwiceInARow()
+      throws NotFoundException, IOException {
     injectSecurityContextUser(manager.get(User.class, "M5zQapPyTZI"));
 
     Event event = manager.get(Event.class, "QRYjLTiJTrA");
@@ -216,7 +217,8 @@ class ChangeLogServiceTest extends TrackerTest {
   }
 
   @Test
-  void shouldReturnChangeLogsWhenDataValueIsUpdatedTwiceInARow() throws NotFoundException, IOException {
+  void shouldReturnChangeLogsWhenDataValueIsUpdatedTwiceInARow()
+      throws NotFoundException, IOException {
     injectSecurityContextUser(manager.get(User.class, "M5zQapPyTZI"));
 
     Event event = manager.get(Event.class, "QRYjLTiJTrA");
