@@ -82,9 +82,7 @@ class AggregateDataExchangeServiceTest {
 
   @Mock private AclService aclService;
 
-  @InjectMocks private AggregateDataExchangeService aclServiceInjectedService;
-
-  @Test
+    @Test
   @SuppressWarnings("unchecked")
   void testExchangeData() {
     when(analyticsService.getAggregatedDataValueSet(any(DataQueryParams.class)))
