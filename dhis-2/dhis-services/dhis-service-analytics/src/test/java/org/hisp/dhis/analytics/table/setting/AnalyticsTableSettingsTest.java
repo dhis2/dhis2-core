@@ -25,44 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.db.sql;
+package org.hisp.dhis.analytics.table.setting;
 
-import java.util.Objects;
-import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
+
 import org.hisp.dhis.db.model.Database;
+import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.stereotype.Service;
+import org.hisp.dhis.setting.SystemSettingManager;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@Service
-public class SqlBuilderProvider {
-  private final SqlBuilder sqlBuilder;
+@ExtendWith(MockitoExtension.class)
+class AnalyticsTableSettingsTest {
+  @Mock private DhisConfigurationProvider config;
 
-  public SqlBuilderProvider(AnalyticsTableSettings config) {
-    Objects.requireNonNull(config);
-    this.sqlBuilder = getSqlBuilder(config);
+  @Mock private SystemSettingManager systemSettings;
+
+  private AnalyticsTableSettings settings;
+
+  @BeforeEach
+  public void before() {
+    settings = new AnalyticsTableSettings(config, systemSettings);
   }
 
-  /**
-   * Returns a {@link SqlBuilder} implementation based on the system configuration.
-   *
-   * @return a {@link SqlBuilder}.
-   */
-  public SqlBuilder getSqlBuilder() {
-    return sqlBuilder;
+  @Test
+  void testGetAndValidateDatabase() {
+    assertEquals(Database.POSTGRESQL, settings.getAndValidateDatabase("POSTGRESQL"));
   }
 
-  /**
-   * Returns the appropriate {@link SqlBuilder} implementation based on the system configuration.
-   *
-   * @param config the {@link DhisConfigurationProvider}.
-   * @return a {@link SqlBuilder}.
-   */
-  private SqlBuilder getSqlBuilder(AnalyticsTableSettings config) {
-    Database database = config.getAnalyticsDatabase();
-    Objects.requireNonNull(database);
-    switch (database) {
-      default:
-        return new PostgreSqlBuilder();
-    }
+  @Test
+  void testGetAndValidateInvalidDatabase() {
+    assertThrows(IllegalArgumentException.class, () -> settings.getAndValidateDatabase("ORACLE"));
+  }
+
+  @Test
+  void testGetAnalyticsDatabase() {
+    when(config.getProperty(ConfigurationKey.ANALYTICS_DATABASE))
+        .thenReturn(ConfigurationKey.ANALYTICS_DATABASE.getDefaultValue());
+
+    assertEquals(Database.POSTGRESQL, settings.getAnalyticsDatabase());
   }
 }
