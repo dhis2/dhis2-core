@@ -99,7 +99,7 @@ public class DefaultResourceTableService implements ResourceTableService {
 
   private final CategoryService categoryService;
 
-  private final AnalyticsTableSettings analyticsExportSettings;
+  private final AnalyticsTableSettings analyticsTableSettings;
 
   private final PeriodDataProvider periodDataProvider;
 
@@ -112,7 +112,7 @@ public class DefaultResourceTableService implements ResourceTableService {
         new OrganisationUnitStructureResourceTable(
             organisationUnitService,
             organisationUnitService.getNumberOfOrganisationalLevels(),
-            analyticsExportSettings.getTableLogged()));
+            analyticsTableSettings.getTableLogged()));
   }
 
   @Override
@@ -122,7 +122,7 @@ public class DefaultResourceTableService implements ResourceTableService {
         new DataSetOrganisationUnitCategoryResourceTable(
             idObjectManager.getAllNoAcl(DataSet.class),
             categoryService.getDefaultCategoryOptionCombo(),
-            analyticsExportSettings.getTableLogged()));
+            analyticsTableSettings.getTableLogged()));
   }
 
   @Override
@@ -131,7 +131,7 @@ public class DefaultResourceTableService implements ResourceTableService {
     resourceTableStore.generateResourceTable(
         new CategoryOptionComboNameResourceTable(
             idObjectManager.getAllNoAcl(CategoryCombo.class),
-            analyticsExportSettings.getTableLogged()));
+            analyticsTableSettings.getTableLogged()));
   }
 
   @Override
@@ -141,7 +141,7 @@ public class DefaultResourceTableService implements ResourceTableService {
         new DataElementGroupSetResourceTable(
             sqlBuilder,
             idObjectManager.getDataDimensionsNoAcl(DataElementGroupSet.class),
-            analyticsExportSettings.getTableLogged()));
+            analyticsTableSettings.getTableLogged()));
   }
 
   @Override
@@ -151,7 +151,7 @@ public class DefaultResourceTableService implements ResourceTableService {
         new IndicatorGroupSetResourceTable(
             sqlBuilder,
             idObjectManager.getAllNoAcl(IndicatorGroupSet.class),
-            analyticsExportSettings.getTableLogged()));
+            analyticsTableSettings.getTableLogged()));
   }
 
   @Override
@@ -162,7 +162,7 @@ public class DefaultResourceTableService implements ResourceTableService {
             sqlBuilder,
             idObjectManager.getDataDimensionsNoAcl(OrganisationUnitGroupSet.class),
             organisationUnitService.getNumberOfOrganisationalLevels(),
-            analyticsExportSettings.getTableLogged()));
+            analyticsTableSettings.getTableLogged()));
   }
 
   @Override
@@ -173,7 +173,7 @@ public class DefaultResourceTableService implements ResourceTableService {
             sqlBuilder,
             idObjectManager.getDataDimensionsNoAcl(Category.class),
             idObjectManager.getDataDimensionsNoAcl(CategoryOptionGroupSet.class),
-            analyticsExportSettings.getTableLogged()));
+            analyticsTableSettings.getTableLogged()));
   }
 
   @Override
@@ -182,7 +182,7 @@ public class DefaultResourceTableService implements ResourceTableService {
     resourceTableStore.generateResourceTable(
         new DataElementResourceTable(
             idObjectManager.getAllNoAcl(DataElement.class),
-            analyticsExportSettings.getTableLogged()));
+            analyticsTableSettings.getTableLogged()));
   }
 
   @Override
@@ -190,31 +190,31 @@ public class DefaultResourceTableService implements ResourceTableService {
   public void generateDatePeriodTable() {
     List<Integer> availableYears =
         periodDataProvider.getAvailableYears(
-            analyticsExportSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
+            analyticsTableSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
     checkYearsOffset(availableYears);
 
     resourceTableStore.generateResourceTable(
-        new DatePeriodResourceTable(availableYears, analyticsExportSettings.getTableLogged()));
+        new DatePeriodResourceTable(availableYears, analyticsTableSettings.getTableLogged()));
   }
 
   @Override
   public void generatePeriodTable() {
     resourceTableStore.generateResourceTable(
         new PeriodResourceTable(
-            periodService.getAllPeriods(), analyticsExportSettings.getTableLogged()));
+            periodService.getAllPeriods(), analyticsTableSettings.getTableLogged()));
   }
 
   @Override
   @Transactional
   public void generateCategoryOptionComboTable() {
     resourceTableStore.generateResourceTable(
-        new CategoryOptionComboResourceTable(analyticsExportSettings.getTableLogged()));
+        new CategoryOptionComboResourceTable(analyticsTableSettings.getTableLogged()));
   }
 
   @Override
   public void generateDataApprovalRemapLevelTable() {
     resourceTableStore.generateResourceTable(
-        new DataApprovalRemapLevelResourceTable(analyticsExportSettings.getTableLogged()));
+        new DataApprovalRemapLevelResourceTable(analyticsTableSettings.getTableLogged()));
   }
 
   @Override
@@ -225,7 +225,7 @@ public class DefaultResourceTableService implements ResourceTableService {
     if (!orgUnitLevels.isEmpty()) {
       resourceTableStore.generateResourceTable(
           new DataApprovalMinLevelResourceTable(
-              orgUnitLevels, analyticsExportSettings.getTableLogged()));
+              orgUnitLevels, analyticsTableSettings.getTableLogged()));
     }
   }
 
@@ -241,7 +241,7 @@ public class DefaultResourceTableService implements ResourceTableService {
    * @param yearsToCheck the list of years to be checked.
    */
   private void checkYearsOffset(List<Integer> yearsToCheck) {
-    Integer maxYearsOffset = analyticsExportSettings.getMaxPeriodYearsOffset();
+    Integer maxYearsOffset = analyticsTableSettings.getMaxPeriodYearsOffset();
 
     if (maxYearsOffset != null) {
       int minRangeAllowed = Year.now().minus(maxYearsOffset, YEARS).getValue();

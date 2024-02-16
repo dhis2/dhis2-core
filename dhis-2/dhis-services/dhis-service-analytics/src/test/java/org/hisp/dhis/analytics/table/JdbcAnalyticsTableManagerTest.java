@@ -80,7 +80,7 @@ class JdbcAnalyticsTableManagerTest {
 
   @Mock private JdbcTemplate jdbcTemplate;
 
-  @Mock private AnalyticsTableSettings analyticsExportSettings;
+  @Mock private AnalyticsTableSettings analyticsTableSettings;
 
   @Mock private PeriodDataProvider periodDataProvider;
 
@@ -102,7 +102,7 @@ class JdbcAnalyticsTableManagerTest {
             mock(PartitionManager.class),
             mock(DatabaseInfoProvider.class),
             jdbcTemplate,
-            analyticsExportSettings,
+            analyticsTableSettings,
             periodDataProvider,
             sqlBuilder);
   }
@@ -154,7 +154,7 @@ class JdbcAnalyticsTableManagerTest {
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder().withStartTime(startTime).build();
 
-    when(analyticsExportSettings.getTableLogged()).thenReturn(LOGGED);
+    when(analyticsTableSettings.getTableLogged()).thenReturn(LOGGED);
     when(jdbcTemplate.queryForList(Mockito.anyString(), ArgumentMatchers.<Class<Integer>>any()))
         .thenReturn(dataYears);
 

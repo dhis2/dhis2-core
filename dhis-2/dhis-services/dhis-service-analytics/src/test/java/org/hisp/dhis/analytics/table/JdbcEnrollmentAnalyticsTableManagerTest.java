@@ -78,7 +78,7 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
 
   @Mock private JdbcTemplate jdbcTemplate;
 
-  @Mock private AnalyticsTableSettings analyticsExportSettings;
+  @Mock private AnalyticsTableSettings analyticsTableSettings;
 
   @Mock private PeriodDataProvider periodDataProvider;
 
@@ -103,7 +103,7 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
             mock(PartitionManager.class),
             databaseInfoProvider,
             jdbcTemplate,
-            analyticsExportSettings,
+            analyticsTableSettings,
             periodDataProvider,
             sqlBuilder);
   }

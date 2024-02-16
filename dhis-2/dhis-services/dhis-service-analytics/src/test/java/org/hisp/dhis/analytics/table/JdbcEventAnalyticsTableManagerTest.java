@@ -139,7 +139,7 @@ class JdbcEventAnalyticsTableManagerTest {
 
   @Mock private PeriodDataProvider periodDataProvider;
 
-  @Mock private AnalyticsTableSettings analyticsExportSettings;
+  @Mock private AnalyticsTableSettings analyticsTableSettings;
 
   private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
@@ -183,7 +183,7 @@ class JdbcEventAnalyticsTableManagerTest {
             mock(PartitionManager.class),
             databaseInfoProvider,
             jdbcTemplate,
-            analyticsExportSettings,
+            analyticsTableSettings,
             periodDataProvider,
             sqlBuilder);
     assertThat(subject.getAnalyticsTableType(), is(AnalyticsTableType.EVENT));

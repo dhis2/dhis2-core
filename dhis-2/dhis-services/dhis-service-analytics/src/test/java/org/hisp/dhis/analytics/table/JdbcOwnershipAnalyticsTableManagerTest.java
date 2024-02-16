@@ -128,7 +128,7 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
 
   @Mock private JdbcOwnershipWriter writer;
 
-  @Mock private AnalyticsTableSettings analyticsExportSettings;
+  @Mock private AnalyticsTableSettings analyticsTableSettings;
 
   @Mock private PeriodDataProvider periodDataProvider;
 
@@ -161,7 +161,7 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
             databaseInfoProvider,
             jdbcTemplate,
             jdbcConfiguration,
-            analyticsExportSettings,
+            analyticsTableSettings,
             periodDataProvider,
             sqlBuilder);
 
