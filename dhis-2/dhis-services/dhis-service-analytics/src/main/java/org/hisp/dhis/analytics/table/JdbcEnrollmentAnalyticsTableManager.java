@@ -183,7 +183,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
   private List<AnalyticsTable> getRegularAnalyticsTables(AnalyticsTableUpdateParams params) {
     List<AnalyticsTable> tables = new UniqueArrayList<>();
 
-    Logged logged = analyticsExportSettings.getTableLogged();
+    Logged logged = analyticsTableSettings.getTableLogged();
     List<Program> programs = idObjectManager.getAllNoAcl(Program.class);
 
     for (Program program : programs) {

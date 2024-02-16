@@ -87,7 +87,7 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
       PartitionManager partitionManager,
       DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
-      AnalyticsTableSettings analyticsExportSettings,
+      AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
       SqlBuilder sqlBuilder) {
     super(
@@ -101,7 +101,7 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
         partitionManager,
         databaseInfoProvider,
         jdbcTemplate,
-        analyticsExportSettings,
+        analyticsTableSettings,
         periodDataProvider,
         sqlBuilder);
   }
@@ -114,7 +114,7 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
   @Override
   @Transactional
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
-    Logged logged = analyticsExportSettings.getTableLogged();
+    Logged logged = analyticsTableSettings.getTableLogged();
     return params.isLatestUpdate()
         ? List.of()
         : List.of(new AnalyticsTable(getAnalyticsTableType(), getColumns(), logged));

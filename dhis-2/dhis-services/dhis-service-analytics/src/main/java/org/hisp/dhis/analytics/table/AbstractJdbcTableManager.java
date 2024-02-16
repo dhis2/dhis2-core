@@ -128,7 +128,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   protected final JdbcTemplate jdbcTemplate;
 
-  protected final AnalyticsTableSettings analyticsExportSettings;
+  protected final AnalyticsTableSettings analyticsTableSettings;
 
   protected final PeriodDataProvider periodDataProvider;
 
@@ -358,7 +358,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
       List<AnalyticsTableColumn> columns) {
     Calendar calendar = PeriodType.getCalendar();
     List<Integer> years = ListUtils.mutableCopy(dataYears);
-    Logged logged = analyticsExportSettings.getTableLogged();
+    Logged logged = analyticsTableSettings.getTableLogged();
 
     Collections.sort(years);
 
@@ -395,7 +395,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         lastFullTableUpdate,
         "A full analytics table update must be run prior to a latest partition update");
 
-    Logged logged = analyticsExportSettings.getTableLogged();
+    Logged logged = analyticsTableSettings.getTableLogged();
     Date endDate = params.getStartTime();
     boolean hasUpdatedData = hasUpdatedLatestData(lastAnyTableUpdate, endDate);
 

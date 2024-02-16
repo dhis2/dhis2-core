@@ -174,7 +174,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       TrackedEntityTypeService trackedEntityTypeService,
       TrackedEntityAttributeService trackedEntityAttributeService,
-      AnalyticsTableSettings settings,
+      AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
       SqlBuilder sqlBuilder) {
     super(
@@ -188,7 +188,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
         partitionManager,
         databaseInfoProvider,
         jdbcTemplate,
-        settings,
+        analyticsTableSettings,
         periodDataProvider,
         sqlBuilder);
     this.trackedEntityAttributeService = trackedEntityAttributeService;
@@ -218,7 +218,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
 
     params.addExtraParam("", PROGRAMS_BY_TET_KEY, programsByTetUid);
 
-    Logged logged = analyticsExportSettings.getTableLogged();
+    Logged logged = analyticsTableSettings.getTableLogged();
 
     return trackedEntityTypeService.getAllTrackedEntityType().stream()
         .map(

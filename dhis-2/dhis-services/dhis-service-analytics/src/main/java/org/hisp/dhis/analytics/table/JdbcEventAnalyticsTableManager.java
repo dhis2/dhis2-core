@@ -228,7 +228,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     List<Integer> availableDataYears =
         periodDataProvider.getAvailableYears(
-            analyticsExportSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
+            analyticsTableSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
 
     return params.isLatestUpdate()
         ? getLatestAnalyticsTables(params)
@@ -259,7 +259,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       AnalyticsTableUpdateParams params, List<Integer> availableDataYears) {
     Calendar calendar = PeriodType.getCalendar();
     List<AnalyticsTable> tables = new ArrayList<>();
-    Logged logged = analyticsExportSettings.getTableLogged();
+    Logged logged = analyticsTableSettings.getTableLogged();
 
     List<Program> programs =
         params.isSkipPrograms()
@@ -323,7 +323,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     List<AnalyticsTable> tables = new ArrayList<>();
 
-    Logged logged = analyticsExportSettings.getTableLogged();
+    Logged logged = analyticsTableSettings.getTableLogged();
 
     List<Program> programs =
         params.isSkipPrograms()
@@ -425,7 +425,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     List<Integer> availableDataYears =
         periodDataProvider.getAvailableYears(
-            analyticsExportSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
+            analyticsTableSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
     Integer firstDataYear = availableDataYears.get(0);
     Integer latestDataYear = availableDataYears.get(availableDataYears.size() - 1);
 

@@ -115,7 +115,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
       DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       TrackedEntityTypeService trackedEntityTypeService,
-      AnalyticsTableSettings settings,
+      AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
       SqlBuilder sqlBuilder) {
     super(
@@ -129,7 +129,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
         partitionManager,
         databaseInfoProvider,
         jdbcTemplate,
-        settings,
+        analyticsTableSettings,
         periodDataProvider,
         sqlBuilder);
     this.trackedEntityTypeService = trackedEntityTypeService;
@@ -154,7 +154,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
   @Override
   @Transactional
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
-    Logged logged = analyticsExportSettings.getTableLogged();
+    Logged logged = analyticsTableSettings.getTableLogged();
     return trackedEntityTypeService.getAllTrackedEntityType().stream()
         .map(tet -> new AnalyticsTable(getAnalyticsTableType(), getColumns(), logged, tet))
         .collect(Collectors.toList());

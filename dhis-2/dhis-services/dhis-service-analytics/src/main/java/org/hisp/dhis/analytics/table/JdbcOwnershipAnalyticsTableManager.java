@@ -143,7 +143,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
    * @return a list of {@link AnalyticsTableUpdateParams}.
    */
   private List<AnalyticsTable> getRegularAnalyticsTables() {
-    Logged logged = analyticsExportSettings.getTableLogged();
+    Logged logged = analyticsTableSettings.getTableLogged();
     return idObjectManager.getAllNoAcl(Program.class).stream()
         .map(pr -> new AnalyticsTable(getAnalyticsTableType(), getColumns(), logged, pr))
         .collect(toList());

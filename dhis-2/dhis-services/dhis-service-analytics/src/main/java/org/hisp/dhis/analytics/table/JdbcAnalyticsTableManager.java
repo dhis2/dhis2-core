@@ -125,7 +125,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
       PartitionManager partitionManager,
       DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
-      AnalyticsTableSettings analyticsExportSettings,
+      AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
       SqlBuilder sqlBuilder) {
     super(
@@ -139,7 +139,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         partitionManager,
         databaseInfoProvider,
         jdbcTemplate,
-        analyticsExportSettings,
+        analyticsTableSettings,
         periodDataProvider,
         sqlBuilder);
   }
@@ -388,7 +388,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
       sql += "and " + whereClause + " ";
     }
 
-    if (analyticsExportSettings.isTableOrdering()) {
+    if (analyticsTableSettings.isTableOrdering()) {
       sql += "order by de.uid, co.uid";
     }
 

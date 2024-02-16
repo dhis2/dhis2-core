@@ -88,7 +88,7 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
       PartitionManager partitionManager,
       DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
-      AnalyticsTableSettings analyticsExportSettings,
+      AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
       SqlBuilder sqlBuilder) {
     super(
@@ -102,7 +102,7 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
         partitionManager,
         databaseInfoProvider,
         jdbcTemplate,
-        analyticsExportSettings,
+        analyticsTableSettings,
         periodDataProvider,
         sqlBuilder);
   }

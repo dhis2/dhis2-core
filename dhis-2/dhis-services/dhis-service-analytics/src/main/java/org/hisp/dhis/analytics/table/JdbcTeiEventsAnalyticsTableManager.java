@@ -131,7 +131,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
       DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       TrackedEntityTypeService trackedEntityTypeService,
-      AnalyticsTableSettings settings,
+      AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
       SqlBuilder sqlBuilder) {
     super(
@@ -145,7 +145,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
         partitionManager,
         databaseInfoProvider,
         jdbcTemplate,
-        settings,
+        analyticsTableSettings,
         periodDataProvider,
         sqlBuilder);
     this.trackedEntityTypeService = trackedEntityTypeService;
@@ -173,7 +173,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
     Calendar calendar = PeriodType.getCalendar();
     List<TrackedEntityType> trackedEntityTypes = trackedEntityTypeService.getAllTrackedEntityType();
     List<AnalyticsTable> tables = new ArrayList<>();
-    Logged logged = analyticsExportSettings.getTableLogged();
+    Logged logged = analyticsTableSettings.getTableLogged();
 
     for (TrackedEntityType tet : trackedEntityTypes) {
       List<Integer> dataYears = getDataYears(params, tet);
@@ -225,7 +225,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
 
     List<Integer> availableDataYears =
         periodDataProvider.getAvailableYears(
-            analyticsExportSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
+            analyticsTableSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
     Integer firstDataYear = availableDataYears.get(0);
     Integer latestDataYear = availableDataYears.get(availableDataYears.size() - 1);
 
