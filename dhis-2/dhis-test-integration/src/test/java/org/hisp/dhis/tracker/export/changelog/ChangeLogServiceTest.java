@@ -156,6 +156,36 @@ class ChangeLogServiceTest extends TrackerTest {
           validateNonValueElements(2, changeLogs, importUser, dataElementUid);
           assertNull(changeLogs.get(0).change().dataValue().currentValue());
           assertEquals("15", changeLogs.get(0).change().dataValue().previousValue());
+          assertEquals("15", changeLogs.get(1).change().dataValue().currentValue());
+          assertNull(changeLogs.get(1).change().dataValue().previousValue());
+        });
+  }
+
+  @Test
+  void shouldNotUpdateChangeLogsWhenDataValueIsDeletedTwiceInARow() throws NotFoundException, IOException {
+    injectSecurityContextUser(manager.get(User.class, "M5zQapPyTZI"));
+
+    Event event = manager.get(Event.class, "QRYjLTiJTrA");
+    assertNotNull(event);
+    String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
+    DataElement dataElement = manager.get(DataElement.class, dataElementUid);
+    assertNotNull(dataElement);
+
+    TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
+    updateDataValue(trackerObjects, event.getUid(), dataElementUid, "");
+    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
+    updateDataValue(trackerObjects, event.getUid(), dataElementUid, "");
+    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
+
+    List<EventChangeLog> changeLogs = changeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"));
+
+    assertAll(
+        () -> {
+          validateNonValueElements(2, changeLogs, importUser, dataElementUid);
+          assertNull(changeLogs.get(0).change().dataValue().currentValue());
+          assertEquals("15", changeLogs.get(0).change().dataValue().previousValue());
+          assertEquals("15", changeLogs.get(1).change().dataValue().currentValue());
+          assertNull(changeLogs.get(1).change().dataValue().previousValue());
         });
   }
 
@@ -180,6 +210,38 @@ class ChangeLogServiceTest extends TrackerTest {
           validateNonValueElements(2, changeLogs, importUser, dataElementUid);
           assertEquals("20", changeLogs.get(0).change().dataValue().currentValue());
           assertEquals("15", changeLogs.get(0).change().dataValue().previousValue());
+          assertEquals("15", changeLogs.get(1).change().dataValue().currentValue());
+          assertNull(changeLogs.get(1).change().dataValue().previousValue());
+        });
+  }
+
+  @Test
+  void shouldReturnChangeLogsWhenDataValueIsUpdatedTwiceInARow() throws NotFoundException, IOException {
+    injectSecurityContextUser(manager.get(User.class, "M5zQapPyTZI"));
+
+    Event event = manager.get(Event.class, "QRYjLTiJTrA");
+    assertNotNull(event);
+    String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
+    DataElement dataElement = manager.get(DataElement.class, dataElementUid);
+    assertNotNull(dataElement);
+
+    TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
+    updateDataValue(trackerObjects, event.getUid(), dataElementUid, "20");
+    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
+    updateDataValue(trackerObjects, event.getUid(), dataElementUid, "25");
+    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
+
+    List<EventChangeLog> changeLogs = changeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"));
+
+    assertAll(
+        () -> {
+          validateNonValueElements(3, changeLogs, importUser, dataElementUid);
+          assertEquals("25", changeLogs.get(0).change().dataValue().currentValue());
+          assertEquals("20", changeLogs.get(0).change().dataValue().previousValue());
+          assertEquals("20", changeLogs.get(1).change().dataValue().currentValue());
+          assertEquals("15", changeLogs.get(1).change().dataValue().previousValue());
+          assertEquals("15", changeLogs.get(2).change().dataValue().currentValue());
+          assertNull(changeLogs.get(2).change().dataValue().previousValue());
         });
   }
 
@@ -208,10 +270,8 @@ class ChangeLogServiceTest extends TrackerTest {
           validateNonValueElements(3, changeLogs, importUser, dataElementUid);
           assertNull(changeLogs.get(0).change().dataValue().currentValue());
           assertEquals("20", changeLogs.get(0).change().dataValue().previousValue());
-
           assertEquals("20", changeLogs.get(1).change().dataValue().currentValue());
           assertEquals("15", changeLogs.get(1).change().dataValue().previousValue());
-
           assertEquals("15", changeLogs.get(2).change().dataValue().currentValue());
           assertNull(changeLogs.get(2).change().dataValue().previousValue());
         });
