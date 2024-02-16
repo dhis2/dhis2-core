@@ -30,10 +30,16 @@ package org.hisp.dhis.db.sql;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.stereotype.Service;
 
+@Service
 @RequiredArgsConstructor
 public class SqlBuilderProvider {
-  private final DhisConfigurationProvider config;
+  private final SqlBuilder sqlBuilder;
+
+  public SqlBuilderProvider(DhisConfigurationProvider config) {
+    this.sqlBuilder = getSqlBuilder(config);
+  }
 
   /**
    * Returns a {@link SqlBuilder} implementation based on the system configuration.
@@ -41,6 +47,16 @@ public class SqlBuilderProvider {
    * @return a {@link SqlBuilder}.
    */
   public SqlBuilder getSqlBuilder() {
+    return sqlBuilder;
+  }
+
+  /**
+   * Returns the appropriate {@link SqlBuilder} implementation based on the system configuration.
+   *
+   * @param config the {@link DhisConfigurationProvider}.
+   * @return a {@link SqlBuilder}.
+   */
+  private SqlBuilder getSqlBuilder(DhisConfigurationProvider config) {
     Objects.requireNonNull(config);
     return new PostgreSqlBuilder();
   }
