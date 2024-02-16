@@ -49,14 +49,14 @@ import org.springframework.stereotype.Component;
  * Component responsible for exposing analytics table settings. Provides settings living in
  * configuration files (dhis.conf) and in system settings.
  *
- * @author Maikel Arabori
+ * @author maikel arabori
  */
 @Component
 @RequiredArgsConstructor
 public class AnalyticsTableSettings {
-  private final DhisConfigurationProvider dhisConfigurationProvider;
+  private final DhisConfigurationProvider config;
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingManager systemSettings;
 
   /**
    * Returns the setting indicating whether resource and analytics tables should be logged or
@@ -65,7 +65,7 @@ public class AnalyticsTableSettings {
    * @return the {@link Logged} parameter.
    */
   public Logged getTableLogged() {
-    if (dhisConfigurationProvider.isEnabled(ANALYTICS_TABLE_UNLOGGED)) {
+    if (config.isEnabled(ANALYTICS_TABLE_UNLOGGED)) {
       return UNLOGGED;
     }
 
@@ -73,7 +73,7 @@ public class AnalyticsTableSettings {
   }
 
   public boolean isTableOrdering() {
-    return dhisConfigurationProvider.isEnabled(ANALYTICS_TABLE_ORDERING);
+    return config.isEnabled(ANALYTICS_TABLE_ORDERING);
   }
 
   /**
@@ -83,9 +83,9 @@ public class AnalyticsTableSettings {
    * @return the offset defined in system settings, or null if nothing is set.
    */
   public Integer getMaxPeriodYearsOffset() {
-    return systemSettingManager.getIntSetting(ANALYTICS_MAX_PERIOD_YEARS_OFFSET) < 0
+    return systemSettings.getIntSetting(ANALYTICS_MAX_PERIOD_YEARS_OFFSET) < 0
         ? null
-        : systemSettingManager.getIntSetting(ANALYTICS_MAX_PERIOD_YEARS_OFFSET);
+        : systemSettings.getIntSetting(ANALYTICS_MAX_PERIOD_YEARS_OFFSET);
   }
 
   /**
@@ -94,8 +94,9 @@ public class AnalyticsTableSettings {
    * @return the analytics {@link Database}.
    */
   public Database getAnalyticsDatabase() {
-    String value = dhisConfigurationProvider.getProperty(ANALYTICS_DATABASE);
-    return getAndValidateDatabase(value);
+    String value = config.getProperty(ANALYTICS_DATABASE);
+    String valueUpperCase = StringUtils.trimToEmpty(value).toUpperCase();
+    return getAndValidateDatabase(valueUpperCase);
   }
 
   /**
@@ -105,7 +106,7 @@ public class AnalyticsTableSettings {
    * @return the {@link Database}.
    * @throws IllegalArgumentException if the value does not match a valid option.
    */
-  private Database getAndValidateDatabase(String value) {
+  Database getAndValidateDatabase(String value) {
     Database database = EnumUtils.getEnum(Database.class, value);
 
     if (isNull(database)) {
