@@ -39,6 +39,7 @@ import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.actions.UserActions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -52,7 +53,6 @@ class UserDatastoreUpdateTest extends ApiTest {
   private RestApiActions userDatastoreActions;
   private LoginActions loginActions;
   private static final String NAMESPACE = "ns1";
-  private static final String KEY = "key1";
 
   @BeforeAll
   public void beforeAll() {
@@ -75,13 +75,13 @@ class UserDatastoreUpdateTest extends ApiTest {
   @DisplayName("When updating existing entry root value to null, the entry will be deleted")
   void testUpdateEntry_RootWithNullValue() {
     // given
-    userDatastoreActions.update("/" + NAMESPACE + "/" + KEY, 42).validate().statusCode(201);
+    userDatastoreActions.update("/" + NAMESPACE + "/key8", 42).validate().statusCode(201);
 
     // when
-    userDatastoreActions.updateNoBody("/" + NAMESPACE + "/" + KEY).validate().statusCode(200);
+    userDatastoreActions.updateNoBody("/" + NAMESPACE + "/key8").validate().statusCode(200);
 
     // then
-    userDatastoreActions.get("/" + NAMESPACE + "/" + "key1").validateStatus(404);
+    userDatastoreActions.get("/" + NAMESPACE + "/" + "key8").validateStatus(404);
   }
 
   @Test
@@ -90,7 +90,7 @@ class UserDatastoreUpdateTest extends ApiTest {
     // given
     userDatastoreActions
         .update(
-            "/" + NAMESPACE + "/" + KEY,
+            "/" + NAMESPACE + "/key7",
             toJsonObject("""
                 {"a": 11}
                 """))
@@ -100,7 +100,7 @@ class UserDatastoreUpdateTest extends ApiTest {
     // when
     userDatastoreActions
         .update(
-            "/" + NAMESPACE + "/" + KEY,
+            "/" + NAMESPACE + "/key7",
             toJsonObject("""
                 {"a": 99}
                 """))
@@ -109,7 +109,7 @@ class UserDatastoreUpdateTest extends ApiTest {
 
     // then
     userDatastoreActions
-        .get("/" + NAMESPACE + "/" + KEY)
+        .get("/" + NAMESPACE + "/key7")
         .validateStatus(200)
         .validate()
         .body("a", equalTo(99));
@@ -121,7 +121,7 @@ class UserDatastoreUpdateTest extends ApiTest {
     // given
     userDatastoreActions
         .update(
-            "/" + NAMESPACE + "/" + KEY,
+            "/" + NAMESPACE + "/key6",
             toJsonObject("""
                 {"a": 42}
                 """))
@@ -129,14 +129,11 @@ class UserDatastoreUpdateTest extends ApiTest {
         .statusCode(201);
 
     // when
-    userDatastoreActions
-        .updateNoBody("/" + NAMESPACE + "/" + KEY + "?path=a")
-        .validate()
-        .statusCode(200);
+    userDatastoreActions.updateNoBody("/" + NAMESPACE + "/key6?path=a").validate().statusCode(200);
 
     // then
     userDatastoreActions
-        .get("/" + NAMESPACE + "/" + KEY)
+        .get("/" + NAMESPACE + "/key6")
         .validateStatus(200)
         .validate()
         .body("a", equalTo(null));
@@ -148,7 +145,7 @@ class UserDatastoreUpdateTest extends ApiTest {
     // given
     userDatastoreActions
         .update(
-            "/" + NAMESPACE + "/" + KEY,
+            "/" + NAMESPACE + "/key5",
             toJsonObject("""
                 {"a": 11}
                 """))
@@ -156,14 +153,11 @@ class UserDatastoreUpdateTest extends ApiTest {
         .statusCode(201);
 
     // when
-    userDatastoreActions
-        .update("/" + NAMESPACE + "/" + KEY + "?path=a", 99)
-        .validate()
-        .statusCode(200);
+    userDatastoreActions.update("/" + NAMESPACE + "/key5?path=a", 99).validate().statusCode(200);
 
     // then
     userDatastoreActions
-        .get("/" + NAMESPACE + "/" + KEY)
+        .get("/" + NAMESPACE + "/key5")
         .validateStatus(200)
         .validate()
         .body("a", equalTo(99));
@@ -173,17 +167,14 @@ class UserDatastoreUpdateTest extends ApiTest {
   @DisplayName("Can update entry that has a null value, with roll")
   void testUpdateEntry_RollRootValueIsNull() {
     // given
-    userDatastoreActions.updateNoBody("/" + NAMESPACE + "/" + KEY).validate().statusCode(201);
+    userDatastoreActions.updateNoBody("/" + NAMESPACE + "/key4").validate().statusCode(201);
 
     // when
-    userDatastoreActions
-        .update("/" + NAMESPACE + "/" + KEY + "?roll=3", 7)
-        .validate()
-        .statusCode(200);
+    userDatastoreActions.update("/" + NAMESPACE + "/key4?roll=3", 7).validate().statusCode(200);
 
     // then
     userDatastoreActions
-        .get("/" + NAMESPACE + "/" + KEY)
+        .get("/" + NAMESPACE + "/key4")
         .validateStatus(200)
         .validate()
         .body("$", equalTo(7));
@@ -194,58 +185,46 @@ class UserDatastoreUpdateTest extends ApiTest {
   void testUpdateEntry_RollRootValueIsArray() {
     // given
     userDatastoreActions
-        .update("/" + NAMESPACE + "/" + KEY, new JsonArray())
+        .update("/" + NAMESPACE + "/key13", new JsonArray())
         .validate()
         .statusCode(201);
 
     // when
-    userDatastoreActions
-        .update("/" + NAMESPACE + "/" + KEY + "?roll=3", 7)
-        .validate()
-        .statusCode(200);
+    userDatastoreActions.update("/" + NAMESPACE + "/key13?roll=3", 7).validate().statusCode(200);
 
     // then
     userDatastoreActions
-        .get("/" + NAMESPACE + "/" + KEY)
+        .get("/" + NAMESPACE + "/key13")
         .validateStatus(200)
         .validate()
         .body("$", hasItems(7));
 
     // when
-    userDatastoreActions
-        .update("/" + NAMESPACE + "/" + KEY + "?roll=3", 8)
-        .validate()
-        .statusCode(200);
+    userDatastoreActions.update("/" + NAMESPACE + "/key13?roll=3", 8).validate().statusCode(200);
 
     // then
     userDatastoreActions
-        .get("/" + NAMESPACE + "/" + KEY)
+        .get("/" + NAMESPACE + "/key13")
         .validateStatus(200)
         .validate()
         .body("$", hasItems(7, 8));
 
     // when
-    userDatastoreActions
-        .update("/" + NAMESPACE + "/" + KEY + "?roll=3", 9)
-        .validate()
-        .statusCode(200);
+    userDatastoreActions.update("/" + NAMESPACE + "/key13?roll=3", 9).validate().statusCode(200);
 
     // then
     userDatastoreActions
-        .get("/" + NAMESPACE + "/" + KEY)
+        .get("/" + NAMESPACE + "/key13")
         .validateStatus(200)
         .validate()
         .body("$", hasItems(7, 8, 9));
 
     // when
-    userDatastoreActions
-        .update("/" + NAMESPACE + "/" + KEY + "?roll=3", 10)
-        .validate()
-        .statusCode(200);
+    userDatastoreActions.update("/" + NAMESPACE + "/key13?roll=3", 10).validate().statusCode(200);
 
     // then
     userDatastoreActions
-        .get("/" + NAMESPACE + "/" + KEY)
+        .get("/" + NAMESPACE + "/key13")
         .validateStatus(200)
         .validate()
         .body("$", hasItems(8, 9, 10))
@@ -257,44 +236,38 @@ class UserDatastoreUpdateTest extends ApiTest {
   void testUpdateEntry_RollRootValueIsOther() {
     // given
     userDatastoreActions
-        .update("/" + NAMESPACE + "/" + KEY, new JsonObject())
+        .update("/" + NAMESPACE + "/key35", new JsonObject())
         .validate()
         .statusCode(201);
 
     // when
-    userDatastoreActions
-        .update("/" + NAMESPACE + "/" + KEY + "?roll=3", 7)
-        .validate()
-        .statusCode(200);
+    userDatastoreActions.update("/" + NAMESPACE + "/key35?roll=3", 7).validate().statusCode(200);
 
     // then
     userDatastoreActions
-        .get("/" + NAMESPACE + "/" + KEY)
+        .get("/" + NAMESPACE + "/key35")
         .validateStatus(200)
         .validate()
         .body("$", equalTo(7));
 
     // when
     userDatastoreActions
-        .update("/" + NAMESPACE + "/" + KEY + "?roll=3", "hello")
+        .update("/" + NAMESPACE + "/key35?roll=3", "hello")
         .validate()
         .statusCode(200);
 
     // then
     assertEquals(
         "hello",
-        userDatastoreActions.get("/" + NAMESPACE + "/" + KEY).validateStatus(200).as(String.class));
+        userDatastoreActions.get("/" + NAMESPACE + "/key35").validateStatus(200).as(String.class));
 
     // when
-    userDatastoreActions
-        .update("/" + NAMESPACE + "/" + KEY + "?roll=3", true)
-        .validate()
-        .statusCode(200);
+    userDatastoreActions.update("/" + NAMESPACE + "/key35?roll=3", true).validate().statusCode(200);
 
     // then
     assertEquals(
         "true",
-        userDatastoreActions.get("/" + NAMESPACE + "/" + KEY).validateStatus(200).getAsString());
+        userDatastoreActions.get("/" + NAMESPACE + "/key35").validateStatus(200).getAsString());
   }
 
   @Test
@@ -303,7 +276,7 @@ class UserDatastoreUpdateTest extends ApiTest {
     // given
     userDatastoreActions
         .update(
-            "/" + NAMESPACE + "/" + KEY,
+            "/" + NAMESPACE + "/key55",
             toJsonObject("""
                 {"a": null}
                 """))
@@ -312,13 +285,13 @@ class UserDatastoreUpdateTest extends ApiTest {
 
     // when
     userDatastoreActions
-        .update("/" + NAMESPACE + "/" + KEY + "?roll=3&path=a", 7)
+        .update("/" + NAMESPACE + "/key55?roll=3&path=a", 7)
         .validate()
         .statusCode(200);
 
     // then
     userDatastoreActions
-        .get("/" + NAMESPACE + "/" + KEY)
+        .get("/" + NAMESPACE + "/key55")
         .validateStatus(200)
         .validate()
         .body("a", hasItems(7));
@@ -330,7 +303,7 @@ class UserDatastoreUpdateTest extends ApiTest {
     // given
     userDatastoreActions
         .update(
-            "/" + NAMESPACE + "/" + KEY,
+            "/" + NAMESPACE + "/key24",
             toJsonObject("""
                 {"a": null}
                 """))
@@ -339,13 +312,13 @@ class UserDatastoreUpdateTest extends ApiTest {
 
     // when
     userDatastoreActions
-        .update("/" + NAMESPACE + "/" + KEY + "?roll=3&path=b", 7)
+        .update("/" + NAMESPACE + "/key24?roll=3&path=b", 7)
         .validate()
         .statusCode(200);
 
     // then
     userDatastoreActions
-        .get("/" + NAMESPACE + "/" + KEY)
+        .get("/" + NAMESPACE + "/key24")
         .validateStatus(200)
         .validate()
         .body("a", equalTo(null))
@@ -358,7 +331,7 @@ class UserDatastoreUpdateTest extends ApiTest {
     // given
     userDatastoreActions
         .update(
-            "/" + NAMESPACE + "/" + KEY,
+            "/" + NAMESPACE + "/key2",
             toJsonObject("""
                   {"a":{"b":[]}}
                   """))
@@ -367,52 +340,52 @@ class UserDatastoreUpdateTest extends ApiTest {
 
     // when
     userDatastoreActions
-        .update("/" + NAMESPACE + "/" + KEY + "?roll=3&path=a.b", 7)
+        .update("/" + NAMESPACE + "/key2?roll=3&path=a.b", 7)
         .validate()
         .statusCode(200);
 
     // then
     userDatastoreActions
-        .get("/" + NAMESPACE + "/" + KEY)
+        .get("/" + NAMESPACE + "/key2")
         .validateStatus(200)
         .validate()
         .body("a.b", hasItems(7));
 
     // when
     userDatastoreActions
-        .update("/" + NAMESPACE + "/" + KEY + "?roll=3&path=a.b", 8)
+        .update("/" + NAMESPACE + "/key2?roll=3&path=a.b", 8)
         .validate()
         .statusCode(200);
 
     // then
     userDatastoreActions
-        .get("/" + NAMESPACE + "/" + KEY)
+        .get("/" + NAMESPACE + "/key2")
         .validateStatus(200)
         .validate()
         .body("a.b", hasItems(7, 8));
 
     // when
     userDatastoreActions
-        .update("/" + NAMESPACE + "/" + KEY + "?roll=3&path=a.b", 9)
+        .update("/" + NAMESPACE + "/key2?roll=3&path=a.b", 9)
         .validate()
         .statusCode(200);
 
     // then
     userDatastoreActions
-        .get("/" + NAMESPACE + "/" + KEY)
+        .get("/" + NAMESPACE + "/key2")
         .validateStatus(200)
         .validate()
         .body("a.b", hasItems(7, 8, 9));
 
     // when
     userDatastoreActions
-        .update("/" + NAMESPACE + "/" + KEY + "?roll=3&path=a.b", 10)
+        .update("/" + NAMESPACE + "/key2?roll=3&path=a.b", 10)
         .validate()
         .statusCode(200);
 
     // then
     userDatastoreActions
-        .get("/" + NAMESPACE + "/" + KEY)
+        .get("/" + NAMESPACE + "/key2")
         .validateStatus(200)
         .validate()
         .body("a.b", hasItems(8, 9, 10))
@@ -425,7 +398,7 @@ class UserDatastoreUpdateTest extends ApiTest {
     // given
     userDatastoreActions
         .update(
-            "/" + NAMESPACE + "/" + KEY,
+            "/" + NAMESPACE + "/key3",
             toJsonObject("""
                   {"a":[{}]}
                   """))
@@ -434,41 +407,64 @@ class UserDatastoreUpdateTest extends ApiTest {
 
     // when
     userDatastoreActions
-        .update("/" + NAMESPACE + "/" + KEY + "?roll=3&path=a.[0]", 7)
+        .update("/" + NAMESPACE + "/key3?roll=3&path=a.[0]", 7)
         .validate()
         .statusCode(200);
 
     // then
     userDatastoreActions
-        .get("/" + NAMESPACE + "/" + KEY)
+        .get("/" + NAMESPACE + "/key3")
         .validateStatus(200)
         .validate()
         .body("a", hasItems(7));
 
     // when
     userDatastoreActions
-        .update("/" + NAMESPACE + "/" + KEY + "?roll=3&path=a.[0]", "hello")
+        .update("/" + NAMESPACE + "/key3?roll=3&path=a.[0]", "hello")
         .validate()
         .statusCode(200);
 
     // then
     userDatastoreActions
-        .get("/" + NAMESPACE + "/" + KEY)
+        .get("/" + NAMESPACE + "/key3")
         .validateStatus(200)
         .validate()
         .body("a", hasItems("hello"));
 
     // when
     userDatastoreActions
-        .update("/" + NAMESPACE + "/" + KEY + "?roll=3&path=a.[0]", true)
+        .update("/" + NAMESPACE + "/key3?roll=3&path=a.[0]", true)
         .validate()
         .statusCode(200);
 
     // then
     userDatastoreActions
-        .get("/" + NAMESPACE + "/" + KEY)
+        .get("/" + NAMESPACE + "/key3")
         .validateStatus(200)
         .validate()
         .body("a", hasItems(true));
+  }
+
+  @Test
+  @DisplayName(
+      "Superuser can update an existing entry passing a username and the user can then see the change")
+  void testPutExistingUserKeyJsonValue() {
+    // given
+    UserActions userActions = new UserActions();
+    userActions.addUser("Paul", "Test1234!");
+    loginActions.loginAsUser("Paul", "Test1234!");
+    userDatastoreActions.update("/" + NAMESPACE + "/key99", "first").validate().statusCode(201);
+
+    // when
+    loginActions.loginAsSuperUser();
+    userDatastoreActions
+        .update("/" + NAMESPACE + "/key99?username=Paul", "last")
+        .validate()
+        .statusCode(200);
+
+    // then
+    loginActions.loginAsUser("Paul", "Test1234!");
+    assertEquals("last", userDatastoreActions.get("/" + NAMESPACE + "/key99").as(String.class));
+    loginActions.loginAsSuperUser();
   }
 }

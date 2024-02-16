@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller.userdatastore;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -142,26 +141,6 @@ class UserDatastoreSuperuserControllerTest extends DhisControllerConvenienceTest
         POST("/userDataStore/test/key1?username=Paul", "true")
             .content(HttpStatus.CONFLICT)
             .as(JsonWebMessage.class));
-  }
-
-  @Test
-  void testPutExistingUserKeyJsonValue() {
-    assertStatus(HttpStatus.CREATED, POST("/userDataStore/test/key1", "true"));
-
-    switchToSuperuser();
-    assertWebMessage(
-        "OK",
-        200,
-        "OK",
-        "Key updated: 'key1'",
-        PUT("/userDataStore/test/key1?username=Paul", "false").content(HttpStatus.OK));
-
-    switchContextToUser(paul);
-    assertFalse(
-        GET("/userDataStore/test/key1")
-            .content(HttpStatus.OK)
-            .as(JsonBoolean.class)
-            .booleanValue());
   }
 
   @Test

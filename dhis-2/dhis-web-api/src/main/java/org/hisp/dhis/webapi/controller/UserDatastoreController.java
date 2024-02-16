@@ -193,8 +193,8 @@ public class UserDatastoreController extends AbstractDatastoreController {
   public WebMessage addEntry(
       @PathVariable String namespace,
       @PathVariable String key,
-      @RequestBody String value,
       @RequestParam(required = false) String username,
+      @RequestBody String value,
       @RequestParam(defaultValue = "false") boolean encrypt)
       throws BadRequestException, ConflictException {
     User user = getUser(username);
@@ -230,16 +230,15 @@ public class UserDatastoreController extends AbstractDatastoreController {
   public WebMessage putUserValue(
       @PathVariable String namespace,
       @PathVariable String key,
-      @RequestBody(required = false) String value,
       @RequestParam(required = false) String username,
+      @RequestBody(required = false) String value,
       @RequestParam(required = false) String path,
       @RequestParam(required = false) Integer roll,
       @RequestParam(defaultValue = "false") boolean encrypt)
       throws BadRequestException, ConflictException {
-
     UserDatastoreEntry userEntry = service.getUserEntry(getUser(username), namespace, key);
 
-    if (userEntry == null) return addEntry(namespace, key, value, username, encrypt);
+    if (userEntry == null) return addEntry(namespace, key, username, value, encrypt);
 
     service.updateEntry(namespace, key, value, path, roll);
     return ok(String.format("Key updated: '%s'", key));
