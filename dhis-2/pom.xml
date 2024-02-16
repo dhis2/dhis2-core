@@ -1157,6 +1157,11 @@
         </exclusions>
       </dependency>
       <dependency>
+        <groupId>net.sf.jasperreports</groupId>
+        <artifactId>jasperreports-fonts</artifactId>
+        <version>${jasperreports.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.jfree</groupId>
         <artifactId>jfreechart</artifactId>
         <version>${jfreechart.version}</version>
@@ -1995,6 +2000,7 @@ jasperreports.version=${jasperreports.version}
               <ignoredUnusedDeclaredDependency>org.junit.jupiter:junit-jupiter</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.springframework.security:spring-security-core</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>net.sf.jasperreports:jasperreports</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>net.sf.jasperreports:jasperreports-fonts</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.mockito:mockito-inline</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.apache.logging.log4j:log4j-slf4j-impl</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.apache.struts:struts2-spring-plugin</ignoredUnusedDeclaredDependency>
@@ -2192,7 +2198,7 @@ jasperreports.version=${jasperreports.version}
         </executions>
       </plugin>
     </plugins>
-    <!-- <build><sourceDirectory> cannot be set in a profile, so it needs 
+    <!-- <build><sourceDirectory> cannot be set in a profile, so it needs
       a custom property for overwriting it, see https://github.com/awhitford/lombok.maven/issues/17#issuecomment-136606104 -->
     <sourceDirectory>${sourceDir}</sourceDirectory>
   </build>
@@ -2249,7 +2255,7 @@ jasperreports.version=${jasperreports.version}
       </build>
     </profile>
 
-    <!-- Integration test profile, runs all integrations tests, not unit 
+    <!-- Integration test profile, runs all integrations tests, not unit
       tests -->
     <profile>
       <id>integration</id>
@@ -2275,7 +2281,7 @@ jasperreports.version=${jasperreports.version}
       </build>
     </profile>
 
-    <!-- IntegrationH2 test profile, this runs all the integrations tests 
+    <!-- IntegrationH2 test profile, this runs all the integrations tests
       with H2, but not the unit tests -->
     <profile>
       <id>integrationH2</id>
