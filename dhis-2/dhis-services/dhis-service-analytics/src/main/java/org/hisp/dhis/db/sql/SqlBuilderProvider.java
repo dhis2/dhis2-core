@@ -29,13 +29,11 @@ package org.hisp.dhis.db.sql;
 
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.stereotype.Service;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SqlBuilderProvider {
