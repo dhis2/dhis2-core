@@ -44,6 +44,8 @@ import org.hisp.dhis.db.model.constraint.Unique;
  */
 public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
+  // Constants
+
   private static final String QUOTE = "\"";
 
   // Data types

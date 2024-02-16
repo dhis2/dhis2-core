@@ -32,6 +32,8 @@ import org.hisp.dhis.db.model.Table;
 
 public class DorisSqlBuilder extends AbstractSqlBuilder {
 
+  // Constants
+
   private static final String QUOTE = "`";
 
   // Data types

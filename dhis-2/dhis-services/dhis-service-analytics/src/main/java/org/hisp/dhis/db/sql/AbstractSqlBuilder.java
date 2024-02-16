@@ -44,6 +44,8 @@ import org.hisp.dhis.db.model.Table;
  */
 public abstract class AbstractSqlBuilder implements SqlBuilder {
 
+  // Constants
+
   protected static final String SINGLE_QUOTE = "'";
   protected static final String BACKSLASH = "\\";
   protected static final String COMMA = ", ";
