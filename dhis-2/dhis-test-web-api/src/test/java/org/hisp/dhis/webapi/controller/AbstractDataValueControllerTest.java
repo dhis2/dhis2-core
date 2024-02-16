@@ -27,15 +27,19 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.utils.JavaToJson.toJson;
 import static org.hisp.dhis.web.WebClient.Body;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.hisp.dhis.web.WebClientUtils.substitutePlaceholders;
 
+import java.util.List;
+import java.util.Map;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.utils.JavaToJson;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.BeforeEach;
@@ -133,5 +137,40 @@ abstract class AbstractDataValueControllerTest extends DhisControllerConvenience
             "/dataValues?de={de}&co={co}&cc={cc}&cp={cp}&pe={pe}&ou={ou}",
             new Object[] {de, co, cc, cp, pe, ou});
     return GET(url.replaceAll("&[a-z]{2}=&", "&").replace("&&", "&")).content();
+  }
+
+  /**
+   * Base class for testing the {@link UserDatastoreController} providing helpers to set up entries
+   * in the store.
+   *
+   * @author Jan Bernitt
+   */
+  abstract static class AbstractUserDatastoreControllerTest extends DhisControllerConvenienceTest {
+
+    /**
+     * Creates a new entry with the given key and value in the given namespace.
+     *
+     * @param ns namespace
+     * @param key key of the entry
+     * @param value value of the entry, valid JSON - consider using {@link
+     *     JavaToJson#toJson(Object)}
+     */
+    final void postEntry(String ns, String key, String value) {
+      assertStatus(HttpStatus.CREATED, POST("/userDataStore/" + ns + "/" + key, value));
+    }
+
+    final void postPet(String key, String name, int age, List<String> eats) {
+      Map<String, Object> objectMap =
+          Map.of(
+              "name",
+              name,
+              "age",
+              age,
+              "cute",
+              true,
+              "eats",
+              eats == null ? List.of() : eats.stream().map(food -> Map.of("name", food)));
+      postEntry("pets", key, toJson(objectMap));
+    }
   }
 }

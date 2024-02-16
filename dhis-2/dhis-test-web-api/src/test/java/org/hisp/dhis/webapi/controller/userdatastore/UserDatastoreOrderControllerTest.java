@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.userdatastore;
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.datastore.DatastoreParams;
+import org.hisp.dhis.webapi.controller.AbstractDataValueControllerTest;
 import org.hisp.dhis.webapi.controller.UserDatastoreController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,7 +44,8 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class UserDatastoreOrderControllerTest extends AbstractUserDatastoreControllerTest {
+class UserDatastoreOrderControllerTest
+    extends AbstractDataValueControllerTest.AbstractUserDatastoreControllerTest {
   @BeforeEach
   void setUp() {
     postPet("cat", "Miao", 9, List.of("tuna", "mice", "birds"));
