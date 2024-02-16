@@ -28,6 +28,7 @@
 package org.hisp.dhis.db.sql;
 
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+
 import java.util.Collection;
 import java.util.stream.Collectors;
 import org.hisp.dhis.db.model.DataType;
@@ -149,10 +150,11 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
     String indexColumn = quote(column);
     return index.hasFunction() ? String.format("%s(%s)", functionName, indexColumn) : indexColumn;
   }
-  
+
   /**
-   * Indicates that the feature or syntax is not supported by throwing an {@link UnsupportedOperationException}.
-   * 
+   * Indicates that the feature or syntax is not supported by throwing an {@link
+   * UnsupportedOperationException}.
+   *
    * @throws UnsupportedOperationException
    */
   protected String notSupported() {
