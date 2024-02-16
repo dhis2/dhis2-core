@@ -259,17 +259,16 @@ public class RestApiActions {
   }
 
   /**
-   * Sends PUT request will null body to specified resource.
+   * Sends PUT request to specified resource with no body.
    *
-   * @param resourceId Id of resource
+   * @param resource resource
    */
-//  public ApiResponse updateWithNull(String resourceId) {
-//    Response put = given().body(null).put(resourceId);
-//    Response response = put(resourceId, null);
-//
-//    addCoverage("PUT", resourceId);
-//    return new ApiResponse(response);
-//  }
+  public ApiResponse updateNoBody(String resource) {
+    Response response = this.given().when().put(resource);
+
+    addCoverage("PUT", resource);
+    return new ApiResponse(response);
+  }
 
   /** Sends PATCH request to specified resource */
   public ApiResponse patch(String resourceId, Object object, QueryParamsBuilder paramsBuilder) {

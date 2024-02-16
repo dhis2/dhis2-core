@@ -230,7 +230,7 @@ public class UserDatastoreController extends AbstractDatastoreController {
   public WebMessage putUserValue(
       @PathVariable String namespace,
       @PathVariable String key,
-      @RequestBody String value,
+      @RequestBody(required = false) String value,
       @RequestParam(required = false) String username,
       @RequestParam(required = false) String path,
       @RequestParam(required = false) Integer roll,

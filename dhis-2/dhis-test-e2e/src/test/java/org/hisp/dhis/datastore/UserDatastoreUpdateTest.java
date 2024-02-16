@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,10 +32,8 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.not;
 import static org.hisp.dhis.datastore.DatastoreKeysTest.getEntry;
 import static org.hisp.dhis.helpers.JsonParserUtils.toJsonObject;
-import static org.hisp.dhis.jsontree.Json.array;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
@@ -53,17 +51,14 @@ class UserDatastoreUpdateTest extends ApiTest {
 
   private RestApiActions userDatastoreActions;
   private LoginActions loginActions;
-
   private static final String NAMESPACE = "ns1";
-  private static final String KEY = "key3";
-  private Gson gson;
+  private static final String KEY = "key1";
 
   @BeforeAll
   public void beforeAll() {
     userDatastoreActions = new RestApiActions("userDataStore");
     loginActions = new LoginActions();
     loginActions.loginAsSuperUser();
-    gson = new Gson();
   }
 
   @AfterEach
@@ -76,200 +71,179 @@ class UserDatastoreUpdateTest extends ApiTest {
     userDatastoreActions.delete(NAMESPACE).validateStatus(200);
   }
 
-  //  @AfterAll
-  //  public void deleteUser() {
-  //    loginActions.loginAsSuperUser();
-  //  }
-
-  /**
-   * @Test * void testUpdateEntry_RootWithNullValue() { * addEntry("ns1", "key1", "42"); *
-   * updateEntry("/userDataStore/ns1/key1"); * assertStatus(NOT_FOUND,
-   * GET("/userDataStore/ns1/key1")); * }
-   */
-  //  @Test
-  //  @DisplayName("Can update existing key value to null which leads to delete")
-  //  void testUpdateEntry_RootWithNullValue() {
-  //    // add entry
-  //    userDatastoreActions
-  //        .update("/" + NAMESPACE + "/" + KEY, "{\"a\":43}")
-  //        .validate()
-  //        .statusCode(201);
-  //
-  //    // update entry, removing body
-  //    userDatastoreActions.update("/" + NAMESPACE + "/" + KEY, "").validate().statusCode(200);
-  //
-  //    // confirm entry not found
-  //    //    userDatastoreActions.get("/" + NAMESPACE + "/" + "key1").validateStatus(404);
-  //  }
-
-  /**
-   * @Test void * testUpdateEntry_RootWithNonNullValue() { addEntry("ns3", "key1", "{'a':42}"); *
-   * updateEntry("/userDataStore/ns3/key1", Body("7")); assertEquals("7", *
-   * GET("/userDataStore/ns3/key1").content().node().getDeclaration()); }
-   */
   @Test
-  @DisplayName("Can update root with new value")
+  @DisplayName("When updating existing entry root value to null, the entry will be deleted")
+  void testUpdateEntry_RootWithNullValue() {
+    // given
+    userDatastoreActions.update("/" + NAMESPACE + "/" + KEY, 42).validate().statusCode(201);
+
+    // when
+    userDatastoreActions.updateNoBody("/" + NAMESPACE + "/" + KEY).validate().statusCode(200);
+
+    // then
+    userDatastoreActions.get("/" + NAMESPACE + "/" + "key1").validateStatus(404);
+  }
+
+  @Test
+  @DisplayName("Can update root value with new value")
   void testUpdateEntry_RootWithNonNullValue() {
-    // add entry
-    userDatastoreActions.update("/" + NAMESPACE + "/" + KEY, json("11")).validate().statusCode(201);
-
-    // update entry, removing body
-    userDatastoreActions.update("/" + NAMESPACE + "/" + KEY, json("99")).validate().statusCode(200);
-
-    // confirm entry changed
+    // given
     userDatastoreActions
-        .get("/" + NAMESPACE + "/" + KEY)
-        .validateStatus(200)
-        .validate()
-        .body("a", equalTo("99"));
-  }
-
-  /**
-   * * @Test void testUpdateEntry_PathWithNullValue() { addEntry("ns2", "key1", "{'a':42}"); *
-   * updateEntry("/userDataStore/ns2/key1?path=a"); assertEquals("{\"a\": null}", *
-   * GET("/userDataStore/ns2/key1").content().node().getDeclaration()); }
-   */
-  //  @Test
-  //  @DisplayName("Can update path with null value")
-  //  void testUpdateEntry_PathWithNullValue() {
-  //    // add entry
-  //    userDatastoreActions.update("/" + NAMESPACE + "/" + KEY,
-  // json("11")).validate().statusCode(201);
-  //
-  //    // update entry, removing body
-  //    userDatastoreActions.update("/" + NAMESPACE + "/" + KEY,
-  // json("99")).validate().statusCode(200);
-  //
-  //    // confirm entry changed
-  //    userDatastoreActions
-  //        .get("/" + NAMESPACE + "/" + KEY)
-  //        .validateStatus(200)
-  //        .validate()
-  //        .body("a", equalTo("99"));
-  //  }
-
-  /**
-   * @Test void * testUpdateEntry_PathWithNonNullValue() { addEntry("ns4", "key1", "{'a':42}"); *
-   * updateEntry("/userDataStore/ns4/key1?path=a", Body("7")); assertEquals("{\"a\": 7}", *
-   * GET("/userDataStore/ns4/key1").content().node().getDeclaration()); }
-   */
-  @Test
-  @DisplayName("Can update path with new value")
-  void testUpdateEntry_PathWithNonNullValue() {
-    // add entry
-    userDatastoreActions.update("/" + NAMESPACE + "/" + KEY, json("11")).validate().statusCode(201);
-
-    // update entry, removing body
-    userDatastoreActions
-        .update("/" + NAMESPACE + "/" + KEY + "?path=a", "99")
-        .validate()
-        .statusCode(200);
-
-    // confirm entry changed
-    userDatastoreActions
-        .get("/" + NAMESPACE + "/" + KEY)
-        .validateStatus(200)
-        .validate()
-        .body("a", equalTo("99"));
-  }
-
-  /**
-   * @Test void * testUpdateEntry_RollRootValueIsNull() { addEntry("ns5", "key1", "null"); *
-   * updateEntry("/userDataStore/ns5/key1?roll=3", Body("7")); assertEquals("[7]", *
-   * GET("/userDataStore/ns5/key1").content().node().getDeclaration()); }
-   */
-  //  @Test
-  //  @DisplayName("Can update roll with null value")
-  //  void testUpdateEntry_RollRootValueIsNull() {
-  //    // add entry
-  //    userDatastoreActions.update("/" + NAMESPACE + "/" + KEY,
-  // json("11")).validate().statusCode(201);
-  //
-  //    // update entry, removing body
-  //    userDatastoreActions
-  //        .update("/" + NAMESPACE + "/" + KEY + "?path=a", "99")
-  //        .validate()
-  //        .statusCode(200);
-  //
-  //    // confirm entry changed
-  //    userDatastoreActions
-  //        .get("/" + NAMESPACE + "/" + KEY)
-  //        .validateStatus(200)
-  //        .validate()
-  //        .body("a", equalTo("99"));
-  //  }
-
-  /**
-   * @Test void testUpdateEntry_RollRootValueIsArray() { addEntry("ns6", "key1", "[]"); *
-   * updateEntry("/userDataStore/ns6/key1?roll=3", Body("7")); assertEquals("[7]", *
-   * GET("/userDataStore/ns6/key1").content().node().getDeclaration()); * *
-   *
-   * <p>updateEntry("/userDataStore/ns6/key1?roll=3", Body("8")); doInTransaction( () -> *
-   * assertEquals( "[7, 8]", GET("/userDataStore/ns6/key1").content().node().getDeclaration())); * *
-   *
-   * <p>updateEntry("/userDataStore/ns6/key1?roll=3", Body("9")); doInTransaction( () -> *
-   * assertEquals( "[7, 8, 9]", GET("/userDataStore/ns6/key1").content().node().getDeclaration()));
-   * * *
-   *
-   * <p>updateEntry("/userDataStore/ns6/key1?roll=3", Body("10")); doInTransaction( () -> *
-   * assertEquals( "[8, 9, 10]", GET("/userDataStore/ns6/key1").content().node().getDeclaration()));
-   * * }
-   */
-  @Test
-  @DisplayName("Can update roll with new array value")
-  void testUpdateEntry_RollRootValueIsArray() {
-    // add entry
-    userDatastoreActions
-        .update("/" + NAMESPACE + "/" + KEY, new JsonArray())
+        .update(
+            "/" + NAMESPACE + "/" + KEY,
+            toJsonObject("""
+                {"a": 11}
+                """))
         .validate()
         .statusCode(201);
 
-    // update entry, removing body
+    // when
+    userDatastoreActions
+        .update(
+            "/" + NAMESPACE + "/" + KEY,
+            toJsonObject("""
+                {"a": 99}
+                """))
+        .validate()
+        .statusCode(200);
+
+    // then
+    userDatastoreActions
+        .get("/" + NAMESPACE + "/" + KEY)
+        .validateStatus(200)
+        .validate()
+        .body("a", equalTo(99));
+  }
+
+  @Test
+  @DisplayName("Can update path with null value")
+  void testUpdateEntry_PathWithNullValue() {
+    // given
+    userDatastoreActions
+        .update(
+            "/" + NAMESPACE + "/" + KEY,
+            toJsonObject("""
+                {"a": 42}
+                """))
+        .validate()
+        .statusCode(201);
+
+    // when
+    userDatastoreActions
+        .updateNoBody("/" + NAMESPACE + "/" + KEY + "?path=a")
+        .validate()
+        .statusCode(200);
+
+    // then
+    userDatastoreActions
+        .get("/" + NAMESPACE + "/" + KEY)
+        .validateStatus(200)
+        .validate()
+        .body("a", equalTo(null));
+  }
+
+  @Test
+  @DisplayName("Can update path with new value")
+  void testUpdateEntry_PathWithNonNullValue() {
+    // given
+    userDatastoreActions
+        .update(
+            "/" + NAMESPACE + "/" + KEY,
+            toJsonObject("""
+                {"a": 11}
+                """))
+        .validate()
+        .statusCode(201);
+
+    // when
+    userDatastoreActions
+        .update("/" + NAMESPACE + "/" + KEY + "?path=a", 99)
+        .validate()
+        .statusCode(200);
+
+    // then
+    userDatastoreActions
+        .get("/" + NAMESPACE + "/" + KEY)
+        .validateStatus(200)
+        .validate()
+        .body("a", equalTo(99));
+  }
+
+  @Test
+  @DisplayName("Can update entry that has a null value, with roll")
+  void testUpdateEntry_RollRootValueIsNull() {
+    // given
+    userDatastoreActions.updateNoBody("/" + NAMESPACE + "/" + KEY).validate().statusCode(201);
+
+    // when
     userDatastoreActions
         .update("/" + NAMESPACE + "/" + KEY + "?roll=3", 7)
         .validate()
         .statusCode(200);
 
-    // confirm entry changed
+    // then
+    userDatastoreActions
+        .get("/" + NAMESPACE + "/" + KEY)
+        .validateStatus(200)
+        .validate()
+        .body("$", equalTo(7));
+  }
+
+  @Test
+  @DisplayName("Can update root roll with new values and roll value is respected")
+  void testUpdateEntry_RollRootValueIsArray() {
+    // given
+    userDatastoreActions
+        .update("/" + NAMESPACE + "/" + KEY, new JsonArray())
+        .validate()
+        .statusCode(201);
+
+    // when
+    userDatastoreActions
+        .update("/" + NAMESPACE + "/" + KEY + "?roll=3", 7)
+        .validate()
+        .statusCode(200);
+
+    // then
     userDatastoreActions
         .get("/" + NAMESPACE + "/" + KEY)
         .validateStatus(200)
         .validate()
         .body("$", hasItems(7));
 
-    // update entry, removing body
+    // when
     userDatastoreActions
         .update("/" + NAMESPACE + "/" + KEY + "?roll=3", 8)
         .validate()
         .statusCode(200);
 
-    // confirm entry changed
+    // then
     userDatastoreActions
         .get("/" + NAMESPACE + "/" + KEY)
         .validateStatus(200)
         .validate()
         .body("$", hasItems(7, 8));
 
-    // update entry, removing body
+    // when
     userDatastoreActions
         .update("/" + NAMESPACE + "/" + KEY + "?roll=3", 9)
         .validate()
         .statusCode(200);
 
-    // confirm entry changed
+    // then
     userDatastoreActions
         .get("/" + NAMESPACE + "/" + KEY)
         .validateStatus(200)
         .validate()
         .body("$", hasItems(7, 8, 9));
-    //
-    // update entry, removing body
+
+    // when
     userDatastoreActions
         .update("/" + NAMESPACE + "/" + KEY + "?roll=3", 10)
         .validate()
         .statusCode(200);
 
-    // confirm entry changed
+    // then
     userDatastoreActions
         .get("/" + NAMESPACE + "/" + KEY)
         .validateStatus(200)
@@ -278,81 +252,71 @@ class UserDatastoreUpdateTest extends ApiTest {
         .body("$", not(hasItems(7)));
   }
 
-  /**
-   * @Test void testUpdateEntry_RollRootValueIsOther() { addEntry("ns7", "key1", "{}"); *
-   * updateEntry("/userDataStore/ns7/key1?roll=3", Body("7")); doInTransaction( () -> *
-   * assertEquals("7", GET("/userDataStore/ns7/key1").content().node().getDeclaration())); *
-   * updateEntry("/userDataStore/ns7/key1?roll=3", Body("\"hello\"")); doInTransaction(() -> *
-   * assertEquals("hello", GET("/dataStore/ns7/key1").content().string())); *
-   * updateEntry("/userDataStore/ns7/key1?roll=3", Body("true")); doInTransaction(() -> *
-   * assertTrue(GET("/userDataStore/ns7/key1").content().booleanValue())); }
-   */
   @Test
   @DisplayName("Can update roll with new value")
   void testUpdateEntry_RollRootValueIsOther() {
-    // add entry
+    // given
     userDatastoreActions
         .update("/" + NAMESPACE + "/" + KEY, new JsonObject())
         .validate()
         .statusCode(201);
 
-    // update entry, removing body
+    // when
     userDatastoreActions
         .update("/" + NAMESPACE + "/" + KEY + "?roll=3", 7)
         .validate()
         .statusCode(200);
 
-    // confirm entry changed
+    // then
     userDatastoreActions
         .get("/" + NAMESPACE + "/" + KEY)
         .validateStatus(200)
         .validate()
         .body("$", equalTo(7));
 
-    // update entry, removing body
+    // when
     userDatastoreActions
         .update("/" + NAMESPACE + "/" + KEY + "?roll=3", "hello")
         .validate()
         .statusCode(200);
 
-    // confirm entry changed
+    // then
     assertEquals(
         "hello",
         userDatastoreActions.get("/" + NAMESPACE + "/" + KEY).validateStatus(200).as(String.class));
 
-    // update entry, removing body
+    // when
     userDatastoreActions
         .update("/" + NAMESPACE + "/" + KEY + "?roll=3", true)
         .validate()
         .statusCode(200);
 
-    // confirm entry changed
+    // then
     assertEquals(
         "true",
         userDatastoreActions.get("/" + NAMESPACE + "/" + KEY).validateStatus(200).getAsString());
   }
 
-  /**
-   * @Test void testUpdateEntry_RollPathValueIsNull() { addEntry("ns8", "key1", "{'a':null}"); *
-   * updateEntry("/userDataStore/ns8/key1?roll=3&path=a", Body("7")); assertEquals("{\"a\": [7]}", *
-   * GET("/userDataStore/ns8/key1").content().node().getDeclaration()); }
-   */
   @Test
-  @DisplayName("Can update roll path with new value")
+  @DisplayName("Can update roll null path with new value")
   void testUpdateEntry_RollPathValueIsNull() {
-    // add entry
+    // given
     userDatastoreActions
-        .update("/" + NAMESPACE + "/" + KEY, jsonNull(null))
+        .update(
+            "/" + NAMESPACE + "/" + KEY,
+            toJsonObject("""
+                {"a": null}
+                """))
         .validate()
         .statusCode(201);
 
-    // update entry, removing body
+    // when
     userDatastoreActions
         .update("/" + NAMESPACE + "/" + KEY + "?roll=3&path=a", 7)
         .validate()
         .statusCode(200);
 
-    // confirm entry changed
+    // then
     userDatastoreActions
         .get("/" + NAMESPACE + "/" + KEY)
         .validateStatus(200)
@@ -360,28 +324,26 @@ class UserDatastoreUpdateTest extends ApiTest {
         .body("a", hasItems(7));
   }
 
-  /**
-   * @Test void * testUpdateEntry_RollPathValueIsUndefined() { addEntry("ns9", "key1",
-   * "{'a':null}"); * updateEntry("/userDataStore/ns9/key1?roll=3&path=b", Body("7")); assertEquals(
-   * "{\"a\": null, * \"b\": [7]}",
-   * GET("/userDataStore/ns9/key1").content().node().getDeclaration()); }
-   */
   @Test
-  @DisplayName("update roll path undefined")
+  @DisplayName("update roll undefined path creates new path")
   void testUpdateEntry_RollPathValueIsUndefined() {
-    // add entry
+    // given
     userDatastoreActions
-        .update("/" + NAMESPACE + "/" + KEY, jsonNull(null))
+        .update(
+            "/" + NAMESPACE + "/" + KEY,
+            toJsonObject("""
+                {"a": null}
+                """))
         .validate()
         .statusCode(201);
 
-    // update entry, removing body
+    // when
     userDatastoreActions
         .update("/" + NAMESPACE + "/" + KEY + "?roll=3&path=b", 7)
         .validate()
         .statusCode(200);
 
-    // confirm entry changed
+    // then
     userDatastoreActions
         .get("/" + NAMESPACE + "/" + KEY)
         .validateStatus(200)
@@ -390,56 +352,123 @@ class UserDatastoreUpdateTest extends ApiTest {
         .body("b", hasItems(7));
   }
 
-  /**
-   * @Test void * testUpdateEntry_RollPathValueIsArray() { addEntry("ns10", "key1",
-   * "{'a':{'b':[]}}"); * updateEntry("/userDataStore/ns10/key1?roll=3&path=a.b", Body("7"));
-   * assertEquals( "[7]", *
-   * GET("/userDataStore/ns10/key1").content().get("a.b").node().getDeclaration()); * *
-   *
-   * <p>updateEntry("/userDataStore/ns10/key1?roll=3&path=a.b", Body("8")); doInTransaction( () -> *
-   * assertEquals( "[7, 8]", *
-   * GET("/userDataStore/ns10/key1").content().get("a.b").node().getDeclaration())); * *
-   *
-   * <p>updateEntry("/userDataStore/ns10/key1?roll=3&path=a.b", Body("9")); doInTransaction( () -> *
-   * assertEquals( "[7, 8, 9]", *
-   * GET("/userDataStore/ns10/key1").content().get("a.b").node().getDeclaration())); * *
-   *
-   * <p>updateEntry("/userDataStore/ns10/key1?roll=3&path=a.b", Body("10")); doInTransaction( () ->
-   * * assertEquals( "[8, 9, 10]", *
-   * GET("/userDataStore/ns10/key1").content().get("a.b").node().getDeclaration())); }
-   */
+  @Test
+  @DisplayName("Can update nested roll path with new values and roll value is respected")
+  void testUpdateEntry_RollPathValueIsArray() {
+    // given
+    userDatastoreActions
+        .update(
+            "/" + NAMESPACE + "/" + KEY,
+            toJsonObject("""
+                  {"a":{"b":[]}}
+                  """))
+        .validate()
+        .statusCode(201);
 
-  /**
-   * @Test void testUpdateEntry_RollPathValueIsOther() { addEntry("ns11", "key1", "{'a':[{}]}");
-   * updateEntry("/userDataStore/ns11/key1?roll=3&path=a.[0]", Body("7")); doInTransaction( () ->
-   * assertEquals( "{\"a\": [7]}",
-   * GET("/userDataStore/ns11/key1").content().node().getDeclaration()));
-   *
-   * <p>updateEntry("/userDataStore/ns11/key1?roll=3&path=a.[0]", Body("\"hello\""));
-   * doInTransaction( () -> assertEquals( "{\"a\": [\"hello\"]}",
-   * GET("/userDataStore/ns11/key1").content().node().getDeclaration()));
-   *
-   * <p>updateEntry("/userDataStore/ns11/key1?roll=3&path=a.[0]", Body("true")); doInTransaction( ()
-   * -> assertEquals( "{\"a\": [true]}",
-   * GET("/userDataStore/ns11/key1").content().node().getDeclaration())); }
-   */
-  private JsonObject json(String value) {
-    String json = """
-      {"a": "%s"}
-    """.formatted(value);
-    return toJsonObject(json);
+    // when
+    userDatastoreActions
+        .update("/" + NAMESPACE + "/" + KEY + "?roll=3&path=a.b", 7)
+        .validate()
+        .statusCode(200);
+
+    // then
+    userDatastoreActions
+        .get("/" + NAMESPACE + "/" + KEY)
+        .validateStatus(200)
+        .validate()
+        .body("a.b", hasItems(7));
+
+    // when
+    userDatastoreActions
+        .update("/" + NAMESPACE + "/" + KEY + "?roll=3&path=a.b", 8)
+        .validate()
+        .statusCode(200);
+
+    // then
+    userDatastoreActions
+        .get("/" + NAMESPACE + "/" + KEY)
+        .validateStatus(200)
+        .validate()
+        .body("a.b", hasItems(7, 8));
+
+    // when
+    userDatastoreActions
+        .update("/" + NAMESPACE + "/" + KEY + "?roll=3&path=a.b", 9)
+        .validate()
+        .statusCode(200);
+
+    // then
+    userDatastoreActions
+        .get("/" + NAMESPACE + "/" + KEY)
+        .validateStatus(200)
+        .validate()
+        .body("a.b", hasItems(7, 8, 9));
+
+    // when
+    userDatastoreActions
+        .update("/" + NAMESPACE + "/" + KEY + "?roll=3&path=a.b", 10)
+        .validate()
+        .statusCode(200);
+
+    // then
+    userDatastoreActions
+        .get("/" + NAMESPACE + "/" + KEY)
+        .validateStatus(200)
+        .validate()
+        .body("a.b", hasItems(8, 9, 10))
+        .body("a.b", not(hasItems(7)));
   }
 
-  private JsonObject jsonNull(String value) {
-    String json = """
-      {"a": %s}
-    """.formatted(value);
-    return toJsonObject(json);
-  }
+  @Test
+  @DisplayName("Can update roll path value as another type")
+  void testUpdateEntry_RollPathValueIsOther() {
+    // given
+    userDatastoreActions
+        .update(
+            "/" + NAMESPACE + "/" + KEY,
+            toJsonObject("""
+                  {"a":[{}]}
+                  """))
+        .validate()
+        .statusCode(201);
 
-  private JsonArray arrayWithValue(int num) {
-    JsonArray array = new JsonArray();
-    array.add(num);
-    return array;
+    // when
+    userDatastoreActions
+        .update("/" + NAMESPACE + "/" + KEY + "?roll=3&path=a.[0]", 7)
+        .validate()
+        .statusCode(200);
+
+    // then
+    userDatastoreActions
+        .get("/" + NAMESPACE + "/" + KEY)
+        .validateStatus(200)
+        .validate()
+        .body("a", hasItems(7));
+
+    // when
+    userDatastoreActions
+        .update("/" + NAMESPACE + "/" + KEY + "?roll=3&path=a.[0]", "hello")
+        .validate()
+        .statusCode(200);
+
+    // then
+    userDatastoreActions
+        .get("/" + NAMESPACE + "/" + KEY)
+        .validateStatus(200)
+        .validate()
+        .body("a", hasItems("hello"));
+
+    // when
+    userDatastoreActions
+        .update("/" + NAMESPACE + "/" + KEY + "?roll=3&path=a.[0]", true)
+        .validate()
+        .statusCode(200);
+
+    // then
+    userDatastoreActions
+        .get("/" + NAMESPACE + "/" + KEY)
+        .validateStatus(200)
+        .validate()
+        .body("a", hasItems(true));
   }
 }
