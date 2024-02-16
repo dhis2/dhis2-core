@@ -28,6 +28,7 @@
 package org.hisp.dhis.db.model;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 import static org.hisp.dhis.db.model.Logged.UNLOGGED;
 import static org.hisp.dhis.util.ObjectUtils.notNull;
 
@@ -134,7 +135,7 @@ public class Table {
     this.columns = columns;
     this.primaryKey = primaryKey;
     this.checks = checks;
-    this.logged = logged != null ? logged : UNLOGGED;
+    this.logged = firstNonNull(logged, UNLOGGED);
     this.parent = parent;
     this.validate();
   }
