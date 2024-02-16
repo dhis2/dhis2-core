@@ -72,6 +72,11 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
     return analyzeTable(table.getName());
   }
 
+  @Override
+  public String swapTable(Table table, String newName) {
+    return String.join(" ", dropTableIfExistsCascade(newName), renameTable(table, newName));
+  }
+
   // Mapping
 
   /**

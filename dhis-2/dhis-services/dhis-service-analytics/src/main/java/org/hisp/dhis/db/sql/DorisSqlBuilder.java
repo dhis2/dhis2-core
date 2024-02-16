@@ -205,32 +205,27 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String renameTable(Table table, String newName) {
-    return null;
+    return String.format("alter table %s rename to %s;", quote(table.getName()), quote(newName));
   }
 
   @Override
   public String dropTableIfExists(Table table) {
-    return null;
+    return dropTableIfExists(table.getName());
   }
 
   @Override
   public String dropTableIfExists(String name) {
-    return null;
+    return String.format("drop table if exists %s;", quote(name));
   }
 
   @Override
   public String dropTableIfExistsCascade(Table table) {
-    return null;
+    return dropTableIfExists(table);
   }
 
   @Override
   public String dropTableIfExistsCascade(String name) {
-    return null;
-  }
-
-  @Override
-  public String swapTable(Table table, String newName) {
-    return null;
+    return dropTableIfExists(name);
   }
 
   @Override

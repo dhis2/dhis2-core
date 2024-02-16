@@ -292,11 +292,6 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String swapTable(Table table, String newName) {
-    return String.join(" ", dropTableIfExistsCascade(newName), renameTable(table, newName));
-  }
-
-  @Override
   public String setParentTable(Table table, String parentName) {
     return String.format("alter table %s inherit %s;", quote(table.getName()), quote(parentName));
   }
