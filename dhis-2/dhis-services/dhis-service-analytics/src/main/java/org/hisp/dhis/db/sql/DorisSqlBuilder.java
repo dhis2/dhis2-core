@@ -127,17 +127,17 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String indexTypeBtree() {
-    throw new NotSupportedException();
+    return notSupported();
   }
 
   @Override
   public String indexTypeGist() {
-    throw new NotSupportedException();
+    return notSupported();
   }
 
   @Override
   public String indexTypeGin() {
-    throw new NotSupportedException();
+    return notSupported();
   }
 
   // Index functions

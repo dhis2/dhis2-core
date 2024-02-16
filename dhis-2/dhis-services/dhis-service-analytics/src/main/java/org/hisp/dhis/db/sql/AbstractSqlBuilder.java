@@ -149,4 +149,13 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
     String indexColumn = quote(column);
     return index.hasFunction() ? String.format("%s(%s)", functionName, indexColumn) : indexColumn;
   }
+  
+  /**
+   * Indicates that the feature or syntax is not supported by throwing an {@link UnsupportedOperationException}.
+   * 
+   * @throws UnsupportedOperationException
+   */
+  protected String notSupported() {
+    throw new UnsupportedOperationException();
+  }
 }
