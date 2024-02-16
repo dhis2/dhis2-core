@@ -237,12 +237,12 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String setParentTable(Table table, String parentName) {
-    return null;
+    return notSupported();
   }
 
   @Override
   public String removeParentTable(Table table, String parentName) {
-    return null;
+    return notSupported();
   }
 
   @Override
