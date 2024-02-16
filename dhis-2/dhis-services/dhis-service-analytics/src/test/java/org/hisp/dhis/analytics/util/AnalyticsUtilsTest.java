@@ -34,6 +34,7 @@ import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.db.model.DataType.BIGINT;
 import static org.hisp.dhis.db.model.DataType.GEOMETRY_POINT;
 import static org.hisp.dhis.db.model.DataType.TEXT;
+import static org.hisp.dhis.db.model.Database.POSTGRESQL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -717,17 +718,13 @@ class AnalyticsUtilsTest extends DhisConvenienceTest {
   /** {@link EnumUtils} is case sensitive, not specified in the documentation. */
   @Test
   void testgetEnumCaseSensitivity() {
-    assertEquals(Database.POSTGRESQL, EnumUtils.getEnum(Database.class, "POSTGRESQL"));
+    assertEquals(POSTGRESQL, EnumUtils.getEnum(Database.class, "POSTGRESQL"));
+    assertEquals(POSTGRESQL, EnumUtils.getEnum(Database.class, "PostgreSQL".toUpperCase()));
+    assertEquals(POSTGRESQL, EnumUtils.getEnum(Database.class, "postgresql".toUpperCase()));
+    assertEquals(POSTGRESQL, EnumUtils.getEnum(Database.class, POSTGRESQL.name()));
+    assertEquals(POSTGRESQL, EnumUtils.getEnum(Database.class, POSTGRESQL.toString()));
     assertEquals(
-        Database.POSTGRESQL, EnumUtils.getEnum(Database.class, "PostgreSQL".toUpperCase()));
-    assertEquals(
-        Database.POSTGRESQL, EnumUtils.getEnum(Database.class, "postgresql".toUpperCase()));
-    assertEquals(
-        Database.POSTGRESQL, EnumUtils.getEnum(Database.class, Database.POSTGRESQL.name()));
-    assertEquals(
-        Database.POSTGRESQL, EnumUtils.getEnum(Database.class, Database.POSTGRESQL.toString()));
-    assertEquals(
-        Database.POSTGRESQL,
+        POSTGRESQL,
         EnumUtils.getEnum(Database.class, ConfigurationKey.ANALYTICS_DATABASE.getDefaultValue()));
     assertNull(EnumUtils.getEnum(Database.class, "PostgreSQL"));
     assertNull(EnumUtils.getEnum(Database.class, "postgresql"));

@@ -61,7 +61,7 @@ class AnalyticsTableSettingsTest {
 
   @Test
   void testGetAndValidateInvalidDatabase() {
-    assertThrows(IllegalArgumentException.class, () -> settings.getAndValidateDatabase("oracle"));
+    assertThrows(IllegalArgumentException.class, () -> settings.getAndValidateDatabase("ORACLE"));
   }
 
   @Test
