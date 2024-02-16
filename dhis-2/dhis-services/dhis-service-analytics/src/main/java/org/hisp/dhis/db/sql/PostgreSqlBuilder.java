@@ -181,6 +181,11 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
     return true;
   }
 
+  @Override
+  public boolean requiresIndexesForAnalytics() {
+    return true;
+  }
+
   // Utilities
 
   @Override

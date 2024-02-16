@@ -169,6 +169,11 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     return false;
   }
 
+  @Override
+  public boolean requiresIndexesForAnalytics() {
+    return false;
+  }
+
   // Utilities
 
   @Override
