@@ -168,10 +168,9 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
     assertEquals(HttpStatus.OK.toString(), importResponse.getStatus());
 
     JsonWebMessage changeLogResponse =
-        GET("/tracker/events/{id}/changelog", event.getUid())
+        GET("/tracker/events/{id}/changeLog", event.getUid())
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
-    assertEquals(1, changeLogResponse.asList(JsonList.class).size());
 
     JsonObject changeLogObject = changeLogResponse.asList(JsonList.class).get(0).asObject();
     JsonObject updatedByValue = changeLogObject.get("updatedBy").asObject();

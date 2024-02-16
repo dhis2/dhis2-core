@@ -31,15 +31,14 @@ import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.tracker.TrackerTest;
@@ -118,47 +117,34 @@ class ChangeLogServiceTest extends TrackerTest {
   @Test
   void shouldReturnChangeLogsWhenDataValueIsCreated() throws NotFoundException {
     injectSecurityContextUser(manager.get(User.class, "M5zQapPyTZI"));
-
-    Event event = manager.get(Event.class, "QRYjLTiJTrA");
-    assertNotNull(event);
+    Event event = getEvent("QRYjLTiJTrA");
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
-    DataElement dataElement = manager.get(DataElement.class, dataElementUid);
-    assertNotNull(dataElement);
 
     List<EventChangeLog> changeLogs = changeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"));
+    List<Object> expectedPreviousValues = createValueList((Object) null);
+    List<Object> expectedCurrentValues = createValueList("15");
 
-    assertAll(
-        () -> {
-          validateNonValueElements(1, changeLogs, importUser, dataElementUid);
-          assertEquals("15", changeLogs.get(0).change().dataValue().currentValue());
-          assertNull(changeLogs.get(0).change().dataValue().previousValue());
-        });
+    assertChange(
+        changeLogs, importUser, dataElementUid, expectedPreviousValues, expectedCurrentValues);
   }
 
   @Test
   void shouldReturnChangeLogsWhenDataValueIsDeleted() throws NotFoundException, IOException {
     injectSecurityContextUser(manager.get(User.class, "M5zQapPyTZI"));
 
-    Event event = manager.get(Event.class, "QRYjLTiJTrA");
-    assertNotNull(event);
+    Event event = getEvent("QRYjLTiJTrA");
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
-    DataElement dataElement = manager.get(DataElement.class, dataElementUid);
-    assertNotNull(dataElement);
 
     TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
     updateDataValue(trackerObjects, event.getUid(), dataElementUid, "");
     assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
 
     List<EventChangeLog> changeLogs = changeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"));
+    List<Object> expectedPreviousValues = createValueList("15", null);
+    List<Object> expectedCurrentValues = createValueList(null, "15");
 
-    assertAll(
-        () -> {
-          validateNonValueElements(2, changeLogs, importUser, dataElementUid);
-          assertNull(changeLogs.get(0).change().dataValue().currentValue());
-          assertEquals("15", changeLogs.get(0).change().dataValue().previousValue());
-          assertEquals("15", changeLogs.get(1).change().dataValue().currentValue());
-          assertNull(changeLogs.get(1).change().dataValue().previousValue());
-        });
+    assertChange(
+        changeLogs, importUser, dataElementUid, expectedPreviousValues, expectedCurrentValues);
   }
 
   @Test
@@ -166,11 +152,8 @@ class ChangeLogServiceTest extends TrackerTest {
       throws NotFoundException, IOException {
     injectSecurityContextUser(manager.get(User.class, "M5zQapPyTZI"));
 
-    Event event = manager.get(Event.class, "QRYjLTiJTrA");
-    assertNotNull(event);
+    Event event = getEvent("QRYjLTiJTrA");
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
-    DataElement dataElement = manager.get(DataElement.class, dataElementUid);
-    assertNotNull(dataElement);
 
     TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
     updateDataValue(trackerObjects, event.getUid(), dataElementUid, "");
@@ -179,41 +162,30 @@ class ChangeLogServiceTest extends TrackerTest {
     assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
 
     List<EventChangeLog> changeLogs = changeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"));
+    List<Object> expectedPreviousValues = createValueList("15", null);
+    List<Object> expectedCurrentValues = createValueList(null, "15");
 
-    assertAll(
-        () -> {
-          validateNonValueElements(2, changeLogs, importUser, dataElementUid);
-          assertNull(changeLogs.get(0).change().dataValue().currentValue());
-          assertEquals("15", changeLogs.get(0).change().dataValue().previousValue());
-          assertEquals("15", changeLogs.get(1).change().dataValue().currentValue());
-          assertNull(changeLogs.get(1).change().dataValue().previousValue());
-        });
+    assertChange(
+        changeLogs, importUser, dataElementUid, expectedPreviousValues, expectedCurrentValues);
   }
 
   @Test
   void shouldReturnChangeLogsWhenDataValueIsUpdated() throws NotFoundException, IOException {
     injectSecurityContextUser(manager.get(User.class, "M5zQapPyTZI"));
 
-    Event event = manager.get(Event.class, "QRYjLTiJTrA");
-    assertNotNull(event);
+    Event event = getEvent("QRYjLTiJTrA");
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
-    DataElement dataElement = manager.get(DataElement.class, dataElementUid);
-    assertNotNull(dataElement);
 
     TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
     updateDataValue(trackerObjects, event.getUid(), dataElementUid, "20");
     assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
 
     List<EventChangeLog> changeLogs = changeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"));
+    List<Object> expectedPreviousValues = createValueList("15", null);
+    List<Object> expectedCurrentValues = createValueList("20", "15");
 
-    assertAll(
-        () -> {
-          validateNonValueElements(2, changeLogs, importUser, dataElementUid);
-          assertEquals("20", changeLogs.get(0).change().dataValue().currentValue());
-          assertEquals("15", changeLogs.get(0).change().dataValue().previousValue());
-          assertEquals("15", changeLogs.get(1).change().dataValue().currentValue());
-          assertNull(changeLogs.get(1).change().dataValue().previousValue());
-        });
+    assertChange(
+        changeLogs, importUser, dataElementUid, expectedPreviousValues, expectedCurrentValues);
   }
 
   @Test
@@ -221,11 +193,8 @@ class ChangeLogServiceTest extends TrackerTest {
       throws NotFoundException, IOException {
     injectSecurityContextUser(manager.get(User.class, "M5zQapPyTZI"));
 
-    Event event = manager.get(Event.class, "QRYjLTiJTrA");
-    assertNotNull(event);
+    Event event = getEvent("QRYjLTiJTrA");
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
-    DataElement dataElement = manager.get(DataElement.class, dataElementUid);
-    assertNotNull(dataElement);
 
     TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
     updateDataValue(trackerObjects, event.getUid(), dataElementUid, "20");
@@ -234,17 +203,11 @@ class ChangeLogServiceTest extends TrackerTest {
     assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
 
     List<EventChangeLog> changeLogs = changeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"));
+    List<Object> expectedPreviousValues = createValueList("20", "15", null);
+    List<Object> expectedCurrentValues = createValueList("25", "20", "15");
 
-    assertAll(
-        () -> {
-          validateNonValueElements(3, changeLogs, importUser, dataElementUid);
-          assertEquals("25", changeLogs.get(0).change().dataValue().currentValue());
-          assertEquals("20", changeLogs.get(0).change().dataValue().previousValue());
-          assertEquals("20", changeLogs.get(1).change().dataValue().currentValue());
-          assertEquals("15", changeLogs.get(1).change().dataValue().previousValue());
-          assertEquals("15", changeLogs.get(2).change().dataValue().currentValue());
-          assertNull(changeLogs.get(2).change().dataValue().previousValue());
-        });
+    assertChange(
+        changeLogs, importUser, dataElementUid, expectedPreviousValues, expectedCurrentValues);
   }
 
   @Test
@@ -252,11 +215,8 @@ class ChangeLogServiceTest extends TrackerTest {
       throws IOException, NotFoundException {
     injectSecurityContextUser(manager.get(User.class, "M5zQapPyTZI"));
 
-    Event event = manager.get(Event.class, "QRYjLTiJTrA");
-    assertNotNull(event);
+    Event event = getEvent("QRYjLTiJTrA");
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
-    DataElement dataElement = manager.get(DataElement.class, dataElementUid);
-    assertNotNull(dataElement);
 
     TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
     updateDataValue(trackerObjects, event.getUid(), dataElementUid, "20");
@@ -266,16 +226,39 @@ class ChangeLogServiceTest extends TrackerTest {
     assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
 
     List<EventChangeLog> changeLogs = changeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"));
+    List<Object> expectedPreviousValues = createValueList("20", "15", null);
+    List<Object> expectedCurrentValues = createValueList(null, "20", "15");
 
+    assertChange(
+        changeLogs, importUser, dataElementUid, expectedPreviousValues, expectedCurrentValues);
+  }
+
+  private void assertChange(
+      List<EventChangeLog> changeLogs,
+      User importUser,
+      String dataElementUid,
+      List<Object> previousValues,
+      List<Object> currentValues) {
     assertAll(
         () -> {
-          validateNonValueElements(3, changeLogs, importUser, dataElementUid);
-          assertNull(changeLogs.get(0).change().dataValue().currentValue());
-          assertEquals("20", changeLogs.get(0).change().dataValue().previousValue());
-          assertEquals("20", changeLogs.get(1).change().dataValue().currentValue());
-          assertEquals("15", changeLogs.get(1).change().dataValue().previousValue());
-          assertEquals("15", changeLogs.get(2).change().dataValue().currentValue());
-          assertNull(changeLogs.get(2).change().dataValue().previousValue());
+          assertEquals(
+              previousValues.size(),
+              changeLogs.size(),
+              String.format(
+                  "Expected to find %s elements in the change log list, found %s instead",
+                  previousValues.size(), changeLogs.size()));
+
+          for (int i = 0; i < changeLogs.size(); i++) {
+            assertEquals(importUser.getUsername(), changeLogs.get(i).updatedBy().getUsername());
+            assertEquals(importUser.getFirstName(), changeLogs.get(i).updatedBy().getFirstName());
+            assertEquals(importUser.getSurname(), changeLogs.get(i).updatedBy().getSurname());
+            assertEquals(importUser.getUid(), changeLogs.get(i).updatedBy().getUid());
+            assertEquals(dataElementUid, changeLogs.get(i).change().dataValue().dataElement());
+            assertEquals(
+                previousValues.get(i), changeLogs.get(i).change().dataValue().previousValue());
+            assertEquals(
+                currentValues.get(i), changeLogs.get(i).change().dataValue().currentValue());
+          }
         });
   }
 
@@ -293,19 +276,14 @@ class ChangeLogServiceTest extends TrackerTest {
         .ifPresent(dv -> dv.setValue(newValue));
   }
 
-  private void validateNonValueElements(
-      int expectedListSize,
-      List<EventChangeLog> changeLogs,
-      User importUser,
-      String dataElementUid) {
-    assertEquals(expectedListSize, changeLogs.size());
+  private Event getEvent(String uid) {
+    Event event = manager.get(Event.class, uid);
+    assertNotNull(event);
 
-    for (EventChangeLog eventChangeLog : changeLogs) {
-      assertEquals(importUser.getUsername(), eventChangeLog.updatedBy().getUsername());
-      assertEquals(importUser.getFirstName(), eventChangeLog.updatedBy().getFirstName());
-      assertEquals(importUser.getSurname(), eventChangeLog.updatedBy().getSurname());
-      assertEquals(importUser.getUid(), eventChangeLog.updatedBy().getUid());
-      assertEquals(dataElementUid, eventChangeLog.change().dataValue().dataElement());
-    }
+    return event;
+  }
+
+  private List<Object> createValueList(Object... values) {
+    return Arrays.stream(values).toList();
   }
 }

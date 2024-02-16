@@ -38,5 +38,5 @@ public interface ChangeLogService {
    *
    * @return list with the change logs of the supplied event, if any
    */
-  List<EventChangeLog> getEventChangeLog(UID eventUid) throws NotFoundException;
+  List<EventChangeLog> getEventChangeLog(UID event) throws NotFoundException;
 }

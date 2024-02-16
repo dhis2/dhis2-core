@@ -290,7 +290,7 @@ class EventsExportController {
         request, eventService.getFileResourceImage(event, dataElement, dimension));
   }
 
-  @GetMapping("/{uid}/changelog")
+  @GetMapping("/{uid}/changeLog")
   List<EventChangeLog> getEventByUid(@OpenApi.Param({UID.class, Event.class}) @PathVariable UID uid)
       throws NotFoundException {
 
