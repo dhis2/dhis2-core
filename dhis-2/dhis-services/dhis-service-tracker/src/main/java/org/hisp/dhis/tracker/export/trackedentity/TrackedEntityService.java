@@ -31,8 +31,10 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.Page;
@@ -43,6 +45,11 @@ public interface TrackedEntityService {
   /** Get a file for a tracked entities' attribute. */
   FileResourceStream getFileResource(UID trackedEntity, UID attribute, UID program)
       throws NotFoundException;
+
+  /** Get an image for a tracked entities' attribute in the given dimension. */
+  FileResourceStream getFileResourceImage(
+      UID trackedEntity, UID attribute, UID program, ImageFileDimension dimension)
+      throws NotFoundException, ConflictException, BadRequestException;
 
   TrackedEntity getTrackedEntity(String uid, TrackedEntityParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException;

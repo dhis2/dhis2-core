@@ -97,7 +97,7 @@
     <jasypt.version>1.9.3</jasypt.version>
     <nimbus.jose.jwt.version>9.37.3</nimbus.jose.jwt.version>
     <com.google.zxing.core.version>3.5.2</com.google.zxing.core.version>
-    <com.google.zxing.javase.version>3.5.2</com.google.zxing.javase.version>
+    <com.google.zxing.javase.version>3.5.3</com.google.zxing.javase.version>
 
     <!-- Spring -->
     <spring.version>5.3.31</spring.version>
@@ -190,7 +190,7 @@
     <commons-math3.version>3.6.1</commons-math3.version>
     <commons-validator.version>1.8.0</commons-validator.version>
     <commons-io.version>2.15.1</commons-io.version>
-    <commons-codec.version>1.16.0</commons-codec.version>
+    <commons-codec.version>1.16.1</commons-codec.version>
     <commons-jexl.version>2.1.1</commons-jexl.version>
     <commons-email.version>1.6.0</commons-email.version>
     <httpcomponents-core.version>4.4.16</httpcomponents-core.version>
@@ -206,7 +206,7 @@
     <slf4j.version>1.7.36</slf4j.version>
 
     <!-- Test -->
-    <junit.version>5.10.1</junit.version>
+    <junit.version>5.10.2</junit.version>
     <mockito.version>5.2.0</mockito.version>
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>2.2</hamcrest.version>

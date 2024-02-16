@@ -27,12 +27,8 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
-import com.google.common.hash.Hashing;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -59,7 +55,6 @@ import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -90,25 +85,7 @@ class DefaultEventService implements EventService {
   public FileResourceStream getFileResource(UID eventUid, UID dataElementUid)
       throws NotFoundException {
     FileResource fileResource = getFileResourceMetadata(eventUid, dataElementUid);
-
-    return new FileResourceStream(
-        fileResource,
-        () -> {
-          try {
-            return fileResourceService.openContentStream(fileResource);
-          } catch (NoSuchElementException e) {
-            // Note: we are assuming that the file resource is not available yet. The same approach
-            // is taken in other file endpoints or code relying on the storageStatus = PENDING.
-            // All we know for sure is the file resource is in the DB but not in the store.
-            throw new ConflictException(
-                "The content is being processed and is not available yet. Try again later.");
-          } catch (IOException e) {
-            throw new ConflictException(
-                "Failed fetching the file from storage",
-                "There was an exception when trying to fetch the file from the storage backend. "
-                    + "Depending on the provider the root cause could be network or file system related.");
-          }
-        });
+    return FileResourceStream.of(fileResourceService, fileResource);
   }
 
   @Override
@@ -116,54 +93,7 @@ class DefaultEventService implements EventService {
       UID eventUid, UID dataElementUid, ImageFileDimension dimension)
       throws NotFoundException, ConflictException, BadRequestException {
     FileResource fileResource = getFileResourceMetadata(eventUid, dataElementUid);
-
-    // The FileResource only stores the storageKey, contentLength and md5Hash of the original image.
-    // At least for now we are losing the benefit of not fetching the file from storage if the
-    // client already has an up-to-date version of the image in the given dimension other than the
-    // original. We have to fetch and compute the length and hash of the image again.
-    ImageFileDimension imageDimension =
-        ObjectUtils.firstNonNull(dimension, ImageFileDimension.ORIGINAL);
-    FileResourceStream fileResourceStream = new FileResourceStream(fileResource);
-    if (imageDimension != ImageFileDimension.ORIGINAL) {
-      byte[] content;
-      try {
-        content = fileResourceService.copyImageContent(fileResource, imageDimension);
-        fileResourceStream.setInputStreamSupplier(() -> new ByteArrayInputStream(content));
-      } catch (NoSuchElementException e) {
-        // Note: we are assuming that the file resource is not available yet. The same approach
-        // is taken in other file endpoints or code relying on the storageStatus = PENDING.
-        // All we know for sure is the file resource is in the DB but not in the store.
-        throw new ConflictException(
-            "The content is being processed and is not available yet. Try again later.");
-      } catch (IOException e) {
-        throw new ConflictException(
-            "Failed fetching the file from storage",
-            "There was an exception when trying to fetch the file from the storage backend. "
-                + "Depending on the provider the root cause could be network or file system related.");
-      }
-      fileResource.setContentLength(content.length);
-      fileResource.setContentMd5(Hashing.md5().hashBytes(content).toString());
-    } else {
-      fileResourceStream.setInputStreamSupplier(
-          () -> {
-            try {
-              return fileResourceService.openContentStreamToImage(fileResource, dimension);
-            } catch (NoSuchElementException e) {
-              // Note: we are assuming that the file resource is not available yet. The same
-              // approach
-              // is taken in other file endpoints or code relying on the storageStatus = PENDING.
-              // All we know for sure is the file resource is in the DB but not in the store.
-              throw new ConflictException(
-                  "The content is being processed and is not available yet. Try again later.");
-            } catch (IOException e) {
-              throw new ConflictException(
-                  "Failed fetching the file from storage",
-                  "There was an exception when trying to fetch the file from the storage backend. "
-                      + "Depending on the provider the root cause could be network or file system related.");
-            }
-          });
-    }
-    return fileResourceStream;
+    return FileResourceStream.ofImage(fileResourceService, fileResource, dimension);
   }
 
   private FileResource getFileResourceMetadata(UID eventUid, UID dataElementUid)
