@@ -28,4 +28,7 @@
 package org.hisp.dhis.db.sql;
 
 public class NotSupportedException extends RuntimeException {
+  public NotSupportedException() {
+    super("Feature or syntax not supported by database");
+  }
 }
