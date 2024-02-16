@@ -103,7 +103,7 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
         return dataTypeBigInt();
       case DECIMAL:
         return dataTypeDecimal();
-      case REAL:
+      case FLOAT:
         return dataTypeFloat();
       case DOUBLE:
         return dataTypeDouble();
