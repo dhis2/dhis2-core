@@ -192,22 +192,17 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String analyzeTable(Table table) {
-    return null;
-  }
-
-  @Override
-  public String analyzeTable(String name) {
-    return null;
+    return notSupported();
   }
 
   @Override
   public String vacuumTable(Table table) {
-    return null;
+    return notSupported();
   }
 
   @Override
   public String vacuumTable(String name) {
-    return null;
+    return notSupported();
   }
 
   @Override

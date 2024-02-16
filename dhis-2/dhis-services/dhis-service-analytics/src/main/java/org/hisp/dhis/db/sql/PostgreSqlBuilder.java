@@ -28,7 +28,6 @@
 package org.hisp.dhis.db.sql;
 
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
-
 import java.util.stream.Collectors;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
@@ -256,12 +255,7 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String analyzeTable(Table table) {
-    return analyzeTable(table.getName());
-  }
-
-  @Override
-  public String analyzeTable(String name) {
-    return String.format("analyze %s;", quote(name));
+    return String.format("analyze %s;", quote(table.getName()));
   }
 
   @Override
