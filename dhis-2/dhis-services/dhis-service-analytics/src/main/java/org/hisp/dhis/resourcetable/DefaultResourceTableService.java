@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
@@ -99,7 +99,7 @@ public class DefaultResourceTableService implements ResourceTableService {
 
   private final CategoryService categoryService;
 
-  private final AnalyticsTableExportSettings analyticsExportSettings;
+  private final AnalyticsTableSettings analyticsExportSettings;
 
   private final PeriodDataProvider periodDataProvider;
 

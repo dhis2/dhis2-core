@@ -51,7 +51,7 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
-import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -128,7 +128,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   protected final JdbcTemplate jdbcTemplate;
 
-  protected final AnalyticsTableExportSettings analyticsExportSettings;
+  protected final AnalyticsTableSettings analyticsExportSettings;
 
   protected final PeriodDataProvider periodDataProvider;
 

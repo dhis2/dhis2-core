@@ -29,6 +29,8 @@ package org.hisp.dhis.db.sql;
 
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
+import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.stereotype.Service;
 
@@ -37,7 +39,8 @@ import org.springframework.stereotype.Service;
 public class SqlBuilderProvider {
   private final SqlBuilder sqlBuilder;
 
-  public SqlBuilderProvider(DhisConfigurationProvider config) {
+  public SqlBuilderProvider(AnalyticsTableSettings config) {
+    Objects.requireNonNull(config);
     this.sqlBuilder = getSqlBuilder(config);
   }
 
@@ -56,8 +59,9 @@ public class SqlBuilderProvider {
    * @param config the {@link DhisConfigurationProvider}.
    * @return a {@link SqlBuilder}.
    */
-  private SqlBuilder getSqlBuilder(DhisConfigurationProvider config) {
-    Objects.requireNonNull(config);
+  private SqlBuilder getSqlBuilder(AnalyticsTableSettings config) {
+    Database database = config.getAnalyticsDatabase();
+    Objects.requireNonNull(database);
     return new PostgreSqlBuilder();
   }
 }

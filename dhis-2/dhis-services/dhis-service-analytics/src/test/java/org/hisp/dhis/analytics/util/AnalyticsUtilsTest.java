@@ -47,6 +47,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.EnumUtils;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.category.Category;
@@ -68,7 +69,9 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementOperand.TotalType;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
+import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -709,5 +712,24 @@ class AnalyticsUtilsTest extends DhisConvenienceTest {
     row.add(100D);
     // pass - index 1 is not a valid period iso string
     assertFalse(AnalyticsUtils.hasPeriod(row, 1));
+  }
+
+  /** {@link EnumUtils} is case sensitive, not specified in the documentation. */
+  @Test
+  void testgetEnumCaseSensitivity() {
+    assertEquals(Database.POSTGRESQL, EnumUtils.getEnum(Database.class, "POSTGRESQL"));
+    assertEquals(
+        Database.POSTGRESQL, EnumUtils.getEnum(Database.class, "PostgreSQL".toUpperCase()));
+    assertEquals(
+        Database.POSTGRESQL, EnumUtils.getEnum(Database.class, "postgresql".toUpperCase()));
+    assertEquals(
+        Database.POSTGRESQL, EnumUtils.getEnum(Database.class, Database.POSTGRESQL.name()));
+    assertEquals(
+        Database.POSTGRESQL, EnumUtils.getEnum(Database.class, Database.POSTGRESQL.toString()));
+    assertEquals(
+        Database.POSTGRESQL,
+        EnumUtils.getEnum(Database.class, ConfigurationKey.ANALYTICS_DATABASE.getDefaultValue()));
+    assertNull(EnumUtils.getEnum(Database.class, "PostgreSQL"));
+    assertNull(EnumUtils.getEnum(Database.class, "postgresql"));
   }
 }
