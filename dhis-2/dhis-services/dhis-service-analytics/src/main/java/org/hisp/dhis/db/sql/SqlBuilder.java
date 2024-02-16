@@ -136,7 +136,7 @@ public interface SqlBuilder {
 
   /**
    * @param dataType the {@link DataType}.
-   * @return the data type name.
+   * @return he database name of the given data type.
    */
   String getDataTypeName(DataType dataType);
 
@@ -159,7 +159,7 @@ public interface SqlBuilder {
 
   /**
    * @param indexType the {@link IndexType}.
-   * @return the index type name.
+   * @return the database name of the given index type.
    */
   String getIndexTypeName(IndexType indexType);
 
@@ -177,7 +177,7 @@ public interface SqlBuilder {
 
   /**
    * @param indexFunction the {@link IndexFunction}.
-   * @return the index function name.
+   * @return the database name of the given index function.
    */
   String getIndexFunctionName(IndexFunction indexFunction);
 

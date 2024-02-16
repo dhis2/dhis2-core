@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.db.sql;
 
-import java.util.Collection;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 
@@ -128,29 +127,29 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String indexTypeBtree() {
-    return null;
+    throw new NotSupportedException();
   }
 
   @Override
   public String indexTypeGist() {
-    return null;
+    throw new NotSupportedException();
   }
 
   @Override
   public String indexTypeGin() {
-    return null;
+    throw new NotSupportedException();
   }
 
   // Index functions
 
   @Override
   public String indexFunctionUpper() {
-    return null;
+    return "upper";
   }
 
   @Override
   public String indexFunctionLower() {
-    return null;
+    return "lower";
   }
 
   // Capabilities
@@ -184,17 +183,14 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String singleQuote(String value) {
-    return null;
+    return SINGLE_QUOTE + escape(value) + SINGLE_QUOTE;
   }
 
   @Override
   public String escape(String value) {
-    return null;
-  }
-
-  @Override
-  public String singleQuotedCommaDelimited(Collection<String> items) {
-    return null;
+    return value
+        .replace(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE))
+        .replace(BACKSLASH, (BACKSLASH + BACKSLASH));
   }
 
   // Statements

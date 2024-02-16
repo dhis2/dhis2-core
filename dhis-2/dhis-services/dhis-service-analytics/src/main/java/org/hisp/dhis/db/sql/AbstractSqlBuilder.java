@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.db.sql;
 
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import java.util.Collection;
+import java.util.stream.Collectors;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.IndexFunction;
@@ -47,12 +50,6 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
   protected static final String EMPTY = "";
   protected static final String ALIAS_AX = "ax";
 
-  /**
-   * Returns the database name of the given data type.
-   *
-   * @param dataType the {@link DataType}.
-   * @return the data type name.
-   */
   @Override
   public String getDataTypeName(DataType dataType) {
     switch (dataType) {
@@ -104,12 +101,6 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
     }
   }
 
-  /**
-   * Returns the database name of the given index type.
-   *
-   * @param indexType the {@link IndexType}.
-   * @return the index type name.
-   */
   @Override
   public String getIndexTypeName(IndexType indexType) {
     switch (indexType) {
@@ -125,12 +116,6 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
     }
   }
 
-  /**
-   * Returns the database name of the given index function.
-   *
-   * @param indexFunction the {@link IndexFunction}.
-   * @return the index function name.
-   */
   @Override
   public String getIndexFunctionName(IndexFunction indexFunction) {
     switch (indexFunction) {
@@ -142,6 +127,13 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
         throw new UnsupportedOperationException(
             String.format("Unsuported index function: %s", indexFunction));
     }
+  }
+
+  @Override
+  public String singleQuotedCommaDelimited(Collection<String> items) {
+    return isEmpty(items)
+        ? EMPTY
+        : items.stream().map(this::singleQuote).collect(Collectors.joining(COMMA));
   }
 
   /**

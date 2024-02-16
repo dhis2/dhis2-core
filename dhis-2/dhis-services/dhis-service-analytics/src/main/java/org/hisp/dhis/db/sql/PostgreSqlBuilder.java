@@ -27,10 +27,7 @@
  */
 package org.hisp.dhis.db.sql;
 
-import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
-
-import java.util.Collection;
 import java.util.stream.Collectors;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
@@ -206,13 +203,6 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
     return value
         .replace(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE))
         .replace(BACKSLASH, (BACKSLASH + BACKSLASH));
-  }
-
-  @Override
-  public String singleQuotedCommaDelimited(Collection<String> items) {
-    return isEmpty(items)
-        ? EMPTY
-        : items.stream().map(this::singleQuote).collect(Collectors.joining(COMMA));
   }
 
   // Statements
