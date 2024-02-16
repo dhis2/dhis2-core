@@ -28,14 +28,12 @@
 package org.hisp.dhis.db.sql;
 
 import java.util.Objects;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
 public class SqlBuilderProvider {
   private final SqlBuilder sqlBuilder;
 
