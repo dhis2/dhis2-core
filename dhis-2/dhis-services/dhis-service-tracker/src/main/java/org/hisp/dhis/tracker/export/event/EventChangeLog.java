@@ -25,46 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.changelog;
+package org.hisp.dhis.tracker.export.event;
 
-import java.util.List;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Date;
+import org.hisp.dhis.program.UserInfoSnapshot;
 
-@Service("org.hisp.dhis.tracker.export.changelog.ChangeLogService")
-@Transactional(readOnly = true)
-@RequiredArgsConstructor
-public class DefaultChangeLogService implements ChangeLogService {
+public record EventChangeLog(
+    @JsonProperty UserInfoSnapshot updatedBy,
+    @JsonProperty Date date,
+    @JsonProperty Change change) {
 
-  private final org.hisp.dhis.program.EventService eventService;
+  public record Change(@JsonProperty DataValueChange dataValue) {}
 
-  private final JdbcChangeLogStore jdbcChangeLogStore;
-
-  private final TrackerAccessManager trackerAccessManager;
-
-  private final UserService userService;
-
-  @Override
-  public List<EventChangeLog> getEventChangeLog(UID eventUid) throws NotFoundException {
-    Event event = eventService.getEvent(eventUid.getValue());
-    if (event == null) {
-      throw new NotFoundException(Event.class, eventUid.getValue());
-    }
-
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    List<String> errors = trackerAccessManager.canRead(currentUser, event, false);
-    if (!errors.isEmpty()) {
-      throw new NotFoundException(Event.class, eventUid.getValue());
-    }
-
-    return jdbcChangeLogStore.getEventChangeLog(eventUid.getValue());
-  }
+  public record DataValueChange(
+      @JsonProperty String dataElement,
+      @JsonProperty String previousValue,
+      @JsonProperty String currentValue) {}
 }

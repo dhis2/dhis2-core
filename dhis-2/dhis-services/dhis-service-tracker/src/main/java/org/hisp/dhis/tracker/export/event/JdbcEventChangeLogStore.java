@@ -25,19 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.changelog;
+package org.hisp.dhis.tracker.export.event;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.program.UserInfoSnapshot;
-import org.hisp.dhis.tracker.export.changelog.EventChangeLog.Change;
+import org.hisp.dhis.tracker.export.event.EventChangeLog.Change;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
-@Repository("org.hisp.dhis.tracker.export.changelog.ChangeLogStore")
+@Repository("org.hisp.dhis.tracker.export.event.ChangeLogStore")
 @RequiredArgsConstructor
-class JdbcChangeLogStore {
+class JdbcEventChangeLogStore {
 
   private final JdbcTemplate jdbcTemplate;
 

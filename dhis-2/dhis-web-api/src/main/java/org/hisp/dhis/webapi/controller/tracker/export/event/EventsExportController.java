@@ -61,8 +61,8 @@ import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.tracker.export.PageParams;
-import org.hisp.dhis.tracker.export.changelog.ChangeLogService;
-import org.hisp.dhis.tracker.export.changelog.EventChangeLog;
+import org.hisp.dhis.tracker.export.event.EventChangeLog;
+import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
@@ -103,7 +103,7 @@ class EventsExportController {
 
   private final ObjectMapper objectMapper;
 
-  private final ChangeLogService changeLogService;
+  private final EventChangeLogService eventChangeLogService;
 
   public EventsExportController(
       EventService eventService,
@@ -112,14 +112,14 @@ class EventsExportController {
       FieldFilterService fieldFilterService,
       EventFieldsParamMapper eventsMapper,
       ObjectMapper objectMapper,
-      ChangeLogService changeLogService) {
+      EventChangeLogService eventChangeLogService) {
     this.eventService = eventService;
     this.eventParamsMapper = eventParamsMapper;
     this.csvEventService = csvEventService;
     this.fieldFilterService = fieldFilterService;
     this.eventsMapper = eventsMapper;
     this.objectMapper = objectMapper;
-    this.changeLogService = changeLogService;
+    this.eventChangeLogService = eventChangeLogService;
 
     assertUserOrderableFieldsAreSupported(
         "event", EventMapper.ORDERABLE_FIELDS, eventService.getOrderableFields());
@@ -294,6 +294,6 @@ class EventsExportController {
   List<EventChangeLog> getEventByUid(@OpenApi.Param({UID.class, Event.class}) @PathVariable UID uid)
       throws NotFoundException {
 
-    return changeLogService.getEventChangeLog(uid);
+    return eventChangeLogService.getEventChangeLog(uid);
   }
 }

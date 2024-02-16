@@ -42,6 +42,8 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.tracker.export.event.EventChangeLog;
+import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
@@ -50,9 +52,9 @@ import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class ChangeLogServiceTest extends TrackerTest {
+class EventChangeLogServiceTest extends TrackerTest {
 
-  @Autowired private ChangeLogService changeLogService;
+  @Autowired private EventChangeLogService eventChangeLogService;
 
   @Autowired private TrackerImportService trackerImportService;
 
@@ -79,7 +81,7 @@ class ChangeLogServiceTest extends TrackerTest {
   void shouldFailWhenEventDoesNotExist() {
     assertThrows(
         NotFoundException.class,
-        () -> changeLogService.getEventChangeLog(UID.of(CodeGenerator.generateUid())));
+        () -> eventChangeLogService.getEventChangeLog(UID.of(CodeGenerator.generateUid())));
   }
 
   @Test
@@ -87,7 +89,8 @@ class ChangeLogServiceTest extends TrackerTest {
     testAsUser("o1HMTIzBGo7");
 
     assertThrows(
-        NotFoundException.class, () -> changeLogService.getEventChangeLog(UID.of("D9PbzJY8bJM")));
+        NotFoundException.class,
+        () -> eventChangeLogService.getEventChangeLog(UID.of("D9PbzJY8bJM")));
   }
 
   @Test
@@ -95,7 +98,8 @@ class ChangeLogServiceTest extends TrackerTest {
     testAsUser("o1HMTIzBGo7");
 
     assertThrows(
-        NotFoundException.class, () -> changeLogService.getEventChangeLog(UID.of("G9PbzJY8bJG")));
+        NotFoundException.class,
+        () -> eventChangeLogService.getEventChangeLog(UID.of("G9PbzJY8bJG")));
   }
 
   @Test
@@ -103,7 +107,8 @@ class ChangeLogServiceTest extends TrackerTest {
     testAsUser("FIgVWzUCkpw");
 
     assertThrows(
-        NotFoundException.class, () -> changeLogService.getEventChangeLog(UID.of("H0PbzJY8bJG")));
+        NotFoundException.class,
+        () -> eventChangeLogService.getEventChangeLog(UID.of("H0PbzJY8bJG")));
   }
 
   @Test
@@ -112,7 +117,8 @@ class ChangeLogServiceTest extends TrackerTest {
     testAsUser("o1HMTIzBGo7");
 
     assertThrows(
-        NotFoundException.class, () -> changeLogService.getEventChangeLog(UID.of("G9PbzJY8bJG")));
+        NotFoundException.class,
+        () -> eventChangeLogService.getEventChangeLog(UID.of("G9PbzJY8bJG")));
   }
 
   @Test
@@ -121,7 +127,8 @@ class ChangeLogServiceTest extends TrackerTest {
     Event event = getEvent("QRYjLTiJTrA");
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
 
-    List<EventChangeLog> changeLogs = changeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"));
+    List<EventChangeLog> changeLogs =
+        eventChangeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"));
     List<Object> expectedPreviousValues = createValueList((Object) null);
     List<Object> expectedCurrentValues = createValueList("15");
 
@@ -140,7 +147,8 @@ class ChangeLogServiceTest extends TrackerTest {
     updateDataValue(trackerObjects, event.getUid(), dataElementUid, "");
     assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
 
-    List<EventChangeLog> changeLogs = changeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"));
+    List<EventChangeLog> changeLogs =
+        eventChangeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"));
     List<Object> expectedPreviousValues = createValueList("15", null);
     List<Object> expectedCurrentValues = createValueList(null, "15");
 
@@ -162,7 +170,8 @@ class ChangeLogServiceTest extends TrackerTest {
     updateDataValue(trackerObjects, event.getUid(), dataElementUid, "");
     assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
 
-    List<EventChangeLog> changeLogs = changeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"));
+    List<EventChangeLog> changeLogs =
+        eventChangeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"));
     List<Object> expectedPreviousValues = createValueList("15", null);
     List<Object> expectedCurrentValues = createValueList(null, "15");
 
@@ -181,7 +190,8 @@ class ChangeLogServiceTest extends TrackerTest {
     updateDataValue(trackerObjects, event.getUid(), dataElementUid, "20");
     assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
 
-    List<EventChangeLog> changeLogs = changeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"));
+    List<EventChangeLog> changeLogs =
+        eventChangeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"));
     List<Object> expectedPreviousValues = createValueList("15", null);
     List<Object> expectedCurrentValues = createValueList("20", "15");
 
@@ -203,7 +213,8 @@ class ChangeLogServiceTest extends TrackerTest {
     updateDataValue(trackerObjects, event.getUid(), dataElementUid, "25");
     assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
 
-    List<EventChangeLog> changeLogs = changeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"));
+    List<EventChangeLog> changeLogs =
+        eventChangeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"));
     List<Object> expectedPreviousValues = createValueList("20", "15", null);
     List<Object> expectedCurrentValues = createValueList("25", "20", "15");
 
@@ -226,7 +237,8 @@ class ChangeLogServiceTest extends TrackerTest {
     updateDataValue(trackerObjects, event.getUid(), dataElementUid, "");
     assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
 
-    List<EventChangeLog> changeLogs = changeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"));
+    List<EventChangeLog> changeLogs =
+        eventChangeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"));
     List<Object> expectedPreviousValues = createValueList("20", "15", null);
     List<Object> expectedCurrentValues = createValueList(null, "20", "15");
 

@@ -25,21 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.changelog;
+package org.hisp.dhis.tracker.export.event;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Date;
-import org.hisp.dhis.program.UserInfoSnapshot;
+import java.util.List;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.NotFoundException;
 
-public record EventChangeLog(
-    @JsonProperty UserInfoSnapshot updatedBy,
-    @JsonProperty Date date,
-    @JsonProperty Change change) {
+public interface EventChangeLogService {
 
-  public record Change(@JsonProperty DataValueChange dataValue) {}
-
-  public record DataValueChange(
-      @JsonProperty String dataElement,
-      @JsonProperty String previousValue,
-      @JsonProperty String currentValue) {}
+  /**
+   * Retrieves the change log data for a particular event
+   *
+   * @return list with the change logs of the supplied event, if any
+   */
+  List<EventChangeLog> getEventChangeLog(UID event) throws NotFoundException;
 }
