@@ -158,11 +158,6 @@ public interface SqlBuilder {
   boolean supportsGeospatialData();
 
   /**
-   * @return true if the DBMS supports table inheritance.
-   */
-  boolean supportsInheritance();
-
-  /**
    * @return true if the DBMS supports table analysis.
    */
   boolean supportsAnalyze();

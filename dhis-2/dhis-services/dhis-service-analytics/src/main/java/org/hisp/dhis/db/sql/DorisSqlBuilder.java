@@ -155,11 +155,6 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public boolean supportsInheritance() {
-    return false;
-  }
-
-  @Override
   public boolean supportsAnalyze() {
     return false;
   }
