@@ -177,7 +177,7 @@ public interface SqlBuilder {
    * @return true if the DBMS supports geospatial data types and functions.
    */
   boolean supportsGeospatialData();
-  
+
   /**
    * @return true if the DBMS supports table analysis.
    */

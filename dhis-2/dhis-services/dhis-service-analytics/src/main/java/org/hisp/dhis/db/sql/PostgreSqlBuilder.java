@@ -28,6 +28,7 @@
 package org.hisp.dhis.db.sql;
 
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
+
 import java.util.stream.Collectors;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
@@ -159,7 +160,7 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   public boolean supportsGeospatialData() {
     return true;
   }
-  
+
   @Override
   public boolean supportsAnalyze() {
     return true;

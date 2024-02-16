@@ -28,6 +28,7 @@
 package org.hisp.dhis.db.sql;
 
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+
 import java.util.Collection;
 import java.util.stream.Collectors;
 import org.hisp.dhis.db.model.DataType;

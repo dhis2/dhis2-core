@@ -95,7 +95,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String dataTypeTimestampTz() {
-    return "datetime";  // to do
+    return "datetime";
   }
 
   @Override
@@ -105,7 +105,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String dataTypeGeometryPoint() {
-    return null;
+    return "string";
   }
 
   @Override
@@ -148,7 +148,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   public boolean supportsGeospatialData() {
     return false;
   }
-  
+
   @Override
   public boolean supportsAnalyze() {
     return false;
