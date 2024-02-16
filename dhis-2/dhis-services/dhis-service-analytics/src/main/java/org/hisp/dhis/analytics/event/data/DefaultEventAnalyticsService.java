@@ -63,7 +63,10 @@ import static org.hisp.dhis.analytics.common.ColumnHeader.SCHEDULED_DATE;
 import static org.hisp.dhis.analytics.common.ColumnHeader.STORED_BY;
 import static org.hisp.dhis.analytics.event.LabelMapper.getEnrollmentDateLabel;
 import static org.hisp.dhis.analytics.event.LabelMapper.getEventDateLabel;
+import static org.hisp.dhis.analytics.event.LabelMapper.getEventLabel;
 import static org.hisp.dhis.analytics.event.LabelMapper.getIncidentDateLabel;
+import static org.hisp.dhis.analytics.event.LabelMapper.getOrgUnitLabel;
+import static org.hisp.dhis.analytics.event.LabelMapper.getProgramStageLabel;
 import static org.hisp.dhis.analytics.event.LabelMapper.getScheduledDateLabel;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
@@ -687,9 +690,20 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
   protected Grid createGridWithHeaders(EventQueryParams params) {
     Grid grid = new ListGrid();
 
-    grid.addHeader(new GridHeader(EVENT.getItem(), EVENT.getName(), TEXT, false, true))
+    grid.addHeader(
+            new GridHeader(
+                EVENT.getItem(),
+                getEventLabel(params.getProgramStage(), EVENT.getName()),
+                TEXT,
+                false,
+                true))
         .addHeader(
-            new GridHeader(PROGRAM_STAGE.getItem(), PROGRAM_STAGE.getName(), TEXT, false, true))
+            new GridHeader(
+                PROGRAM_STAGE.getItem(),
+                getProgramStageLabel(params.getProgramStage(), PROGRAM_STAGE.getName()),
+                TEXT,
+                false,
+                true))
         .addHeader(
             new GridHeader(
                 EVENT_DATE.getItem(),
@@ -749,7 +763,12 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
         .addHeader(new GridHeader(LONGITUDE.getItem(), LONGITUDE.getName(), NUMBER, false, true))
         .addHeader(new GridHeader(LATITUDE.getItem(), LATITUDE.getName(), NUMBER, false, true))
         .addHeader(
-            new GridHeader(ORG_UNIT_NAME.getItem(), ORG_UNIT_NAME.getName(), TEXT, false, true))
+            new GridHeader(
+                ORG_UNIT_NAME.getItem(),
+                getOrgUnitLabel(params.getProgram(), ORG_UNIT_NAME.getName()),
+                TEXT,
+                false,
+                true))
         .addHeader(
             new GridHeader(
                 ORG_UNIT_NAME_HIERARCHY.getItem(),
