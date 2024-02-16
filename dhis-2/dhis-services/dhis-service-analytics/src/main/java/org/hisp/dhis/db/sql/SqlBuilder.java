@@ -232,12 +232,6 @@ public interface SqlBuilder {
   String vacuumTable(Table table);
 
   /**
-   * @param name the table name.
-   * @return a vacuum table statement.
-   */
-  String vacuumTable(String name);
-
-  /**
    * @param table the {@link Table}.
    * @param newName the new name for the table.
    * @return a rename table statement.

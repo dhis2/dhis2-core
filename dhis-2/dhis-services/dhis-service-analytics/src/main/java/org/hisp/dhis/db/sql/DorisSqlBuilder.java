@@ -201,11 +201,6 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String vacuumTable(String name) {
-    return notSupported();
-  }
-
-  @Override
   public String renameTable(Table table, String newName) {
     return null;
   }

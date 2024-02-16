@@ -261,12 +261,7 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String vacuumTable(Table table) {
-    return vacuumTable(table.getName());
-  }
-
-  @Override
-  public String vacuumTable(String name) {
-    return String.format("vacuum %s;", quote(name));
+    return String.format("vacuum %s;", quote(table.getName()));
   }
 
   @Override
