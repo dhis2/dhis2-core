@@ -27,10 +27,8 @@
  */
 package org.hisp.dhis.db.sql;
 
-import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 
-import java.util.Collection;
 import java.util.stream.Collectors;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
@@ -45,6 +43,11 @@ import org.hisp.dhis.db.model.constraint.Unique;
  * @author Lars Helge Overland
  */
 public class PostgreSqlBuilder extends AbstractSqlBuilder {
+
+  // Constants
+
+  private static final String QUOTE = "\"";
+
   // Data types
 
   @Override
@@ -63,13 +66,13 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String dataTypeNumeric() {
-    return "numeric(18,6)";
+  public String dataTypeDecimal() {
+    return "decimal(18,6)";
   }
 
   @Override
-  public String dataTypeReal() {
-    return "real";
+  public String dataTypeFloat() {
+    return "float";
   }
 
   @Override
@@ -113,16 +116,6 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String dataTypeTime() {
-    return "time";
-  }
-
-  @Override
-  public String dataTypeTimeTz() {
-    return "timetz";
-  }
-
-  @Override
   public String dataTypeGeometry() {
     return "geometry";
   }
@@ -133,7 +126,7 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String dataTypeJsonb() {
+  public String dataTypeJson() {
     return "jsonb";
   }
 
@@ -169,12 +162,22 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   // Capabilities
 
   @Override
+  public boolean supportsGeospatialData() {
+    return true;
+  }
+
+  @Override
   public boolean supportsAnalyze() {
     return true;
   }
 
   @Override
   public boolean supportsVacuum() {
+    return true;
+  }
+
+  @Override
+  public boolean requiresIndexesForAnalytics() {
     return true;
   }
 
@@ -192,11 +195,6 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String quoteAx(String relation) {
-    return ALIAS_AX + DOT + quote(relation);
-  }
-
-  @Override
   public String singleQuote(String value) {
     return SINGLE_QUOTE + escape(value) + SINGLE_QUOTE;
   }
@@ -206,13 +204,6 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
     return value
         .replace(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE))
         .replace(BACKSLASH, (BACKSLASH + BACKSLASH));
-  }
-
-  @Override
-  public String singleQuotedCommaDelimited(Collection<String> items) {
-    return isEmpty(items)
-        ? EMPTY
-        : items.stream().map(this::singleQuote).collect(Collectors.joining(COMMA));
   }
 
   // Statements
@@ -274,23 +265,13 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String analyzeTable(Table table) {
-    return analyzeTable(table.getName());
-  }
-
-  @Override
   public String analyzeTable(String name) {
     return String.format("analyze %s;", quote(name));
   }
 
   @Override
   public String vacuumTable(Table table) {
-    return vacuumTable(table.getName());
-  }
-
-  @Override
-  public String vacuumTable(String name) {
-    return String.format("vacuum %s;", quote(name));
+    return String.format("vacuum %s;", quote(table.getName()));
   }
 
   @Override
@@ -319,11 +300,6 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String swapTable(Table table, String newName) {
-    return String.join(" ", dropTableIfExistsCascade(newName), renameTable(table, newName));
-  }
-
-  @Override
   public String setParentTable(Table table, String parentName) {
     return String.format("alter table %s inherit %s;", quote(table.getName()), quote(parentName));
   }
@@ -332,12 +308,6 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   public String removeParentTable(Table table, String parentName) {
     return String.format(
         "alter table %s no inherit %s;", quote(table.getName()), quote(parentName));
-  }
-
-  @Override
-  public String swapParentTable(Table table, String parentName, String newParentName) {
-    return String.join(
-        " ", removeParentTable(table, parentName), setParentTable(table, newParentName));
   }
 
   @Override
