@@ -165,6 +165,11 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
+  public boolean supportsInheritance() {
+    return true;
+  }
+
+  @Override
   public boolean supportsAnalyze() {
     return true;
   }
