@@ -82,7 +82,7 @@ public enum ConfigurationKey {
   CONNECTION_DIALECT("connection.dialect", "", false),
 
   /** Analytics database platform. */
-  ANALYTICS_CONNECTION_DATABASE("analytics.connection.database", "", false),
+  ANALYTICS_DATABASE("analytics.database", "POSTGRESQL", false),
 
   /** JDBC driver class. */
   CONNECTION_DRIVER_CLASS("connection.driver_class", "org.postgresql.Driver", false),
