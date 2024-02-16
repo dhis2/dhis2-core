@@ -39,7 +39,7 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.controller.security.LoginResponse.STATUS;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.jetbrains.annotations.NotNull;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.savedrequest.DefaultSavedRequest;
@@ -70,13 +70,12 @@ public class AuthenticationController {
 
     Authentication authenticationToken = createAuthenticationToken(servletRequest, loginRequest);
 
-    return createResponse(servletRequest, authenticationToken);
+    return authenticate(servletRequest, authenticationToken);
   }
 
-  private LoginResponse createResponse(HttpServletRequest servletRequest, Authentication auth) {
+  private LoginResponse authenticate(HttpServletRequest servletRequest, Authentication auth) {
     try {
-
-      Authentication authentication = authenticate(auth);
+        Authentication authentication = getAuthProvider().authenticate(auth);
 
       return createSuccessResponse(servletRequest, authentication);
 
@@ -89,8 +88,12 @@ public class AuthenticationController {
     }
   }
 
-  private LoginResponse createSuccessResponse(HttpServletRequest servletRequest,
-      Authentication authenticate) {
+  private AuthenticationProvider getAuthProvider() {
+    return twoFactorAuthenticationProvider;
+  }
+
+  private LoginResponse createSuccessResponse(
+      HttpServletRequest servletRequest, Authentication authenticate) {
 
     String redirectUrl = "/" + settingManager.getStringSetting(SettingKey.START_MODULE);
     SavedRequest request = requestCache.getRequest(servletRequest, null);
@@ -102,12 +105,6 @@ public class AuthenticationController {
     return LoginResponse.builder().loginStatus(STATUS.SUCCESS).redirectUrl(redirectUrl).build();
   }
 
-  private Authentication authenticate(Authentication auth) {
-    Authentication authenticate = twoFactorAuthenticationProvider.authenticate(auth);
-    return authenticate;
-  }
-
-  @NotNull
   private static Authentication createAuthenticationToken(
       HttpServletRequest servletRequest, LoginRequest loginRequest) {
 
