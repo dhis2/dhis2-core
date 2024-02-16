@@ -103,7 +103,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
     String date = StringUtils.unwrap(ruleEffect.getData(), '\'');
 
-    if (isDateInvalid(date)) {
+    if (!isValid(date)) {
       return;
     }
 
@@ -149,7 +149,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
     String date = StringUtils.unwrap(ruleEffect.getData(), '\'');
 
-    if (isDateInvalid(date)) {
+    if (!isValid(date)) {
       return;
     }
 
@@ -186,7 +186,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
     String date = StringUtils.unwrap(ruleEffect.getData(), '\'');
 
-    if (isDateInvalid(date)) {
+    if (!isValid(date)) {
       return;
     }
 
@@ -200,13 +200,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
     log.info(String.format(LOG_MESSAGE, template.getUid()));
   }
 
-  private boolean isDateInvalid(String date) {
-    if (StringUtils.isNotBlank(date) && DateUtils.dateIsValid(date)) {
-      return false;
-    }
-
-    log.error("Invalid date: " + date);
-
-    return true;
+  private boolean isValid(String date) {
+    return StringUtils.isNotBlank(date) && DateUtils.dateIsValid(date);
   }
 }

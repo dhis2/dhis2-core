@@ -39,6 +39,8 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.schema.descriptors.AggregateDataExchangeSchemaDescriptor;
+import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -62,14 +64,16 @@ public class AggregateDataExchangeController extends AbstractCrudController<Aggr
 
   @PostMapping("/exchange")
   @ResponseStatus(value = HttpStatus.OK)
-  public ImportSummaries runDataExchange(@RequestBody AggregateDataExchange exchange) {
-    return service.exchangeData(exchange, NoopJobProgress.INSTANCE);
+  public ImportSummaries runDataExchange(
+      @RequestBody AggregateDataExchange exchange, @CurrentUser UserDetails userDetails) {
+    return service.exchangeData(userDetails, exchange, NoopJobProgress.INSTANCE);
   }
 
   @PostMapping("/{uid}/exchange")
   @ResponseStatus(value = HttpStatus.OK)
-  public ImportSummaries runDataExchangeByUid(@PathVariable String uid) {
-    return service.exchangeData(uid, NoopJobProgress.INSTANCE);
+  public ImportSummaries runDataExchangeByUid(
+      @PathVariable String uid, @CurrentUser UserDetails userDetails) {
+    return service.exchangeData(userDetails, uid, NoopJobProgress.INSTANCE);
   }
 
   @GetMapping("/{uid}/sourceData")

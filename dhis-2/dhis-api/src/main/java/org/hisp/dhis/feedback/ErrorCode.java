@@ -380,6 +380,7 @@ public enum ErrorCode {
   E6304("Aggregate data exchange target API must be specified when target type is EXTERNAL"),
   E6305(
       "Aggregate data exchange target API must specify either access token or username and password"),
+  E6306("User does not have data write access for Aggregate data exchange"),
 
   /* Scheduling */
   E7000("Job of same type already scheduled with cron expression: `{0}`"),
