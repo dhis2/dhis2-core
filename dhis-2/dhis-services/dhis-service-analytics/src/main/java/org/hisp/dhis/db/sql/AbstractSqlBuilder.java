@@ -77,6 +77,12 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
     return String.join(" ", dropTableIfExistsCascade(newName), renameTable(table, newName));
   }
 
+  @Override
+  public String swapParentTable(Table table, String parentName, String newParentName) {
+    return String.join(
+        " ", removeParentTable(table, parentName), setParentTable(table, newParentName));
+  }
+
   // Mapping
 
   /**

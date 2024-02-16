@@ -303,12 +303,6 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String swapParentTable(Table table, String parentName, String newParentName) {
-    return String.join(
-        " ", removeParentTable(table, parentName), setParentTable(table, newParentName));
-  }
-
-  @Override
   public String tableExists(String name) {
     return String.format(
         "select t.table_name from information_schema.tables t "

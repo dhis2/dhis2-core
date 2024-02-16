@@ -239,13 +239,11 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String swapParentTable(Table table, String parentName, String newParentName) {
-    return null;
-  }
-
-  @Override
   public String tableExists(String name) {
-    return null;
+    return String.format(
+        "select t.table_name from information_schema.tables t "
+            + "where t.table_schema = 'public' and t.table_name = %s;",
+        singleQuote(name));
   }
 
   @Override
