@@ -175,8 +175,7 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String quote(String relation) {
-    String escapedRelation = relation.replace(QUOTE, (QUOTE + QUOTE));
-    return QUOTE + escapedRelation + QUOTE;
+    return QUOTE + escape(relation) + QUOTE;
   }
 
   @Override
