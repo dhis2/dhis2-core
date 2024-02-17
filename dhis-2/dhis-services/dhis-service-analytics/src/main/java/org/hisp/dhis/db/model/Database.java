@@ -33,5 +33,6 @@ package org.hisp.dhis.db.model;
  * @author Lars Helge Overland
  */
 public enum Database {
-  POSTGRESQL;
+  POSTGRESQL,
+  DORIS;
 }
