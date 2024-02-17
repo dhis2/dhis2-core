@@ -37,7 +37,7 @@ public enum DataType {
   BIGINT,
   INTEGER,
   DECIMAL,
-  REAL,
+  FLOAT,
   DOUBLE,
   BOOLEAN,
   CHARACTER_11,
