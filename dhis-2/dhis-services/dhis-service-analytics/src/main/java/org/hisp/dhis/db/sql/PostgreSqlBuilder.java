@@ -167,6 +167,11 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
+  public boolean supportsDeclarativePartitioning() {
+    return false;
+  }
+
+  @Override
   public boolean supportsAnalyze() {
     return true;
   }
