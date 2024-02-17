@@ -61,6 +61,8 @@ public class SqlBuilderProvider {
     Database database = config.getAnalyticsDatabase();
     Objects.requireNonNull(database);
     switch (database) {
+      case DORIS:
+        return new DorisSqlBuilder();
       default:
         return new PostgreSqlBuilder();
     }
