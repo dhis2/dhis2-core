@@ -154,10 +154,6 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     return false;
   }
 
-  /**
-   * PostgreSQL supports declarative partitioning, but table inheritance is used instead as query
-   * performance is significantly better.
-   */
   @Override
   public boolean supportsDeclarativePartitioning() {
     return true;
