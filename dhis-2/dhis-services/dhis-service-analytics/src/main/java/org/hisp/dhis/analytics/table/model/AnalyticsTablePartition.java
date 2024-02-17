@@ -84,17 +84,17 @@ public class AnalyticsTablePartition extends Table {
   /**
    * Constructor. Sets the name to represent a staging table partition.
    *
-   * @param masterTable the master {@link Table} of this partition.
+   * @param table the master {@link Table} of this partition.
    */
-  public AnalyticsTablePartition(AnalyticsTable masterTable) {
+  public AnalyticsTablePartition(AnalyticsTable table) {
     super(
-        toStaging(getTableName(masterTable.getMainName(), null)),
+        toStaging(getTableName(table.getMainName(), null)),
         List.of(),
         List.of(),
         List.of(),
-        masterTable.getLogged(),
-        masterTable);
-    this.masterTable = masterTable;
+        table.getLogged(),
+        table);
+    this.masterTable = table;
     this.year = null;
     this.startDate = null;
     this.endDate = null;

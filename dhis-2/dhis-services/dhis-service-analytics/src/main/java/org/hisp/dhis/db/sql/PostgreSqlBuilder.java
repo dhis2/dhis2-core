@@ -166,6 +166,15 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
     return true;
   }
 
+  /**
+   * PostgreSQL supports declarative partitioning, but table inheritance is used as query
+   * performance is better.
+   */
+  @Override
+  public boolean supportsDeclarativePartitioning() {
+    return false;
+  }
+
   @Override
   public boolean supportsAnalyze() {
     return true;
