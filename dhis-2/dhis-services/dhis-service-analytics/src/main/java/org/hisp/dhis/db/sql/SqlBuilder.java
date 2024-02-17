@@ -158,7 +158,7 @@ public interface SqlBuilder {
   boolean supportsGeospatialData();
 
   /**
-   * @return true if the DBMS supports declarative partitioning, as opposed to table inheritance.
+   * @return true if the DBMS supports declarative partitioning.
    */
   boolean supportsDeclarativePartitioning();
 

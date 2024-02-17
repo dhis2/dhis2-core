@@ -1131,13 +1131,13 @@ public abstract class AbstractJdbcEventAnalyticsManager {
                     IdentifiableSql::getIdentifier, mapping(IdentifiableSql::getSql, toList())));
 
     // Joins each group with OR
-    Collection<String> orConditions =
+    List<String> orConditions =
         repeatableConditionsByIdentifier.values().stream()
             .map(sameGroup -> joinSql(sameGroup, OR_JOINER))
             .collect(toList());
 
     // Non-repeatable conditions
-    Collection<String> andConditions =
+    List<String> andConditions =
         asSqlCollection(itemsByRepeatableFlag.get(false), params)
             .map(IdentifiableSql::getSql)
             .collect(toList());

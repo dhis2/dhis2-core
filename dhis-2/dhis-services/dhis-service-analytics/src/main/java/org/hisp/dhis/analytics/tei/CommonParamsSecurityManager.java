@@ -80,7 +80,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Slf4j
 public class CommonParamsSecurityManager {
-  private static final Collection<DimensionParamObjectType> SECURITY_CHECK_SKIP_TYPES =
+  private static final List<DimensionParamObjectType> SECURITY_CHECK_SKIP_TYPES =
       List.of(
           PROGRAM_ATTRIBUTE,
           DATA_ELEMENT,
@@ -246,7 +246,7 @@ public class CommonParamsSecurityManager {
             .collect(toList());
 
     // Categories the user is constrained to.
-    Collection<Category> categories =
+    List<Category> categories =
         currentUser.isSuper()
             ? List.of()
             : CategorySecurityUtils.getConstrainedCategories(

@@ -34,7 +34,6 @@ import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.Sta
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension.PROGRAM_STATUS;
 import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -57,7 +56,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class StatusQueryBuilder extends SqlQueryBuilderAdaptor {
   /** The supported status dimensions. */
-  private static final Collection<DimensionParam.StaticDimension> SUPPORTED_STATUS_DIMENSIONS =
+  private static final List<DimensionParam.StaticDimension> SUPPORTED_STATUS_DIMENSIONS =
       List.of(ENROLLMENT_STATUS, PROGRAM_STATUS, EVENT_STATUS);
 
   @Getter
