@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.security;
 
+import java.util.List;
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
@@ -42,6 +45,19 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextHolderStrategy;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.web.authentication.session.CompositeSessionAuthenticationStrategy;
+import org.springframework.security.web.authentication.session.ConcurrentSessionControlAuthenticationStrategy;
+import org.springframework.security.web.authentication.session.NullAuthenticatedSessionStrategy;
+import org.springframework.security.web.authentication.session.RegisterSessionAuthenticationStrategy;
+import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
+import org.springframework.security.web.authentication.session.SessionFixationProtectionStrategy;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.NullSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.savedrequest.DefaultSavedRequest;
 import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.savedrequest.SavedRequest;
@@ -63,21 +79,44 @@ public class AuthenticationController {
   private final TwoFactorCapableAuthenticationProvider twoFactorAuthenticationProvider;
   private final SystemSettingManager settingManager;
   private final RequestCache requestCache;
+  private final SessionRegistry sessionRegistry;
+
+  private SessionAuthenticationStrategy sessionStrategy = new NullAuthenticatedSessionStrategy();
+  private final SecurityContextHolderStrategy securityContextHolderStrategy = SecurityContextHolder
+      .getContextHolderStrategy();
+  private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
+
+  @PostConstruct
+  public void init() {
+    if (sessionRegistry != null) {
+      sessionStrategy = new CompositeSessionAuthenticationStrategy(
+          List.of(
+              new ConcurrentSessionControlAuthenticationStrategy(sessionRegistry),
+              new SessionFixationProtectionStrategy(),
+              new RegisterSessionAuthenticationStrategy(sessionRegistry)
+          )
+      );
+    }
+  }
+
 
   @PostMapping("/login")
   public LoginResponse login(
-      HttpServletRequest servletRequest, @RequestBody LoginRequest loginRequest) {
+      HttpServletRequest request, HttpServletResponse response,
+      @RequestBody LoginRequest loginRequest) {
 
-    Authentication authenticationToken = createAuthenticationToken(servletRequest, loginRequest);
-
-    return authenticate(servletRequest, authenticationToken);
-  }
-
-  private LoginResponse authenticate(HttpServletRequest servletRequest, Authentication auth) {
     try {
-        Authentication authentication = getAuthProvider().authenticate(auth);
+      Authentication authenticationToken = createAuthenticationToken(request, loginRequest);
 
-      return createSuccessResponse(servletRequest, authentication);
+      Authentication authenticationResult = getAuthProvider().authenticate(authenticationToken);
+
+      this.sessionStrategy.onAuthentication(authenticationResult, request, response);
+
+      saveContext(request, response, authenticationResult);
+
+      String redirectUrl = getRedirectUrl(request, response);
+
+      return LoginResponse.builder().loginStatus(STATUS.SUCCESS).redirectUrl(redirectUrl).build();
 
     } catch (TwoFactorAuthenticationException e) {
       return LoginResponse.builder().loginStatus(STATUS.INCORRECT_TWO_FACTOR_CODE).build();
@@ -86,23 +125,6 @@ public class AuthenticationController {
     } catch (CredentialsExpiredException e) {
       return LoginResponse.builder().loginStatus(STATUS.PASSWORD_EXPIRED).build();
     }
-  }
-
-  private AuthenticationProvider getAuthProvider() {
-    return twoFactorAuthenticationProvider;
-  }
-
-  private LoginResponse createSuccessResponse(
-      HttpServletRequest servletRequest, Authentication authenticate) {
-
-    String redirectUrl = "/" + settingManager.getStringSetting(SettingKey.START_MODULE);
-    SavedRequest request = requestCache.getRequest(servletRequest, null);
-    if (request != null) {
-      DefaultSavedRequest defaultSavedRequest = (DefaultSavedRequest) request;
-      redirectUrl = defaultSavedRequest.getRequestURI();
-    }
-
-    return LoginResponse.builder().loginStatus(STATUS.SUCCESS).redirectUrl(redirectUrl).build();
   }
 
   private static Authentication createAuthenticationToken(
@@ -117,5 +139,32 @@ public class AuthenticationController {
     auth.setDetails(new TwoFactorWebAuthenticationDetails(servletRequest, twoFactorCode));
 
     return auth;
+  }
+
+  private void saveContext(HttpServletRequest request, HttpServletResponse response,
+      Authentication authentication) {
+    SecurityContext context = this.securityContextHolderStrategy.createEmptyContext();
+    context.setAuthentication(authentication);
+
+    this.securityContextHolderStrategy.setContext(context);
+    this.securityContextRepository.saveContext(context, request, response);
+  }
+
+  private String getRedirectUrl(HttpServletRequest request, HttpServletResponse response) {
+    String redirectUrl = "/" + settingManager.getStringSetting(SettingKey.START_MODULE);
+
+    SavedRequest savedRequest = requestCache.getRequest(request, null);
+    if (savedRequest != null) {
+      DefaultSavedRequest defaultSavedRequest = (DefaultSavedRequest) savedRequest;
+      redirectUrl = defaultSavedRequest.getRequestURI();
+      this.requestCache.removeRequest(request, response);
+    }
+
+    return redirectUrl;
+  }
+
+
+  private AuthenticationProvider getAuthProvider() {
+    return twoFactorAuthenticationProvider;
   }
 }

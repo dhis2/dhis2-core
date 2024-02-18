@@ -51,8 +51,8 @@ import org.hisp.dhis.webapi.json.domain.JsonError;
 
 /**
  * The purpose of this interface is to allow mixin style addition of the convenience web API by
- * implementing this interface's essential method {@link #webRequest(HttpMethod, String, List,
- * String, String)}.
+ * implementing this interface's essential method
+ * {@link #webRequest(HttpMethod, String, List, String, String)}.
  *
  * @author Jan Bernitt
  */
@@ -74,6 +74,10 @@ public interface WebClient {
 
   static Header JwtTokenHeader(String token) {
     return Header("Authorization", "Bearer " + token);
+  }
+
+  static Header CookieHeader(String cookie) {
+    return Header("Cookie", cookie);
   }
 
   static Header ContentType(Object mimeType) {
@@ -229,6 +233,8 @@ public interface WebClient {
     String getErrorMessage();
 
     String getHeader(String name);
+
+    String[] getCookies();
   }
 
   final class HttpResponse {
@@ -327,6 +333,10 @@ public interface WebClient {
 
     public String header(String name) {
       return response.getHeader(name);
+    }
+
+    public String[] cookies() {
+      return response.getCookies();
     }
   }
 }

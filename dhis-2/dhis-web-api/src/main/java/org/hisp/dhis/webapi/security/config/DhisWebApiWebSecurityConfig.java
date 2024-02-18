@@ -121,9 +121,6 @@ public class DhisWebApiWebSecurityConfig {
     return new SessionRegistryImpl();
   }
 
-//  RequestCache requestCache = http.getSharedObject(RequestCache.class);
-//  public static RequestCache ArequestCache;
-
   @Bean
   public RequestCache requestCache() {
     return new HttpSessionRequestCache();
