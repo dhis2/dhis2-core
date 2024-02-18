@@ -105,8 +105,8 @@ class DataStatisticsEventStoreTest extends IntegrationTestBase {
         dataStatisticsEventStore.getDataStatisticsEventCount(start, end);
 
     // Then
-    // Test for 5 objects because TOTAL_VIEWS is always present.
-    assertEquals(5, eventsMap.size());
+    // Test for 6 objects because TOTAL_VIEW and ACTIVE_USERS is always present.
+    assertEquals(6, eventsMap.size());
   }
 
   @Test
@@ -131,9 +131,10 @@ class DataStatisticsEventStoreTest extends IntegrationTestBase {
     final Map<DataStatisticsEventType, Double> eventsMap =
         dataStatisticsEventStore.getDataStatisticsEventCount(new Date(), new Date());
 
-    // Then
-    // Test for 1 object because TOTAL_VIEW is always present.
-    assertEquals(1, eventsMap.size());
+    // Test that the map contains the TOTAL_VIEW and ACTIVE_USERS keys
+    assertTrue(eventsMap.containsKey(DataStatisticsEventType.TOTAL_VIEW));
+    assertTrue(eventsMap.containsKey(DataStatisticsEventType.ACTIVE_USERS));
+    assertEquals(2, eventsMap.size());
   }
 
   @Test
