@@ -221,6 +221,15 @@ public class Table {
   }
 
   /**
+   * Adds a partition to this table.
+   *
+   * @param partition the {@link TablePartition}.
+   */
+  public void addPartition(TablePartition partition) {
+    this.partitions.add(partition);
+  }
+
+  /**
    * Indicates whether the table has at least one partition.
    *
    * @return true if the table has at least one partition.
