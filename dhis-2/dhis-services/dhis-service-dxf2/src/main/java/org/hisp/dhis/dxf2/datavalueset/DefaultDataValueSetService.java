@@ -35,6 +35,7 @@ import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 import static org.hisp.dhis.system.notification.NotificationLevel.WARN;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsignificant;
+import static org.hisp.dhis.util.DateUtils.parseDate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
@@ -44,6 +45,7 @@ import java.io.Writer;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -826,6 +828,10 @@ public class DefaultDataValueSetService implements DataValueSetService {
       internalValue.setCreated(existingValue.getCreated());
     }
 
+    //if (existingValue != null && !context.currentUserCanAttributeData()) {
+    //  internalValue.setCreated(existingValue.getCreated());
+    //}
+
     final ImportStrategy strategy = context.getStrategy();
     boolean zeroAndInsignificant =
         ValidationUtils.dataValueIsZeroAndInsignificant(
@@ -1295,9 +1301,19 @@ public class DefaultDataValueSetService implements DataValueSetService {
     internalValue.setCategoryOptionCombo(valueContext.getCategoryOptionCombo());
     internalValue.setAttributeOptionCombo(valueContext.getAttrOptionCombo());
     internalValue.setValue(trimToNull(value));
-    internalValue.setStoredBy(context.getStoredBy(dataValue));
-    internalValue.setCreated(now);
-    internalValue.setLastUpdated(now);
+
+    if (context.currentUserCanAttributeData()) {
+      internalValue.setStoredBy(dataValue.hasStoredBy() ? dataValue.getStoredBy() : context.getCurrentUserName());
+      internalValue.setLastUpdated(
+          dataValue.hasLastUpdated() ? parseDate(dataValue.getLastUpdated()) : now);
+      internalValue.setCreated(dataValue.hasCreated() ? parseDate(dataValue.getCreated()) : now);
+    } else
+    {
+      internalValue.setStoredBy( context.getCurrentUserName() );
+      internalValue.setLastUpdated( now );
+      internalValue.setCreated( now );
+    }
+
     internalValue.setComment(trimToNull(dataValue.getComment()));
     internalValue.setFollowup(dataValue.getFollowup());
     internalValue.setDeleted(BooleanUtils.isTrue(dataValue.getDeleted()));

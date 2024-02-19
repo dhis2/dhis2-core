@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.datavalueset;
 import static java.util.stream.Collectors.toUnmodifiableList;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -59,8 +60,10 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.quick.BatchHandler;
 
 /**
@@ -203,6 +206,14 @@ public final class ImportContext {
 
   public String getCurrentUserName() {
     return currentUser.getUsername();
+  }
+
+  public boolean currentUserCanAttributeData() {
+    if (currentUser.isSuper()) {
+      return true;
+    }
+
+    return currentUser.isAuthorized( Authorities.F_DATAVALUE_ATTRIBUTE.name() );
   }
 
   public ImportContext error() {
