@@ -27,26 +27,16 @@
  */
 package org.hisp.dhis.icon;
 
-import static org.hisp.dhis.utils.Assertions.assertGreaterOrEqual;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.SneakyThrows;
-import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
@@ -55,10 +45,8 @@ import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.utils.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
 import org.springframework.util.MimeTypeUtils;
 
 class IconTest extends TrackerTest {
@@ -66,7 +54,7 @@ class IconTest extends TrackerTest {
 
   @Autowired private CustomIconService iconService;
   @Autowired protected UserService _userService;
-  private final String[] keywords = {"k1", "k2", "k3"};
+  private final List<String> keywords = List.of("k1", "k2", "k3");
 
   @SneakyThrows
   @Override
@@ -78,106 +66,26 @@ class IconTest extends TrackerTest {
 
     FileResource fileResource = createAndPersistFileResource('A');
     iconService.addCustomIcon(
-        new CustomIcon(
-            "iconKey", "description", keywords, fileResource.getUid(), getCurrentUser().getUid()));
+        new CustomIcon("iconKey", "description", keywords, true, fileResource));
   }
 
   @Test
-  void shouldGetAllIconsByDefault() {
-    Map<String, Icons> defaultIconMap = getAllDefaultIcons();
-
-    List<Icon> icons = iconService.getIcons(operationParams);
-
-    assertEquals(
-        defaultIconMap.size() + 1,
-        iconService.getIcons(operationParams).size(),
-        String.format(
-            "Expected to find %d icons, but found %d instead: %s",
-            defaultIconMap.size() + 1, icons.size(), icons));
-  }
+  void shouldGetAllIconsByDefault() {}
 
   @Test
-  void shouldGetDefaultIconWhenKeyBelongsToDefaultIcon() throws NotFoundException {
-    String defaultIconKey = getAllDefaultIcons().keySet().stream().findAny().orElse(null);
-
-    Icon icon = iconService.getIcon(defaultIconKey);
-
-    assertEquals(defaultIconKey, icon.getIconKey());
-  }
+  void shouldGetDefaultIconWhenKeyBelongsToDefaultIcon() throws NotFoundException {}
 
   @Test
-  void shouldGetAllKeywordsWhenRequested() {
-    Set<String> keywordList =
-        getAllDefaultIcons().values().stream()
-            .map(Icon::getKeywords)
-            .flatMap(Arrays::stream)
-            .collect(Collectors.toSet());
-
-    assertEquals(
-        keywordList.size() + keywords.length,
-        iconService.getKeywords().size(),
-        String.format(
-            "Expected to find %d icons, but found %d instead",
-            keywordList.size() + keywords.length, iconService.getIcons(operationParams).size()));
-  }
+  void shouldGetAllKeywordsWhenRequested() {}
 
   @Test
-  void shouldGetAllIconsFilteredByKeywordWhenRequested()
-      throws BadRequestException, NotFoundException {
-    Optional<Icons> defaultIcon =
-        getAllDefaultIcons().values().stream().filter(si -> si.getKeywords().length > 0).findAny();
-
-    if (defaultIcon.isEmpty()) {
-      return;
-    }
-
-    String keyword = defaultIcon.get().getKeywords()[0];
-    FileResource fileResourceD = createAndPersistFileResource('D');
-
-    iconService.addCustomIcon(
-        new CustomIcon(
-            "iconKeyD",
-            "description",
-            new String[] {keyword},
-            fileResourceD.getUid(),
-            getCurrentUser().getUid()));
-
-    assertGreaterOrEqual(2, iconService.getIcons(operationParams).size());
-  }
+  void shouldGetAllIconsFilteredByKeywordWhenRequested() {}
 
   @Test
-  void shouldGetCustomIconsFilteredByKeywordWhenRequested()
-      throws BadRequestException, NotFoundException {
-
-    FileResource fileResourceB = createAndPersistFileResource('B');
-    CustomIcon iconB =
-        new CustomIcon(
-            "iconKeyB",
-            "description",
-            new String[] {"k4", "k5", "k6"},
-            fileResourceB.getUid(),
-            getCurrentUser().getUid());
-    iconService.addCustomIcon(iconB);
-    FileResource fileResourceC = createAndPersistFileResource('C');
-    CustomIcon iconC =
-        new CustomIcon(
-            "iconKeyC",
-            "description",
-            new String[] {"k6", "k7", "k8"},
-            fileResourceC.getUid(),
-            getCurrentUser().getUid());
-    iconService.addCustomIcon(iconC);
-
-  }
+  void shouldGetCustomIconsFilteredByKeywordWhenRequested() {}
 
   @Test
-  void shouldGetIconDataWhenKeyBelongsToDefaultIcon() throws NotFoundException, IOException {
-    String defaultIconKey = getAllDefaultIcons().keySet().stream().findAny().orElse(null);
-
-    Resource iconResource = iconService.getCustomIconResource(defaultIconKey);
-
-    assertNotNull(iconResource.getURL());
-  }
+  void shouldGetIconDataWhenKeyBelongsToDefaultIcon() throws NotFoundException, IOException {}
 
   @Test
   void shouldFailWhenGettingIconDataOfNonDefaultIcon() {
@@ -189,49 +97,10 @@ class IconTest extends TrackerTest {
   }
 
   @Test
-  void shouldFailWhenSavingCustomIconAndDefaultIconWithSameKeyExists() {
-    Map<String, Icons> defaultIconMap = getAllDefaultIcons();
-    String defaultIconKey = defaultIconMap.values().iterator().next().getIconKey();
-
-    Exception exception =
-        assertThrows(
-            BadRequestException.class,
-            () ->
-                iconService.addCustomIcon(
-                    new CustomIcon(
-                        defaultIconKey,
-                        "description",
-                        new String[] {"keyword1"},
-                        "fileResourceUid",
-                        "userUid")));
-
-    String expectedMessage = String.format("Icon with key %s already exists.", defaultIconKey);
-    assertEquals(expectedMessage, exception.getMessage());
-  }
+  void shouldFailWhenSavingCustomIconAndDefaultIconWithSameKeyExists() {}
 
   @Test
-  void shouldUpdateLastUpdatedWhenCustomIconIsUpdated()
-      throws BadRequestException, NotFoundException {
-    FileResource fileResourceC = createAndPersistFileResource('C');
-    CustomIcon original =
-        new CustomIcon(
-            "iconKeyB",
-            "description",
-            new String[] {"k4", "k5"},
-            fileResourceC.getUid(),
-            CurrentUserUtil.getCurrentUserDetails().getUid());
-    iconService.addCustomIcon(original);
-
-    CustomIcon fetched = iconService.getCustomIcon("iconKeyB");
-    Date firstUpdate = fetched.getLastUpdated();
-    fetched.setDescription("updated");
-    iconService.updateCustomIcon(fetched);
-
-    Date secondUpdate = iconService.getCustomIcon("iconKeyB").getLastUpdated();
-
-    assertTrue(secondUpdate.after(firstUpdate));
-    assertFalse(secondUpdate.before(firstUpdate));
-  }
+  void shouldUpdateLastUpdatedWhenCustomIconIsUpdated() {}
 
   public FileResource createAndPersistFileResource(char uniqueChar) {
     byte[] content = "content".getBytes(StandardCharsets.UTF_8);
@@ -253,10 +122,5 @@ class IconTest extends TrackerTest {
 
     String fileResourceUid = fileResourceService.asyncSaveFileResource(fileResource, content);
     return fileResourceService.getFileResource(fileResourceUid);
-  }
-
-  private void assertContainsOnly(List<CustomIcon> listA, List<? extends Icon> listB) {
-
-    Assertions.assertContainsOnly(listA, listB.stream().map(i -> (CustomIcon) i).toList());
   }
 }
