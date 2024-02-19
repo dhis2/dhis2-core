@@ -370,7 +370,7 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
     assertEquals("\"" + file.getContentMd5() + "\"", response.header("Etag"));
     assertEquals("max-age=0, must-revalidate, private", response.header("Cache-Control"));
     assertEquals(Long.toString(file.getContentLength()), response.header("Content-Length"));
-    assertEquals("attachment; filename=" + file.getName(), response.header("Content-Disposition"));
+    assertEquals("filename=" + file.getName(), response.header("Content-Disposition"));
     assertEquals("file content", response.content("text/plain"));
   }
 
@@ -392,7 +392,7 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
     assertEquals(HttpStatus.OK, response.status());
     assertEquals("\"" + file.getContentMd5() + "\"", response.header("Etag"));
     assertEquals("max-age=0, must-revalidate, private", response.header("Cache-Control"));
-    assertEquals("attachment; filename=" + file.getName(), response.header("Content-Disposition"));
+    assertEquals("filename=" + file.getName(), response.header("Content-Disposition"));
     assertEquals(Long.toString(file.getContentLength()), response.header("Content-Length"));
     assertEquals("file content", response.content("image/png"));
   }
@@ -417,6 +417,18 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
     assertEquals("\"" + file.getContentMd5() + "\"", response.header("Etag"));
     assertEquals("max-age=0, must-revalidate, private", response.header("Cache-Control"));
     assertFalse(response.hasBody());
+  }
+
+  @Test
+  void getDataValuesFileByDataElementIfGivenDimensionParameter() {
+    assertStartsWith(
+        "Request parameter 'dimension'",
+        GET(
+                "/tracker/events/{eventUid}/dataValues/{dataElementUid}/file?dimension=small",
+                CodeGenerator.generateUid(),
+                CodeGenerator.generateUid())
+            .error(HttpStatus.BAD_REQUEST)
+            .getMessage());
   }
 
   @Test
@@ -551,7 +563,7 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
     assertEquals(HttpStatus.OK, response.status());
     assertEquals("\"" + file.getContentMd5() + "\"", response.header("Etag"));
     assertEquals("max-age=0, must-revalidate, private", response.header("Cache-Control"));
-    assertEquals("attachment; filename=" + file.getName(), response.header("Content-Disposition"));
+    assertEquals("filename=" + file.getName(), response.header("Content-Disposition"));
     assertEquals(Long.toString(file.getContentLength()), response.header("Content-Length"));
     assertEquals("file content", response.content("image/png"));
   }
@@ -586,7 +598,7 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
     HashCode expectedHashCode = Hashing.md5().hashString(smallFileContent, StandardCharsets.UTF_8);
     assertEquals("\"" + expectedHashCode + "\"", response.header("Etag"));
     assertEquals("max-age=0, must-revalidate, private", response.header("Cache-Control"));
-    assertEquals("attachment; filename=" + file.getName(), response.header("Content-Disposition"));
+    assertEquals("filename=" + file.getName(), response.header("Content-Disposition"));
     assertEquals(
         Long.toString(smallFileContent.getBytes().length), response.header("Content-Length"));
     assertEquals(smallFileContent, response.content("image/png"));

@@ -36,8 +36,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsDimensionsService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.PrefixedDimension;
@@ -69,7 +69,7 @@ class EnrollmentAnalyticsDimensionsServiceTest {
 
   @Test
   void testQueryDoesntContainDisallowedValueTypes() {
-    Collection<BaseIdentifiableObject> analyticsDimensions =
+    List<BaseIdentifiableObject> analyticsDimensions =
         enrollmentAnalyticsDimensionsService.getQueryDimensionsByProgramId("anUid").stream()
             .map(PrefixedDimension::getItem)
             .toList();
@@ -88,7 +88,7 @@ class EnrollmentAnalyticsDimensionsServiceTest {
 
   @Test
   void testAggregateOnlyContainsAllowedValueTypes() {
-    Collection<BaseIdentifiableObject> analyticsDimensions =
+    List<BaseIdentifiableObject> analyticsDimensions =
         enrollmentAnalyticsDimensionsService
             .getAggregateDimensionsByProgramStageId("anUid")
             .stream()

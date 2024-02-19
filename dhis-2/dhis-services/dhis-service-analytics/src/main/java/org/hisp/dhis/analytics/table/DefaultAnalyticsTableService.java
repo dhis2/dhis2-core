@@ -32,7 +32,6 @@ import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLI
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -233,7 +232,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     for (int i = 0; i < maxLevels; i++) {
       int level = maxLevels - i;
 
-      Collection<String> dataElements =
+      List<String> dataElements =
           IdentifiableObjectUtils.getUids(
               dataElementService.getDataElementsByAggregationLevel(level));
 
