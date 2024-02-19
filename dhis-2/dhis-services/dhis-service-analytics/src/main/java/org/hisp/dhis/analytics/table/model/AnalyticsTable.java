@@ -35,6 +35,7 @@ import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
+import org.hisp.dhis.db.model.TablePartition;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.springframework.util.Assert;
@@ -137,6 +138,16 @@ public class AnalyticsTable extends Table {
     return columns.stream()
         .map(c -> new Column(c.getName(), c.getDataType(), c.getNullable(), c.getCollation()))
         .toList();
+  }
+
+  /**
+   * Converts the given list of analytics table partitions to a list of table partitions.
+   *
+   * @param partitions the list of {@link AnalyticsTablePartition}.
+   * @return a list of {@link TablePartition}.
+   */
+  private static List<TablePartition> toPartition(List<AnalyticsTablePartition> partitions) {
+    return partitions.stream().map(p -> new TablePartition(p.getName(), "", 0)).toList(); // TODO
   }
 
   /**
