@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.changelog;
+package org.hisp.dhis.tracker.export.event;
 
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -42,8 +41,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.tracker.TrackerTest;
-import org.hisp.dhis.tracker.export.event.EventChangeLog;
-import org.hisp.dhis.tracker.export.event.EventChangeLogService;
+import org.hisp.dhis.tracker.export.event.EventChangeLog.DataValueChange;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
@@ -129,11 +127,11 @@ class EventChangeLogServiceTest extends TrackerTest {
 
     List<EventChangeLog> changeLogs =
         eventChangeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"));
-    List<Object> expectedPreviousValues = createValueList((Object) null);
-    List<Object> expectedCurrentValues = createValueList("15");
 
-    assertChange(
-        changeLogs, importUser, dataElementUid, expectedPreviousValues, expectedCurrentValues);
+    assertNumberOfChanges(1, changeLogs);
+    assertAll(
+        () -> assertChange(dataElementUid, null, "15", changeLogs.get(0)),
+        () -> assertUser(importUser, changeLogs.get(0)));
   }
 
   @Test
@@ -149,11 +147,13 @@ class EventChangeLogServiceTest extends TrackerTest {
 
     List<EventChangeLog> changeLogs =
         eventChangeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"));
-    List<Object> expectedPreviousValues = createValueList("15", null);
-    List<Object> expectedCurrentValues = createValueList(null, "15");
-
-    assertChange(
-        changeLogs, importUser, dataElementUid, expectedPreviousValues, expectedCurrentValues);
+    assertNumberOfChanges(2, changeLogs);
+    assertAll(
+        () -> assertChange(dataElementUid, "15", null, changeLogs.get(0)),
+        () -> assertUser(importUser, changeLogs.get(0)));
+    assertAll(
+        () -> assertChange(dataElementUid, null, "15", changeLogs.get(1)),
+        () -> assertUser(importUser, changeLogs.get(1)));
   }
 
   @Test
@@ -172,11 +172,13 @@ class EventChangeLogServiceTest extends TrackerTest {
 
     List<EventChangeLog> changeLogs =
         eventChangeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"));
-    List<Object> expectedPreviousValues = createValueList("15", null);
-    List<Object> expectedCurrentValues = createValueList(null, "15");
-
-    assertChange(
-        changeLogs, importUser, dataElementUid, expectedPreviousValues, expectedCurrentValues);
+    assertNumberOfChanges(2, changeLogs);
+    assertAll(
+        () -> assertChange(dataElementUid, "15", null, changeLogs.get(0)),
+        () -> assertUser(importUser, changeLogs.get(0)));
+    assertAll(
+        () -> assertChange(dataElementUid, null, "15", changeLogs.get(1)),
+        () -> assertUser(importUser, changeLogs.get(1)));
   }
 
   @Test
@@ -192,11 +194,13 @@ class EventChangeLogServiceTest extends TrackerTest {
 
     List<EventChangeLog> changeLogs =
         eventChangeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"));
-    List<Object> expectedPreviousValues = createValueList("15", null);
-    List<Object> expectedCurrentValues = createValueList("20", "15");
-
-    assertChange(
-        changeLogs, importUser, dataElementUid, expectedPreviousValues, expectedCurrentValues);
+    assertNumberOfChanges(2, changeLogs);
+    assertAll(
+        () -> assertChange(dataElementUid, "15", "20", changeLogs.get(0)),
+        () -> assertUser(importUser, changeLogs.get(0)));
+    assertAll(
+        () -> assertChange(dataElementUid, null, "15", changeLogs.get(1)),
+        () -> assertUser(importUser, changeLogs.get(1)));
   }
 
   @Test
@@ -215,11 +219,16 @@ class EventChangeLogServiceTest extends TrackerTest {
 
     List<EventChangeLog> changeLogs =
         eventChangeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"));
-    List<Object> expectedPreviousValues = createValueList("20", "15", null);
-    List<Object> expectedCurrentValues = createValueList("25", "20", "15");
-
-    assertChange(
-        changeLogs, importUser, dataElementUid, expectedPreviousValues, expectedCurrentValues);
+    assertNumberOfChanges(3, changeLogs);
+    assertAll(
+        () -> assertChange(dataElementUid, "20", "25", changeLogs.get(0)),
+        () -> assertUser(importUser, changeLogs.get(0)));
+    assertAll(
+        () -> assertChange(dataElementUid, "15", "20", changeLogs.get(1)),
+        () -> assertUser(importUser, changeLogs.get(1)));
+    assertAll(
+        () -> assertChange(dataElementUid, null, "15", changeLogs.get(2)),
+        () -> assertUser(importUser, changeLogs.get(2)));
   }
 
   @Test
@@ -239,40 +248,16 @@ class EventChangeLogServiceTest extends TrackerTest {
 
     List<EventChangeLog> changeLogs =
         eventChangeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"));
-    List<Object> expectedPreviousValues = createValueList("20", "15", null);
-    List<Object> expectedCurrentValues = createValueList(null, "20", "15");
-
-    assertChange(
-        changeLogs, importUser, dataElementUid, expectedPreviousValues, expectedCurrentValues);
-  }
-
-  private void assertChange(
-      List<EventChangeLog> changeLogs,
-      User importUser,
-      String dataElementUid,
-      List<Object> previousValues,
-      List<Object> currentValues) {
+    assertNumberOfChanges(3, changeLogs);
     assertAll(
-        () -> {
-          assertEquals(
-              previousValues.size(),
-              changeLogs.size(),
-              String.format(
-                  "Expected to find %s elements in the change log list, found %s instead",
-                  previousValues.size(), changeLogs.size()));
-
-          for (int i = 0; i < changeLogs.size(); i++) {
-            assertEquals(importUser.getUsername(), changeLogs.get(i).updatedBy().getUsername());
-            assertEquals(importUser.getFirstName(), changeLogs.get(i).updatedBy().getFirstName());
-            assertEquals(importUser.getSurname(), changeLogs.get(i).updatedBy().getSurname());
-            assertEquals(importUser.getUid(), changeLogs.get(i).updatedBy().getUid());
-            assertEquals(dataElementUid, changeLogs.get(i).change().dataValue().dataElement());
-            assertEquals(
-                previousValues.get(i), changeLogs.get(i).change().dataValue().previousValue());
-            assertEquals(
-                currentValues.get(i), changeLogs.get(i).change().dataValue().currentValue());
-          }
-        });
+        () -> assertChange(dataElementUid, "20", null, changeLogs.get(0)),
+        () -> assertUser(importUser, changeLogs.get(0)));
+    assertAll(
+        () -> assertChange(dataElementUid, "15", "20", changeLogs.get(1)),
+        () -> assertUser(importUser, changeLogs.get(1)));
+    assertAll(
+        () -> assertChange(dataElementUid, null, "15", changeLogs.get(2)),
+        () -> assertUser(importUser, changeLogs.get(2)));
   }
 
   private void updateDataValue(
@@ -296,11 +281,31 @@ class EventChangeLogServiceTest extends TrackerTest {
     return event;
   }
 
-  private List<Object> createValueList(Object... values) {
-    return Arrays.stream(values).toList();
-  }
-
   private void testAsUser(String user) {
     injectSecurityContextUser(manager.get(User.class, user));
+  }
+
+  private static void assertNumberOfChanges(int expected, List<EventChangeLog> changeLogs) {
+    assertNotNull(changeLogs);
+    assertEquals(
+        expected,
+        changeLogs.size(),
+        String.format(
+            "Expected to find %s elements in the change log list, found %s instead: %s",
+            expected, changeLogs.size(), changeLogs));
+  }
+
+  private static void assertChange(
+      String dataElement, String previousValue, String currentValue, EventChangeLog changeLog) {
+    DataValueChange expected = new DataValueChange(dataElement, previousValue, currentValue);
+    assertEquals(expected, changeLog.change().dataValue());
+  }
+
+  private static void assertUser(User user, EventChangeLog changeLog) {
+    assertAll(
+        () -> assertEquals(user.getUsername(), changeLog.updatedBy().getUsername()),
+        () -> assertEquals(user.getFirstName(), changeLog.updatedBy().getFirstName()),
+        () -> assertEquals(user.getSurname(), changeLog.updatedBy().getSurname()),
+        () -> assertEquals(user.getUid(), changeLog.updatedBy().getUid()));
   }
 }
