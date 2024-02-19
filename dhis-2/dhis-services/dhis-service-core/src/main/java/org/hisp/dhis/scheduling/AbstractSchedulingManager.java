@@ -266,7 +266,7 @@ public abstract class AbstractSchedulingManager implements SchedulingManager {
       whenAlreadyRunning(configuration);
       return false;
     }
-    if (!type.isRunOnAllNodes()
+    if (configuration.isLeaderOnlyJob()
         && !runningRemotely.putIfAbsent(type.name(), progress.getProcesses())) {
       runningLocally.remove(type);
       whenAlreadyRunning(configuration);
@@ -322,7 +322,7 @@ public abstract class AbstractSchedulingManager implements SchedulingManager {
       return false;
     } finally {
       completedLocally.put(type, runningLocally.remove(type));
-      if (!type.isRunOnAllNodes()) runningRemotely.invalidate(type.name());
+      if (configuration.isLeaderOnlyJob()) runningRemotely.invalidate(type.name());
       whenRunIsDone(configuration, clock);
       MDC.remove("sessionId");
     }
