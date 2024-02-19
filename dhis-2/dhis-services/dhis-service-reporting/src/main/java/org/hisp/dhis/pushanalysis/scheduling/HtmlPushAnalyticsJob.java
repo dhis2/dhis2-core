@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.pushanalysis.scheduling;
 
-import static java.util.stream.Collectors.toMap;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 
 import java.util.Map;
@@ -42,15 +41,19 @@ import org.hisp.dhis.scheduling.parameters.HtmlPushAnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.HtmlPushAnalyticsJobParameters.ViewMode;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserGroupService;
+import org.hisp.dhis.user.UserService;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 /**
+ * Sends HTML push analytics to users of the specified user group.
+ *
+ * <p>The email contains the HTML of a dashboard given by UID.
+ *
+ * <p>Either the dashboard is viewed as the user receiving the email or as the user running the job.
+ *
  * @author Jan Bernitt
  */
 @Component
@@ -59,7 +62,7 @@ public class HtmlPushAnalyticsJob implements Job {
 
   private final EmailService emailService;
   private final SystemSettingManager settings;
-  private final UserGroupService userGroupService;
+  private final UserService userService;
   private final RestTemplate restTemplate;
 
   @Override
@@ -82,13 +85,15 @@ public class HtmlPushAnalyticsJob implements Job {
       return;
     }
 
-    String url = urlTemplate.replace("{id}", params.getDashboard().getValue());
+    String url = urlTemplate.replace("{id}", params.getDashboard());
     String subject = config.getName();
-    if (params.getMode() == ViewMode.JOB_CREATOR) {
-      String viewer = config.getCreatedBy().getUsername();
-      progress.startingStage("Fetching push analytics HTML for user %s".formatted(viewer));
-      String body =
-          progress.runStage(() -> getPushAnalyticsHtmlBody(url.replace("{username}", viewer)));
+    if (params.getMode() == ViewMode.EXECUTOR) {
+      String viewerId = config.getExecutedBy();
+      String viewer = userService.getUser(viewerId).getUsername();
+      String viewerUrl = url.replace("{username}", viewer);
+      progress.startingStage(
+          "Fetching push analytics HTML for user %s (%s)".formatted(viewer, viewerUrl));
+      String body = progress.runStage(() -> getPushAnalyticsHtmlBody(viewerUrl));
       progress.startingStage(
           "Sending push analytics to %d receivers as viewed by %s"
               .formatted(receiversEmailsByUsername.size(), viewer));
@@ -103,7 +108,7 @@ public class HtmlPushAnalyticsJob implements Job {
           SKIP_ITEM_OUTLIER);
       progress.runStage(
           receiversEmailsByUsername.entrySet().stream(),
-          e -> "For user %s".formatted(e.getKey()),
+          e -> "For user %s (%s)".formatted(e.getKey(), url.replace("{username}", e.getKey())),
           e -> {
             String body =
                 progress.runStage(
@@ -121,12 +126,7 @@ public class HtmlPushAnalyticsJob implements Job {
     return progress.runStage(
         Map.of(),
         receivers -> "Found %d receivers".formatted(receivers.size()),
-        () -> {
-          UserGroup group = userGroupService.getUserGroup(params.getReceivers().getValue());
-          return group == null
-              ? Map.of()
-              : group.getMembers().stream().collect(toMap(User::getUsername, User::getEmail));
-        });
+        () -> userService.getUserGroupUserEmailsByUsername(params.getReceivers()));
   }
 
   private boolean stageValidateConfiguration(

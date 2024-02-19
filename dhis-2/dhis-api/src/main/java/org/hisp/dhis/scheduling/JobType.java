@@ -189,6 +189,14 @@ public enum JobType {
   }
 
   /**
+   * @return when true, the {@link JobConfiguration#getExecutedBy()} is set to the job creator on
+   *     creation unless it was set explicitly
+   */
+  public boolean isDefaultExecutedByCreator() {
+    return this == HTML_PUSH_ANALYTICS;
+  }
+
+  /**
    * @return true, if {@link JobProgress} events should be forwarded to the {@link
    *     org.eclipse.emf.common.notify.Notifier} API, otherwise false
    */

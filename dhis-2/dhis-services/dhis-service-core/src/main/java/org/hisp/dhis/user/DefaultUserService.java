@@ -860,6 +860,12 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
+  @Transactional(readOnly = true)
+  public Map<String, String> getUserGroupUserEmailsByUsername(String userGroupId) {
+    return userStore.getUserGroupUserEmailsByUsername(userGroupId);
+  }
+
+  @Override
   public String getDisplayName(String userUid) {
     return userDisplayNameCache.get(userUid, c -> userStore.getDisplayName(userUid));
   }

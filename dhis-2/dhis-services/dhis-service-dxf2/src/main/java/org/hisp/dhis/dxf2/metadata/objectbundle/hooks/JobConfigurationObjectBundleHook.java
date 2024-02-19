@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -43,6 +45,8 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.SchedulingType;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Component;
 
@@ -82,8 +86,12 @@ public class JobConfigurationObjectBundleHook extends AbstractObjectBundleHook<J
   }
 
   @Override
-  public void preCreate(JobConfiguration jobConfiguration, ObjectBundle bundle) {
-    setDefaultJobParameters(jobConfiguration);
+  public void preCreate(JobConfiguration config, ObjectBundle bundle) {
+    if (isEmpty(config.getExecutedBy()) && config.getJobType().isDefaultExecutedByCreator()) {
+      UserDetails creator = CurrentUserUtil.getCurrentUserDetails();
+      config.setExecutedBy(creator == null ? null : creator.getUid());
+    }
+    setDefaultJobParameters(config);
   }
 
   @Override

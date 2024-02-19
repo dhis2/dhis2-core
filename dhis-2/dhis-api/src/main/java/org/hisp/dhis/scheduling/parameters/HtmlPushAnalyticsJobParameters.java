@@ -47,17 +47,19 @@ public class HtmlPushAnalyticsJobParameters implements JobParameters {
 
   @OpenApi.Property({UID.class, Dashboard.class})
   @JsonProperty(required = true)
-  private UID dashboard;
+  private String dashboard;
 
   @OpenApi.Property({UID.class, UserGroup.class})
   @JsonProperty(required = true)
-  private UID receivers;
+  private String receivers;
 
   @JsonProperty(required = true)
   private ViewMode mode;
 
   public enum ViewMode {
-    JOB_CREATOR,
-    RECEIVERS
+    /** The dashboard is viewed as the user running (executing) the push analytics job */
+    EXECUTOR,
+    /** The dashboard is viewed as the user receiving the push analytics email */
+    RECEIVER
   }
 }
