@@ -166,9 +166,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "10.0",
             "3.0",
             "704.0",
-            "158.28267",
-            "-559.88232",
-            "579.88232"));
+            "158.3",
+            "-559.9",
+            "579.9"));
     validateRow(
         response,
         List.of(
@@ -187,9 +187,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "27.0",
             "7.0",
             "1513.0",
-            "145.78836",
-            "-1075.7046",
-            "1129.7046"));
+            "145.8",
+            "-1075.7",
+            "1129.7"));
     validateRow(
         response,
         List.of(
@@ -208,9 +208,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "11.0",
             "2.0",
             "389.0",
-            "131.19025",
-            "-399.51583",
-            "421.51583"));
+            "131.2",
+            "-399.5",
+            "421.5"));
     validateRow(
         response,
         List.of(
@@ -229,9 +229,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "13.0",
             "3.0",
             "438.0",
-            "98.477",
-            "-474.50881",
-            "500.50881"));
+            "98.5",
+            "-474.5",
+            "500.5"));
     validateRow(
         response,
         List.of(
@@ -250,9 +250,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "11.0",
             "3.0",
             "389.0",
-            "87.46017",
-            "-416.72601",
-            "438.72601"));
+            "87.5",
+            "-416.7",
+            "438.7"));
     validateRow(
         response,
         List.of(
@@ -271,9 +271,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "11.0",
             "1.0",
             "119.0",
-            "80.2655",
-            "-84.2947",
-            "106.2947"));
+            "80.3",
+            "-84.3",
+            "106.3"));
     validateRow(
         response,
         List.of(
@@ -292,9 +292,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "13.0",
             "4.0",
             "417.0",
-            "70.31663",
-            "-505.334",
-            "531.334"));
+            "70.3",
+            "-505.3",
+            "531.3"));
     validateRow(
         response,
         List.of(
@@ -313,9 +313,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "14.0",
             "4.0",
             "416.0",
-            "70.148",
-            "-463.21696",
-            "491.21696"));
+            "70.1",
+            "-463.2",
+            "491.2"));
     validateRow(
         response,
         List.of(
@@ -334,9 +334,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "10.0",
             "1.0",
             "101.0",
-            "68.1245",
-            "-63.42032",
-            "83.42032"));
+            "68.1",
+            "-63.4",
+            "83.4"));
     validateRow(
         response,
         List.of(
@@ -355,9 +355,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "14.0",
             "1.0",
             "99.0",
-            "66.7755",
-            "-91.24442",
-            "119.24442"));
+            "66.8",
+            "-91.2",
+            "119.2"));
     validateRow(
         response,
         List.of(
@@ -376,9 +376,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "14.0",
             "1.0",
             "99.0",
-            "66.7755",
-            "-91.24442",
-            "119.24442"));
+            "66.8",
+            "-91.2",
+            "119.2"));
     validateRow(
         response,
         List.of(
@@ -397,9 +397,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "12.0",
             "5.0",
             "443.0",
-            "59.7607",
-            "-511.86253",
-            "535.86253"));
+            "59.8",
+            "-511.9",
+            "535.9"));
     validateRow(
         response,
         List.of(
@@ -418,9 +418,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "14.0",
             "5.0",
             "437.0",
-            "58.9513",
-            "-492.70519",
-            "520.70519"));
+            "59.0",
+            "-492.7",
+            "520.7"));
     validateRow(
         response,
         List.of(
@@ -439,9 +439,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "11.5",
             "5.5",
             "445.5",
-            "54.6345",
-            "-548.55269",
-            "571.55269"));
+            "54.6",
+            "-548.6",
+            "571.6"));
     validateRow(
         response,
         List.of(
@@ -460,9 +460,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "20.0",
             "6.0",
             "469.0",
-            "52.72342",
-            "-433.23351",
-            "473.23351"));
+            "52.7",
+            "-433.2",
+            "473.2"));
     validateRow(
         response,
         List.of(
@@ -481,9 +481,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "14.0",
             "6.0",
             "452.0",
-            "50.81233",
-            "-271.69916",
-            "299.69916"));
+            "50.8",
+            "-271.7",
+            "299.7"));
     validateRow(
         response,
         List.of(
@@ -502,9 +502,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "14.0",
             "6.0",
             "452.0",
-            "50.81233",
-            "-345.66625",
-            "373.66625"));
+            "50.8",
+            "-345.7",
+            "373.7"));
     validateRow(
         response,
         List.of(
@@ -523,9 +523,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "12.5",
             "6.0",
             "444.5",
-            "49.96921",
-            "-574.37108",
-            "599.37108"));
+            "50.0",
+            "-574.4",
+            "599.4"));
     validateRow(
         response,
         List.of(
@@ -544,9 +544,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "5.5",
             "0.5",
             "34.5",
-            "46.5405",
-            "-40.03334",
-            "51.03334"));
+            "46.5",
+            "-40.0",
+            "51.0"));
     validateRow(
         response,
         List.of(
@@ -565,9 +565,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "11.0",
             "1.0",
             "69.0",
-            "46.5405",
-            "-58.89506",
-            "80.89506"));
+            "46.5",
+            "-58.9",
+            "80.9"));
   }
 
   @Test
@@ -689,9 +689,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "10.0",
             "3.0",
             "704.0",
-            "158.28267",
-            "-559.88232",
-            "579.88232"));
+            "158.3",
+            "-559.9",
+            "579.9"));
     validateRow(
         response,
         List.of(
@@ -710,9 +710,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "27.0",
             "7.0",
             "1513.0",
-            "145.78836",
-            "-1075.7046",
-            "1129.7046"));
+            "145.8",
+            "-1075.7",
+            "1129.7"));
     validateRow(
         response,
         List.of(
@@ -731,9 +731,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "12.0",
             "3.0",
             "604.0",
-            "135.79933",
-            "-460.95185",
-            "484.95185"));
+            "135.8",
+            "-461.0",
+            "485.0"));
     validateRow(
         response,
         List.of(
@@ -752,9 +752,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "13.0",
             "3.0",
             "585.0",
-            "131.5275",
-            "-474.50881",
-            "500.50881"));
+            "131.5",
+            "-474.5",
+            "500.5"));
     validateRow(
         response,
         List.of(
@@ -773,9 +773,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "11.0",
             "2.0",
             "389.0",
-            "131.19025",
-            "-399.51583",
-            "421.51583"));
+            "131.2",
+            "-399.5",
+            "421.5"));
     validateRow(
         response,
         List.of(
@@ -794,9 +794,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "13.0",
             "4.0",
             "603.0",
-            "101.68088",
-            "-433.21008",
-            "459.21008"));
+            "101.7",
+            "-433.2",
+            "459.2"));
     validateRow(
         response,
         List.of(
@@ -815,9 +815,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "13.0",
             "4.0",
             "587.0",
-            "98.98287",
-            "-505.334",
-            "531.334"));
+            "99.0",
+            "-505.3",
+            "531.3"));
     validateRow(
         response,
         List.of(
@@ -836,9 +836,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "14.0",
             "4.0",
             "586.0",
-            "98.81425",
-            "-463.21696",
-            "491.21696"));
+            "98.8",
+            "-463.2",
+            "491.2"));
     validateRow(
         response,
         List.of(
@@ -857,9 +857,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "13.0",
             "3.0",
             "438.0",
-            "98.477",
-            "-474.50881",
-            "500.50881"));
+            "98.5",
+            "-474.5",
+            "500.5"));
     validateRow(
         response,
         List.of(
@@ -878,9 +878,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "19.0",
             "4.0",
             "561.0",
-            "94.59863",
-            "-466.05144",
-            "504.05144"));
+            "94.6",
+            "-466.1",
+            "504.1"));
     validateRow(
         response,
         List.of(
@@ -899,9 +899,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "12.0",
             "4.0",
             "535.0",
-            "90.21438",
-            "-381.81919",
-            "405.81919"));
+            "90.2",
+            "-381.8",
+            "405.8"));
     validateRow(
         response,
         List.of(
@@ -920,9 +920,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "11.0",
             "3.0",
             "389.0",
-            "87.46017",
-            "-416.72601",
-            "438.72601"));
+            "87.5",
+            "-416.7",
+            "438.7"));
     validateRow(
         response,
         List.of(
@@ -941,9 +941,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "12.0",
             "4.0",
             "518.0",
-            "87.34775",
-            "-341.38193",
-            "365.38193"));
+            "87.3",
+            "-341.4",
+            "365.4"));
     validateRow(
         response,
         List.of(
@@ -962,9 +962,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "13.0",
             "4.0",
             "517.0",
-            "87.17913",
-            "-351.52259",
-            "377.52259"));
+            "87.2",
+            "-351.5",
+            "377.5"));
     validateRow(
         response,
         List.of(
@@ -983,9 +983,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "20.0",
             "4.0",
             "490.0",
-            "82.62625",
-            "-318.84634",
-            "358.84634"));
+            "82.6",
+            "-318.8",
+            "358.8"));
     validateRow(
         response,
         List.of(
@@ -1004,9 +1004,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "11.0",
             "1.0",
             "119.0",
-            "80.2655",
-            "-84.2947",
-            "106.2947"));
+            "80.3",
+            "-84.3",
+            "106.3"));
     validateRow(
         response,
         List.of(
@@ -1025,9 +1025,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "14.0",
             "5.0",
             "584.0",
-            "78.7816",
-            "-492.70519",
-            "520.70519"));
+            "78.8",
+            "-492.7",
+            "520.7"));
     validateRow(
         response,
         List.of(
@@ -1046,9 +1046,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "12.0",
             "5.0",
             "582.0",
-            "78.5118",
-            "-511.86253",
-            "535.86253"));
+            "78.5",
+            "-511.9",
+            "535.9"));
     validateRow(
         response,
         List.of(
@@ -1067,9 +1067,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "11.5",
             "5.5",
             "584.5",
-            "71.68095",
-            "-548.55269",
-            "571.55269"));
+            "71.7",
+            "-548.6",
+            "571.6"));
     validateRow(
         response,
         List.of(
@@ -1088,9 +1088,9 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "13.0",
             "4.0",
             "417.0",
-            "70.31663",
-            "-505.334",
-            "531.334"));
+            "70.3",
+            "-505.3",
+            "531.3"));
   }
 
   @Test
@@ -1195,12 +1195,12 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "HllvX50cXC0",
             "default",
             "105.0",
-            "18.26357",
-            "28.70554",
-            "86.73643",
-            "3.02159",
-            "-67.85306",
-            "104.38019"));
+            "18.3",
+            "28.7",
+            "86.7",
+            "3.0",
+            "-67.9",
+            "104.4"));
     validateRow(
         response,
         List.of(
@@ -1216,12 +1216,12 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "HllvX50cXC0",
             "default",
             "220.0",
-            "41.64407",
-            "57.44954",
-            "178.35593",
-            "3.10457",
-            "-130.70455",
-            "213.99269"));
+            "41.6",
+            "57.4",
+            "178.4",
+            "3.1",
+            "-130.7",
+            "214.0"));
     validateRow(
         response,
         List.of(
@@ -1237,12 +1237,12 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "HllvX50cXC0",
             "default",
             "466.0",
-            "48.18605",
-            "114.27966",
-            "417.81395",
-            "3.65607",
-            "-294.65294",
-            "391.02504"));
+            "48.2",
+            "114.3",
+            "417.8",
+            "3.7",
+            "-294.7",
+            "391.0"));
   }
 
   @Test
@@ -1347,12 +1347,12 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "HllvX50cXC0",
             "default",
             "105.0",
-            "18.26357",
-            "28.70554",
-            "86.73643",
-            "3.02159",
-            "-67.85306",
-            "104.38019"));
+            "18.3",
+            "28.7",
+            "86.7",
+            "3.0",
+            "-67.9",
+            "104.4"));
     validateRow(
         response,
         List.of(
@@ -1368,12 +1368,12 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "HllvX50cXC0",
             "default",
             "220.0",
-            "41.64407",
-            "57.44954",
-            "178.35593",
-            "3.10457",
-            "-130.70455",
-            "213.99269"));
+            "41.6",
+            "57.4",
+            "178.4",
+            "3.1",
+            "-130.7",
+            "214.0"));
     validateRow(
         response,
         List.of(
@@ -1389,11 +1389,11 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "HllvX50cXC0",
             "default",
             "466.0",
-            "48.18605",
-            "114.27966",
-            "417.81395",
-            "3.65607",
-            "-294.65294",
-            "391.02504"));
+            "48.2",
+            "114.3",
+            "417.8",
+            "3.7",
+            "-294.7",
+            "391.0"));
   }
 }

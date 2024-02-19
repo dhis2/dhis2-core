@@ -83,7 +83,9 @@ public class AnalyticsZScoreOutlierDetector {
     boolean modifiedZ = request.getAlgorithm() == MODIFIED_Z_SCORE;
 
     return withExceptionHandling(
-            () -> jdbcTemplate.query(sql, params, getRowMapper(calendar, modifiedZ)))
+            () ->
+                jdbcTemplate.query(
+                    sql, params, getRowMapper(calendar, modifiedZ, request.isSkipRounding())))
         .orElse(List.of());
   }
 
@@ -98,12 +100,15 @@ public class AnalyticsZScoreOutlierDetector {
    * Returns a {@link RowMapper} for {@link Outlier}.
    *
    * @param calendar the {@link Calendar}.
+   * @param modifiedZ boolean flag (false means z-score to be applied).
+   * @param skipRounding indicates the rounding of the floating point types
    * @return a {@link RowMapper}.
    */
-  private RowMapper<Outlier> getRowMapper(Calendar calendar, boolean modifiedZ) {
+  private RowMapper<Outlier> getRowMapper(
+      Calendar calendar, boolean modifiedZ, boolean skipRounding) {
     return (rs, rowNum) -> {
       Outlier outlier = getOutlier(calendar, rs);
-      addZScoreBasedParamsToOutlier(outlier, rs, modifiedZ);
+      addZScoreBasedParamsToOutlier(outlier, rs, modifiedZ, skipRounding);
 
       return outlier;
     };
@@ -137,11 +142,12 @@ public class AnalyticsZScoreOutlierDetector {
    * @param outlier the {@link Outlier}.
    * @param rs the {@link ResultSet}.
    * @param modifiedZ boolean flag (false means z-score to be applied).
+   * @param skipRounding indicates the rounding of the floating point types
    * @throws SQLException
    */
-  private void addZScoreBasedParamsToOutlier(Outlier outlier, ResultSet rs, boolean modifiedZ)
-      throws SQLException {
-    final int scale = 5;
+  private void addZScoreBasedParamsToOutlier(
+      Outlier outlier, ResultSet rs, boolean modifiedZ, boolean skipRounding) throws SQLException {
+    final int scale = skipRounding ? 10 : 1;
     if (modifiedZ) {
       outlier.setMedian(round(rs.getDouble("middle_value"), scale));
       outlier.setStdDev(round(rs.getDouble("mad"), scale));

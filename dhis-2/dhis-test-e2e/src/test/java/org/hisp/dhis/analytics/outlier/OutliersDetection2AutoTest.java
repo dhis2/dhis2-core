@@ -193,12 +193,12 @@ public class OutliersDetection2AutoTest extends AnalyticsApiTest {
             "HllvX50cXC0",
             "default",
             "466.0",
-            "48.18605",
-            "114.27966",
-            "417.81395",
-            "3.65607",
-            "-294.65294",
-            "391.02504"));
+            "48.2",
+            "114.3",
+            "417.8",
+            "3.7",
+            "-294.7",
+            "391.0"));
     validateRow(
         response,
         1,
@@ -215,12 +215,12 @@ public class OutliersDetection2AutoTest extends AnalyticsApiTest {
             "HllvX50cXC0",
             "default",
             "220.0",
-            "41.64407",
-            "57.44954",
-            "178.35593",
-            "3.10457",
-            "-130.70455",
-            "213.99269"));
+            "41.6",
+            "57.4",
+            "178.4",
+            "3.1",
+            "-130.7",
+            "214.0"));
     validateRow(
         response,
         2,
@@ -237,12 +237,12 @@ public class OutliersDetection2AutoTest extends AnalyticsApiTest {
             "HllvX50cXC0",
             "default",
             "105.0",
-            "18.26357",
-            "28.70554",
-            "86.73643",
-            "3.02159",
-            "-67.85306",
-            "104.38019"));
+            "18.3",
+            "28.7",
+            "86.7",
+            "3.0",
+            "-67.9",
+            "104.4"));
   }
 
   @Test
@@ -293,11 +293,11 @@ public class OutliersDetection2AutoTest extends AnalyticsApiTest {
         false);
 
     // Assert rows.
-    validateRow(response, 0, List.of("O05mAByOgAv", "OPV2 doses given", "98.477"));
-    validateRow(response, 1, List.of("vI2csg55S9C", "OPV3 doses given", "70.31663"));
-    validateRow(response, 2, List.of("n6aMJNLdvep", "Penta3 doses given", "70.148"));
-    validateRow(response, 3, List.of("UOlfIjgN8X6", "Fully Immunized child", "59.7607"));
-    validateRow(response, 4, List.of("I78gJm4KBo7", "Penta2 doses given", "58.9513"));
+    validateRow(response, 0, List.of("O05mAByOgAv", "OPV2 doses given", "98.5"));
+    validateRow(response, 1, List.of("vI2csg55S9C", "OPV3 doses given", "70.3"));
+    validateRow(response, 2, List.of("n6aMJNLdvep", "Penta3 doses given", "70.1"));
+    validateRow(response, 3, List.of("UOlfIjgN8X6", "Fully Immunized child", "59.8"));
+    validateRow(response, 4, List.of("I78gJm4KBo7", "Penta2 doses given", "59.0"));
   }
 
   @Test
@@ -340,12 +340,11 @@ public class OutliersDetection2AutoTest extends AnalyticsApiTest {
     validateHeader(response, 2, "zscore", "Z-score", "NUMBER", "java.lang.Double", false, false);
 
     // Assert rows.
-    validateRow(response, 0, List.of("l6byfWFUGaP", "Yellow Fever doses given", "3.65607"));
-    validateRow(response, 1, List.of("s46m5MS0hxu", "BCG doses given", "3.10457"));
+    validateRow(response, 0, List.of("l6byfWFUGaP", "Yellow Fever doses given", "3.7"));
+    validateRow(response, 1, List.of("s46m5MS0hxu", "BCG doses given", "3.1"));
     validateRow(
         response,
         2,
-        List.of(
-            "dU0GquGkGQr", "Q_Early breastfeeding (within 1 hr after delivery) at BCG", "3.02159"));
+        List.of("dU0GquGkGQr", "Q_Early breastfeeding (within 1 hr after delivery) at BCG", "3.0"));
   }
 }

@@ -80,6 +80,7 @@ public class OutlierQueryParser {
             .dataStartDate(queryParams.getDataStartDate())
             .dataEndDate(queryParams.getDataEndDate())
             .outputIdScheme(queryParams.getOutputIdScheme())
+            .skipRounding(queryParams.isSkipRounding())
             .queryKey(queryParams.queryKey());
 
     if (queryParams.getAlgorithm() != null) {
