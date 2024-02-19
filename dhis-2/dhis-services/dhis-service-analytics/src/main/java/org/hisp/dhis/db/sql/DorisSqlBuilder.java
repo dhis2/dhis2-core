@@ -222,6 +222,8 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
     // Partitions
 
+    if (table.hasPartitions()) {}
+
     // TODO
 
     // Distribution

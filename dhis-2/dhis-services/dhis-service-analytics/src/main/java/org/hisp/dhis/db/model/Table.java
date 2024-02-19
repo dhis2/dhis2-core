@@ -217,6 +217,15 @@ public class Table {
   }
 
   /**
+   * Indicates whether the table has at least one partition.
+   *
+   * @return true if the table has at least one partition.
+   */
+  public boolean hasPartitions() {
+    return isNotEmpty(partitions);
+  }
+
+  /**
    * Converts the given table name to a staging table name.
    *
    * @param tableName the table name.
