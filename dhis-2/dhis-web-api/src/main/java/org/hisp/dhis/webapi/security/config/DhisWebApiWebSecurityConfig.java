@@ -47,7 +47,7 @@ import org.hisp.dhis.security.oidc.DhisCustomAuthorizationRequestResolver;
 import org.hisp.dhis.security.oidc.DhisOidcLogoutSuccessHandler;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.security.oidc.OIDCLoginEnabledCondition;
-import org.hisp.dhis.security.spring2fa.TwoFactorCapableAuthenticationProvider;
+import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.filter.CorsFilter;
@@ -185,7 +185,7 @@ public class DhisWebApiWebSecurityConfig {
   public static class ApiWebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
     @Autowired private DhisConfigurationProvider dhisConfig;
 
-    @Autowired private TwoFactorCapableAuthenticationProvider twoFactorAuthenticationProvider;
+    @Autowired private TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
 
     @Autowired
     @Qualifier("customLdapAuthenticationProvider")
@@ -298,11 +298,9 @@ public class DhisWebApiWebSecurityConfig {
     /** This method configures almost everything security related to /api endpoints */
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-
+      http.csrf().disable();
 
       http.requestCache().requestCache(requestCache);
-
-      http.csrf().disable();
 
       configureMatchers(http);
       configureCspFilter(http, dhisConfig, configurationService);
@@ -459,7 +457,7 @@ public class DhisWebApiWebSecurityConfig {
 
     @Bean
     public FormLoginBasicAuthenticationEntryPoint
-    strutsLessFormLoginBasicAuthenticationEntryPoint() {
+        strutsLessFormLoginBasicAuthenticationEntryPoint() {
       return new FormLoginBasicAuthenticationEntryPoint("/login.html");
     }
   }

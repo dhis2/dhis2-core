@@ -51,8 +51,8 @@ import org.hisp.dhis.webapi.json.domain.JsonError;
 
 /**
  * The purpose of this interface is to allow mixin style addition of the convenience web API by
- * implementing this interface's essential method
- * {@link #webRequest(HttpMethod, String, List, String, String)}.
+ * implementing this interface's essential method {@link #webRequest(HttpMethod, String, List,
+ * String, String)}.
  *
  * @author Jan Bernitt
  */

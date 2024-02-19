@@ -30,8 +30,6 @@ package org.hisp.dhis.webapi;
 import static org.hisp.dhis.web.WebClientUtils.failOnException;
 
 import javax.persistence.EntityManager;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.IntegrationH2Test;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -39,7 +37,6 @@ import org.hisp.dhis.config.ConfigProviderConfiguration;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
-import org.hisp.dhis.webapi.controller.security.AuthenticationController;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
 import org.hisp.dhis.webapi.utils.DhisMockMvcControllerTest;
 import org.junit.jupiter.api.BeforeEach;
@@ -55,17 +52,16 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.servlet.HandlerInterceptor;
 
 /**
- * Base class for convenient testing of the web API on basis of
- * {@link org.hisp.dhis.jsontree.JsonMixed} responses, with authentication.
+ * Base class for convenient testing of the web API on basis of {@link
+ * org.hisp.dhis.jsontree.JsonMixed} responses, with authentication.
  *
  * <p>This class differs from {@link DhisControllerConvenienceTest} in that this base class also
  * includes the {@link FilterChainProxy} so that we can authenticate the request like it would in a
  * normal running server.
  *
- * @author Morten Svanæs
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
@@ -76,16 +72,12 @@ import org.springframework.web.servlet.HandlerInterceptor;
 public abstract class DhisAuthenticationApiTest extends DhisMockMvcControllerTest {
 
   @Autowired protected WebApplicationContext webApplicationContext;
-
   @Autowired private FilterChainProxy springSecurityFilterChain;
-
   @Autowired private UserService _userService;
-
   @Autowired protected IdentifiableObjectManager manager;
   @Autowired EntityManager entityManager;
 
   protected MockMvc mvc;
-
   protected User adminUser;
 
   @BeforeEach
@@ -99,23 +91,10 @@ public abstract class DhisAuthenticationApiTest extends DhisMockMvcControllerTes
 
     adminUser = createAndAddAdminUser("ALL");
 
-//    mvc =
-//        MockMvcBuilders.webAppContextSetup(webApplicationContext)
-//            .alwaysDo(
-//                result -> {
-//                  HttpServletRequest request = result.getRequest();
-//                  HttpServletResponse response = result.getResponse();
-//                  HandlerInterceptor[] interceptors = result.getInterceptors();
-//                })
-//            .addFilter(springSecurityFilterChain)
-//            .build();
-
     mvc =
         MockMvcBuilders.webAppContextSetup(webApplicationContext)
             .addFilter(springSecurityFilterChain)
             .build();
-
-
 
     injectSecurityContextUser(adminUser);
 

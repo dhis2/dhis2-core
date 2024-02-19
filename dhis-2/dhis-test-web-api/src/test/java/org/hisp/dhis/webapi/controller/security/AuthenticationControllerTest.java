@@ -37,35 +37,33 @@ import org.hisp.dhis.webapi.json.domain.JsonLoginResponse;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.session.SessionRegistry;
-import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@RunWith(SpringRunner.class)
 class AuthenticationControllerTest extends DhisAuthenticationApiTest {
 
   @Autowired private SessionRegistry sessionRegistry;
 
-
-  @Test void testSuccessfulLogin() {
-    JsonLoginResponse response = POST("/auth/login",
-        "{'username':'admin','password':'district'}").content(HttpStatus.OK)
-        .as(JsonLoginResponse.class);
+  @Test
+  void testSuccessfulLogin() {
+    JsonLoginResponse response =
+        POST("/auth/login", "{'username':'admin','password':'district'}")
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
 
     assertEquals("SUCCESS", response.getLoginStatus());
     assertEquals("/dhis-web-dashboard", response.getRedirectUrl());
-
-
   }
 
-  @Test void testWrongUsernameOrPassword() {
-    JsonWebMessage response = POST("/auth/login",
-        "{'username':'admin','password':'district9'}").content(HttpStatus.UNAUTHORIZED)
-        .as(JsonWebMessage.class);
+  @Test
+  void testWrongUsernameOrPassword() {
+    JsonWebMessage response =
+        POST("/auth/login", "{'username':'admin','password':'district9'}")
+            .content(HttpStatus.UNAUTHORIZED)
+            .as(JsonWebMessage.class);
 
     assertEquals("Bad credentials", response.getMessage());
     assertEquals("Unauthorized", response.getHttpStatus());
@@ -73,24 +71,19 @@ class AuthenticationControllerTest extends DhisAuthenticationApiTest {
     assertEquals("ERROR", response.getStatus());
   }
 
-
-  @Test void testLogin() {
+  @Test
+  void testLogin() {
     clearSecurityContext();
 
-
-    GET("/users",WebClient.CookieHeader("JSESSIONID=123")).content(HttpStatus.OK);
+    GET("/users", WebClient.CookieHeader("JSESSIONID=123")).content(HttpStatus.OK);
 
     HttpResponse response = POST("/auth/login", "{'username':'admin','password':'district'}");
     assertNotNull(response);
-    String[] cookies = response.cookies();
-    String cookie = response.header("Set-Cookie");
-//    assertNotNull(cookie);
 
     assertEquals(1, sessionRegistry.getAllPrincipals().size());
     Object actual = sessionRegistry.getAllPrincipals().get(0);
 
-    JsonUser user = GET("/me?fields=settings,id", WebClient.CookieHeader("1")).content()
-        .as(JsonUser.class);
+    JsonUser user = GET("/me").content().as(JsonUser.class);
 
     assertNotNull(user);
   }

@@ -30,6 +30,9 @@ package org.hisp.dhis.webapi.controller.security;
 import lombok.Getter;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
 @Getter
 public class TwoFactorUsernamePasswordAuthenticationToken
     extends UsernamePasswordAuthenticationToken {

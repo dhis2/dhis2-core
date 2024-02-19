@@ -50,8 +50,7 @@ import org.hisp.dhis.security.authority.SchemaAuthoritiesProvider;
 import org.hisp.dhis.security.authority.SimpleSystemAuthoritiesProvider;
 import org.hisp.dhis.security.intercept.LoginInterceptor;
 import org.hisp.dhis.security.intercept.XWorkSecurityInterceptor;
-import org.hisp.dhis.security.spring2fa.TwoFactorCapableAuthenticationProvider;
-import org.hisp.dhis.security.spring2fa.TwoFactorCapableAuthenticationProvider;
+import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.vote.ActionAccessVoter;
 import org.hisp.dhis.security.vote.ModuleAccessVoter;
 import org.hisp.dhis.user.UserService;
@@ -86,7 +85,7 @@ public class AuthoritiesProviderConfig {
 
   @Autowired private UserService userService;
 
-  @Autowired public TwoFactorCapableAuthenticationProvider twoFactorAuthenticationProvider;
+  @Autowired public TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
 
   @Autowired
   @Qualifier("org.hisp.dhis.organisationunit.OrganisationUnitService")

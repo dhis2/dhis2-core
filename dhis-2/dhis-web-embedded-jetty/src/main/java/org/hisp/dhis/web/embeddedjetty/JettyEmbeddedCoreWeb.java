@@ -75,28 +75,6 @@ public class JettyEmbeddedCoreWeb extends EmbeddedJettyBase {
     jettyEmbeddedCoreWeb.startJetty();
   }
 
-//  public static void startTestServer() throws Exception {
-//    Security.setProperty("crypto.policy", "unlimited");
-//    Security.setProperty("networkaddress.cache.ttl", "FOREVER");
-//    Security.setProperty("networkaddress.cache.negative.ttl", "10");
-//
-//    setDefaultPropertyValue("jetty.host", SERVER_HOSTNAME_OR_IP);
-//    setDefaultPropertyValue("jetty.http.port", String.valueOf(DEFAULT_HTTP_PORT));
-//
-//    /*
-//     * This property is very import, this will instruct Spring to use
-//     * special Spring config classes adapted to running in embedded Jetty.
-//     *
-//     * @see org.hisp.dhis.web.embeddedjetty.SpringConfiguration
-//     */
-//    setDefaultPropertyValue("spring.profiles.active", "embeddedJetty");
-//
-//    JettyEmbeddedCoreWeb jettyEmbeddedCoreWeb = new JettyEmbeddedCoreWeb();
-//    jettyEmbeddedCoreWeb.printBanner("DHIS2 API Server");
-//    jettyEmbeddedCoreWeb.startJetty();
-//  }
-
-
   public ServletContextHandler getServletContextHandler() {
     ServletContextHandler contextHandler =
         new ServletContextHandler(ServletContextHandler.SESSIONS);

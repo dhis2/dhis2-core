@@ -85,7 +85,6 @@ public abstract class DhisMockMvcControllerTest extends DhisConvenienceTest impl
   }
 
   public static ResponseAdapter toResponse(MockHttpServletResponse response) {
-
     return new MockMvcResponseAdapter(response);
   }
 

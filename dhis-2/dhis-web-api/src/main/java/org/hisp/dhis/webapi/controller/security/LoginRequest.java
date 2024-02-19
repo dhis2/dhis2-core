@@ -34,6 +34,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
 @OpenApi.Shared
 @NoArgsConstructor
 @AllArgsConstructor

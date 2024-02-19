@@ -76,8 +76,7 @@ public class TestContainerPostgresConfig {
     properties.setProperty(
         "connection.dialect", "org.hisp.dhis.hibernate.dialect.DhisPostgresDialect");
     properties.setProperty("connection.driver_class", POSTGRES_CONTAINER.getDriverClassName());
-    String jdbcUrl = POSTGRES_CONTAINER.getJdbcUrl();
-    properties.setProperty("connection.url", jdbcUrl);
+    properties.setProperty("connection.url", POSTGRES_CONTAINER.getJdbcUrl());
     properties.setProperty("connection.username", POSTGRES_USERNAME);
     properties.setProperty("connection.password", POSTGRES_PASSWORD);
     dhisConfigurationProvider.addProperties(properties);

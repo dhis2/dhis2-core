@@ -36,7 +36,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationEnrolmentException;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationException;
-import org.hisp.dhis.security.spring2fa.TwoFactorCapableAuthenticationProvider;
+import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -56,7 +56,6 @@ import org.springframework.security.web.authentication.session.RegisterSessionAu
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.security.web.authentication.session.SessionFixationProtectionStrategy;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
-import org.springframework.security.web.context.NullSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.savedrequest.DefaultSavedRequest;
 import org.springframework.security.web.savedrequest.RequestCache;
@@ -76,33 +75,33 @@ import org.springframework.web.bind.annotation.RestController;
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class AuthenticationController {
 
-  private final TwoFactorCapableAuthenticationProvider twoFactorAuthenticationProvider;
+  private final TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
   private final SystemSettingManager settingManager;
   private final RequestCache requestCache;
   private final SessionRegistry sessionRegistry;
 
   private SessionAuthenticationStrategy sessionStrategy = new NullAuthenticatedSessionStrategy();
-  private final SecurityContextHolderStrategy securityContextHolderStrategy = SecurityContextHolder
-      .getContextHolderStrategy();
-  private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
+  private final SecurityContextHolderStrategy securityContextHolderStrategy =
+      SecurityContextHolder.getContextHolderStrategy();
+  private final SecurityContextRepository securityContextRepository =
+      new HttpSessionSecurityContextRepository();
 
   @PostConstruct
   public void init() {
     if (sessionRegistry != null) {
-      sessionStrategy = new CompositeSessionAuthenticationStrategy(
-          List.of(
-              new ConcurrentSessionControlAuthenticationStrategy(sessionRegistry),
-              new SessionFixationProtectionStrategy(),
-              new RegisterSessionAuthenticationStrategy(sessionRegistry)
-          )
-      );
+      sessionStrategy =
+          new CompositeSessionAuthenticationStrategy(
+              List.of(
+                  new ConcurrentSessionControlAuthenticationStrategy(sessionRegistry),
+                  new SessionFixationProtectionStrategy(),
+                  new RegisterSessionAuthenticationStrategy(sessionRegistry)));
     }
   }
 
-
   @PostMapping("/login")
   public LoginResponse login(
-      HttpServletRequest request, HttpServletResponse response,
+      HttpServletRequest request,
+      HttpServletResponse response,
       @RequestBody LoginRequest loginRequest) {
 
     try {
@@ -141,8 +140,8 @@ public class AuthenticationController {
     return auth;
   }
 
-  private void saveContext(HttpServletRequest request, HttpServletResponse response,
-      Authentication authentication) {
+  private void saveContext(
+      HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
     SecurityContext context = this.securityContextHolderStrategy.createEmptyContext();
     context.setAuthentication(authentication);
 
@@ -162,7 +161,6 @@ public class AuthenticationController {
 
     return redirectUrl;
   }
-
 
   private AuthenticationProvider getAuthProvider() {
     return twoFactorAuthenticationProvider;
