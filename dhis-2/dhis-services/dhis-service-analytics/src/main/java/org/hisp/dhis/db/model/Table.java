@@ -32,13 +32,11 @@ import static org.hisp.dhis.util.ObjectUtils.notNull;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.commons.lang3.RegExUtils;
-import org.apache.commons.lang3.Validate;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+import org.apache.commons.lang3.RegExUtils;
+import org.apache.commons.lang3.Validate;
 
 /**
  * Represents a database table.
@@ -47,213 +45,194 @@ import lombok.ToString;
  */
 @Getter
 @ToString
-@EqualsAndHashCode( onlyExplicitlyIncluded = true )
-public class Table
-{
-    public static final String STAGING_TABLE_SUFFIX = "_temp";
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+public class Table {
+  public static final String STAGING_TABLE_SUFFIX = "_temp";
 
-    private static final String STAGING_TABLE_SUFFIX_RGX = "\\_temp$";
+  private static final String STAGING_TABLE_SUFFIX_RGX = "\\_temp$";
 
-    /** Table name. Required. */
-    @EqualsAndHashCode.Include
-    private final String name;
+  /** Table name. Required. */
+  @EqualsAndHashCode.Include private final String name;
 
-    /**
-     * Table columns. At least one column required, unless a parent table is
-     * specified.
-     */
-    private final List<Column> columns;
+  /** Table columns. At least one column required, unless a parent table is specified. */
+  private final List<Column> columns;
 
-    /** Table primary key column name(s). Optional. */
-    private final List<String> primaryKey;
+  /** Table primary key column name(s). Optional. */
+  private final List<String> primaryKey;
 
-    /** Table checks. PostgreSQL-only feature. Optional. */
-    private final List<String> checks;
+  /** Table checks. PostgreSQL-only feature. Optional. */
+  private final List<String> checks;
 
-    /** Whether table is logged or unlogged. PostgreSQL-only feature. */
-    private final Logged logged;
+  /** Whether table is logged or unlogged. PostgreSQL-only feature. */
+  private final Logged logged;
 
-    /**
-     * Parent table. This table inherit from the parent if specified. Optional.
-     */
-    private final Table parent;
+  /** Parent table. This table inherit from the parent if specified. Optional. */
+  private final Table parent;
 
-    private List<TablePartition> partitions = new ArrayList<>();
+  private List<TablePartition> partitions = new ArrayList<>();
 
-    /**
-     * Constructor.
-     *
-     * @param name the table name.
-     * @param columns the list of {@link Column}.
-     * @param primaryKey the primary key.
-     */
-    public Table( String name, List<Column> columns, List<String> primaryKey )
-    {
-        this.name = name;
-        this.columns = columns;
-        this.primaryKey = primaryKey;
-        this.checks = List.of();
-        this.logged = Logged.LOGGED;
-        this.parent = null;
-        this.validate();
-    }
+  /**
+   * Constructor.
+   *
+   * @param name the table name.
+   * @param columns the list of {@link Column}.
+   * @param primaryKey the primary key.
+   */
+  public Table(String name, List<Column> columns, List<String> primaryKey) {
+    this.name = name;
+    this.columns = columns;
+    this.primaryKey = primaryKey;
+    this.checks = List.of();
+    this.logged = Logged.LOGGED;
+    this.parent = null;
+    this.validate();
+  }
 
-    /**
-     * Constructor.
-     *
-     * @param name the table name.
-     * @param columns the list of {@link Column}.
-     * @param primaryKey the primary key.
-     * @param logged the {@link Logged} parameter.
-     */
-    public Table( String name, List<Column> columns, List<String> primaryKey, Logged logged )
-    {
-        this.name = name;
-        this.columns = columns;
-        this.primaryKey = primaryKey;
-        this.checks = List.of();
-        this.logged = logged;
-        this.parent = null;
-        this.validate();
-    }
+  /**
+   * Constructor.
+   *
+   * @param name the table name.
+   * @param columns the list of {@link Column}.
+   * @param primaryKey the primary key.
+   * @param logged the {@link Logged} parameter.
+   */
+  public Table(String name, List<Column> columns, List<String> primaryKey, Logged logged) {
+    this.name = name;
+    this.columns = columns;
+    this.primaryKey = primaryKey;
+    this.checks = List.of();
+    this.logged = logged;
+    this.parent = null;
+    this.validate();
+  }
 
-    /**
-     * Constructor.
-     *
-     * @param name the table name.
-     * @param columns the list of {@link Column}.
-     * @param primaryKey the primary key.
-     * @param checks the list of checks.
-     * @param logged the {@link Logged} parameter.
-     */
-    public Table(
-        String name,
-        List<Column> columns,
-        List<String> primaryKey,
-        List<String> checks,
-        Logged logged )
-    {
-        this.name = name;
-        this.columns = columns;
-        this.primaryKey = primaryKey;
-        this.checks = checks;
-        this.logged = logged;
-        this.parent = null;
-        this.validate();
-    }
+  /**
+   * Constructor.
+   *
+   * @param name the table name.
+   * @param columns the list of {@link Column}.
+   * @param primaryKey the primary key.
+   * @param checks the list of checks.
+   * @param logged the {@link Logged} parameter.
+   */
+  public Table(
+      String name,
+      List<Column> columns,
+      List<String> primaryKey,
+      List<String> checks,
+      Logged logged) {
+    this.name = name;
+    this.columns = columns;
+    this.primaryKey = primaryKey;
+    this.checks = checks;
+    this.logged = logged;
+    this.parent = null;
+    this.validate();
+  }
 
-    /**
-     * Constructor.
-     *
-     * @param name the table name.
-     * @param columns the list of {@link Column}.
-     * @param primaryKey the primary key.
-     * @param checks the list of checks.
-     * @param logged the {@link Logged} parameter.
-     * @param parent the parent {@link Table}.
-     */
-    public Table(
-        String name,
-        List<Column> columns,
-        List<String> primaryKey,
-        List<String> checks,
-        Logged logged,
-        Table parent )
-    {
-        this.name = name;
-        this.columns = columns;
-        this.primaryKey = primaryKey;
-        this.checks = checks;
-        this.logged = logged;
-        this.parent = parent;
-        this.validate();
-    }
+  /**
+   * Constructor.
+   *
+   * @param name the table name.
+   * @param columns the list of {@link Column}.
+   * @param primaryKey the primary key.
+   * @param checks the list of checks.
+   * @param logged the {@link Logged} parameter.
+   * @param parent the parent {@link Table}.
+   */
+  public Table(
+      String name,
+      List<Column> columns,
+      List<String> primaryKey,
+      List<String> checks,
+      Logged logged,
+      Table parent) {
+    this.name = name;
+    this.columns = columns;
+    this.primaryKey = primaryKey;
+    this.checks = checks;
+    this.logged = logged;
+    this.parent = parent;
+    this.validate();
+  }
 
-    /** Validates this object. */
-    public void validate()
-    {
-        Validate.notBlank( name );
-        Validate.isTrue( hasColumns() || hasParent() );
-    }
+  /** Validates this object. */
+  public void validate() {
+    Validate.notBlank(name);
+    Validate.isTrue(hasColumns() || hasParent());
+  }
 
-    /**
-     * Indicates whether the table has at least one column.
-     *
-     * @return true if the table has at least one column.
-     */
-    public boolean hasColumns()
-    {
-        return isNotEmpty( columns );
-    }
+  /**
+   * Indicates whether the table has at least one column.
+   *
+   * @return true if the table has at least one column.
+   */
+  public boolean hasColumns() {
+    return isNotEmpty(columns);
+  }
 
-    /**
-     * Indicates whether the table has a primary key.
-     *
-     * @return true if the table has a primary key.
-     */
-    public boolean hasPrimaryKey()
-    {
-        return isNotEmpty( primaryKey );
-    }
+  /**
+   * Indicates whether the table has a primary key.
+   *
+   * @return true if the table has a primary key.
+   */
+  public boolean hasPrimaryKey() {
+    return isNotEmpty(primaryKey);
+  }
 
-    /**
-     * Returns the first primary key column name, or null if none exist.
-     * 
-     * @return the first primary key column name, or null if none exist.
-     */
-    public String getFirstPrimaryKey() {
-    	return hasPrimaryKey() ? primaryKey.get(0) : null;
-    }
-    
-    /**
-     * Indicates whether the table has at least one check.
-     *
-     * @return true if the table has at least one check.
-     */
-    public boolean hasChecks()
-    {
-        return isNotEmpty( checks );
-    }
+  /**
+   * Returns the first primary key column name, or null if none exist.
+   *
+   * @return the first primary key column name, or null if none exist.
+   */
+  public String getFirstPrimaryKey() {
+    return hasPrimaryKey() ? primaryKey.get(0) : null;
+  }
 
-    /**
-     * Indicates whether the table is unlogged.
-     *
-     * @return true if the table is unlogged.
-     */
-    public boolean isUnlogged()
-    {
-        return Logged.UNLOGGED == logged;
-    }
+  /**
+   * Indicates whether the table has at least one check.
+   *
+   * @return true if the table has at least one check.
+   */
+  public boolean hasChecks() {
+    return isNotEmpty(checks);
+  }
 
-    /**
-     * Indicates whether the table has a parent table.
-     *
-     * @return true if table has a parent table.
-     */
-    public boolean hasParent()
-    {
-        return notNull( parent );
-    }
+  /**
+   * Indicates whether the table is unlogged.
+   *
+   * @return true if the table is unlogged.
+   */
+  public boolean isUnlogged() {
+    return Logged.UNLOGGED == logged;
+  }
 
-    /**
-     * Converts the given table name to a staging table name.
-     *
-     * @param tableName the table name.
-     * @return the staging table name.
-     */
-    public static String toStaging( String tableName )
-    {
-        return tableName + STAGING_TABLE_SUFFIX;
-    }
+  /**
+   * Indicates whether the table has a parent table.
+   *
+   * @return true if table has a parent table.
+   */
+  public boolean hasParent() {
+    return notNull(parent);
+  }
 
-    /**
-     * Converts the given staging table name to a main table name.
-     *
-     * @param tableName the staging table name.
-     * @return a main table name.
-     */
-    public static String fromStaging( String tableName )
-    {
-        return RegExUtils.removePattern( tableName, STAGING_TABLE_SUFFIX_RGX );
-    }
+  /**
+   * Converts the given table name to a staging table name.
+   *
+   * @param tableName the table name.
+   * @return the staging table name.
+   */
+  public static String toStaging(String tableName) {
+    return tableName + STAGING_TABLE_SUFFIX;
+  }
+
+  /**
+   * Converts the given staging table name to a main table name.
+   *
+   * @param tableName the staging table name.
+   * @return a main table name.
+   */
+  public static String fromStaging(String tableName) {
+    return RegExUtils.removePattern(tableName, STAGING_TABLE_SUFFIX_RGX);
+  }
 }

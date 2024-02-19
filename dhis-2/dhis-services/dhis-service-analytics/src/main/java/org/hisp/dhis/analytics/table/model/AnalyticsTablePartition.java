@@ -30,11 +30,9 @@ package org.hisp.dhis.analytics.table.model;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-
+import lombok.Getter;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
-
-import lombok.Getter;
 
 /**
  * Class representing an analytics database table partition.
@@ -42,114 +40,104 @@ import lombok.Getter;
  * @author Lars Helge Overland
  */
 @Getter
-public class AnalyticsTablePartition extends Table
-{
-    public static final Integer LATEST_PARTITION = 0;
+public class AnalyticsTablePartition extends Table {
+  public static final Integer LATEST_PARTITION = 0;
 
-    /** The master analytics table for this partition. */
-    private final AnalyticsTable masterTable;
+  /** The master analytics table for this partition. */
+  private final AnalyticsTable masterTable;
 
-    /**
-     * The year for which this partition may contain data, where 0 indicates the
-     * "latest" data stored since last full analytics table generation.
-     */
-    private final Integer year;
+  /**
+   * The year for which this partition may contain data, where 0 indicates the "latest" data stored
+   * since last full analytics table generation.
+   */
+  private final Integer year;
 
-    /** The start date for which this partition may contain data, inclusive. */
-    private final Date startDate;
+  /** The start date for which this partition may contain data, inclusive. */
+  private final Date startDate;
 
-    /** The end date for which this partition may contain data, exclusive. */
-    private final Date endDate;
+  /** The end date for which this partition may contain data, exclusive. */
+  private final Date endDate;
 
-    /**
-     * Constructor. Sets the name to represent a staging table partition.
-     *
-     * @param masterTable the master {@link Table} of this partition.
-     * @param checks the partition checks.
-     * @param year the year which represents this partition.
-     * @param startDate the start date of data for this partition.
-     * @param endDate the end date of data for this partition.
-     */
-    public AnalyticsTablePartition(
-        AnalyticsTable masterTable, List<String> checks, Integer year, Date startDate, Date endDate )
-    {
-        super(
-            toStaging( getTableName( masterTable.getMainName(), year ) ),
-            List.of(),
-            List.of(),
-            checks,
-            Logged.LOGGED,
-            masterTable );
-        this.masterTable = masterTable;
-        this.year = year;
-        this.startDate = startDate;
-        this.endDate = endDate;
+  /**
+   * Constructor. Sets the name to represent a staging table partition.
+   *
+   * @param masterTable the master {@link Table} of this partition.
+   * @param checks the partition checks.
+   * @param year the year which represents this partition.
+   * @param startDate the start date of data for this partition.
+   * @param endDate the end date of data for this partition.
+   */
+  public AnalyticsTablePartition(
+      AnalyticsTable masterTable, List<String> checks, Integer year, Date startDate, Date endDate) {
+    super(
+        toStaging(getTableName(masterTable.getMainName(), year)),
+        List.of(),
+        List.of(),
+        checks,
+        Logged.LOGGED,
+        masterTable);
+    this.masterTable = masterTable;
+    this.year = year;
+    this.startDate = startDate;
+    this.endDate = endDate;
+  }
+
+  // -------------------------------------------------------------------------
+  // Static methods
+  // -------------------------------------------------------------------------
+
+  /**
+   * Returns a table partition name.
+   *
+   * @param baseName the base name.
+   * @param year the year.
+   * @return a table partition name.
+   */
+  private static String getTableName(String baseName, Integer year) {
+    String name = baseName;
+
+    if (year != null) {
+      name += "_" + year;
     }
 
-    // -------------------------------------------------------------------------
-    // Static methods
-    // -------------------------------------------------------------------------
+    return name;
+  }
 
-    /**
-     * Returns a table partition name.
-     *
-     * @param baseName the base name.
-     * @param year the year.
-     * @return a table partition name.
-     */
-    private static String getTableName( String baseName, Integer year )
-    {
-        String name = baseName;
+  // -------------------------------------------------------------------------
+  // Logic methods
+  // -------------------------------------------------------------------------
 
-        if ( year != null )
-        {
-            name += "_" + year;
-        }
+  /**
+   * Returns the main table partition name.
+   *
+   * @return the main table partition name.
+   */
+  public String getMainName() {
+    return fromStaging(getName());
+  }
 
-        return name;
+  /**
+   * Indicates whether this partition represents the latest data partition.
+   *
+   * @return true if this partition represents the latest data partition.
+   */
+  public boolean isLatestPartition() {
+    return Objects.equals(year, LATEST_PARTITION);
+  }
+
+  @Override
+  public int hashCode() {
+    return super.hashCode();
+  }
+
+  @Override
+  public boolean equals(Object object) {
+    if (this == object) {
+      return true;
     }
-
-    // -------------------------------------------------------------------------
-    // Logic methods
-    // -------------------------------------------------------------------------
-
-    /**
-     * Returns the main table partition name.
-     *
-     * @return the main table partition name.
-     */
-    public String getMainName()
-    {
-        return fromStaging( getName() );
+    if (object != null && getClass() != object.getClass()) {
+      return false;
     }
-
-    /**
-     * Indicates whether this partition represents the latest data partition.
-     *
-     * @return true if this partition represents the latest data partition.
-     */
-    public boolean isLatestPartition()
-    {
-        return Objects.equals( year, LATEST_PARTITION );
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return super.hashCode();
-    }
-
-    @Override
-    public boolean equals( Object object )
-    {
-        if ( this == object )
-        {
-            return true;
-        }
-        if ( object != null && getClass() != object.getClass() )
-        {
-            return false;
-        }
-        return super.equals( object );
-    }
+    return super.equals(object);
+  }
 }
