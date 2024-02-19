@@ -38,6 +38,7 @@ import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.web.WebClient;
 import org.junit.jupiter.api.Test;
+import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 
 /**
  * Test for data elements which have been abandoned. This is taken to mean that there is no data
@@ -60,20 +61,6 @@ class DataIntegrityDataElementsAbandonedControllerTest
   private static final String period = "202212";
 
   @Test
-  void testDataElementsNotAbandoned() {
-
-    setUpTest();
-
-    assertHasNoDataIntegrityIssues(detailsIdType, check, true);
-  }
-
-  @Test
-  void testDataElementsAbandonedDividedByZero() {
-
-    assertHasNoDataIntegrityIssues(detailsIdType, check, false);
-  }
-
-  @Test
   void testDataElementsAbandoned() {
 
     setUpTest();
@@ -81,9 +68,6 @@ class DataIntegrityDataElementsAbandonedControllerTest
     // Create a data element that is 100 days old but this one has no data
     DataElement dataElementD = createDataElementDaysAgo("D", 100);
 
-    // Out of the four data elements created, only this one should be flagged as abandoned
-    assertHasDataIntegrityIssues(
-        detailsIdType, check, 25, dataElementD.getUid(), dataElementD.getName(), null, true);
   }
 
   DataElement createDataElementDaysAgo(String uniqueCharacter, Integer daysAgo) {

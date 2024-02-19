@@ -31,6 +31,7 @@ import static org.hisp.dhis.util.DateUtils.toMediumDate;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -44,7 +45,10 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -95,6 +99,7 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -512,6 +517,44 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
     // get newly-created data value
     DataValue dv2 = dataValueService.getDataValue(deA, peA, ouA, cc, cc);
     assertEquals(toMediumDate(todaysDate), toMediumDate(dv2.getLastUpdated()));
+  }
+
+  @Test
+  void testNormalUserCannotAttributeData() {
+    // Specify the created dates explicitly through the payload
+    UserDetails userDetails = userService.createUserDetails(superUser);
+    injectSecurityContext(userDetails);
+
+    assertTrue( superUser.isAuthorized( Authorities.F_DATAVALUE_ATTRIBUTE ) );
+    assertTrue( superUser.isAuthorized( Authorities.F_DATAVALUE_ADD ) );
+
+    // Insert:
+    // deC, peA, ouA created = 2010-01-01
+    // deC, peA, ouB created = 2010-01-01
+    dataValueSetService.importDataValueSetXml(readFile("datavalueset/dataValueSetB.xml"));
+    String currentDate = getMediumDateString(new Date());
+    CategoryOptionCombo cc = categoryService.getDefaultCategoryOptionCombo();
+    DataValue dv1 = dataValueService.getDataValue(deC, peA, ouA, cc, cc);
+    assertEquals("2010-01-01", getMediumDateString(dv1.getCreated()));
+    assertEquals("A", dv1.getStoredBy());
+    assertEquals(currentDate, getMediumDateString(dv1.getLastUpdated()));
+
+    // Import an update as a normal user
+    injectSecurityContextUser( user );
+    assertFalse( user.isAuthorized( Authorities.F_DATAVALUE_ATTRIBUTE ) );
+    // Update:
+    // deC, peA, ouA created = not specified, should remain unchanged
+    // deC, peA, ouB created = 2020-02-02, should also remain unchanged since the user cannot override via payload
+    dataValueSetService.importDataValueSetXml(readFile("datavalueset/dataValueSetBUpdate.xml"));
+
+   DataValue dv1_update = dataValueService.getDataValue(deC, peA, ouA, cc, cc);
+    assertEquals("2010-01-01", getMediumDateString(dv1.getCreated()));
+    assertEquals("A", dv1.getStoredBy());
+    assertEquals(currentDate, getMediumDateString(dv1.getLastUpdated()));
+    DataValue dv2 = dataValueService.getDataValue(deC, peA, ouB, cc, cc);
+    assertEquals("2010-01-01", getMediumDateString(dv2.getCreated()));
+    assertEquals("A", dv2.getStoredBy());
+    assertEquals(currentDate, getMediumDateString(dv2.getLastUpdated()));
   }
 
   @Test
