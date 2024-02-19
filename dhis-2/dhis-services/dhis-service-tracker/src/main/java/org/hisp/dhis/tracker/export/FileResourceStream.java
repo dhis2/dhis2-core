@@ -27,17 +27,12 @@
  */
 package org.hisp.dhis.tracker.export;
 
-import com.google.common.hash.Hashing;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.NoSuchElementException;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
@@ -46,34 +41,42 @@ import org.hisp.dhis.util.ObjectUtils;
 
 /**
  * FileResourceStream holds a file resource and a supplier to open an input stream to the file
- * resource content if needed.
+ * resource content if needed. The content is wrapped in a supplier to avoid fetching the file if
+ * it's not needed. {@link #ofImage(FileResourceService, FileResource, ImageFileDimension)} will
+ * still need to read image variants (small, medium and large) into memory in order to provide the
+ * content length. This is because the content length is only stored for the original image.
  */
-@Getter
-@AllArgsConstructor
-@RequiredArgsConstructor
-public class FileResourceStream {
-  private final FileResource fileResource;
-  private FileResourceSupplier<InputStream> inputStreamSupplier;
+public record FileResourceStream(
+    String uid, String name, String contentType, FileResourceSupplier<Content> contentSupplier) {
+
+  private static final String EXCEPTION_PENDING =
+      "The content is being processed and is not available yet. Try again later.";
+  private static final String EXCEPTION_IO = "Failed fetching the file from storage";
+  private static final String EXCEPTION_IO_DEV =
+      "There was an exception when trying to fetch the file from the storage backend. "
+          + "Depending on the provider the root cause could be network or file system related.";
+
+  public record Content(long length, InputStream stream) {}
 
   @Nonnull
   public static FileResourceStream of(
-      FileResourceService fileResourceService, FileResource fileResource) {
+      @Nonnull FileResourceService fileResourceService, @Nonnull FileResource fileResource) {
     return new FileResourceStream(
-        fileResource,
+        fileResource.getUid(),
+        fileResource.getName(),
+        fileResource.getContentType(),
         () -> {
           try {
-            return fileResourceService.openContentStream(fileResource);
+            return new Content(
+                fileResource.getContentLength(),
+                fileResourceService.openContentStream(fileResource));
           } catch (NoSuchElementException e) {
             // Note: we are assuming that the file resource is not available yet. The same approach
             // is taken in other file endpoints or code relying on the storageStatus = PENDING.
             // All we know for sure is the file resource is in the DB but not in the store.
-            throw new ConflictException(
-                "The content is being processed and is not available yet. Try again later.");
+            throw new ConflictException(EXCEPTION_PENDING);
           } catch (IOException e) {
-            throw new ConflictException(
-                "Failed fetching the file from storage",
-                "There was an exception when trying to fetch the file from the storage backend. "
-                    + "Depending on the provider the root cause could be network or file system related.");
+            throw new ConflictException(EXCEPTION_IO, EXCEPTION_IO_DEV);
           }
         });
   }
@@ -88,61 +91,52 @@ public class FileResourceStream {
    * be available for cache validation.
    *
    * @param dimension the dimension of the image to create a stream for
-   * @throws BadRequestException when the file resource is not an image, does not support multiple
-   *     dimensions or does not have multiple dimension files stored
    */
   @Nonnull
   public static FileResourceStream ofImage(
-      FileResourceService fileResourceService,
-      FileResource fileResource,
-      @CheckForNull ImageFileDimension dimension)
-      throws BadRequestException, ConflictException {
-    // The FileResource only stores the storageKey, contentLength and md5Hash of the original image.
-    // At least for now we are losing the benefit of not fetching the file from storage if the
-    // client already has an up-to-date version of the image in the given dimension other than the
-    // original. We have to fetch and compute the length and hash of the image again.
+      @Nonnull FileResourceService fileResourceService,
+      @Nonnull FileResource fileResource,
+      @CheckForNull ImageFileDimension dimension) {
     ImageFileDimension imageDimension =
         ObjectUtils.firstNonNull(dimension, ImageFileDimension.ORIGINAL);
-    FileResourceStream fileResourceStream = new FileResourceStream(fileResource);
-    if (imageDimension != ImageFileDimension.ORIGINAL) {
-      byte[] content;
-      try {
-        content = fileResourceService.copyImageContent(fileResource, imageDimension);
-        fileResourceStream.inputStreamSupplier = () -> new ByteArrayInputStream(content);
-      } catch (NoSuchElementException e) {
-        // Note: we are assuming that the file resource is not available yet. The same approach
-        // is taken in other file endpoints or code relying on the storageStatus = PENDING.
-        // All we know for sure is the file resource is in the DB but not in the store.
-        throw new ConflictException(
-            "The content is being processed and is not available yet. Try again later.");
-      } catch (IOException e) {
-        throw new ConflictException(
-            "Failed fetching the file from storage",
-            "There was an exception when trying to fetch the file from the storage backend. "
-                + "Depending on the provider the root cause could be network or file system related.");
-      }
-      fileResource.setContentLength(content.length);
-      fileResource.setContentMd5(Hashing.md5().hashBytes(content).toString());
-    } else {
-      fileResourceStream.inputStreamSupplier =
+    if (imageDimension == ImageFileDimension.ORIGINAL) {
+      return new FileResourceStream(
+          fileResource.getUid(),
+          fileResource.getName(),
+          fileResource.getContentType(),
           () -> {
             try {
-              return fileResourceService.openContentStreamToImage(fileResource, dimension);
+              return new Content(
+                  fileResource.getContentLength(),
+                  fileResourceService.openContentStreamToImage(fileResource, imageDimension));
             } catch (NoSuchElementException e) {
               // Note: we are assuming that the file resource is not available yet. The same
               // approach
               // is taken in other file endpoints or code relying on the storageStatus = PENDING.
               // All we know for sure is the file resource is in the DB but not in the store.
-              throw new ConflictException(
-                  "The content is being processed and is not available yet. Try again later.");
+              throw new ConflictException(EXCEPTION_PENDING);
             } catch (IOException e) {
-              throw new ConflictException(
-                  "Failed fetching the file from storage",
-                  "There was an exception when trying to fetch the file from the storage backend. "
-                      + "Depending on the provider the root cause could be network or file system related.");
+              throw new ConflictException(EXCEPTION_IO, EXCEPTION_IO_DEV);
             }
-          };
+          });
     }
-    return fileResourceStream;
+
+    return new FileResourceStream(
+        fileResource.getUid(),
+        fileResource.getName(),
+        fileResource.getContentType(),
+        () -> {
+          try {
+            byte[] content = fileResourceService.copyImageContent(fileResource, imageDimension);
+            return new Content(content.length, new ByteArrayInputStream(content));
+          } catch (NoSuchElementException e) {
+            // Note: we are assuming that the file resource is not available yet. The same approach
+            // is taken in other file endpoints or code relying on the storageStatus = PENDING.
+            // All we know for sure is the file resource is in the DB but not in the store.
+            throw new ConflictException(EXCEPTION_PENDING);
+          } catch (IOException e) {
+            throw new ConflictException(EXCEPTION_IO, EXCEPTION_IO_DEV);
+          }
+        });
   }
 }
