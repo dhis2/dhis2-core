@@ -171,7 +171,7 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest {
         "jobParameters": {
           "dashboard": "nghVC4wtyzi",
           "receivers": "wl5cDMuUhmF",
-          "mode":"JOB_CREATOR"
+          "mode":"EXECUTOR"
         },
         "cronExpression": "0 0 1 ? * *"
       }""";
@@ -179,7 +179,7 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest {
     JsonObject parameters = assertJobConfigurationExists(jobId, "HTML_PUSH_ANALYTICS");
     assertEquals("nghVC4wtyzi", parameters.getString("dashboard").string());
     assertEquals("wl5cDMuUhmF", parameters.getString("receivers").string());
-    assertEquals("JOB_CREATOR", parameters.getString("mode").string());
+    assertEquals("EXECUTOR", parameters.getString("mode").string());
   }
 
   @Test
