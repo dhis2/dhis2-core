@@ -215,10 +215,11 @@ public class AnalyticsTable extends Table {
       List<String> checks, Integer year, Date startDate, Date endDate) {
     Assert.notNull(year, "Year must be specified");
 
-    AnalyticsTablePartition tablePartition =
+    AnalyticsTablePartition partition =
         new AnalyticsTablePartition(this, checks, year, startDate, endDate);
 
-    this.tablePartitions.add(tablePartition);
+    this.tablePartitions.add(partition);
+    super.addPartition(toTablePartition(partition));
 
     return this;
   }
