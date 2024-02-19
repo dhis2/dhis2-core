@@ -32,8 +32,8 @@ import java.util.Date;
 import org.hisp.dhis.program.UserInfoSnapshot;
 
 public record EventChangeLog(
-    @JsonProperty UserInfoSnapshot updatedBy,
-    @JsonProperty Date date,
+    @JsonProperty UserInfoSnapshot createdBy,
+    @JsonProperty Date createdAt,
     @JsonProperty Change change) {
 
   public record Change(@JsonProperty DataValueChange dataValue) {}

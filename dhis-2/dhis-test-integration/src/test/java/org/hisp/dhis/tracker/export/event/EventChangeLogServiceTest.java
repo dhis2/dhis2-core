@@ -303,9 +303,9 @@ class EventChangeLogServiceTest extends TrackerTest {
 
   private static void assertUser(User user, EventChangeLog changeLog) {
     assertAll(
-        () -> assertEquals(user.getUsername(), changeLog.updatedBy().getUsername()),
-        () -> assertEquals(user.getFirstName(), changeLog.updatedBy().getFirstName()),
-        () -> assertEquals(user.getSurname(), changeLog.updatedBy().getSurname()),
-        () -> assertEquals(user.getUid(), changeLog.updatedBy().getUid()));
+        () -> assertEquals(user.getUsername(), changeLog.createdBy().getUsername()),
+        () -> assertEquals(user.getFirstName(), changeLog.createdBy().getFirstName()),
+        () -> assertEquals(user.getSurname(), changeLog.createdBy().getSurname()),
+        () -> assertEquals(user.getUid(), changeLog.createdBy().getUid()));
   }
 }

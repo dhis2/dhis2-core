@@ -173,7 +173,7 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
             .as(JsonWebMessage.class);
 
     JsonObject changeLogObject = changeLogResponse.asList(JsonList.class).get(0).asObject();
-    JsonObject updatedByValue = changeLogObject.get("updatedBy").asObject();
+    JsonObject updatedByValue = changeLogObject.get("createdBy").asObject();
     JsonObject dataValueObject =
         changeLogObject.get("change").asObject().get("dataValue").asObject();
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();

@@ -43,14 +43,14 @@ class JdbcEventChangeLogStore {
 
   private static final RowMapper<EventChangeLog> customEventChangeLogRowMapper =
       (rs, rowNum) -> {
-        UserInfoSnapshot user = new UserInfoSnapshot();
-        user.setUsername(rs.getString("userName"));
-        user.setFirstName(rs.getString("firstname"));
-        user.setSurname(rs.getString("surname"));
-        user.setUid(rs.getString("useruid"));
+        UserInfoSnapshot createdBy = new UserInfoSnapshot();
+        createdBy.setUsername(rs.getString("userName"));
+        createdBy.setFirstName(rs.getString("firstname"));
+        createdBy.setSurname(rs.getString("surname"));
+        createdBy.setUid(rs.getString("useruid"));
 
         return new EventChangeLog(
-            user,
+            createdBy,
             rs.getTimestamp("updatedAt"),
             new Change(
                 new EventChangeLog.DataValueChange(
