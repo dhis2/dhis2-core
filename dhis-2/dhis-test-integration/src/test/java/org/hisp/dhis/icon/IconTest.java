@@ -106,7 +106,7 @@ class IconTest extends TrackerTest {
 
     Icon icon = iconService.getIcon(defaultIconKey);
 
-    assertEquals(defaultIconKey, icon.getKey());
+    assertEquals(defaultIconKey, icon.getIconKey());
   }
 
   @Test
@@ -218,7 +218,7 @@ class IconTest extends TrackerTest {
   @Test
   void shouldFailWhenSavingCustomIconAndDefaultIconWithSameKeyExists() {
     Map<String, DefaultIcon> defaultIconMap = getAllDefaultIcons();
-    String defaultIconKey = defaultIconMap.values().iterator().next().getKey();
+    String defaultIconKey = defaultIconMap.values().iterator().next().getIconKey();
 
     Exception exception =
         assertThrows(
@@ -286,7 +286,7 @@ class IconTest extends TrackerTest {
     return Arrays.stream(DefaultIcon.Icons.values())
         .map(DefaultIcon.Icons::getVariants)
         .flatMap(Collection::stream)
-        .collect(Collectors.toMap(DefaultIcon::getKey, Function.identity()));
+        .collect(Collectors.toMap(DefaultIcon::getIconKey, Function.identity()));
   }
 
   private void assertContainsOnly(List<CustomIcon> listA, List<? extends Icon> listB) {

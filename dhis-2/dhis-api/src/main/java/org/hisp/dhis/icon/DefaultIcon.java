@@ -35,7 +35,7 @@ import lombok.Getter;
 /** Default icons are pre-installed immutable icons. */
 @Getter
 public class DefaultIcon implements Icon {
-  private final String key;
+  private final String iconKey;
 
   private final String description;
 
@@ -46,7 +46,7 @@ public class DefaultIcon implements Icon {
   private Date lastUpdated;
 
   public DefaultIcon(String key, String description, String[] keywords) {
-    this.key = key;
+    this.iconKey = key;
     this.description = description;
     this.keywords = keywords;
     this.setAutoFields();

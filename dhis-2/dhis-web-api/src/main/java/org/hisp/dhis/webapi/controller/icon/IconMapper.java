@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.icon;
 
 import static org.hisp.dhis.fileresource.FileResourceDomain.CUSTOM_ICON;
 
+import java.util.Arrays;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -53,20 +54,20 @@ public class IconMapper {
   public IconResponse from(Icon icon) {
     if (icon instanceof CustomIcon ci) {
       return new IconResponse(
-          icon.getKey(),
+          icon.getIconKey(),
           icon.getDescription(),
           icon.getKeywords(),
-          ci.getFileResourceUid(),
-          ci.getCreatedByUserUid(),
-          getCustomIconReference(ci.getKey()),
+          ci.getFileResource().getUid(),
+          ci.getCreatedBy().getUid(),
+          getCustomIconReference(ci.getIconKey()),
           icon.getCreated(),
           icon.getLastUpdated());
     } else {
       return new IconResponse(
-          icon.getKey(),
+          icon.getIconKey(),
           icon.getDescription(),
           icon.getKeywords(),
-          getDefaultIconReference(icon.getKey()),
+          getDefaultIconReference(icon.getIconKey()),
           icon.getCreated(),
           icon.getLastUpdated());
     }
@@ -83,9 +84,8 @@ public class IconMapper {
     return new CustomIcon(
         iconDto.getKey(),
         iconDto.getDescription(),
-        iconDto.getKeywords(),
-        fileResource.get().getUid(),
-        CurrentUserUtil.getCurrentUserDetails().getUid());
+        Arrays.stream(iconDto.getKeywords()).toList(),
+        fileResource.get());
   }
 
   private String getCustomIconReference(String fileResourceUid) {

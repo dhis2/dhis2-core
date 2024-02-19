@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,61 +25,63 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.icon;
+package org.hisp.dhis.icon.hibernate;
 
 import java.util.Set;
 import java.util.stream.Stream;
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import javax.persistence.EntityManager;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.icon.CustomIcon;
+import org.hisp.dhis.icon.CustomIconStore;
+import org.hisp.dhis.icon.IconOperationParams;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.UserDetails;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-public interface CustomIconStore extends IdentifiableObjectStore<CustomIcon> {
-  /**
-   * Returns a custom icon that contains a given key
-   *
-   * @param key of the icon
-   * @return the custom icon matching the key, or null instead
-   */
-  CustomIcon getIconByKey(String key);
+/**
+ * @author Zubair Asghar
+ */
 
-  /**
-   * Returns a list of custom icons that contain all the specified keywords
-   *
-   * @param iconOperationParams contains query params for CustomIcon
-   * @return the list of custom icons that contain all the keywords
-   */
-  Stream<CustomIcon> getIcons(IconOperationParams iconOperationParams);
+@Repository("org.hisp.dhis.icon.CustomIconStore")
+public class HibernateCustomIconStore extends HibernateIdentifiableObjectStore<CustomIcon>
+    implements CustomIconStore {
 
-  /**
-   * Returns a list with all the custom icon keywords
-   *
-   * @return a list with all the custom icon keywords
-   */
-  Set<String> getKeywords();
+  public HibernateCustomIconStore(
+      EntityManager entityManager,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      Class<CustomIcon> clazz,
+      AclService aclService,
+      boolean cacheable) {
+    super(entityManager, jdbcTemplate, publisher, clazz, aclService, cacheable);
+  }
 
-  /**
-   * Persists a custom icon to the database
-   *
-   * @param customIcon Icon to be saved
-   * @param fileResource file resource linked to the custom icon
-   * @param createdByUser user that created the custom icon
-   */
-  void save(CustomIcon customIcon, FileResource fileResource, UserDetails createdByUser);
+  @Override
+  public CustomIcon getIconByKey(String key) {
+    return null;
+  }
 
-  /**
-   * Deletes a custom icon from the database
-   *
-   * @param customIconKey Key of the icon to be deleted
-   */
-  void delete(String customIconKey);
+  @Override
+  public Stream<CustomIcon> getIcons(IconOperationParams iconOperationParams) {
+    return null;
+  }
 
-  /**
-   * Updates a custom icon from the database
-   *
-   * @param customIcon Icon to be updated
-   */
-  void update(CustomIcon customIcon);
+  @Override
+  public Set<String> getKeywords() {
+    return null;
+  }
 
-  long count(IconOperationParams iconOperationParams);
+  @Override
+  public void save(CustomIcon customIcon, FileResource fileResource, UserDetails createdByUser) {}
+
+  @Override
+  public void delete(String customIconKey) {}
+
+  @Override
+  public long count(IconOperationParams iconOperationParams) {
+    return 0;
+  }
 }

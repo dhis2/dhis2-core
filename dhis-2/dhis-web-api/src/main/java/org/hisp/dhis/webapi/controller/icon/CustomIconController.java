@@ -27,13 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.icon;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
-
 import com.google.common.net.MediaType;
-import java.io.IOException;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -49,6 +43,7 @@ import org.hisp.dhis.icon.CustomIcon;
 import org.hisp.dhis.icon.DefaultIcon;
 import org.hisp.dhis.icon.Icon;
 import org.hisp.dhis.icon.IconService;
+import org.hisp.dhis.schema.descriptors.CustomIconSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -62,16 +57,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
+
 /**
  * @author Kristian Wærstad
  */
 @OpenApi.Tags("ui")
 @RestController
-@RequestMapping(value = IconSchemaDescriptor.API_ENDPOINT)
+@RequestMapping(value = CustomIconSchemaDescriptor.API_ENDPOINT)
 @Slf4j
 @AllArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-public class IconController {
+public class CustomIconController extends AbstractCrudController<CustomIcon> {
   private static final int TTL = 365;
 
   private final IconService iconService;

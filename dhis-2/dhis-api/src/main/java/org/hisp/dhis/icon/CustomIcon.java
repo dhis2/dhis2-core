@@ -27,53 +27,39 @@
  */
 package org.hisp.dhis.icon;
 
-import java.util.Date;
-import lombok.EqualsAndHashCode;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.List;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.fileresource.FileResource;
 
 /** Custom icons are uploaded by users and can be modified and deleted. */
 @Getter
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode(of = {"key", "description", "keywords", "fileResourceUid", "createdByUserUid"})
-public class CustomIcon implements Icon {
-  private String key;
+@AllArgsConstructor
+@JacksonXmlRootElement(localName = "customIcon", namespace = DxfNamespaces.DXF_2_0)
+public class CustomIcon extends BaseIdentifiableObject {
 
-  private String description;
+  @JsonProperty private String iconKey;
 
-  private String[] keywords;
+  @JsonProperty private String description;
 
-  private String fileResourceUid;
+  @JsonProperty private List<String> keywords;
 
-  private String createdByUserUid;
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  private FileResource fileResource;
 
-  private Date created;
-
-  private Date lastUpdated;
-
-  public CustomIcon(
-      String key,
-      String description,
-      String[] keywords,
-      String fileResourceUid,
-      String createdByUserUid) {
-    this.key = key;
+  public CustomIcon(String key, String description, List<String> keywords) {
+    this.iconKey   = key;
     this.description = description;
     this.keywords = keywords;
-    this.fileResourceUid = fileResourceUid;
-    this.createdByUserUid = createdByUserUid;
-    this.setAutoFields();
-  }
-
-  public void setAutoFields() {
-    Date date = new Date();
-
-    if (created == null) {
-      created = date;
-    }
-
-    lastUpdated = date;
   }
 }

@@ -67,38 +67,7 @@ public class DefaultIconService implements IconService {
       Arrays.stream(DefaultIcon.Icons.values())
           .map(DefaultIcon.Icons::getVariants)
           .flatMap(Collection::stream)
-          .collect(Collectors.toMap(DefaultIcon::getKey, Function.identity()));
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<Icon> getIcons(IconOperationParams iconOperationParams) {
-    if (IconTypeFilter.DEFAULT == iconOperationParams.getIconTypeFilter()) {
-      return defaultIcons.values().stream()
-          .filter(icon -> Set.of(icon.getKeywords()).containsAll(iconOperationParams.getKeywords()))
-          .collect(Collectors.toList());
-    }
-
-    if (IconTypeFilter.CUSTOM == iconOperationParams.getIconTypeFilter()) {
-      return customIconStore.getIcons(iconOperationParams).collect(Collectors.toList());
-    }
-
-    return Stream.concat(
-            defaultIcons.values().stream()
-                .filter(
-                    icon ->
-                        Set.of(icon.getKeywords()).containsAll(iconOperationParams.getKeywords()))
-                .toList()
-                .stream(),
-            customIconStore.getIcons(iconOperationParams))
-        .collect(Collectors.toList());
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public long count(IconOperationParams iconOperationParams) {
-    return customIconStore.count(iconOperationParams);
-  }
-
+          .collect(Collectors.toMap(DefaultIcon::getIconKey, Function.identity()));
   @Override
   @Transactional(readOnly = true)
   public Icon getIcon(String key) throws NotFoundException {
@@ -106,7 +75,8 @@ public class DefaultIconService implements IconService {
       return defaultIcons.get(key);
     }
 
-    return getCustomIcon(key);
+    return null;
+    // return getCustomIcon(key);
   }
 
   @Override
@@ -148,15 +118,15 @@ public class DefaultIconService implements IconService {
   @Override
   @Transactional
   public void addCustomIcon(CustomIcon customIcon) throws BadRequestException, NotFoundException {
-    validateIconDoesNotExists(customIcon.getKey());
-    FileResource fileResource = getFileResource(customIcon.getFileResourceUid());
+    validateIconDoesNotExists(customIcon.getIconKey());
+    FileResource fileResource = getFileResource(customIcon.getFileResource().getUid());
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     customIconStore.save(customIcon, fileResource, currentUserDetails);
   }
 
   @Override
   @Transactional
-  public void updateCustomIcon(String key, String description, String[] keywords)
+  public void updateCustomIcon(String key, String description, List<String> keywords)
       throws BadRequestException, NotFoundException {
     CustomIcon icon = validateCustomIconExists(key);
 
@@ -183,14 +153,14 @@ public class DefaultIconService implements IconService {
   @Transactional
   public void updateCustomIcon(CustomIcon customIcon)
       throws BadRequestException, NotFoundException {
-    updateCustomIcon(customIcon.getKey(), customIcon.getDescription(), customIcon.getKeywords());
+    updateCustomIcon(customIcon.getIconKey(), customIcon.getDescription(), customIcon.getKeywords());
   }
 
   @Override
   @Transactional
   public void deleteCustomIcon(String key) throws BadRequestException, NotFoundException {
     CustomIcon icon = validateCustomIconExists(key);
-    getFileResource(icon.getFileResourceUid()).setAssigned(false);
+    getFileResource(icon.getFileResource().getUid()).setAssigned(false);
     customIconStore.delete(key);
   }
 

@@ -38,14 +38,6 @@ import org.springframework.core.io.Resource;
  */
 public interface IconService {
   /**
-   * Gets data about all the icons in the system
-   *
-   * @param iconOperationParams params to fetch icons
-   * @return a collection of data about all the icons in the system
-   */
-  List<Icon> getIcons(IconOperationParams iconOperationParams);
-
-  /**
    * Gets the icon associated to a key, if it exists
    *
    * @param key key of the icon to find
@@ -107,7 +99,7 @@ public interface IconService {
    * @throws BadRequestException when icon key is not specified
    * @throws NotFoundException when no icon with the provided key exists
    */
-  void updateCustomIcon(String key, String description, String[] keywords)
+  void updateCustomIcon(String key, String description, List<String> keywords)
       throws BadRequestException, NotFoundException;
 
   void updateCustomIcon(CustomIcon customIcon) throws BadRequestException, NotFoundException;
@@ -120,6 +112,4 @@ public interface IconService {
    * @throws NotFoundException when no icon with the provided key exists
    */
   void deleteCustomIcon(String key) throws BadRequestException, NotFoundException;
-
-  long count(IconOperationParams iconOperationParams);
 }

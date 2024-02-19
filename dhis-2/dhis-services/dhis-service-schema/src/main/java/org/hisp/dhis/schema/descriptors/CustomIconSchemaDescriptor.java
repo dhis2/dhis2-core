@@ -25,54 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.icon;
+package org.hisp.dhis.schema.descriptors;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.fieldfiltering.FieldFilterParser;
-import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.icon.IconTypeFilter;
+import org.hisp.dhis.icon.CustomIcon;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
 
 /**
  * @author Zubair Asghar
  */
-@Data
-@NoArgsConstructor
-public class IconRequestParams {
+public class CustomIconSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "customIcon";
 
-  static final String DEFAULT_FIELDS_PARAM =
-      "key,keywords,description,fileResourceUid,createdByUserUid,href";
+  public static final String PLURAL = "customIcons";
 
-  private List<String> keys = new ArrayList<>();
-  private List<String> keywords = new ArrayList<>();
-  private IconTypeFilter type = IconTypeFilter.ALL;
-  private Date createdStartDate;
-  private Date createdEndDate;
-  private Date lastUpdatedStartDate;
-  private Date lastUpdatedEndDate;
-  private boolean paging = true;
-  private int pageSize = Pager.DEFAULT_PAGE_SIZE;
-  private int page = 1;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-  private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(CustomIcon.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
 
-  public boolean hasCreatedStartDate() {
-    return createdStartDate != null;
-  }
-
-  public boolean hasCreatedEndDate() {
-    return createdEndDate != null;
-  }
-
-  public boolean hasLastUpdatedStartDate() {
-    return lastUpdatedStartDate != null;
-  }
-
-  public boolean hasLastUpdatedEndDate() {
-    return lastUpdatedEndDate != null;
+    return schema;
   }
 }

@@ -30,7 +30,7 @@ package org.hisp.dhis.icon;
 import java.util.Date;
 
 public interface Icon {
-  String getKey();
+  String getIconKey();
 
   String getDescription();
 
