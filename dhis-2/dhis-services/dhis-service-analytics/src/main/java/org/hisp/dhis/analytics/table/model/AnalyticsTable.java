@@ -140,14 +140,8 @@ public class AnalyticsTable extends Table {
         .toList();
   }
 
-  /**
-   * Converts the given list of analytics table partitions to a list of table partitions.
-   *
-   * @param partitions the list of {@link AnalyticsTablePartition}.
-   * @return a list of {@link TablePartition}.
-   */
-  private static List<TablePartition> toPartition(List<AnalyticsTablePartition> partitions) {
-    return partitions.stream().map(p -> new TablePartition(p.getName(), "", 0)).toList(); // TODO
+  private TablePartition toTablePartition(AnalyticsTablePartition partition) {
+    return new TablePartition(partition.getName(), null, null);
   }
 
   /**
@@ -217,7 +211,7 @@ public class AnalyticsTable extends Table {
    * @param endDate the end date.
    * @return this analytics table.
    */
-  public AnalyticsTable addTablePartition(
+  public AnalyticsTable addTablePartition2(
       List<String> checks, Integer year, Date startDate, Date endDate) {
     Assert.notNull(year, "Year must be specified");
 

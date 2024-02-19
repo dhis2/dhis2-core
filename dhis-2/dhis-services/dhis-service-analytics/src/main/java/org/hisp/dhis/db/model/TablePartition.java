@@ -37,5 +37,5 @@ public class TablePartition {
 
   private final String key;
 
-  private final Integer value;
+  private final Object value;
 }
