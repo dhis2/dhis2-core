@@ -140,6 +140,12 @@ public class AnalyticsTable extends Table {
         .toList();
   }
 
+  /**
+   * Converts the given analytics table partition to a table partition.
+   *
+   * @param partition the {@link AnalyticsTablePartition}.
+   * @return a {@link TablePartition}.
+   */
   private TablePartition toTablePartition(AnalyticsTablePartition partition) {
     return new TablePartition(partition.getName(), null, null);
   }

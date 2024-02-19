@@ -33,14 +33,12 @@ import static org.hisp.dhis.db.model.Logged.UNLOGGED;
 import static org.hisp.dhis.util.ObjectUtils.notNull;
 
 import java.util.List;
-
-import org.apache.commons.lang3.RegExUtils;
-import org.apache.commons.lang3.Validate;
-import org.hisp.dhis.commons.collection.ListUtils;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+import org.apache.commons.lang3.RegExUtils;
+import org.apache.commons.lang3.Validate;
+import org.hisp.dhis.commons.collection.ListUtils;
 
 /**
  * Represents a database table.
@@ -85,7 +83,7 @@ public class Table {
    */
   public Table(String name, List<Column> columns, List<String> primaryKey) {
     this(name, columns, primaryKey, List.of(), Logged.UNLOGGED, null);
-	this.partitions = ListUtils.newList();
+    this.partitions = ListUtils.newList();
     this.validate();
   }
 
@@ -99,7 +97,7 @@ public class Table {
    */
   public Table(String name, List<Column> columns, List<String> primaryKey, Logged logged) {
     this(name, columns, primaryKey, List.of(), logged, null);
-	this.partitions = ListUtils.newList();
+    this.partitions = ListUtils.newList();
     this.validate();
   }
 
@@ -119,7 +117,7 @@ public class Table {
       List<String> checks,
       Logged logged) {
     this(name, columns, primaryKey, checks, logged, null);
-	this.partitions = ListUtils.newList();
+    this.partitions = ListUtils.newList();
     this.validate();
   }
 

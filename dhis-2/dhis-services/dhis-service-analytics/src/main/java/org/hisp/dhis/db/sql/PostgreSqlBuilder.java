@@ -30,7 +30,6 @@ package org.hisp.dhis.db.sql;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Index;
@@ -237,11 +236,11 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
         String nullable = column.getNullable() == Nullable.NOT_NULL ? " not null" : " null";
         String collation = column.getCollation() == Collation.C ? (" collate " + quote("C")) : "";
 
-      sql.append(quote(column.getName()) + " ")
-          .append(dataType)
-          .append(nullable)
-          .append(collation)
-          .append(COMMA);
+        sql.append(quote(column.getName()) + " ")
+            .append(dataType)
+            .append(nullable)
+            .append(collation)
+            .append(COMMA);
       }
     }
 
