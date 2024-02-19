@@ -71,7 +71,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @AllArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-public class IconController {
+public class IconController extends AbstractCrudController<CustomIcon> {
   private static final int TTL = 365;
 
   private final IconService iconService;

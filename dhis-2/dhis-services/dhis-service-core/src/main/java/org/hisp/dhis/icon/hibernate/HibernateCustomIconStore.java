@@ -44,7 +44,6 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Zubair Asghar
  */
-
 @Repository("org.hisp.dhis.icon.CustomIconStore")
 public class HibernateCustomIconStore extends HibernateIdentifiableObjectStore<CustomIcon>
     implements CustomIconStore {
@@ -53,10 +52,8 @@ public class HibernateCustomIconStore extends HibernateIdentifiableObjectStore<C
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      Class<CustomIcon> clazz,
-      AclService aclService,
-      boolean cacheable) {
-    super(entityManager, jdbcTemplate, publisher, clazz, aclService, cacheable);
+      AclService aclService) {
+    super(entityManager, jdbcTemplate, publisher, CustomIcon.class, aclService, true);
   }
 
   @Override

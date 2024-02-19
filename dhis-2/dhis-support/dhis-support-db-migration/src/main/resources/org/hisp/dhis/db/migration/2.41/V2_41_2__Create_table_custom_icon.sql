@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS customicon
 -- customicon table constraints
 
 ALTER TABLE customicon
-DROP CONSTRAINT IF EXISTS fk_customicon_file_resource;
+DROP CONSTRAINT IF EXISTS fk_customicon_fileresource;
 ALTER TABLE customicon
     ADD CONSTRAINT fk_customicon_fileresource FOREIGN KEY (fileresourceid) REFERENCES fileresource (fileresourceid) ON DELETE CASCADE;
 ALTER TABLE customicon

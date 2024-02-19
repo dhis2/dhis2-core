@@ -117,7 +117,6 @@ public class DefaultSchemaService implements SchemaService {
     register(new ExpressionDimensionItemSchemaDescriptor());
     register(new FileResourceSchemaDescriptor());
     register(new IconSchemaDescriptor());
-    register(new CustomIconSchemaDescriptor());
     register(new IndicatorGroupSchemaDescriptor());
     register(new IndicatorGroupSetSchemaDescriptor());
     register(new IndicatorSchemaDescriptor());

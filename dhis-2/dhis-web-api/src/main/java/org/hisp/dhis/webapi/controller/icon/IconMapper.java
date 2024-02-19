@@ -40,7 +40,6 @@ import org.hisp.dhis.icon.DefaultIcon;
 import org.hisp.dhis.icon.Icon;
 import org.hisp.dhis.icon.IconResponse;
 import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.stereotype.Component;
 

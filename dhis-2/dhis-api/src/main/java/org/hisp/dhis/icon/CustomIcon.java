@@ -58,7 +58,7 @@ public class CustomIcon extends BaseIdentifiableObject {
   private FileResource fileResource;
 
   public CustomIcon(String key, String description, List<String> keywords) {
-    this.iconKey   = key;
+    this.iconKey = key;
     this.description = description;
     this.keywords = keywords;
   }

@@ -32,7 +32,6 @@ import java.util.stream.Stream;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.user.UserDetails;
-import org.springframework.stereotype.Repository;
 
 public interface CustomIconStore extends IdentifiableObjectStore<CustomIcon> {
   /**

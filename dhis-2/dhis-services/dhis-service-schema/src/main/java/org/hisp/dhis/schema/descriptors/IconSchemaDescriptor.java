@@ -28,7 +28,6 @@
 package org.hisp.dhis.schema.descriptors;
 
 import org.hisp.dhis.icon.CustomIcon;
-import org.hisp.dhis.icon.IconResponse;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 

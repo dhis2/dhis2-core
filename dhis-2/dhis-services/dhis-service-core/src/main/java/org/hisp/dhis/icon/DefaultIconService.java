@@ -68,6 +68,7 @@ public class DefaultIconService implements IconService {
           .map(DefaultIcon.Icons::getVariants)
           .flatMap(Collection::stream)
           .collect(Collectors.toMap(DefaultIcon::getIconKey, Function.identity()));
+
   @Override
   @Transactional(readOnly = true)
   public Icon getIcon(String key) throws NotFoundException {
@@ -153,7 +154,8 @@ public class DefaultIconService implements IconService {
   @Transactional
   public void updateCustomIcon(CustomIcon customIcon)
       throws BadRequestException, NotFoundException {
-    updateCustomIcon(customIcon.getIconKey(), customIcon.getDescription(), customIcon.getKeywords());
+    updateCustomIcon(
+        customIcon.getIconKey(), customIcon.getDescription(), customIcon.getKeywords());
   }
 
   @Override
