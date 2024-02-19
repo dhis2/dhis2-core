@@ -37,7 +37,6 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.icon.CustomIcon;
-import org.hisp.dhis.icon.Icon;
 import org.hisp.dhis.icon.IconResponse;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;

@@ -28,7 +28,6 @@
 package org.hisp.dhis.icon;
 
 import java.util.Set;
-import java.util.stream.Stream;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.user.UserDetails;
@@ -41,14 +40,6 @@ public interface CustomIconStore extends IdentifiableObjectStore<CustomIcon> {
    * @return the custom icon matching the key, or null instead
    */
   CustomIcon getIconByKey(String key);
-
-  /**
-   * Returns a list of custom icons that contain all the specified keywords
-   *
-   * @param iconOperationParams contains query params for CustomIcon
-   * @return the list of custom icons that contain all the keywords
-   */
-  Stream<CustomIcon> getIcons(IconOperationParams iconOperationParams);
 
   /**
    * Returns a list with all the custom icon keywords
@@ -79,6 +70,4 @@ public interface CustomIconStore extends IdentifiableObjectStore<CustomIcon> {
    * @param customIcon Icon to be updated
    */
   void update(CustomIcon customIcon);
-
-  long count(IconOperationParams iconOperationParams);
 }

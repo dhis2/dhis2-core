@@ -36,7 +36,7 @@ import org.springframework.core.io.Resource;
 /**
  * @author Kristian Wærstad
  */
-public interface IconService {
+public interface CustomIconService {
   /**
    * Gets the icon associated to a key, if it exists
    *
@@ -44,7 +44,7 @@ public interface IconService {
    * @return icon associated to the key, if found
    * @throws NotFoundException if no icon exists in the database with the provided key
    */
-  Icon getIcon(String key) throws NotFoundException;
+  CustomIcon getIcon(String key) throws NotFoundException;
 
   /**
    * Gets the custom icon associated to a key, if it exists
@@ -62,7 +62,7 @@ public interface IconService {
    * @return the icon resource
    * @throws NotFoundException if no default icon exists with the provided key
    */
-  Resource getDefaultIconResource(String key) throws NotFoundException;
+  Resource getCustomIconResource(String key) throws NotFoundException;
 
   /**
    * Gets a set of all unique keywords assigned to icons

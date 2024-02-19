@@ -36,9 +36,8 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.icon.CustomIcon;
-import org.hisp.dhis.icon.DefaultIcon;
-import org.hisp.dhis.icon.Icon;
 import org.hisp.dhis.icon.IconResponse;
+import org.hisp.dhis.icon.Icons;
 import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.stereotype.Component;
@@ -96,9 +95,6 @@ public class IconMapper {
   private String getDefaultIconReference(String key) {
     return String.format(
         "%s%s/%s/icon.%s",
-        contextService.getApiPath(),
-        IconSchemaDescriptor.API_ENDPOINT,
-        key,
-        DefaultIcon.Icons.SUFFIX);
+        contextService.getApiPath(), IconSchemaDescriptor.API_ENDPOINT, key, Icons.Icons.SUFFIX);
   }
 }

@@ -15,6 +15,7 @@
 
         <property name="iconKey" column="iconkey" not-null="true" unique="true" length="100" />
         <property name="description" column="description"  length="200" />
+        <property name="custom" column="custom" />
 
         <one-to-one name="fileResource" class="org.hisp.dhis.fileresource.FileResource"
                     foreign-key="fk_customicon_fileresource" />

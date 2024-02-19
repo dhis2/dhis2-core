@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS customicon
     lastupdated         TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     createdby           bigint       NOT NULL,
     lastupdatedby       bigint       NOT NULL,
+    custom              Boolean      NOT NULL,
     CONSTRAINT customicon_pkey PRIMARY KEY (id),
     CONSTRAINT customicon_ukey UNIQUE (iconkey),
     CONSTRAINT customicon_fileresource_ukey UNIQUE (fileresourceid)

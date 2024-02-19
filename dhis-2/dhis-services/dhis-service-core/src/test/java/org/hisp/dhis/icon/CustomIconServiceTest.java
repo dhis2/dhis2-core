@@ -54,13 +54,13 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class IconServiceTest {
+class CustomIconServiceTest {
   @Mock private CustomIconStore customIconStore;
 
   @Mock private FileResourceService fileResourceService;
   @Mock private UserService userService;
 
-  @Spy @InjectMocks private DefaultIconService iconService;
+  @Spy @InjectMocks private DefaultCustomIconService iconService;
 
   @Test
   void shouldSaveCustomIconWhenIconHasNoDuplicatedKeyAndFileResourceExists()

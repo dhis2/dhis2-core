@@ -46,9 +46,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.icon.CustomIcon;
-import org.hisp.dhis.icon.DefaultIcon;
-import org.hisp.dhis.icon.Icon;
-import org.hisp.dhis.icon.IconService;
+import org.hisp.dhis.icon.CustomIconService;
 import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -74,7 +72,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class IconController extends AbstractCrudController<CustomIcon> {
   private static final int TTL = 365;
 
-  private final IconService iconService;
+  private final CustomIconService iconService;
 
   private final FileResourceService fileResourceService;
 
@@ -84,12 +82,12 @@ public class IconController extends AbstractCrudController<CustomIcon> {
   public void getIconData(@PathVariable String key, HttpServletResponse response)
       throws NotFoundException, WebMessageException, IOException {
 
-    Icon icon = iconService.getIcon(key);
+    CustomIcon icon = iconService.getIcon(key);
 
-    if (icon instanceof DefaultIcon) {
+    if (!icon.getCustom()) {
       downloadDefaultIcon(icon.getIconKey(), response);
-    } else if (icon instanceof CustomIcon customIcon) {
-      downloadCustomIcon(customIcon.getFileResource(), response);
+    } else {
+      downloadCustomIcon(icon.getFileResource(), response);
     }
   }
 
@@ -100,7 +98,7 @@ public class IconController extends AbstractCrudController<CustomIcon> {
 
   private void downloadDefaultIcon(String key, HttpServletResponse response)
       throws IOException, NotFoundException {
-    Resource icon = iconService.getDefaultIconResource(key);
+    Resource icon = iconService.getCustomIconResource(key);
 
     response.setHeader("Cache-Control", CacheControl.maxAge(TTL, TimeUnit.DAYS).getHeaderValue());
     response.setContentType(MediaType.SVG_UTF_8.toString());

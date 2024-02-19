@@ -66,7 +66,7 @@ import org.springframework.util.MimeTypeUtils;
 class IconTest extends TrackerTest {
   @Autowired private FileResourceService fileResourceService;
 
-  @Autowired private IconService iconService;
+  @Autowired private CustomIconService iconService;
   @Autowired protected UserService _userService;
   private final String[] keywords = {"k1", "k2", "k3"};
 
@@ -86,7 +86,7 @@ class IconTest extends TrackerTest {
 
   @Test
   void shouldGetAllIconsByDefault() {
-    Map<String, DefaultIcon> defaultIconMap = getAllDefaultIcons();
+    Map<String, Icons> defaultIconMap = getAllDefaultIcons();
 
     IconOperationParams operationParams = new IconOperationParams();
 
@@ -132,7 +132,7 @@ class IconTest extends TrackerTest {
   @Test
   void shouldGetAllIconsFilteredByKeywordWhenRequested()
       throws BadRequestException, NotFoundException {
-    Optional<DefaultIcon> defaultIcon =
+    Optional<Icons> defaultIcon =
         getAllDefaultIcons().values().stream().filter(si -> si.getKeywords().length > 0).findAny();
 
     if (defaultIcon.isEmpty()) {
@@ -201,7 +201,7 @@ class IconTest extends TrackerTest {
   void shouldGetIconDataWhenKeyBelongsToDefaultIcon() throws NotFoundException, IOException {
     String defaultIconKey = getAllDefaultIcons().keySet().stream().findAny().orElse(null);
 
-    Resource iconResource = iconService.getDefaultIconResource(defaultIconKey);
+    Resource iconResource = iconService.getCustomIconResource(defaultIconKey);
 
     assertNotNull(iconResource.getURL());
   }
@@ -210,14 +210,14 @@ class IconTest extends TrackerTest {
   void shouldFailWhenGettingIconDataOfNonDefaultIcon() {
     Exception exception =
         assertThrows(
-            NotFoundException.class, () -> iconService.getDefaultIconResource("madeUpIconKey"));
+            NotFoundException.class, () -> iconService.getCustomIconResource("madeUpIconKey"));
 
     assertEquals("No default icon found with key madeUpIconKey.", exception.getMessage());
   }
 
   @Test
   void shouldFailWhenSavingCustomIconAndDefaultIconWithSameKeyExists() {
-    Map<String, DefaultIcon> defaultIconMap = getAllDefaultIcons();
+    Map<String, Icons> defaultIconMap = getAllDefaultIcons();
     String defaultIconKey = defaultIconMap.values().iterator().next().getIconKey();
 
     Exception exception =
@@ -282,11 +282,11 @@ class IconTest extends TrackerTest {
     return fileResourceService.getFileResource(fileResourceUid);
   }
 
-  private Map<String, DefaultIcon> getAllDefaultIcons() {
-    return Arrays.stream(DefaultIcon.Icons.values())
-        .map(DefaultIcon.Icons::getVariants)
+  private Map<String, Icons> getAllDefaultIcons() {
+    return Arrays.stream(Icons.Icons.values())
+        .map(Icons.Icons::getVariants)
         .flatMap(Collection::stream)
-        .collect(Collectors.toMap(DefaultIcon::getIconKey, Function.identity()));
+        .collect(Collectors.toMap(Icons::getIconKey, Function.identity()));
   }
 
   private void assertContainsOnly(List<CustomIcon> listA, List<? extends Icon> listB) {

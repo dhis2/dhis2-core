@@ -28,13 +28,11 @@
 package org.hisp.dhis.icon.hibernate;
 
 import java.util.Set;
-import java.util.stream.Stream;
 import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.icon.CustomIcon;
 import org.hisp.dhis.icon.CustomIconStore;
-import org.hisp.dhis.icon.IconOperationParams;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.context.ApplicationEventPublisher;
@@ -62,11 +60,6 @@ public class HibernateCustomIconStore extends HibernateIdentifiableObjectStore<C
   }
 
   @Override
-  public Stream<CustomIcon> getIcons(IconOperationParams iconOperationParams) {
-    return null;
-  }
-
-  @Override
   public Set<String> getKeywords() {
     return null;
   }
@@ -76,9 +69,4 @@ public class HibernateCustomIconStore extends HibernateIdentifiableObjectStore<C
 
   @Override
   public void delete(String customIconKey) {}
-
-  @Override
-  public long count(IconOperationParams iconOperationParams) {
-    return 0;
-  }
 }

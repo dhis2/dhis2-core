@@ -30,6 +30,7 @@ package org.hisp.dhis.icon;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -51,7 +52,9 @@ public class CustomIcon extends BaseIdentifiableObject {
 
   @JsonProperty private String description;
 
-  @JsonProperty private List<String> keywords;
+  @JsonProperty private List<String> keywords = new ArrayList<>();
+
+  @JsonProperty private Boolean custom;
 
   @JsonProperty
   @JsonSerialize(as = BaseIdentifiableObject.class)

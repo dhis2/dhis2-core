@@ -30,15 +30,9 @@ package org.hisp.dhis.icon;
 import static org.hisp.dhis.fileresource.FileResourceDomain.CUSTOM_ICON;
 
 import com.google.common.base.Strings;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -46,7 +40,6 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,26 +48,17 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Kristian Wærstad
  */
 @RequiredArgsConstructor
-@Service("org.hisp.dhis.icon.IconService")
-public class DefaultIconService implements IconService {
+@Service("org.hisp.dhis.icon.CustomIconService")
+public class DefaultCustomIconService implements CustomIconService {
   private static final String ICON_PATH = "SVGs";
 
   private final CustomIconStore customIconStore;
 
   private final FileResourceService fileResourceService;
 
-  private final Map<String, DefaultIcon> defaultIcons =
-      Arrays.stream(DefaultIcon.Icons.values())
-          .map(DefaultIcon.Icons::getVariants)
-          .flatMap(Collection::stream)
-          .collect(Collectors.toMap(DefaultIcon::getIconKey, Function.identity()));
-
   @Override
   @Transactional(readOnly = true)
-  public Icon getIcon(String key) throws NotFoundException {
-    if (defaultIcons.containsKey(key)) {
-      return defaultIcons.get(key);
-    }
+  public CustomIcon getIcon(String key) throws NotFoundException {
 
     return null;
     // return getCustomIcon(key);
@@ -92,28 +76,21 @@ public class DefaultIconService implements IconService {
   }
 
   @Override
-  public Resource getDefaultIconResource(String key) throws NotFoundException {
-    if (defaultIcons.containsKey(key)) {
-      return new ClassPathResource(
-          String.format("%s/%s.%s", ICON_PATH, key, DefaultIcon.Icons.SUFFIX));
-    }
+  public Resource getCustomIconResource(String key) throws NotFoundException {
 
-    throw new NotFoundException(String.format("No default icon found with key %s.", key));
+    return null;
   }
 
   @Override
   @Transactional(readOnly = true)
   public Set<String> getKeywords() {
-    return Stream.concat(
-            defaultIcons.values().stream().map(Icon::getKeywords).flatMap(Arrays::stream),
-            customIconStore.getKeywords().stream())
-        .collect(Collectors.toSet());
+    return null;
   }
 
   @Override
   @Transactional(readOnly = true)
   public boolean iconExists(String key) {
-    return defaultIcons.get(key) != null || customIconStore.getIconByKey(key) != null;
+    return true;
   }
 
   @Override
