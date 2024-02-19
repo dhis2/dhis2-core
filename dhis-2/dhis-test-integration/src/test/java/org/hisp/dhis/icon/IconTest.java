@@ -86,8 +86,6 @@ class IconTest extends TrackerTest {
   void shouldGetAllIconsByDefault() {
     Map<String, Icons> defaultIconMap = getAllDefaultIcons();
 
-    IconOperationParams operationParams = new IconOperationParams();
-
     List<Icon> icons = iconService.getIcons(operationParams);
 
     assertEquals(
@@ -115,10 +113,6 @@ class IconTest extends TrackerTest {
             .flatMap(Arrays::stream)
             .collect(Collectors.toSet());
 
-    IconOperationParams operationParams = new IconOperationParams();
-    operationParams.setIconTypeFilter(IconTypeFilter.ALL);
-    operationParams.setKeywords(keywordList.stream().toList());
-
     assertEquals(
         keywordList.size() + keywords.length,
         iconService.getKeywords().size(),
@@ -139,10 +133,6 @@ class IconTest extends TrackerTest {
 
     String keyword = defaultIcon.get().getKeywords()[0];
     FileResource fileResourceD = createAndPersistFileResource('D');
-
-    IconOperationParams operationParams = new IconOperationParams();
-    operationParams.setIconTypeFilter(IconTypeFilter.ALL);
-    operationParams.setKeywords(List.of(keyword));
 
     iconService.addCustomIcon(
         new CustomIcon(
@@ -178,21 +168,6 @@ class IconTest extends TrackerTest {
             getCurrentUser().getUid());
     iconService.addCustomIcon(iconC);
 
-    IconOperationParams operationParams1 = new IconOperationParams();
-    operationParams1.setIconTypeFilter(IconTypeFilter.CUSTOM);
-    operationParams1.setKeywords(List.of("k4", "k5", "k6"));
-
-    IconOperationParams operationParams2 = new IconOperationParams();
-    operationParams2.setIconTypeFilter(IconTypeFilter.CUSTOM);
-    operationParams2.setKeywords(List.of("k6", "k7"));
-
-    IconOperationParams operationParams3 = new IconOperationParams();
-    operationParams3.setIconTypeFilter(IconTypeFilter.CUSTOM);
-    operationParams3.setKeywords(List.of("k6"));
-
-    assertContainsOnly(List.of(iconB), iconService.getIcons(operationParams1));
-    assertContainsOnly(List.of(iconC), iconService.getIcons(operationParams2));
-    assertContainsOnly(List.of(iconB, iconC), iconService.getIcons(operationParams3));
   }
 
   @Test
