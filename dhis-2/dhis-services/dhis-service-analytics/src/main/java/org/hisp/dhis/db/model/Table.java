@@ -36,6 +36,7 @@ import lombok.Getter;
 import lombok.ToString;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.Validate;
+import org.hisp.dhis.commons.collection.ListUtils;
 
 /**
  * Represents a database table.
@@ -85,7 +86,7 @@ public class Table {
     this.checks = List.of();
     this.logged = Logged.LOGGED;
     this.parent = null;
-    this.partitions = List.this.validate();
+    this.partitions = ListUtils.newList();
   }
 
   /**
@@ -103,6 +104,7 @@ public class Table {
     this.checks = List.of();
     this.logged = logged;
     this.parent = null;
+    this.partitions = ListUtils.newList();
     this.validate();
   }
 
@@ -127,6 +129,7 @@ public class Table {
     this.checks = checks;
     this.logged = logged;
     this.parent = null;
+    this.partitions = ListUtils.newList();
     this.validate();
   }
 
@@ -153,6 +156,7 @@ public class Table {
     this.checks = checks;
     this.logged = logged;
     this.parent = parent;
+    this.partitions = ListUtils.newList();
     this.validate();
   }
 
