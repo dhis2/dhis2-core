@@ -222,19 +222,20 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
     // Partitions
 
-    // Checks
+    // TODO
 
-    if (table.hasChecks()) {
-      for (String check : table.getChecks()) {
-        sql.append("check(" + check + "), ");
-      }
+    // Distribution
+
+    if (table.hasPrimaryKey()) {
+      sql.append("distributed by hash(")
+          .append(quote(table.getFirstPrimaryKey()))
+          .append(") ")
+          .append("buckets = 10 "); // TODO check
     }
 
-    removeLastComma(sql).append(")");
+    // Properties
 
-    if (table.hasParent()) {
-      sql.append(" inherits (").append(quote(table.getParent().getName())).append(")");
-    }
+    sql.append("properties (\"replication_num\" = \"1\")");
 
     return sql.append(";").toString();
   }
