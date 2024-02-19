@@ -207,7 +207,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
         sql.append(quote(column.getName()) + " ").append(dataType).append(nullable).append(", ");
       }
 
-      sql.append(") engine=olap");
+      sql.append(") engine=olap ");
     }
 
     // Primary key
