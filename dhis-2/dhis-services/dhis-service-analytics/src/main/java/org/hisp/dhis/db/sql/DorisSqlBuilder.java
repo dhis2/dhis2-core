@@ -199,12 +199,14 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
     if (table.hasColumns()) {
       sql.append("(");
+
       for (Column column : table.getColumns()) {
         String dataType = getDataTypeName(column.getDataType());
         String nullable = column.getNullable() == Nullable.NOT_NULL ? " not null" : " null";
 
         sql.append(quote(column.getName()) + " ").append(dataType).append(nullable).append(", ");
       }
+
       sql.append(") engine=olap");
     }
 
