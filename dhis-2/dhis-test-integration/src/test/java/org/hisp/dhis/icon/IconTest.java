@@ -39,13 +39,11 @@ import com.google.common.hash.Hashing;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -280,13 +278,6 @@ class IconTest extends TrackerTest {
 
     String fileResourceUid = fileResourceService.asyncSaveFileResource(fileResource, content);
     return fileResourceService.getFileResource(fileResourceUid);
-  }
-
-  private Map<String, Icons> getAllDefaultIcons() {
-    return Arrays.stream(Icons.Icons.values())
-        .map(Icons.Icons::getVariants)
-        .flatMap(Collection::stream)
-        .collect(Collectors.toMap(Icons::getIconKey, Function.identity()));
   }
 
   private void assertContainsOnly(List<CustomIcon> listA, List<? extends Icon> listB) {

@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.icon;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -41,7 +42,9 @@ class IconDto {
 
   @JsonProperty private String description;
 
-  @JsonProperty private String[] keywords;
+  @JsonProperty private List<String> keywords;
 
   @JsonProperty private String fileResourceUid;
+
+  @JsonProperty private Boolean custom;
 }

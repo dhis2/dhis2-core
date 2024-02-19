@@ -28,7 +28,9 @@
 package org.hisp.dhis.icon;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -48,7 +50,7 @@ public class IconResponse {
 
   @JsonProperty private String description;
 
-  @JsonProperty private String[] keywords;
+  @JsonProperty private List<String> keywords = new ArrayList<>();
 
   @JsonProperty private String fileResourceUid;
 
@@ -64,7 +66,7 @@ public class IconResponse {
   public IconResponse(
       String key,
       String description,
-      String[] keywords,
+      List<String> keywords,
       String reference,
       Date created,
       Date lastUpdated) {

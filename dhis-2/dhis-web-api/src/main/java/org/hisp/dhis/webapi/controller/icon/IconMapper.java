@@ -29,15 +29,14 @@ package org.hisp.dhis.webapi.controller.icon;
 
 import static org.hisp.dhis.fileresource.FileResourceDomain.CUSTOM_ICON;
 
-import java.util.Arrays;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.icon.CustomIcon;
+import org.hisp.dhis.icon.Icon;
 import org.hisp.dhis.icon.IconResponse;
-import org.hisp.dhis.icon.Icons;
 import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.stereotype.Component;
@@ -49,15 +48,16 @@ public class IconMapper {
 
   private ContextService contextService;
 
-  public IconResponse from(Icon icon) {
-    if (icon instanceof CustomIcon ci) {
+  public IconResponse from(CustomIcon icon) {
+
+    if (icon.getCustom()) {
       return new IconResponse(
           icon.getIconKey(),
           icon.getDescription(),
           icon.getKeywords(),
-          ci.getFileResource().getUid(),
-          ci.getCreatedBy().getUid(),
-          getCustomIconReference(ci.getIconKey()),
+          icon.getFileResource().getUid(),
+          icon.getCreatedBy().getUid(),
+          getCustomIconReference(icon.getIconKey()),
           icon.getCreated(),
           icon.getLastUpdated());
     } else {
@@ -82,7 +82,8 @@ public class IconMapper {
     return new CustomIcon(
         iconDto.getKey(),
         iconDto.getDescription(),
-        Arrays.stream(iconDto.getKeywords()).toList(),
+        iconDto.getKeywords(),
+        iconDto.getCustom(),
         fileResource.get());
   }
 
@@ -95,6 +96,6 @@ public class IconMapper {
   private String getDefaultIconReference(String key) {
     return String.format(
         "%s%s/%s/icon.%s",
-        contextService.getApiPath(), IconSchemaDescriptor.API_ENDPOINT, key, Icons.Icons.SUFFIX);
+        contextService.getApiPath(), IconSchemaDescriptor.API_ENDPOINT, key, Icon.SUFFIX);
   }
 }

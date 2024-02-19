@@ -60,9 +60,16 @@ public class CustomIcon extends BaseIdentifiableObject {
   @JsonSerialize(as = BaseIdentifiableObject.class)
   private FileResource fileResource;
 
-  public CustomIcon(String key, String description, List<String> keywords) {
+  public CustomIcon(
+      String key,
+      String description,
+      List<String> keywords,
+      boolean custom,
+      FileResource fileResource) {
     this.iconKey = key;
     this.description = description;
     this.keywords = keywords;
+    this.custom = custom;
+    this.fileResource = fileResource;
   }
 }
