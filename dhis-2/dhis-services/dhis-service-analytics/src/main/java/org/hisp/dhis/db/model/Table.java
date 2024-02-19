@@ -30,7 +30,6 @@ package org.hisp.dhis.db.model;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.util.ObjectUtils.notNull;
 
-import java.util.ArrayList;
 import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -69,7 +68,8 @@ public class Table {
   /** Parent table. This table inherit from the parent if specified. Optional. */
   private final Table parent;
 
-  private List<TablePartition> partitions = new ArrayList<>();
+  /** Table partitions. */
+  private List<TablePartition> partitions;
 
   /**
    * Constructor.
@@ -85,7 +85,7 @@ public class Table {
     this.checks = List.of();
     this.logged = Logged.LOGGED;
     this.parent = null;
-    this.validate();
+    this.partitions = List.this.validate();
   }
 
   /**

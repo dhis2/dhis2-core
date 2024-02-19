@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.anyString;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
@@ -261,7 +261,7 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
     constant.setValue(7.8);
     constant.setAutoFields();
     constant.setName("Gravity");
-    List<Constant> constants = ListUtils.newList(constant);
+    List<Constant> constants = List.of(constant);
 
     when(constantService.getAllConstants()).thenReturn(constants);
     when(i18nManager.getI18n()).thenReturn(i18n);

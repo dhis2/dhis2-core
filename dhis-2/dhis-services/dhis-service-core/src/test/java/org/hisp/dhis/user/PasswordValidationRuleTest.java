@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.junit.jupiter.api.Assertions;
@@ -215,7 +214,7 @@ class PasswordValidationRuleTest {
   @Test
   void testPasswordHistoryValidationRule() {
     List<String> history =
-        ListUtils.newList(
+        List.of(
             STRONG_PASSWORD,
             STRONG_PASSWORD + "1",
             STRONG_PASSWORD + "2",

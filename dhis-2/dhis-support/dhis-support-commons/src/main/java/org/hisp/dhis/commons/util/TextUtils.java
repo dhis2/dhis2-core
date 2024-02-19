@@ -40,7 +40,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.commons.collection.ListUtils;
 
 /**
  * Utility class with methods for managing strings.
@@ -634,10 +633,10 @@ public class TextUtils {
    */
   public static List<String> getOptions(String param) {
     if (StringUtils.isEmpty(param)) {
-      return ListUtils.newList();
+      return Lists.newArrayList();
     }
 
-    return ListUtils.newList(param.split(OPTION_SEP));
+    return Lists.newArrayList(param.split(OPTION_SEP));
   }
 
   /**

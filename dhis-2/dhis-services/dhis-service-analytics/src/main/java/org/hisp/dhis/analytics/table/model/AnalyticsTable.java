@@ -211,7 +211,7 @@ public class AnalyticsTable extends Table {
    * @param endDate the end date.
    * @return this analytics table.
    */
-  public AnalyticsTable addTablePartition2(
+  public AnalyticsTable addTablePartition(
       List<String> checks, Integer year, Date startDate, Date endDate) {
     Assert.notNull(year, "Year must be specified");
 
