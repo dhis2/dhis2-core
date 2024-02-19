@@ -33,15 +33,23 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -69,7 +77,63 @@ class DefaultEventService implements EventService {
 
   private final DataElementService dataElementService;
 
+  private final FileResourceService fileResourceService;
+
   private final EventOperationParamsMapper paramsMapper;
+
+  @Override
+  public FileResourceStream getFileResource(UID eventUid, UID dataElementUid)
+      throws NotFoundException {
+    FileResource fileResource = getFileResourceMetadata(eventUid, dataElementUid);
+    return FileResourceStream.of(fileResourceService, fileResource);
+  }
+
+  @Override
+  public FileResourceStream getFileResourceImage(
+      UID eventUid, UID dataElementUid, ImageFileDimension dimension)
+      throws NotFoundException, ConflictException, BadRequestException {
+    FileResource fileResource = getFileResourceMetadata(eventUid, dataElementUid);
+    return FileResourceStream.ofImage(fileResourceService, fileResource, dimension);
+  }
+
+  private FileResource getFileResourceMetadata(UID eventUid, UID dataElementUid)
+      throws NotFoundException {
+    Event event = eventService.getEvent(eventUid.getValue());
+    if (event == null) {
+      throw new NotFoundException(Event.class, eventUid.getValue());
+    }
+
+    DataElement dataElement = dataElementService.getDataElement(dataElementUid.getValue());
+    if (dataElement == null) {
+      throw new NotFoundException(DataElement.class, dataElementUid.getValue());
+    }
+
+    if (!dataElement.getValueType().isFile()) {
+      throw new NotFoundException(
+          "Data element " + dataElementUid.getValue() + " is not a file (or image).");
+    }
+
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    List<String> errors = trackerAccessManager.canRead(currentUser, event, dataElement, false);
+    if (!errors.isEmpty()) {
+      throw new NotFoundException(DataElement.class, dataElementUid.getValue());
+    }
+
+    String fileResourceUid = null;
+    for (EventDataValue eventDataValue : event.getEventDataValues()) {
+      if (dataElementUid.getValue().equals(eventDataValue.getDataElement())) {
+        fileResourceUid = eventDataValue.getValue();
+        break;
+      }
+    }
+
+    if (fileResourceUid == null) {
+      throw new NotFoundException(
+          "DataValue for data element " + dataElementUid.getValue() + " could not be found.");
+    }
+
+    return fileResourceService.getExistingFileResource(fileResourceUid);
+  }
 
   @Override
   public Event getEvent(String uid, EventParams eventParams)
@@ -82,7 +146,6 @@ class DefaultEventService implements EventService {
     return getEvent(event, eventParams);
   }
 
-  @Override
   public Event getEvent(@Nonnull Event event, EventParams eventParams) throws ForbiddenException {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     List<String> errors = trackerAccessManager.canRead(currentUser, event, false);
@@ -146,8 +209,7 @@ class DefaultEventService implements EventService {
       Set<RelationshipItem> relationshipItems = new HashSet<>();
 
       for (RelationshipItem relationshipItem : event.getRelationshipItems()) {
-        org.hisp.dhis.relationship.Relationship daoRelationship =
-            relationshipItem.getRelationship();
+        Relationship daoRelationship = relationshipItem.getRelationship();
         if (trackerAccessManager.canRead(currentUser, daoRelationship).isEmpty()
             && (!daoRelationship.isDeleted())) {
           relationshipItems.add(relationshipItem);

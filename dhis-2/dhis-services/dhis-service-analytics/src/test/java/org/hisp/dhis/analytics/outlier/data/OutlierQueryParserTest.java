@@ -92,8 +92,8 @@ class OutlierQueryParserTest {
     // when
     OutlierRequest request = subject.getFromQuery(params, false);
     // then
-    assertEquals(1, (long) request.getDataElements().size());
-    assertEquals("deabcdefghB", request.getDataElements().get(0).getUid());
+    assertEquals(1, (long) request.getDataDimensions().size());
+    assertEquals("deabcdefghB", request.getDataDimensions().get(0).getDataElement().getUid());
   }
 
   @Test

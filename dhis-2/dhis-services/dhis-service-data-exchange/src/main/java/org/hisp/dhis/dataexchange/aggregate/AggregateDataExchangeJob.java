@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.dataexchange.aggregate;
 
-import static java.lang.String.format;
-
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -69,7 +67,7 @@ public class AggregateDataExchangeJob implements Job {
 
     List<String> dataExchangeIds = params.getDataExchangeIds();
     progress.startingProcess(
-        format("Aggregate data exchange of %d exchange(s) started", dataExchangeIds.size()));
+        "Aggregate data exchange with {} exchange(s) started", dataExchangeIds.size());
     ImportSummaries allSummaries = new ImportSummaries();
     for (String dataExchangeId : dataExchangeIds) {
       AggregateDataExchange exchange;
@@ -88,7 +86,7 @@ public class AggregateDataExchangeJob implements Job {
     if (status == ImportStatus.ERROR) {
       progress.failedProcess("Aggregate data exchange completed with errors");
     } else {
-      progress.completedProcess("Aggregate data exchange completed with status " + status);
+      progress.completedProcess("Aggregate data exchange completed with status: {}", status);
     }
   }
 }

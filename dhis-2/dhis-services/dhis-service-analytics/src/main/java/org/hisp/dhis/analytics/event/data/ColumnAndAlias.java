@@ -32,7 +32,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
+import org.hisp.dhis.system.util.SqlUtils;
 
 @Getter
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
@@ -60,6 +60,6 @@ class ColumnAndAlias {
   }
 
   public String getQuotedAlias() {
-    return Optional.ofNullable(alias).map(AnalyticsSqlUtils::quote).orElse(null);
+    return Optional.ofNullable(alias).map(SqlUtils::quote).orElse(null);
   }
 }

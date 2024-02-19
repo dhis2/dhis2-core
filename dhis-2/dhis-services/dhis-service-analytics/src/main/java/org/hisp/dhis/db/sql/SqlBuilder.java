@@ -27,10 +27,8 @@
  */
 package org.hisp.dhis.db.sql;
 
-import org.hisp.dhis.db.model.DataType;
+import java.util.Collection;
 import org.hisp.dhis.db.model.Index;
-import org.hisp.dhis.db.model.IndexFunction;
-import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Table;
 
 /**
@@ -57,14 +55,14 @@ public interface SqlBuilder {
   String dataTypeBigInt();
 
   /**
-   * @return the name of the numeric data type.
+   * @return the name of the decimal data type.
    */
-  String dataTypeNumeric();
+  String dataTypeDecimal();
 
   /**
-   * @return the name of the real data type.
+   * @return the name of the float data type.
    */
-  String dataTypeReal();
+  String dataTypeFloat();
 
   /**
    * @return the name of the double data type.
@@ -109,16 +107,6 @@ public interface SqlBuilder {
   String dataTypeTimestampTz();
 
   /**
-   * @return the name of the time data type.
-   */
-  String dataTypeTime();
-
-  /**
-   * @return the name of the time with time zone data type.
-   */
-  String dataTypeTimeTz();
-
-  /**
    * @return the name of the geometry data type.
    */
   String dataTypeGeometry();
@@ -129,15 +117,9 @@ public interface SqlBuilder {
   String dataTypeGeometryPoint();
 
   /**
-   * @return the name of the JSONB data type.
+   * @return the name of the JSON data type.
    */
-  String dataTypeJsonb();
-
-  /**
-   * @param dataType the {@link DataType}.
-   * @return the data type name.
-   */
-  String getDataTypeName(DataType dataType);
+  String dataTypeJson();
 
   // Index types
 
@@ -156,12 +138,6 @@ public interface SqlBuilder {
    */
   String indexTypeGin();
 
-  /**
-   * @param indexType the {@link IndexType}.
-   * @return the index type name.
-   */
-  String getIndexTypeName(IndexType indexType);
-
   // Index functions
 
   /**
@@ -174,13 +150,17 @@ public interface SqlBuilder {
    */
   String indexFunctionLower();
 
-  /**
-   * @param indexFunction the {@link IndexFunction}.
-   * @return the index function name.
-   */
-  String getIndexFunctionName(IndexFunction indexFunction);
-
   // Capabilities
+
+  /**
+   * @return true if the DBMS supports geospatial data types and functions.
+   */
+  boolean supportsGeospatialData();
+
+  /**
+   * @return true if the DBMS supports declarative partitioning.
+   */
+  boolean supportsDeclarativePartitioning();
 
   /**
    * @return true if the DBMS supports table analysis.
@@ -191,6 +171,49 @@ public interface SqlBuilder {
    * @return true if the DBMS supports table vacuuming.
    */
   boolean supportsVacuum();
+
+  /**
+   * @return true if the DBMS requires indexes for analytics tables for performance.
+   */
+  boolean requiresIndexesForAnalytics();
+
+  // Utilities
+
+  /**
+   * @param relation the relation to quote, e.g. a table or column name.
+   * @return a double quoted relation.
+   */
+  String quote(String relation);
+
+  /**
+   * @param relation the relation to quote, e.g. a column name.
+   * @return an aliased and double quoted relation.
+   */
+  String quote(String alias, String relation);
+
+  /**
+   * @param relation the relation to quote.
+   * @return an "ax" aliased and double quoted relation.
+   */
+  String quoteAx(String relation);
+
+  /**
+   * @param value the value to quote.
+   * @return a single quoted value.
+   */
+  String singleQuote(String value);
+
+  /**
+   * @param value the value to escape.
+   * @return the escaped value, with single quotes doubled up.
+   */
+  String escape(String value);
+
+  /**
+   * @param items the items to join.
+   * @return a string representing the comma delimited and single quoted item values.
+   */
+  String singleQuotedCommaDelimited(Collection<String> items);
 
   // Statements
 
@@ -217,12 +240,6 @@ public interface SqlBuilder {
    * @return a vacuum table statement.
    */
   String vacuumTable(Table table);
-
-  /**
-   * @param name the table name.
-   * @return a vacuum table statement.
-   */
-  String vacuumTable(String name);
 
   /**
    * @param table the {@link Table}.

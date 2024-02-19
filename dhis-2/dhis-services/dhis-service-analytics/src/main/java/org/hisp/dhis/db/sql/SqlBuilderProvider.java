@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,14 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.config.views;
+package org.hisp.dhis.db.sql;
 
-/**
- * Json view to keep confidential parameters from exposing through API and make sure their
- * availability while de-serialisation. @Author Zubair Asghar.
- */
-public class SmsConfigurationViews {
-  public static class Public {}
+import java.util.Objects;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
+import org.hisp.dhis.db.model.Database;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.stereotype.Service;
 
-  public static class Internal extends Public {}
+@Service
+public class SqlBuilderProvider {
+  private final SqlBuilder sqlBuilder;
+
+  public SqlBuilderProvider(AnalyticsTableSettings config) {
+    Objects.requireNonNull(config);
+    this.sqlBuilder = getSqlBuilder(config);
+  }
+
+  /**
+   * Returns a {@link SqlBuilder} implementation based on the system configuration.
+   *
+   * @return a {@link SqlBuilder}.
+   */
+  public SqlBuilder getSqlBuilder() {
+    return sqlBuilder;
+  }
+
+  /**
+   * Returns the appropriate {@link SqlBuilder} implementation based on the system configuration.
+   *
+   * @param config the {@link DhisConfigurationProvider}.
+   * @return a {@link SqlBuilder}.
+   */
+  private SqlBuilder getSqlBuilder(AnalyticsTableSettings config) {
+    Database database = config.getAnalyticsDatabase();
+    Objects.requireNonNull(database);
+    switch (database) {
+      default:
+        return new PostgreSqlBuilder();
+    }
+  }
 }

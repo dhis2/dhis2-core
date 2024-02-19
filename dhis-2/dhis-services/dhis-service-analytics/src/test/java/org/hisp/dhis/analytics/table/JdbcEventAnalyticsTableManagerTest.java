@@ -42,7 +42,6 @@ import static org.hisp.dhis.DhisConvenienceTest.createProgramStage;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramTrackedEntityAttribute;
 import static org.hisp.dhis.DhisConvenienceTest.createTrackedEntityAttribute;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.db.model.DataType.BIGINT;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
@@ -54,6 +53,7 @@ import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
 import static org.hisp.dhis.db.model.Table.STAGING_TABLE_SUFFIX;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -68,7 +68,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -78,7 +77,7 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.model.Skip;
-import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.analytics.table.util.PartitionUtils;
 import org.hisp.dhis.analytics.util.AnalyticsTableAsserter;
 import org.hisp.dhis.category.Category;
@@ -90,6 +89,8 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.db.model.IndexType;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -138,7 +139,9 @@ class JdbcEventAnalyticsTableManagerTest {
 
   @Mock private PeriodDataProvider periodDataProvider;
 
-  @Mock private AnalyticsTableExportSettings analyticsExportSettings;
+  @Mock private AnalyticsTableSettings analyticsTableSettings;
+
+  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
   private JdbcEventAnalyticsTableManager subject;
 
@@ -159,7 +162,7 @@ class JdbcEventAnalyticsTableManagerTest {
                 String column = pt.getName().toLowerCase();
                 return new AnalyticsTableColumn(column, TEXT, "dps" + "." + quote(column));
               })
-          .collect(Collectors.toList());
+          .toList();
 
   private final BeanRandomizer rnd = BeanRandomizer.create();
 
@@ -180,8 +183,9 @@ class JdbcEventAnalyticsTableManagerTest {
             mock(PartitionManager.class),
             databaseInfoProvider,
             jdbcTemplate,
-            analyticsExportSettings,
-            periodDataProvider);
+            analyticsTableSettings,
+            periodDataProvider,
+            sqlBuilder);
     assertThat(subject.getAnalyticsTableType(), is(AnalyticsTableType.EVENT));
   }
 
@@ -733,8 +737,7 @@ class JdbcEventAnalyticsTableManagerTest {
 
   @Test
   void verifyGetAnalyticsTableWithOuLevels() {
-    List<OrganisationUnitLevel> ouLevels =
-        rnd.objects(OrganisationUnitLevel.class, 2).collect(Collectors.toList());
+    List<OrganisationUnitLevel> ouLevels = rnd.objects(OrganisationUnitLevel.class, 2).toList();
     Program programA = rnd.nextObject(Program.class);
     programA.setId(0);
 
@@ -794,7 +797,7 @@ class JdbcEventAnalyticsTableManagerTest {
   @Test
   void verifyGetAnalyticsTableWithOuGroupSet() {
     List<OrganisationUnitGroupSet> ouGroupSet =
-        rnd.objects(OrganisationUnitGroupSet.class, 2).collect(Collectors.toList());
+        rnd.objects(OrganisationUnitGroupSet.class, 2).toList();
     Program programA = rnd.nextObject(Program.class);
     programA.setId(0);
 
@@ -836,8 +839,7 @@ class JdbcEventAnalyticsTableManagerTest {
 
   @Test
   void verifyGetAnalyticsTableWithOptionGroupSets() {
-    List<CategoryOptionGroupSet> cogs =
-        rnd.objects(CategoryOptionGroupSet.class, 2).collect(Collectors.toList());
+    List<CategoryOptionGroupSet> cogs = rnd.objects(CategoryOptionGroupSet.class, 2).toList();
     Program programA = rnd.nextObject(Program.class);
     programA.setId(0);
 

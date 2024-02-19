@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,24 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.hibernate;
+package org.hisp.dhis.analytics.outlier.data;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElement;
 
-/**
- * Encapsulation of a read only data source configuration.
- *
- * @author Lars Helge Overland
- */
+/* Represent the container for outliers elements*/
+@AllArgsConstructor
 @Getter
-@Setter
-@RequiredArgsConstructor
-public class ReadOnlyDataSourceConfig {
-  private final String url;
-
-  private final String username;
-
-  private final String password;
+public class DataDimension {
+  private DataElement dataElement;
+  private CategoryOptionCombo categoryOptionCombo;
 }

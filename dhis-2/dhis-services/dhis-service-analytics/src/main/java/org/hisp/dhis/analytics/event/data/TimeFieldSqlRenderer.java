@@ -31,9 +31,9 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.hisp.dhis.analytics.event.data.JdbcEventAnalyticsManager.OPEN_IN;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.util.ArrayList;
@@ -260,7 +260,7 @@ public abstract class TimeFieldSqlRenderer {
             .map(Period.class::cast)
             .collect(Collectors.groupingBy(Period::getPeriodType));
 
-    Collection<String> periodSingleConditions =
+    List<String> periodSingleConditions =
         periodsByType.entrySet().stream().map(entry -> toSqlCondition(alias, entry)).toList();
 
     String periodsCondition = wrapAndJoinWithOrIfNecessary(periodSingleConditions);

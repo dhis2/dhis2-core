@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.security.ldap.authentication;
 
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserStore;
 import org.springframework.ldap.core.DirContextOperations;
@@ -42,6 +43,7 @@ import org.springframework.security.ldap.authentication.BindAuthenticator;
  *
  * @author Lars Helge Overland
  */
+@Slf4j
 public class DhisBindAuthenticator extends BindAuthenticator {
 
   private UserStore userStore;
@@ -60,6 +62,8 @@ public class DhisBindAuthenticator extends BindAuthenticator {
     }
 
     if (user.hasLdapId()) {
+      log.debug(
+          "Attemping username/password LDAP authentication for user: '{}'", user.getUsername());
       authentication =
           new UsernamePasswordAuthenticationToken(
               user.getLdapId(), authentication.getCredentials());

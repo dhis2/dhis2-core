@@ -41,7 +41,6 @@ import static org.hisp.dhis.DhisConvenienceTest.createProgramIndicator;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.NE;
 import static org.hisp.dhis.common.QueryOperator.NEQ;
@@ -54,6 +53,7 @@ import static org.hisp.dhis.common.ValueType.BOOLEAN;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.period.RelativePeriodEnum.THIS_YEAR;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -90,6 +90,8 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodTypeEnum;
@@ -119,6 +121,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Mock private ExecutionPlanStore executionPlanStore;
 
+  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+
   private JdbcEventAnalyticsManager eventSubject;
 
   private JdbcEnrollmentAnalyticsManager enrollmentSubject;
@@ -146,7 +150,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             programIndicatorService,
             programIndicatorSubqueryBuilder,
             new EventTimeFieldSqlRenderer(),
-            executionPlanStore);
+            executionPlanStore,
+            sqlBuilder);
 
     enrollmentSubject =
         new JdbcEnrollmentAnalyticsManager(
@@ -154,7 +159,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             programIndicatorService,
             programIndicatorSubqueryBuilder,
             new EnrollmentTimeFieldSqlRenderer(),
-            executionPlanStore);
+            executionPlanStore,
+            sqlBuilder);
 
     programA = createProgram('A');
 
@@ -295,7 +301,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             .withAggregationType(fromAggregationType(AggregationType.CUSTOM))
             .build();
 
-    assertThrows(IllegalArgumentException.class, () -> eventSubject.getAggregateClause(params));
+    assertThrows(NullPointerException.class, () -> eventSubject.getAggregateClause(params));
   }
 
   @Test

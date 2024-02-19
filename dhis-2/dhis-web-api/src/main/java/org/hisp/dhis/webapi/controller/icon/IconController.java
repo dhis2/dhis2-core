@@ -41,6 +41,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -60,6 +61,7 @@ import org.hisp.dhis.icon.IconResponse;
 import org.hisp.dhis.icon.IconService;
 import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.HeaderUtils;
 import org.springframework.core.io.Resource;
@@ -100,6 +102,8 @@ public class IconController {
 
   private final IconRequestParamsMapper iconRequestParamsMapper;
 
+  private final LinkService linkService;
+
   @GetMapping("/{iconKey}")
   public @ResponseBody IconResponse getIcon(@PathVariable String iconKey) throws NotFoundException {
     Icon icon = iconService.getIcon(iconKey);
@@ -130,15 +134,28 @@ public class IconController {
   }
 
   @GetMapping
-  public @ResponseBody List<ObjectNode> getAllIcons(IconRequestParams iconRequestParams)
+  public @ResponseBody PaginatedIconResponse getAllIcons(IconRequestParams iconRequestParams)
       throws BadRequestException {
 
     IconOperationParams iconOperationParams = iconRequestParamsMapper.map(iconRequestParams);
 
+    Pager pager = null;
+
+    if (iconRequestParams.isPaging()) {
+      long total = iconService.count(iconOperationParams);
+      pager = new Pager(iconRequestParams.getPage(), total, iconRequestParams.getPageSize());
+      iconOperationParams.setPager(pager);
+    }
+
     List<IconResponse> iconResponses =
         iconService.getIcons(iconOperationParams).stream().map(iconMapper::from).toList();
 
-    return fieldFilterService.toObjectNodes(iconResponses, iconRequestParams.getFields());
+    List<ObjectNode> objectNodes =
+        fieldFilterService.toObjectNodes(iconResponses, iconRequestParams.getFields());
+
+    linkService.generatePagerLinks(pager, IconResponse.class);
+
+    return new PaginatedIconResponse(pager, objectNodes);
   }
 
   @GetMapping("/keywords")

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,51 +27,48 @@
  */
 package org.hisp.dhis.analytics.table.setting;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_UNLOGGED;
-import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_PERIOD_YEARS_OFFSET;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
 
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.model.Database;
+import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.springframework.stereotype.Component;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-/**
- * Component responsible for exposing analytics table export settings. Can hold settings living in
- * configuration files (ie. dhis.conf) or in system settings.
- *
- * @author maikel arabori
- */
-@Component
-@RequiredArgsConstructor
-public class AnalyticsTableExportSettings {
-  private final DhisConfigurationProvider dhisConfigurationProvider;
+@ExtendWith(MockitoExtension.class)
+class AnalyticsTableSettingsTest {
+  @Mock private DhisConfigurationProvider config;
 
-  private final SystemSettingManager systemSettingManager;
+  @Mock private SystemSettingManager systemSettings;
 
-  /**
-   * Returns the setting indicating whether resource and analytics tables should be logged or
-   * unlogged.
-   *
-   * @return the {@link Logged} parameter.
-   */
-  public Logged getTableLogged() {
-    if (dhisConfigurationProvider.isEnabled(ANALYTICS_TABLE_UNLOGGED)) {
-      return Logged.UNLOGGED;
-    }
+  private AnalyticsTableSettings settings;
 
-    return Logged.LOGGED;
+  @BeforeEach
+  public void before() {
+    settings = new AnalyticsTableSettings(config, systemSettings);
   }
 
-  /**
-   * Returns the years' offset defined for the period generation. See {@link
-   * ANALYTICS_MAX_PERIOD_YEARS_OFFSET}.
-   *
-   * @return the offset defined in system settings, or null if nothing is set.
-   */
-  public Integer getMaxPeriodYearsOffset() {
-    return systemSettingManager.getIntSetting(ANALYTICS_MAX_PERIOD_YEARS_OFFSET) < 0
-        ? null
-        : systemSettingManager.getIntSetting(ANALYTICS_MAX_PERIOD_YEARS_OFFSET);
+  @Test
+  void testGetAndValidateDatabase() {
+    assertEquals(Database.POSTGRESQL, settings.getAndValidateDatabase("POSTGRESQL"));
+  }
+
+  @Test
+  void testGetAndValidateInvalidDatabase() {
+    assertThrows(IllegalArgumentException.class, () -> settings.getAndValidateDatabase("ORACLE"));
+  }
+
+  @Test
+  void testGetAnalyticsDatabase() {
+    when(config.getProperty(ConfigurationKey.ANALYTICS_DATABASE))
+        .thenReturn(ConfigurationKey.ANALYTICS_DATABASE.getDefaultValue());
+
+    assertEquals(Database.POSTGRESQL, settings.getAnalyticsDatabase());
   }
 }

@@ -25,30 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.external.conf;
+package org.hisp.dhis.webapi.controller.programstageworkinglist;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.time.LocalDateTime;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonObject;
 
-/**
- * @author Lars Helge Overland
- */
-@Getter
-@Setter
-@NoArgsConstructor
-public class GoogleAccessToken {
-  @JsonProperty(value = "access_token")
-  private String accessToken;
+/** Representation of {@link org.hisp.dhis.programstageworkinglist.ProgramStageQueryCriteria}. */
+public interface JsonProgramStageQueryCriteria extends JsonObject {
 
-  @JsonProperty(value = "client_id")
-  private String clientId;
+  default String getEnrollmentStatus() {
+    return getString("enrollmentStatus").string();
+  }
 
-  @JsonProperty(value = "expires_in")
-  private long expiresInSeconds;
+  default String getOrder() {
+    return getString("order").string();
+  }
 
-  @JsonIgnore private LocalDateTime expiresOn;
+  default JsonArray getDisplayColumnOrder() {
+    return getArray("displayColumnOrder");
+  }
+
+  default JsonDatePeriod getEventOccurredAt() {
+    return get("eventOccurredAt").as(JsonDatePeriod.class);
+  }
+
+  default boolean getFollowUp() {
+    return getBoolean("followUp").booleanValue();
+  }
 }
