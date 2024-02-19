@@ -521,7 +521,7 @@ public class CrudControllerAdvice {
 
   @ExceptionHandler(BadCredentialsException.class)
   @ResponseBody
-  public WebMessage handleTwoFactorAuthenticationException(BadCredentialsException ex) {
+  public WebMessage handleBadCredentialsException(BadCredentialsException ex) {
     return unauthorized(ex.getMessage());
   }
 

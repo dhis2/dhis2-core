@@ -146,6 +146,7 @@ public abstract class DhisMockMvcControllerTest extends DhisConvenienceTest impl
       return response.getHeader(name);
     }
 
+    @Override
     public String[] getCookies() {
       Cookie[] cookies = response.getCookies();
       return Arrays.stream(cookies).map(Cookie::getValue).toArray(String[]::new);

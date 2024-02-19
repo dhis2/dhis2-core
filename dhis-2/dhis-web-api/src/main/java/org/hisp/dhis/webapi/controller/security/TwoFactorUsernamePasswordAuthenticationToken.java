@@ -44,4 +44,26 @@ public class TwoFactorUsernamePasswordAuthenticationToken
     super(principal, credentials);
     this.twoFactorCode = twoFactorCode;
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof TwoFactorUsernamePasswordAuthenticationToken that)) {
+      return false;
+    }
+    if (!super.equals(o)) {
+      return false;
+    }
+
+    return twoFactorCode.equals(that.twoFactorCode);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = super.hashCode();
+    result = 31 * result + twoFactorCode.hashCode();
+    return result;
+  }
 }
