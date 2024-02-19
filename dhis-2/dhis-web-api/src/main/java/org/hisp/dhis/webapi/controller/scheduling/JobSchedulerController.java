@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.scheduling;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.nullsLast;
+import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
@@ -105,6 +106,7 @@ public class JobSchedulerController {
             : config -> !name.equals(config.getQueueName());
     return jobConfigurationService.getAllJobConfigurations().stream()
         .filter(JobConfiguration::isConfigurable)
+        .filter(not(JobConfiguration::isLeaderOnlyJob))
         .filter(config -> config.getSchedulingType() != SchedulingType.FIXED_DELAY)
         .filter(config -> !config.isUsedInQueue())
         .filter(nameFilter)
