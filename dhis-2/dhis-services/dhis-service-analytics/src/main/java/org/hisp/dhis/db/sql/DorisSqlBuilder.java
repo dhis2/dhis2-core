@@ -34,6 +34,7 @@ import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
+import org.hisp.dhis.db.model.TablePartition;
 import org.hisp.dhis.db.model.constraint.Nullable;
 
 public class DorisSqlBuilder extends AbstractSqlBuilder {
@@ -227,10 +228,16 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     if (table.hasPartitions()) {
       sql.append("partition by range(year) (");
 
+      for (TablePartition partition : table.getPartitions()) {
+        sql.append("partition ")
+            .append(quote(partition.getName()))
+            .append(" values less than(\"")
+            .append(partition.getValue())
+            .append("\"),");
+      }
+
       removeLastComma(sql).append(") ");
     }
-
-    // TODO
 
     // Distribution
 

@@ -27,4 +27,15 @@
  */
 package org.hisp.dhis.db.model;
 
-public class TablePartition {}
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+@Getter
+@RequiredArgsConstructor
+public class TablePartition {
+  private final String name;
+
+  private final String key;
+
+  private final Integer value;
+}
