@@ -82,7 +82,7 @@ public enum ConfigurationKey {
   CONNECTION_DIALECT("connection.dialect", "", false),
 
   /** Analytics database platform. */
-  ANALYTICS_CONNECTION_DATABASE("analytics.connection.database", "", false),
+  ANALYTICS_DATABASE("analytics.database", "POSTGRESQL", false),
 
   /** JDBC driver class. */
   CONNECTION_DRIVER_CLASS("connection.driver_class", "org.postgresql.Driver", false),
@@ -380,8 +380,8 @@ public enum ConfigurationKey {
 
   PROGRAM_TEMPORARY_OWNERSHIP_TIMEOUT("tracker.temporary.ownership.timeout", "3", false),
 
-  /** Use unlogged tables during analytics export. (default: off) */
-  ANALYTICS_TABLE_UNLOGGED("analytics.table.unlogged", Constants.OFF),
+  /** Use unlogged tables during analytics export. (default: ON) */
+  ANALYTICS_TABLE_UNLOGGED("analytics.table.unlogged", Constants.ON),
 
   /** Order analytics tables data on insert. */
   ANALYTICS_TABLE_ORDERING("analytics.table.ordering", Constants.OFF),

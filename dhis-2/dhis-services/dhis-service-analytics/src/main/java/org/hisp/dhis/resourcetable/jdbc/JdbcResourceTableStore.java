@@ -28,6 +28,7 @@
 package org.hisp.dhis.resourcetable.jdbc;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 
 import java.util.List;
 import java.util.Optional;
@@ -54,9 +55,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.resourcetable.ResourceTableStore")
 public class JdbcResourceTableStore implements ResourceTableStore {
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
 
   private final AnalyticsTableHookService analyticsTableHookService;
 
@@ -90,7 +88,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
 
     jdbcTemplate.execute(sqlBuilder.renameTable(stagingTable, tableName));
 
-    log.info("Resource table '{}' update done: '{}'", tableName, clock.time());
+    log.info("Resource table update done: '{}' '{}'", tableName, clock.time());
   }
 
   /**
@@ -160,14 +158,14 @@ public class JdbcResourceTableStore implements ResourceTableStore {
       return;
     }
 
-    StringBuilder builder = new StringBuilder("insert into " + tableName + " values (");
+    StringBuilder sql = new StringBuilder("insert into " + tableName + " values (");
 
     for (int i = 0; i < columns; i++) {
-      builder.append("?,");
+      sql.append("?,");
     }
 
-    builder.deleteCharAt(builder.length() - 1).append(")");
+    removeLastComma(sql).append(")");
 
-    jdbcTemplate.batchUpdate(builder.toString(), batchArgs);
+    jdbcTemplate.batchUpdate(sql.toString(), batchArgs);
   }
 }

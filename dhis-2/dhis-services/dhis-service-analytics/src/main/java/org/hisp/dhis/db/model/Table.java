@@ -28,6 +28,8 @@
 package org.hisp.dhis.db.model;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
+import static org.hisp.dhis.db.model.Logged.UNLOGGED;
 import static org.hisp.dhis.util.ObjectUtils.notNull;
 
 import java.util.List;
@@ -76,12 +78,7 @@ public class Table {
    * @param primaryKey the primary key.
    */
   public Table(String name, List<Column> columns, List<String> primaryKey) {
-    this.name = name;
-    this.columns = columns;
-    this.primaryKey = primaryKey;
-    this.checks = List.of();
-    this.logged = Logged.LOGGED;
-    this.parent = null;
+    this(name, columns, primaryKey, List.of(), UNLOGGED, null);
     this.validate();
   }
 
@@ -94,12 +91,7 @@ public class Table {
    * @param logged the {@link Logged} parameter.
    */
   public Table(String name, List<Column> columns, List<String> primaryKey, Logged logged) {
-    this.name = name;
-    this.columns = columns;
-    this.primaryKey = primaryKey;
-    this.checks = List.of();
-    this.logged = logged;
-    this.parent = null;
+    this(name, columns, primaryKey, List.of(), logged, null);
     this.validate();
   }
 
@@ -118,12 +110,7 @@ public class Table {
       List<String> primaryKey,
       List<String> checks,
       Logged logged) {
-    this.name = name;
-    this.columns = columns;
-    this.primaryKey = primaryKey;
-    this.checks = checks;
-    this.logged = logged;
-    this.parent = null;
+    this(name, columns, primaryKey, checks, logged, null);
     this.validate();
   }
 
@@ -148,7 +135,7 @@ public class Table {
     this.columns = columns;
     this.primaryKey = primaryKey;
     this.checks = checks;
-    this.logged = logged;
+    this.logged = firstNonNull(logged, UNLOGGED);
     this.parent = parent;
     this.validate();
   }
@@ -192,7 +179,7 @@ public class Table {
    * @return true if the table is unlogged.
    */
   public boolean isUnlogged() {
-    return Logged.UNLOGGED == logged;
+    return UNLOGGED == logged;
   }
 
   /**

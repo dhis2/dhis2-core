@@ -27,12 +27,10 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -50,6 +48,7 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
@@ -114,25 +113,15 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   public FileResourceStream getFileResource(
       UID trackedEntity, UID attribute, @CheckForNull UID program) throws NotFoundException {
     FileResource fileResource = getFileResourceMetadata(trackedEntity, attribute, program);
+    return FileResourceStream.of(fileResourceService, fileResource);
+  }
 
-    return new FileResourceStream(
-        fileResource,
-        () -> {
-          try {
-            return fileResourceService.openContentStream(fileResource);
-          } catch (NoSuchElementException e) {
-            // Note: we are assuming that the file resource is not available yet. The same approach
-            // is taken in other file endpoints or code relying on the storageStatus = PENDING.
-            // All we know for sure is the file resource is in the DB but not in the store.
-            throw new ConflictException(
-                "The content is being processed and is not available yet. Try again later.");
-          } catch (IOException e) {
-            throw new ConflictException(
-                "Failed fetching the file from storage",
-                "There was an exception when trying to fetch the file from the storage backend. "
-                    + "Depending on the provider the root cause could be network or file system related.");
-          }
-        });
+  @Override
+  public FileResourceStream getFileResourceImage(
+      UID trackedEntity, UID attribute, @CheckForNull UID program, ImageFileDimension dimension)
+      throws NotFoundException, ConflictException, BadRequestException {
+    FileResource fileResource = getFileResourceMetadata(trackedEntity, attribute, program);
+    return FileResourceStream.ofImage(fileResourceService, fileResource, dimension);
   }
 
   private FileResource getFileResourceMetadata(
