@@ -207,7 +207,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
         sql.append(quote(column.getName()) + " ").append(dataType).append(nullable).append(", ");
       }
 
-      sql.append(") engine=olap ");
+      removeLastComma(sql).append(") engine=olap ");
     }
 
     // Primary key
@@ -219,12 +219,16 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
         sql.append(quote(columnName) + ", ");
       }
 
-      removeLastComma(sql).append("), ");
+      removeLastComma(sql).append(") ");
     }
 
     // Partitions
 
-    if (table.hasPartitions()) {}
+    if (table.hasPartitions()) {
+      sql.append("partition by range(year) (");
+
+      removeLastComma(sql).append(") ");
+    }
 
     // TODO
 
