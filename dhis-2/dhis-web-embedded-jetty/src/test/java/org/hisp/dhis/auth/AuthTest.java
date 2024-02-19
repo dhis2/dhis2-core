@@ -176,7 +176,7 @@ class AuthTest {
 
     assertNotNull(getResponse);
     assertNotNull(getResponse.getBody());
-    JsonNode body1 = getResponse.getBody();
-    log.info("MeDto: " + body1);
+    JsonNode meDto = getResponse.getBody();
+    log.info("MeDto: " + meDto);
   }
 }

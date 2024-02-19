@@ -30,11 +30,11 @@ package org.hisp.dhis.webapi.controller.security;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.web.WebClient;
 import org.hisp.dhis.webapi.DhisAuthenticationApiTest;
 import org.hisp.dhis.webapi.json.domain.JsonLoginResponse;
-import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,7 +72,7 @@ class AuthenticationControllerTest extends DhisAuthenticationApiTest {
   }
 
   @Test
-  void testLogin() {
+  void testSessionGetsCreated() {
     clearSecurityContext();
 
     GET("/users", WebClient.CookieHeader("JSESSIONID=123")).content(HttpStatus.OK);
@@ -81,10 +81,9 @@ class AuthenticationControllerTest extends DhisAuthenticationApiTest {
     assertNotNull(response);
 
     assertEquals(1, sessionRegistry.getAllPrincipals().size());
-    Object actual = sessionRegistry.getAllPrincipals().get(0);
+    UserDetailsImpl actual = (UserDetailsImpl) sessionRegistry.getAllPrincipals().get(0);
 
-    JsonUser user = GET("/me").content().as(JsonUser.class);
-
-    assertNotNull(user);
+    assertNotNull(actual);
+    assertEquals("admin", actual.getUsername());
   }
 }
