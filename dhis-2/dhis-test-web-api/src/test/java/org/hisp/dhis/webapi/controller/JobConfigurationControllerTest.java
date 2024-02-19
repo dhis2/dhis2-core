@@ -123,7 +123,8 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest {
       {"name":"test","jobType":"ANALYTICS_TABLE","cronExpression":"0 0 3 ? * *",
       "jobParameters":{"lastYears":"1",
         "skipTableTypes":["DATA_VALUE","COMPLETENESS","ENROLLMENT"],
-        "skipPrograms":["%s", "%s"]}}"""
+        "skipPrograms":["%s", "%s"],
+        "skipResourceTables": true}}"""
             .formatted(UID1, UID2);
     String jobId = assertStatus(HttpStatus.CREATED, POST("/jobConfigurations", json));
     JsonObject parameters = assertJobConfigurationExists(jobId, "ANALYTICS_TABLE");
