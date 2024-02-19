@@ -25,14 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.webapi.controller.userdatastore;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.domain.JsonDatastoreValue;
+import org.hisp.dhis.webapi.controller.UserDatastoreController;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
 
@@ -95,17 +95,6 @@ class UserDatastoreControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testUpdateUserKeyJsonValue() {
-    assertStatus(HttpStatus.CREATED, POST("/userDataStore/test/key1", "true"));
-    assertWebMessage(
-        "OK",
-        200,
-        "OK",
-        "Key updated: 'key1'",
-        PUT("/userDataStore/test/key1", "false").content(HttpStatus.OK));
-  }
-
-  @Test
   void testPutUserKeyJsonValue() {
     assertWebMessage(
         "Created",
@@ -154,14 +143,5 @@ class UserDatastoreControllerTest extends DhisControllerConvenienceTest {
     assertStatus(HttpStatus.CREATED, PUT("/userDataStore/test/mykey", "{\"name\":\"harry\"}"));
     JsonWebMessage myKey = GET("/userDataStore/test/mykey").content().as(JsonWebMessage.class);
     assertEquals("harry", myKey.getString("name").string());
-  }
-
-  @Test
-  void testPutEntry_EntryAlreadyExistsAndIsUpdated() {
-    assertStatus(HttpStatus.CREATED, PUT("/userDataStore/test/mykey", "{\"name\":\"harry\"}"));
-    assertStatus(HttpStatus.OK, PUT("/userDataStore/test/mykey", "{\"name\":\"barry\"}"));
-    JsonDatastoreValue emu =
-        GET("/userDataStore/test/mykey").content().as(JsonDatastoreValue.class);
-    assertEquals("barry", emu.getString("name").string());
   }
 }

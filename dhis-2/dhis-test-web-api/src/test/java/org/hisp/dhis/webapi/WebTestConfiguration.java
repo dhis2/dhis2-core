@@ -44,6 +44,7 @@ import org.hisp.dhis.config.StartupConfig;
 import org.hisp.dhis.config.StoreConfig;
 import org.hisp.dhis.configuration.NotifierConfiguration;
 import org.hisp.dhis.datasource.DatabasePoolUtils;
+import org.hisp.dhis.datasource.model.PoolConfig;
 import org.hisp.dhis.db.migration.config.FlywayConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -140,7 +141,7 @@ public class WebTestConfiguration {
     String username = config.getProperty(ConfigurationKey.CONNECTION_USERNAME);
     String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
 
-    DatabasePoolUtils.PoolConfig.PoolConfigBuilder builder = DatabasePoolUtils.PoolConfig.builder();
+    PoolConfig.PoolConfigBuilder builder = PoolConfig.builder();
     builder.dhisConfig(config);
     builder.dbPoolType(dbPoolType);
 

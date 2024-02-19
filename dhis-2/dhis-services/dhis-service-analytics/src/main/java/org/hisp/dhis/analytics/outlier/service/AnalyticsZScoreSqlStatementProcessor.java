@@ -30,17 +30,21 @@ package org.hisp.dhis.analytics.outlier.service;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.OutlierDetectionAlgorithm.MODIFIED_Z_SCORE;
 import static org.hisp.dhis.analytics.outlier.Order.ABS_DEV;
-import static org.hisp.dhis.analytics.outlier.data.OutlierSqlParams.DATA_ELEMENT_IDS;
+import static org.hisp.dhis.analytics.outlier.data.OutlierSqlParams.CATEGORY_OPTION_COMBO_ID;
+import static org.hisp.dhis.analytics.outlier.data.OutlierSqlParams.DATA_ELEMENT_ID;
 import static org.hisp.dhis.analytics.outlier.data.OutlierSqlParams.END_DATE;
 import static org.hisp.dhis.analytics.outlier.data.OutlierSqlParams.MAX_RESULTS;
 import static org.hisp.dhis.analytics.outlier.data.OutlierSqlParams.START_DATE;
 import static org.hisp.dhis.analytics.outlier.data.OutlierSqlParams.THRESHOLD;
 
+import java.util.List;
 import java.util.stream.Collectors;
 import org.hisp.dhis.analytics.OutlierDetectionAlgorithm;
 import org.hisp.dhis.analytics.outlier.OutlierHelper;
 import org.hisp.dhis.analytics.outlier.OutlierSqlStatementProcessor;
+import org.hisp.dhis.analytics.outlier.data.DataDimension;
 import org.hisp.dhis.analytics.outlier.data.OutlierRequest;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -106,8 +110,17 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
     MapSqlParameterSource sqlParameterSource =
         new MapSqlParameterSource()
             .addValue(THRESHOLD.getKey(), request.getThreshold())
-            .addValue(DATA_ELEMENT_IDS.getKey(), request.getDataElementIds())
             .addValue(MAX_RESULTS.getKey(), request.getMaxResults());
+
+    for (int i = 0; i < request.getDataDimensions().size(); i++) {
+      sqlParameterSource.addValue(
+          DATA_ELEMENT_ID.getKey() + i,
+          request.getDataDimensions().get(i).getDataElement().getId());
+      CategoryOptionCombo coc = request.getDataDimensions().get(i).getCategoryOptionCombo();
+      if (coc != null) {
+        sqlParameterSource.addValue(CATEGORY_OPTION_COMBO_ID.getKey() + i, coc.getId());
+      }
+    }
 
     if (request.hasStartEndDate()) {
       sqlParameterSource
@@ -191,13 +204,8 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
             + thresholdParam
             + ") as upper_bound "
             + "from analytics ax "
-            + "where dataelementid in  ("
-            + (withParams
-                ? ":" + DATA_ELEMENT_IDS.getKey()
-                : request.getDataElementIds().stream()
-                    .map(Object::toString)
-                    .collect(Collectors.joining(",")))
-            + ") "
+            + "where "
+            + getDataDimensionSql(withParams, request.getDataDimensions())
             + "and "
             + ouPathClause
             + getPeriodSqlSnippet(request, withParams)
@@ -213,6 +221,46 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
             + " ";
 
     return sql;
+  }
+
+  /**
+   * The function retrieves the sql form of the data dimension objects
+   *
+   * @param withParams determines the usage of sql parameter source
+   * @param dataDimensions the list of {@link DataDimension}.
+   * @return the sql form of the data dimension objects
+   */
+  private String getDataDimensionSql(boolean withParams, List<DataDimension> dataDimensions) {
+    StringBuilder sql = new StringBuilder("(");
+    if (withParams) {
+      for (int i = 0; i < dataDimensions.size(); i++) {
+        sql.append(i == 0 ? "(ax.dataelementid = :" : " or (ax.dataelementid = :")
+            .append(DATA_ELEMENT_ID.getKey())
+            .append(i);
+        if (dataDimensions.get(i).getCategoryOptionCombo() != null) {
+          sql.append(" and ax.categoryoptioncomboid = :")
+              .append(CATEGORY_OPTION_COMBO_ID.getKey())
+              .append(i);
+        }
+        sql.append(")");
+      }
+      sql.append(") ");
+
+      return sql.toString();
+    }
+
+    return dataDimensions.stream()
+        .map(
+            dd -> {
+              String s = "(ax.dataelementid = " + dd.getDataElement().getId();
+              if (dd.getCategoryOptionCombo() != null) {
+                s += " and ax.categoryoptioncomboid = " + dd.getCategoryOptionCombo().getId();
+              }
+              s += ")";
+
+              return s;
+            })
+        .collect(Collectors.joining(" or "));
   }
 
   /**

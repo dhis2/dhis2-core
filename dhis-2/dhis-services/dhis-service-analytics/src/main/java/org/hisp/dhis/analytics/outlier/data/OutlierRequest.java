@@ -44,7 +44,6 @@ import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.outlier.Order;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.OrganisationUnitDescendants;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
@@ -69,7 +68,7 @@ public class OutlierRequest {
 
   private String queryKey;
 
-  @Default private List<DataElement> dataElements = new ArrayList<>();
+  @Default private List<DataDimension> dataDimensions = new ArrayList<>();
 
   @Default private List<OrganisationUnit> orgUnits = new ArrayList<>();
 
@@ -90,10 +89,6 @@ public class OutlierRequest {
   private boolean analyzeOnly;
 
   private String explainOrderId;
-
-  public List<Long> getDataElementIds() {
-    return dataElements.stream().map(DataElement::getId).toList();
-  }
 
   public boolean hasDataStartEndDate() {
     return dataStartDate != null && dataEndDate != null;

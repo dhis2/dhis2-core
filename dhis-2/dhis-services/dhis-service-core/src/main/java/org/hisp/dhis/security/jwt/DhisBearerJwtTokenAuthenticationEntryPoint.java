@@ -72,7 +72,7 @@ public class DhisBearerJwtTokenAuthenticationEntryPoint
           (HandlerExceptionResolver) applicationContext.getBean("handlerExceptionResolver");
       handlerExceptionResolver.resolveException(request, response, null, authException);
     } catch (BeansException e) {
-      log.error("Could not find a HandlerExceptionResolver bean!");
+      log.error("Could not find a HandlerExceptionResolver bean");
     }
   }
 }

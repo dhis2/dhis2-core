@@ -28,6 +28,7 @@
 package org.hisp.dhis.external.conf;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_URL;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -52,6 +53,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.encryption.EncryptionStatus;
+import org.hisp.dhis.external.conf.model.GoogleAccessToken;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
 import org.hisp.dhis.external.util.LogOnceLogger;
@@ -238,7 +240,7 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
 
   @Override
   public boolean remoteServerIsInAllowedList(String url) {
-    if (StringUtils.isNotEmpty(url)) {
+    if (StringUtils.isNotBlank(url)) {
       List<String> remoteServersAllowed = getRemoteServersAllowed();
       return !getRemoteServersAllowed().isEmpty()
           && remoteServersAllowed.stream().anyMatch(url::startsWith);
@@ -254,6 +256,11 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
     return !(ConfigurationKey.LDAP_URL.getDefaultValue().equals(ldapUrl)
         || ldapUrl == null
         || managerDn == null);
+  }
+
+  @Override
+  public boolean isAnalyticsDatabaseConfigured() {
+    return StringUtils.isNotBlank(getProperty(ANALYTICS_CONNECTION_URL));
   }
 
   @Override

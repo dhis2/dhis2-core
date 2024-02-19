@@ -37,7 +37,9 @@ public enum OutlierSqlParams {
   // For example the threshold=3 means all data lying outside 3 sigma (3 * standard deviation)
   // are considered as the outliers
   THRESHOLD("threshold"),
-  DATA_ELEMENT_IDS("data_element_ids"),
+  DATA_ELEMENT_ID("data_element_id"),
+  CATEGORY_OPTION_COMBO_ID("category_option_combo_id"),
+  ATTRIBUTE_OPTION_ID("attribute_option_id"),
   START_DATE("start_date"),
   END_DATE("end_date"),
   // start date criteria of statistic data collection (the stats will be based on data starting on

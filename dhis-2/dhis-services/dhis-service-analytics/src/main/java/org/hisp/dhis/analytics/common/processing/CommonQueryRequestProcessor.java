@@ -37,7 +37,6 @@ import static org.hisp.dhis.feedback.ErrorCode.E7140;
 import static org.hisp.dhis.feedback.ErrorCode.E7141;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_LIMIT;
 
-import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -150,7 +149,7 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
     return commonQueryRequest;
   }
 
-  private Collection<String> eventStatusAsDimension(Set<String> eventStatuses) {
+  private List<String> eventStatusAsDimension(Set<String> eventStatuses) {
     // builds a map of [program,program stage] with a list of event statuses
     Map<Pair<String, String>, List<EventStatus>> statusesByProgramAndProgramStage =
         eventStatuses.stream()

@@ -25,11 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.webapi.controller.userdatastore;
 
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.datastore.DatastoreParams;
+import org.hisp.dhis.webapi.controller.AbstractUserDatastoreControllerTest;
+import org.hisp.dhis.webapi.controller.UserDatastoreController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
