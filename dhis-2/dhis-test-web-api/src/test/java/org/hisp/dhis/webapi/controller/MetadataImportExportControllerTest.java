@@ -535,4 +535,22 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
                 JsonErrorReport.class, errorReport -> errorReport.getErrorCode() == ErrorCode.E6305)
             .getMessage());
   }
+
+  @Test
+  @DisplayName(
+      "Should return error E6305 if create a new AggregateDataExchange without authentication details")
+  void testUpdateAggregateDataExchangeWithoutAuthentication() {
+    POST("/metadata/", Body("metadata/aggregate_data_exchange.json")).content(HttpStatus.OK);
+    JsonImportSummary report =
+        POST("/metadata/", Body("metadata/aggregate_data_exchange_no_auth.json"))
+            .content(HttpStatus.CONFLICT)
+            .get("response")
+            .as(JsonImportSummary.class);
+    assertEquals(
+        "Aggregate data exchange target API must specify either access token or username and password",
+        report
+            .find(
+                JsonErrorReport.class, errorReport -> errorReport.getErrorCode() == ErrorCode.E6305)
+            .getMessage());
+  }
 }
