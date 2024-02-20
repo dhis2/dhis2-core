@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -43,6 +44,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -62,6 +64,7 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.relationship.Relationship;
@@ -129,27 +132,31 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit));
     this.userService.updateUser(user);
 
+    trackedEntityType = trackedEntityTypeAccessible();
+
     program = createProgram('A');
     program.addOrganisationUnit(orgUnit);
     program.getSharing().setOwner(owner);
     program.getSharing().addUserAccess(userAccess());
+    program.setTrackedEntityType(trackedEntityType);
     manager.save(program, false);
+
+    de = createDataElement('A', ValueType.TEXT, AggregationType.NONE);
+    de.getSharing().setOwner(owner);
+    manager.save(de, false);
 
     programStage = createProgramStage('A', program);
     programStage.getSharing().setOwner(owner);
     programStage.getSharing().addUserAccess(userAccess());
+    ProgramStageDataElement programStageDataElement =
+        createProgramStageDataElement(programStage, de, 1, false);
+    programStage.setProgramStageDataElements(Sets.newHashSet(programStageDataElement));
     manager.save(programStage, false);
-
-    de = createDataElement('A');
-    de.getSharing().setOwner(owner);
-    manager.save(de, false);
 
     dv = new EventDataValue();
     dv.setDataElement(de.getUid());
     dv.setStoredBy("user");
     dv.setValue(DATA_ELEMENT_VALUE);
-
-    trackedEntityType = trackedEntityTypeAccessible();
   }
 
   @Test
