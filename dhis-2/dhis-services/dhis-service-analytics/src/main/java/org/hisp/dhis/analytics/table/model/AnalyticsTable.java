@@ -147,7 +147,7 @@ public class AnalyticsTable extends Table {
    * @return a {@link TablePartition}.
    */
   private TablePartition toTablePartition(AnalyticsTablePartition partition) {
-    return new TablePartition(partition.getName(), null, null);
+    return new TablePartition(partition.getName(), "year", partition.getYear());
   }
 
   /**
