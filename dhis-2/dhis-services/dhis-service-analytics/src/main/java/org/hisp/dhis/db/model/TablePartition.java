@@ -30,6 +30,11 @@ package org.hisp.dhis.db.model;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * Represents a database table.
+ *
+ * @author Lars Helge Overland
+ */
 @Getter
 @RequiredArgsConstructor
 public class TablePartition {
