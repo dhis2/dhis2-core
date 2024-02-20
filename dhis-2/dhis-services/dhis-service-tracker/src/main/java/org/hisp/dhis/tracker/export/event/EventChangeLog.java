@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
 import org.hisp.dhis.program.UserInfoSnapshot;
@@ -40,6 +41,6 @@ public record EventChangeLog(
 
   public record DataValueChange(
       @JsonProperty String dataElement,
-      @JsonProperty String previousValue,
-      @JsonProperty String currentValue) {}
+      @JsonInclude @JsonProperty String previousValue,
+      @JsonInclude @JsonProperty String currentValue) {}
 }

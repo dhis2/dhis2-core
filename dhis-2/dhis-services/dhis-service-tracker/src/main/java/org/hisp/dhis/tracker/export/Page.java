@@ -48,4 +48,7 @@ public class Page<T> {
    * return of totals.
    */
   private final boolean pageTotal;
+
+  private final boolean hasPrevious;
+  private final boolean hasNext;
 }

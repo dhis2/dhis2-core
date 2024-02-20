@@ -273,12 +273,12 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     if (pageParams.isPageTotal()) {
       Pager pager =
           new Pager(pageParams.getPage(), relationshipsCount.getAsInt(), pageParams.getPageSize());
-      return Page.of(relationships, pager, pageParams.isPageTotal());
+      return Page.of(relationships, pager, pageParams.isPageTotal(), false, false);
     }
 
     Pager pager = new Pager(pageParams.getPage(), 0, pageParams.getPageSize());
     pager.force(pageParams.getPage(), pageParams.getPageSize());
-    return Page.of(relationships, pager, pageParams.isPageTotal());
+    return Page.of(relationships, pager, pageParams.isPageTotal(), false, false);
   }
 
   @Override

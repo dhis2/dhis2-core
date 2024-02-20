@@ -104,11 +104,24 @@ public class Page<T> {
       this.total = pager.getTotal();
       this.pageCount = pager.getPageCount();
       this.pager =
-          new Pager(pager.getPage(), pager.getPageSize(), pager.getTotal(), pager.getPageCount());
+          new Pager(
+              pager.getPage(),
+              pager.getPageSize(),
+              pager.getTotal(),
+              pager.getPageCount(),
+              pager.getPrevPage(),
+              pager.getNextPage());
     } else {
       this.total = null;
       this.pageCount = null;
-      this.pager = new Pager(pager.getPage(), pager.getPageSize(), null, null);
+      this.pager =
+          new Pager(
+              pager.getPage(),
+              pager.getPageSize(),
+              null,
+              null,
+              pager.getPrevPage(),
+              pager.getNextPage());
     }
   }
 
@@ -139,5 +152,7 @@ public class Page<T> {
     @JsonProperty private Integer pageSize;
     @JsonProperty private Long total;
     @JsonProperty private Integer pageCount;
+    @JsonProperty private String prev;
+    @JsonProperty private String next;
   }
 }

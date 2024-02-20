@@ -213,7 +213,8 @@ class DefaultEnrollmentService
             params.isIncludeDeleted(),
             queryParams.getOrganisationUnitMode());
 
-    return Page.of(enrollments, enrollmentsPage.getPager(), enrollmentsPage.isPageTotal());
+    return Page.of(
+        enrollments, enrollmentsPage.getPager(), enrollmentsPage.isPageTotal(), false, false);
   }
 
   private List<Enrollment> getEnrollments(

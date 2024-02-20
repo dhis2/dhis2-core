@@ -133,12 +133,12 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
     if (pageParams.isPageTotal()) {
       Pager pager =
           new Pager(pageParams.getPage(), enrollmentCount.getAsInt(), pageParams.getPageSize());
-      return Page.of(enrollments, pager, pageParams.isPageTotal());
+      return Page.of(enrollments, pager, pageParams.isPageTotal(), false, false);
     }
 
     Pager pager = new Pager(pageParams.getPage(), 0, pageParams.getPageSize());
     pager.force(pageParams.getPage(), pageParams.getPageSize());
-    return Page.of(enrollments, pager, pageParams.isPageTotal());
+    return Page.of(enrollments, pager, pageParams.isPageTotal(), false, false);
   }
 
   private QueryWithOrderBy buildEnrollmentHql(EnrollmentQueryParams params) {

@@ -436,12 +436,12 @@ class JdbcEventStore implements EventStore {
     if (pageParams.isPageTotal()) {
       Pager pager =
           new Pager(pageParams.getPage(), eventCount.getAsInt(), pageParams.getPageSize());
-      return Page.of(events, pager, pageParams.isPageTotal());
+      return Page.of(events, pager, pageParams.isPageTotal(), false, false);
     }
 
     Pager pager = new Pager(pageParams.getPage(), 0, pageParams.getPageSize());
     pager.force(pageParams.getPage(), pageParams.getPageSize());
-    return Page.of(events, pager, pageParams.isPageTotal());
+    return Page.of(events, pager, pageParams.isPageTotal(), false, false);
   }
 
   @Override

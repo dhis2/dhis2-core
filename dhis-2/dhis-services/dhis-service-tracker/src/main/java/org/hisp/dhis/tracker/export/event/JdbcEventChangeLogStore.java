@@ -29,7 +29,10 @@ package org.hisp.dhis.tracker.export.event;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.tracker.export.Page;
+import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.event.EventChangeLog.Change;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -59,7 +62,7 @@ class JdbcEventChangeLogStore {
                     rs.getString("currentValue"))));
       };
 
-  public List<EventChangeLog> getEventChangeLog(String eventUid) {
+  public Page<EventChangeLog> getEventChangeLog(String eventUid, PageParams pageParams) {
     final String sql =
         """
             select
@@ -85,8 +88,28 @@ class JdbcEventChangeLogStore {
               where t.audittype in ('CREATE', 'UPDATE', 'DELETE')
               and e.uid = ?
               order by t.created desc) cl
+              limit ? offset ?
             """;
 
-    return jdbcTemplate.query(sql, customEventChangeLogRowMapper, eventUid);
+    List<EventChangeLog> changeLogs =
+        jdbcTemplate.query(
+            sql,
+            customEventChangeLogRowMapper,
+            eventUid,
+            pageParams.getPageSize() + 1,
+            (pageParams.getPage() - 1) * pageParams.getPageSize());
+
+    Pager pager = new Pager();
+    pager.force(pageParams.getPage(), pageParams.getPageSize());
+    if (changeLogs.size() > pageParams.getPageSize()) {
+      return Page.of(
+          changeLogs.subList(0, pageParams.getPageSize()),
+          pager,
+          false,
+          pageParams.getPage() != 1,
+          true);
+    } else {
+      return Page.of(changeLogs, pager, false, pageParams.getPage() != 1, false);
+    }
   }
 }

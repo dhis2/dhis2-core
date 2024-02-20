@@ -184,12 +184,12 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     if (pageParams.isPageTotal()) {
       Pager pager =
           new Pager(pageParams.getPage(), enrollmentCount.getAsInt(), pageParams.getPageSize());
-      return Page.of(teIds, pager, pageParams.isPageTotal());
+      return Page.of(teIds, pager, pageParams.isPageTotal(), false, false);
     }
 
     Pager pager = new Pager(pageParams.getPage(), 0, pageParams.getPageSize());
     pager.force(pageParams.getPage(), pageParams.getPageSize());
-    return Page.of(teIds, pager, pageParams.isPageTotal());
+    return Page.of(teIds, pager, pageParams.isPageTotal(), false, false);
   }
 
   @Override

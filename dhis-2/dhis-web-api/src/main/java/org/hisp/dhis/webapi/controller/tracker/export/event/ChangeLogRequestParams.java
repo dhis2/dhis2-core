@@ -25,19 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.webapi.controller.tracker.export.event;
 
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
+import java.util.List;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 
-public interface EventChangeLogService {
+@OpenApi.Shared(name = "ChangeLogRequestParams")
+@OpenApi.Property
+@Data
+@NoArgsConstructor
+public class ChangeLogRequestParams {
 
-  /**
-   * Retrieves the change log data for a particular event
-   *
-   * @return paginated list of change logs of the supplied event, if any
-   */
-  Page<EventChangeLog> getEventChangeLog(UID event, PageParams pageParams) throws NotFoundException;
+  static final String DEFAULT_FIELDS_PARAM = "createdBy, change, createdAt";
+
+  @OpenApi.Property(defaultValue = "1")
+  private Integer page;
+
+  @OpenApi.Property(defaultValue = "50")
+  private Integer pageSize;
+
+  private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
 }
