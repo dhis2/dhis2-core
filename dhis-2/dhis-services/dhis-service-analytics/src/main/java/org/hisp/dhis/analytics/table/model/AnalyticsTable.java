@@ -35,6 +35,7 @@ import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
+import org.hisp.dhis.db.model.TablePartition;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.springframework.util.Assert;
@@ -140,6 +141,16 @@ public class AnalyticsTable extends Table {
   }
 
   /**
+   * Converts the given analytics table partition to a table partition.
+   *
+   * @param partition the {@link AnalyticsTablePartition}.
+   * @return a {@link TablePartition}.
+   */
+  private TablePartition toTablePartition(AnalyticsTablePartition partition) {
+    return new TablePartition(partition.getName(), "year", partition.getYear());
+  }
+
+  /**
    * Returns a table name.
    *
    * @param tableType the {@link AnalyticsTableType}.
@@ -210,10 +221,12 @@ public class AnalyticsTable extends Table {
       List<String> checks, Integer year, Date startDate, Date endDate) {
     Assert.notNull(year, "Year must be specified");
 
-    AnalyticsTablePartition tablePartition =
+    AnalyticsTablePartition partition =
         new AnalyticsTablePartition(this, checks, year, startDate, endDate);
 
-    this.tablePartitions.add(tablePartition);
+    this.tablePartitions.add(partition);
+
+    super.addPartition(toTablePartition(partition));
 
     return this;
   }

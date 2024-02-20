@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,30 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentitydatavalue;
+package org.hisp.dhis.tracker.export.event;
 
 import java.util.List;
-import org.hisp.dhis.dataelement.DataElement;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentity.TrackedEntityDataValueChangeLogQueryParams;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public interface TrackedEntityDataValueChangeLogService {
-  void addTrackedEntityDataValueChangeLog(
-      TrackedEntityDataValueChangeLog trackedEntityDataValueChangeLog);
+@Service("org.hisp.dhis.tracker.export.event.ChangeLogService")
+@Transactional(readOnly = true)
+@RequiredArgsConstructor
+public class DefaultEventChangeLogService implements EventChangeLogService {
 
-  /**
-   * @deprecated use ChangeLogService.getEventChangeLog(UID) instead
-   */
-  @Deprecated(since = "2.41")
-  List<TrackedEntityDataValueChangeLog> getTrackedEntityDataValueChangeLogs(
-      TrackedEntityDataValueChangeLogQueryParams params);
+  private final org.hisp.dhis.program.EventService eventService;
 
-  int countTrackedEntityDataValueChangeLogs(TrackedEntityDataValueChangeLogQueryParams params);
+  private final JdbcEventChangeLogStore jdbcEventChangeLogStore;
 
-  void deleteTrackedEntityDataValueChangeLog(DataElement dataElement);
+  private final TrackerAccessManager trackerAccessManager;
 
-  void deleteTrackedEntityDataValueChangeLog(Event event);
+  private final UserService userService;
+
+  @Override
+  public List<EventChangeLog> getEventChangeLog(UID eventUid) throws NotFoundException {
+    Event event = eventService.getEvent(eventUid.getValue());
+    if (event == null) {
+      throw new NotFoundException(Event.class, eventUid.getValue());
+    }
+
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    List<String> errors = trackerAccessManager.canRead(currentUser, event, false);
+    if (!errors.isEmpty()) {
+      throw new NotFoundException(Event.class, eventUid.getValue());
+    }
+
+    return jdbcEventChangeLogStore.getEventChangeLog(eventUid.getValue());
+  }
 }

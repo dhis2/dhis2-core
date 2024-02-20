@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.anyString;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
@@ -45,7 +45,6 @@ import kotlinx.datetime.Instant;
 import kotlinx.datetime.LocalDateTime;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
@@ -261,7 +260,7 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
     constant.setValue(7.8);
     constant.setAutoFields();
     constant.setName("Gravity");
-    List<Constant> constants = ListUtils.newList(constant);
+    List<Constant> constants = List.of(constant);
 
     when(constantService.getAllConstants()).thenReturn(constants);
     when(i18nManager.getI18n()).thenReturn(i18n);
@@ -269,7 +268,7 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
 
     Map<String, DataItem> itemStore =
         subject.getItemStore(
-            ListUtils.newList(programRuleVariableA, programRuleVariableB, programRuleVariableC));
+            List.of(programRuleVariableA, programRuleVariableB, programRuleVariableC));
 
     assertNotNull(itemStore);
     assertTrue(itemStore.containsKey(programRuleVariableA.getName()));
