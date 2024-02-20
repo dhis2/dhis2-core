@@ -48,7 +48,6 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -140,13 +139,10 @@ public class TrackerRelationshipsExportController {
             criteria,
             criteria.isIncludeDeleted());
 
-    PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
-
     if (criteria.isPagingRequest()) {
-      long count = 0L;
-
+      List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(relationships, fields);
       if (criteria.isTotalPages()) {
-        count =
+        long count =
             tryGetRelationshipFrom(
                     identifier,
                     criteria.getIdentifierClass(),
@@ -154,16 +150,16 @@ public class TrackerRelationshipsExportController {
                     null,
                     criteria.isIncludeDeleted())
                 .size();
+        return PagingWrapper.withPager(
+            objectNodes, criteria.getPageWithDefault(), criteria.getPageSizeWithDefault(), count);
       }
 
-      Pager pager =
-          new Pager(criteria.getPageWithDefault(), count, criteria.getPageSizeWithDefault());
-
-      pagingWrapper = pagingWrapper.withPager(PagingWrapper.Pager.fromLegacy(criteria, pager));
+      return PagingWrapper.withPager(
+          objectNodes, criteria.getPageWithDefault(), criteria.getPageSizeWithDefault());
     }
 
     List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(relationships, fields);
-    return pagingWrapper.withInstances(objectNodes);
+    return PagingWrapper.withoutPager(objectNodes);
   }
 
   @GetMapping("{id}")
