@@ -24,6 +24,17 @@ for how to use it.
 
 NOTE: this query parameter has no effect on a response in CSV!
 
+### `getEventDataValueFile`
+
+Get an event data value file or image for given event and data element UID. Images are returned in
+their original dimension.
+
+### `getEventDataValueImage`
+
+Get an event data value image for given event and data element UID. Images are returned in their
+original dimension by default. This endpoint is only supported for data elements of value type
+image.
+
 ## Common for all endpoints
 
 ### `*.parameter.EventRequestParams.program`

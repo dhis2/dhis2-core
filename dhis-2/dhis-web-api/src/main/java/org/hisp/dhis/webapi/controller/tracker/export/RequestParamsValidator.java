@@ -46,6 +46,7 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -429,6 +430,13 @@ public class RequestParamsValidator {
 
   private static boolean lessThan(Integer a, int b) {
     return a != null && a < b;
+  }
+
+  public static void validateUnsupportedParameter(
+      HttpServletRequest request, String dimension, String message) throws BadRequestException {
+    if (StringUtils.isNotEmpty(request.getParameter(dimension))) {
+      throw new BadRequestException(message);
+    }
   }
 
   private static QueryFilter operatorValueQueryFilter(String operator, String value, String filter)

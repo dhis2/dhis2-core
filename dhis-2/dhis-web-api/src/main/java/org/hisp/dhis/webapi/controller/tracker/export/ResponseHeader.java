@@ -37,12 +37,18 @@ public class ResponseHeader {
     throw new IllegalStateException("Utility class");
   }
 
-  public static void addContentDisposition(HttpServletResponse response, String filename) {
-    response.addHeader(ContextUtils.HEADER_CONTENT_DISPOSITION, contentDispositionValue(filename));
+  public static void addContentDispositionAttachment(
+      HttpServletResponse response, String filename) {
+    response.addHeader(
+        ContextUtils.HEADER_CONTENT_DISPOSITION, contentDispositionAttachment(filename));
   }
 
-  public static String contentDispositionValue(String filename) {
+  public static String contentDispositionAttachment(String filename) {
     return "attachment; filename=" + filename;
+  }
+
+  public static String contentDispositionInline(String filename) {
+    return "filename=" + filename;
   }
 
   public static void addContentTransferEncodingBinary(HttpServletResponse response) {
