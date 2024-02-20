@@ -224,9 +224,9 @@ public class AnalyticsTable extends Table {
     AnalyticsTablePartition partition =
         new AnalyticsTablePartition(this, checks, year, startDate, endDate);
 
-    this.tablePartitions.add(partition);
-
     super.addPartition(toTablePartition(partition));
+
+    this.tablePartitions.add(partition);
 
     return this;
   }
