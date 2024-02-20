@@ -27,30 +27,36 @@
  */
 package org.hisp.dhis.analytics.table.setting;
 
+import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.db.model.Logged.LOGGED;
 import static org.hisp.dhis.db.model.Logged.UNLOGGED;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_ORDERING;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_UNLOGGED;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_PERIOD_YEARS_OFFSET;
+import static org.hisp.dhis.util.ObjectUtils.isNull;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.EnumUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.stereotype.Component;
 
 /**
- * Component responsible for exposing analytics table export settings. Can hold settings living in
- * configuration files (ie. dhis.conf) or in system settings.
+ * Component responsible for exposing analytics table settings. Provides settings living in
+ * configuration files (dhis.conf) and in system settings.
  *
  * @author maikel arabori
  */
 @Component
 @RequiredArgsConstructor
-public class AnalyticsTableExportSettings {
-  private final DhisConfigurationProvider dhisConfigurationProvider;
+public class AnalyticsTableSettings {
+  private final DhisConfigurationProvider config;
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingManager systemSettings;
 
   /**
    * Returns the setting indicating whether resource and analytics tables should be logged or
@@ -59,7 +65,7 @@ public class AnalyticsTableExportSettings {
    * @return the {@link Logged} parameter.
    */
   public Logged getTableLogged() {
-    if (dhisConfigurationProvider.isEnabled(ANALYTICS_TABLE_UNLOGGED)) {
+    if (config.isEnabled(ANALYTICS_TABLE_UNLOGGED)) {
       return UNLOGGED;
     }
 
@@ -67,7 +73,7 @@ public class AnalyticsTableExportSettings {
   }
 
   public boolean isTableOrdering() {
-    return dhisConfigurationProvider.isEnabled(ANALYTICS_TABLE_ORDERING);
+    return config.isEnabled(ANALYTICS_TABLE_ORDERING);
   }
 
   /**
@@ -77,8 +83,42 @@ public class AnalyticsTableExportSettings {
    * @return the offset defined in system settings, or null if nothing is set.
    */
   public Integer getMaxPeriodYearsOffset() {
-    return systemSettingManager.getIntSetting(ANALYTICS_MAX_PERIOD_YEARS_OFFSET) < 0
+    return systemSettings.getIntSetting(ANALYTICS_MAX_PERIOD_YEARS_OFFSET) < 0
         ? null
-        : systemSettingManager.getIntSetting(ANALYTICS_MAX_PERIOD_YEARS_OFFSET);
+        : systemSettings.getIntSetting(ANALYTICS_MAX_PERIOD_YEARS_OFFSET);
+  }
+
+  /**
+   * Returns the configured analytics {@link Database}. Default is {@link Database#POSTGRESQL}.
+   *
+   * @return the analytics {@link Database}.
+   */
+  public Database getAnalyticsDatabase() {
+    String value = config.getProperty(ANALYTICS_DATABASE);
+    String valueUpperCase = StringUtils.trimToEmpty(value).toUpperCase();
+    return getAndValidateDatabase(valueUpperCase);
+  }
+
+  /**
+   * Returns the {@link Database} matching the given value.
+   *
+   * @param value the string value.
+   * @return the {@link Database}.
+   * @throws IllegalArgumentException if the value does not match a valid option.
+   */
+  Database getAndValidateDatabase(String value) {
+    Database database = EnumUtils.getEnum(Database.class, value);
+
+    if (isNull(database)) {
+      String message =
+          format(
+              "Property '{}' has illegal value: '{}', allowed options: {}",
+              ANALYTICS_DATABASE.getKey(),
+              value,
+              StringUtils.join(Database.values(), ','));
+      throw new IllegalArgumentException(message);
+    }
+
+    return database;
   }
 }

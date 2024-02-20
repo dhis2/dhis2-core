@@ -25,44 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.db.sql;
+package org.hisp.dhis.db.model;
 
-import java.util.Objects;
-import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
-import org.hisp.dhis.db.model.Database;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.stereotype.Service;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-@Service
-public class SqlBuilderProvider {
-  private final SqlBuilder sqlBuilder;
+/**
+ * Represents a database table partition.
+ *
+ * @author Lars Helge Overland
+ */
+@Getter
+@RequiredArgsConstructor
+public class TablePartition {
+  /** Partition name. Required. */
+  private final String name;
 
-  public SqlBuilderProvider(AnalyticsTableSettings config) {
-    Objects.requireNonNull(config);
-    this.sqlBuilder = getSqlBuilder(config);
-  }
+  /** Partition column. Must be a table key. Required. */
+  private final String column;
 
-  /**
-   * Returns a {@link SqlBuilder} implementation based on the system configuration.
-   *
-   * @return a {@link SqlBuilder}.
-   */
-  public SqlBuilder getSqlBuilder() {
-    return sqlBuilder;
-  }
-
-  /**
-   * Returns the appropriate {@link SqlBuilder} implementation based on the system configuration.
-   *
-   * @param config the {@link DhisConfigurationProvider}.
-   * @return a {@link SqlBuilder}.
-   */
-  private SqlBuilder getSqlBuilder(AnalyticsTableSettings config) {
-    Database database = config.getAnalyticsDatabase();
-    Objects.requireNonNull(database);
-    switch (database) {
-      default:
-        return new PostgreSqlBuilder();
-    }
-  }
+  /** Partition value. Required. */
+  private final Object value;
 }

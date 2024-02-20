@@ -79,7 +79,7 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
   public List<PrefixedDimension> getQueryDimensionsByProgramStageId(
       String programId, String programStageId) {
 
-    Collection<ProgramStage> programStages = getProgramStages(programId, programStageId);
+    Set<ProgramStage> programStages = getProgramStages(programId, programStageId);
 
     if (CollectionUtils.isNotEmpty(programStages)) {
       return programStages.stream()
@@ -90,7 +90,7 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
     return List.of();
   }
 
-  private Collection<ProgramStage> getProgramStages(String programId, String programStageId) {
+  private Set<ProgramStage> getProgramStages(String programId, String programStageId) {
     checkProgramStageIsInProgramIfNecessary(programId, programStageId);
     return Optional.ofNullable(programStageId)
         .filter(StringUtils::isNotBlank)
@@ -138,7 +138,7 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
                         filterByValueType(
                             QUERY,
                             ofItemsWithProgram(p, getTeasIfRegistrationAndNotConfidential(p))),
-                        ofItemsWithProgram(p, getCategoriesIfNeeded(p)),
+                        ofItemsWithProgram(p, getCategories(p)),
                         ofItemsWithProgram(p, getAttributeCategoryOptionGroupSetsIfNeeded(p)))))
         .orElse(List.of());
   }
@@ -156,7 +156,7 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
                             AGGREGATE,
                             ofItemsWithProgram(
                                 ps.getProgram(), ps.getProgram().getTrackedEntityAttributes())),
-                        ofItemsWithProgram(ps.getProgram(), getCategoriesIfNeeded(ps.getProgram())),
+                        ofItemsWithProgram(ps.getProgram(), getCategories(ps.getProgram())),
                         ofItemsWithProgram(
                             ps.getProgram(),
                             getAttributeCategoryOptionGroupSetsIfNeeded(ps.getProgram())))))
@@ -179,7 +179,7 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
     return ATTRIBUTE == categoryOptionGroupSet.getDataDimensionType();
   }
 
-  private Collection<Category> getCategoriesIfNeeded(Program program) {
+  private List<Category> getCategories(Program program) {
     return Optional.of(program)
         .filter(Program::hasNonDefaultCategoryCombo)
         .map(Program::getCategoryCombo)

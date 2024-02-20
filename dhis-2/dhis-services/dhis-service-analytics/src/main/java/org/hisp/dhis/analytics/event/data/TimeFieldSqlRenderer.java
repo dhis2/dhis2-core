@@ -260,7 +260,7 @@ public abstract class TimeFieldSqlRenderer {
             .map(Period.class::cast)
             .collect(Collectors.groupingBy(Period::getPeriodType));
 
-    Collection<String> periodSingleConditions =
+    List<String> periodSingleConditions =
         periodsByType.entrySet().stream().map(entry -> toSqlCondition(alias, entry)).toList();
 
     String periodsCondition = wrapAndJoinWithOrIfNecessary(periodSingleConditions);

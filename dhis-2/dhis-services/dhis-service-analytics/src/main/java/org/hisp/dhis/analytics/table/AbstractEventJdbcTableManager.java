@@ -39,7 +39,7 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.model.Skip;
-import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -71,7 +71,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
       PartitionManager partitionManager,
       DatabaseInfoProvider databaseInfoProvider,
       JdbcTemplate jdbcTemplate,
-      AnalyticsTableExportSettings analyticsExportSettings,
+      AnalyticsTableSettings analyticsExportSettings,
       PeriodDataProvider periodDataProvider,
       SqlBuilder sqlBuilder) {
     super(
