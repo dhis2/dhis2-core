@@ -71,6 +71,8 @@ import org.springframework.security.authentication.event.AuthenticationFailureBa
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
@@ -122,6 +124,11 @@ public class WebTestConfiguration {
   @Bean
   public static SessionRegistry sessionRegistry() {
     return new org.springframework.security.core.session.SessionRegistryImpl();
+  }
+
+  @Bean
+  public RequestCache requestCache() {
+    return new HttpSessionRequestCache();
   }
 
   @Autowired private DhisConfigurationProvider dhisConfigurationProvider;
