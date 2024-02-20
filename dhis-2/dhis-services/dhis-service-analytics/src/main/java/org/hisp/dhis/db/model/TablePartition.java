@@ -31,16 +31,19 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Represents a database table.
+ * Represents a database table partition.
  *
  * @author Lars Helge Overland
  */
 @Getter
 @RequiredArgsConstructor
 public class TablePartition {
+  /** Partition name. Required. */
   private final String name;
 
-  private final String key;
+  /** Partition column. Must be a table key. Required. */
+  private final String column;
 
+  /** Partition value. Required. */
   private final Object value;
 }

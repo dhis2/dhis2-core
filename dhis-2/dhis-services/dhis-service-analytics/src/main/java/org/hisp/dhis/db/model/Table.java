@@ -32,13 +32,13 @@ import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 import static org.hisp.dhis.db.model.Logged.UNLOGGED;
 import static org.hisp.dhis.util.ObjectUtils.notNull;
 
+import java.util.ArrayList;
 import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.Validate;
-import org.hisp.dhis.commons.collection.ListUtils;
 
 /**
  * Represents a database table.
@@ -72,7 +72,7 @@ public class Table {
   private final Table parent;
 
   /** Table partitions. */
-  private List<TablePartition> partitions;
+  private final List<TablePartition> partitions = new ArrayList<>();
 
   /**
    * Constructor.
@@ -83,7 +83,6 @@ public class Table {
    */
   public Table(String name, List<Column> columns, List<String> primaryKey) {
     this(name, columns, primaryKey, List.of(), Logged.UNLOGGED, null);
-    this.partitions = ListUtils.of();
     this.validate();
   }
 
@@ -97,7 +96,6 @@ public class Table {
    */
   public Table(String name, List<Column> columns, List<String> primaryKey, Logged logged) {
     this(name, columns, primaryKey, List.of(), logged, null);
-    this.partitions = ListUtils.of();
     this.validate();
   }
 
@@ -117,7 +115,6 @@ public class Table {
       List<String> checks,
       Logged logged) {
     this(name, columns, primaryKey, checks, logged, null);
-    this.partitions = ListUtils.of();
     this.validate();
   }
 
@@ -144,7 +141,6 @@ public class Table {
     this.checks = checks;
     this.logged = firstNonNull(logged, UNLOGGED);
     this.parent = parent;
-    this.partitions = ListUtils.of();
     this.validate();
   }
 
@@ -209,21 +205,21 @@ public class Table {
   }
 
   /**
-   * Adds a partition to this table.
-   *
-   * @param partition the {@link TablePartition}.
-   */
-  public void addPartition(TablePartition partition) {
-    this.partitions.add(partition);
-  }
-
-  /**
    * Indicates whether the table has at least one partition.
    *
    * @return true if the table has at least one partition.
    */
   public boolean hasPartitions() {
     return isNotEmpty(partitions);
+  }
+
+  /**
+   * Adds a partition to this table.
+   *
+   * @param partition the {@link TablePartition}.
+   */
+  public void addPartition(TablePartition partition) {
+    this.partitions.add(partition);
   }
 
   /**
