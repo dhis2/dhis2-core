@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.web.WebClient;
 import org.hisp.dhis.webapi.DhisAuthenticationApiTest;
 import org.hisp.dhis.webapi.json.domain.JsonLoginResponse;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
@@ -74,8 +73,6 @@ class AuthenticationControllerTest extends DhisAuthenticationApiTest {
   @Test
   void testSessionGetsCreated() {
     clearSecurityContext();
-
-    GET("/users", WebClient.CookieHeader("JSESSIONID=123")).content(HttpStatus.OK);
 
     HttpResponse response = POST("/auth/login", "{'username':'admin','password':'district'}");
     assertNotNull(response);

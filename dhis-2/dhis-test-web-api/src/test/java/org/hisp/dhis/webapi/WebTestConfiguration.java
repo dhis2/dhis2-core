@@ -177,16 +177,6 @@ public class WebTestConfiguration {
     return new BCryptPasswordEncoder();
   }
 
-  //  @Bean
-  //  public LdapAuthenticator ldapAuthenticator() {
-  //    return authentication -> null;
-  //  }
-
-  //  @Bean
-  //  public LdapAuthoritiesPopulator ldapAuthoritiesPopulator() {
-  //    return (dirContextOperations, s) -> null;
-  //  }
-
   @Bean
   public DefaultAuthenticationEventPublisher authenticationEventPublisher() {
     DefaultAuthenticationEventPublisher defaultAuthenticationEventPublisher =
