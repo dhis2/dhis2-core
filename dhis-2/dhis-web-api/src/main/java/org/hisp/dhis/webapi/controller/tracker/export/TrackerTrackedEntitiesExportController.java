@@ -45,7 +45,6 @@ import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
@@ -121,26 +120,25 @@ public class TrackerTrackedEntitiesExportController {
             trackedEntityInstanceService.getTrackedEntityInstances(
                 queryParams, trackedEntityInstanceParams, false, false));
 
-    PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
-
     if (criteria.isPagingRequest()) {
-
-      Long count = 0L;
-
+      List<ObjectNode> objectNodes =
+          fieldFilterService.toObjectNodes(trackedEntityInstances, fields);
       if (criteria.isTotalPages()) {
-        count =
-            (long)
-                trackedEntityInstanceService.getTrackedEntityInstanceCount(queryParams, true, true);
+        long count =
+            trackedEntityInstanceService.getTrackedEntityInstanceCount(queryParams, true, true);
+        return PagingWrapper.withPager(
+            objectNodes,
+            queryParams.getPageWithDefault(),
+            queryParams.getPageSizeWithDefault(),
+            count);
       }
 
-      Pager pager =
-          new Pager(queryParams.getPageWithDefault(), count, queryParams.getPageSizeWithDefault());
-
-      pagingWrapper = pagingWrapper.withPager(PagingWrapper.Pager.fromLegacy(criteria, pager));
+      return PagingWrapper.withPager(
+          objectNodes, queryParams.getPageWithDefault(), queryParams.getPageSizeWithDefault());
     }
 
     List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(trackedEntityInstances, fields);
-    return pagingWrapper.withInstances(objectNodes);
+    return PagingWrapper.withoutPager(objectNodes);
   }
 
   @GetMapping(produces = {CONTENT_TYPE_CSV, CONTENT_TYPE_TEXT_CSV})
