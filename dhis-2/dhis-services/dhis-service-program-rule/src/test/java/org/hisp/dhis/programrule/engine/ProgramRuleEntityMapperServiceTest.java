@@ -45,7 +45,6 @@ import kotlinx.datetime.Instant;
 import kotlinx.datetime.LocalDateTime;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
@@ -269,7 +268,7 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
 
     Map<String, DataItem> itemStore =
         subject.getItemStore(
-            ListUtils.newList(programRuleVariableA, programRuleVariableB, programRuleVariableC));
+            List.of(programRuleVariableA, programRuleVariableB, programRuleVariableC));
 
     assertNotNull(itemStore);
     assertTrue(itemStore.containsKey(programRuleVariableA.getName()));
