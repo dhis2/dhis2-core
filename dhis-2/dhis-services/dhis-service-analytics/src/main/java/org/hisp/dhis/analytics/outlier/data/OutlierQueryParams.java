@@ -79,6 +79,8 @@ public class OutlierQueryParams {
 
   private IdScheme outputIdScheme = IdScheme.UID;
 
+  private boolean skipRounding;
+
   public boolean hasHeaders() {
     return headers != null && !headers.isEmpty();
   }
@@ -98,6 +100,7 @@ public class OutlierQueryParams {
     key.add(orderBy);
     key.add(sortOrder);
     key.add(outputIdScheme);
+    key.add(skipRounding);
 
     if (ds != null) {
       ds.forEach(e -> key.add("ds", "[" + e + "]"));

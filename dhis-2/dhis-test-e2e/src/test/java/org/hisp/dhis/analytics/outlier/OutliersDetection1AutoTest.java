@@ -150,12 +150,12 @@ public class OutliersDetection1AutoTest extends AnalyticsApiTest {
             "HllvX50cXC0",
             "default",
             "23.0",
-            "7.54839",
-            "5.14837",
-            "15.45161",
-            "3.00126",
-            "-7.89673",
-            "22.9935"));
+            "7.5",
+            "5.1",
+            "15.5",
+            "3.0",
+            "-7.9",
+            "23.0"));
     validateRow(
         response,
         1,
@@ -172,12 +172,12 @@ public class OutliersDetection1AutoTest extends AnalyticsApiTest {
             "HllvX50cXC0",
             "default",
             "220.0",
-            "41.64407",
-            "57.44954",
-            "178.35593",
-            "3.10457",
-            "-130.70455",
-            "213.99269"));
+            "41.6",
+            "57.4",
+            "178.4",
+            "3.1",
+            "-130.7",
+            "214.0"));
     validateRow(
         response,
         2,
@@ -194,12 +194,12 @@ public class OutliersDetection1AutoTest extends AnalyticsApiTest {
             "HllvX50cXC0",
             "default",
             "245.0",
-            "43.01818",
-            "64.62015",
-            "201.98182",
-            "3.12568",
-            "-150.84226",
-            "236.87862"));
+            "43.0",
+            "64.6",
+            "202.0",
+            "3.1",
+            "-150.8",
+            "236.9"));
     validateRow(
         response,
         3,
@@ -216,12 +216,12 @@ public class OutliersDetection1AutoTest extends AnalyticsApiTest {
             "HllvX50cXC0",
             "default",
             "120.0",
-            "28.96124",
-            "28.86816",
-            "91.03876",
-            "3.1536",
-            "-57.64324",
-            "115.56572"));
+            "29.0",
+            "28.9",
+            "91.0",
+            "3.2",
+            "-57.6",
+            "115.6"));
     validateRow(
         response,
         4,
@@ -238,12 +238,12 @@ public class OutliersDetection1AutoTest extends AnalyticsApiTest {
             "HllvX50cXC0",
             "default",
             "466.0",
-            "48.18605",
-            "114.27966",
-            "417.81395",
-            "3.65607",
-            "-294.65294",
-            "391.02504"));
+            "48.2",
+            "114.3",
+            "417.8",
+            "3.7",
+            "-294.7",
+            "391.0"));
   }
 
   @Test
