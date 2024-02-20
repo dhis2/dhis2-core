@@ -34,6 +34,7 @@ import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.wri
 import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeZip;
 import static org.hisp.dhis.webapi.controller.tracker.export.FileResourceRequestHandler.handleFileRequest;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateUnsupportedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.event.EventRequestParams.DEFAULT_FIELDS_PARAM;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_GZIP;
@@ -61,6 +62,8 @@ import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.tracker.export.PageParams;
+import org.hisp.dhis.tracker.export.event.EventChangeLog;
+import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
@@ -83,7 +86,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(value = RESOURCE_PATH + "/" + EventsExportController.EVENTS)
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-@OpenApi.Ignore
 class EventsExportController {
   protected static final String EVENTS = "events";
 
@@ -101,19 +103,23 @@ class EventsExportController {
 
   private final ObjectMapper objectMapper;
 
+  private final EventChangeLogService eventChangeLogService;
+
   public EventsExportController(
       EventService eventService,
       EventRequestParamsMapper eventParamsMapper,
       CsvService<Event> csvEventService,
       FieldFilterService fieldFilterService,
       EventFieldsParamMapper eventsMapper,
-      ObjectMapper objectMapper) {
+      ObjectMapper objectMapper,
+      EventChangeLogService eventChangeLogService) {
     this.eventService = eventService;
     this.eventParamsMapper = eventParamsMapper;
     this.csvEventService = csvEventService;
     this.fieldFilterService = fieldFilterService;
     this.eventsMapper = eventsMapper;
     this.objectMapper = objectMapper;
+    this.eventChangeLogService = eventChangeLogService;
 
     assertUserOrderableFieldsAreSupported(
         "event", EventMapper.ORDERABLE_FIELDS, eventService.getOrderableFields());
@@ -158,7 +164,7 @@ class EventsExportController {
     List<org.hisp.dhis.program.Event> events = eventService.getEvents(eventOperationParams);
 
     String attachment = getAttachmentOrDefault(eventRequestParams.getAttachment(), "json", "gz");
-    ResponseHeader.addContentDisposition(response, attachment);
+    ResponseHeader.addContentDispositionAttachment(response, attachment);
     ResponseHeader.addContentTransferEncodingBinary(response);
     response.setContentType(CONTENT_TYPE_JSON_GZIP);
 
@@ -176,7 +182,7 @@ class EventsExportController {
     List<org.hisp.dhis.program.Event> events = eventService.getEvents(eventOperationParams);
 
     String attachment = getAttachmentOrDefault(eventRequestParams.getAttachment(), "json", "zip");
-    ResponseHeader.addContentDisposition(response, attachment);
+    ResponseHeader.addContentDispositionAttachment(response, attachment);
     ResponseHeader.addContentTransferEncodingBinary(response);
     response.setContentType(CONTENT_TYPE_JSON_ZIP);
 
@@ -198,7 +204,7 @@ class EventsExportController {
     List<org.hisp.dhis.program.Event> events = eventService.getEvents(eventOperationParams);
 
     String attachment = getAttachmentOrDefault(eventRequestParams.getAttachment(), "csv");
-    ResponseHeader.addContentDisposition(response, attachment);
+    ResponseHeader.addContentDispositionAttachment(response, attachment);
     response.setContentType(CONTENT_TYPE_CSV);
 
     csvEventService.write(
@@ -216,7 +222,7 @@ class EventsExportController {
     List<org.hisp.dhis.program.Event> events = eventService.getEvents(eventOperationParams);
 
     String attachment = getAttachmentOrDefault(eventRequestParams.getAttachment(), "csv", "gz");
-    ResponseHeader.addContentDisposition(response, attachment);
+    ResponseHeader.addContentDispositionAttachment(response, attachment);
     ResponseHeader.addContentTransferEncodingBinary(response);
     response.setContentType(CONTENT_TYPE_CSV_GZIP);
 
@@ -235,7 +241,7 @@ class EventsExportController {
     List<org.hisp.dhis.program.Event> events = eventService.getEvents(eventOperationParams);
 
     String attachment = getAttachmentOrDefault(eventRequestParams.getAttachment(), "csv", "zip");
-    ResponseHeader.addContentDisposition(response, attachment);
+    ResponseHeader.addContentDispositionAttachment(response, attachment);
     ResponseHeader.addContentTransferEncodingBinary(response);
     response.setContentType(CONTENT_TYPE_CSV_ZIP);
 
@@ -270,6 +276,11 @@ class EventsExportController {
       @OpenApi.Param({UID.class, DataElement.class}) @PathVariable UID dataElement,
       HttpServletRequest request)
       throws NotFoundException, ConflictException, BadRequestException {
+    validateUnsupportedParameter(
+        request,
+        "dimension",
+        "Request parameter 'dimension' is only supported for images by API /tracker/event/dataValues/{dataElement}/image");
+
     return handleFileRequest(request, eventService.getFileResource(event, dataElement));
   }
 
@@ -282,5 +293,12 @@ class EventsExportController {
       throws NotFoundException, ConflictException, BadRequestException {
     return handleFileRequest(
         request, eventService.getFileResourceImage(event, dataElement, dimension));
+  }
+
+  @GetMapping("/{uid}/changeLog")
+  List<EventChangeLog> getEventByUid(@OpenApi.Param({UID.class, Event.class}) @PathVariable UID uid)
+      throws NotFoundException {
+
+    return eventChangeLogService.getEventChangeLog(uid);
   }
 }

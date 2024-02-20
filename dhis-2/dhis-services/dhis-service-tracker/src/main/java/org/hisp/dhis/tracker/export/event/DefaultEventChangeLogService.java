@@ -25,35 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.tracker.export.event;
 
-import javax.servlet.http.HttpServletResponse;
-import org.hisp.dhis.webapi.utils.ContextUtils;
+import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-/** ResponseHeader sets HTTP headers common in tracker export endpoints. */
-public class ResponseHeader {
+@Service("org.hisp.dhis.tracker.export.event.ChangeLogService")
+@Transactional(readOnly = true)
+@RequiredArgsConstructor
+public class DefaultEventChangeLogService implements EventChangeLogService {
 
-  private ResponseHeader() {
-    throw new IllegalStateException("Utility class");
-  }
+  private final org.hisp.dhis.program.EventService eventService;
 
-  public static void addContentDispositionAttachment(
-      HttpServletResponse response, String filename) {
-    response.addHeader(
-        ContextUtils.HEADER_CONTENT_DISPOSITION, contentDispositionAttachment(filename));
-  }
+  private final JdbcEventChangeLogStore jdbcEventChangeLogStore;
 
-  public static String contentDispositionAttachment(String filename) {
-    return "attachment; filename=" + filename;
-  }
+  private final TrackerAccessManager trackerAccessManager;
 
-  public static String contentDispositionInline(String filename) {
-    return "filename=" + filename;
-  }
+  private final UserService userService;
 
-  public static void addContentTransferEncodingBinary(HttpServletResponse response) {
-    response.addHeader(
-        ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING,
-        ContextUtils.BINARY_HEADER_CONTENT_TRANSFER_ENCODING);
+  @Override
+  public List<EventChangeLog> getEventChangeLog(UID eventUid) throws NotFoundException {
+    Event event = eventService.getEvent(eventUid.getValue());
+    if (event == null) {
+      throw new NotFoundException(Event.class, eventUid.getValue());
+    }
+
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    List<String> errors = trackerAccessManager.canRead(currentUser, event, false);
+    if (!errors.isEmpty()) {
+      throw new NotFoundException(Event.class, eventUid.getValue());
+    }
+
+    return jdbcEventChangeLogStore.getEventChangeLog(eventUid.getValue());
   }
 }

@@ -42,7 +42,8 @@ public enum DataStatisticsEventType {
   DASHBOARD_VIEW("dashboard"),
   PASSIVE_DASHBOARD_VIEW("dashboard"),
   DATA_SET_REPORT_VIEW("dataset"),
-  TOTAL_VIEW(null);
+  TOTAL_VIEW(null),
+  ACTIVE_USERS("active_users");
 
   private String table;
 

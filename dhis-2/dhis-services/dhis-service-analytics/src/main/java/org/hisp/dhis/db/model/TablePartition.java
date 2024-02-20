@@ -25,35 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.db.model;
 
-import javax.servlet.http.HttpServletResponse;
-import org.hisp.dhis.webapi.utils.ContextUtils;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-/** ResponseHeader sets HTTP headers common in tracker export endpoints. */
-public class ResponseHeader {
+/**
+ * Represents a database table partition.
+ *
+ * @author Lars Helge Overland
+ */
+@Getter
+@RequiredArgsConstructor
+public class TablePartition {
+  /** Partition name. Required. */
+  private final String name;
 
-  private ResponseHeader() {
-    throw new IllegalStateException("Utility class");
-  }
+  /** Partition column. Must be a table key. Required. */
+  private final String column;
 
-  public static void addContentDispositionAttachment(
-      HttpServletResponse response, String filename) {
-    response.addHeader(
-        ContextUtils.HEADER_CONTENT_DISPOSITION, contentDispositionAttachment(filename));
-  }
-
-  public static String contentDispositionAttachment(String filename) {
-    return "attachment; filename=" + filename;
-  }
-
-  public static String contentDispositionInline(String filename) {
-    return "filename=" + filename;
-  }
-
-  public static void addContentTransferEncodingBinary(HttpServletResponse response) {
-    response.addHeader(
-        ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING,
-        ContextUtils.BINARY_HEADER_CONTENT_TRANSFER_ENCODING);
-  }
+  /** Partition value. Required. */
+  private final Object value;
 }

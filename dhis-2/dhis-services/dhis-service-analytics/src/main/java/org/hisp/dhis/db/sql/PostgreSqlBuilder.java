@@ -230,16 +230,18 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
     // Columns
 
-    for (Column column : table.getColumns()) {
-      String dataType = getDataTypeName(column.getDataType());
-      String nullable = column.getNullable() == Nullable.NOT_NULL ? " not null" : " null";
-      String collation = column.getCollation() == Collation.C ? (" collate " + quote("C")) : "";
+    if (table.hasColumns()) {
+      for (Column column : table.getColumns()) {
+        String dataType = getDataTypeName(column.getDataType());
+        String nullable = column.getNullable() == Nullable.NOT_NULL ? " not null" : " null";
+        String collation = column.getCollation() == Collation.C ? (" collate " + quote("C")) : "";
 
-      sql.append(quote(column.getName()) + " ")
-          .append(dataType)
-          .append(nullable)
-          .append(collation)
-          .append(COMMA);
+        sql.append(quote(column.getName()) + " ")
+            .append(dataType)
+            .append(nullable)
+            .append(collation)
+            .append(COMMA);
+      }
     }
 
     // Primary key

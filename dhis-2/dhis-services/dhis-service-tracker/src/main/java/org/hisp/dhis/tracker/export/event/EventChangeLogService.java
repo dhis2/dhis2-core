@@ -25,35 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.tracker.export.event;
 
-import javax.servlet.http.HttpServletResponse;
-import org.hisp.dhis.webapi.utils.ContextUtils;
+import java.util.List;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.NotFoundException;
 
-/** ResponseHeader sets HTTP headers common in tracker export endpoints. */
-public class ResponseHeader {
+public interface EventChangeLogService {
 
-  private ResponseHeader() {
-    throw new IllegalStateException("Utility class");
-  }
-
-  public static void addContentDispositionAttachment(
-      HttpServletResponse response, String filename) {
-    response.addHeader(
-        ContextUtils.HEADER_CONTENT_DISPOSITION, contentDispositionAttachment(filename));
-  }
-
-  public static String contentDispositionAttachment(String filename) {
-    return "attachment; filename=" + filename;
-  }
-
-  public static String contentDispositionInline(String filename) {
-    return "filename=" + filename;
-  }
-
-  public static void addContentTransferEncodingBinary(HttpServletResponse response) {
-    response.addHeader(
-        ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING,
-        ContextUtils.BINARY_HEADER_CONTENT_TRANSFER_ENCODING);
-  }
+  /**
+   * Retrieves the change log data for a particular event
+   *
+   * @return list with the change logs of the supplied event, if any
+   */
+  List<EventChangeLog> getEventChangeLog(UID event) throws NotFoundException;
 }
