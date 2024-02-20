@@ -37,7 +37,6 @@ import java.util.AbstractSequentialList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.hisp.dhis.commons.collection.ListUtils;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -226,9 +225,9 @@ class TextUtilsTest {
 
   @Test
   void testGetOptions() {
-    assertEquals(ListUtils.newList("uidA", "uidB"), TextUtils.getOptions("uidA;uidB"));
-    assertEquals(ListUtils.newList("uidA"), TextUtils.getOptions("uidA"));
-    assertEquals(ListUtils.newList(), TextUtils.getOptions(null));
+    assertEquals(List.of("uidA", "uidB"), TextUtils.getOptions("uidA;uidB"));
+    assertEquals(List.of("uidA"), TextUtils.getOptions("uidA"));
+    assertEquals(List.of(), TextUtils.getOptions(null));
   }
 
   @Test
