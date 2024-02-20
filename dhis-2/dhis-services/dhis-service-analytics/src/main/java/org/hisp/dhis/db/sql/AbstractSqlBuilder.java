@@ -75,6 +75,11 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
   }
 
   @Override
+  public String dropTableIfExists(Table table) {
+    return dropTableIfExists(table.getName());
+  }
+
+  @Override
   public String swapTable(Table table, String newName) {
     return String.join(" ", dropTableIfExistsCascade(newName), renameTable(table, newName));
   }
