@@ -27,4 +27,18 @@
  */
 package org.hisp.dhis.db.sql;
 
-public class DorisSqlBuilderTest {}
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.junit.jupiter.api.Test;
+
+public class DorisSqlBuilderTest {
+  private final SqlBuilder sqlBuilder = new DorisSqlBuilder();
+
+  // Data types
+
+  @Test
+  void testDataType() {
+    assertEquals("double", sqlBuilder.dataTypeDouble());
+    assertEquals("datetime", sqlBuilder.dataTypeTimestamp());
+  }
+}
