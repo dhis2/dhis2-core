@@ -43,7 +43,6 @@ import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
@@ -119,7 +118,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   @Override
   public FileResourceStream getFileResourceImage(
       UID trackedEntity, UID attribute, @CheckForNull UID program, ImageFileDimension dimension)
-      throws NotFoundException, ConflictException, BadRequestException {
+      throws NotFoundException {
     FileResource fileResource = getFileResourceMetadata(trackedEntity, attribute, program);
     return FileResourceStream.ofImage(fileResourceService, fileResource, dimension);
   }
