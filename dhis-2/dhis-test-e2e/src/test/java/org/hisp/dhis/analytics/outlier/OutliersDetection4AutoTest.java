@@ -887,4 +887,79 @@ public class OutliersDetection4AutoTest extends AnalyticsApiTest {
             "21.4",
             "268.6"));
   }
+
+  @Test
+  public void queryOutliertest16() throws JSONException {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("headers=dx,dxname,pename,pe,zscore,lowerbound")
+            .add("endDate=2022-10-26")
+            .add("ou=ImspTQPwCqd")
+            .add("maxResults=5")
+            .add("outputIdScheme=uid")
+            .add("sortOrder=asc")
+            .add("startDate=2022-07-26")
+            .add("ds=BfMAe6Itzgt")
+            .add("algorithm=Z_SCORE")
+            .add("skipRounding=true")
+            .add("relativePeriodDate=2022-07-01");
+
+    // When
+    ApiResponse response = actions.query().get("", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(6)))
+        .body("rows", hasSize(equalTo(3)))
+        .body("height", equalTo(3))
+        .body("width", equalTo(6))
+        .body("headerWidth", equalTo(6));
+
+    // Assert metaData.
+    String expectedMetaData =
+        "{\"count\":3,\"orderBy\":\"ABS_DEV\",\"threshold\":\"3.0\",\"maxResults\":5,\"algorithm\":\"Z_SCORE\"}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Assert headers.
+    validateHeader(response, 0, "dx", "Data", "TEXT", "java.lang.String", false, false);
+    validateHeader(response, 1, "dxname", "Data name", "TEXT", "java.lang.String", false, false);
+    validateHeader(response, 2, "pename", "Period name", "TEXT", "java.lang.String", false, false);
+    validateHeader(response, 3, "pe", "Period", "TEXT", "java.lang.String", false, false);
+    validateHeader(response, 4, "zscore", "Z-score", "NUMBER", "java.lang.Double", false, false);
+    validateHeader(
+        response, 5, "lowerbound", "Lower boundary", "NUMBER", "java.lang.Double", false, false);
+
+    // Assert rows.
+    validateRow(
+        response,
+        List.of(
+            "dU0GquGkGQr",
+            "Q_Early breastfeeding (within 1 hr after delivery) at BCG",
+            "September 2022",
+            "202209",
+            "3.0215920953",
+            "-67.8530554519"));
+    validateRow(
+        response,
+        List.of(
+            "s46m5MS0hxu",
+            "BCG doses given",
+            "August 2022",
+            "202208",
+            "3.1045667885",
+            "-130.7045505648"));
+    validateRow(
+        response,
+        List.of(
+            "l6byfWFUGaP",
+            "Yellow Fever doses given",
+            "September 2022",
+            "202209",
+            "3.6560656799",
+            "-294.6529422297"));
+  }
 }
