@@ -63,7 +63,7 @@ public class SendScheduledMessageJob implements Job {
 
   @Override
   public void execute(JobConfiguration config, JobProgress progress) {
-    progress.startingProcess("Starting to send messages in outbound");
+    progress.startingProcess("Starting to send outbound messages");
     progress.startingStage("Validating environment setup");
     if (!smsSender.isConfigured()) {
       progress.failedStage("SMS gateway configuration does not exist, job aborted");
@@ -72,7 +72,7 @@ public class SendScheduledMessageJob implements Job {
     progress.completedStage(null);
 
     sendMessages(progress);
-    progress.completedProcess("Sending messages in outbound completed");
+    progress.completedProcess("Sending outbound messages completed");
   }
 
   private void sendMessages(JobProgress progress) {

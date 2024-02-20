@@ -286,7 +286,7 @@ public enum SettingKey {
 
   LOGIN_POPUP("loginPopup", "", String.class, false, true),
 
-  HTML_PUSH_ANALYTICS_URL("keyHtmlPushAnalyticsUrl", "", String.class, true, false);
+  HTML_PUSH_ANALYTICS_URL("keyHtmlPushAnalyticsUrl", "", String.class, false, false);
 
   private final String name;
 
