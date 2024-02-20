@@ -111,7 +111,6 @@ class EventChangeLogServiceTest extends TrackerTest {
 
   @Test
   void shouldFailWhenProgramWithoutRegistrationAndNoAccessToEventOrgUnit() {
-    injectSecurityContextUser(manager.get(User.class, "o1HMTIzBGo7"));
     testAsUser("o1HMTIzBGo7");
 
     assertThrows(
