@@ -68,7 +68,7 @@ public class Table {
   /** Whether table is logged or unlogged. PostgreSQL-only feature. */
   private final Logged logged;
 
-  /** Parent table. This table inherit from the parent if specified. Optional. */
+  /** Parent table. This table inherits from the parent if specified. Optional. */
   private final Table parent;
 
   /** Table partitions. */
@@ -83,7 +83,7 @@ public class Table {
    */
   public Table(String name, List<Column> columns, List<String> primaryKey) {
     this(name, columns, primaryKey, List.of(), Logged.UNLOGGED, null);
-    this.partitions = ListUtils.newList();
+    this.partitions = ListUtils.of();
     this.validate();
   }
 
@@ -97,7 +97,7 @@ public class Table {
    */
   public Table(String name, List<Column> columns, List<String> primaryKey, Logged logged) {
     this(name, columns, primaryKey, List.of(), logged, null);
-    this.partitions = ListUtils.newList();
+    this.partitions = ListUtils.of();
     this.validate();
   }
 
@@ -117,7 +117,7 @@ public class Table {
       List<String> checks,
       Logged logged) {
     this(name, columns, primaryKey, checks, logged, null);
-    this.partitions = ListUtils.newList();
+    this.partitions = ListUtils.of();
     this.validate();
   }
 
@@ -144,7 +144,7 @@ public class Table {
     this.checks = checks;
     this.logged = firstNonNull(logged, UNLOGGED);
     this.parent = parent;
-    this.partitions = ListUtils.newList();
+    this.partitions = ListUtils.of();
     this.validate();
   }
 

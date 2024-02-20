@@ -28,7 +28,6 @@
 package org.hisp.dhis.db.sql;
 
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
-import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.db.model.Column;
@@ -58,13 +57,13 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String dataTypeNumeric() {
+  public String dataTypeDecimal() {
     // TODO Auto-generated method stub
     return null;
   }
 
   @Override
-  public String dataTypeReal() {
+  public String dataTypeFloat() {
     // TODO Auto-generated method stub
     return null;
   }
@@ -118,18 +117,6 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String dataTypeTime() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public String dataTypeTimeTz() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
   public String dataTypeGeometry() {
     // TODO Auto-generated method stub
     return null;
@@ -142,7 +129,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String dataTypeJsonb() {
+  public String dataTypeJson() {
     // TODO Auto-generated method stub
     return null;
   }
@@ -169,6 +156,12 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   public String indexFunctionUpper() {
     // TODO Auto-generated method stub
     return null;
+  }
+
+  @Override
+  public boolean supportsDeclarativePartitioning() {
+    // TODO Auto-generated method stub
+    return false;
   }
 
   @Override
@@ -274,12 +267,6 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String vacuumTable(String name) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
   public String renameTable(Table table, String newName) {
     // TODO Auto-generated method stub
     return null;
@@ -341,6 +328,42 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String createIndex(Index index) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public boolean supportsGeospatialData() {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean requiresIndexesForAnalytics() {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public String quote(String relation) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public String quote(String alias, String relation) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public String singleQuote(String value) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public String escape(String value) {
     // TODO Auto-generated method stub
     return null;
   }
