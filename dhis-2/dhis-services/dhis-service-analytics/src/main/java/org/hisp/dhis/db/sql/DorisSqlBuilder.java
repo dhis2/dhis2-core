@@ -27,8 +27,14 @@
  */
 package org.hisp.dhis.db.sql;
 
+import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
+
+import org.apache.commons.lang3.Validate;
+import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
+import org.hisp.dhis.db.model.TablePartition;
+import org.hisp.dhis.db.model.constraint.Nullable;
 
 public class DorisSqlBuilder extends AbstractSqlBuilder {
 
@@ -200,10 +206,70 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   // Statements
-
   @Override
   public String createTable(Table table) {
-    return null;
+    Validate.isTrue(table.hasPrimaryKey()); // ?
+
+    StringBuilder sql =
+        new StringBuilder("create table ").append(quote(table.getName())).append(" ");
+
+    // Columns
+
+    if (table.hasColumns()) {
+      sql.append("(");
+
+      for (Column column : table.getColumns()) {
+        String dataType = getDataTypeName(column.getDataType());
+        String nullable = column.getNullable() == Nullable.NOT_NULL ? " not null" : " null";
+
+        sql.append(quote(column.getName()) + " ").append(dataType).append(nullable).append(", ");
+      }
+
+      removeLastComma(sql).append(") engine=olap ");
+    }
+
+    // Primary key
+
+    if (table.hasPrimaryKey()) {
+      sql.append("duplicate key (");
+
+      for (String columnName : table.getPrimaryKey()) {
+        sql.append(quote(columnName) + ", ");
+      }
+
+      removeLastComma(sql).append(") ");
+    }
+
+    // Partitions
+
+    if (table.hasPartitions()) {
+      sql.append("partition by range(year) (");
+
+      for (TablePartition partition : table.getPartitions()) {
+        sql.append("partition ")
+            .append(quote(partition.getName()))
+            .append(" values less than(\"")
+            .append(partition.getValue())
+            .append("\"),");
+      }
+
+      removeLastComma(sql).append(") ");
+    }
+
+    // Distribution
+
+    if (table.hasPrimaryKey()) {
+      sql.append("distributed by hash(")
+          .append(quote(table.getFirstPrimaryKey()))
+          .append(") ")
+          .append("buckets = 10 "); // TODO check
+    }
+
+    // Properties
+
+    sql.append("properties (\"replication_num\" = \"1\")");
+
+    return sql.append(";").toString();
   }
 
   @Override
