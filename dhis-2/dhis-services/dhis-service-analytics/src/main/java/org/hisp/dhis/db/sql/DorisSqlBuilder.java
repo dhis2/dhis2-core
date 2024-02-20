@@ -208,7 +208,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   // Statements
   @Override
   public String createTable(Table table) {
-    Validate.isTrue(table.hasPrimaryKey()); // ?
+    Validate.isTrue(table.hasPrimaryKey());
 
     StringBuilder sql =
         new StringBuilder("create table ").append(quote(table.getName())).append(" ");
@@ -262,7 +262,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
       sql.append("distributed by hash(")
           .append(quote(table.getFirstPrimaryKey()))
           .append(") ")
-          .append("buckets = 10 "); // TODO check
+          .append("buckets = 10 "); // TODO verify
     }
 
     // Properties
