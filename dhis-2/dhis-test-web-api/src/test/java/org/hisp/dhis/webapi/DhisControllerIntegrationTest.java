@@ -57,7 +57,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.context.WebApplicationContext;
 
-
 /**
  * Base class for all Spring Mock MVC based controller tests which use postgres database in a docker
  * instance.
@@ -145,9 +144,9 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
     return user;
   }
 
-
-  protected  User createAndPersistDataEntryRole() {
-    UserRole role = createUserRole("DataEntry_Test_" + CodeGenerator.generateUid(), "F_DATAVALUE_ADD");
+  protected User createAndPersistDataEntryRole() {
+    UserRole role =
+        createUserRole("DataEntry_Test_" + CodeGenerator.generateUid(), "F_DATAVALUE_ADD");
     role.setUid(CodeGenerator.generateUid());
 
     manager.persist(role);

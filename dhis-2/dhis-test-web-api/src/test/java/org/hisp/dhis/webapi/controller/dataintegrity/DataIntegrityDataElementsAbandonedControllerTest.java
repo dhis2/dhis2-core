@@ -38,7 +38,6 @@ import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.web.WebClient;
 import org.junit.jupiter.api.Test;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 
 /**
  * Test for data elements which have been abandoned. This is taken to mean that there is no data
@@ -67,7 +66,6 @@ class DataIntegrityDataElementsAbandonedControllerTest
 
     // Create a data element that is 100 days old but this one has no data
     DataElement dataElementD = createDataElementDaysAgo("D", 100);
-
   }
 
   DataElement createDataElementDaysAgo(String uniqueCharacter, Integer daysAgo) {
