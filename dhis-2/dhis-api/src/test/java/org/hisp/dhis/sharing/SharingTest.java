@@ -128,4 +128,23 @@ class SharingTest {
     actual.addUserGroupAccess(new UserGroupAccess("rw------", "uid"));
     assertEquals(1, actual.getUserGroups().size());
   }
+
+  @Test
+  void testCopySharingRead() {
+    String source = "r-------";
+    String result = Sharing.copySharingRead(source);
+    assertEquals("r-r-----", result);
+
+    source = "rw------";
+    result = Sharing.copySharingRead(source);
+    assertEquals("rwr-----", result);
+
+    source = "rw-w----";
+    result = Sharing.copySharingRead(source);
+    assertEquals("rwrw----", result);
+
+    source = "r-r-----";
+    result = Sharing.copySharingRead(source);
+    assertEquals("r-r-----", result);
+  }
 }

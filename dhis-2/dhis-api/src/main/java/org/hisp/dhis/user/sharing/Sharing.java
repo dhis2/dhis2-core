@@ -228,4 +228,23 @@ public class Sharing implements Serializable {
     String metadata = access.substring(0, 2);
     return metadata + metadata + access.substring(4);
   }
+
+  /**
+   * Copy Metadata Read value to Data Read
+   *
+   * <pre>
+   * r------- -> r-r----- rw------ -> rwr-----
+   * </pre>
+   *
+   * @param access a access string which is expected to be either null or 8 characters long
+   * @return the update access string with Data Read value copied from Metadata Read
+   */
+  public static String copySharingRead(String access) {
+    if (access == null) {
+      return null;
+    }
+    String metadataRead = access.substring(0, 1);
+    String metadata = access.substring(0, 2);
+    return metadata + metadataRead + access.substring(3);
+  }
 }
