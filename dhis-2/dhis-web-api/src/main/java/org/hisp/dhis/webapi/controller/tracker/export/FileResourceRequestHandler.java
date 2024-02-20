@@ -31,6 +31,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.tracker.export.FileResourceStream;
+import org.hisp.dhis.tracker.export.FileResourceStream.Content;
 import org.hisp.dhis.webapi.utils.ResponseEntityUtils;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.CacheControl;
@@ -42,7 +43,7 @@ import org.springframework.http.ResponseEntity;
 /**
  * FileResourceRequestHandler serves files and images given a {@link FileResourceStream}. The {@link
  * FileResourceStream#contentSupplier()} will not be called if the client has an up-to-date file
- * according to its {@link FileResourceStream#getUid()} value.
+ * according to its {@link FileResourceStream#uid()} value.
  */
 public class FileResourceRequestHandler {
 
@@ -64,13 +65,14 @@ public class FileResourceRequestHandler {
           .build();
     }
 
+    Content content = file.contentSupplier().get();
     return ResponseEntity.ok()
         .cacheControl(CACHE_CONTROL_DIRECTIVES)
         .eTag(etag)
         .contentType(MediaType.valueOf(file.contentType()))
         .header(
             HttpHeaders.CONTENT_DISPOSITION, ResponseHeader.contentDispositionInline(file.name()))
-        .contentLength(file.contentSupplier().get().length())
-        .body(new InputStreamResource(file.contentSupplier().get().stream()));
+        .contentLength(content.length())
+        .body(new InputStreamResource(content.stream()));
   }
 }
