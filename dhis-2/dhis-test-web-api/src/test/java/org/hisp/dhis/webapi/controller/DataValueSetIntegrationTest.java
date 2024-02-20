@@ -1,5 +1,3 @@
-
-
 /*
  * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
@@ -27,25 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.webapi.controller;
+
+import static org.hisp.dhis.common.CodeGenerator.generateUid;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
-import java.time.ZonedDateTime;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Date;
-
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementDomain;
+import java.util.HashSet;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.web.WebClient;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.hisp.dhis.webapi.json.domain.JsonDataValue;
+import org.hisp.dhis.webapi.json.domain.JsonDataValueSet;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Test for data elements which have been abandoned. This is taken to mean that there is no data
@@ -57,121 +63,196 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jason P. Pickering
  */
-class DataValueSetIntegrationTest extends DhisControllerIntegrationTest
-{
-    private static final String check = "data_elements_aggregate_abandoned";
+class DataValueSetIntegrationTest extends DhisControllerIntegrationTest {
+  private static final String check = "data_elements_aggregate_abandoned";
 
-    private static final String detailsIdType = "dataElements";
+  private static final String detailsIdType = "dataElements";
 
-    private String orgUnitId;
-    private String dataElementB;
+  private String orgUnitId;
+  private String dataElementA;
 
-    private static final String period = "202212";
+  private String dataSetA;
 
-    @Test
-    void testDataElementsNotAbandoned() {
+  private String defaultCatCombo;
 
-        setUpTest();
-        String storedValue = getDataValue(dataElementB, period, orgUnitId);
-        assertEquals("\"10\"", storedValue);
+  private String defaultCatOptionCombo;
 
+  private static final String period = "202212";
 
-    }
+  @Autowired private OrganisationUnitService organisationUnitService;
 
-    protected final HttpResponse postNewDataValue(
-        String period,
-        String value,
-        String comment,
-        boolean followup,
-        String dataElementId,
-        String orgUnitId) {
-        String defaultCOC = categoryService.getDefaultCategoryOptionCombo().getUid();
-        return POST(
-            "/dataValues?de={de}&pe={pe}&ou={ou}&co={coc}&value={val}&comment={comment}&followUp={followup}",
-            dataElementId,
+  @Test
+  void testDataValueExists() {
+
+    setUpTest();
+
+    LocalDateTime now = LocalDateTime.now();
+    String storedValue = getDataValue(dataElementA, period, orgUnitId);
+    assertEquals("\"10\"", storedValue);
+    JsonDataValueSet dataValueSet = getDataValueSet(dataSetA, period, orgUnitId);
+    assertEquals(1, dataValueSet.getDataValues().size());
+    JsonDataValue dataValue = dataValueSet.getDataValues().get(0);
+    assertEquals(dataElementA, dataValue.getDataElement());
+    assertEquals(period, dataValue.getPeriod());
+    assertEquals(orgUnitId, dataValue.getOrgUnit());
+    assertEquals("10", dataValue.getValue());
+    assertEquals("Test Data", dataValue.getComment());
+    assertEquals(superUser.getUsername(), dataValue.getStoredBy());
+    assertNull(dataValue.getFollowUp());
+    assertEquals(defaultCatOptionCombo, dataValue.getCategoryOptionCombo());
+    assertEquals(true, Duration.between(now, dataValue.getCreated().date()).toMillis() < 1000);
+    assertEquals(true, Duration.between(now, dataValue.getLastUpdated().date()).toMillis() < 1000);
+
+    User dataEntryUser = createDataEntryUser();
+    switchContextToUser(dataEntryUser);
+    currentUser = dataEntryUser;
+    assertStatus(
+        HttpStatus.CREATED,
+        postNewDataValue(period, "20", "Data Update", false, dataElementA, orgUnitId));
+    storedValue = getDataValue(dataElementA, period, orgUnitId);
+    assertEquals("\"20\"", storedValue);
+    JsonDataValueSet updatedDataValueSet = getDataValueSet(dataSetA, period, orgUnitId);
+    assertEquals(1, updatedDataValueSet.getDataValues().size());
+    JsonDataValue updatedDataValue = updatedDataValueSet.getDataValues().get(0);
+    assertEquals(dataElementA, updatedDataValue.getDataElement());
+    assertEquals(period, updatedDataValueSet.getPeriod());
+    assertEquals(orgUnitId, updatedDataValue.getOrgUnit());
+    assertEquals("20", updatedDataValue.getValue());
+    assertEquals("Data Update", updatedDataValue.getComment());
+    assertEquals(dataEntryUser.getUsername(), updatedDataValue.getStoredBy());
+    assertNull(updatedDataValue.getFollowUp());
+    assertEquals(defaultCatOptionCombo, updatedDataValue.getCategoryOptionCombo());
+    assertEquals(dataValue.getCreated().date(), updatedDataValue.getCreated().date());
+    assertEquals(
+        true, updatedDataValue.getLastUpdated().date().isAfter(dataValue.getLastUpdated().date()));
+    ;
+  }
+
+  protected final HttpResponse postNewDataValue(
+      String period,
+      String value,
+      String comment,
+      boolean followup,
+      String dataElementId,
+      String orgUnitId) {
+    String defaultCOC = categoryService.getDefaultCategoryOptionCombo().getUid();
+    return POST(
+        "/dataValues?de={de}&pe={pe}&ou={ou}&co={coc}&value={val}&comment={comment}&followUp={followup}",
+        dataElementId,
+        period,
+        orgUnitId,
+        defaultCOC,
+        value,
+        comment,
+        followup);
+  }
+
+  protected final String getDataValue(String dataElementId, String period, String orgUnitId) {
+    return GET("/dataValues?de={de}&pe={pe}&ou={ou}", dataElementId, period, orgUnitId)
+        .content()
+        .as(JsonArray.class)
+        .get(0)
+        .toString();
+  }
+
+  protected final JsonDataValueSet getDataValueSet(
+      String dataSetId, String period, String orgUnitId) {
+    return GET(
+            "/dataValueSets?dataSet={dataSetId}&period={period}&orgUnit={orgUnit}",
+            dataSetId,
             period,
-            orgUnitId,
-            defaultCOC,
-            value,
-            comment,
-            followup);
-    }
+            orgUnitId)
+        .content()
+        .as(JsonDataValueSet.class);
+  }
 
-    protected final String getDataValue(String dataElementId, String period, String orgUnitId) {
+  protected final String getDefaultCatCombo() {
+    JsonObject ccDefault =
+        GET("/categoryCombos/gist?fields=id,categoryOptionCombos::ids&pageSize=1&headless=true&filter=name:eq:default")
+            .content()
+            .getObject(0);
+    return ccDefault.getString("id").string();
+  }
 
-        //The response is a JSON array with a single value. Extract the string and return it
-        return  GET("/dataValues?de={de}&pe={pe}&ou={ou}", dataElementId, period, orgUnitId).content().as(JsonArray.class).get( 0 ).toString();
-    }
-    DataElement createDataElementDaysAgo(String uniqueCharacter, Integer daysAgo) {
-        DataElement dataElement = new DataElement();
-        dataElement.setUid(BASE_DE_UID + uniqueCharacter);
-        dataElement.setName("DataElement" + uniqueCharacter);
-        dataElement.setShortName("DataElementShort" + uniqueCharacter);
-        dataElement.setCode("DataElementCode" + uniqueCharacter);
-        dataElement.setDescription("DataElementDescription" + uniqueCharacter);
-        dataElement.setValueType(ValueType.INTEGER);
-        dataElement.setDomainType(DataElementDomain.AGGREGATE);
-        dataElement.setAggregationType(AggregationType.SUM);
-        dataElement.setZeroIsSignificant(false);
-        dataElement.setCategoryCombo(categoryService.getDefaultCategoryCombo());
-        // Set the lastupdated to the number of days ago
-        Date numberDaysAgo = Date.from(ZonedDateTime.now().minusDays(daysAgo).toInstant());
-        dataElement.setLastUpdated(numberDaysAgo);
-        dataElement.setCreated(numberDaysAgo);
-        manager.persist(dataElement);
-        dbmsManager.flushSession();
-        dbmsManager.clearSession();
+  protected final String getDefaultCOC() {
+    JsonObject ccDefault =
+        GET("/categoryCombos/gist?fields=id,categoryOptionCombos::ids&pageSize=1&headless=true&filter=name:eq:default")
+            .content()
+            .getObject(0);
+    return ccDefault.getArray("categoryOptionCombos").getString(0).string();
+  }
 
-        return dataElement;
-    }
+  protected final User createDataEntryUser() {
+    UserRole dataEntryRole = new UserRole();
+    dataEntryRole.setName("Data Entry");
+    dataEntryRole.setAuthorities(
+        new HashSet<>(
+            Arrays.asList(Authorities.F_DATAVALUE_ADD.name(), Authorities.F_EXPORT_DATA.name())));
+    manager.save(dataEntryRole);
 
-    void setUpTest() {
+    User user = new User();
+    user.setUid(CodeGenerator.generateUid());
+    user.setFirstName("Data");
+    user.setSurname("Entry");
+    user.setUsername("dataentry");
+    user.setPassword(DEFAULT_ADMIN_PASSWORD);
+    user.getUserRoles().add(dataEntryRole);
+    user.setLastUpdated(new Date());
+    user.setCreated(new Date());
+    OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit(orgUnitId);
+    user.setOrganisationUnits(new HashSet<>(Arrays.asList(organisationUnit)));
+    manager.persist(user);
 
-        // Create some data elements. created and lastUpdated default to now
+    return user;
+  }
+
+  void setUpTest() {
+
+    defaultCatCombo = getDefaultCatCombo();
+    defaultCatOptionCombo = getDefaultCOC();
+    dataSetA = generateUid();
+
+    dataElementA =
         assertStatus(
             HttpStatus.CREATED,
             POST(
                 "/dataElements",
-                "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER',"
+                "{ 'name': 'ANC2', 'shortName': 'ANC2', 'valueType' : 'NUMBER',"
                     + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
 
-        dataElementB =
-            assertStatus(
-                HttpStatus.CREATED,
-                POST(
-                    "/dataElements",
-                    "{ 'name': 'ANC2', 'shortName': 'ANC2', 'valueType' : 'NUMBER',"
-                        + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
-
-        orgUnitId =
-            assertStatus(
-                HttpStatus.CREATED,
-                POST(
-                    "/organisationUnits/",
-                    "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}"));
-        // add OU to users hierarchy
+    orgUnitId =
         assertStatus(
-            HttpStatus.OK,
+            HttpStatus.CREATED,
             POST(
-                "/users/{id}/organisationUnits",
-                getCurrentUser().getUid(),
-                WebClient.Body("{'additions':[{'id':'" + orgUnitId + "'}]}")));
-        // Add some data to dataElementB
-        assertStatus(
-            HttpStatus.CREATED,
-            postNewDataValue(period, "10", "Test Data", false, dataElementB, orgUnitId));
+                "/organisationUnits/",
+                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}"));
+    // add OU to users hierarchy
+    assertStatus(
+        HttpStatus.OK,
+        POST(
+            "/users/{id}/organisationUnits",
+            getCurrentUser().getUid(),
+            WebClient.Body("{'additions':[{'id':'" + orgUnitId + "'}]}")));
 
+    String datasetMetadata =
+        "{ 'id':'"
+            + dataSetA
+            + "', 'name': 'Test Monthly', 'shortName': 'Test Monthly', 'periodType' : 'Monthly',"
+            + "'sharing' : {'public':'rwrw----'},"
+            + "'categoryCombo' : {'id': '"
+            + defaultCatCombo
+            + "'}, "
+            + "'dataSetElements' : [{'dataSet' : {'id':'"
+            + dataSetA
+            + "'}, 'id':'"
+            + generateUid()
+            + "', 'dataElement': {'id' : '"
+            + dataElementA
+            + "'}}]}";
+    assertStatus(HttpStatus.CREATED, POST("/dataSets", datasetMetadata));
 
-
-        // Create a data element that is 100 days old and give it some data
-        DataElement dataElementC = createDataElementDaysAgo("A", 100);
-        assertStatus(
-            HttpStatus.CREATED,
-            postNewDataValue(period, "10", "Test Data", false, dataElementC.getUid(), orgUnitId));
-    }
-
-
+    assertStatus(
+        HttpStatus.CREATED,
+        postNewDataValue(period, "10", "Test Data", false, dataElementA, orgUnitId));
+  }
 }
-
-
-

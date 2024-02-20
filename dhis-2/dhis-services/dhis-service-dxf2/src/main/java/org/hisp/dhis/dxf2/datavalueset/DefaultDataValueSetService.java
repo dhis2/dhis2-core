@@ -45,7 +45,6 @@ import java.io.Writer;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -828,9 +827,9 @@ public class DefaultDataValueSetService implements DataValueSetService {
       internalValue.setCreated(existingValue.getCreated());
     }
 
-    //if (existingValue != null && !context.currentUserCanAttributeData()) {
+    // if (existingValue != null && !context.currentUserCanAttributeData()) {
     //  internalValue.setCreated(existingValue.getCreated());
-    //}
+    // }
 
     final ImportStrategy strategy = context.getStrategy();
     boolean zeroAndInsignificant =
@@ -1303,15 +1302,15 @@ public class DefaultDataValueSetService implements DataValueSetService {
     internalValue.setValue(trimToNull(value));
 
     if (context.currentUserCanAttributeData()) {
-      internalValue.setStoredBy(dataValue.hasStoredBy() ? dataValue.getStoredBy() : context.getCurrentUserName());
+      internalValue.setStoredBy(
+          dataValue.hasStoredBy() ? dataValue.getStoredBy() : context.getCurrentUserName());
       internalValue.setLastUpdated(
           dataValue.hasLastUpdated() ? parseDate(dataValue.getLastUpdated()) : now);
       internalValue.setCreated(dataValue.hasCreated() ? parseDate(dataValue.getCreated()) : now);
-    } else
-    {
-      internalValue.setStoredBy( context.getCurrentUserName() );
-      internalValue.setLastUpdated( now );
-      internalValue.setCreated( now );
+    } else {
+      internalValue.setStoredBy(context.getCurrentUserName());
+      internalValue.setLastUpdated(now);
+      internalValue.setCreated(now);
     }
 
     internalValue.setComment(trimToNull(dataValue.getComment()));

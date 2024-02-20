@@ -27,50 +27,24 @@
  */
 package org.hisp.dhis.webapi.json.domain;
 
-import org.hisp.dhis.jsontree.JsonObject;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import org.hisp.dhis.jsontree.JsonString;
 
-public interface JsonDataValue extends JsonObject {
-  default String getDataElement() {
-    return getString("dataElement").string();
+public interface JsonLocalDateTime extends JsonString {
+  DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
+
+  default LocalDateTime date() {
+    return parsed(str -> LocalDateTime.parse(str, formatter));
   }
 
-  default String getPeriod() {
-    return getString("period").string();
+  default LocalDate dateOnly() {
+    return parsed(str -> LocalDate.parse(str, formatter));
   }
 
-  default String getOrgUnit() {
-    return getString("orgUnit").string();
-  }
-
-  default String getCategoryOptionCombo() {
-    return getString("categoryOptionCombo").string();
-  }
-
-  default String getAttributeOptionCombo() {
-    return getString("attributeOptionCombo").string();
-  }
-
-  default String getValue() {
-    return getString("value").string();
-  }
-
-  default JsonLocalDateTime getCreated() {
-    return get("created", JsonLocalDateTime.class);
-  }
-
-  default JsonLocalDateTime getLastUpdated() {
-    return get("lastUpdated", JsonLocalDateTime.class);
-  }
-
-  default String getStoredBy() {
-    return getString("storedBy").string();
-  }
-
-  default String getComment() {
-    return getString("comment").string();
-  }
-
-  default String getFollowUp() {
-    return getString("followUp").string();
+  default LocalTime timeOnly() {
+    return parsed(str -> LocalTime.parse(str, formatter));
   }
 }
