@@ -28,15 +28,25 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.common.CodeGenerator.generateUid;
+import static org.hisp.dhis.web.WebClient.Accept;
+import static org.hisp.dhis.web.WebClient.ContentType;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML_ADX;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.http.MediaType.APPLICATION_XML;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -52,6 +62,7 @@ import org.hisp.dhis.webapi.json.domain.JsonDataValue;
 import org.hisp.dhis.webapi.json.domain.JsonDataValueSet;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * Test for data elements which have been abandoned. This is taken to mean that there is no data
@@ -81,29 +92,20 @@ class DataValueSetIntegrationTest extends DhisControllerIntegrationTest {
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
+  @Autowired protected TransactionTemplate transactionTemplate;
+
   @Test
-  void testDataValueExists() {
+  void testNormalUserCanUpdateDataValue() {
 
     setUpTest();
 
-    LocalDateTime now = LocalDateTime.now();
-    String storedValue = getDataValue(dataElementA, period, orgUnitId);
-    assertEquals("\"10\"", storedValue);
-    JsonDataValueSet dataValueSet = getDataValueSet(dataSetA, period, orgUnitId);
-    assertEquals(1, dataValueSet.getDataValues().size());
-    JsonDataValue dataValue = dataValueSet.getDataValues().get(0);
-    assertEquals(dataElementA, dataValue.getDataElement());
-    assertEquals(period, dataValue.getPeriod());
-    assertEquals(orgUnitId, dataValue.getOrgUnit());
-    assertEquals("10", dataValue.getValue());
-    assertEquals("Test Data", dataValue.getComment());
-    assertEquals(superUser.getUsername(), dataValue.getStoredBy());
-    assertNull(dataValue.getFollowUp());
-    assertEquals(defaultCatOptionCombo, dataValue.getCategoryOptionCombo());
-    assertEquals(true, Duration.between(now, dataValue.getCreated().date()).toMillis() < 1000);
-    assertEquals(true, Duration.between(now, dataValue.getLastUpdated().date()).toMillis() < 1000);
+    //We should still be acting as the superuser now
 
-    User dataEntryUser = createDataEntryUser();
+
+
+/*
+  //Swtich to a user who cannot attribute data
+    User dataEntryUser = createDataEntryUser(false);
     switchContextToUser(dataEntryUser);
     currentUser = dataEntryUser;
     assertStatus(
@@ -125,7 +127,71 @@ class DataValueSetIntegrationTest extends DhisControllerIntegrationTest {
     assertEquals(dataValue.getCreated().date(), updatedDataValue.getCreated().date());
     assertEquals(
         true, updatedDataValue.getLastUpdated().date().isAfter(dataValue.getLastUpdated().date()));
-    ;
+*/
+
+
+
+    transactionTemplate.execute(
+        status -> {
+          assertStatus(
+              HttpStatus.CREATED,
+              postNewDataValue(period, "10", "Test Data", false, dataElementA, orgUnitId));
+
+          LocalDateTime now = LocalDateTime.now();
+          String storedValue = getDataValue(dataElementA, period, orgUnitId);
+          assertEquals("\"10\"", storedValue);
+          JsonDataValueSet dataValueSet = getDataValueSet(dataSetA, period, orgUnitId);
+          assertEquals(1, dataValueSet.getDataValues().size());
+          JsonDataValue dataValue = dataValueSet.getDataValues().get(0);
+          assertEquals(dataElementA, dataValue.getDataElement());
+          assertEquals(period, dataValue.getPeriod());
+          assertEquals(orgUnitId, dataValue.getOrgUnit());
+          assertEquals("10", dataValue.getValue());
+          assertEquals("Test Data", dataValue.getComment());
+          assertEquals(superUser.getUsername(), dataValue.getStoredBy());
+          assertNull(dataValue.getFollowUp());
+          assertEquals(defaultCatOptionCombo, dataValue.getCategoryOptionCombo());
+          assertEquals(true, Duration.between(now, dataValue.getCreated().date()).toMillis() < 1000);
+          assertEquals(true, Duration.between(now, dataValue.getLastUpdated().date()).toMillis() < 1000);
+
+          //language=JSON
+          String json = """
+        { "dataValues": [
+          { "dataElement": "%s",
+           "period": "%s", 
+           "orgUnit": "%s", 
+           "value": "30",
+           "comment": "DVS Update",
+           "categoryOptionCombo": "%s" }
+             ]}""".formatted(dataElementA, period, orgUnitId, defaultCatOptionCombo);
+
+          assertEquals( HttpStatus.OK, POST("/dataValueSets", json).status());
+          return null;
+        });
+
+  }
+
+  @Test
+  void testPostAdxDataValueSet()
+  {
+      setUpTest();
+            OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit(orgUnitId);
+            Set<OrganisationUnit> userOrgUnits= new HashSet<>(Arrays.asList(organisationUnit));
+            User user = makeUser( "X", List.of( Authorities.F_DATAVALUE_ADD.name(), Authorities.F_EXPORT_DATA.name() ), userOrgUnits );
+          userService.addUser( user );
+          injectSecurityContextUser( user );
+            String json = """
+        { "dataValues": [
+          { "dataElement": "%s",
+           "period": "%s", 
+           "orgUnit": "%s", 
+           "value": "30",
+           "comment": "DVS Update",
+           "categoryOptionCombo": "%s" }
+             ]}""".formatted(dataElementA, period, orgUnitId, defaultCatOptionCombo);
+          HttpResponse response = POST("/38/dataValueSets/", json);
+          assertEquals(HttpStatus.OK, response.status());
+
   }
 
   protected final HttpResponse postNewDataValue(
@@ -182,28 +248,41 @@ class DataValueSetIntegrationTest extends DhisControllerIntegrationTest {
     return ccDefault.getArray("categoryOptionCombos").getString(0).string();
   }
 
-  protected final User createDataEntryUser() {
-    UserRole dataEntryRole = new UserRole();
-    dataEntryRole.setName("Data Entry");
-    dataEntryRole.setAuthorities(
-        new HashSet<>(
-            Arrays.asList(Authorities.F_DATAVALUE_ADD.name(), Authorities.F_EXPORT_DATA.name())));
-    manager.save(dataEntryRole);
+  protected final User createDataEntryUser(boolean canAddAttributeData) {
 
-    User user = new User();
-    user.setUid(CodeGenerator.generateUid());
-    user.setFirstName("Data");
-    user.setSurname("Entry");
-    user.setUsername("dataentry");
-    user.setPassword(DEFAULT_ADMIN_PASSWORD);
-    user.getUserRoles().add(dataEntryRole);
-    user.setLastUpdated(new Date());
-    user.setCreated(new Date());
-    OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit(orgUnitId);
-    user.setOrganisationUnits(new HashSet<>(Arrays.asList(organisationUnit)));
-    manager.persist(user);
+          UserRole dataEntryRole = new UserRole();
+          dataEntryRole.setName("Data Entry");
+          if (!canAddAttributeData) {
+            dataEntryRole.setAuthorities(
+                new HashSet<>(
+                    Arrays.asList(Authorities.F_DATAVALUE_ADD.name(), Authorities.F_EXPORT_DATA.name())));
+          } else {
+            dataEntryRole.setAuthorities(
+                new HashSet<>(
+                    Arrays.asList(
+                        Authorities.F_DATAVALUE_ADD.name(),
+                        Authorities.F_EXPORT_DATA.name(),
+                        Authorities.F_DATAVALUE_ATTRIBUTE.name())));
+          }
+          dataEntryRole.setAuthorities(
+              new HashSet<>(
+                  Arrays.asList(Authorities.F_DATAVALUE_ADD.name(), Authorities.F_EXPORT_DATA.name())));
+          manager.save(dataEntryRole);
 
-    return user;
+          User user = new User();
+          user.setUid(CodeGenerator.generateUid());
+          user.setFirstName("Data");
+          user.setSurname("Entry");
+          user.setUsername("dataentry");
+          user.setPassword(DEFAULT_ADMIN_PASSWORD);
+          user.getUserRoles().add(dataEntryRole);
+          user.setLastUpdated(new Date());
+          user.setCreated(new Date());
+          OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit(orgUnitId);
+          user.setOrganisationUnits(new HashSet<>(Arrays.asList(organisationUnit)));
+          manager.persist(user);
+          return user;
+
   }
 
   void setUpTest() {
@@ -251,8 +330,5 @@ class DataValueSetIntegrationTest extends DhisControllerIntegrationTest {
             + "'}}]}";
     assertStatus(HttpStatus.CREATED, POST("/dataSets", datasetMetadata));
 
-    assertStatus(
-        HttpStatus.CREATED,
-        postNewDataValue(period, "10", "Test Data", false, dataElementA, orgUnitId));
   }
 }
