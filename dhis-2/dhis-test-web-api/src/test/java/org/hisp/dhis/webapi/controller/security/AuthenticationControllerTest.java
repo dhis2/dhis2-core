@@ -70,8 +70,12 @@ class AuthenticationControllerTest extends DhisAuthenticationApiTest {
 
   @Test
   void testWrongUsernameOrPassword() {
+    User userA = createUserWithAuth("userb", "ALL");
+    injectSecurityContextUser(userA);
+
+    clearSecurityContext();
     JsonWebMessage response =
-        POST("/auth/login", "{'username':'admin','password':'district9'}")
+        POST("/auth/login", "{'username':'userb','password':'district9'}")
             .content(HttpStatus.UNAUTHORIZED)
             .as(JsonWebMessage.class);
 
