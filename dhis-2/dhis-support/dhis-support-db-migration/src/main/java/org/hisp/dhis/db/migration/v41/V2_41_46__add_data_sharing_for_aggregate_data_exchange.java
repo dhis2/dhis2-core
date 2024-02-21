@@ -39,6 +39,12 @@ import org.hisp.dhis.util.SharingUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * In table aggregatedataexchange, copy Metadata Read value to Data Read value in sharing.users and
+ * sharing.userGroups in sharing column.
+ *
+ * @author Viet Nguyen
+ */
 public class V2_41_46__add_data_sharing_for_aggregate_data_exchange extends BaseJavaMigration {
 
   private static final Logger log =
