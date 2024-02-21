@@ -59,7 +59,7 @@ public class DefaultCustomIconService implements CustomIconService {
   public CustomIcon getIcon(String key) throws NotFoundException {
     CustomIcon customIcon = customIconStore.getIconByKey(key);
     if (customIcon == null) {
-      throw new NotFoundException(String.format("Icon not found: %s", key));
+      throw new NotFoundException(String.format("CustomIcon not found: %s", key));
     }
 
     return customIcon;
@@ -70,7 +70,7 @@ public class DefaultCustomIconService implements CustomIconService {
   public CustomIcon getIconByUid(String uid) throws NotFoundException {
     CustomIcon customIcon = customIconStore.getByUid(uid);
     if (customIcon == null) {
-      throw new NotFoundException(String.format("Icon not found: %s", uid));
+      throw new NotFoundException(String.format("CustomIcon not found: %s", uid));
     }
 
     return customIcon;
@@ -84,7 +84,7 @@ public class DefaultCustomIconService implements CustomIconService {
       return new ClassPathResource(String.format("%s/%s.%s", ICON_PATH, iconKey, Icon.SUFFIX));
     }
 
-    throw new NotFoundException(String.format("No icon found with key %s.", iconKey));
+    throw new NotFoundException(String.format("No CustomIcon found with key %s.", iconKey));
   }
 
   @Override
@@ -132,27 +132,26 @@ public class DefaultCustomIconService implements CustomIconService {
     validateIconKeyNotNullOrEmpty(key);
 
     if (iconExists(key)) {
-      throw new BadRequestException(String.format("Icon with key %s already exists.", key));
+      throw new BadRequestException(String.format("CustomIcon with key %s already exists.", key));
     }
   }
 
   private void validateIconKeyNotNullOrEmpty(String key) throws BadRequestException {
     if (Strings.isNullOrEmpty(key)) {
-      throw new BadRequestException("Icon key not specified.");
+      throw new BadRequestException("CustomIcon key not specified.");
     }
   }
 
   private FileResource getFileResource(String fileResourceUid)
       throws BadRequestException, NotFoundException {
     if (Strings.isNullOrEmpty(fileResourceUid)) {
-      throw new BadRequestException("File resource id not specified.");
+      throw new BadRequestException("FileResource id not specified.");
     }
 
     Optional<FileResource> fileResource =
         fileResourceService.getFileResource(fileResourceUid, CUSTOM_ICON);
     if (fileResource.isEmpty()) {
-      throw new NotFoundException(
-          String.format("File resource %s does not exist", fileResourceUid));
+      throw new NotFoundException(String.format("FileResource %s does not exist", fileResourceUid));
     }
 
     return fileResource.get();

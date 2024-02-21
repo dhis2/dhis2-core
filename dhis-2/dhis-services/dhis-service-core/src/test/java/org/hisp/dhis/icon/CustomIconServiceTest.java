@@ -203,19 +203,17 @@ class CustomIconServiceTest extends DhisConvenienceTest {
   @Test
   void shouldFailWhenUpdatingCustomIconWithoutDescriptionNorKeywords() {
     String uniqueKey = "key";
-    FileResource fileResource = createFileResource('c', "123".getBytes());
 
     CustomIcon customIcon =
         createCustomIcon('I', Set.of("k1", "k2"), createFileResource('F', "123".getBytes()));
     customIcon.setIconKey(uniqueKey);
 
-    CustomIcon updatedIcon = customIcon;
-    updatedIcon.setDescription(null);
-    updatedIcon.setKeywords(null);
+    customIcon.setDescription(null);
+    customIcon.setKeywords(null);
 
     when(customIconStore.getIconByKey(uniqueKey)).thenReturn(customIcon);
     Exception exception =
-        assertThrows(BadRequestException.class, () -> iconService.updateCustomIcon(updatedIcon));
+        assertThrows(BadRequestException.class, () -> iconService.updateCustomIcon(customIcon));
 
     String expectedMessage =
         String.format(

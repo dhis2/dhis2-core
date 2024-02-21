@@ -146,9 +146,9 @@ public class IconController extends AbstractFullReadOnlyController<CustomIcon> {
   public WebMessage deleteCustomIcon(@PathVariable String iconKey, HttpServletResponse response)
       throws NotFoundException, WebMessageException, BadRequestException {
 
-    CustomIcon icon = iconService.getIcon(iconKey);
+    CustomIcon customIcon = iconService.getIcon(iconKey);
 
-    if (icon == null) {
+    if (customIcon == null) {
       throw new WebMessageException(
           WebMessageUtils.notFound(String.format("CustomIcon with iconKey %s not found", iconKey)));
     }
