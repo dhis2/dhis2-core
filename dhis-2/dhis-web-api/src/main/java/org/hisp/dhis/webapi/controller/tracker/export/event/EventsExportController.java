@@ -296,7 +296,7 @@ class EventsExportController {
   }
 
   @GetMapping("/{uid}/changeLog")
-  Page<ObjectNode> getEventByUid(
+  Page<ObjectNode> getEventChangeLogByUid(
       @OpenApi.Param({UID.class, Event.class}) @PathVariable UID uid,
       ChangeLogRequestParams requestParams,
       HttpServletRequest request)
