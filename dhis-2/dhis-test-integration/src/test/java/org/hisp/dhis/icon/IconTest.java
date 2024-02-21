@@ -35,7 +35,7 @@ import com.google.common.hash.Hashing;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
-import java.util.List;
+import java.util.Set;
 import lombok.SneakyThrows;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
@@ -54,7 +54,7 @@ class IconTest extends TrackerTest {
 
   @Autowired private CustomIconService iconService;
   @Autowired protected UserService _userService;
-  private final List<String> keywords = List.of("k1", "k2", "k3");
+  private final Set<String> keywords = Set.of("k1", "k2", "k3");
 
   @SneakyThrows
   @Override

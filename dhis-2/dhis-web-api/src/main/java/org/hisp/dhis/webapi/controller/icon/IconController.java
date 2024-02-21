@@ -31,31 +31,43 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 
 import com.google.common.net.MediaType;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.util.StreamUtils;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.icon.CustomIcon;
 import org.hisp.dhis.icon.CustomIconService;
+import org.hisp.dhis.icon.Icon;
+import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.controller.AbstractFullReadOnlyController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.HeaderUtils;
+import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.core.io.Resource;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -69,7 +81,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @AllArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-public class IconController extends AbstractCrudController<CustomIcon> {
+public class IconController extends AbstractFullReadOnlyController<CustomIcon> {
   private static final int TTL = 365;
 
   private final CustomIconService iconService;
@@ -78,22 +90,89 @@ public class IconController extends AbstractCrudController<CustomIcon> {
 
   private final DhisConfigurationProvider dhisConfig;
 
+  private final RenderService renderService;
+
+  private final IconMapper iconMapper;
+
   @GetMapping(value = "/{key}/icon")
   public void getIconData(@PathVariable String key, HttpServletResponse response)
       throws NotFoundException, WebMessageException, IOException {
 
-    CustomIcon icon = iconService.getIcon(key);
+    CustomIcon customIcon = iconService.getIcon(key);
 
-    if (!icon.getCustom()) {
-      downloadDefaultIcon(icon.getIconKey(), response);
+    if (!customIcon.getCustom()) {
+      downloadDefaultIcon(customIcon.getIconKey(), response);
     } else {
-      downloadCustomIcon(icon.getFileResource(), response);
+      downloadCustomIcon(customIcon.getFileResource(), response);
     }
+  }
+
+  @PostMapping
+  public WebMessage addCustomIcon(HttpServletRequest request)
+      throws IOException, BadRequestException, NotFoundException {
+
+    CustomIconRequest customIconRequest =
+        renderService.fromJson(request.getInputStream(), CustomIconRequest.class);
+    CustomIcon customIcon = iconMapper.to(customIconRequest);
+
+    iconService.addCustomIcon(customIcon);
+
+    return WebMessageUtils.created(
+        String.format("CustomIcon created with key %s", customIcon.getIconKey()));
+  }
+
+  @PutMapping(value = "/{uid}")
+  public WebMessage updateCustomIcon(@PathVariable String uid, HttpServletRequest request)
+      throws IOException, NotFoundException, WebMessageException, BadRequestException {
+
+    CustomIcon customIcon = iconService.getIconByUid(uid);
+
+    if (customIcon == null) {
+      throw new WebMessageException(
+          WebMessageUtils.notFound(String.format("CustomIcon with uid %s not found", uid)));
+    }
+
+    CustomIconRequest customIconRequest =
+        renderService.fromJson(request.getInputStream(), CustomIconRequest.class);
+
+    customIcon = iconMapper.to(customIconRequest);
+
+    iconService.updateCustomIcon(customIcon);
+
+    return WebMessageUtils.ok(String.format("CustomIcon with uid %s updated", uid));
+  }
+
+  @DeleteMapping(value = "/{iconKey}")
+  public WebMessage deleteCustomIcon(@PathVariable String iconKey, HttpServletResponse response)
+      throws NotFoundException, WebMessageException, BadRequestException {
+
+    CustomIcon icon = iconService.getIcon(iconKey);
+
+    if (icon == null) {
+      throw new WebMessageException(
+          WebMessageUtils.notFound(String.format("CustomIcon with iconKey %s not found", iconKey)));
+    }
+
+    iconService.deleteCustomIcon(iconKey);
+
+    return WebMessageUtils.ok(String.format("CustomIcon with iconKey %s deleted", iconKey));
   }
 
   @GetMapping("/keywords")
   public @ResponseBody Set<String> getKeywords() {
     return iconService.getKeywords();
+  }
+
+  @Override
+  protected void postProcessResponseEntities(
+      List<CustomIcon> entityList, WebOptions options, Map<String, String> parameters) {
+
+    entityList.forEach(
+        ci ->
+            ci.setHref(
+                ci.getCustom()
+                    ? getCustomIconReference(ci.getIconKey())
+                    : getDefaultIconReference(ci.getIconKey())));
   }
 
   private void downloadDefaultIcon(String key, HttpServletResponse response)
@@ -132,5 +211,17 @@ public class IconController extends AbstractCrudController<CustomIcon> {
               "There was an exception when trying to fetch the file from the storage backend. "
                   + "Depending on the provider the root cause could be network or file system related."));
     }
+  }
+
+  private String getCustomIconReference(String fileResourceUid) {
+    return String.format(
+        "%s%s/%s/icon",
+        contextService.getApiPath(), IconSchemaDescriptor.API_ENDPOINT, fileResourceUid);
+  }
+
+  private String getDefaultIconReference(String key) {
+    return String.format(
+        "%s%s/%s/icon.%s",
+        contextService.getApiPath(), IconSchemaDescriptor.API_ENDPOINT, key, Icon.SUFFIX);
   }
 }

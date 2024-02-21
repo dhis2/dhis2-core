@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.icon;
 
-import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -37,32 +36,26 @@ import org.springframework.core.io.Resource;
  * @author Kristian Wærstad
  */
 public interface CustomIconService {
-  /**
-   * Gets the icon associated to a key, if it exists
-   *
-   * @param key key of the icon to find
-   * @return icon associated to the key, if found
-   * @throws NotFoundException if no icon exists in the database with the provided key
-   */
-  CustomIcon getIcon(String key) throws NotFoundException;
 
   /**
    * Gets the custom icon associated to a key, if it exists
    *
-   * @param key key of the icon to find
+   * @param iconKey key of the icon to find
    * @return custom icon associated to the key, if found
    * @throws NotFoundException if no custom icon exists with the provided key
    */
-  CustomIcon getCustomIcon(String key) throws NotFoundException;
+  CustomIcon getIcon(String iconKey) throws NotFoundException;
+
+  CustomIcon getIconByUid(String uid) throws NotFoundException;
 
   /**
    * Gets the icon with the correct key if one exists
    *
-   * @param key key of the icon
+   * @param iconKey key of the icon
    * @return the icon resource
    * @throws NotFoundException if no default icon exists with the provided key
    */
-  Resource getCustomIconResource(String key) throws NotFoundException;
+  Resource getCustomIconResource(String iconKey) throws NotFoundException;
 
   /**
    * Gets a set of all unique keywords assigned to icons
@@ -89,27 +82,14 @@ public interface CustomIconService {
    */
   void addCustomIcon(CustomIcon customIcon) throws BadRequestException, NotFoundException;
 
-  /**
-   * Updates the description of a given custom icon
-   *
-   * @param key the key of the icon to update
-   * @param description the new icons description
-   * @param keywords the new icons keywords
-   * @param isCustom Icon is CustomIcon or default.
-   * @throws BadRequestException when icon key is not specified
-   * @throws NotFoundException when no icon with the provided key exists
-   */
-  void updateCustomIcon(String key, String description, List<String> keywords)
-      throws BadRequestException, NotFoundException;
-
   void updateCustomIcon(CustomIcon customIcon) throws BadRequestException, NotFoundException;
 
   /**
    * Deletes a custom icon given its key
    *
-   * @param key the key of the icon to delete
+   * @param iconKey the key of the icon to delete
    * @throws BadRequestException when icon key is not specified
    * @throws NotFoundException when no icon with the provided key exists
    */
-  void deleteCustomIcon(String key) throws BadRequestException, NotFoundException;
+  void deleteCustomIcon(String iconKey) throws BadRequestException, NotFoundException;
 }

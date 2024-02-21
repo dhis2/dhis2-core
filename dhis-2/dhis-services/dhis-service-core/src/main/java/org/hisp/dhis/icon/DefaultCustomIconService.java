@@ -30,7 +30,6 @@ package org.hisp.dhis.icon;
 import static org.hisp.dhis.fileresource.FileResourceDomain.CUSTOM_ICON;
 
 import com.google.common.base.Strings;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -38,8 +37,7 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserDetails;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,14 +57,6 @@ public class DefaultCustomIconService implements CustomIconService {
   @Override
   @Transactional(readOnly = true)
   public CustomIcon getIcon(String key) throws NotFoundException {
-
-    return null;
-    // return getCustomIcon(key);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public CustomIcon getCustomIcon(String key) throws NotFoundException {
     CustomIcon customIcon = customIconStore.getIconByKey(key);
     if (customIcon == null) {
       throw new NotFoundException(String.format("Icon not found: %s", key));
@@ -76,71 +66,66 @@ public class DefaultCustomIconService implements CustomIconService {
   }
 
   @Override
-  public Resource getCustomIconResource(String key) throws NotFoundException {
+  @Transactional(readOnly = true)
+  public CustomIcon getIconByUid(String uid) throws NotFoundException {
+    CustomIcon customIcon = customIconStore.getByUid(uid);
+    if (customIcon == null) {
+      throw new NotFoundException(String.format("Icon not found: %s", uid));
+    }
 
-    return null;
+    return customIcon;
+  }
+
+  @Override
+  @Transactional
+  public Resource getCustomIconResource(String iconKey) throws NotFoundException {
+
+    if (iconExists(iconKey)) {
+      return new ClassPathResource(String.format("%s/%s.%s", ICON_PATH, iconKey, Icon.SUFFIX));
+    }
+
+    throw new NotFoundException(String.format("No icon found with key %s.", iconKey));
   }
 
   @Override
   @Transactional(readOnly = true)
   public Set<String> getKeywords() {
-    return null;
+    return customIconStore.getKeywords();
   }
 
   @Override
   @Transactional(readOnly = true)
-  public boolean iconExists(String key) {
-    return true;
+  public boolean iconExists(String iconKey) {
+    return customIconStore.getIconByKey(iconKey) != null;
   }
 
   @Override
   @Transactional
   public void addCustomIcon(CustomIcon customIcon) throws BadRequestException, NotFoundException {
     validateIconDoesNotExists(customIcon.getIconKey());
+
     FileResource fileResource = getFileResource(customIcon.getFileResource().getUid());
-    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
-    customIconStore.save(customIcon, fileResource, currentUserDetails);
-  }
+    fileResource.setAssigned(true);
+    fileResourceService.updateFileResource(fileResource);
 
-  @Override
-  @Transactional
-  public void updateCustomIcon(String key, String description, List<String> keywords)
-      throws BadRequestException, NotFoundException {
-    CustomIcon icon = validateCustomIconExists(key);
-
-    if (description == null && keywords == null) {
-      throw new BadRequestException(
-          String.format(
-              "Can't update icon %s if none of description and keywords are present in the request",
-              key));
-    }
-
-    if (description != null) {
-      icon.setDescription(description);
-    }
-
-    if (keywords != null) {
-      icon.setKeywords(keywords);
-    }
-
-    icon.setAutoFields();
-    customIconStore.update(icon);
+    customIconStore.save(customIcon);
   }
 
   @Override
   @Transactional
   public void updateCustomIcon(CustomIcon customIcon)
       throws BadRequestException, NotFoundException {
-    updateCustomIcon(
-        customIcon.getIconKey(), customIcon.getDescription(), customIcon.getKeywords());
+    validateAndUpdateCustomIcon(customIcon);
   }
 
   @Override
   @Transactional
-  public void deleteCustomIcon(String key) throws BadRequestException, NotFoundException {
-    CustomIcon icon = validateCustomIconExists(key);
-    getFileResource(icon.getFileResource().getUid()).setAssigned(false);
-    customIconStore.delete(key);
+  public void deleteCustomIcon(String iconKey) throws BadRequestException, NotFoundException {
+    CustomIcon icon = validateCustomIconExists(iconKey);
+    FileResource fileResource = getFileResource(icon.getFileResource().getUid());
+    fileResource.setAssigned(false);
+    fileResourceService.updateFileResource(fileResource);
+    customIconStore.delete(icon);
   }
 
   private void validateIconDoesNotExists(String key) throws BadRequestException {
@@ -176,6 +161,29 @@ public class DefaultCustomIconService implements CustomIconService {
   private CustomIcon validateCustomIconExists(String key)
       throws NotFoundException, BadRequestException {
     validateIconKeyNotNullOrEmpty(key);
-    return getCustomIcon(key);
+    return getIcon(key);
+  }
+
+  private void validateAndUpdateCustomIcon(CustomIcon from)
+      throws BadRequestException, NotFoundException {
+    CustomIcon to = validateCustomIconExists(from.getIconKey());
+
+    if (from.getDescription() == null && from.getKeywords() == null) {
+      throw new BadRequestException(
+          String.format(
+              "Can't update icon %s if none of description and keywords are present in the request",
+              from.getIconKey()));
+    }
+
+    if (from.getDescription() != null) {
+      to.setDescription(from.getDescription());
+    }
+
+    if (from.getKeywords() != null) {
+      to.setKeywords(from.getKeywords());
+    }
+
+    to.setAutoFields();
+    customIconStore.update(to);
   }
 }

@@ -18,7 +18,7 @@
         <property name="custom" column="custom" />
 
         <one-to-one name="fileResource" class="org.hisp.dhis.fileresource.FileResource"
-                    foreign-key="fk_customicon_fileresource" />
+                    foreign-key="fk_customicon_fileresource" constrained="true" />
 
         <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="createdby" foreign-key="fk_createdby_userid" />
 

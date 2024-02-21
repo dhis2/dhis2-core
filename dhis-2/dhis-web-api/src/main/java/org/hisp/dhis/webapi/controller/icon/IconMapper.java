@@ -50,41 +50,41 @@ public class IconMapper {
 
   public IconResponse from(CustomIcon icon) {
 
-    if (icon.getCustom()) {
-      return new IconResponse(
-          icon.getIconKey(),
-          icon.getDescription(),
-          icon.getKeywords(),
-          icon.getFileResource().getUid(),
-          icon.getCreatedBy().getUid(),
-          getCustomIconReference(icon.getIconKey()),
-          icon.getCreated(),
-          icon.getLastUpdated());
-    } else {
-      return new IconResponse(
-          icon.getIconKey(),
-          icon.getDescription(),
-          icon.getKeywords(),
-          getDefaultIconReference(icon.getIconKey()),
-          icon.getCreated(),
-          icon.getLastUpdated());
-    }
+    return IconResponse.builder()
+        .uid(icon.getUid())
+        .code(icon.getCode())
+        .description(icon.getDescription())
+        .key(icon.getIconKey())
+        .keywords(icon.getKeywords())
+        .fileResourceUid(icon.getFileResource().getUid())
+        .created(icon.getCreated())
+        .lastUpdated(icon.getLastUpdated())
+        .custom(icon.getCustom())
+        .reference(
+            icon.getCustom()
+                ? getCustomIconReference(icon.getIconKey())
+                : getDefaultIconReference(icon.getIconKey()))
+        .build();
   }
 
-  public CustomIcon to(IconDto iconDto) throws BadRequestException {
+  public CustomIcon to(CustomIconRequest customIconRequest) throws BadRequestException {
     Optional<FileResource> fileResource =
-        fileResourceService.getFileResource(iconDto.getFileResourceUid(), CUSTOM_ICON);
+        fileResourceService.getFileResource(customIconRequest.getFileResourceId(), CUSTOM_ICON);
     if (fileResource.isEmpty()) {
       throw new BadRequestException(
-          String.format("File resource with uid %s does not exist", iconDto.getFileResourceUid()));
+          String.format(
+              "File resource with uid %s does not exist", customIconRequest.getFileResourceId()));
     }
 
-    return new CustomIcon(
-        iconDto.getKey(),
-        iconDto.getDescription(),
-        iconDto.getKeywords(),
-        iconDto.getCustom(),
-        fileResource.get());
+    CustomIcon customIcon = new CustomIcon();
+    customIcon.setIconKey(customIconRequest.getKey());
+    customIcon.setDescription(customIconRequest.getDescription());
+    customIcon.setKeywords(customIconRequest.getKeywords());
+    customIcon.setCustom(customIconRequest.getCustom());
+    customIcon.setFileResource(fileResource.get());
+    customIcon.setCode(customIconRequest.getCode());
+
+    return customIcon;
   }
 
   private String getCustomIconReference(String fileResourceUid) {

@@ -29,8 +29,6 @@ package org.hisp.dhis.icon;
 
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.user.UserDetails;
 
 public interface CustomIconStore extends IdentifiableObjectStore<CustomIcon> {
   /**
@@ -41,33 +39,5 @@ public interface CustomIconStore extends IdentifiableObjectStore<CustomIcon> {
    */
   CustomIcon getIconByKey(String key);
 
-  /**
-   * Returns a list with all the custom icon keywords
-   *
-   * @return a list with all the custom icon keywords
-   */
   Set<String> getKeywords();
-
-  /**
-   * Persists a custom icon to the database
-   *
-   * @param customIcon Icon to be saved
-   * @param fileResource file resource linked to the custom icon
-   * @param createdByUser user that created the custom icon
-   */
-  void save(CustomIcon customIcon, FileResource fileResource, UserDetails createdByUser);
-
-  /**
-   * Deletes a custom icon from the database
-   *
-   * @param customIconKey Key of the icon to be deleted
-   */
-  void delete(String customIconKey);
-
-  /**
-   * Updates a custom icon from the database
-   *
-   * @param customIcon Icon to be updated
-   */
-  void update(CustomIcon customIcon);
 }

@@ -29,12 +29,12 @@ package org.hisp.dhis.icon.hibernate;
 
 import java.util.Set;
 import javax.persistence.EntityManager;
+import javax.persistence.criteria.CriteriaBuilder;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.icon.CustomIcon;
 import org.hisp.dhis.icon.CustomIconStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.UserDetails;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -55,18 +55,17 @@ public class HibernateCustomIconStore extends HibernateIdentifiableObjectStore<C
   }
 
   @Override
-  public CustomIcon getIconByKey(String key) {
-    return null;
+  public CustomIcon getIconByKey(String iconKey) {
+    CriteriaBuilder builder = getCriteriaBuilder();
+
+    JpaQueryParameters<CustomIcon> parameters =
+        newJpaParameters().addPredicate(root -> builder.equal(root.get("iconKey"), iconKey));
+
+    return getSingleResult(builder, parameters);
   }
 
   @Override
   public Set<String> getKeywords() {
     return null;
   }
-
-  @Override
-  public void save(CustomIcon customIcon, FileResource fileResource, UserDetails createdByUser) {}
-
-  @Override
-  public void delete(String customIconKey) {}
 }

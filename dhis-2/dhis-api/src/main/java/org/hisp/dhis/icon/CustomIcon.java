@@ -30,8 +30,8 @@ package org.hisp.dhis.icon;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -48,11 +48,12 @@ import org.hisp.dhis.fileresource.FileResource;
 @JacksonXmlRootElement(localName = "customIcon", namespace = DxfNamespaces.DXF_2_0)
 public class CustomIcon extends BaseIdentifiableObject {
 
-  @JsonProperty private String iconKey;
+  @JsonProperty(value = "key")
+  private String iconKey;
 
   @JsonProperty private String description;
 
-  @JsonProperty private List<String> keywords = new ArrayList<>();
+  @JsonProperty private Set<String> keywords = new HashSet<>();
 
   @JsonProperty private Boolean custom;
 
@@ -63,7 +64,7 @@ public class CustomIcon extends BaseIdentifiableObject {
   public CustomIcon(
       String key,
       String description,
-      List<String> keywords,
+      Set<String> keywords,
       boolean custom,
       FileResource fileResource) {
     this.iconKey = key;
@@ -71,5 +72,6 @@ public class CustomIcon extends BaseIdentifiableObject {
     this.keywords = keywords;
     this.custom = custom;
     this.fileResource = fileResource;
+    this.setAutoFields();
   }
 }
