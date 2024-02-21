@@ -67,7 +67,6 @@ import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.commons.collection.CollectionUtils;
@@ -434,14 +433,12 @@ class JdbcEventStore implements EventStore {
 
   private Page<Event> getPage(PageParams pageParams, List<Event> events, IntSupplier eventCount) {
     if (pageParams.isPageTotal()) {
-      Pager pager =
-          new Pager(pageParams.getPage(), eventCount.getAsInt(), pageParams.getPageSize());
-      return Page.of(events, pager, pageParams.isPageTotal(), false, false);
+      // TODO Why is total long if here we send an int?
+      return Page.withTotals(
+          events, pageParams.getPage(), pageParams.getPageSize(), eventCount.getAsInt());
     }
 
-    Pager pager = new Pager(pageParams.getPage(), 0, pageParams.getPageSize());
-    pager.force(pageParams.getPage(), pageParams.getPageSize());
-    return Page.of(events, pager, pageParams.isPageTotal(), false, false);
+    return Page.withoutTotals(events, pageParams.getPage(), pageParams.getPageSize());
   }
 
   @Override

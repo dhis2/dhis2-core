@@ -50,7 +50,6 @@ import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -131,14 +130,11 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
   private Page<Enrollment> getPage(
       PageParams pageParams, List<Enrollment> enrollments, IntSupplier enrollmentCount) {
     if (pageParams.isPageTotal()) {
-      Pager pager =
-          new Pager(pageParams.getPage(), enrollmentCount.getAsInt(), pageParams.getPageSize());
-      return Page.of(enrollments, pager, pageParams.isPageTotal(), false, false);
+      return Page.withTotals(
+          enrollments, pageParams.getPage(), pageParams.getPageSize(), enrollmentCount.getAsInt());
     }
 
-    Pager pager = new Pager(pageParams.getPage(), 0, pageParams.getPageSize());
-    pager.force(pageParams.getPage(), pageParams.getPageSize());
-    return Page.of(enrollments, pager, pageParams.isPageTotal(), false, false);
+    return Page.withoutTotals(enrollments, pageParams.getPage(), pageParams.getPageSize());
   }
 
   private QueryWithOrderBy buildEnrollmentHql(EnrollmentQueryParams params) {

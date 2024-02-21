@@ -115,9 +115,11 @@ public class DeduplicationController {
     if (criteria.isPaged()) {
       Pager pager = new Pager(criteria.getPageWithDefault(), 0, criteria.getPageSizeWithDefault());
       pager.force(criteria.getPageWithDefault(), criteria.getPageSizeWithDefault());
+
       org.hisp.dhis.tracker.export.Page<PotentialDuplicate> page =
-          org.hisp.dhis.tracker.export.Page.of(potentialDuplicates, pager, false, false, false);
-      return Page.withPager("potentialDuplicates", objectNodes, page);
+          org.hisp.dhis.tracker.export.Page.withoutTotals(
+              potentialDuplicates, pager.getPage(), pager.getPageSize());
+      return Page.withPager("potentialDuplicates", objectNodes, page, null, null);
     }
 
     return Page.withoutPager("potentialDuplicates", objectNodes);

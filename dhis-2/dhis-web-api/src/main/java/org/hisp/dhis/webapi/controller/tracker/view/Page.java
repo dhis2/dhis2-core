@@ -87,52 +87,48 @@ public class Page<T> {
   private final Integer pageCount;
 
   private Page(
-      String key, List<T> values, org.hisp.dhis.common.Pager pager, boolean showPageTotal) {
+      String key,
+      List<T> values,
+      int page,
+      int pageSize,
+      Long total,
+      int pageCount,
+      String prev,
+      String next) {
     this.items.put(key, values);
-    if (pager == null) {
-      this.pager = null;
-      this.page = null;
-      this.pageSize = null;
-      this.total = null;
-      this.pageCount = null;
-      return;
-    }
 
-    this.page = pager.getPage();
-    this.pageSize = pager.getPageSize();
-    if (showPageTotal) {
-      this.total = pager.getTotal();
-      this.pageCount = pager.getPageCount();
-      this.pager =
-          new Pager(
-              pager.getPage(),
-              pager.getPageSize(),
-              pager.getTotal(),
-              pager.getPageCount(),
-              pager.getPrevPage(),
-              pager.getNextPage());
+    this.page = page;
+    this.pageSize = pageSize;
+    if (total != null) {
+      this.total = total;
+      this.pageCount = pageCount;
+      this.pager = new Pager(page, pageSize, total, pageCount, prev, next);
     } else {
       this.total = null;
       this.pageCount = null;
-      this.pager =
-          new Pager(
-              pager.getPage(),
-              pager.getPageSize(),
-              null,
-              null,
-              pager.getPrevPage(),
-              pager.getNextPage());
+      this.pager = new Pager(page, pageSize, null, null, prev, next);
     }
   }
 
   /**
    * Returns a page which will serialize the items into {@link #items} under given {@code key}.
-   * Pagination details will be serialized as well including totals only if {@link
-   * org.hisp.dhis.tracker.export.Page#isPageTotal()} is true.
+   * Pagination details will be serialized as well including totals only if showPageTotal is true.
    */
   public static <T, U> Page<T> withPager(
-      String key, List<T> items, org.hisp.dhis.tracker.export.Page<U> pager) {
-    return new Page<>(key, items, pager.getPager(), pager.isPageTotal());
+      String key,
+      List<T> items,
+      org.hisp.dhis.tracker.export.Page<U> pager,
+      String prev,
+      String next) {
+    return new Page<>(
+        key,
+        items,
+        pager.getPage(),
+        pager.getPageSize(),
+        pager.getTotal(),
+        (int) Math.ceil(pager.getTotal() / (double) pager.getPageSize()),
+        prev,
+        next);
   }
 
   /**
@@ -140,7 +136,7 @@ public class Page<T> {
    * All other fields will be omitted from the JSON.
    */
   public static <T> Page<T> withoutPager(String key, List<T> items) {
-    return new Page<>(key, items, null, false);
+    return new Page<>(key, items, 0, 0, null, 0, null, null);
   }
 
   @OpenApi.Shared(pattern = Pattern.TRACKER)

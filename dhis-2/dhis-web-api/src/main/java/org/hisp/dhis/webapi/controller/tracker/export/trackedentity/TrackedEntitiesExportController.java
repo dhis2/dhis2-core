@@ -152,7 +152,7 @@ class TrackedEntitiesExportController {
               TRACKED_ENTITY_MAPPER.fromCollection(trackedEntitiesPage.getItems()),
               requestParams.getFields());
 
-      return Page.withPager(TRACKED_ENTITIES, objectNodes, trackedEntitiesPage);
+      return Page.withPager(TRACKED_ENTITIES, objectNodes, trackedEntitiesPage, null, null);
     }
 
     List<org.hisp.dhis.trackedentity.TrackedEntity> trackedEntities =

@@ -42,7 +42,6 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
@@ -271,14 +270,14 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
       PageParams pageParams, List<Relationship> relationships, IntSupplier relationshipsCount) {
 
     if (pageParams.isPageTotal()) {
-      Pager pager =
-          new Pager(pageParams.getPage(), relationshipsCount.getAsInt(), pageParams.getPageSize());
-      return Page.of(relationships, pager, pageParams.isPageTotal(), false, false);
+      return Page.withTotals(
+          relationships,
+          pageParams.getPage(),
+          pageParams.getPageSize(),
+          relationshipsCount.getAsInt());
     }
 
-    Pager pager = new Pager(pageParams.getPage(), 0, pageParams.getPageSize());
-    pager.force(pageParams.getPage(), pageParams.getPageSize());
-    return Page.of(relationships, pager, pageParams.isPageTotal(), false, false);
+    return Page.withoutTotals(relationships, pageParams.getPage(), pageParams.getPageSize());
   }
 
   @Override

@@ -143,7 +143,7 @@ class EventsExportController {
           fieldFilterService.toObjectNodes(
               EVENTS_MAPPER.fromCollection(eventsPage.getItems()), requestParams.getFields());
 
-      return Page.withPager(EVENTS, objectNodes, eventsPage);
+      return Page.withPager(EVENTS, objectNodes, eventsPage, null, null);
     }
 
     List<org.hisp.dhis.program.Event> events = eventService.getEvents(eventOperationParams);
@@ -308,28 +308,25 @@ class EventsExportController {
     org.hisp.dhis.tracker.export.Page<EventChangeLog> changeLogs =
         eventChangeLogService.getEventChangeLog(uid, pageParams);
 
-    if (changeLogs.isHasNext()) {
-      changeLogs
-          .getPager()
-          .setNextPage(
-              request.getRequestURI()
-                  + String.format(
-                      "?page=%d&pageSize=%d",
-                      requestParams.getPage() + 1, requestParams.getPageSize()));
+    String nextPage = null;
+    if (changeLogs.isNext()) {
+      nextPage =
+          request.getRequestURI()
+              + String.format(
+                  "?page=%d&pageSize=%d", requestParams.getPage() + 1, requestParams.getPageSize());
     }
-    if (changeLogs.isHasPrevious()) {
-      changeLogs
-          .getPager()
-          .setPrevPage(
-              request.getRequestURI()
-                  + String.format(
-                      "?page=%d&pageSize=%d",
-                      requestParams.getPage() - 1, requestParams.getPageSize()));
+
+    String previousPage = null;
+    if (changeLogs.isPrev()) {
+      previousPage =
+          request.getRequestURI()
+              + String.format(
+                  "?page=%d&pageSize=%d", requestParams.getPage() - 1, requestParams.getPageSize());
     }
 
     List<ObjectNode> objectNodes =
         fieldFilterService.toObjectNodes(changeLogs.getItems(), requestParams.getFields());
 
-    return Page.withPager("changeLogs", objectNodes, changeLogs);
+    return Page.withPager("changeLogs", objectNodes, changeLogs, previousPage, nextPage);
   }
 }

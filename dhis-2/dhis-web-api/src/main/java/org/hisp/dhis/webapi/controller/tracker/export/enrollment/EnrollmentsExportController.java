@@ -112,7 +112,7 @@ class EnrollmentsExportController {
               ENROLLMENT_MAPPER.fromCollection(enrollmentsPage.getItems()),
               requestParams.getFields());
 
-      return Page.withPager(ENROLLMENTS, objectNodes, enrollmentsPage);
+      return Page.withPager(ENROLLMENTS, objectNodes, enrollmentsPage, null, null);
     }
 
     Collection<org.hisp.dhis.program.Enrollment> enrollments =

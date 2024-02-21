@@ -114,12 +114,14 @@ public class DefaultRelationshipService implements RelationshipService {
         relationshipPage.getItems().stream()
             .filter(r -> trackerAccessManager.canRead(currentUser, r).isEmpty())
             .toList();
-    return Page.of(
-        map(relationships),
-        relationshipPage.getPager(),
-        relationshipPage.isPageTotal(),
-        false,
-        false);
+
+    return relationshipPage.getTotal() != null
+        ? Page.withTotals(
+            relationships,
+            pageParams.getPage(),
+            pageParams.getPageSize(),
+            relationshipPage.getTotal())
+        : Page.withoutTotals(relationships, pageParams.getPage(), pageParams.getPageSize());
   }
 
   public List<Relationship> getRelationshipsByEnrollment(
@@ -141,12 +143,14 @@ public class DefaultRelationshipService implements RelationshipService {
         relationshipPage.getItems().stream()
             .filter(r -> trackerAccessManager.canRead(currentUser, r).isEmpty())
             .toList();
-    return Page.of(
-        map(relationships),
-        relationshipPage.getPager(),
-        relationshipPage.isPageTotal(),
-        false,
-        false);
+
+    return relationshipPage.getTotal() != null
+        ? Page.withTotals(
+            relationships,
+            pageParams.getPage(),
+            pageParams.getPageSize(),
+            relationshipPage.getTotal())
+        : Page.withoutTotals(relationships, pageParams.getPage(), pageParams.getPageSize());
   }
 
   public List<Relationship> getRelationshipsByEvent(
@@ -168,12 +172,14 @@ public class DefaultRelationshipService implements RelationshipService {
         relationshipPage.getItems().stream()
             .filter(r -> trackerAccessManager.canRead(currentUser, r).isEmpty())
             .toList();
-    return Page.of(
-        map(relationships),
-        relationshipPage.getPager(),
-        relationshipPage.isPageTotal(),
-        false,
-        false);
+
+    return relationshipPage.getTotal() != null
+        ? Page.withTotals(
+            relationships,
+            pageParams.getPage(),
+            pageParams.getPageSize(),
+            relationshipPage.getTotal())
+        : Page.withoutTotals(relationships, pageParams.getPage(), pageParams.getPageSize());
   }
 
   private List<Relationship> getRelationships(RelationshipQueryParams queryParams) {

@@ -102,14 +102,19 @@ class JdbcEventChangeLogStore {
     Pager pager = new Pager();
     pager.force(pageParams.getPage(), pageParams.getPageSize());
     if (changeLogs.size() > pageParams.getPageSize()) {
-      return Page.of(
+      return Page.withPrevAndNext(
           changeLogs.subList(0, pageParams.getPageSize()),
-          pager,
-          false,
+          pageParams.getPage(),
+          pageParams.getPageSize(),
           pageParams.getPage() != 1,
           true);
     } else {
-      return Page.of(changeLogs, pager, false, pageParams.getPage() != 1, false);
+      return Page.withPrevAndNext(
+          changeLogs,
+          pageParams.getPage(),
+          pageParams.getPageSize(),
+          pageParams.getPage() != 1,
+          false);
     }
   }
 }
