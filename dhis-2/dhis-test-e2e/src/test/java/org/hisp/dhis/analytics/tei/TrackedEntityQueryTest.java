@@ -3123,4 +3123,44 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         .body("headers[0].name", equalTo("IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x"))
         .body("headers[0]", not(hasKey("stageOffset")));
   }
+
+  @Test
+  public void orgUnitGroupSetAreExported() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=uIuxlbV1vRT")
+            .add("headers=uIuxlbV1vRT")
+            .add("pageSize=0");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers[0].name", equalTo("uIuxlbV1vRT"))
+        .body("headers[0].column", equalTo("Area"));
+  }
+
+  @Test
+  public void multipleValuesAreAccepted() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6:IN:2;5")
+            .add("headers=IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6")
+            .add("pageSize=0");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers[0].name", equalTo("IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6"))
+        .body("headers[0].column", equalTo("MCH Apgar Score"));
+  }
 }
