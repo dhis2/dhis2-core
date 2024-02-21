@@ -254,7 +254,9 @@ public abstract class AbstractSchedulingManager implements SchedulingManager {
       return false;
     }
     JobType type = configuration.getJobType();
-    if (configuration.isLeaderOnlyJob() && !leaderManager.isLeader()) {
+    if (!configuration.isInMemoryJob()
+        && configuration.isLeaderOnlyJob()
+        && !leaderManager.isLeader()) {
       whenLeaderOnlyOnNonLeader(configuration);
       return false;
     }
