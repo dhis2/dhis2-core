@@ -67,11 +67,8 @@ public class V2_41_46__add_data_sharing_for_aggregate_data_exchange extends Base
       statement.setLong(2, id);
       statement.setString(1, updatedSharing);
 
-      log.info("Executing sharing migration query: [" + statement + "]");
+      log.info("Executing sharing migration query: {}", statement);
       statement.executeUpdate();
-    } catch (SQLException e) {
-      log.error(e.getMessage());
-      throw e;
     }
   }
 }
