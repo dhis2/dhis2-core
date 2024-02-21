@@ -37,6 +37,7 @@ import java.util.function.UnaryOperator;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -132,19 +133,35 @@ class SharingTest {
   @Test
   void testCopySharingRead() {
     String source = "r-------";
-    String result = Sharing.copySharingRead(source);
-    assertEquals("r-r-----", result);
+    String result = Sharing.copyDataWrite(source);
+    assertEquals("r-------", result);
 
     source = "rw------";
-    result = Sharing.copySharingRead(source);
-    assertEquals("rwr-----", result);
+    result = Sharing.copyDataWrite(source);
+    assertEquals("rw-w----", result);
 
     source = "rw-w----";
-    result = Sharing.copySharingRead(source);
-    assertEquals("rwrw----", result);
+    result = Sharing.copyDataWrite(source);
+    assertEquals("rw-w----", result);
 
-    source = "r-r-----";
-    result = Sharing.copySharingRead(source);
-    assertEquals("r-r-----", result);
+    source = "rwr-----";
+    result = Sharing.copyDataWrite(source);
+    assertEquals("rwrw----", result);
+  }
+
+  @Test
+  @DisplayName(
+      "Users and UserGroups access string should be transformed using Sharing.withUserAndUserGroupAccess, public access must not be changed.")
+  void testCopyWithAccessForSharingRead() {
+    Sharing original = new Sharing();
+    original.setPublicAccess("rw------");
+    original.setUserAccesses(singleton(new UserAccess("rw------", "id")));
+    original.setUserGroupAccess(singleton(new UserGroupAccess("r-------", "uid")));
+    Sharing actual = original.withUserAndUserGroupAccess(Sharing::copyDataWrite);
+    UserAccess userAccess = actual.getUsers().values().iterator().next();
+    assertEquals("rw-w----", userAccess.getAccess());
+    UserGroupAccess userGroupAccess = actual.getUserGroups().values().iterator().next();
+    assertEquals("r-------", userGroupAccess.getAccess());
+    assertEquals("rw------", actual.getPublicAccess());
   }
 }

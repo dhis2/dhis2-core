@@ -41,7 +41,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * In table aggregatedataexchange, copy Metadata Read value to Data Read value in sharing.users and
- * sharing.userGroups in sharing column.
+ * sharing.userGroups in sharing column. Public access must not be changed.
  *
  * @author Viet Nguyen
  */
@@ -64,7 +64,8 @@ public class V2_41_46__add_data_sharing_for_aggregate_data_exchange extends Base
 
   private void updateRow(Context context, long id, String sharing)
       throws SQLException, JsonProcessingException {
-    String updatedSharing = SharingUtils.withAccess(sharing, Sharing::copySharingRead);
+    String updatedSharing =
+        SharingUtils.withUserAndUserGroupAccess(sharing, Sharing::copyDataWrite);
     try (PreparedStatement statement =
         context
             .getConnection()
