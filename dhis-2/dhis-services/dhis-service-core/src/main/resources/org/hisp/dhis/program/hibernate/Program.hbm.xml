@@ -41,7 +41,7 @@
 
         <property name="trackedEntityAttributeLabel" column="trackedentityattributelabel" type="text"/>
 
-        <property name="programStageLabel" column="programStageLabel" type="text"/>
+        <property name="programStageLabel" column="programstagelabel" type="text"/>
 
         <property name="eventLabel" column="eventLabel" type="text"/>
 
