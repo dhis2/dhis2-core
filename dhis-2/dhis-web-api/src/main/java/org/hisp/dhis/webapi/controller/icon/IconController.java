@@ -143,7 +143,7 @@ public class IconController extends AbstractFullReadOnlyController<CustomIcon> {
   }
 
   @DeleteMapping(value = "/{iconKey}")
-  public WebMessage deleteCustomIcon(@PathVariable String iconKey, HttpServletResponse response)
+  public WebMessage deleteCustomIcon(@PathVariable String iconKey)
       throws NotFoundException, WebMessageException, BadRequestException {
 
     CustomIcon customIcon = iconService.getIcon(iconKey);
