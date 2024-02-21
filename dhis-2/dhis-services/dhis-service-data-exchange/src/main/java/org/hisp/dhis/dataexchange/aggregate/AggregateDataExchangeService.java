@@ -139,6 +139,7 @@ public class AggregateDataExchangeService {
               String.format(
                   "User has no data write access for AggregateDataExchange: %s",
                   exchange.getDisplayName())));
+      return summaries;
     }
 
     progress.startingStage(toStageDescription(exchange), FailurePolicy.SKIP_ITEM);
