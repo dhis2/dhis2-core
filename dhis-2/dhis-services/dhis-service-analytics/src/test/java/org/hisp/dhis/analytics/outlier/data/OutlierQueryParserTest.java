@@ -35,9 +35,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Set;
+
 import org.hisp.dhis.analytics.data.DimensionalObjectProducer;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
@@ -74,7 +77,7 @@ class OutlierQueryParserTest {
     OrganisationUnit organisationUnit = createOrganisationUnit('O');
     BaseDimensionalObject baseDimensionalObject = new BaseDimensionalObject();
     baseDimensionalObject.setItems(List.of(organisationUnit));
-    when(dimensionalObjectProducer.getOrgUnitDimension(
+    lenient().when(dimensionalObjectProducer.getOrgUnitDimension(
             anyList(), eq(DisplayProperty.NAME), anyList(), eq(IdScheme.UID)))
         .thenReturn(baseDimensionalObject);
 
@@ -89,6 +92,7 @@ class OutlierQueryParserTest {
   void testGetFromQueryDataElement() {
     // given
     OutlierQueryParams params = new OutlierQueryParams();
+    params.setOu(Set.of("ou"));
     // when
     OutlierRequest request = subject.getFromQuery(params, false);
     // then
@@ -100,10 +104,21 @@ class OutlierQueryParserTest {
   void testGetFromQueryOrgUnit() {
     // given
     OutlierQueryParams params = new OutlierQueryParams();
+    params.setOu(Set.of("ou"));
     // when
     OutlierRequest request = subject.getFromQuery(params, false);
     // then
     assertEquals(1, (long) request.getOrgUnits().size());
     assertEquals("ouabcdefghO", request.getOrgUnits().get(0).getUid());
+  }
+
+  @Test
+  void testGetFromQueryNoOrgUnit() {
+    // given
+    OutlierQueryParams params = new OutlierQueryParams();
+    // when
+    OutlierRequest request = subject.getFromQuery(params, false);
+    // then
+    assertEquals(0, (long) request.getOrgUnits().size());
   }
 }

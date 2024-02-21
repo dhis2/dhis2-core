@@ -170,6 +170,10 @@ public class OutlierQueryParser {
    */
   private List<OrganisationUnit> getOrganisationUnits(OutlierQueryParams queryParams) {
 
+    if (queryParams.getOu().isEmpty()) {
+      return new ArrayList<>();
+    }
+
     String currentUsername = CurrentUserUtil.getCurrentUsername();
     User currentUser = userService.getUserByUsername(currentUsername);
 
