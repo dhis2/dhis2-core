@@ -92,6 +92,7 @@ class AuthenticationControllerTest extends DhisAuthenticationApiTest {
 
     mvc.perform(
             get("/2fa/qrCode")
+                .header("Authorization", "Basic dXNlcmE6ZGlzdHJpY3Q=")
                 .contentType("application/octet-stream")
                 .accept("application/octet-stream"))
         .andExpect(status().isAccepted());
