@@ -170,24 +170,49 @@ public class OutlierQueryParser {
    */
   private List<OrganisationUnit> getOrganisationUnits(OutlierQueryParams queryParams) {
 
-    if (queryParams.getOu().isEmpty()) {
-      return new ArrayList<>();
-    }
-
     String currentUsername = CurrentUserUtil.getCurrentUsername();
     User currentUser = userService.getUserByUsername(currentUsername);
 
-    Set<OrganisationUnit> organisationUnits =
-        currentUser == null ? Set.of() : currentUser.getOrganisationUnits();
+    Set<OrganisationUnit> organisationUnitsSecurityConstrain =
+        currentUser == null || !currentUser.hasDataViewOrganisationUnit()
+            ? Set.of()
+            : currentUser.getDataViewOrganisationUnits();
 
-    BaseDimensionalObject baseDimensionalObject =
+    if (queryParams.getOu().isEmpty()) {
+      return organisationUnitsSecurityConstrain.stream().toList();
+    }
+
+    return applySecurityConstrain(
+        organisationUnitsSecurityConstrain, queryParams.getOu(), currentUser);
+  }
+
+  /**
+   * The function retrieves all required organisation units compatible with security constrain
+   *
+   * @param organisationUnitsSecurityConstrain list of the {@link OrganisationUnit}
+   * @param organisationUnits list of the requested organisation unit Uids
+   * @param currentUser the {@link User}.
+   * @return a list of the {@link OrganisationUnit}.
+   */
+  private List<OrganisationUnit> applySecurityConstrain(
+      Set<OrganisationUnit> organisationUnitsSecurityConstrain,
+      Set<String> organisationUnits,
+      User currentUser) {
+    BaseDimensionalObject orgUnitDimension =
         dimensionalObjectProducer.getOrgUnitDimension(
-            queryParams.getOu().stream().toList(),
-            DisplayProperty.NAME,
             organisationUnits.stream().toList(),
+            DisplayProperty.NAME,
+            currentUser != null ? currentUser.getOrganisationUnits().stream().toList() : List.of(),
             IdScheme.UID);
 
-    return baseDimensionalObject.getItems().stream().map(ou -> (OrganisationUnit) ou).toList();
+    return orgUnitDimension.getItems().stream()
+        .filter(
+            bdo ->
+                organisationUnitsSecurityConstrain.isEmpty()
+                    || organisationUnitsSecurityConstrain.stream()
+                        .anyMatch(ou -> bdo.getUid().equals(ou.getUid())))
+        .map(ou -> (OrganisationUnit) ou)
+        .toList();
   }
 
   /**
