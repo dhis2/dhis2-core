@@ -81,6 +81,26 @@ class AuthenticationControllerTest extends DhisAuthenticationApiTest {
   }
 
   @Test
+  void testLoginWith2FAEnrolmentUser() {
+    createUserWithAuth("usera", "ALL");
+
+    User admin = userService.getUserByUsername("usera");
+    String secret = Base32.random();
+    admin.setSecret(TWO_FACTOR_CODE_APPROVAL_PREFIX + secret);
+    userService.updateUser(admin);
+
+    JsonLoginResponse wrong2FaCodeResponse =
+        POST("/auth/login", "{'username':'usera','password':'district'}")
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
+
+    assertEquals("REQUIRES_TWO_FACTOR_ENROLMENT", wrong2FaCodeResponse.getLoginStatus());
+    assertNull(wrong2FaCodeResponse.getRedirectUrl());
+
+    validateTOTP(secret);
+  }
+
+  @Test
   void testLoginWith2FAEnabledUser() {
     User admin = userService.getUserByUsername("admin");
     String secret = Base32.random();
@@ -94,24 +114,6 @@ class AuthenticationControllerTest extends DhisAuthenticationApiTest {
 
     assertEquals("INCORRECT_TWO_FACTOR_CODE", wrong2FaCodeResponse.getLoginStatus());
     Assertions.assertNull(wrong2FaCodeResponse.getRedirectUrl());
-
-    validateTOTP(secret);
-  }
-
-  @Test
-  void testLoginWith2FAEnrolmentUser() {
-    User admin = userService.getUserByUsername("admin");
-    String secret = Base32.random();
-    admin.setSecret(TWO_FACTOR_CODE_APPROVAL_PREFIX + secret);
-    userService.updateUser(admin);
-
-    JsonLoginResponse wrong2FaCodeResponse =
-        POST("/auth/login", "{'username':'admin','password':'district'}")
-            .content(HttpStatus.OK)
-            .as(JsonLoginResponse.class);
-
-    assertEquals("REQUIRES_TWO_FACTOR_ENROLMENT", wrong2FaCodeResponse.getLoginStatus());
-    assertNull(wrong2FaCodeResponse.getRedirectUrl());
 
     validateTOTP(secret);
   }
@@ -208,13 +210,15 @@ class AuthenticationControllerTest extends DhisAuthenticationApiTest {
     assertEquals("admin", actual.getUsername());
   }
 
+  // test redirect to login page when not logged in, remember url befire login...
+
   private void validateTOTP(String secret) {
     Totp totp = new Totp(secret);
     String code = totp.now();
     JsonLoginResponse ok2FaCodeResponse =
         POST(
-            "/auth/login",
-            "{'username':'admin','password':'district','twoFactorCode':'%s'}".formatted(code))
+                "/auth/login",
+                "{'username':'admin','password':'district','twoFactorCode':'%s'}".formatted(code))
             .content(HttpStatus.OK)
             .as(JsonLoginResponse.class);
     assertEquals("SUCCESS", ok2FaCodeResponse.getLoginStatus());
