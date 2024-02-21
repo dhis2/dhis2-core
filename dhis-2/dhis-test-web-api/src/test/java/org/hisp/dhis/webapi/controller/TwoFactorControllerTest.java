@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.List;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
@@ -111,7 +112,7 @@ class TwoFactorControllerTest extends DhisControllerConvenienceTest {
 
     userService.addUser(newUser);
     userService.generateTwoFactorOtpSecretForApproval(newUser);
-    userService.approveTwoFactorSecret(newUser);
+    userService.approveTwoFactorSecret(newUser, new SystemUser());
 
     switchToNewUser(newUser);
 

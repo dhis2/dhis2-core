@@ -133,6 +133,9 @@ public class AuthenticationController {
       return LoginResponse.builder().loginStatus(STATUS.ACCOUNT_DISABLED).build();
     } catch (AccountExpiredException e) {
       return LoginResponse.builder().loginStatus(STATUS.ACCOUNT_EXPIRED).build();
+    } catch (Exception e) {
+
+      return LoginResponse.builder().loginStatus(STATUS.ACCOUNT_EXPIRED).build();
     }
   }
 

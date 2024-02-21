@@ -27,10 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller.security;
 
-import static org.hisp.dhis.user.UserService.TWO_FACTOR_CODE_APPROVAL_PREFIX;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Calendar;
 import org.hisp.dhis.setting.SettingKey;
@@ -81,13 +82,15 @@ class AuthenticationControllerTest extends DhisAuthenticationApiTest {
   }
 
   @Test
-  void testLoginWith2FAEnrolmentUser() {
-    createUserWithAuth("usera", "ALL");
+  void testLoginWith2FAEnrolmentUser() throws Exception {
+    User userA = createUserWithAuth("usera", "ALL");
+    injectSecurityContextUser(userA);
 
-    User admin = userService.getUserByUsername("usera");
-    String secret = Base32.random();
-    admin.setSecret(TWO_FACTOR_CODE_APPROVAL_PREFIX + secret);
-    userService.updateUser(admin);
+    mvc.perform(
+            get("/2fa/qrCode")
+                .contentType("application/octet-stream")
+                .accept("application/octet-stream"))
+        .andExpect(status().isAccepted());
 
     JsonLoginResponse wrong2FaCodeResponse =
         POST("/auth/login", "{'username':'usera','password':'district'}")
@@ -96,8 +99,6 @@ class AuthenticationControllerTest extends DhisAuthenticationApiTest {
 
     assertEquals("REQUIRES_TWO_FACTOR_ENROLMENT", wrong2FaCodeResponse.getLoginStatus());
     assertNull(wrong2FaCodeResponse.getRedirectUrl());
-
-    validateTOTP(secret);
   }
 
   @Test

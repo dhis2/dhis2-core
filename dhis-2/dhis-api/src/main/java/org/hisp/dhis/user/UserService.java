@@ -516,14 +516,14 @@ public interface UserService {
    *
    * @param user The user object that is being updated.
    */
-  void approveTwoFactorSecret(User user);
+  void approveTwoFactorSecret(User user, UserDetails actingUser);
 
   /**
    * "Disable 2FA authentication for the input user, by setting the secret to null."
    *
    * @param user The user object that you want to reset the 2FA for.
    */
-  void resetTwoFactor(User user);
+  void resetTwoFactor(User user, UserDetails actingUser);
 
   /**
    * If the user has a secret, and the secret has not been approved, and the code is valid, then

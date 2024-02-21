@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.security.ForwardedIpAwareWebAuthenticationDetails;
 import org.hisp.dhis.security.TwoFactoryAuthenticationUtils;
+import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
@@ -142,13 +143,13 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
       log.debug("Two-factor authentication failure for user: '{}'", user.getUsername());
 
       if (UserService.hasTwoFactorSecretForApproval(user)) {
-        userService.resetTwoFactor(user);
+        userService.resetTwoFactor(user, new SystemUser());
         throw new TwoFactorAuthenticationEnrolmentException("Invalid verification code");
       } else {
         throw new TwoFactorAuthenticationException("Invalid verification code");
       }
     } else if (UserService.hasTwoFactorSecretForApproval(user)) {
-      userService.approveTwoFactorSecret(user);
+      userService.approveTwoFactorSecret(user, new SystemUser());
     }
   }
 
