@@ -73,7 +73,7 @@ public class IconMapper {
     if (fileResource.isEmpty()) {
       throw new BadRequestException(
           String.format(
-              "File resource with uid %s does not exist", customIconRequest.getFileResourceId()));
+              "FileResource with uid %s does not exist", customIconRequest.getFileResourceId()));
     }
 
     CustomIcon customIcon = new CustomIcon();
