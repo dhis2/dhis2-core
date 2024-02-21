@@ -96,6 +96,10 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
 
   private String trackedEntityAttributeLabel;
 
+  private String programStageLabel;
+
+  private String eventLabel;
+
   private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
   private Set<ProgramStage> programStages = new HashSet<>();
@@ -563,6 +567,42 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
+  public String getProgramStageLabel() {
+    return programStageLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "programStageLabel", key = "PROGRAM_STAGE_LABEL")
+  public String getDisplayProgramStageLabel() {
+    return getTranslation("PROGRAM_STAGE_LABEL", getProgramStageLabel());
+  }
+
+  public void setProgramStageLabel(String programStageLabel) {
+    this.programStageLabel = programStageLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
+  public String getEventLabel() {
+    return eventLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "eventLabel", key = "EVENT_LABEL")
+  public String getDisplayEventLabel() {
+    return getTranslation("EVENT_LABEL", getEventLabel());
+  }
+
+  public void setEventLabel(String eventLabel) {
+    this.eventLabel = eventLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public ProgramType getProgramType() {
     return programType;
   }
@@ -944,6 +984,8 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
     copy.setFollowUpLabel(original.getFollowUpLabel());
     copy.setOrgUnitLabel(original.getOrgUnitLabel());
     copy.setTrackedEntityAttributeLabel(original.getTrackedEntityAttributeLabel());
+    copy.setProgramStageLabel(original.getProgramStageLabel());
+    copy.setEventLabel(original.getEventLabel());
     copy.setRelationshipLabel(original.getRelationshipLabel());
   }
 
