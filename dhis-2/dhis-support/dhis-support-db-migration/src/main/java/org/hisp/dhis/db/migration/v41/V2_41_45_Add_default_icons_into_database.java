@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,53 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.icon;
+package org.hisp.dhis.db.migration.v41;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.util.HashSet;
-import java.util.Set;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.fileresource.FileResource;
+import org.flywaydb.core.api.migration.BaseJavaMigration;
+import org.flywaydb.core.api.migration.Context;
 
-/** Custom icons are uploaded by users and can be modified and deleted. */
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@JacksonXmlRootElement(localName = "customIcon", namespace = DxfNamespaces.DXF_2_0)
-public class CustomIcon extends BaseIdentifiableObject {
-
-  @JsonProperty(value = "key")
-  private String iconKey;
-
-  @JsonProperty private String description;
-
-  @JsonProperty private Set<String> keywords = new HashSet<>();
-
-  @JsonProperty private Boolean custom;
-
-  @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  private FileResource fileResource;
-
-  public CustomIcon(
-      String key,
-      String description,
-      Set<String> keywords,
-      boolean custom,
-      FileResource fileResource) {
-    this.iconKey = key;
-    this.description = description;
-    this.keywords = keywords;
-    this.custom = custom;
-    this.fileResource = fileResource;
-    this.setAutoFields();
-  }
+/**
+ * @author Zubair Asghar
+ */
+public class V2_41_45_Add_default_icons_into_database extends BaseJavaMigration {
+  @Override
+  public void migrate(Context context) throws Exception {}
 }
