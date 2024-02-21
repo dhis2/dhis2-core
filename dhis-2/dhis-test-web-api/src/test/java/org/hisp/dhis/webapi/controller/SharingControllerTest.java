@@ -176,7 +176,7 @@ class SharingControllerTest extends DhisControllerConvenienceTest {
     switchToSuperuser();
     PUT("/sharing?type=categoryOption&id=xYerKDKCef1", sharingPrivate()).content(HttpStatus.OK);
 
-    // then the lastUpdatedBy value should match the last user to update it
+    // then
     JsonCategoryOption catOption2 =
         GET("/categoryOptions/xYerKDKCef1").content(HttpStatus.OK).as(JsonCategoryOption.class);
     assertEquals(

@@ -329,7 +329,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   /**
    * Method that updates a {@link BaseIdentifiableObject}, bypassing any ACL checks. It calls {@link
    * #setFields(BaseIdentifiableObject, UserDetails)} which ensures that the following properties
-   * are set:
+   * are set before updating:
    * <li>UID
    * <li>created
    * <li>createdBy
