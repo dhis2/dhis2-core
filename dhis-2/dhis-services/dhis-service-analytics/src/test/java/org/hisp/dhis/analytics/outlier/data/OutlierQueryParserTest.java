@@ -40,7 +40,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.analytics.data.DimensionalObjectProducer;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
@@ -77,8 +76,10 @@ class OutlierQueryParserTest {
     OrganisationUnit organisationUnit = createOrganisationUnit('O');
     BaseDimensionalObject baseDimensionalObject = new BaseDimensionalObject();
     baseDimensionalObject.setItems(List.of(organisationUnit));
-    lenient().when(dimensionalObjectProducer.getOrgUnitDimension(
-            anyList(), eq(DisplayProperty.NAME), anyList(), eq(IdScheme.UID)))
+    lenient()
+        .when(
+            dimensionalObjectProducer.getOrgUnitDimension(
+                anyList(), eq(DisplayProperty.NAME), anyList(), eq(IdScheme.UID)))
         .thenReturn(baseDimensionalObject);
 
     subject = new OutlierQueryParser(idObjectManager, dimensionalObjectProducer, userService);
