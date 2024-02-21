@@ -34,8 +34,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
@@ -151,5 +153,54 @@ class SharingControllerTest extends DhisControllerConvenienceTest {
     GET("/sharing?type=dataSet&id=" + dataSetId).content(HttpStatus.FORBIDDEN);
     switchToSuperuser();
     GET("/sharing?type=dataSet&id=" + dataSetId).content(HttpStatus.OK);
+  }
+
+  @Test
+  @DisplayName(
+      "Updating metadata sharing (which bypasses ACL checks) will update the lastUpdatedBy field to match the current user")
+  void updatingSharingWillUpdateTheLastUpdatedByField() {
+    // given a category option is created by a test user
+    User user = switchToNewUser("tester123", "ALL");
+    POST("/categoryOptions", catOption()).content(HttpStatus.CREATED);
+
+    JsonIdentifiableObject catOption =
+        GET("/categoryOptions/xYerKDKCef1").content(HttpStatus.OK).as(JsonIdentifiableObject.class);
+    assertEquals(
+        user.getUid(),
+        catOption.getLastUpdatedBy().getId(),
+        "The lastUpdatedBy value should match the user who just created the object");
+
+    // when a different user updates it
+    switchToSuperuser();
+    PUT("/sharing?type=categoryOption&id=xYerKDKCef1", sharingPrivate()).content(HttpStatus.OK);
+
+    // then
+    JsonIdentifiableObject catOption2 =
+        GET("/categoryOptions/xYerKDKCef1").content(HttpStatus.OK).as(JsonIdentifiableObject.class);
+    assertEquals(
+        "M5zQapPyTZI",
+        catOption2.getLastUpdatedBy().getId(),
+        "The lastUpdatedBy value should match the user who last updated the object");
+  }
+
+  private String catOption() {
+    return "{\n"
+        + "    \"id\": \"xYerKDKCef1\",\n"
+        + "    \"displayName\": \"cat option 1\",\n"
+        + "    \"name\": \"test cat option\",\n"
+        + "    \"shortName\": \"test cat option\"\n"
+        + "}";
+  }
+
+  private String sharingPrivate() {
+    return "{\n"
+        + "     \"object\": {\n"
+        + "         \"publicAccess\": \"--------\",\n"
+        + "         \"externalAccess\": false,\n"
+        + "         \"user\": {},\n"
+        + "         \"userAccesses\": [],\n"
+        + "         \"userGroupAccesses\": []\n"
+        + "     }\n"
+        + " }";
   }
 }

@@ -319,9 +319,15 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     return object;
   }
 
+  /**
+   * Method that updates a {@link BaseIdentifiableObject}, bypassing any ACL checks.
+   *
+   * @param object Object to update
+   */
   @Override
   public final void updateNoAcl(T object) {
     object.setAutoFields();
+    object.setLastUpdatedBy(currentUserService.getCurrentUser());
     getSession().update(object);
   }
 
