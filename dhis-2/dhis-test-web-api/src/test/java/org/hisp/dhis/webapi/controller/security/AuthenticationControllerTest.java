@@ -27,14 +27,23 @@
  */
 package org.hisp.dhis.webapi.controller.security;
 
+import static org.hisp.dhis.user.UserService.TWO_FACTOR_CODE_APPROVAL_PREFIX;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
+import java.util.Calendar;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisAuthenticationApiTest;
 import org.hisp.dhis.webapi.json.domain.JsonLoginResponse;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
+import org.jboss.aerogear.security.otp.Totp;
+import org.jboss.aerogear.security.otp.api.Base32;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.session.SessionRegistry;
@@ -44,6 +53,7 @@ import org.springframework.security.core.session.SessionRegistry;
  */
 class AuthenticationControllerTest extends DhisAuthenticationApiTest {
 
+  @Autowired SystemSettingManager systemSettingManager;
   @Autowired private SessionRegistry sessionRegistry;
 
   @Test
@@ -71,6 +81,120 @@ class AuthenticationControllerTest extends DhisAuthenticationApiTest {
   }
 
   @Test
+  void testLoginWith2FAEnabledUser() {
+    User admin = userService.getUserByUsername("admin");
+    String secret = Base32.random();
+    admin.setSecret(secret);
+    userService.updateUser(admin);
+
+    JsonLoginResponse wrong2FaCodeResponse =
+        POST("/auth/login", "{'username':'admin','password':'district'}")
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
+
+    assertEquals("INCORRECT_TWO_FACTOR_CODE", wrong2FaCodeResponse.getLoginStatus());
+    Assertions.assertNull(wrong2FaCodeResponse.getRedirectUrl());
+
+    validateTOTP(secret);
+  }
+
+  @Test
+  void testLoginWith2FAEnrolmentUser() {
+    User admin = userService.getUserByUsername("admin");
+    String secret = Base32.random();
+    admin.setSecret(TWO_FACTOR_CODE_APPROVAL_PREFIX + secret);
+    userService.updateUser(admin);
+
+    JsonLoginResponse wrong2FaCodeResponse =
+        POST("/auth/login", "{'username':'admin','password':'district'}")
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
+
+    assertEquals("REQUIRES_TWO_FACTOR_ENROLMENT", wrong2FaCodeResponse.getLoginStatus());
+    assertNull(wrong2FaCodeResponse.getRedirectUrl());
+
+    validateTOTP(secret);
+  }
+
+  @Test
+  void testLoginWithLockedUser() {
+    systemSettingManager.saveSystemSetting(SettingKey.LOCK_MULTIPLE_FAILED_LOGINS, true);
+
+    User admin = userService.getUserByUsername("admin");
+    userService.updateUser(admin);
+    userService.registerFailedLogin(admin.getUsername());
+    userService.registerFailedLogin(admin.getUsername());
+    userService.registerFailedLogin(admin.getUsername());
+    userService.registerFailedLogin(admin.getUsername());
+    userService.registerFailedLogin(admin.getUsername());
+
+    JsonLoginResponse loginResponse =
+        POST("/auth/login", "{'username':'admin','password':'district'}")
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
+
+    assertEquals("ACCOUNT_LOCKED", loginResponse.getLoginStatus());
+    assertNull(loginResponse.getRedirectUrl());
+  }
+
+  @Test
+  void testLoginWithDisabledUser() {
+    User admin = userService.getUserByUsername("admin");
+    admin.setDisabled(true);
+    userService.updateUser(admin);
+
+    JsonLoginResponse loginResponse =
+        POST("/auth/login", "{'username':'admin','password':'district'}")
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
+
+    assertEquals("ACCOUNT_DISABLED", loginResponse.getLoginStatus());
+    assertNull(loginResponse.getRedirectUrl());
+  }
+
+  @Test
+  void testLoginWithCredentialsExpiredUser() {
+    systemSettingManager.saveSystemSetting(SettingKey.CREDENTIALS_EXPIRES, 1);
+
+    User admin = userService.getUserByUsername("admin");
+
+    Calendar calendar = Calendar.getInstance();
+    calendar.setTime(admin.getPasswordLastUpdated());
+    calendar.add(Calendar.MONTH, -2);
+
+    admin.setPasswordLastUpdated(calendar.getTime());
+    userService.updateUser(admin);
+
+    JsonLoginResponse loginResponse =
+        POST("/auth/login", "{'username':'admin','password':'district'}")
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
+
+    assertEquals("PASSWORD_EXPIRED", loginResponse.getLoginStatus());
+    assertNull(loginResponse.getRedirectUrl());
+  }
+
+  @Test
+  void testLoginWithAccountExpiredUser() {
+    User admin = userService.getUserByUsername("admin");
+
+    Calendar calendar = Calendar.getInstance();
+    calendar.setTime(admin.getPasswordLastUpdated());
+    calendar.add(Calendar.MONTH, -2);
+
+    admin.setAccountExpiry(calendar.getTime());
+    userService.updateUser(admin);
+
+    JsonLoginResponse loginResponse =
+        POST("/auth/login", "{'username':'admin','password':'district'}")
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
+
+    assertEquals("ACCOUNT_EXPIRED", loginResponse.getLoginStatus());
+    assertNull(loginResponse.getRedirectUrl());
+  }
+
+  @Test
   void testSessionGetsCreated() {
     clearSecurityContext();
 
@@ -82,5 +206,18 @@ class AuthenticationControllerTest extends DhisAuthenticationApiTest {
 
     assertNotNull(actual);
     assertEquals("admin", actual.getUsername());
+  }
+
+  private void validateTOTP(String secret) {
+    Totp totp = new Totp(secret);
+    String code = totp.now();
+    JsonLoginResponse ok2FaCodeResponse =
+        POST(
+            "/auth/login",
+            "{'username':'admin','password':'district','twoFactorCode':'%s'}".formatted(code))
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
+    assertEquals("SUCCESS", ok2FaCodeResponse.getLoginStatus());
+    assertEquals("/dhis-web-dashboard", ok2FaCodeResponse.getRedirectUrl());
   }
 }

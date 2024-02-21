@@ -42,8 +42,11 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.controller.security.LoginResponse.STATUS;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.security.authentication.AccountExpiredException;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.CredentialsExpiredException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -121,8 +124,15 @@ public class AuthenticationController {
       return LoginResponse.builder().loginStatus(STATUS.INCORRECT_TWO_FACTOR_CODE).build();
     } catch (TwoFactorAuthenticationEnrolmentException e) {
       return LoginResponse.builder().loginStatus(STATUS.REQUIRES_TWO_FACTOR_ENROLMENT).build();
+
     } catch (CredentialsExpiredException e) {
       return LoginResponse.builder().loginStatus(STATUS.PASSWORD_EXPIRED).build();
+    } catch (LockedException e) {
+      return LoginResponse.builder().loginStatus(STATUS.ACCOUNT_LOCKED).build();
+    } catch (DisabledException e) {
+      return LoginResponse.builder().loginStatus(STATUS.ACCOUNT_DISABLED).build();
+    } catch (AccountExpiredException e) {
+      return LoginResponse.builder().loginStatus(STATUS.ACCOUNT_EXPIRED).build();
     }
   }
 

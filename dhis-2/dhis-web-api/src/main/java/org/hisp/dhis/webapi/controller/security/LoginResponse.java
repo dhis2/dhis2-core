@@ -44,6 +44,7 @@ public class LoginResponse {
   @Getter
   public enum STATUS {
     SUCCESS("loginSuccess"),
+    ACCOUNT_DISABLED("accountDisabled"),
     ACCOUNT_LOCKED("accountLocked"),
     ACCOUNT_EXPIRED("accountExpired"),
     PASSWORD_EXPIRED("passwordExpired"),
