@@ -31,6 +31,7 @@ import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 public interface CustomIconStore extends IdentifiableObjectStore<CustomIcon> {
+
   /**
    * Returns a custom icon that contains a given key
    *
@@ -39,5 +40,10 @@ public interface CustomIconStore extends IdentifiableObjectStore<CustomIcon> {
    */
   CustomIcon getIconByKey(String key);
 
+  /**
+   * Gets a set of all unique keywords assigned to icons
+   *
+   * @return set of unique keywords
+   */
   Set<String> getKeywords();
 }
