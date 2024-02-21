@@ -28,6 +28,8 @@
 package org.hisp.dhis.analytics.outlier.data;
 
 import static org.hisp.dhis.analytics.outlier.Order.getOrderBy;
+import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
+import static org.hisp.dhis.feedback.ErrorCode.E7617;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,6 +44,7 @@ import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -169,7 +172,6 @@ public class OutlierQueryParser {
    * @return a list of the {@link OrganisationUnit}.
    */
   private List<OrganisationUnit> getOrganisationUnits(OutlierQueryParams queryParams) {
-
     String currentUsername = CurrentUserUtil.getCurrentUsername();
     User currentUser = userService.getUserByUsername(currentUsername);
 
@@ -182,12 +184,22 @@ public class OutlierQueryParser {
       return organisationUnitsSecurityConstrain.stream().toList();
     }
 
-    return applySecurityConstrain(
-        organisationUnitsSecurityConstrain, queryParams.getOu(), currentUser);
+    List<OrganisationUnit> validOrganisationUnits =
+        applySecurityConstrain(
+            organisationUnitsSecurityConstrain, queryParams.getOu(), currentUser);
+
+    if (validOrganisationUnits.isEmpty()) {
+      throw new IllegalQueryException(
+          E7617,
+          String.join(",", queryParams.getOu()),
+          currentUser == null ? EMPTY : currentUser.getUsername());
+    }
+
+    return validOrganisationUnits;
   }
 
   /**
-   * The function retrieves all required organisation units compatible with security constrain
+   * The function retrieves all required organisation units compatible the with security constrain
    *
    * @param organisationUnitsSecurityConstrain list of the {@link OrganisationUnit}
    * @param organisationUnits list of the requested organisation unit Uids
