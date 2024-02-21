@@ -228,7 +228,7 @@ class ProgramTest {
   @Test
   void testExpectedFieldCount() {
     Field[] allClassFieldsIncludingInherited = getAllFields(Program.class);
-    assertEquals(61, allClassFieldsIncludingInherited.length);
+    assertEquals(63, allClassFieldsIncludingInherited.length);
   }
 
   public static boolean notEqualsOrBothNull(String original, String copy) {
@@ -283,6 +283,8 @@ class ProgramTest {
     p.setFollowUpLabel("Follow Up Label");
     p.setOrgUnitLabel("Org Unit Label");
     p.setTrackedEntityAttributeLabel("Tracked Entity Attribute Label");
+    p.setProgramStageLabel("Program Stage Label");
+    p.setEventLabel("Event Label");
     p.setRelationshipLabel("Relationship Label");
 
     return p;
