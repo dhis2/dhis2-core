@@ -37,7 +37,7 @@ public interface EventChangeLogService {
   /**
    * Retrieves the change log data for a particular event
    *
-   * @return paginated list of change logs of the supplied event, if any
+   * @return event change logs page
    */
   Page<EventChangeLog> getEventChangeLog(UID event, PageParams pageParams) throws NotFoundException;
 }
