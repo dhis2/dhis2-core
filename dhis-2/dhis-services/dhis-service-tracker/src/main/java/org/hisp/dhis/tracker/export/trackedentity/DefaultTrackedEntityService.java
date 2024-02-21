@@ -158,7 +158,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
   /**
    * Tracked entity attributes are fetched from the program if supplied, otherwise from the tracked
-   * entity. Access is determined through the program sharing and ownership if present. If no
+   * entities type. Access is determined through the program sharing and ownership if present. If no
    * program is supplied, we fall back to tracked entity type ownership and the registering org unit
    * of the tracked entity.
    */
