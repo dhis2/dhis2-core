@@ -73,6 +73,7 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
   private User owner;
   private TrackedEntityType trackedEntityType;
   private Event event;
+  private DataElement dataElement;
 
   @BeforeEach
   void setUp() {
@@ -91,21 +92,21 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
     program.setTrackedEntityType(trackedEntityType);
     manager.save(program);
 
-    DataElement de = createDataElement('A', ValueType.TEXT, AggregationType.NONE);
-    de.getSharing().setOwner(owner);
-    manager.save(de, false);
+    dataElement = createDataElement('A', ValueType.TEXT, AggregationType.NONE);
+    dataElement.getSharing().setOwner(owner);
+    manager.save(dataElement, false);
 
     programStage = createProgramStage('A', program);
     programStage.setUid("pSllsjpfLH2");
     program.getProgramStages().add(programStage);
     ProgramStageDataElement programStageDataElement =
-        createProgramStageDataElement(programStage, de, 1, false);
+        createProgramStageDataElement(programStage, dataElement, 1, false);
     manager.save(programStageDataElement);
     programStage.setProgramStageDataElements(Sets.newHashSet(programStageDataElement));
     manager.save(programStage);
 
     EventDataValue dataValue = new EventDataValue();
-    dataValue.setDataElement(de.getUid());
+    dataValue.setDataElement(dataElement.getUid());
     dataValue.setStoredBy("user");
     dataValue.setValue(DATA_ELEMENT_VALUE);
 
@@ -133,7 +134,7 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
   }
 
   @Test
-  void shouldGetEventChangeLogWhenDataValueUpdated() {
+  void shouldGetEventChangeLogWhenDataValueUpdatedAndThenDeleted() {
     JsonWebMessage changeLogResponse =
         GET("/tracker/events/{id}/changeLog", event.getUid())
             .content(HttpStatus.OK)
@@ -153,16 +154,14 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
           assertEquals(currentUser.getFirstName(), updatedByValue.getString("firstName").string());
           assertEquals(currentUser.getSurname(), updatedByValue.getString("surname").string());
 
-          assertEquals(
-              event.getEventDataValues().iterator().next().getDataElement(),
-              dataValueObject.getString("dataElement").string());
+          assertEquals(dataElement.getUid(), dataValueObject.getString("dataElement").string());
           assertEquals("value 3", dataValueObject.getString("previousValue").string());
           assertNull(dataValueObject.getString("currentValue").string());
         });
   }
 
   @Test
-  void shouldGetPagerWithNextElementWhenMultipleElementsImportedAndFirstPageRequested() {
+  void shouldGetChangeLogPagerWithNextElementWhenMultipleElementsImportedAndFirstPageRequested() {
     JsonWebMessage changeLogResponse =
         GET(
                 "/tracker/events/{id}/changeLog?page={page}&pageSize={pageSize}",
@@ -186,7 +185,7 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
 
   @Test
   void
-      shouldGetPagerWithNextAndPreviousElementsWhenMultipleElementsImportedAndSecondPageRequested() {
+      shouldGetChangeLogPagerWithNextAndPreviousElementsWhenMultipleElementsImportedAndSecondPageRequested() {
     JsonWebMessage changeLogResponse =
         GET(
                 "/tracker/events/{id}/changeLog?page={page}&pageSize={pageSize}",
@@ -211,7 +210,8 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
   }
 
   @Test
-  void shouldGetPagerWithPreviousElementWhenMultipleElementsImportedAndLastPageRequested() {
+  void
+      shouldGetChangeLogPagerWithPreviousElementWhenMultipleElementsImportedAndLastPageRequested() {
     JsonWebMessage changeLogResponse =
         GET(
                 "/tracker/events/{id}/changeLog?page={page}&pageSize={pageSize}",
@@ -235,7 +235,7 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
 
   @Test
   void
-      shouldGetPagerWithoutPreviousNorNextElementWhenMultipleElementsImportedAndAllElementsFitInOnePage() {
+      shouldGetChangeLogPagerWithoutPreviousNorNextElementWhenMultipleElementsImportedAndAllElementsFitInOnePage() {
     JsonWebMessage changeLogResponse =
         GET(
                 "/tracker/events/{id}/changeLog?page={page}&pageSize={pageSize}",
