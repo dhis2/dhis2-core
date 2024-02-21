@@ -32,12 +32,16 @@ import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
+import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang3.StringUtils;
 
 @Getter
 @RequiredArgsConstructor(access = PRIVATE)
@@ -93,7 +97,7 @@ public class DimensionParamItem {
   /**
    * This method parses a string in the queryItem format into a DimensionParamItem by simply
    * splitting the string by the dimension name separator (:). The first part is the operator and
-   * the second part is the value.
+   * the second part is the value (or values, separated by (;) ).
    *
    * @param item String to be parsed.
    * @return parsed DimensionParamItem.
@@ -101,6 +105,23 @@ public class DimensionParamItem {
   private static DimensionParamItem ofQueryItemFormat(String item) {
     String[] parts = item.split(DIMENSION_NAME_SEP);
     AnalyticsQueryOperator queryOperator = AnalyticsQueryOperator.ofString(parts[0].trim());
-    return new DimensionParamItem(queryOperator, singletonList(parts[1]));
+    return new DimensionParamItem(queryOperator, getValues(parts[1]));
+  }
+
+  /**
+   * This method parses a string in the values format into a DimensionParamItem by simply splitting
+   * the string by the option separator (;).
+   *
+   * @param values String to be parsed.
+   * @return a list of values.
+   */
+  private static List<String> getValues(String values) {
+    return Optional.ofNullable(values)
+        .map(String::trim)
+        .map(s -> StringUtils.split(s, OPTION_SEP))
+        .map(Arrays::asList)
+        .orElse(Collections.emptyList())
+        .stream()
+        .toList();
   }
 }
