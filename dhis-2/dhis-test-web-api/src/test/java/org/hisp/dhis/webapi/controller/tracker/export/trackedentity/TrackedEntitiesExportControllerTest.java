@@ -235,8 +235,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   @Test
   void getTrackedEntityByIdWithAttributesReturnsTrackedEntityTypeAttributesOnly() {
     TrackedEntity trackedEntity = trackedEntity();
-    // TODO write enrollTrackedEntity(trackedEntity, program, orgUnit);
-    enrollmentService.enrollTrackedEntity(trackedEntity, program, new Date(), new Date(), orgUnit);
+    enroll(trackedEntity, program, orgUnit);
 
     TrackedEntityAttribute tea =
         addTrackedEntityTypeAttributeValue(trackedEntity, ValueType.NUMBER, "12");
@@ -263,7 +262,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   @Test
   void getTrackedEntityByIdWithAttributesReturnsAllAttributes() {
     TrackedEntity trackedEntity = trackedEntity();
-    enrollmentService.enrollTrackedEntity(trackedEntity, program, new Date(), new Date(), orgUnit);
+    enroll(trackedEntity, program, orgUnit);
 
     TrackedEntityAttribute tea =
         addTrackedEntityTypeAttributeValue(trackedEntity, ValueType.NUMBER, "12");
@@ -498,9 +497,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   @Test
   void shouldGetEnrollmentWhenFieldsHasEnrollments() {
     TrackedEntity trackedEntity = trackedEntity();
-    Enrollment enrollment =
-        enrollmentService.enrollTrackedEntity(
-            trackedEntity, program, new Date(), new Date(), orgUnit);
+    Enrollment enrollment = enroll(trackedEntity, program, orgUnit);
 
     JsonList<JsonEnrollment> json =
         GET("/tracker/trackedEntities/{id}?fields=enrollments", trackedEntity.getUid())
@@ -518,9 +515,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   void shouldGetNoEventRelationshipsWhenEventsHasNoRelationshipsAndFieldsIncludeAll() {
     TrackedEntity trackedEntity = trackedEntity();
 
-    Enrollment enrollment =
-        enrollmentService.enrollTrackedEntity(
-            trackedEntity, program, new Date(), new Date(), orgUnit);
+    Enrollment enrollment = enroll(trackedEntity, program, orgUnit);
 
     Event event = eventWithDataValue(enrollment);
 
@@ -545,9 +540,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   void shouldGetEventRelationshipsWhenEventHasRelationshipsAndFieldsIncludeEventRelationships() {
     TrackedEntity trackedEntity = trackedEntity();
 
-    Enrollment enrollment =
-        enrollmentService.enrollTrackedEntity(
-            trackedEntity, program, new Date(), new Date(), orgUnit);
+    Enrollment enrollment = enroll(trackedEntity, program, orgUnit);
 
     Event event = eventWithDataValue(enrollment);
     enrollment.getEvents().add(event);
@@ -578,9 +571,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   void shouldGetNoEventRelationshipsWhenEventHasRelationshipsAndFieldsExcludeEventRelationships() {
     TrackedEntity trackedEntity = trackedEntity();
 
-    Enrollment enrollment =
-        enrollmentService.enrollTrackedEntity(
-            trackedEntity, program, new Date(), new Date(), orgUnit);
+    Enrollment enrollment = enroll(trackedEntity, program, orgUnit);
 
     Event event = eventWithDataValue(enrollment);
 
@@ -608,7 +599,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   @Test
   void getAttributeValuesFileByAttributeAndProgramGivenProgramAttribute() throws ConflictException {
     TrackedEntity trackedEntity = trackedEntity();
-    enrollmentService.enrollTrackedEntity(trackedEntity, program, new Date(), new Date(), orgUnit);
+    enroll(trackedEntity, program, orgUnit);
 
     FileResource file = storeFile("text/plain", "file content");
     TrackedEntityAttribute tea =
@@ -659,15 +650,14 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   void getAttributeValuesFileByAttributeAndProgramGivenTrackedEntityTypeAttribute()
       throws ConflictException {
     TrackedEntity trackedEntity = trackedEntity();
-    enrollmentService.enrollTrackedEntity(trackedEntity, program, new Date(), new Date(), orgUnit);
+    enroll(trackedEntity, program, orgUnit);
 
     FileResource file1 = storeFile("text/plain", "file content");
     TrackedEntityAttribute tetTea =
         addTrackedEntityTypeAttributeValue(trackedEntity, ValueType.FILE_RESOURCE, file1.getUid());
 
     FileResource file2 = storeFile("text/plain", "file content", 'B');
-    TrackedEntityAttribute programTea =
-        addProgramAttributeValue(trackedEntity, program, ValueType.FILE_RESOURCE, file2.getUid());
+    addProgramAttributeValue(trackedEntity, program, ValueType.FILE_RESOURCE, file2.getUid());
 
     this.switchContextToUser(user);
 
@@ -685,7 +675,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   @Test
   void getAttributeValuesFileByAttributeGivenProgramAttribute() throws ConflictException {
     TrackedEntity trackedEntity = trackedEntity();
-    enrollmentService.enrollTrackedEntity(trackedEntity, program, new Date(), new Date(), orgUnit);
+    enroll(trackedEntity, program, orgUnit);
 
     FileResource file1 = storeFile("text/plain", "file content");
     addTrackedEntityTypeAttributeValue(trackedEntity, ValueType.FILE_RESOURCE, file1.getUid());
@@ -721,7 +711,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   @Test
   void getAttributeValuesFileByAttributeAndProgramIfAttributeIsNotFound() throws ConflictException {
     TrackedEntity trackedEntity = trackedEntity();
-    enrollmentService.enrollTrackedEntity(trackedEntity, program, new Date(), new Date(), orgUnit);
+    enroll(trackedEntity, program, orgUnit);
 
     FileResource file = storeFile("text/plain", "file content");
     addProgramAttributeValue(trackedEntity, program, ValueType.FILE_RESOURCE, file.getUid());
@@ -743,7 +733,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   void getAttributeValuesFileByAttributeAndProgramIfUserDoesNotHaveReadAccessToProgram()
       throws ConflictException {
     TrackedEntity trackedEntity = trackedEntity();
-    enrollmentService.enrollTrackedEntity(trackedEntity, program, new Date(), new Date(), orgUnit);
+    enroll(trackedEntity, program, orgUnit);
 
     FileResource file = storeFile("text/plain", "file content");
     TrackedEntityAttribute tea =
@@ -770,7 +760,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   @Test
   void getAttributeValuesFileByAttributeAndProgramIfAttributeIsNotAFile() {
     TrackedEntity trackedEntity = trackedEntity();
-    enrollmentService.enrollTrackedEntity(trackedEntity, program, new Date(), new Date(), orgUnit);
+    enroll(trackedEntity, program, orgUnit);
 
     TrackedEntityAttribute tea =
         addProgramAttributeValue(trackedEntity, program, ValueType.BOOLEAN, "true");
@@ -789,7 +779,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   @Test
   void getAttributeValuesFileByAttributeAndProgramIfProgramDoesNotExist() throws ConflictException {
     TrackedEntity trackedEntity = trackedEntity();
-    enrollmentService.enrollTrackedEntity(trackedEntity, program, new Date(), new Date(), orgUnit);
+    enroll(trackedEntity, program, orgUnit);
 
     FileResource file = storeFile("text/plain", "file content");
     TrackedEntityAttribute tea =
@@ -812,7 +802,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   void getAttributeValuesFileByAttributeAndProgramIfUserDoesNotHaveReadAccessToTrackedEntityType()
       throws ConflictException {
     TrackedEntity trackedEntity = trackedEntity();
-    enrollmentService.enrollTrackedEntity(trackedEntity, program, new Date(), new Date(), orgUnit);
+    enroll(trackedEntity, program, orgUnit);
 
     FileResource file = storeFile("text/plain", "file content");
     TrackedEntityAttribute tea =
@@ -837,7 +827,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   void getAttributeValuesFileByAttributeIfUserDoesNotHaveReadAccessToTrackedEntityType()
       throws ConflictException {
     TrackedEntity trackedEntity = trackedEntity();
-    enrollmentService.enrollTrackedEntity(trackedEntity, program, new Date(), new Date(), orgUnit);
+    enroll(trackedEntity, program, orgUnit);
 
     FileResource file = storeFile("text/plain", "file content");
     TrackedEntityAttribute tea =
@@ -863,7 +853,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
     TrackedEntityAttribute tea = programAttribute(program, ValueType.FILE_RESOURCE);
 
-    enrollmentService.enrollTrackedEntity(trackedEntity, program, new Date(), new Date(), orgUnit);
+    enroll(trackedEntity, program, orgUnit);
 
     assertStartsWith(
         "Attribute value for tracked entity attribute " + tea.getUid(),
@@ -879,7 +869,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   @Test
   void getAttributeValuesFileByAttributeAndProgramIfFileResourceIsInDbButNotInTheStore() {
     TrackedEntity trackedEntity = trackedEntity();
-    enrollmentService.enrollTrackedEntity(trackedEntity, program, new Date(), new Date(), orgUnit);
+    enroll(trackedEntity, program, orgUnit);
 
     FileResource file = createFileResource('A', "file content".getBytes());
     manager.save(file, false);
@@ -897,7 +887,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   @Test
   void getAttributeValuesFileByAttributeAndProgramIfFileIsNotFound() {
     TrackedEntity trackedEntity = trackedEntity();
-    enrollmentService.enrollTrackedEntity(trackedEntity, program, new Date(), new Date(), orgUnit);
+    enroll(trackedEntity, program, orgUnit);
 
     String fileUid = CodeGenerator.generateUid();
     TrackedEntityAttribute tea =
@@ -917,7 +907,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   @Test
   void getAttributeValuesImageByProgramAttribute() throws ConflictException {
     TrackedEntity trackedEntity = trackedEntity();
-    enrollmentService.enrollTrackedEntity(trackedEntity, program, new Date(), new Date(), orgUnit);
+    enroll(trackedEntity, program, orgUnit);
 
     FileResource file = storeFile("image/png", "file content");
     TrackedEntityAttribute tea =
@@ -1072,6 +1062,12 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
     return te;
   }
 
+  private Enrollment enroll(
+      TrackedEntity trackedEntity, Program program, OrganisationUnit orgUnit) {
+    return enrollmentService.enrollTrackedEntity(
+        trackedEntity, program, new Date(), new Date(), orgUnit);
+  }
+
   private UserAccess userAccess() {
     UserAccess a = new UserAccess();
     a.setUser(user);
@@ -1192,12 +1188,6 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
     trackedEntity.addAttributeValue(attributeValue(tea, trackedEntity, value));
     manager.save(trackedEntity, false);
     return tea;
-  }
-
-  private void addAttributeValue(
-      TrackedEntity trackedEntity, TrackedEntityAttribute tea, String value) {
-    trackedEntity.addAttributeValue(attributeValue(tea, trackedEntity, value));
-    manager.save(trackedEntity, false);
   }
 
   private TrackedEntityAttributeValue attributeValue(
