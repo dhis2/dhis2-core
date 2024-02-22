@@ -189,7 +189,7 @@ public enum SettingKey {
   GOOGLE_MAPS_API_KEY("keyGoogleMapsApiKey", "", String.class, false, false),
   BING_MAPS_API_KEY(
       "keyBingMapsApiKey",
-      "AoifMs0zqvpAEuI6OX5Kk93rEM-oLrvQIJe_xdCv1BF4J3yquFnUozze-M7gEf0b",
+      "",
       String.class,
       false,
       false),
