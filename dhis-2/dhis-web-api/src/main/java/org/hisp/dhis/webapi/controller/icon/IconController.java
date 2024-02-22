@@ -98,7 +98,7 @@ public class IconController extends AbstractFullReadOnlyController<CustomIcon> {
   public void getIconData(@PathVariable String key, HttpServletResponse response)
       throws NotFoundException, WebMessageException, IOException {
 
-    CustomIcon customIcon = iconService.getIcon(key);
+    CustomIcon customIcon = iconService.getCustomIcon(key);
 
     if (!customIcon.getCustom()) {
       downloadDefaultIcon(customIcon.getIconKey(), response);
@@ -125,7 +125,7 @@ public class IconController extends AbstractFullReadOnlyController<CustomIcon> {
   public WebMessage updateCustomIcon(@PathVariable String uid, HttpServletRequest request)
       throws IOException, NotFoundException, WebMessageException, BadRequestException {
 
-    CustomIcon customIcon = iconService.getIconByUid(uid);
+    CustomIcon customIcon = iconService.getCustomIconByUid(uid);
 
     if (customIcon == null) {
       throw new WebMessageException(
@@ -146,7 +146,7 @@ public class IconController extends AbstractFullReadOnlyController<CustomIcon> {
   public WebMessage deleteCustomIcon(@PathVariable String iconKey)
       throws NotFoundException, WebMessageException, BadRequestException {
 
-    CustomIcon customIcon = iconService.getIcon(iconKey);
+    CustomIcon customIcon = iconService.getCustomIcon(iconKey);
 
     if (customIcon == null) {
       throw new WebMessageException(

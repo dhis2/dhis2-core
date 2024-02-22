@@ -38,7 +38,7 @@ public interface CustomIconStore extends IdentifiableObjectStore<CustomIcon> {
    * @param key of the icon
    * @return the custom icon matching the key, or null instead
    */
-  CustomIcon getIconByKey(String key);
+  CustomIcon getCustomIconByKey(String key);
 
   /**
    * Gets a set of all unique keywords assigned to icons

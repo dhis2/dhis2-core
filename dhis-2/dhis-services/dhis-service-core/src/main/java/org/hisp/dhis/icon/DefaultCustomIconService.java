@@ -56,8 +56,8 @@ public class DefaultCustomIconService implements CustomIconService {
 
   @Override
   @Transactional(readOnly = true)
-  public CustomIcon getIcon(String key) throws NotFoundException {
-    CustomIcon customIcon = customIconStore.getIconByKey(key);
+  public CustomIcon getCustomIcon(String key) throws NotFoundException {
+    CustomIcon customIcon = customIconStore.getCustomIconByKey(key);
     if (customIcon == null) {
       throw new NotFoundException(String.format("CustomIcon not found: %s", key));
     }
@@ -67,7 +67,7 @@ public class DefaultCustomIconService implements CustomIconService {
 
   @Override
   @Transactional(readOnly = true)
-  public CustomIcon getIconByUid(String uid) throws NotFoundException {
+  public CustomIcon getCustomIconByUid(String uid) throws NotFoundException {
     CustomIcon customIcon = customIconStore.getByUid(uid);
     if (customIcon == null) {
       throw new NotFoundException(String.format("CustomIcon not found: %s", uid));
@@ -80,7 +80,7 @@ public class DefaultCustomIconService implements CustomIconService {
   @Transactional
   public Resource getCustomIconResource(String iconKey) throws NotFoundException {
 
-    if (iconExists(iconKey)) {
+    if (customIconExists(iconKey)) {
       return new ClassPathResource(String.format("%s/%s.%s", ICON_PATH, iconKey, Icon.SUFFIX));
     }
 
@@ -95,8 +95,8 @@ public class DefaultCustomIconService implements CustomIconService {
 
   @Override
   @Transactional(readOnly = true)
-  public boolean iconExists(String iconKey) {
-    return customIconStore.getIconByKey(iconKey) != null;
+  public boolean customIconExists(String iconKey) {
+    return customIconStore.getCustomIconByKey(iconKey) != null;
   }
 
   @Override
@@ -131,7 +131,7 @@ public class DefaultCustomIconService implements CustomIconService {
   private void validateIconDoesNotExists(String key) throws BadRequestException {
     validateIconKeyNotNullOrEmpty(key);
 
-    if (iconExists(key)) {
+    if (customIconExists(key)) {
       throw new BadRequestException(String.format("CustomIcon with key %s already exists.", key));
     }
   }
@@ -160,7 +160,7 @@ public class DefaultCustomIconService implements CustomIconService {
   private CustomIcon validateCustomIconExists(String key)
       throws NotFoundException, BadRequestException {
     validateIconKeyNotNullOrEmpty(key);
-    return getIcon(key);
+    return getCustomIcon(key);
   }
 
   private void validateAndUpdateCustomIcon(CustomIcon from)

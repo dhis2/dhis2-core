@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.icon;
 
-import static org.hisp.dhis.DhisConvenienceTest.injectSecurityContext;
 import static org.hisp.dhis.fileresource.FileResourceDomain.CUSTOM_ICON;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -71,7 +70,7 @@ class CustomIconServiceTest extends DhisConvenienceTest {
     String fileResourceUid = "12345";
     FileResource fileResource = createFileResource('A', "file".getBytes());
     fileResource.setUid(fileResourceUid);
-    when(customIconStore.getIconByKey(uniqueKey)).thenReturn(null);
+    when(customIconStore.getCustomIconByKey(uniqueKey)).thenReturn(null);
     when(fileResourceService.getFileResource(fileResourceUid, CUSTOM_ICON))
         .thenReturn(Optional.of(new FileResource()));
 
@@ -109,7 +108,7 @@ class CustomIconServiceTest extends DhisConvenienceTest {
     String fileResourceUid = "12345";
     FileResource fileResource = createFileResource('B', "123".getBytes());
     fileResource.setUid(fileResourceUid);
-    when(customIconStore.getIconByKey(iconKey)).thenReturn(null);
+    when(customIconStore.getCustomIconByKey(iconKey)).thenReturn(null);
     when(fileResourceService.getFileResource(anyString(), any(FileResourceDomain.class)))
         .thenReturn(Optional.empty());
 
@@ -130,7 +129,7 @@ class CustomIconServiceTest extends DhisConvenienceTest {
     FileResource fileResource = createFileResource('B', "123".getBytes());
 
     String duplicatedKey = "custom key";
-    when(customIconStore.getIconByKey(duplicatedKey))
+    when(customIconStore.getCustomIconByKey(duplicatedKey))
         .thenReturn(new CustomIcon("key", "description", Set.of(), true, fileResource));
 
     Exception exception =
@@ -163,7 +162,7 @@ class CustomIconServiceTest extends DhisConvenienceTest {
   void shouldUpdateCustomIconIconWhenKeyPresentAndCustomIconExists()
       throws BadRequestException, NotFoundException {
     String uniqueKey = "key";
-    when(customIconStore.getIconByKey(uniqueKey)).thenReturn(new CustomIcon());
+    when(customIconStore.getCustomIconByKey(uniqueKey)).thenReturn(new CustomIcon());
 
     CustomIcon customIcon =
         createCustomIcon('I', Set.of("k1", "k2"), createFileResource('F', "123".getBytes()));
@@ -188,7 +187,7 @@ class CustomIconServiceTest extends DhisConvenienceTest {
   @Test
   void shouldFailWhenUpdatingNonExistingCustomIcon() {
     String key = "key";
-    when(customIconStore.getIconByKey(key)).thenReturn(null);
+    when(customIconStore.getCustomIconByKey(key)).thenReturn(null);
 
     CustomIcon customIcon =
         createCustomIcon('I', Set.of("k1", "k2"), createFileResource('F', "123".getBytes()));
@@ -211,7 +210,7 @@ class CustomIconServiceTest extends DhisConvenienceTest {
     customIcon.setDescription(null);
     customIcon.setKeywords(null);
 
-    when(customIconStore.getIconByKey(uniqueKey)).thenReturn(customIcon);
+    when(customIconStore.getCustomIconByKey(uniqueKey)).thenReturn(customIcon);
     Exception exception =
         assertThrows(BadRequestException.class, () -> iconService.updateCustomIcon(customIcon));
 
@@ -229,7 +228,7 @@ class CustomIconServiceTest extends DhisConvenienceTest {
     FileResource fileResource = createFileResource('d', "123".getBytes());
 
     String uniqueKey = "key";
-    when(customIconStore.getIconByKey(uniqueKey))
+    when(customIconStore.getCustomIconByKey(uniqueKey))
         .thenReturn(new CustomIcon(uniqueKey, "description", Set.of(), true, fileResource));
     when(fileResourceService.getFileResource("fileResourceUid", CUSTOM_ICON))
         .thenReturn(Optional.of(new FileResource()));
@@ -253,7 +252,7 @@ class CustomIconServiceTest extends DhisConvenienceTest {
   @Test
   void shouldFailWhenDeletingNonExistingCustomIcon() {
     String key = "key";
-    when(customIconStore.getIconByKey(key)).thenReturn(null);
+    when(customIconStore.getCustomIconByKey(key)).thenReturn(null);
 
     Exception exception =
         assertThrows(NotFoundException.class, () -> iconService.deleteCustomIcon(key));

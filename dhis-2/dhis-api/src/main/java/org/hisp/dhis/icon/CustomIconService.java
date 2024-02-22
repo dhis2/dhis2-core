@@ -44,9 +44,9 @@ public interface CustomIconService {
    * @return custom icon associated to the key, if found
    * @throws NotFoundException if no custom icon exists with the provided key
    */
-  CustomIcon getIcon(String iconKey) throws NotFoundException;
+  CustomIcon getCustomIcon(String iconKey) throws NotFoundException;
 
-  CustomIcon getIconByUid(String uid) throws NotFoundException;
+  CustomIcon getCustomIconByUid(String uid) throws NotFoundException;
 
   /**
    * Gets the icon with the correct key if one exists
@@ -70,7 +70,7 @@ public interface CustomIconService {
    * @param key key of the icon
    * @return true if the icon exists, false otherwise
    */
-  boolean iconExists(String key);
+  boolean customIconExists(String key);
 
   /**
    * Persists the provided custom icon to the database

@@ -55,7 +55,7 @@ public class HibernateCustomIconStore extends HibernateIdentifiableObjectStore<C
   }
 
   @Override
-  public CustomIcon getIconByKey(String iconKey) {
+  public CustomIcon getCustomIconByKey(String iconKey) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
     JpaQueryParameters<CustomIcon> parameters =
