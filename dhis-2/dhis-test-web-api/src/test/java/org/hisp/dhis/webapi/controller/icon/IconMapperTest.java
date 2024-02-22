@@ -29,37 +29,31 @@ package org.hisp.dhis.webapi.controller.icon;
 
 import static org.hisp.dhis.fileresource.FileResourceDomain.CUSTOM_ICON;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 import java.util.Set;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.icon.CustomIcon;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.webapi.service.ContextService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 @ExtendWith(MockitoExtension.class)
 class IconMapperTest {
 
   @Mock private FileResourceService fileResourceService;
-
-  @Mock private UserService userService;
-
-  @Mock private ContextService contextService;
 
   private static final String KEY = "icon key";
   private static final String CODE = "icon_code";
@@ -75,7 +69,7 @@ class IconMapperTest {
   @BeforeEach
   void setUp() {
     fileResource.setUid("file resource uid");
-    iconMapper = new IconMapper(fileResourceService, contextService);
+    iconMapper = new IconMapper(fileResourceService);
   }
 
   @Test
@@ -85,26 +79,27 @@ class IconMapperTest {
     when(fileResourceService.getFileResource(fileResource.getUid(), CUSTOM_ICON))
         .thenReturn(Optional.of(fileResource));
 
-    User user = new User();
-    user.setUid("user uid");
-    when(userService.getUserByUsername(user.getUsername())).thenReturn(user);
-    UserDetails currentUserDetails = UserDetails.fromUser(user);
-    Authentication authentication =
-        new UsernamePasswordAuthenticationToken(
-            currentUserDetails, "", currentUserDetails.getAuthorities());
-    SecurityContext context = SecurityContextHolder.createEmptyContext();
-    context.setAuthentication(authentication);
-    SecurityContextHolder.setContext(context);
-
     CustomIcon customIcon = iconMapper.to(customIconRequest);
 
     assertEquals(KEY, customIcon.getIconKey());
     assertEquals(DESCRIPTION, customIcon.getDescription());
     assertEquals(KEYWORDS, customIcon.getKeywords());
     assertEquals(fileResource.getUid(), customIcon.getFileResource().getUid());
+  }
 
-    User currentUser = userService.getUserByUsername(user.getUsername());
-    assertEquals(currentUser.getUid(), customIcon.getCreatedBy().getUid());
+  @Test
+  void shouldReturnDefaultIconFromIconDto() throws BadRequestException {
+    CustomIconRequest customIconRequest =
+        new CustomIconRequest(KEY, CODE, DESCRIPTION, KEYWORDS, fileResource.getUid(), false);
+
+    CustomIcon customIcon = iconMapper.to(customIconRequest);
+
+    verify(fileResourceService, times(0))
+        .getFileResource(anyString(), any(FileResourceDomain.class));
+    assertEquals(KEY, customIcon.getIconKey());
+    assertEquals(DESCRIPTION, customIcon.getDescription());
+    assertEquals(KEYWORDS, customIcon.getKeywords());
+    assertNull(customIcon.getFileResource());
   }
 
   @Test
@@ -116,7 +111,7 @@ class IconMapperTest {
         assertThrows(BadRequestException.class, () -> iconMapper.to(customIconRequest));
     assertEquals(
         String.format(
-            "File resource with uid %s does not exist", customIconRequest.getFileResourceId()),
+            "FileResource with uid %s does not exist", customIconRequest.getFileResourceId()),
         exception.getMessage());
   }
 }

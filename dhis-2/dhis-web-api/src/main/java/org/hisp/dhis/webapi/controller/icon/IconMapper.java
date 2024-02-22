@@ -35,37 +35,12 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.icon.CustomIcon;
-import org.hisp.dhis.icon.Icon;
-import org.hisp.dhis.icon.IconResponse;
-import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
-import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
 public class IconMapper {
   private FileResourceService fileResourceService;
-
-  private ContextService contextService;
-
-  public IconResponse from(CustomIcon icon) {
-
-    return IconResponse.builder()
-        .uid(icon.getUid())
-        .code(icon.getCode())
-        .description(icon.getDescription())
-        .key(icon.getIconKey())
-        .keywords(icon.getKeywords())
-        .fileResourceUid(icon.getFileResource().getUid())
-        .created(icon.getCreated())
-        .lastUpdated(icon.getLastUpdated())
-        .custom(icon.getCustom())
-        .reference(
-            icon.getCustom()
-                ? getCustomIconReference(icon.getIconKey())
-                : getDefaultIconReference(icon.getIconKey()))
-        .build();
-  }
 
   public CustomIcon to(CustomIconRequest customIconRequest) throws BadRequestException {
 
@@ -90,17 +65,5 @@ public class IconMapper {
     customIcon.setCode(customIconRequest.getCode());
 
     return customIcon;
-  }
-
-  private String getCustomIconReference(String fileResourceUid) {
-    return String.format(
-        "%s%s/%s/icon",
-        contextService.getApiPath(), IconSchemaDescriptor.API_ENDPOINT, fileResourceUid);
-  }
-
-  private String getDefaultIconReference(String key) {
-    return String.format(
-        "%s%s/%s/icon.%s",
-        contextService.getApiPath(), IconSchemaDescriptor.API_ENDPOINT, key, Icon.SUFFIX);
   }
 }
