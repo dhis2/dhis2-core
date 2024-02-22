@@ -169,10 +169,20 @@ public class IconController extends AbstractFullReadOnlyController<CustomIcon> {
 
     entityList.forEach(
         ci ->
-            ci.setHref(
+            ci.setReference(
                 ci.getCustom()
                     ? getCustomIconReference(ci.getIconKey())
                     : getDefaultIconReference(ci.getIconKey())));
+  }
+
+  @Override
+  protected void postProcessResponseEntity(
+      CustomIcon entity, WebOptions options, Map<String, String> parameters) {
+
+    entity.setReference(
+        entity.getCustom()
+            ? getCustomIconReference(entity.getIconKey())
+            : getDefaultIconReference(entity.getIconKey()));
   }
 
   private void downloadDefaultIcon(String key, HttpServletResponse response)

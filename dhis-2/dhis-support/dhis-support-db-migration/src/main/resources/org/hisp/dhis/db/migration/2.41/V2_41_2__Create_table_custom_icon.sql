@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS customicon
     CONSTRAINT customicon_pkey PRIMARY KEY (id),
     CONSTRAINT customicon_ukey UNIQUE (iconkey),
     CONSTRAINT customicon_fileresource_ukey UNIQUE (fileresourceid)
-    );
+);
 
 
 -- customicon table constraints
@@ -33,15 +33,13 @@ ALTER TABLE customicon DROP CONSTRAINT IF EXISTS fk_lastupdateby_userid;
 ALTER TABLE customicon ADD CONSTRAINT fk_lastupdateby_userid FOREIGN KEY (lastupdatedby) REFERENCES userinfo (userinfoid);
 
 
-
 -- customicon_keywords table creation
 
-CREATE TABLE IF NOT EXISTS customicon_keywords (
-
-                                     customiconid int not null,
-                                     keywords character varying(255)
+CREATE TABLE IF NOT EXISTS customicon_keywords
+(
+    customiconid int not null,
+    keywords character varying(255)
 );
-
 
 
 -- customicon_keywords table constraints
