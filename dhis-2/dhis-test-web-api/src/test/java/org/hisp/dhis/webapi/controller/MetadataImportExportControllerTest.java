@@ -53,6 +53,7 @@ import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
 import org.hisp.dhis.webapi.json.domain.JsonProgram;
+import org.hisp.dhis.webapi.json.domain.JsonTypeReport;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -541,7 +542,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
   @Test
   @DisplayName(
       "Should return error if user doesn't have Data Write permission for given AggregateDataExchange")
-  void testDataWriteAggregateDataExchangeWithoutAuthentication() {
+  void testAggregateDataExchangeFail() {
     POST("/metadata/", Body("metadata/aggregate_data_exchange.json")).content(HttpStatus.OK);
     User userA = createAndAddUser("UserA");
     PATCH(
@@ -555,13 +556,27 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
                 .formatted(userA.getUid(), userA.getUid()))
         .content(HttpStatus.OK);
     injectSecurityContext(UserDetails.fromUser(userA));
-    JsonImportSummary report =
+    JsonTypeReport typeReport =
         POST("/aggregateDataExchanges/iFOyIpQciyk/exchange")
-            .content(HttpStatus.OK)
-            .as(JsonImportSummary.class);
+            .content(HttpStatus.CONFLICT)
+            .get("response")
+            .as(JsonTypeReport.class);
+    JsonImportSummary report = typeReport.getImportSummaries().get(0).as(JsonImportSummary.class);
     assertEquals("ERROR", report.getStatus());
     assertEquals(
         "User has no data write access for AggregateDataExchange: Internal data exchange",
-        report.getArray("importSummaries").getObject(0).getString("description").string());
+        report.getString("description").string());
+  }
+
+  @Test
+  void testAggregateDataExchangeSuccess() {
+    POST("/metadata/", Body("metadata/aggregate_data_exchange.json")).content(HttpStatus.OK);
+    JsonTypeReport typeReport =
+        POST("/aggregateDataExchanges/iFOyIpQciyk/exchange")
+            .content(HttpStatus.OK)
+            .get("response")
+            .as(JsonTypeReport.class);
+    JsonImportSummary report = typeReport.getImportSummaries().get(0).as(JsonImportSummary.class);
+    assertEquals("SUCCESS", report.getStatus());
   }
 }

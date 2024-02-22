@@ -36,7 +36,8 @@ import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchangeService;
 import org.hisp.dhis.dataexchange.aggregate.SourceDataQueryParams;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
-import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.schema.descriptors.AggregateDataExchangeSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUser;
@@ -64,16 +65,18 @@ public class AggregateDataExchangeController extends AbstractCrudController<Aggr
 
   @PostMapping("/exchange")
   @ResponseStatus(value = HttpStatus.OK)
-  public ImportSummaries runDataExchange(
+  public WebMessage runDataExchange(
       @RequestBody AggregateDataExchange exchange, @CurrentUser UserDetails userDetails) {
-    return service.exchangeData(userDetails, exchange, NoopJobProgress.INSTANCE);
+    return WebMessageUtils.importSummaries(
+        service.exchangeData(userDetails, exchange, NoopJobProgress.INSTANCE));
   }
 
   @PostMapping("/{uid}/exchange")
   @ResponseStatus(value = HttpStatus.OK)
-  public ImportSummaries runDataExchangeByUid(
+  public WebMessage runDataExchangeByUid(
       @PathVariable String uid, @CurrentUser UserDetails userDetails) {
-    return service.exchangeData(userDetails, uid, NoopJobProgress.INSTANCE);
+    return WebMessageUtils.importSummaries(
+        service.exchangeData(userDetails, uid, NoopJobProgress.INSTANCE));
   }
 
   @GetMapping("/{uid}/sourceData")
