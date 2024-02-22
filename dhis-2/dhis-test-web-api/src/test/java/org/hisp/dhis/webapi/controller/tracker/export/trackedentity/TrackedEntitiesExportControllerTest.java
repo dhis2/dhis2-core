@@ -119,7 +119,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   private TrackedEntity softDeletedTrackedEntity;
 
   // Used to generate unique chars for creating TEA in test setup
-  private int uniqueAttributeCharCounter = 1;
+  private int uniqueAttributeCharCounter = 0;
 
   @BeforeEach
   void setUp() {
