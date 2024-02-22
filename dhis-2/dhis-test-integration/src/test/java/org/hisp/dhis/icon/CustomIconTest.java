@@ -27,7 +27,11 @@
  */
 package org.hisp.dhis.icon;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.google.common.hash.HashCode;
@@ -35,8 +39,11 @@ import com.google.common.hash.Hashing;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 import lombok.SneakyThrows;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
@@ -49,43 +56,88 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.MimeTypeUtils;
 
-class IconTest extends TrackerTest {
+class CustomIconTest extends TrackerTest {
+
   @Autowired private FileResourceService fileResourceService;
 
   @Autowired private CustomIconService iconService;
-  @Autowired protected UserService _userService;
-  private final Set<String> keywords = Set.of("k1", "k2", "k3");
+
+  @Autowired private UserService _userService;
+
+  private final Set<String> keywords = new HashSet<>();
+  private final String Key = "iconKey";
+  private final String uid = CodeGenerator.generateUid();
+
+  private CustomIcon customIcon;
+  private FileResource fileResource;
+  private User currentUser;
 
   @SneakyThrows
   @Override
   protected void initTest() throws IOException {
+
     userService = _userService;
     String currentUsername = CurrentUserUtil.getCurrentUsername();
-    User currentUser = userService.getUserByUsername(currentUsername);
+    currentUser = userService.getUserByUsername(currentUsername);
     injectSecurityContextUser(currentUser);
 
-    FileResource fileResource = createAndPersistFileResource('A');
-    iconService.addCustomIcon(
-        new CustomIcon("iconKey", "description", keywords, true, fileResource));
+    keywords.addAll(Set.of("k1", "k2", "k3"));
+    fileResource = createAndPersistFileResource('A');
+    customIcon = new CustomIcon(Key, "description", keywords, true, fileResource);
+    customIcon.setUid(uid);
+    iconService.addCustomIcon(customIcon);
   }
 
   @Test
-  void shouldGetAllIconsByDefault() {}
+  void shouldGetCustomIconByKey() throws NotFoundException {
+    assertCustomIcon(iconService.getCustomIcon(Key));
+  }
 
   @Test
-  void shouldGetDefaultIconWhenKeyBelongsToDefaultIcon() throws NotFoundException {}
+  void shouldGetCustomIconByUid() throws NotFoundException {
+    assertCustomIcon(iconService.getCustomIconByUid(uid));
+  }
 
   @Test
   void shouldGetAllKeywordsWhenRequested() {}
 
   @Test
-  void shouldGetAllIconsFilteredByKeywordWhenRequested() {}
-
-  @Test
-  void shouldGetCustomIconsFilteredByKeywordWhenRequested() {}
-
-  @Test
   void shouldGetIconDataWhenKeyBelongsToDefaultIcon() throws NotFoundException, IOException {}
+
+  @Test
+  void shouldSaveCustomIconWithNoKeywords() throws BadRequestException, NotFoundException {
+    FileResource fileResource = createAndPersistFileResource('D');
+
+    CustomIcon customIconWithNoKeywords =
+        new CustomIcon("iconKey2", "description", null, true, fileResource);
+
+    iconService.addCustomIcon(customIconWithNoKeywords);
+
+    assertNotNull(iconService.getCustomIcon("iconKey"));
+  }
+
+  @Test
+  void shouldFailWhenSavingCustomIconWithNoKey() {
+    FileResource fileResource = createAndPersistFileResource('B');
+
+    CustomIcon customIconWithNullKey =
+        new CustomIcon(null, "description", keywords, true, fileResource);
+    Exception exception =
+        assertThrows(
+            BadRequestException.class, () -> iconService.addCustomIcon(customIconWithNullKey));
+
+    assertEquals("CustomIcon key not specified.", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenCustomIconKeyDoesNotExist() {
+
+    String nonExistingKey = "non-existent-Key";
+    Exception exception =
+        assertThrows(NotFoundException.class, () -> iconService.getCustomIcon(nonExistingKey));
+
+    assertEquals(String.format("CustomIcon not found: %s", nonExistingKey), exception.getMessage());
+  }
 
   @Test
   void shouldFailWhenGettingIconDataOfNonDefaultIcon() {
@@ -93,11 +145,23 @@ class IconTest extends TrackerTest {
         assertThrows(
             NotFoundException.class, () -> iconService.getCustomIconResource("madeUpIconKey"));
 
-    assertEquals("No default icon found with key madeUpIconKey.", exception.getMessage());
+    assertEquals("No CustomIcon found with key madeUpIconKey.", exception.getMessage());
   }
 
   @Test
-  void shouldFailWhenSavingCustomIconAndDefaultIconWithSameKeyExists() {}
+  void shouldFailWhenSavingCustomIconWithExistingKey() {
+
+    FileResource fileResource = createAndPersistFileResource('A');
+    Exception exception =
+        assertThrows(
+            BadRequestException.class,
+            () ->
+                iconService.addCustomIcon(
+                    new CustomIcon(Key, "description", keywords, true, fileResource)));
+
+    assertEquals(
+        String.format("CustomIcon with key %s already exists.", Key), exception.getMessage());
+  }
 
   @Test
   void shouldUpdateLastUpdatedWhenCustomIconIsUpdated() {}
@@ -122,5 +186,17 @@ class IconTest extends TrackerTest {
 
     String fileResourceUid = fileResourceService.asyncSaveFileResource(fileResource, content);
     return fileResourceService.getFileResource(fileResourceUid);
+  }
+
+  private void assertCustomIcon(CustomIcon customIcon) {
+    assertEquals(uid, customIcon.getUid());
+    assertEquals(Key, customIcon.getIconKey());
+    assertEquals("description", customIcon.getDescription());
+    assertEquals(keywords, customIcon.getKeywords());
+
+    assertThat(customIcon.getKeywords(), hasSize(3));
+    assertThat(fileResource, is(customIcon.getFileResource()));
+    assertThat(currentUser, is(customIcon.getCreatedBy()));
+    assertThat(currentUser, is(customIcon.getLastUpdatedBy()));
   }
 }

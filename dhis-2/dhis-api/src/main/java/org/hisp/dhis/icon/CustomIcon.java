@@ -33,7 +33,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.Transient;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -45,7 +44,6 @@ import org.hisp.dhis.fileresource.FileResource;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 @JacksonXmlRootElement(localName = "customIcon", namespace = DxfNamespaces.DXF_2_0)
 public class CustomIcon extends BaseIdentifiableObject {
 

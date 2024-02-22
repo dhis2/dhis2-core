@@ -46,6 +46,13 @@ public interface CustomIconService {
    */
   CustomIcon getCustomIcon(String iconKey) throws NotFoundException;
 
+  /**
+   * Gets the custom icon associated to a uid, if it exists
+   *
+   * @param uid key of the icon to find
+   * @return custom icon associated to the uid, if found
+   * @throws NotFoundException if no custom icon exists with the provided uid
+   */
   CustomIcon getCustomIconByUid(String uid) throws NotFoundException;
 
   /**
@@ -82,6 +89,11 @@ public interface CustomIconService {
    */
   void addCustomIcon(CustomIcon customIcon) throws BadRequestException, NotFoundException;
 
+  /**
+   * Updated the provided custom icon
+   *
+   * @param customIcon the icon to be updated
+   */
   void updateCustomIcon(CustomIcon customIcon) throws BadRequestException, NotFoundException;
 
   /**
