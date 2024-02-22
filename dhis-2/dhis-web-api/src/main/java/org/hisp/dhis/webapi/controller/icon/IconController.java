@@ -58,6 +58,7 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractFullReadOnlyController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.HeaderUtils;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.core.io.Resource;
@@ -105,6 +106,15 @@ public class IconController extends AbstractFullReadOnlyController<CustomIcon> {
     } else {
       downloadCustomIcon(customIcon.getFileResource(), response);
     }
+  }
+
+  @GetMapping("/{iconKey}/icon.svg")
+  @Deprecated
+  public void getIconData(
+      HttpServletResponse response, HttpServletRequest request, @PathVariable String iconKey)
+      throws IOException {
+    String location = response.encodeRedirectURL("/icons/" + iconKey + "/icon");
+    response.sendRedirect(ContextUtils.getRootPath(request) + location);
   }
 
   @PostMapping

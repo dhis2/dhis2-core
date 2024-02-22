@@ -4,12 +4,12 @@
 
 CREATE TABLE IF NOT EXISTS customicon
 (
-    id                  bigint        NOT NULL,
+    id                  bigint         NOT NULL,
     uid                 character      varying(11) NOT NULL,
-    code                 character     varying(50),
+    code                character      varying(50),
     iconkey             varchar(100)   NOT NULL,
-    fileresourceid      bigint        NOT NULL,
-    description          text          NULL,
+    fileresourceid      bigint         NULL,
+    description         text           NOT NULL,
     created             TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     lastupdated         TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     createdby           bigint         NOT NULL,

@@ -68,12 +68,17 @@ public class IconMapper {
   }
 
   public CustomIcon to(CustomIconRequest customIconRequest) throws BadRequestException {
-    Optional<FileResource> fileResource =
-        fileResourceService.getFileResource(customIconRequest.getFileResourceId(), CUSTOM_ICON);
-    if (fileResource.isEmpty()) {
-      throw new BadRequestException(
-          String.format(
-              "FileResource with uid %s does not exist", customIconRequest.getFileResourceId()));
+
+    Optional<FileResource> fileResource = Optional.empty();
+
+    if (customIconRequest.getCustom()) {
+      fileResource =
+          fileResourceService.getFileResource(customIconRequest.getFileResourceId(), CUSTOM_ICON);
+      if (fileResource.isEmpty()) {
+        throw new BadRequestException(
+            String.format(
+                "FileResource with uid %s does not exist", customIconRequest.getFileResourceId()));
+      }
     }
 
     CustomIcon customIcon = new CustomIcon();
@@ -81,7 +86,7 @@ public class IconMapper {
     customIcon.setDescription(customIconRequest.getDescription());
     customIcon.setKeywords(customIconRequest.getKeywords());
     customIcon.setCustom(customIconRequest.getCustom());
-    customIcon.setFileResource(fileResource.get());
+    customIcon.setFileResource(fileResource.isEmpty() ? null : fileResource.get());
     customIcon.setCode(customIconRequest.getCode());
 
     return customIcon;

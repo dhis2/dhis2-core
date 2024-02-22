@@ -104,9 +104,11 @@ public class DefaultCustomIconService implements CustomIconService {
   public void addCustomIcon(CustomIcon customIcon) throws BadRequestException, NotFoundException {
     validateIconDoesNotExists(customIcon.getIconKey());
 
-    FileResource fileResource = getFileResource(customIcon.getFileResource().getUid());
-    fileResource.setAssigned(true);
-    fileResourceService.updateFileResource(fileResource);
+    if (customIcon.getCustom()) {
+      FileResource fileResource = getFileResource(customIcon.getFileResource().getUid());
+      fileResource.setAssigned(true);
+      fileResourceService.updateFileResource(fileResource);
+    }
 
     customIconStore.save(customIcon);
   }
@@ -121,11 +123,15 @@ public class DefaultCustomIconService implements CustomIconService {
   @Override
   @Transactional
   public void deleteCustomIcon(String iconKey) throws BadRequestException, NotFoundException {
-    CustomIcon icon = validateCustomIconExists(iconKey);
-    FileResource fileResource = getFileResource(icon.getFileResource().getUid());
-    fileResource.setAssigned(false);
-    fileResourceService.updateFileResource(fileResource);
-    customIconStore.delete(icon);
+    CustomIcon customIcon = validateCustomIconExists(iconKey);
+
+    if (customIcon.getCustom()) {
+      FileResource fileResource = getFileResource(customIcon.getFileResource().getUid());
+      fileResource.setAssigned(false);
+      fileResourceService.updateFileResource(fileResource);
+    }
+
+    customIconStore.delete(customIcon);
   }
 
   private void validateIconDoesNotExists(String key) throws BadRequestException {
