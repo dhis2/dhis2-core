@@ -730,7 +730,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   }
 
   @Test
-  void getAttributeValuesFileByAttributeAndProgramIfUserDoesNotHaveReadAccessToProgram()
+  void getAttributeValuesFileByAttributeAndProgramIfUserDoesNotHaveDataReadAccessToProgram()
       throws ConflictException {
     TrackedEntity trackedEntity = trackedEntity();
     enroll(trackedEntity, program, orgUnit);
@@ -799,8 +799,9 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   }
 
   @Test
-  void getAttributeValuesFileByAttributeAndProgramIfUserDoesNotHaveReadAccessToTrackedEntityType()
-      throws ConflictException {
+  void
+      getAttributeValuesFileByAttributeAndProgramIfUserDoesNotHaveDataReadAccessToTrackedEntityType()
+          throws ConflictException {
     TrackedEntity trackedEntity = trackedEntity();
     enroll(trackedEntity, program, orgUnit);
 
@@ -815,16 +816,19 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
     this.switchContextToUser(user);
 
-    GET(
-            "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file?program={programUid}",
-            trackedEntity.getUid(),
-            tea.getUid(),
-            program.getUid())
-        .error(HttpStatus.NOT_FOUND);
+    assertStartsWith(
+        "TrackedEntity ",
+        GET(
+                "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file?program={programUid}",
+                trackedEntity.getUid(),
+                tea.getUid(),
+                program.getUid())
+            .error(HttpStatus.NOT_FOUND)
+            .getMessage());
   }
 
   @Test
-  void getAttributeValuesFileByAttributeIfUserDoesNotHaveReadAccessToTrackedEntityType()
+  void getAttributeValuesFileByAttributeIfUserDoesNotHaveDataReadAccessToTrackedEntityType()
       throws ConflictException {
     TrackedEntity trackedEntity = trackedEntity();
     enroll(trackedEntity, program, orgUnit);
@@ -840,11 +844,14 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
     this.switchContextToUser(user);
 
-    GET(
-            "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file",
-            trackedEntity.getUid(),
-            tea.getUid())
-        .error(HttpStatus.NOT_FOUND);
+    assertStartsWith(
+        "TrackedEntity ",
+        GET(
+                "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file",
+                trackedEntity.getUid(),
+                tea.getUid())
+            .error(HttpStatus.NOT_FOUND)
+            .getMessage());
   }
 
   @Test
