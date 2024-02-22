@@ -42,10 +42,13 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.QueryOperator;
 
 @Getter
 @RequiredArgsConstructor(access = PRIVATE)
 public class DimensionParamItem {
+
+  private static final AnalyticsQueryOperator EQ = AnalyticsQueryOperator.of(QueryOperator.EQ);
 
   private final AnalyticsQueryOperator operator;
 
@@ -66,7 +69,7 @@ public class DimensionParamItem {
     if (isQueryItemFormat(items)) {
       return ofQueryItemFormat(items);
     } else {
-      return singletonList(new DimensionParamItem(null, items));
+      return singletonList(new DimensionParamItem(EQ, items));
     }
   }
 
