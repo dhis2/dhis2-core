@@ -16,15 +16,11 @@
         <property name="iconKey" column="iconkey" not-null="true" unique="true" length="100" />
         <property name="description" column="description"  length="200" />
         <property name="custom" column="custom" />
+        <property name="keywords" column="keywords" type="jbSet" />
 
         <many-to-one name="fileResource" column="fileresourceid" cascade="all-delete-orphan" lazy="false" unique="true" not-null="false"/>
 
         <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="createdby" foreign-key="fk_createdby_userid" />
-
-        <set name="keywords" table="customicon_keywords" fetch="join">
-            <key column="customiconid" />
-            <element type="text"  column="keywords" />
-        </set>
 
     </class>
 

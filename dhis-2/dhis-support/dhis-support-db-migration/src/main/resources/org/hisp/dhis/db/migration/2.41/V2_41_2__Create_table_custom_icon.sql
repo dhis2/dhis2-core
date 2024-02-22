@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS customicon
     iconkey             varchar(100)   NOT NULL,
     fileresourceid      bigint         NULL,
     description         text           NOT NULL,
+    keywords            jsonb          NULL,
     created             TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     lastupdated         TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     createdby           bigint         NOT NULL,
@@ -31,17 +32,3 @@ ALTER TABLE customicon ADD CONSTRAINT fk_createdby_userid FOREIGN KEY (createdby
 
 ALTER TABLE customicon DROP CONSTRAINT IF EXISTS fk_lastupdateby_userid;
 ALTER TABLE customicon ADD CONSTRAINT fk_lastupdateby_userid FOREIGN KEY (lastupdatedby) REFERENCES userinfo (userinfoid);
-
-
--- customicon_keywords table creation
-
-CREATE TABLE IF NOT EXISTS customicon_keywords
-(
-    customiconid int not null,
-    keywords character varying(255)
-);
-
-
--- customicon_keywords table constraints
-ALTER TABLE customicon_keywords DROP CONSTRAINT IF EXISTS fk_custom_icon_keywords;
-ALTER TABLE ONLY customicon_keywords ADD CONSTRAINT fk_custom_icon_keywords FOREIGN KEY (customiconid) REFERENCES customicon(id);
