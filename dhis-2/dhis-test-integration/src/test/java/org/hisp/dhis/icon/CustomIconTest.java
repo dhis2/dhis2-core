@@ -34,12 +34,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.google.api.client.util.Sets;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import lombok.SneakyThrows;
 import org.hisp.dhis.common.CodeGenerator;
@@ -99,10 +101,30 @@ class CustomIconTest extends TrackerTest {
   }
 
   @Test
-  void shouldGetAllKeywordsWhenRequested() {}
+  void shouldGetAllKeywordsWhenRequested() throws BadRequestException, NotFoundException {
+
+    FileResource fileResource = createAndPersistFileResource('V');
+
+    Set<String> words = Sets.newHashSet();
+    words.addAll(Set.of("m1,m2"));
+    CustomIcon customIconWithNoKeywords =
+        new CustomIcon("iconKey2", "description", words, true, fileResource);
+
+    iconService.addCustomIcon(customIconWithNoKeywords);
+
+    List<String> keywords = iconService.getKeywords();
+
+    assertThat(keywords, hasSize(2));
+
+    // TODO this needs to be worked on
+    // assertThat(keywords.get(0), hasItems("k1", "k2", "k3"));
+  }
 
   @Test
-  void shouldGetIconDataWhenKeyBelongsToDefaultIcon() throws NotFoundException, IOException {}
+  void shouldGetIconDataWhenKeyBelongsToCustomIcon() throws NotFoundException, IOException {
+
+    assertNotNull(iconService.getCustomIconResource(Key));
+  }
 
   @Test
   void shouldSaveCustomIconWithNoKeywords() throws BadRequestException, NotFoundException {
@@ -113,7 +135,7 @@ class CustomIconTest extends TrackerTest {
 
     iconService.addCustomIcon(customIconWithNoKeywords);
 
-    assertNotNull(iconService.getCustomIcon("iconKey"));
+    assertCustomIcon(iconService.getCustomIcon("iconKey"));
   }
 
   @Test
@@ -161,6 +183,19 @@ class CustomIconTest extends TrackerTest {
 
     assertEquals(
         String.format("CustomIcon with key %s already exists.", Key), exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenFetchingIconDataWithNonExistentKey() throws NotFoundException, IOException {
+
+    String nonExistingKey = "non-existent-Key";
+
+    Exception exception =
+        assertThrows(
+            NotFoundException.class, () -> iconService.getCustomIconResource(nonExistingKey));
+
+    assertEquals(
+        String.format("No CustomIcon found with key %s.", nonExistingKey), exception.getMessage());
   }
 
   @Test

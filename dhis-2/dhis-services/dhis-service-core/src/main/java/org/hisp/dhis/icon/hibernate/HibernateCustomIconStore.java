@@ -27,9 +27,11 @@
  */
 package org.hisp.dhis.icon.hibernate;
 
-import java.util.Set;
+import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.icon.CustomIcon;
@@ -65,7 +67,13 @@ public class HibernateCustomIconStore extends HibernateIdentifiableObjectStore<C
   }
 
   @Override
-  public Set<String> getKeywords() {
-    return null;
+  public List<String> getKeywords() {
+    CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+    CriteriaQuery<String> criteriaQuery = criteriaBuilder.createQuery(String.class);
+
+    Root<CustomIcon> root = criteriaQuery.from(CustomIcon.class);
+    criteriaQuery.select(root.get("keywords")); // Specify the column you want to select
+
+    return entityManager.createQuery(criteriaQuery).getResultStream().toList();
   }
 }

@@ -30,8 +30,8 @@ package org.hisp.dhis.icon;
 import static org.hisp.dhis.fileresource.FileResourceDomain.CUSTOM_ICON;
 
 import com.google.common.base.Strings;
+import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -89,7 +89,7 @@ public class DefaultCustomIconService implements CustomIconService {
 
   @Override
   @Transactional(readOnly = true)
-  public Set<String> getKeywords() {
+  public List<String> getKeywords() {
     return customIconStore.getKeywords();
   }
 
