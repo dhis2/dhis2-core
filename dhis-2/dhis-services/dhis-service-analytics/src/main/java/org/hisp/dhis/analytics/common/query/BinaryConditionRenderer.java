@@ -157,6 +157,7 @@ public class BinaryConditionRenderer extends BaseRenderable {
     }
 
     throw new IllegalQueryException(E2035, queryOperator);
+    // test sonar PR analysis on new code added to method with accepted code smell
   }
 
   @Nonnull
