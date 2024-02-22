@@ -395,7 +395,7 @@ public class AccountController {
     user.setSelfRegistered(true);
     user.getUserRoles().add(userRole);
 
-    userService.addUser(user);
+    userService.addUser(user, new SystemUser());
 
     log.info("Created user with username: " + user.getUsername());
 
