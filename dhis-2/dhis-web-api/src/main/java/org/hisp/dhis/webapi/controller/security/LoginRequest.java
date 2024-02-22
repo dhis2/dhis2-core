@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,35 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.spring2fa;
+package org.hisp.dhis.webapi.controller.security;
 
-import javax.servlet.http.HttpServletRequest;
-import org.hisp.dhis.security.ForwardedIpAwareWebAuthenticationDetails;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.OpenApi;
 
 /**
- * @author Henning Håkonsen
- * @author Lars Helge Øverland
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class TwoFactorWebAuthenticationDetails extends ForwardedIpAwareWebAuthenticationDetails {
-  private static final String TWO_FACTOR_AUTHENTICATION_GETTER = "2fa_code";
+@OpenApi.Shared
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Builder
+public class LoginRequest {
 
-  private String code;
-
-  public TwoFactorWebAuthenticationDetails(HttpServletRequest request) {
-    super(request);
-    code = request.getParameter(TWO_FACTOR_AUTHENTICATION_GETTER);
-  }
-
-  public TwoFactorWebAuthenticationDetails(HttpServletRequest request, String twoFactorCode) {
-    super(request);
-    code = twoFactorCode;
-  }
-
-  public String getCode() {
-    return code;
-  }
-
-  public void setCode(String code) {
-    this.code = code;
-  }
+  @JsonProperty private String username;
+  @JsonProperty private String password;
+  @JsonProperty private String twoFactorCode;
 }

@@ -778,9 +778,9 @@ public class DefaultUserService implements UserService {
 
   @Transactional
   @Override
-  public void resetTwoFactor(User user) {
+  public void resetTwoFactor(User user, UserDetails actingUser) {
     user.setSecret(null);
-    updateUser(user);
+    updateUser(user, actingUser);
   }
 
   @Transactional
@@ -800,7 +800,7 @@ public class DefaultUserService implements UserService {
       throw new IllegalStateException("Invalid code");
     }
 
-    approveTwoFactorSecret(user);
+    approveTwoFactorSecret(user, CurrentUserUtil.getCurrentUserDetails());
   }
 
   @Transactional
@@ -814,7 +814,7 @@ public class DefaultUserService implements UserService {
       throw new IllegalStateException("Invalid code");
     }
 
-    resetTwoFactor(user);
+    resetTwoFactor(user, CurrentUserUtil.getCurrentUserDetails());
   }
 
   @Override
@@ -831,7 +831,7 @@ public class DefaultUserService implements UserService {
       throw new UpdateAccessDeniedException(ErrorCode.E3021.getMessage());
     }
 
-    resetTwoFactor(user);
+    resetTwoFactor(user, UserDetails.fromUser(currentUser));
   }
 
   @Override
@@ -943,10 +943,10 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional
-  public void approveTwoFactorSecret(User user) {
+  public void approveTwoFactorSecret(User user, UserDetails actingUser) {
     if (user.getSecret() != null && UserService.hasTwoFactorSecretForApproval(user)) {
       user.setSecret(user.getSecret().replace(TWO_FACTOR_CODE_APPROVAL_PREFIX, ""));
-      updateUser(user);
+      updateUser(user, actingUser);
     }
   }
 

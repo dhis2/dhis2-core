@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,35 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.spring2fa;
+package org.hisp.dhis.system;
 
-import javax.servlet.http.HttpServletRequest;
-import org.hisp.dhis.security.ForwardedIpAwareWebAuthenticationDetails;
+import java.util.concurrent.CountDownLatch;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Henning Håkonsen
- * @author Lars Helge Øverland
+ * Sets a countdown latch to 0 when the application/server has started. This can be used to wait for
+ * the server to start before running tests.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class TwoFactorWebAuthenticationDetails extends ForwardedIpAwareWebAuthenticationDetails {
-  private static final String TWO_FACTOR_AUTHENTICATION_GETTER = "2fa_code";
+@Component
+@Slf4j
+public class StartupEventPublisher implements ApplicationListener<ContextRefreshedEvent> {
 
-  private String code;
+  public static final CountDownLatch SERVER_STARTED_LATCH = new CountDownLatch(1);
 
-  public TwoFactorWebAuthenticationDetails(HttpServletRequest request) {
-    super(request);
-    code = request.getParameter(TWO_FACTOR_AUTHENTICATION_GETTER);
-  }
+  @Override
+  public void onApplicationEvent(ContextRefreshedEvent event) {
+    log.info("ContextRefreshedEvent received:" + event);
 
-  public TwoFactorWebAuthenticationDetails(HttpServletRequest request, String twoFactorCode) {
-    super(request);
-    code = twoFactorCode;
-  }
-
-  public String getCode() {
-    return code;
-  }
-
-  public void setCode(String code) {
-    this.code = code;
+    SERVER_STARTED_LATCH.countDown();
   }
 }

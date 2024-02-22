@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,35 +25,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.spring2fa;
+package org.hisp.dhis.webapi.controller.security;
 
-import javax.servlet.http.HttpServletRequest;
-import org.hisp.dhis.security.ForwardedIpAwareWebAuthenticationDetails;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
- * @author Henning Håkonsen
- * @author Lars Helge Øverland
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class TwoFactorWebAuthenticationDetails extends ForwardedIpAwareWebAuthenticationDetails {
-  private static final String TWO_FACTOR_AUTHENTICATION_GETTER = "2fa_code";
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Builder
+public class LoginResponse {
+  @Getter
+  public enum STATUS {
+    SUCCESS("loginSuccess"),
+    ACCOUNT_DISABLED("accountDisabled"),
+    ACCOUNT_LOCKED("accountLocked"),
+    ACCOUNT_EXPIRED("accountExpired"),
+    PASSWORD_EXPIRED("passwordExpired"),
+    INCORRECT_TWO_FACTOR_CODE("incorrectTwoFactorCode"),
+    REQUIRES_TWO_FACTOR_ENROLMENT("requiresTwoFactorEnrolment");
 
-  private String code;
+    private final String keyName;
+    private final String defaultValue;
 
-  public TwoFactorWebAuthenticationDetails(HttpServletRequest request) {
-    super(request);
-    code = request.getParameter(TWO_FACTOR_AUTHENTICATION_GETTER);
+    STATUS(String keyName) {
+      this.keyName = keyName;
+      this.defaultValue = null;
+    }
   }
 
-  public TwoFactorWebAuthenticationDetails(HttpServletRequest request, String twoFactorCode) {
-    super(request);
-    code = twoFactorCode;
-  }
-
-  public String getCode() {
-    return code;
-  }
-
-  public void setCode(String code) {
-    this.code = code;
-  }
+  @JsonProperty private STATUS loginStatus;
+  @JsonProperty private String redirectUrl;
+  @JsonProperty private String loginMessage;
+  @JsonProperty private String twoFactorQRCode;
 }
