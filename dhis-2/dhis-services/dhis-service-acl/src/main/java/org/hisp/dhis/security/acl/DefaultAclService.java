@@ -786,7 +786,7 @@ public class DefaultAclService implements AclService {
       }
     }
 
-    //test comment to see if sonar PR fails due to existing legacy code smell (code complexity)
+    // test comment to see if sonar PR fails due to existing legacy code smell (code complexity)
 
     return false;
   }
