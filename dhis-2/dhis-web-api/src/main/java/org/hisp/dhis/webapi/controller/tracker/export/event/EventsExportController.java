@@ -295,7 +295,7 @@ class EventsExportController {
         request, eventService.getFileResourceImage(event, dataElement, dimension));
   }
 
-  @GetMapping("/{event}/changeLog")
+  @GetMapping("/{event}/changeLogs")
   Page<ObjectNode> getEventChangeLogByUid(
       @OpenApi.Param({UID.class, Event.class}) @PathVariable UID event,
       ChangeLogRequestParams requestParams,

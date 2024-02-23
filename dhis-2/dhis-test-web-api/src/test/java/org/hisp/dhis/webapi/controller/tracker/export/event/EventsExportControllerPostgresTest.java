@@ -139,7 +139,7 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
   @Test
   void shouldGetEventChangeLogWhenDataValueUpdatedAndThenDeleted() {
     JsonWebMessage changeLogResponse =
-        GET("/tracker/events/{id}/changeLog", event.getUid())
+        GET("/tracker/events/{id}/changeLogs", event.getUid())
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
 
@@ -167,7 +167,7 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
   void shouldGetChangeLogPagerWithNextElementWhenMultipleElementsImportedAndFirstPageRequested() {
     JsonWebMessage changeLogResponse =
         GET(
-                "/tracker/events/{id}/changeLog?page={page}&pageSize={pageSize}",
+                "/tracker/events/{id}/changeLogs?page={page}&pageSize={pageSize}",
                 event.getUid(),
                 "1",
                 "1")
@@ -184,7 +184,7 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
                 pagerObject.getString("nextPage").string(),
                 2,
                 1,
-                String.format("http://localhost/tracker/events/%s/changeLog", event.getUid())));
+                String.format("http://localhost/tracker/events/%s/changeLogs", event.getUid())));
   }
 
   @Test
@@ -192,7 +192,7 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
       shouldGetChangeLogPagerWithNextAndPreviousElementsWhenMultipleElementsImportedAndSecondPageRequested() {
     JsonWebMessage changeLogResponse =
         GET(
-                "/tracker/events/{id}/changeLog?page={page}&pageSize={pageSize}",
+                "/tracker/events/{id}/changeLogs?page={page}&pageSize={pageSize}",
                 event.getUid(),
                 "2",
                 "1")
@@ -208,13 +208,13 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
                 pagerObject.getString("prevPage").string(),
                 1,
                 1,
-                String.format("http://localhost/tracker/events/%s/changeLog", event.getUid())),
+                String.format("http://localhost/tracker/events/%s/changeLogs", event.getUid())),
         () ->
             assertPagerLink(
                 pagerObject.getString("nextPage").string(),
                 3,
                 1,
-                String.format("http://localhost/tracker/events/%s/changeLog", event.getUid())));
+                String.format("http://localhost/tracker/events/%s/changeLogs", event.getUid())));
   }
 
   @Test
@@ -222,7 +222,7 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
       shouldGetChangeLogPagerWithPreviousElementWhenMultipleElementsImportedAndLastPageRequested() {
     JsonWebMessage changeLogResponse =
         GET(
-                "/tracker/events/{id}/changeLog?page={page}&pageSize={pageSize}",
+                "/tracker/events/{id}/changeLogs?page={page}&pageSize={pageSize}",
                 event.getUid(),
                 "3",
                 "1")
@@ -238,7 +238,7 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
               pagerObject.getString("prevPage").string(),
               2,
               1,
-              String.format("http://localhost/tracker/events/%s/changeLog", event.getUid()));
+              String.format("http://localhost/tracker/events/%s/changeLogs", event.getUid()));
           assertNull(pagerObject.getString("nextPage").string());
         });
   }
@@ -248,7 +248,7 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
       shouldGetChangeLogPagerWithoutPreviousNorNextElementWhenMultipleElementsImportedAndAllElementsFitInOnePage() {
     JsonWebMessage changeLogResponse =
         GET(
-                "/tracker/events/{id}/changeLog?page={page}&pageSize={pageSize}",
+                "/tracker/events/{id}/changeLogs?page={page}&pageSize={pageSize}",
                 event.getUid(),
                 "1",
                 "3")
