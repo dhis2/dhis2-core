@@ -44,7 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.IntSupplier;
+import java.util.function.LongSupplier;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -175,14 +175,15 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       ids.add(rowSet.getLong("trackedentityid"));
     }
 
-    IntSupplier teCount = () -> getTrackedEntityCount(params);
+    LongSupplier teCount = () -> getTrackedEntityCount(params);
     return getPage(pageParams, ids, teCount);
   }
 
-  private Page<Long> getPage(PageParams pageParams, List<Long> teIds, IntSupplier enrollmentCount) {
+  private Page<Long> getPage(
+      PageParams pageParams, List<Long> teIds, LongSupplier enrollmentCount) {
     if (pageParams.isPageTotal()) {
       return Page.withTotals(
-          teIds, pageParams.getPage(), pageParams.getPageSize(), enrollmentCount.getAsInt());
+          teIds, pageParams.getPage(), pageParams.getPageSize(), enrollmentCount.getAsLong());
     }
 
     return Page.withoutTotals(teIds, pageParams.getPage(), pageParams.getPageSize());
@@ -208,9 +209,9 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   }
 
   @Override
-  public int getTrackedEntityCount(TrackedEntityQueryParams params) {
+  public Long getTrackedEntityCount(TrackedEntityQueryParams params) {
     String sql = getCountQuery(params);
-    return jdbcTemplate.queryForObject(sql, Integer.class);
+    return jdbcTemplate.queryForObject(sql, Long.class);
   }
 
   @Override

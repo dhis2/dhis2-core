@@ -68,6 +68,6 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
       throw new NotFoundException(Event.class, eventUid.getValue());
     }
 
-    return jdbcEventChangeLogStore.getEventChangeLog(eventUid.getValue(), pageParams);
+    return jdbcEventChangeLogStore.getEventChangeLog(eventUid, pageParams);
   }
 }

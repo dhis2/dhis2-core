@@ -114,14 +114,7 @@ public class DefaultRelationshipService implements RelationshipService {
         relationshipPage.getItems().stream()
             .filter(r -> trackerAccessManager.canRead(currentUser, r).isEmpty())
             .toList();
-
-    return relationshipPage.getTotal() != null
-        ? Page.withTotals(
-            relationships,
-            pageParams.getPage(),
-            pageParams.getPageSize(),
-            relationshipPage.getTotal())
-        : Page.withoutTotals(relationships, pageParams.getPage(), pageParams.getPageSize());
+    return relationshipPage.withItems(relationships);
   }
 
   public List<Relationship> getRelationshipsByEnrollment(
@@ -143,14 +136,7 @@ public class DefaultRelationshipService implements RelationshipService {
         relationshipPage.getItems().stream()
             .filter(r -> trackerAccessManager.canRead(currentUser, r).isEmpty())
             .toList();
-
-    return relationshipPage.getTotal() != null
-        ? Page.withTotals(
-            relationships,
-            pageParams.getPage(),
-            pageParams.getPageSize(),
-            relationshipPage.getTotal())
-        : Page.withoutTotals(relationships, pageParams.getPage(), pageParams.getPageSize());
+    return relationshipPage.withItems(relationships);
   }
 
   public List<Relationship> getRelationshipsByEvent(
@@ -172,14 +158,7 @@ public class DefaultRelationshipService implements RelationshipService {
         relationshipPage.getItems().stream()
             .filter(r -> trackerAccessManager.canRead(currentUser, r).isEmpty())
             .toList();
-
-    return relationshipPage.getTotal() != null
-        ? Page.withTotals(
-            relationships,
-            pageParams.getPage(),
-            pageParams.getPageSize(),
-            relationshipPage.getTotal())
-        : Page.withoutTotals(relationships, pageParams.getPage(), pageParams.getPageSize());
+    return relationshipPage.withItems(relationships);
   }
 
   private List<Relationship> getRelationships(RelationshipQueryParams queryParams) {

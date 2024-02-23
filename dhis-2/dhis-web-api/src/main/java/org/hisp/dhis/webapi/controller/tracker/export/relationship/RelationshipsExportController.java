@@ -111,7 +111,7 @@ class RelationshipsExportController {
               RELATIONSHIP_MAPPER.fromCollection(relationshipsPage.getItems()),
               requestParams.getFields());
 
-      return Page.withPager(RELATIONSHIPS, objectNodes, relationshipsPage, null, null);
+      return Page.withPager(RELATIONSHIPS, relationshipsPage.withItems(objectNodes));
     }
 
     List<org.hisp.dhis.relationship.Relationship> relationships =

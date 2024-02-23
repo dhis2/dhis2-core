@@ -38,7 +38,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.Function;
-import java.util.function.IntSupplier;
+import java.util.function.LongSupplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.persistence.EntityManager;
@@ -92,12 +92,12 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
   }
 
   @Override
-  public int countEnrollments(EnrollmentQueryParams params) {
+  public long countEnrollments(EnrollmentQueryParams params) {
     String hql = buildCountEnrollmentHql(params);
 
     Query<Long> query = getTypedQuery(hql);
 
-    return query.getSingleResult().intValue();
+    return query.getSingleResult().longValue();
   }
 
   private String buildCountEnrollmentHql(EnrollmentQueryParams params) {
@@ -123,15 +123,15 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
     query.setFirstResult((pageParams.getPage() - 1) * pageParams.getPageSize());
     query.setMaxResults(pageParams.getPageSize());
 
-    IntSupplier enrollmentCount = () -> countEnrollments(params);
+    LongSupplier enrollmentCount = () -> countEnrollments(params);
     return getPage(pageParams, query.list(), enrollmentCount);
   }
 
   private Page<Enrollment> getPage(
-      PageParams pageParams, List<Enrollment> enrollments, IntSupplier enrollmentCount) {
+      PageParams pageParams, List<Enrollment> enrollments, LongSupplier enrollmentCount) {
     if (pageParams.isPageTotal()) {
       return Page.withTotals(
-          enrollments, pageParams.getPage(), pageParams.getPageSize(), enrollmentCount.getAsInt());
+          enrollments, pageParams.getPage(), pageParams.getPageSize(), enrollmentCount.getAsLong());
     }
 
     return Page.withoutTotals(enrollments, pageParams.getPage(), pageParams.getPageSize());

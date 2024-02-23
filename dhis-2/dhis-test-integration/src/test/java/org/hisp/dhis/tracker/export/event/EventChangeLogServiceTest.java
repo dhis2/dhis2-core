@@ -145,7 +145,7 @@ class EventChangeLogServiceTest extends TrackerTest {
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
 
     TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
-    updateDataValue(trackerObjects, event.getUid(), dataElementUid, "");
+    updateDataValue(trackerObjects, event, dataElementUid, "");
     assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
 
     Page<EventChangeLog> changeLogs =
@@ -168,9 +168,9 @@ class EventChangeLogServiceTest extends TrackerTest {
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
 
     TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
-    updateDataValue(trackerObjects, event.getUid(), dataElementUid, "");
+    updateDataValue(trackerObjects, event, dataElementUid, "");
     assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
-    updateDataValue(trackerObjects, event.getUid(), dataElementUid, "");
+    updateDataValue(trackerObjects, event, dataElementUid, "");
     assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
 
     Page<EventChangeLog> changeLogs =
@@ -192,7 +192,7 @@ class EventChangeLogServiceTest extends TrackerTest {
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
 
     TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
-    updateDataValue(trackerObjects, event.getUid(), dataElementUid, "20");
+    updateDataValue(trackerObjects, event, dataElementUid, "20");
     assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
 
     Page<EventChangeLog> changeLogs =
@@ -215,9 +215,9 @@ class EventChangeLogServiceTest extends TrackerTest {
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
 
     TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
-    updateDataValue(trackerObjects, event.getUid(), dataElementUid, "20");
+    updateDataValue(trackerObjects, event, dataElementUid, "20");
     assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
-    updateDataValue(trackerObjects, event.getUid(), dataElementUid, "25");
+    updateDataValue(trackerObjects, event, dataElementUid, "25");
     assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
 
     Page<EventChangeLog> changeLogs =
@@ -243,10 +243,10 @@ class EventChangeLogServiceTest extends TrackerTest {
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
 
     TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
-    updateDataValue(trackerObjects, event.getUid(), dataElementUid, "20");
+    updateDataValue(trackerObjects, event, dataElementUid, "20");
     assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
 
-    updateDataValue(trackerObjects, event.getUid(), dataElementUid, "");
+    updateDataValue(trackerObjects, event, dataElementUid, "");
     assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
 
     Page<EventChangeLog> changeLogs =
@@ -264,9 +264,9 @@ class EventChangeLogServiceTest extends TrackerTest {
   }
 
   private void updateDataValue(
-      TrackerObjects trackerObjects, String eventUid, String dataElementUid, String newValue) {
+      TrackerObjects trackerObjects, Event event, String dataElementUid, String newValue) {
     trackerObjects.getEvents().stream()
-        .filter(e -> e.getEvent().equalsIgnoreCase(eventUid))
+        .filter(e -> e.getEvent().equalsIgnoreCase(event.getUid()))
         .findFirst()
         .flatMap(
             e ->

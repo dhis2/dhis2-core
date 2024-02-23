@@ -119,7 +119,7 @@ public class DeduplicationController {
       org.hisp.dhis.tracker.export.Page<PotentialDuplicate> page =
           org.hisp.dhis.tracker.export.Page.withoutTotals(
               potentialDuplicates, pager.getPage(), pager.getPageSize());
-      return Page.withPager("potentialDuplicates", objectNodes, page, null, null);
+      return Page.withPager("potentialDuplicates", page.withItems(objectNodes));
     }
 
     return Page.withoutPager("potentialDuplicates", objectNodes);

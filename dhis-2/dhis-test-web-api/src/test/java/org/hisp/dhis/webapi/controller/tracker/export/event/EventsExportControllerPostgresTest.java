@@ -275,14 +275,14 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
   }
 
   private TrackedEntityType trackedEntityTypeAccessible() {
-    TrackedEntityType type = trackedEntityType('A');
+    TrackedEntityType type = trackedEntityType();
     type.getSharing().addUserAccess(userAccess());
     manager.save(type, false);
     return type;
   }
 
-  private TrackedEntityType trackedEntityType(char uniqueChar) {
-    TrackedEntityType type = createTrackedEntityType(uniqueChar);
+  private TrackedEntityType trackedEntityType() {
+    TrackedEntityType type = createTrackedEntityType('A');
     type.getSharing().setOwner(owner);
     type.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     return type;
@@ -313,8 +313,7 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
   }
 
   private String createJson(Event event, String value) {
-    String response =
-        """
+    return """
       {
         "events": [
           {
@@ -348,16 +347,14 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
         ]
       }}
         """
-            .formatted(
-                event.getUid(),
-                program.getUid(),
-                programStage.getUid(),
-                event.getEnrollment().getUid(),
-                event.getEnrollment().getTrackedEntity().getUid(),
-                event.getOrganisationUnit().getUid(),
-                event.getEventDataValues().iterator().next().getDataElement(),
-                value);
-
-    return response;
+        .formatted(
+            event.getUid(),
+            program.getUid(),
+            programStage.getUid(),
+            event.getEnrollment().getUid(),
+            event.getEnrollment().getTrackedEntity().getUid(),
+            event.getOrganisationUnit().getUid(),
+            event.getEventDataValues().iterator().next().getDataElement(),
+            value);
   }
 }

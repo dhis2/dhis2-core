@@ -33,6 +33,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -87,48 +88,86 @@ public class Page<T> {
   private final Integer pageCount;
 
   private Page(
-      String key,
-      List<T> values,
-      int page,
-      int pageSize,
-      Long total,
-      int pageCount,
-      String prev,
-      String next) {
+      String key, List<T> values, int page, int pageSize, String prevPage, String nextPage) {
     this.items.put(key, values);
+    this.page = null;
+    this.pageSize = null;
+    this.total = null;
+    this.pageCount = null;
+    this.pager = new Pager(page, pageSize, null, null, prevPage, nextPage);
+  }
 
-    this.page = page;
-    this.pageSize = pageSize;
-    if (total != null) {
-      this.total = total;
-      this.pageCount = pageCount;
-      this.pager = new Pager(page, pageSize, total, pageCount, prev, next);
+  /**
+   * @deprecated Only use if you need to serialize the deprecated flat pagination fields in addition
+   *     to the standard pager object.
+   */
+  @Deprecated(since = "2.41")
+  private Page(
+      String key, List<T> values, org.hisp.dhis.common.Pager pager, boolean showPageTotal) {
+    this.items.put(key, values);
+    if (pager == null) {
+      this.pager = null;
+      this.page = null;
+      this.pageSize = null;
+      this.total = null;
+      this.pageCount = null;
+      return;
+    }
+
+    this.page = pager.getPage();
+    this.pageSize = pager.getPageSize();
+    if (showPageTotal) {
+      this.total = pager.getTotal();
+      this.pageCount = pager.getPageCount();
+      this.pager =
+          new Pager(
+              pager.getPage(),
+              pager.getPageSize(),
+              pager.getTotal(),
+              pager.getPageCount(),
+              null,
+              null);
     } else {
       this.total = null;
       this.pageCount = null;
-      this.pager = new Pager(page, pageSize, null, null, prev, next);
+      this.pager = new Pager(pager.getPage(), pager.getPageSize(), null, null, null, null);
     }
   }
 
   /**
    * Returns a page which will serialize the items into {@link #items} under given {@code key}.
-   * Pagination details will be serialized as well including totals only if showPageTotal is true.
+   * Pagination details will be serialized as well including totals only if {@link
+   * org.hisp.dhis.tracker.export.Page#getTotal()} is not null. The deprecated flat pagination
+   * fields will be serialized as well!
+   *
+   * @deprecated Only use if you need to serialize the deprecated flat pagination fields in addition
+   *     to the standard pager object.
    */
-  public static <T, U> Page<T> withPager(
-      String key,
-      List<T> items,
-      org.hisp.dhis.tracker.export.Page<U> pager,
-      String prev,
-      String next) {
+  @Deprecated(since = "2.41")
+  public static <T> Page<T> withPager(String key, org.hisp.dhis.tracker.export.Page<T> pager) {
+    org.hisp.dhis.common.Pager commonPager;
+    if (pager.getTotal() != null) {
+      commonPager =
+          new org.hisp.dhis.common.Pager(pager.getPage(), pager.getTotal(), pager.getPageSize());
+      commonPager.force(pager.getPage(), pager.getPageSize());
+    } else {
+      commonPager = new org.hisp.dhis.common.Pager(pager.getPage(), 0, pager.getPageSize());
+      commonPager.force(pager.getPage(), pager.getPageSize());
+    }
+    return new Page<>(key, pager.getItems(), commonPager, pager.getTotal() != null);
+  }
+
+  /**
+   * Returns a page which will serialize the items into {@link #items} under given {@code key}.
+   * Previous and next page links will be generated based on the request and only if {@link
+   * org.hisp.dhis.tracker.export.Page#getPrev()} or next are not null.
+   */
+  public static <T> Page<T> withPager(
+      String key, org.hisp.dhis.tracker.export.Page<T> pager, HttpServletRequest request) {
+    String prevPage = null;
+    String nextPage = null;
     return new Page<>(
-        key,
-        items,
-        pager.getPage(),
-        pager.getPageSize(),
-        pager.getTotal(),
-        (int) Math.ceil(pager.getTotal() / (double) pager.getPageSize()),
-        prev,
-        next);
+        key, pager.getItems(), pager.getPage(), pager.getPageSize(), prevPage, nextPage);
   }
 
   /**
@@ -136,10 +175,11 @@ public class Page<T> {
    * All other fields will be omitted from the JSON.
    */
   public static <T> Page<T> withoutPager(String key, List<T> items) {
-    return new Page<>(key, items, 0, 0, null, 0, null, null);
+    return new Page<>(key, items, null, false);
   }
 
   @OpenApi.Shared(pattern = Pattern.TRACKER)
+  @Getter
   @ToString
   @EqualsAndHashCode
   @AllArgsConstructor
@@ -148,7 +188,7 @@ public class Page<T> {
     @JsonProperty private Integer pageSize;
     @JsonProperty private Long total;
     @JsonProperty private Integer pageCount;
-    @JsonProperty private String prev;
-    @JsonProperty private String next;
+    @JsonProperty private String prevPage;
+    @JsonProperty private String nextPage;
   }
 }

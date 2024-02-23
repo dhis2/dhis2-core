@@ -56,7 +56,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.IntSupplier;
+import java.util.function.LongSupplier;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -242,7 +242,7 @@ class JdbcEventStore implements EventStore {
   @Override
   public Page<Event> getEvents(EventQueryParams queryParams, PageParams pageParams) {
     List<Event> events = fetchEvents(queryParams, pageParams);
-    IntSupplier eventCount = () -> getEventCount(queryParams);
+    LongSupplier eventCount = () -> getEventCount(queryParams);
     return getPage(pageParams, events, eventCount);
   }
 
@@ -431,11 +431,10 @@ class JdbcEventStore implements EventStore {
         });
   }
 
-  private Page<Event> getPage(PageParams pageParams, List<Event> events, IntSupplier eventCount) {
+  private Page<Event> getPage(PageParams pageParams, List<Event> events, LongSupplier eventCount) {
     if (pageParams.isPageTotal()) {
-      // TODO Why is total long if here we send an int?
       return Page.withTotals(
-          events, pageParams.getPage(), pageParams.getPageSize(), eventCount.getAsInt());
+          events, pageParams.getPage(), pageParams.getPageSize(), eventCount.getAsLong());
     }
 
     return Page.withoutTotals(events, pageParams.getPage(), pageParams.getPageSize());
@@ -529,7 +528,7 @@ class JdbcEventStore implements EventStore {
     return sqlBuilder.toString();
   }
 
-  private int getEventCount(EventQueryParams params) {
+  private long getEventCount(EventQueryParams params) {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     setAccessiblePrograms(currentUser, params);
 
@@ -545,7 +544,7 @@ class JdbcEventStore implements EventStore {
 
     sql = sql.replaceFirst("limit \\d+ offset \\d+", "");
 
-    return jdbcTemplate.queryForObject(sql, mapSqlParameterSource, Integer.class);
+    return jdbcTemplate.queryForObject(sql, mapSqlParameterSource, Long.class);
   }
 
   /**

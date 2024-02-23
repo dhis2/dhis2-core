@@ -28,40 +28,42 @@
 package org.hisp.dhis.tracker.export;
 
 import java.util.List;
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
 @ToString
 @EqualsAndHashCode
 public class Page<T> {
   private final List<T> items;
-  private final Integer page;
-  private final Integer pageSize;
+  private final int page;
+  private final int pageSize;
   private final Long total;
-  private final boolean prev;
-  private final boolean next;
+  private final Boolean prev;
+  private final Boolean next;
 
-  private Page(List<T> items, int page, int pageSize, long total, boolean prev, boolean next) {
-    this.items = items;
-    this.page = page;
-    this.pageSize = pageSize;
-    this.total = total;
-    this.prev = prev;
-    this.next = next;
+  /**
+   * Create a new page based on an existing one but with given {@code items}. Page related counts
+   * will not be changed so make sure the given {@code items} match the previous page size.
+   */
+  public <U> Page<U> withItems(List<U> items) {
+    return new Page<>(items, this.page, this.pageSize, this.total, this.prev, this.next);
   }
 
   public static <T> Page<T> withTotals(List<T> items, int page, int pageSize, long total) {
-    return new Page<>(items, page, pageSize, total, false, false);
+    return new Page<>(items, page, pageSize, total, null, null);
   }
 
   public static <T> Page<T> withoutTotals(List<T> items, int page, int pageSize) {
-    return new Page<>(items, page, pageSize, 0, false, false);
+    return new Page<>(items, page, pageSize, null, null, null);
   }
 
   public static <T> Page<T> withPrevAndNext(
       List<T> items, int page, int pageSize, boolean prev, boolean next) {
-    return new Page<>(items, page, pageSize, 0, prev, next);
+    return new Page<>(items, page, pageSize, null, prev, next);
   }
 }

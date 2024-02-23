@@ -143,7 +143,7 @@ class EventsExportController {
           fieldFilterService.toObjectNodes(
               EVENTS_MAPPER.fromCollection(eventsPage.getItems()), requestParams.getFields());
 
-      return Page.withPager(EVENTS, objectNodes, eventsPage, null, null);
+      return Page.withPager(EVENTS, eventsPage.withItems(objectNodes));
     }
 
     List<org.hisp.dhis.program.Event> events = eventService.getEvents(eventOperationParams);
@@ -295,38 +295,19 @@ class EventsExportController {
         request, eventService.getFileResourceImage(event, dataElement, dimension));
   }
 
-  @GetMapping("/{uid}/changeLog")
+  @GetMapping("/{event}/changeLog")
   Page<ObjectNode> getEventChangeLogByUid(
-      @OpenApi.Param({UID.class, Event.class}) @PathVariable UID uid,
+      @OpenApi.Param({UID.class, Event.class}) @PathVariable UID event,
       ChangeLogRequestParams requestParams,
       HttpServletRequest request)
       throws NotFoundException {
-
     PageParams pageParams =
         new PageParams(requestParams.getPage(), requestParams.getPageSize(), false);
-
     org.hisp.dhis.tracker.export.Page<EventChangeLog> changeLogs =
-        eventChangeLogService.getEventChangeLog(uid, pageParams);
-
-    String nextPage = null;
-    if (changeLogs.isNext()) {
-      nextPage =
-          request.getRequestURI()
-              + String.format(
-                  "?page=%d&pageSize=%d", requestParams.getPage() + 1, requestParams.getPageSize());
-    }
-
-    String previousPage = null;
-    if (changeLogs.isPrev()) {
-      previousPage =
-          request.getRequestURI()
-              + String.format(
-                  "?page=%d&pageSize=%d", requestParams.getPage() - 1, requestParams.getPageSize());
-    }
+        eventChangeLogService.getEventChangeLog(event, pageParams);
 
     List<ObjectNode> objectNodes =
         fieldFilterService.toObjectNodes(changeLogs.getItems(), requestParams.getFields());
-
-    return Page.withPager("changeLogs", objectNodes, changeLogs, previousPage, nextPage);
+    return Page.withPager("changeLogs", changeLogs.withItems(objectNodes), request);
   }
 }

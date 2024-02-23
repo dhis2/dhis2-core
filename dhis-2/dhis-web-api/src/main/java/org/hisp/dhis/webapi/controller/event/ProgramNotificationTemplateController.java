@@ -117,11 +117,8 @@ public class ProgramNotificationTemplateController
       pager.force(page, pageSize);
       return Page.withPager(
           ProgramNotificationTemplateSchemaDescriptor.PLURAL,
-          instances,
           org.hisp.dhis.tracker.export.Page.withTotals(
-              instances, pager.getPage(), pager.getPageSize(), pager.getTotal()),
-          null,
-          null);
+              instances, pager.getPage(), pager.getPageSize(), pager.getTotal()));
     }
 
     return Page.withoutPager(ProgramNotificationTemplateSchemaDescriptor.PLURAL, instances);
