@@ -200,7 +200,7 @@ class CustomIconTest extends TrackerTest {
   @Test
   void shouldUpdateLastUpdatedWhenCustomIconIsUpdated() {}
 
-  public FileResource createAndPersistFileResource(char uniqueChar) {
+  private FileResource createAndPersistFileResource(char uniqueChar) {
     byte[] content = "content".getBytes(StandardCharsets.UTF_8);
     String filename = "filename" + uniqueChar;
 
