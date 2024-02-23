@@ -236,6 +236,35 @@ public class Sharing implements Serializable {
         .build();
   }
 
+  /**
+   * Returns a new {@link Sharing} instance where Users and UserGroups access strings have been
+   * transformed. Public access will not be changed.
+   *
+   * @param accessTransformation A transformation for access strings that is applied to all access
+   *     strings of this {@link Sharing} to produce the access strings used in the newly created
+   *     {@link Sharing} object returned.
+   * @return A new {@link Sharing} instance where the access strings of public access, user and
+   *     group access have been transformed by the provided transformation. This {@link Sharing} is
+   *     kept unchanged.
+   */
+  public Sharing withUserAndUserGroupAccess(UnaryOperator<String> accessTransformation) {
+    return builder()
+        .external(external)
+        .publicAccess(publicAccess)
+        .owner(owner)
+        .users(
+            mapValues(
+                users,
+                user -> new UserAccess(accessTransformation.apply(user.getAccess()), user.getId())))
+        .userGroups(
+            mapValues(
+                userGroups,
+                group ->
+                    new UserGroupAccess(
+                        accessTransformation.apply(group.getAccess()), group.getId())))
+        .build();
+  }
+
   private static <K, V> Map<K, V> mapValues(Map<K, V> map, UnaryOperator<V> mapper) {
     if (map == null) {
       return null;
@@ -274,5 +303,23 @@ public class Sharing implements Serializable {
     }
     String metadata = access.substring(0, 2);
     return metadata + metadata + access.substring(4);
+  }
+
+  /**
+   * Copy Metadata Write value to Data Write value
+   *
+   * <pre>
+   * -w------ => ---w----
+   * rw------ => rw-w----
+   * </pre>
+   *
+   * @param access an access string which is expected to be either null or 8 characters long
+   * @return the update access string with Data Read value copied from Metadata Read
+   */
+  public static String copyDataWrite(String access) {
+    if (access == null) {
+      return null;
+    }
+    return access.substring(0, 3) + access.substring(1, 2) + access.substring(4);
   }
 }
