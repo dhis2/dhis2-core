@@ -49,6 +49,7 @@ import org.hisp.dhis.webapi.json.domain.JsonAttributeValue;
 import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
+import org.hisp.dhis.webapi.json.domain.JsonTypeReport;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -435,5 +436,17 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
             .find(
                 JsonErrorReport.class, errorReport -> errorReport.getErrorCode() == ErrorCode.E6305)
             .getMessage());
+  }
+
+  @Test
+  void testAggregateDataExchangeSuccess() {
+    POST("/metadata/", Body("metadata/aggregate_data_exchange.json")).content(HttpStatus.OK);
+    JsonTypeReport typeReport =
+        POST("/aggregateDataExchanges/iFOyIpQciyk/exchange")
+            .content(HttpStatus.OK)
+            .get("response")
+            .as(JsonTypeReport.class);
+    JsonImportSummary report = typeReport.getImportSummaries().get(0).as(JsonImportSummary.class);
+    assertEquals("SUCCESS", report.getStatus());
   }
 }

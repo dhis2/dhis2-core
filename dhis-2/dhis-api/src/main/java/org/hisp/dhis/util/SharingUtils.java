@@ -118,6 +118,13 @@ public class SharingUtils {
     return FROM_AND_TO_JSON.writeValueAsString(value.withAccess(accessTransformation));
   }
 
+  public static String withUserAndUserGroupAccess(
+      String jsonb, UnaryOperator<String> accessTransformation) throws JsonProcessingException {
+    Sharing value = FROM_AND_TO_JSON.readValue(jsonb, Sharing.class);
+    return FROM_AND_TO_JSON.writeValueAsString(
+        value.withUserAndUserGroupAccess(accessTransformation));
+  }
+
   public static boolean isLegacySharingProperty(Property property) {
     return LEGACY_SHARING_PROPERTIES.contains(property.getFieldName());
   }

@@ -39,6 +39,7 @@ import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -161,5 +162,40 @@ class SharingTest {
     Sharing actual = new Sharing();
     actual.addUserGroupAccess(new UserGroupAccess("rw------", "uid"));
     assertEquals(1, actual.getUserGroups().size());
+  }
+
+  @Test
+  void testCopySharingRead() {
+    String source = "r-------";
+    String result = Sharing.copyDataWrite(source);
+    assertEquals("r-------", result);
+
+    source = "rw------";
+    result = Sharing.copyDataWrite(source);
+    assertEquals("rw-w----", result);
+
+    source = "rw-w----";
+    result = Sharing.copyDataWrite(source);
+    assertEquals("rw-w----", result);
+
+    source = "rwr-----";
+    result = Sharing.copyDataWrite(source);
+    assertEquals("rwrw----", result);
+  }
+
+  @Test
+  @DisplayName(
+      "Users and UserGroups access string should be transformed using Sharing.withUserAndUserGroupAccess, public access must not be changed.")
+  void testCopyWithAccessForSharingRead() {
+    Sharing original = new Sharing();
+    original.setPublicAccess("rw------");
+    original.setUserAccesses(singleton(new UserAccess("rw------", "id")));
+    original.setUserGroupAccess(singleton(new UserGroupAccess("r-------", "uid")));
+    Sharing actual = original.withUserAndUserGroupAccess(Sharing::copyDataWrite);
+    UserAccess userAccess = actual.getUsers().values().iterator().next();
+    assertEquals("rw-w----", userAccess.getAccess());
+    UserGroupAccess userGroupAccess = actual.getUserGroups().values().iterator().next();
+    assertEquals("r-------", userGroupAccess.getAccess());
+    assertEquals("rw------", actual.getPublicAccess());
   }
 }
