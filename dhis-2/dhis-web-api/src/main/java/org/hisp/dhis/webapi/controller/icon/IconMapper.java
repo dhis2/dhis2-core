@@ -47,6 +47,11 @@ public class IconMapper {
     Optional<FileResource> fileResource = Optional.empty();
 
     if (customIconRequest.getCustom()) {
+
+      if (customIconRequest.getFileResourceId() == null) {
+        throw new BadRequestException("FileResource must be provided with CustomIcon");
+      }
+
       fileResource =
           fileResourceService.getFileResource(customIconRequest.getFileResourceId(), CUSTOM_ICON);
       if (fileResource.isEmpty()) {
@@ -61,9 +66,50 @@ public class IconMapper {
     customIcon.setDescription(customIconRequest.getDescription());
     customIcon.setKeywords(customIconRequest.getKeywords());
     customIcon.setCustom(customIconRequest.getCustom());
-    customIcon.setFileResource(fileResource.isEmpty() ? null : fileResource.get());
     customIcon.setCode(customIconRequest.getCode());
 
+    if (customIconRequest.getCustom() && customIconRequest.getFileResourceId() != null) {
+      customIcon.setFileResource(fileResource.get());
+    }
+
     return customIcon;
+  }
+
+  public void merge(CustomIcon persisted, CustomIconRequest customIconRequest)
+      throws BadRequestException {
+
+    Optional<FileResource> fileResource = Optional.empty();
+
+    if (customIconRequest.getFileResourceId() != null) {
+      fileResource =
+          fileResourceService.getFileResource(customIconRequest.getFileResourceId(), CUSTOM_ICON);
+      if (fileResource.isEmpty()) {
+        throw new BadRequestException(
+            String.format(
+                "FileResource with uid %s does not exist", customIconRequest.getFileResourceId()));
+      }
+    }
+
+    if (customIconRequest.getKey() != null) {
+      persisted.setKey(customIconRequest.getKey());
+    }
+
+    if (customIconRequest.getCode() != null) {
+      persisted.setCode(customIconRequest.getCode());
+    }
+
+    if (customIconRequest.getDescription() != null) {
+      persisted.setDescription(customIconRequest.getDescription());
+    }
+
+    if (customIconRequest.getKeywords() != null) {
+      persisted.setKeywords(customIconRequest.getKeywords());
+    }
+
+    if (customIconRequest.getFileResourceId() != null) {
+      persisted.setFileResource(fileResource.get());
+    }
+
+    persisted.setAutoFields();
   }
 }

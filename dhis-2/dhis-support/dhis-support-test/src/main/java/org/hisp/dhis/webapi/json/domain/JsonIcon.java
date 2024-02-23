@@ -42,7 +42,7 @@ public interface JsonIcon extends JsonObject {
     return getString("key").string();
   }
 
-  default String getId() {
+  default String getUid() {
     return getString("id").string();
   }
 

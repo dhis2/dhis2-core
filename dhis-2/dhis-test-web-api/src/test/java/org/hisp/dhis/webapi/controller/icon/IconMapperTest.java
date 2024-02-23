@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.icon;
 import static org.hisp.dhis.fileresource.FileResourceDomain.CUSTOM_ICON;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -63,12 +64,14 @@ class IconMapperTest {
   private static final Set<String> KEYWORDS = Set.of("k1", "k2");
 
   private static final FileResource fileResource = new FileResource();
+  private static final FileResource fileResourceUpdated = new FileResource();
 
   private IconMapper iconMapper;
 
   @BeforeEach
   void setUp() {
-    fileResource.setUid("file resource uid");
+    fileResource.setUid("file_uid1");
+    fileResourceUpdated.setUid("file_uid2");
     iconMapper = new IconMapper(fileResourceService);
   }
 
@@ -100,6 +103,41 @@ class IconMapperTest {
     assertEquals(DESCRIPTION, defaultIcon.getDescription());
     assertEquals(KEYWORDS, defaultIcon.getKeywords());
     assertNull(defaultIcon.getFileResource());
+  }
+
+  @Test
+  void shouldMergeIconRequestToPersistedIcon() throws BadRequestException {
+    CustomIcon persisted = new CustomIcon(KEY, DESCRIPTION, KEYWORDS, true, fileResource);
+    String updatedKey = KEY + "1";
+    CustomIconRequest customIconRequest =
+        new CustomIconRequest(updatedKey, CODE, DESCRIPTION, KEYWORDS, "file_uid2", true);
+
+    when(fileResourceService.getFileResource(anyString(), any(FileResourceDomain.class)))
+        .thenReturn(Optional.of(fileResourceUpdated));
+
+    iconMapper.merge(persisted, customIconRequest);
+
+    assertEquals(updatedKey, persisted.getKey());
+    assertSame(fileResourceUpdated, persisted.getFileResource());
+  }
+
+  @Test
+  void shouldFailMergeWhenFileDoesNotExist() throws BadRequestException {
+    CustomIcon persisted = new CustomIcon(KEY, DESCRIPTION, KEYWORDS, true, fileResource);
+
+    CustomIconRequest customIconRequest =
+        new CustomIconRequest(KEY, CODE, DESCRIPTION, KEYWORDS, fileResource.getUid(), true);
+
+    when(fileResourceService.getFileResource(anyString(), any(FileResourceDomain.class)))
+        .thenReturn(Optional.empty());
+
+    Exception exception =
+        assertThrows(
+            BadRequestException.class, () -> iconMapper.merge(persisted, customIconRequest));
+    assertEquals(
+        String.format(
+            "FileResource with uid %s does not exist", customIconRequest.getFileResourceId()),
+        exception.getMessage());
   }
 
   @Test

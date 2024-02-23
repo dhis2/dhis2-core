@@ -73,14 +73,23 @@ class IconControllerTest extends DhisControllerIntegrationTest {
   }
 
   @Test
-  void shouldUpdateIcon() throws IOException {
+  void shouldUpdateExistingIcon() throws IOException {
     String updatedDescription = "updatedDescription";
     String updatedKeywords = "['new k1', 'new k2']";
     createCustomIcon(createFileResource(), keywords, key1);
 
+    JsonObject content =
+        GET("/icons?filter=key:eq:"
+                + key1
+                + "&fields=id,key,description,keywords,fileResource&paging=false")
+            .content(HttpStatus.OK);
+    JsonList<JsonIcon> icons = content.getList("icons", JsonIcon.class);
+
+    String uid = icons.get(0).getUid();
+
     JsonObject response =
         PUT(
-                "/icons",
+                "/icons/" + uid,
                 "{'key':'"
                     + key1
                     + "', 'description':'"
@@ -120,11 +129,15 @@ class IconControllerTest extends DhisControllerIntegrationTest {
   }
 
   @Test
-  void shouldGetOnlyCustomIcons() throws IOException {
+  void shouldGetCustomIconFilteredByKeyWithPagingDisabled() throws IOException {
     String fileResourceId = createFileResource();
     createCustomIcon(fileResourceId, keywords, key1);
 
-    JsonObject content = GET("/icons?keywords=k1").content(HttpStatus.OK);
+    JsonObject content =
+        GET("/icons?filter=key:eq:"
+                + key1
+                + "&fields=id,key,description,keywords,fileResource&paging=false")
+            .content(HttpStatus.OK);
 
     JsonList<JsonIcon> icons = content.getList("icons", JsonIcon.class);
 
@@ -251,7 +264,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
 
     String actualKey = icon.getString("key").string();
     String actualDescription = icon.getString("description").string();
-    String actualFileResourceId = icon.getString("fileResourceUid").string();
+    String actualFileResourceId = icon.getString("fileResourceId").string();
     String actualKeywords = icon.getArray("keywords").toString();
     assertAll(
         () ->
