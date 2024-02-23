@@ -40,8 +40,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * In table aggregatedataexchange, copy Metadata Write value to Data Write value in sharing.users and
- * sharing.userGroups in sharing column. Public access must not be changed.
+ * In table aggregatedataexchange, copy Metadata Write value to Data Write value in sharing.users
+ * and sharing.userGroups in sharing column. Public access must not be changed.
  *
  * @author Viet Nguyen
  */
