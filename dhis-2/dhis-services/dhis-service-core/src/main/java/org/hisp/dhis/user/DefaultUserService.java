@@ -192,8 +192,7 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional
   public long addUser(User user, UserDetails actingUser) {
-    String currentUsername = CurrentUserUtil.getCurrentUsername();
-    AuditLogUtil.infoWrapper(log, currentUsername, user, AuditLogUtil.ACTION_CREATE);
+    AuditLogUtil.infoWrapper(log, actingUser.getUsername(), user, AuditLogUtil.ACTION_CREATE);
 
     userStore.save(user, actingUser, false);
 
