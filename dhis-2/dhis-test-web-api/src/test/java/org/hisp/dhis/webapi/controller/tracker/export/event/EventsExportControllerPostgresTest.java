@@ -28,8 +28,11 @@
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.hisp.dhis.security.Authorities.ALL;
+import static org.hisp.dhis.utils.Assertions.assertContains;
+import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import com.google.common.collect.Sets;
@@ -173,14 +176,15 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
 
     JsonObject pagerObject = changeLogResponse.get("pager").asObject();
     assertAll(
-        () -> {
-          assertEquals(1, pagerObject.getNumber("page").intValue());
-          assertEquals(1, pagerObject.getNumber("pageSize").intValue());
-          assertNull(pagerObject.getString("prev").string());
-          assertEquals(
-              String.format("/tracker/events/%s/changeLog?page=2&pageSize=1", event.getUid()),
-              pagerObject.getString("next").string());
-        });
+        () -> assertEquals(1, pagerObject.getNumber("page").intValue()),
+        () -> assertEquals(1, pagerObject.getNumber("pageSize").intValue()),
+        () -> assertNull(pagerObject.getString("prevPage").string()),
+        () ->
+            assertPagerLink(
+                pagerObject.getString("nextPage").string(),
+                2,
+                1,
+                String.format("http://localhost/tracker/events/%s/changeLog", event.getUid())));
   }
 
   @Test
@@ -197,16 +201,20 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
 
     JsonObject pagerObject = changeLogResponse.get("pager").asObject();
     assertAll(
-        () -> {
-          assertEquals(2, pagerObject.getNumber("page").intValue());
-          assertEquals(1, pagerObject.getNumber("pageSize").intValue());
-          assertEquals(
-              String.format("/tracker/events/%s/changeLog?page=1&pageSize=1", event.getUid()),
-              pagerObject.getString("prev").string());
-          assertEquals(
-              String.format("/tracker/events/%s/changeLog?page=3&pageSize=1", event.getUid()),
-              pagerObject.getString("next").string());
-        });
+        () -> assertEquals(2, pagerObject.getNumber("page").intValue()),
+        () -> assertEquals(1, pagerObject.getNumber("pageSize").intValue()),
+        () ->
+            assertPagerLink(
+                pagerObject.getString("prevPage").string(),
+                1,
+                1,
+                String.format("http://localhost/tracker/events/%s/changeLog", event.getUid())),
+        () ->
+            assertPagerLink(
+                pagerObject.getString("nextPage").string(),
+                3,
+                1,
+                String.format("http://localhost/tracker/events/%s/changeLog", event.getUid())));
   }
 
   @Test
@@ -226,10 +234,12 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
         () -> {
           assertEquals(3, pagerObject.getNumber("page").intValue());
           assertEquals(1, pagerObject.getNumber("pageSize").intValue());
-          assertEquals(
-              String.format("/tracker/events/%s/changeLog?page=2&pageSize=1", event.getUid()),
-              pagerObject.getString("prev").string());
-          assertNull(pagerObject.getString("next").string());
+          assertPagerLink(
+              pagerObject.getString("prevPage").string(),
+              2,
+              1,
+              String.format("http://localhost/tracker/events/%s/changeLog", event.getUid()));
+          assertNull(pagerObject.getString("nextPage").string());
         });
   }
 
@@ -250,8 +260,8 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
         () -> {
           assertEquals(1, pagerObject.getNumber("page").intValue());
           assertEquals(3, pagerObject.getNumber("pageSize").intValue());
-          assertNull(pagerObject.getString("prev").string());
-          assertNull(pagerObject.getString("next").string());
+          assertNull(pagerObject.getString("prevPage").string());
+          assertNull(pagerObject.getString("nextPage").string());
         });
   }
 
@@ -356,5 +366,13 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
             event.getOrganisationUnit().getUid(),
             event.getEventDataValues().iterator().next().getDataElement(),
             value);
+  }
+
+  private static void assertPagerLink(String actual, int page, int pageSize, String start) {
+    assertNotNull(actual);
+    assertAll(
+        () -> assertStartsWith(start, actual),
+        () -> assertContains("page=" + page, actual),
+        () -> assertContains("pageSize=" + pageSize, actual));
   }
 }

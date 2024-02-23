@@ -40,6 +40,7 @@ import lombok.Getter;
 import lombok.ToString;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Shared.Pattern;
+import org.springframework.web.util.UriComponentsBuilder;
 
 // TODO(tracker): revisit if we can create a Page class used by all products when we remove the
 // deprecated fields
@@ -164,8 +165,10 @@ public class Page<T> {
    */
   public static <T> Page<T> withPager(
       String key, org.hisp.dhis.tracker.export.Page<T> pager, HttpServletRequest request) {
-    String prevPage = null;
-    String nextPage = null;
+    String url = getRequestURL(request);
+    String prevPage = getPageLink(url, pager.getPrev(), pager.getPage() - 1);
+    String nextPage = getPageLink(url, pager.getNext(), pager.getPage() + 1);
+
     return new Page<>(
         key, pager.getItems(), pager.getPage(), pager.getPageSize(), prevPage, nextPage);
   }
@@ -190,5 +193,25 @@ public class Page<T> {
     @JsonProperty private Integer pageCount;
     @JsonProperty private String prevPage;
     @JsonProperty private String nextPage;
+  }
+
+  private static String getRequestURL(HttpServletRequest request) {
+    StringBuilder requestURL = new StringBuilder(request.getRequestURL().toString());
+    String queryString = request.getQueryString();
+    if (queryString == null) {
+      return requestURL.toString();
+    }
+
+    return requestURL.append('?').append(queryString).toString();
+  }
+
+  private static String getPageLink(String url, Boolean hasPage, int page) {
+    if (Boolean.FALSE.equals(hasPage)) {
+      return null;
+    }
+
+    UriComponentsBuilder urlBuilder = UriComponentsBuilder.fromUriString(url);
+    urlBuilder.replaceQueryParam("page", page);
+    return urlBuilder.build().toUriString();
   }
 }

@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.view;
 
+import static org.hisp.dhis.utils.Assertions.assertContains;
+import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
@@ -53,6 +55,8 @@ class PageTest {
     assertEquals(3, page.getPager().getPageSize());
     assertNull(page.getPager().getTotal());
     assertNull(page.getPager().getPageCount());
+    assertNull(page.getPager().getPrevPage());
+    assertNull(page.getPager().getNextPage());
   }
 
   @Test
@@ -73,23 +77,42 @@ class PageTest {
     assertEquals(3, page.getPager().getPageSize());
     assertEquals(17, page.getPager().getTotal());
     assertEquals(6, page.getPager().getPageCount());
+    assertNull(page.getPager().getPrevPage());
+    assertNull(page.getPager().getNextPage());
+  }
+
+  @Test
+  void shouldNotSetNoPageLinkIfThereAreNone() {
+    List<String> fruits = List.of("apple", "banana", "cherry");
+    org.hisp.dhis.tracker.export.Page<String> exportPage =
+        org.hisp.dhis.tracker.export.Page.withPrevAndNext(fruits, 1, 3, false, false);
+
+    MockHttpServletRequest request = new MockHttpServletRequest("GET", "/organisationUnits");
+    request.setQueryString("page=1&pageSize=3&fields=displayName");
+
+    Page<String> page = Page.withPager("fruits", exportPage, request);
+
+    // deprecated fields should not be returned with this new factory!
+    assertNull(page.getTotal());
+    assertNull(page.getPageCount());
+    assertNull(page.getPage());
+    assertNull(page.getPageSize());
+
+    assertEquals(1, page.getPager().getPage());
+    assertEquals(3, page.getPager().getPageSize());
+
+    assertNull(page.getPager().getPrevPage());
+    assertNull(page.getPager().getNextPage());
   }
 
   @Test
   void shouldSetPrevPage() {
-    // TODO write tests for all permutations
-    // build the url from the same page/pageSize values as the export page
     List<String> fruits = List.of("apple", "banana", "cherry");
     org.hisp.dhis.tracker.export.Page<String> exportPage =
         org.hisp.dhis.tracker.export.Page.withPrevAndNext(fruits, 2, 3, true, false);
 
-    // TODO double check using debugger that this is how the request will look like in the
-    // controller
-    MockHttpServletRequest request =
-        new MockHttpServletRequest("GET", "https://dhis2.org/dev/api/organisationUnits");
-    request.setParameter("page", "2");
-    request.setParameter("pageSize", "3");
-    request.setParameter("fields", "displayName");
+    MockHttpServletRequest request = new MockHttpServletRequest("GET", "/organisationUnits");
+    request.setQueryString("page=2&pageSize=3&fields=displayName");
 
     Page<String> page = Page.withPager("fruits", exportPage, request);
 
@@ -101,9 +124,52 @@ class PageTest {
 
     assertEquals(2, page.getPager().getPage());
     assertEquals(3, page.getPager().getPageSize());
-    assertEquals(
-        "https://dhis2.org/dev/api/organisationUnits?page=1&pageSize=3&fields=displayName",
-        page.getPager().getPrevPage());
+
+    assertPagerLink(
+        page.getPager().getPrevPage(),
+        1,
+        3,
+        "http://localhost/organisationUnits",
+        "fields=displayName");
     assertNull(page.getPager().getNextPage());
+  }
+
+  @Test
+  void shouldSetNextPage() {
+    List<String> fruits = List.of("apple", "banana", "cherry");
+    org.hisp.dhis.tracker.export.Page<String> exportPage =
+        org.hisp.dhis.tracker.export.Page.withPrevAndNext(fruits, 2, 3, false, true);
+
+    MockHttpServletRequest request = new MockHttpServletRequest("GET", "/organisationUnits");
+    request.setQueryString("page=2&pageSize=3&fields=displayName");
+
+    Page<String> page = Page.withPager("fruits", exportPage, request);
+
+    // deprecated fields should not be returned with this new factory!
+    assertNull(page.getTotal());
+    assertNull(page.getPageCount());
+    assertNull(page.getPage());
+    assertNull(page.getPageSize());
+
+    assertEquals(2, page.getPager().getPage());
+    assertEquals(3, page.getPager().getPageSize());
+
+    assertNull(page.getPager().getPrevPage());
+    assertPagerLink(
+        page.getPager().getNextPage(),
+        3,
+        3,
+        "http://localhost/organisationUnits",
+        "fields=displayName");
+  }
+
+  private static void assertPagerLink(
+      String actual, int page, int pageSize, String start, String additionalParam) {
+    assertNotNull(actual);
+    assertAll(
+        () -> assertStartsWith(start, actual),
+        () -> assertContains("page=" + page, actual),
+        () -> assertContains("pageSize=" + pageSize, actual),
+        () -> assertContains(additionalParam, actual));
   }
 }
