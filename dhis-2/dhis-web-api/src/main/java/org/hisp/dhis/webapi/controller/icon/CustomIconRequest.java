@@ -48,5 +48,5 @@ class CustomIconRequest {
 
   @JsonProperty private String fileResourceId;
 
-  @JsonProperty private Boolean custom;
+  @JsonProperty private Boolean custom = true;
 }

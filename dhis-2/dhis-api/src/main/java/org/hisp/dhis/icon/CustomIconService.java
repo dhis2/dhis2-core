@@ -103,5 +103,5 @@ public interface CustomIconService {
    * @throws BadRequestException when icon key is not specified
    * @throws NotFoundException when no icon with the provided key exists
    */
-  void deleteCustomIcon(String iconKey) throws BadRequestException, NotFoundException;
+  void deleteCustomIcon(CustomIcon customIcon) throws BadRequestException, NotFoundException;
 }

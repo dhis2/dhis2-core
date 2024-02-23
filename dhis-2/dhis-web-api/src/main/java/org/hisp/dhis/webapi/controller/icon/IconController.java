@@ -152,20 +152,20 @@ public class IconController extends AbstractFullReadOnlyController<CustomIcon> {
     return WebMessageUtils.ok(String.format("CustomIcon with uid %s updated", uid));
   }
 
-  @DeleteMapping(value = "/{iconKey}")
-  public WebMessage deleteCustomIcon(@PathVariable String iconKey)
+  @DeleteMapping(value = "/{uid}")
+  public WebMessage deleteCustomIcon(@PathVariable String uid)
       throws NotFoundException, WebMessageException, BadRequestException {
 
-    CustomIcon customIcon = iconService.getCustomIcon(iconKey);
+    CustomIcon customIcon = iconService.getCustomIconByUid(uid);
 
     if (customIcon == null) {
       throw new WebMessageException(
-          WebMessageUtils.notFound(String.format("CustomIcon with iconKey %s not found", iconKey)));
+          WebMessageUtils.notFound(String.format("CustomIcon with uid %s not found", uid)));
     }
 
-    iconService.deleteCustomIcon(iconKey);
+    iconService.deleteCustomIcon(customIcon);
 
-    return WebMessageUtils.ok(String.format("CustomIcon with iconKey %s deleted", iconKey));
+    return WebMessageUtils.ok(String.format("CustomIcon with uid %s deleted", uid));
   }
 
   @GetMapping("/keywords")

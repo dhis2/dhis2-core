@@ -95,14 +95,14 @@ public class DefaultCustomIconService implements CustomIconService {
 
   @Override
   @Transactional(readOnly = true)
-  public boolean customIconExists(String iconKey) {
-    return customIconStore.getCustomIconByKey(iconKey) != null;
+  public boolean customIconExists(String key) {
+    return customIconStore.getCustomIconByKey(iconkeyKey) != null;
   }
 
   @Override
   @Transactional
   public void addCustomIcon(CustomIcon customIcon) throws BadRequestException, NotFoundException {
-    validateIconDoesNotExists(customIcon.getKey());
+    validateIconDoesNotExists(customIcon);
 
     if (customIcon.getCustom()) {
       FileResource fileResource = getFileResource(customIcon.getFileResource().getUid());
@@ -122,16 +122,27 @@ public class DefaultCustomIconService implements CustomIconService {
 
   @Override
   @Transactional
-  public void deleteCustomIcon(String iconKey) throws BadRequestException, NotFoundException {
-    CustomIcon customIcon = validateCustomIconExists(iconKey);
+  public void deleteCustomIcon(CustomIcon customIcon)
+      throws BadRequestException, NotFoundException {
 
-    if (customIcon.getCustom()) {
-      FileResource fileResource = getFileResource(customIcon.getFileResource().getUid());
+    CustomIcon persistedCustomIcon = validateCustomIconExists(customIcon);
+
+    if (persistedCustomIcon.getCustom()) {
+      FileResource fileResource = getFileResource(persistedCustomIcon.getFileResource().getUid());
       fileResource.setAssigned(false);
       fileResourceService.updateFileResource(fileResource);
     }
 
-    customIconStore.delete(customIcon);
+    customIconStore.delete(persistedCustomIcon);
+  }
+
+  private void validateIconDoesNotExists(CustomIcon customIcon) throws BadRequestException {
+
+    if (customIcon == null) {
+      throw new BadRequestException("CustomIcon cannot be null.");
+    }
+
+    validateIconDoesNotExists(customIcon.getKey());
   }
 
   private void validateIconDoesNotExists(String key) throws BadRequestException {
@@ -169,9 +180,18 @@ public class DefaultCustomIconService implements CustomIconService {
     return getCustomIcon(key);
   }
 
+  private CustomIcon validateCustomIconExists(CustomIcon customIcon)
+      throws NotFoundException, BadRequestException {
+    if (customIcon == null) {
+      throw new BadRequestException("CustomIcon cannot be null.");
+    }
+
+    return validateCustomIconExists(customIcon.getKey());
+  }
+
   private void validateAndUpdateCustomIcon(CustomIcon from)
       throws BadRequestException, NotFoundException {
-    CustomIcon to = validateCustomIconExists(from.getKey());
+    CustomIcon to = validateCustomIconExists(from);
 
     if (from.getDescription() == null && from.getKeywords() == null) {
       throw new BadRequestException(
