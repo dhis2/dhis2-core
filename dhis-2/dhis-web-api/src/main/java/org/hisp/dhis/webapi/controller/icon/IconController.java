@@ -135,9 +135,9 @@ public class IconController extends AbstractFullReadOnlyController<CustomIcon> {
   public WebMessage updateCustomIcon(@PathVariable String uid, HttpServletRequest request)
       throws IOException, NotFoundException, WebMessageException, BadRequestException {
 
-    CustomIcon customIcon = iconService.getCustomIconByUid(uid);
+    CustomIcon persisted = iconService.getCustomIconByUid(uid);
 
-    if (customIcon == null) {
+    if (persisted == null) {
       throw new WebMessageException(
           WebMessageUtils.notFound(String.format("CustomIcon with uid %s not found", uid)));
     }
@@ -145,9 +145,9 @@ public class IconController extends AbstractFullReadOnlyController<CustomIcon> {
     CustomIconRequest customIconRequest =
         renderService.fromJson(request.getInputStream(), CustomIconRequest.class);
 
-    customIcon = iconMapper.to(customIconRequest);
+    iconMapper.merge(persisted, customIconRequest);
 
-    iconService.updateCustomIcon(customIcon);
+    iconService.updateCustomIcon(persisted);
 
     return WebMessageUtils.ok(String.format("CustomIcon with uid %s updated", uid));
   }

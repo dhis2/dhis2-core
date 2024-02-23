@@ -78,18 +78,11 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     String updatedKeywords = "['new k1', 'new k2']";
     createCustomIcon(createFileResource(), keywords, key1);
 
-    JsonObject content =
-        GET("/icons?filter=key:eq:"
-                + key1
-                + "&fields=id,key,description,keywords,fileResource&paging=false")
-            .content(HttpStatus.OK);
-    JsonList<JsonIcon> icons = content.getList("icons", JsonIcon.class);
-
-    String uid = icons.get(0).getUid();
+    String uid = getCustomIconUid(key1);
 
     JsonObject response =
         PUT(
-                "/icons/" + uid,
+                String.format("/icons/%s", uid),
                 "{'key':'"
                     + key1
                     + "', 'description':'"
@@ -99,16 +92,22 @@ class IconControllerTest extends DhisControllerIntegrationTest {
                     + "}")
             .content();
 
-    assertEquals(String.format("Icon %s updated", key1), response.getString("message").string());
+    assertEquals(
+        String.format("CustomIcon with uid %s updated", uid),
+        response.getString("message").string());
   }
 
   @Test
   void shouldDeleteIconWhenKeyExists() throws IOException {
     createCustomIcon(createFileResource(), keywords, key1);
 
-    JsonObject response = DELETE(String.format("/icons/%s", key1)).content();
+    String uid = getCustomIconUid(key1);
 
-    assertEquals(String.format("Icon %s deleted", key1), response.getString("message").string());
+    JsonObject response = DELETE(String.format("/icons/%s", uid)).content();
+
+    assertEquals(
+        String.format("CustomIcon with uid %s deleted", uid),
+        response.getString("message").string());
   }
 
   @Test
@@ -116,16 +115,19 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     String fileResourceId = createFileResource();
     createCustomIcon(fileResourceId, keywords, key1);
 
-    JsonObject response = GET(String.format("/icons/%s", key1)).content();
+    String uid = getCustomIconUid(key1);
+
+    JsonObject response = GET(String.format("/icons/%s", uid)).content();
 
     assertEquals(key1, response.getString("key").string());
     assertEquals(description, response.getString("description").string());
-    assertEquals(fileResourceId, response.getString("fileResourceUid").string());
+    assertEquals(fileResourceId, response.getObject("fileResource").getString("id").string());
     assertEquals(keywords, response.getArray("keywords").toString());
-    assertEquals(getCurrentUser().getUid(), response.getString("userUid").string());
+    assertEquals(
+        getCurrentUser().getUid(), response.getObject("createdBy").getString("id").string());
     assertEquals(
         String.format(contextService.getApiPath() + "/icons/%s/icon", key1),
-        response.getString("href").string());
+        response.getString("reference").string());
   }
 
   @Test
@@ -145,18 +147,6 @@ class IconControllerTest extends DhisControllerIntegrationTest {
   }
 
   @Test
-  void shouldGetIconsWithSpecifiedKey() throws IOException {
-    String fileResourceId = createFileResource();
-    createCustomIcon(fileResourceId, keyword, key1);
-
-    JsonObject content = GET("/icons?keywords=m1").content(HttpStatus.OK);
-
-    JsonList<JsonIcon> icons = content.getList("icons", JsonIcon.class);
-
-    assertCustomIcons(icons.get(0), keyword, fileResourceId);
-  }
-
-  @Test
   void shouldGetIconsWithPager() throws IOException {
 
     String fileResourceId1 = createFileResource();
@@ -168,7 +158,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     String fileResourceId3 = createFileResource();
     createCustomIcon(fileResourceId3, keyword, key3);
 
-    JsonObject iconResponse = GET("/icons?type=CUSTOM&page=2&pageSize=2").content(HttpStatus.OK);
+    JsonObject iconResponse = GET("/icons?page=2&pageSize=2").content(HttpStatus.OK);
     JsonPager pager = iconResponse.get("pager", JsonPager.class);
 
     JsonList<JsonIcon> icons = iconResponse.getList("icons", JsonIcon.class);
@@ -198,7 +188,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     String fileResourceId3 = createFileResource();
     createCustomIcon(fileResourceId3, keyword, key3);
 
-    JsonObject iconResponse = GET("/icons?type=CUSTOM").content(HttpStatus.OK);
+    JsonObject iconResponse = GET("/icons").content(HttpStatus.OK);
     JsonPager pager = iconResponse.get("pager", JsonPager.class);
 
     JsonList<JsonIcon> icons = iconResponse.getList("icons", JsonIcon.class);
@@ -227,7 +217,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     String fileResourceId3 = createFileResource();
     createCustomIcon(fileResourceId3, keyword, key3);
 
-    JsonObject iconResponse = GET("/icons?type=CUSTOM&paging=false").content(HttpStatus.OK);
+    JsonObject iconResponse = GET("/icons?paging=false").content(HttpStatus.OK);
     JsonList<JsonIcon> icons = iconResponse.getList("icons", JsonIcon.class);
 
     assertHasNoMember(iconResponse, "pager");
@@ -264,7 +254,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
 
     String actualKey = icon.getString("key").string();
     String actualDescription = icon.getString("description").string();
-    String actualFileResourceId = icon.getString("fileResourceId").string();
+    String actualFileResourceId = icon.getObject("fileResource").getString("id").string();
     String actualKeywords = icon.getArray("keywords").toString();
     assertAll(
         () ->
@@ -290,5 +280,16 @@ class IconControllerTest extends DhisControllerIntegrationTest {
                 keywords,
                 actualKeywords,
                 String.format("Expected keywords were %s but found %s", keywords, actualKeywords)));
+  }
+
+  private String getCustomIconUid(String key) {
+    JsonObject content =
+        GET("/icons?filter=key:eq:"
+                + key
+                + "&fields=id,key,description,keywords,fileResource&paging=false")
+            .content(HttpStatus.OK);
+    JsonList<JsonIcon> icons = content.getList("icons", JsonIcon.class);
+
+    return icons.get(0).getUid();
   }
 }
