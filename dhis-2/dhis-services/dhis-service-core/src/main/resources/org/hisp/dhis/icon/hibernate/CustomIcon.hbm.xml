@@ -13,7 +13,7 @@
         </id>
         &identifiableProperties;
 
-        <property name="iconKey" column="iconkey" not-null="true" unique="true" length="100" />
+        <property name="key" column="iconkey" not-null="true" unique="true" length="100" />
         <property name="description" column="description"  length="200" />
         <property name="custom" column="custom" />
         <property name="keywords" column="keywords" type="jbSet" />

@@ -224,7 +224,7 @@ class CustomIconTest extends TrackerTest {
 
   private void assertCustomIcon(CustomIcon customIcon) {
     assertEquals(uid, customIcon.getUid());
-    assertEquals(Key, customIcon.getIconKey());
+    assertEquals(Key, customIcon.getKey());
     assertEquals("description", customIcon.getDescription());
     assertEquals(keywords, customIcon.getKeywords());
 

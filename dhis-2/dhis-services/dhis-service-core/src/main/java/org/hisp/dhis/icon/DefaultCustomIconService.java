@@ -102,7 +102,7 @@ public class DefaultCustomIconService implements CustomIconService {
   @Override
   @Transactional
   public void addCustomIcon(CustomIcon customIcon) throws BadRequestException, NotFoundException {
-    validateIconDoesNotExists(customIcon.getIconKey());
+    validateIconDoesNotExists(customIcon.getKey());
 
     if (customIcon.getCustom()) {
       FileResource fileResource = getFileResource(customIcon.getFileResource().getUid());
@@ -171,13 +171,13 @@ public class DefaultCustomIconService implements CustomIconService {
 
   private void validateAndUpdateCustomIcon(CustomIcon from)
       throws BadRequestException, NotFoundException {
-    CustomIcon to = validateCustomIconExists(from.getIconKey());
+    CustomIcon to = validateCustomIconExists(from.getKey());
 
     if (from.getDescription() == null && from.getKeywords() == null) {
       throw new BadRequestException(
           String.format(
               "Can't update icon %s if none of description and keywords are present in the request",
-              from.getIconKey()));
+              from.getKey()));
     }
 
     if (from.getDescription() != null) {

@@ -102,7 +102,7 @@ public class IconController extends AbstractFullReadOnlyController<CustomIcon> {
     CustomIcon customIcon = iconService.getCustomIcon(key);
 
     if (!customIcon.getCustom()) {
-      downloadDefaultIcon(customIcon.getIconKey(), response);
+      downloadDefaultIcon(customIcon.getKey(), response);
     } else {
       downloadCustomIcon(customIcon.getFileResource(), response);
     }
@@ -128,7 +128,7 @@ public class IconController extends AbstractFullReadOnlyController<CustomIcon> {
     iconService.addCustomIcon(customIcon);
 
     return WebMessageUtils.created(
-        String.format("CustomIcon created with key %s", customIcon.getIconKey()));
+        String.format("CustomIcon created with key %s", customIcon.getKey()));
   }
 
   @PutMapping(value = "/{uid}")
@@ -181,8 +181,8 @@ public class IconController extends AbstractFullReadOnlyController<CustomIcon> {
         ci ->
             ci.setReference(
                 ci.getCustom()
-                    ? getCustomIconReference(ci.getIconKey())
-                    : getDefaultIconReference(ci.getIconKey())));
+                    ? getCustomIconReference(ci.getKey())
+                    : getDefaultIconReference(ci.getKey())));
   }
 
   @Override
@@ -191,8 +191,8 @@ public class IconController extends AbstractFullReadOnlyController<CustomIcon> {
 
     entity.setReference(
         entity.getCustom()
-            ? getCustomIconReference(entity.getIconKey())
-            : getDefaultIconReference(entity.getIconKey()));
+            ? getCustomIconReference(entity.getKey())
+            : getDefaultIconReference(entity.getKey()));
   }
 
   private void downloadDefaultIcon(String key, HttpServletResponse response)

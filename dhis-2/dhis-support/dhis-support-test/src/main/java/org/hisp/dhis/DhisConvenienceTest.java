@@ -2217,7 +2217,7 @@ public abstract class DhisConvenienceTest {
 
     CustomIcon customIcon = new CustomIcon();
     customIcon.setAutoFields();
-    customIcon.setIconKey("iconKey" + uniqueChar);
+    customIcon.setKey("iconKey" + uniqueChar);
     customIcon.setDescription("description");
     customIcon.setKeywords(keywords);
     customIcon.setFileResource(fileResource);

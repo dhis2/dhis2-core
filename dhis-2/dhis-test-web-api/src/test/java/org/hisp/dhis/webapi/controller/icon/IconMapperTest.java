@@ -81,7 +81,7 @@ class IconMapperTest {
 
     CustomIcon customIcon = iconMapper.to(customIconRequest);
 
-    assertEquals(KEY, customIcon.getIconKey());
+    assertEquals(KEY, customIcon.getKey());
     assertEquals(DESCRIPTION, customIcon.getDescription());
     assertEquals(KEYWORDS, customIcon.getKeywords());
     assertEquals(fileResource.getUid(), customIcon.getFileResource().getUid());
@@ -96,7 +96,7 @@ class IconMapperTest {
 
     verify(fileResourceService, times(0))
         .getFileResource(anyString(), any(FileResourceDomain.class));
-    assertEquals(KEY, defaultIcon.getIconKey());
+    assertEquals(KEY, defaultIcon.getKey());
     assertEquals(DESCRIPTION, defaultIcon.getDescription());
     assertEquals(KEYWORDS, defaultIcon.getKeywords());
     assertNull(defaultIcon.getFileResource());

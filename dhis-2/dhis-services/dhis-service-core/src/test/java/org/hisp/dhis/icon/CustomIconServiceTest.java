@@ -176,7 +176,7 @@ class CustomIconServiceTest extends DhisConvenienceTest {
 
     CustomIcon customIcon =
         createCustomIcon('I', Set.of("k1", "k2"), createFileResource('F', "123".getBytes()));
-    customIcon.setIconKey(null);
+    customIcon.setKey(null);
     Exception exception =
         assertThrows(BadRequestException.class, () -> iconService.updateCustomIcon(customIcon));
 
@@ -191,7 +191,7 @@ class CustomIconServiceTest extends DhisConvenienceTest {
 
     CustomIcon customIcon =
         createCustomIcon('I', Set.of("k1", "k2"), createFileResource('F', "123".getBytes()));
-    customIcon.setIconKey(key);
+    customIcon.setKey(key);
     Exception exception =
         assertThrows(NotFoundException.class, () -> iconService.updateCustomIcon(customIcon));
 
@@ -205,7 +205,7 @@ class CustomIconServiceTest extends DhisConvenienceTest {
 
     CustomIcon customIcon =
         createCustomIcon('I', Set.of("k1", "k2"), createFileResource('F', "123".getBytes()));
-    customIcon.setIconKey(uniqueKey);
+    customIcon.setKey(uniqueKey);
 
     customIcon.setDescription(null);
     customIcon.setKeywords(null);
