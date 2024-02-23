@@ -29,7 +29,10 @@ package org.hisp.dhis.webapi.controller.tracker.view;
 
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -74,6 +77,30 @@ class PageTest {
     assertEquals(6, page.getPageCount());
 
     assertEquals(2, page.getPager().getPage());
+    assertEquals(3, page.getPager().getPageSize());
+    assertEquals(17, page.getPager().getTotal());
+    assertEquals(6, page.getPager().getPageCount());
+    assertNull(page.getPager().getPrevPage());
+    assertNull(page.getPager().getNextPage());
+  }
+
+  @Test
+  void shouldSetDeprecatedPagerWithTotalsAndKeepPageNumberEvenIfPastLastPage() {
+    // so we do not run into common.Pager bug https://dhis2.atlassian.net/browse/DHIS2-16849
+    List<String> fruits = List.of("apple", "banana", "cherry");
+    // page 10 is past last page of 6
+    org.hisp.dhis.tracker.export.Page<String> exportPage =
+        org.hisp.dhis.tracker.export.Page.withTotals(fruits, 10, 3, 17);
+
+    Page page = Page.withPager("fruits", exportPage);
+
+    // deprecated fields
+    assertEquals(10, page.getPage());
+    assertEquals(3, page.getPageSize());
+    assertEquals(17, page.getTotal());
+    assertEquals(6, page.getPageCount());
+
+    assertEquals(10, page.getPager().getPage());
     assertEquals(3, page.getPager().getPageSize());
     assertEquals(17, page.getPager().getTotal());
     assertEquals(6, page.getPager().getPageCount());
