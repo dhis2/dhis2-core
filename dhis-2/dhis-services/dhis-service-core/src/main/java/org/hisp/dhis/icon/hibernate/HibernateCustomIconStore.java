@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.icon.hibernate;
 
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -67,13 +68,18 @@ public class HibernateCustomIconStore extends HibernateIdentifiableObjectStore<C
   }
 
   @Override
-  public List<String> getKeywords() {
-    CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-    CriteriaQuery<String> criteriaQuery = criteriaBuilder.createQuery(String.class);
+  public Set<String> getKeywords() {
+
+    Set<String> keys = new HashSet<>();
+    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+    CriteriaQuery<HashSet> criteriaQuery = builder.createQuery(HashSet.class);
 
     Root<CustomIcon> root = criteriaQuery.from(CustomIcon.class);
-    criteriaQuery.select(root.get("keywords")); // Specify the column you want to select
+    criteriaQuery.where(builder.isNotNull(root.get("keywords")));
+    criteriaQuery.select(root.get("keywords"));
 
-    return entityManager.createQuery(criteriaQuery).getResultStream().toList();
+    entityManager.createQuery(criteriaQuery).getResultList().forEach(keys::addAll);
+
+    return keys;
   }
 }

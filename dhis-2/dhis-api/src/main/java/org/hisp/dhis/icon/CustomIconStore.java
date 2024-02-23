@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.icon;
 
-import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 public interface CustomIconStore extends IdentifiableObjectStore<CustomIcon> {
@@ -45,5 +45,5 @@ public interface CustomIconStore extends IdentifiableObjectStore<CustomIcon> {
    *
    * @return set of unique keywords
    */
-  List<String> getKeywords();
+  Set<String> getKeywords();
 }

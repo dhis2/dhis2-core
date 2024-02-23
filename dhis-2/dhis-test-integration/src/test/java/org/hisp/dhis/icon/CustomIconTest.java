@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.icon;
 
+import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -41,7 +42,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import lombok.SneakyThrows;
 import org.hisp.dhis.common.CodeGenerator;
@@ -106,18 +106,17 @@ class CustomIconTest extends TrackerTest {
     FileResource fileResource = createAndPersistFileResource('V');
 
     Set<String> words = Sets.newHashSet();
-    words.addAll(Set.of("m1,m2"));
+    words.addAll(Set.of("m1", "m2"));
     CustomIcon customIconWithNoKeywords =
         new CustomIcon("iconKey2", "description", words, true, fileResource);
 
     iconService.addCustomIcon(customIconWithNoKeywords);
 
-    List<String> keywords = iconService.getKeywords();
+    Set<String> keywords = iconService.getKeywords();
 
-    assertThat(keywords, hasSize(2));
+    assertThat(keywords, hasSize(5));
 
-    // TODO this needs to be worked on
-    // assertThat(keywords.get(0), hasItems("k1", "k2", "k3"));
+    assertThat(keywords, hasItems("k1", "k2", "k3", "m1", "m2"));
   }
 
   @Test

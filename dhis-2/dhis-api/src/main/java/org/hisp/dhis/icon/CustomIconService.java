@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.icon;
 
-import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.springframework.core.io.Resource;
@@ -69,7 +69,7 @@ public interface CustomIconService {
    *
    * @return set of unique keywords
    */
-  List<String> getKeywords();
+  Set<String> getKeywords();
 
   /**
    * Checks whether an icon with a given key exists, either default or custom
