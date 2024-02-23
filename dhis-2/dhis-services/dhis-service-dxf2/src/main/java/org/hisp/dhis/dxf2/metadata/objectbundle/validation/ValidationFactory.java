@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleHooks;
 import org.hisp.dhis.feedback.TypeReport;
@@ -85,7 +86,7 @@ public class ValidationFactory {
       List<T> persistedObjects,
       List<T> nonPersistedObjects) {
     // only increase the stats if there are no errors
-    if (!typeReport.hasErrorReports()) {
+    if (!typeReport.hasErrorReports() || AtomicMode.NONE == bundle.getAtomicMode()) {
       if (bundle.getImportMode().isCreateAndUpdate()) {
         typeReport.getStats().incCreated(nonPersistedObjects.size());
         typeReport.getStats().incUpdated(persistedObjects.size());

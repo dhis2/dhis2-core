@@ -173,7 +173,14 @@ public class MetadataImportTest extends ApiTest {
 
     // act
     ApiResponse response = metadataActions.post(object, queryParamsBuilder);
-    response.validate().statusCode(200);
+    response
+        .validate()
+        .statusCode(200)
+        .rootPath("response")
+        .body("stats", notNullValue())
+        .body("stats.total", equalTo(2))
+        .body("stats.ignored", equalTo(0))
+        .body("stats.created", equalTo(2));
 
     JsonObject newObj =
         new FileReaderUtils()
