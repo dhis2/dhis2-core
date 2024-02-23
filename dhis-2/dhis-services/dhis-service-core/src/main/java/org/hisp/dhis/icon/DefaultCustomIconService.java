@@ -96,7 +96,7 @@ public class DefaultCustomIconService implements CustomIconService {
   @Override
   @Transactional(readOnly = true)
   public boolean customIconExists(String key) {
-    return customIconStore.getCustomIconByKey(iconkeyKey) != null;
+    return customIconStore.getCustomIconByKey(key) != null;
   }
 
   @Override

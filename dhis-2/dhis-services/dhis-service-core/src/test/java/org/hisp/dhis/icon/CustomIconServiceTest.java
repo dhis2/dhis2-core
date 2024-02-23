@@ -161,7 +161,6 @@ class CustomIconServiceTest extends DhisConvenienceTest {
   @Test
   void shouldUpdateCustomIconIconWhenKeyPresentAndCustomIconExists()
       throws BadRequestException, NotFoundException {
-    String uniqueKey = "key";
     when(customIconStore.getCustomIconByKey(anyString())).thenReturn(new CustomIcon());
 
     CustomIcon customIcon =
@@ -225,25 +224,28 @@ class CustomIconServiceTest extends DhisConvenienceTest {
   void shouldDeleteIconWhenKeyPresentAndCustomIconExists()
       throws BadRequestException, NotFoundException {
 
-    FileResource fileResource = createFileResource('d', "123".getBytes());
+    CustomIcon customIcon =
+        createCustomIcon('I', Set.of("k1", "k2"), createFileResource('F', "123".getBytes()));
 
-    String uniqueKey = "key";
-    when(customIconStore.getCustomIconByKey(uniqueKey))
-        .thenReturn(new CustomIcon(uniqueKey, "description", Set.of(), true, fileResource));
+    when(customIconStore.getCustomIconByKey(anyString())).thenReturn(customIcon);
     when(fileResourceService.getFileResource(anyString(), any(FileResourceDomain.class)))
         .thenReturn(Optional.of(new FileResource()));
 
-    iconService.deleteCustomIcon(uniqueKey);
+    iconService.deleteCustomIcon(customIcon);
 
     verify(customIconStore, times(1)).delete(any(CustomIcon.class));
   }
 
   @Test
   void shouldFailWhenDeletingCustomIconWithoutKey() {
-    String emptyKey = "";
+
+    CustomIcon customIconWithNullKey =
+        createCustomIcon('I', Set.of("k1", "k2"), createFileResource('F', "123".getBytes()));
+    customIconWithNullKey.setKey(null);
 
     Exception exception =
-        assertThrows(BadRequestException.class, () -> iconService.deleteCustomIcon(emptyKey));
+        assertThrows(
+            BadRequestException.class, () -> iconService.deleteCustomIcon(customIconWithNullKey));
 
     String expectedMessage = "CustomIcon key not specified.";
     assertEquals(expectedMessage, exception.getMessage());
@@ -251,11 +253,16 @@ class CustomIconServiceTest extends DhisConvenienceTest {
 
   @Test
   void shouldFailWhenDeletingNonExistingCustomIcon() {
-    String key = "key";
-    when(customIconStore.getCustomIconByKey(key)).thenReturn(null);
+    String key = "non-existent-icon";
+    CustomIcon nonExistentCustomIcon =
+        createCustomIcon('I', Set.of("k1", "k2"), createFileResource('F', "123".getBytes()));
+    nonExistentCustomIcon.setKey(key);
+
+    when(customIconStore.getCustomIconByKey(anyString())).thenReturn(null);
 
     Exception exception =
-        assertThrows(NotFoundException.class, () -> iconService.deleteCustomIcon(key));
+        assertThrows(
+            NotFoundException.class, () -> iconService.deleteCustomIcon(nonExistentCustomIcon));
 
     String expectedMessage = String.format("CustomIcon not found: %s", key);
     assertEquals(expectedMessage, exception.getMessage());
