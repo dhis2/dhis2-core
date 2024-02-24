@@ -30,13 +30,14 @@ package org.hisp.dhis.db.model;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.db.model.Logged.UNLOGGED;
 import static org.hisp.dhis.util.ObjectUtils.notNull;
+
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.commons.lang3.RegExUtils;
-import org.apache.commons.lang3.Validate;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+import org.apache.commons.lang3.RegExUtils;
+import org.apache.commons.lang3.Validate;
 
 /**
  * Represents a database table.
