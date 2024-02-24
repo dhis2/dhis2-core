@@ -40,11 +40,11 @@ public interface CustomIconService {
   /**
    * Gets the custom icon associated to a key, if it exists
    *
-   * @param iconKey key of the icon to find
+   * @param key key of the icon to find
    * @return custom icon associated to the key, if found
    * @throws NotFoundException if no custom icon exists with the provided key
    */
-  CustomIcon getCustomIcon(String iconKey) throws NotFoundException;
+  CustomIcon getCustomIcon(String key) throws NotFoundException;
 
   /**
    * Gets the custom icon associated to a uid, if it exists
