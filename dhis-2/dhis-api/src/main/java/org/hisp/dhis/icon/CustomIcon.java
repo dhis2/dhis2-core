@@ -31,6 +31,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import javax.persistence.Transient;
 import lombok.Getter;
@@ -73,5 +74,24 @@ public class CustomIcon extends BaseIdentifiableObject {
     this.custom = custom;
     this.fileResource = fileResource;
     this.setAutoFields();
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+
+    if (obj == null || getClass() != obj.getClass()) {
+      return false;
+    }
+
+    CustomIcon other = (CustomIcon) obj;
+    return uid == other.uid && java.util.Objects.equals(key, other.key);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(uid, key);
   }
 }

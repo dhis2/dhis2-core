@@ -115,9 +115,9 @@ public class DefaultCustomIconService implements CustomIconService {
 
   @Override
   @Transactional
-  public void updateCustomIcon(CustomIcon customIcon)
-      throws BadRequestException, NotFoundException {
-    validateAndUpdateCustomIcon(customIcon);
+  public void updateCustomIcon(CustomIcon customIcon) {
+    customIcon.setAutoFields();
+    customIconStore.update(customIcon);
   }
 
   @Override
@@ -187,28 +187,5 @@ public class DefaultCustomIconService implements CustomIconService {
     }
 
     return validateCustomIconExists(customIcon.getKey());
-  }
-
-  private void validateAndUpdateCustomIcon(CustomIcon from)
-      throws BadRequestException, NotFoundException {
-    CustomIcon to = validateCustomIconExists(from);
-
-    if (from.getDescription() == null && from.getKeywords() == null) {
-      throw new BadRequestException(
-          String.format(
-              "Can't update icon %s if none of description and keywords are present in the request",
-              from.getKey()));
-    }
-
-    if (from.getDescription() != null) {
-      to.setDescription(from.getDescription());
-    }
-
-    if (from.getKeywords() != null) {
-      to.setKeywords(from.getKeywords());
-    }
-
-    to.setAutoFields();
-    customIconStore.update(to);
   }
 }

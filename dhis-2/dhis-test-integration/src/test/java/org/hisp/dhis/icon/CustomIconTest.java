@@ -138,6 +138,22 @@ class CustomIconTest extends TrackerTest {
   }
 
   @Test
+  void shouldUpdateLastUpdatedWhenCustomIconIsUpdated()
+      throws BadRequestException, NotFoundException {
+
+    CustomIcon customIconUpdated = customIcon;
+    customIconUpdated.setKey("key-updated");
+    customIconUpdated.setDescription("description updated");
+
+    iconService.updateCustomIcon(customIconUpdated);
+
+    CustomIcon fetched = iconService.getCustomIcon("key-updated");
+
+    assertEquals("key-updated", fetched.getKey());
+    assertEquals("description updated", fetched.getDescription());
+  }
+
+  @Test
   void shouldFailWhenSavingCustomIconWithNoKey() {
     FileResource fileResource = createAndPersistFileResource('B');
 
@@ -196,9 +212,6 @@ class CustomIconTest extends TrackerTest {
     assertEquals(
         String.format("No CustomIcon found with key %s.", nonExistingKey), exception.getMessage());
   }
-
-  @Test
-  void shouldUpdateLastUpdatedWhenCustomIconIsUpdated() {}
 
   private FileResource createAndPersistFileResource(char uniqueChar) {
     byte[] content = "content".getBytes(StandardCharsets.UTF_8);
