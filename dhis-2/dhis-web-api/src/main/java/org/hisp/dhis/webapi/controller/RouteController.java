@@ -45,7 +45,6 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -55,7 +54,7 @@ import org.springframework.web.bind.annotation.RestController;
 @OpenApi.Tags("integration")
 @RequiredArgsConstructor
 @RequestMapping(value = RouteSchemaDescriptor.API_ENDPOINT)
-@ApiVersion({ DhisApiVersion.DEFAULT, DhisApiVersion.ALL })
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class RouteController extends AbstractCrudController<Route> {
   private final RouteService routeService;
 
