@@ -166,7 +166,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             + quote(getAnalyticsTableType().getTableName())
             + " ax "
             + "where ax.id in ("
-            + "select (ds.uid || '-' || ps.iso || '-' || ou.uid || '-' || ao.uid) as id "
+            + "select concat(ds.uid,'-',ps.iso,'-',ou.uid,'-',ao.uid) as id "
             + "from completedatasetregistration cdr "
             + "inner join dataset ds on cdr.datasetid=ds.datasetid "
             + "inner join _periodstructure ps on cdr.periodid=ps.periodid "
@@ -241,7 +241,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
   private List<AnalyticsTableColumn> getColumns() {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-    String idColAlias = "(ds.uid || '-' || ps.iso || '-' || ou.uid || '-' || ao.uid) as id ";
+    String idColAlias = "concat(ds.uid,'-',ps.iso,'-',ou.uid,'-',ao.uid) as id ";
     String timelyDateDiff = "cast(cdr.date as date) - pe.enddate";
     String timelyAlias = "(select (" + timelyDateDiff + ") <= ds.timelydays) as timely";
 
