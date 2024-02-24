@@ -217,7 +217,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             + quote(getAnalyticsTableType().getTableName())
             + " ax "
             + "where ax.id in ("
-            + "select (de.uid || '-' || ps.iso || '-' || ou.uid || '-' || co.uid || '-' || ao.uid) as id "
+            + "select concat(de.uid,'-',ps.iso,'-',ou.uid,'-',co.uid,'-',ao.uid) as id "
             + "from datavalue dv "
             + "inner join dataelement de on dv.dataelementid=de.dataelementid "
             + "inner join _periodstructure ps on dv.periodid=ps.periodid "
@@ -442,8 +442,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   private List<AnalyticsTableColumn> getColumns(AnalyticsTableUpdateParams params) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-    String idColAlias =
-        "(de.uid || '-' || ps.iso || '-' || ou.uid || '-' || co.uid || '-' || ao.uid) as id ";
+    String idColAlias = "concat(de.uid,'-',ps.iso,'-',ou.uid,'-',co.uid,'-',ao.uid) as id ";
     columns.add(new AnalyticsTableColumn("id", TEXT, idColAlias));
 
     List<DataElementGroupSet> dataElementGroupSets =
