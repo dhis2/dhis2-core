@@ -55,13 +55,11 @@ import org.springframework.web.bind.annotation.RestController;
 @OpenApi.Tags("integration")
 @RequiredArgsConstructor
 @RequestMapping(value = RouteSchemaDescriptor.API_ENDPOINT)
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+@ApiVersion({ DhisApiVersion.DEFAULT, DhisApiVersion.ALL })
 public class RouteController extends AbstractCrudController<Route> {
   private final RouteService routeService;
 
-  @RequestMapping(
-      value = "/{id}/run",
-      method = {RequestMethod.GET, RequestMethod.POST})
+  @RequestMapping(value = "/{id}/run")
   public ResponseEntity<String> run(
       @PathVariable("id") String id,
       @CurrentUser UserDetails currentUser,
@@ -70,9 +68,7 @@ public class RouteController extends AbstractCrudController<Route> {
     return runWithSubpath(id, currentUser, request);
   }
 
-  @RequestMapping(
-      value = "/{id}/run/**",
-      method = {RequestMethod.GET, RequestMethod.POST})
+  @RequestMapping(value = "/{id}/run/**")
   public ResponseEntity<String> runWithSubpath(
       @PathVariable("id") String id,
       @CurrentUser UserDetails currentUser,
