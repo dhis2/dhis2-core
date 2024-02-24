@@ -44,6 +44,11 @@ public class TwoFactorWebAuthenticationDetails extends ForwardedIpAwareWebAuthen
     code = request.getParameter(TWO_FACTOR_AUTHENTICATION_GETTER);
   }
 
+  public TwoFactorWebAuthenticationDetails(HttpServletRequest request, String twoFactorCode) {
+    super(request);
+    code = twoFactorCode;
+  }
+
   public String getCode() {
     return code;
   }

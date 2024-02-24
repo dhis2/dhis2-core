@@ -76,6 +76,7 @@ import org.hisp.dhis.fieldfilter.FieldFilterException;
 import org.hisp.dhis.query.QueryException;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.SchemaPathException;
+import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationException;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.common.OrderCriteriaParamEditor;
@@ -94,6 +95,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.server.resource.BearerTokenError;
@@ -508,6 +510,18 @@ public class CrudControllerAdvice {
       return createWebMessage(
           apiTokenError.getDescription(), Status.ERROR, apiTokenError.getHttpStatus());
     }
+    return unauthorized(ex.getMessage());
+  }
+
+  @ExceptionHandler(TwoFactorAuthenticationException.class)
+  @ResponseBody
+  public WebMessage handleTwoFactorAuthenticationException(TwoFactorAuthenticationException ex) {
+    return unauthorized(ex.getMessage());
+  }
+
+  @ExceptionHandler(BadCredentialsException.class)
+  @ResponseBody
+  public WebMessage handleBadCredentialsException(BadCredentialsException ex) {
     return unauthorized(ex.getMessage());
   }
 

@@ -149,7 +149,7 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
       return EMPTY;
     }
 
-    String ouPathClause = OutlierHelper.getOrgUnitPathClause(request.getOrgUnits(), "ax");
+    String ouPathClause = OutlierHelper.getOrgUnitPathClause(request.getOrgUnits(), "ax", "and");
 
     boolean modifiedZ = request.getAlgorithm() == MODIFIED_Z_SCORE;
 
@@ -206,7 +206,6 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
             + "from analytics ax "
             + "where "
             + getDataDimensionSql(withParams, request.getDataDimensions())
-            + "and "
             + ouPathClause
             + getPeriodSqlSnippet(request, withParams)
             + ") t1 "
