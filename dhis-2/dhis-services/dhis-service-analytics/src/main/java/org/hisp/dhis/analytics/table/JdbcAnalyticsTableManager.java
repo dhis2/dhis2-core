@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getLatestTablePartition;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
@@ -287,6 +288,22 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         "dv.value",
         Sets.union(ValueType.TEXT_TYPES, ValueType.DATE_TYPES),
         null);
+  }
+
+  /**
+   * Returns a partition SQL clause.
+   *
+   * @param partition the {@link AnalyticsTablePartition}.
+   * @return a partition SQL clause.
+   */
+  private String getPartitionClause(AnalyticsTablePartition partition) {
+    if (partition.isLatestPartition()) {
+      return "and dv.lastupdated >= '" + getLongDateString(partition.getStartDate()) + "' ";
+    }
+
+    return sqlBuilder.supportsDeclarativePartitioning()
+        ? EMPTY
+        : "and ps.year = " + partition.getYear() + " ";
   }
 
   /**
