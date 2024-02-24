@@ -67,10 +67,7 @@ public class IconMapper {
     customIcon.setKeywords(customIconRequest.getKeywords());
     customIcon.setCustom(customIconRequest.getCustom());
     customIcon.setCode(customIconRequest.getCode());
-
-    if (customIconRequest.getCustom() && customIconRequest.getFileResourceId() != null) {
-      customIcon.setFileResource(fileResource.get());
-    }
+    customIcon.setFileResource(fileResource.orElse(null));
 
     return customIcon;
   }
@@ -107,7 +104,7 @@ public class IconMapper {
     }
 
     if (customIconRequest.getFileResourceId() != null) {
-      persisted.setFileResource(fileResource.get());
+      persisted.setFileResource(fileResource.orElse(null));
     }
 
     persisted.setAutoFields();

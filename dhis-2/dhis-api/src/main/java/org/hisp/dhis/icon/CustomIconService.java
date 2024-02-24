@@ -97,9 +97,9 @@ public interface CustomIconService {
   void updateCustomIcon(CustomIcon customIcon) throws BadRequestException, NotFoundException;
 
   /**
-   * Deletes a custom icon given its key
+   * Deletes a given CustomIcon
    *
-   * @param iconKey the key of the icon to delete
+   * @param customIcon the icon to delete
    * @throws BadRequestException when icon key is not specified
    * @throws NotFoundException when no icon with the provided key exists
    */
