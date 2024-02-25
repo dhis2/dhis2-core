@@ -297,13 +297,13 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
    * @return a partition SQL clause.
    */
   private String getPartitionClause(AnalyticsTablePartition partition) {
-    if (partition.isLatestPartition()) {
-      return "and dv.lastupdated >= '" + getLongDateString(partition.getStartDate()) + "' ";
-    }
+    String lastUpdatedFilter =
+        "and dv.lastupdated >= '" + getLongDateString(partition.getStartDate()) + "' ";
+    String partitionFilter = "and ps.year = " + partition.getYear() + " ";
 
-    return sqlBuilder.supportsDeclarativePartitioning()
-        ? EMPTY
-        : "and ps.year = " + partition.getYear() + " ";
+    return partition.isLatestPartition()
+        ? lastUpdatedFilter
+        : sqlBuilder.supportsDeclarativePartitioning() ? EMPTY : partitionFilter;
   }
 
   /**
@@ -666,7 +666,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         // standard deviation of the normal distribution
         + "stddev_pop(t3.value::double precision) as std_dev "
         // Table "t3" is the composition of the tables "t2" (median of xi) and "t3" (values xi).
-        // For Z-Score  the mean (avg_middle_value) and standard deviation (std_dev) is used ((xi -
+        // For Z-Score the mean (avg_middle_value) and standard deviation (std_dev) is used ((xi -
         // mean(x))/std_dev).
         // For modified Z-Score the median (percentile_middle_value) and the median of absolute
         // deviations (mad) is used (0.6745*(xi - median(x)/mad)).
