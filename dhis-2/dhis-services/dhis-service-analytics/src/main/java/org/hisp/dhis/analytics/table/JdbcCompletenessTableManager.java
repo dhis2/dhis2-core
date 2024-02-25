@@ -39,6 +39,7 @@ import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -243,7 +244,8 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
    * @return a partition SQL clause.
    */
   private String getPartitionClause(AnalyticsTablePartition partition) {
-    String latestFilter = format("and cdr.lastupdated >= '%s' ", getLongDateString(partition.getStartDate()));
+    String latestFilter =
+        format("and cdr.lastupdated >= '%s' ", getLongDateString(partition.getStartDate()));
     String partitionFilter = format("and ps.year = %d ", partition.getYear());
 
     return partition.isLatestPartition()

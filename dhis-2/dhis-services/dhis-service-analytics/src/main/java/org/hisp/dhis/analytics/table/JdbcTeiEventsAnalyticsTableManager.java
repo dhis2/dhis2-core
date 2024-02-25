@@ -51,6 +51,7 @@ import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -314,8 +315,8 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
     String end = getLongDateString(partition.getEndDate());
     String statusDate = getDateLinkedToStatus();
     String latestFilter = format("and psi.lastupdated >= '%s' ", start);
-    String partitionFilter = format("and (%s) >= '%s' and (%s) < '%s' ",
-        statusDate, start, statusDate, end );
+    String partitionFilter =
+        format("and (%s) >= '%s' and (%s) < '%s' ", statusDate, start, statusDate, end);
 
     return partition.isLatestPartition()
         ? latestFilter
