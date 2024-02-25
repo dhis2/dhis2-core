@@ -50,6 +50,7 @@ import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -302,7 +303,6 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
     invokeTimeAndLog(sql.toString(), tableName);
   }
 
-
   /**
    * Returns a partition SQL clause.
    *
@@ -313,23 +313,24 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
     String start = getLongDateString(partition.getStartDate());
     String end = getLongDateString(partition.getEndDate());
     String latestFilter = "and psi.lastupdated >= '" + start + "' ";
-    String partitionFilter = "and ("
-        + getDateLinkedToStatus()
-        + ") >= '"
-        + start
-        + "' "
-        + "and "
-        + "("
-        + getDateLinkedToStatus()
-        + ") < '"
-        + end
-        + "' ";    
+    String partitionFilter =
+        "and ("
+            + getDateLinkedToStatus()
+            + ") >= '"
+            + start
+            + "' "
+            + "and "
+            + "("
+            + getDateLinkedToStatus()
+            + ") < '"
+            + end
+            + "' ";
 
     return partition.isLatestPartition()
         ? latestFilter
         : sqlBuilder.supportsDeclarativePartitioning() ? EMPTY : partitionFilter;
   }
-  
+
   /**
    * Indicates whether data was created or updated for the given time range since last successful
    * "latest" table partition update.

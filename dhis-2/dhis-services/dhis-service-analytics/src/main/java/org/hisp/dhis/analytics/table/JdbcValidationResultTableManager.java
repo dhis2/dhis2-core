@@ -36,6 +36,7 @@ import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -206,7 +207,7 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
     String partitionFilter = "and ps.year = " + partition.getYear() + " ";
     return sqlBuilder.supportsDeclarativePartitioning() ? EMPTY : partitionFilter;
   }
-  
+
   private List<Integer> getDataYears(AnalyticsTableUpdateParams params) {
     String sql =
         "select distinct(extract(year from pe.startdate)) "

@@ -48,6 +48,7 @@ import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -56,6 +57,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -93,7 +95,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -488,24 +489,25 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String start = getLongDateString(partition.getStartDate());
     String end = getLongDateString(partition.getEndDate());
     String latestFilter = "and psi.lastupdated >= '" + start + "' ";
-    String partitionFilter = "and "
-        + "("
-        + getDateLinkedToStatus()
-        + ") >= '"
-        + start
-        + "' "
-        + "and "
-        + "("
-        + getDateLinkedToStatus()
-        + ") < '"
-        + end
-        + "' ";
+    String partitionFilter =
+        "and "
+            + "("
+            + getDateLinkedToStatus()
+            + ") >= '"
+            + start
+            + "' "
+            + "and "
+            + "("
+            + getDateLinkedToStatus()
+            + ") < '"
+            + end
+            + "' ";
 
     return partition.isLatestPartition()
         ? latestFilter
         : sqlBuilder.supportsDeclarativePartitioning() ? EMPTY : partitionFilter;
   }
-  
+
   /**
    * Returns dimensional analytics table columns.
    *
