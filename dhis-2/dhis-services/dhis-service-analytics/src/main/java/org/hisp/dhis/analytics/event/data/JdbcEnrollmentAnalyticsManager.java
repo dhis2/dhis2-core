@@ -39,6 +39,7 @@ import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import com.google.common.collect.Sets;
 import java.util.Arrays;
@@ -69,7 +70,6 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
-import org.hisp.dhis.util.DateUtils;
 import org.locationtech.jts.util.Assert;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.InvalidResultSetAccessException;
@@ -646,13 +646,13 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     if (startDate != null) {
       sb.append(" and occurreddate >= ");
 
-      sb.append(String.format("%s ", sqlBuilder.singleQuote(DateUtils.toMediumDate(startDate))));
+      sb.append(String.format("%s ", sqlBuilder.singleQuote(toMediumDate(startDate))));
     }
 
     if (endDate != null) {
       sb.append(" and occurreddate <= ");
 
-      sb.append(String.format("%s ", sqlBuilder.singleQuote(DateUtils.toMediumDate(endDate))));
+      sb.append(String.format("%s ", sqlBuilder.singleQuote(toMediumDate(endDate))));
     }
 
     return sb.toString();
