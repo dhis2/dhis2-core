@@ -31,7 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hisp.dhis.user.UserRole.AUTHORITY_ALL;
-import static org.hisp.dhis.util.DateUtils.getIso8601NoTz;
+import static org.hisp.dhis.util.DateUtils.toIso8601NoTz;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -333,7 +333,7 @@ class EventImportTest extends TransactionalIntegrationTest {
     TrackedEntityInstance trackedEntityInstance =
         trackedEntityInstanceService.getTrackedEntityInstance(
             trackedEntityInstanceMaleA.getTrackedEntityInstance());
-    assertTrue(trackedEntityInstance.getLastUpdated().compareTo(getIso8601NoTz(now)) > 0);
+    assertTrue(trackedEntityInstance.getLastUpdated().compareTo(toIso8601NoTz(now)) > 0);
   }
 
   @Test
@@ -377,7 +377,7 @@ class EventImportTest extends TransactionalIntegrationTest {
 
     Event psi = programStageInstanceService.getEvent(eventUid);
 
-    assertEquals(DUE_DATE, DateUtils.getLongDateString(psi.getScheduledDate()));
+    assertEquals(DUE_DATE, DateUtils.toLongDate(psi.getScheduledDate()));
   }
 
   /**
@@ -455,7 +455,7 @@ class EventImportTest extends TransactionalIntegrationTest {
     // We use JDBC to get the timestamp, since it's stored using JDBC not
     // hibernate.
     String lastUpdateDateNew =
-        DateUtils.getIso8601NoTz(
+        DateUtils.toIso8601NoTz(
             this.jdbcTemplate.queryForObject(
                 "SELECT lastupdated FROM trackedentity WHERE uid IN ('"
                     + trackedEntityInstanceMaleA.getTrackedEntityInstance()

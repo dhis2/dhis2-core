@@ -30,7 +30,7 @@ package org.hisp.dhis.dataapproval.hibernate;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import java.util.List;
 import java.util.Set;
@@ -125,18 +125,11 @@ public class HibernateDataApprovalAuditStore extends HibernateGenericStore<DataA
 
     if (params.hasStartDate()) {
       hql +=
-          hlp.whereAnd()
-              + " a.period.startDate >= '"
-              + getMediumDateString(params.getStartDate())
-              + "' ";
+          hlp.whereAnd() + " a.period.startDate >= '" + toMediumDate(params.getStartDate()) + "' ";
     }
 
     if (params.hasEndDate()) {
-      hql +=
-          hlp.whereAnd()
-              + " a.period.endDate <= '"
-              + getMediumDateString(params.getEndDate())
-              + "' ";
+      hql += hlp.whereAnd() + " a.period.endDate <= '" + toMediumDate(params.getEndDate()) + "' ";
     }
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());

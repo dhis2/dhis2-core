@@ -187,10 +187,10 @@ public class JdbcRawAnalyticsManager implements RawAnalyticsManager {
         sqlHelper.whereAnd()
             + " "
             + "ps.startdate >= '"
-            + DateUtils.getMediumDateString(params.getStartDate())
+            + DateUtils.toMediumDate(params.getStartDate())
             + "' and "
             + "ps.enddate <= '"
-            + DateUtils.getMediumDateString(params.getEndDate())
+            + DateUtils.toMediumDate(params.getEndDate())
             + "' ";
 
     return sql;

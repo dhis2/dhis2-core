@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.jdbc.batchhandler;
 
-import static org.hisp.dhis.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -117,10 +117,10 @@ public class CompleteDataSetRegistrationBatchHandler
         registration.getPeriod().getId(),
         registration.getSource().getId(),
         registration.getAttributeOptionCombo().getId(),
-        getLongDateString(registration.getDate()),
+        toLongDate(registration.getDate()),
         registration.getStoredBy(),
         registration.getLastUpdatedBy(),
-        getLongDateString(registration.getLastUpdated()),
+        toLongDate(registration.getLastUpdated()),
         registration.getCompleted());
   }
 

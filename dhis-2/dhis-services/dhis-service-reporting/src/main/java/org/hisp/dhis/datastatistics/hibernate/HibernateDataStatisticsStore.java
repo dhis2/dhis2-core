@@ -228,10 +228,10 @@ public class HibernateDataStatisticsStore extends HibernateIdentifiableObjectSto
         + "cast(round(cast(sum(datavalues) as numeric),0) as int) as savedDataValues,"
         + "max(users) as users from datastatistics "
         + "where created >= '"
-        + DateUtils.getLongDateString(start)
+        + DateUtils.toLongDate(start)
         + "' "
         + "and created <= '"
-        + DateUtils.getLongDateString(end)
+        + DateUtils.toLongDate(end)
         + "' ";
   }
 }

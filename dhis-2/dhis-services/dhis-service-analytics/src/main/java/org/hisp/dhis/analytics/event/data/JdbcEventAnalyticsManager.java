@@ -45,7 +45,7 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.hisp.dhis.feedback.ErrorCode.E7132;
 import static org.hisp.dhis.feedback.ErrorCode.E7133;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 import static org.postgresql.util.PSQLState.DIVISION_BY_ZERO;
 
 import com.google.common.collect.ImmutableList;
@@ -684,12 +684,12 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       timeTest =
           timeCol
               + " >= '"
-              + getMediumDateString(earliest)
+              + toMediumDate(earliest)
               + "' "
               + "and "
               + timeCol
               + " <= '"
-              + getMediumDateString(latest)
+              + toMediumDate(latest)
               + "'";
 
       nullTest = " and " + valueItem + " is not null";
