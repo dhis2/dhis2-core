@@ -297,12 +297,12 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
    * @return a partition SQL clause.
    */
   private String getPartitionClause(AnalyticsTablePartition partition) {
-    String lastUpdatedFilter =
+    String lastUpdated =
         "and dv.lastupdated >= '" + getLongDateString(partition.getStartDate()) + "' ";
     String partitionFilter = "and ps.year = " + partition.getYear() + " ";
 
     return partition.isLatestPartition()
-        ? lastUpdatedFilter
+        ? lastUpdated
         : sqlBuilder.supportsDeclarativePartitioning() ? EMPTY : partitionFilter;
   }
 
