@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static java.lang.String.format;
 import static java.lang.String.join;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS;
@@ -50,7 +51,6 @@ import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -312,19 +312,10 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
   private String getPartitionClause(AnalyticsTablePartition partition) {
     String start = getLongDateString(partition.getStartDate());
     String end = getLongDateString(partition.getEndDate());
-    String latestFilter = "and psi.lastupdated >= '" + start + "' ";
-    String partitionFilter =
-        "and ("
-            + getDateLinkedToStatus()
-            + ") >= '"
-            + start
-            + "' "
-            + "and "
-            + "("
-            + getDateLinkedToStatus()
-            + ") < '"
-            + end
-            + "' ";
+    String statusDate = getDateLinkedToStatus();
+    String latestFilter = format("and psi.lastupdated >= '%s' ", start);
+    String partitionFilter = format("and (%s) >= '%s' and (%s) < '%s' ",
+        statusDate, start, statusDate, end );
 
     return partition.isLatestPartition()
         ? latestFilter

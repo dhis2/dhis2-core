@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
@@ -36,7 +37,6 @@ import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -204,7 +204,7 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
    * @return a partition SQL clause.
    */
   private String getPartitionClause(AnalyticsTablePartition partition) {
-    String partitionFilter = "and ps.year = " + partition.getYear() + " ";
+    String partitionFilter = format("and ps.year = %d ", partition.getYear());
     return sqlBuilder.supportsDeclarativePartitioning() ? EMPTY : partitionFilter;
   }
 
