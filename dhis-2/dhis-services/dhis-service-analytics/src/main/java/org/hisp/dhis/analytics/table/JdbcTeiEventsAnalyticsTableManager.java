@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.table;
 
 import static java.lang.String.join;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.getDateLinkedToStatus;
@@ -49,7 +50,6 @@ import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -263,22 +263,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
 
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
-    String start = getLongDateString(partition.getStartDate());
-    String end = getLongDateString(partition.getEndDate());
-    String partitionClause =
-        partition.isLatestPartition()
-            ? "psi.lastupdated >= '" + start + "' "
-            : "("
-                + getDateLinkedToStatus()
-                + ") >= '"
-                + start
-                + "' "
-                + "and "
-                + "("
-                + getDateLinkedToStatus()
-                + ") < '"
-                + end
-                + "' ";
+    String partitionClause = getPartitionClause(partition);
 
     StringBuilder sql = new StringBuilder("insert into " + tableName + " (");
 
@@ -310,13 +295,41 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
         .append(" left join organisationunit ou on psi.organisationunitid = ou.organisationunitid")
         .append(
             " left join _orgunitstructure ous on ous.organisationunitid = ou.organisationunitid")
-        .append(" where psi.status in (" + join(",", EXPORTABLE_EVENT_STATUSES) + ")")
-        .append(" and " + partitionClause)
+        .append(" where psi.status in (" + join(",", EXPORTABLE_EVENT_STATUSES) + ") ")
+        .append(partitionClause)
         .append(" and psi.deleted is false ");
 
     invokeTimeAndLog(sql.toString(), tableName);
   }
 
+
+  /**
+   * Returns a partition SQL clause.
+   *
+   * @param partition the {@link AnalyticsTablePartition}.
+   * @return a partition SQL clause.
+   */
+  private String getPartitionClause(AnalyticsTablePartition partition) {
+    String start = getLongDateString(partition.getStartDate());
+    String end = getLongDateString(partition.getEndDate());
+    String latestFilter = "and psi.lastupdated >= '" + start + "' ";
+    String partitionFilter = "and ("
+        + getDateLinkedToStatus()
+        + ") >= '"
+        + start
+        + "' "
+        + "and "
+        + "("
+        + getDateLinkedToStatus()
+        + ") < '"
+        + end
+        + "' ";    
+
+    return partition.isLatestPartition()
+        ? latestFilter
+        : sqlBuilder.supportsDeclarativePartitioning() ? EMPTY : partitionFilter;
+  }
+  
   /**
    * Indicates whether data was created or updated for the given time range since last successful
    * "latest" table partition update.

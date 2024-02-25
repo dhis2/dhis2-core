@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getLatestTablePartition;
 import static org.hisp.dhis.db.model.DataType.BOOLEAN;
@@ -37,7 +38,6 @@ import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -192,10 +192,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
-    String partitionClause =
-        partition.isLatestPartition()
-            ? "and cdr.lastupdated >= '" + getLongDateString(partition.getStartDate()) + "' "
-            : "and ps.year = " + partition.getYear() + " ";
+    String partitionClause = getPartitionClause(partition);
 
     String sql = "insert into " + tableName + " (";
 
@@ -238,6 +235,21 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     invokeTimeAndLog(sql, String.format("Populate %s", tableName));
   }
 
+  /**
+   * Returns a partition SQL clause.
+   *
+   * @param partition the {@link AnalyticsTablePartition}.
+   * @return a partition SQL clause.
+   */
+  private String getPartitionClause(AnalyticsTablePartition partition) {
+    String latestFilter = "and cdr.lastupdated >= '" + getLongDateString(partition.getStartDate()) + "' ";
+    String partitionFilter = "and ps.year = " + partition.getYear() + " ";
+
+    return partition.isLatestPartition()
+        ? latestFilter
+        : sqlBuilder.supportsDeclarativePartitioning() ? EMPTY : partitionFilter; 
+  }
+  
   private List<AnalyticsTableColumn> getColumns() {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 

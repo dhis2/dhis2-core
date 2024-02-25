@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DATE;
@@ -35,7 +36,6 @@ import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -156,6 +156,7 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
+    String partitionClause = getPartitionClause(partition);
 
     String sql = "insert into " + tableName + " (";
 
@@ -186,17 +187,26 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
             + "and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null) "
             + "left join _orgunitstructure ous on vrs.organisationunitid=ous.organisationunitid "
             + "inner join _categorystructure acs on vrs.attributeoptioncomboid=acs.categoryoptioncomboid "
-            + "where ps.year = "
-            + partition.getYear()
-            + " "
-            + "and vrs.created < '"
+            + "where vrs.created < '"
             + getLongDateString(params.getStartTime())
             + "' "
-            + "and vrs.created is not null";
+            + "and vrs.created is not null "
+            + partitionClause;
 
     invokeTimeAndLog(sql, String.format("Populate %s", tableName));
   }
 
+  /**
+   * Returns a partition SQL clause.
+   *
+   * @param partition the {@link AnalyticsTablePartition}.
+   * @return a partition SQL clause.
+   */
+  private String getPartitionClause(AnalyticsTablePartition partition) {
+    String partitionFilter = "and ps.year = " + partition.getYear() + " ";
+    return sqlBuilder.supportsDeclarativePartitioning() ? EMPTY : partitionFilter;
+  }
+  
   private List<Integer> getDataYears(AnalyticsTableUpdateParams params) {
     String sql =
         "select distinct(extract(year from pe.startdate)) "

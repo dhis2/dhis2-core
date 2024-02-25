@@ -291,22 +291,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   }
 
   /**
-   * Returns a partition SQL clause.
-   *
-   * @param partition the {@link AnalyticsTablePartition}.
-   * @return a partition SQL clause.
-   */
-  private String getPartitionClause(AnalyticsTablePartition partition) {
-    String lastUpdated =
-        "and dv.lastupdated >= '" + getLongDateString(partition.getStartDate()) + "' ";
-    String partitionFilter = "and ps.year = " + partition.getYear() + " ";
-
-    return partition.isLatestPartition()
-        ? lastUpdated
-        : sqlBuilder.supportsDeclarativePartitioning() ? EMPTY : partitionFilter;
-  }
-
-  /**
    * Populates the given analytics table.
    *
    * @param valueExpression numeric value expression.
@@ -328,10 +312,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             SettingKey.RESPECT_META_DATA_START_END_DATES_IN_ANALYTICS_TABLE_EXPORT);
     String approvalSelectExpression = getApprovalSelectExpression(partition.getYear());
     String approvalClause = getApprovalJoinClause(partition.getYear());
-    String partitionClause =
-        partition.isLatestPartition()
-            ? "and dv.lastupdated >= '" + getLongDateString(partition.getStartDate()) + "' "
-            : "and ps.year = " + partition.getYear() + " ";
+    String partitionClause = getPartitionClause(partition);
 
     String sql = "insert into " + tableName + " (";
 
@@ -454,6 +435,22 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     }
 
     return StringUtils.EMPTY;
+  }
+
+  /**
+   * Returns a partition SQL clause.
+   *
+   * @param partition the {@link AnalyticsTablePartition}.
+   * @return a partition SQL clause.
+   */
+  private String getPartitionClause(AnalyticsTablePartition partition) {
+    String latestFilter =
+        "and dv.lastupdated >= '" + getLongDateString(partition.getStartDate()) + "' ";
+    String partitionFilter = "and ps.year = " + partition.getYear() + " ";
+
+    return partition.isLatestPartition()
+        ? latestFilter
+        : sqlBuilder.supportsDeclarativePartitioning() ? EMPTY : partitionFilter;
   }
 
   private List<AnalyticsTableColumn> getColumns(AnalyticsTableUpdateParams params) {
