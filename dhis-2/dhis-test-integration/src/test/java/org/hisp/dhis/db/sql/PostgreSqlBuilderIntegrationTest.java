@@ -49,7 +49,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 @RequiredArgsConstructor
 class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
-  private JdbcTemplate jdbcTemplate;
+  private final JdbcTemplate jdbcTemplate;
 
   private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
