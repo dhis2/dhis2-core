@@ -106,6 +106,7 @@ import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
 import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -538,13 +539,28 @@ class JdbcEventStore implements EventStore {
 
     sql = getEventSelectQuery(params, mapSqlParameterSource, currentUser);
 
-    sql = sql.replaceFirst("select .*? from", "select count(*) from");
+    sql = sql.replaceFirst("select .*? from", "select count(*) as ev_count from");
 
     sql = sql.replaceFirst("order .*? (desc|asc)", "");
 
     sql = sql.replaceFirst("limit \\d+ offset \\d+", "");
 
-    return jdbcTemplate.queryForObject(sql, mapSqlParameterSource, Long.class);
+    RowCountHandler rowCountHandler = new RowCountHandler();
+    jdbcTemplate.query(sql, mapSqlParameterSource, rowCountHandler);
+    return rowCountHandler.getCount();
+  }
+
+  private static class RowCountHandler implements RowCallbackHandler {
+    private long count;
+
+    @Override
+    public void processRow(ResultSet rs) throws SQLException {
+      count = rs.getLong("ev_count");
+    }
+
+    public long getCount() {
+      return count;
+    }
   }
 
   /**
