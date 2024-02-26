@@ -404,4 +404,36 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
     JsonResponse optionSet = GET("/optionSets/{uid}", "RHqFlB1Wm4d").content(HttpStatus.OK);
     assertTrue(optionSet.get("createdBy").exists());
   }
+
+  @Test()
+  @DisplayName("Should not return error E6305 when PATCH any property of an AggregateDataExchange")
+  void testPatchAggregateDataExchange() {
+    POST("/metadata/", Body("metadata/aggregate_data_exchange.json")).content(HttpStatus.OK);
+    PATCH(
+            "/aggregateDataExchanges/PnWccbwCJLQ",
+            Body(
+                "[{'op': 'replace', 'path': '/name', 'value': 'External basic auth data exchange updated'}]"))
+        .content(HttpStatus.OK);
+
+    JsonObject object =
+        GET("/aggregateDataExchanges/PnWccbwCJLQ").content(HttpStatus.OK).as(JsonObject.class);
+    assertEquals("External basic auth data exchange updated", object.getString("name").string());
+  }
+
+  @Test
+  @DisplayName(
+      "Should return error E6305 if create a new AggregateDataExchange without authentication details")
+  void testCreateAggregateDataExchangeWithoutAuthentication() {
+    JsonImportSummary report =
+        POST("/metadata/", Body("metadata/aggregate_data_exchange_no_auth.json"))
+            .content(HttpStatus.CONFLICT)
+            .get("response")
+            .as(JsonImportSummary.class);
+    assertEquals(
+        "Aggregate data exchange target API must specify either access token or username and password",
+        report
+            .find(
+                JsonErrorReport.class, errorReport -> errorReport.getErrorCode() == ErrorCode.E6305)
+            .getMessage());
+  }
 }
