@@ -124,7 +124,7 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
 
     List<String> primaryKey = List.of("id");
 
-    return new Table("family_planning", columns, primaryKey);
+    return new Table("a", columns, primaryKey);
   }
 
   @Test
