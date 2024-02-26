@@ -30,7 +30,6 @@ package org.hisp.dhis.db.sql;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import java.util.List;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
@@ -38,11 +37,11 @@ import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-@RequiredArgsConstructor
 class PostgreSqlBuilderInheritanceIntegrationTest extends IntegrationTestBase {
-  private final JdbcTemplate jdbcTemplate;
+  @Autowired private JdbcTemplate jdbcTemplate;
 
   private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 

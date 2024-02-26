@@ -122,8 +122,6 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
         return dataTypeVarchar(50);
       case VARCHAR_255:
         return dataTypeVarchar(255);
-      case VARCHAR_1200:
-        return dataTypeVarchar(1200);
       case TEXT:
         return dataTypeText();
       case DATE:

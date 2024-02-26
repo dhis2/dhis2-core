@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
@@ -45,11 +44,11 @@ import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.model.constraint.Unique;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-@RequiredArgsConstructor
 class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
-  private final JdbcTemplate jdbcTemplate;
+  @Autowired private JdbcTemplate jdbcTemplate;
 
   private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
@@ -102,6 +101,32 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
     return new Table("nutrition", columns, List.of(), List.of(), Logged.LOGGED, getTableB());
   }
 
+  private Table getTableD() {
+    List<Column> columns =
+        List.of(
+            new Column("a", DataType.SMALLINT),
+            new Column("b", DataType.BIGINT),
+            new Column("c", DataType.INTEGER),
+            new Column("d", DataType.DECIMAL),
+            new Column("e", DataType.FLOAT),
+            new Column("f", DataType.DOUBLE),
+            new Column("g", DataType.BOOLEAN),
+            new Column("h", DataType.CHARACTER_11),
+            new Column("i", DataType.VARCHAR_50),
+            new Column("j", DataType.VARCHAR_255),
+            new Column("k", DataType.TEXT),
+            new Column("l", DataType.DATE),
+            new Column("m", DataType.TIMESTAMP),
+            new Column("n", DataType.TIMESTAMPTZ),
+            new Column("o", DataType.GEOMETRY),
+            new Column("p", DataType.GEOMETRY_POINT),
+            new Column("q", DataType.JSONB));
+
+    List<String> primaryKey = List.of("id");
+
+    return new Table("immunization", columns, primaryKey);
+  }
+
   @Test
   void testCreateAndDropTableA() {
     Table table = getTableA();
@@ -134,13 +159,17 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
   void testCreateAndDropTableC() {
     Table tableB = getTableB();
     Table tableC = getTableC();
+    Table tableD = getTableD();
 
     execute(sqlBuilder.createTable(tableB));
     execute(sqlBuilder.createTable(tableC));
+    execute(sqlBuilder.createTable(tableD));
 
     assertTrue(tableExists(tableB.getName()));
     assertTrue(tableExists(tableC.getName()));
+    assertTrue(tableExists(tableD.getName()));
 
+    jdbcTemplate.execute(sqlBuilder.dropTableIfExists(tableD));
     jdbcTemplate.execute(sqlBuilder.dropTableIfExists(tableC));
     jdbcTemplate.execute(sqlBuilder.dropTableIfExists(tableB));
   }
