@@ -27,10 +27,16 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
+import static java.util.Map.entry;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.event.EventChangeLog.Change;
@@ -42,61 +48,79 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.tracker.export.event.ChangeLogStore")
 @RequiredArgsConstructor
 class JdbcEventChangeLogStore {
+  private static final String COLUMN_CHANGELOG_CREATED = "created";
+  private static final String DEFAULT_ORDER =
+      COLUMN_CHANGELOG_CREATED + " " + SortDirection.DESC.getValue();
+
+  /**
+   * Event change logs can be ordered by given fields which correspond to fields on {@link
+   * org.hisp.dhis.tracker.export.event.EventChangeLog}. Maps fields to DB columns. The order
+   * implementation for change logs is different from other tracker exporters {@link
+   * org.hisp.dhis.tracker.export.event.EventChangeLog} is the view which is already returned from
+   * the service/store. Tracker exporter services return a representation we have to map to a view
+   * model. This mapping is not necessary for change logs.
+   */
+  private static final Map<String, String> ORDERABLE_FIELDS =
+      Map.ofEntries(entry("createdAt", COLUMN_CHANGELOG_CREATED));
 
   private final NamedParameterJdbcTemplate jdbcTemplate;
 
   private static final RowMapper<EventChangeLog> customEventChangeLogRowMapper =
       (rs, rowNum) -> {
         UserInfoSnapshot createdBy = new UserInfoSnapshot();
-        createdBy.setUsername(rs.getString("userName"));
+        createdBy.setUsername(rs.getString("username"));
         createdBy.setFirstName(rs.getString("firstname"));
         createdBy.setSurname(rs.getString("surname"));
         createdBy.setUid(rs.getString("useruid"));
 
         return new EventChangeLog(
             createdBy,
-            rs.getTimestamp("createdat"),
+            rs.getTimestamp(COLUMN_CHANGELOG_CREATED),
             rs.getString("type"),
             new Change(
                 new EventChangeLog.DataValueChange(
-                    rs.getString("dataElementUid"),
-                    rs.getString("previousValue"),
-                    rs.getString("currentValue"))));
+                    rs.getString("dataelementuid"),
+                    rs.getString("previousvalue"),
+                    rs.getString("currentvalue"))));
       };
 
-  public Page<EventChangeLog> getEventChangeLog(UID event, PageParams pageParams) {
-    final String sql =
+  public Page<EventChangeLog> getEventChangeLog(
+      UID event, List<Order> order, PageParams pageParams) {
+    // language=SQL
+    String sql =
         """
             select
+              cl.type,
               case
-                when cl.audittype = 'CREATE' then cl.previouschangelogvalue
-                when cl.audittype = 'UPDATE' and cl.currentchangelogvalue is null then cl.currentValue
-                when cl.audittype = 'UPDATE' and cl.currentchangelogvalue is not null then cl.currentchangelogvalue
-              end as currentValue,
+                when cl.type = 'CREATE' then cl.previouschangelogvalue
+                when cl.type = 'UPDATE' and cl.currentchangelogvalue is null then cl.currentvalue
+                when cl.type = 'UPDATE' and cl.currentchangelogvalue is not null then cl.currentchangelogvalue
+              end as currentvalue,
               case
-                when cl.audittype = 'DELETE' then cl.previouschangelogvalue
-                when cl.audittype = 'UPDATE' and cl.currentchangelogvalue is null then cl.previouschangelogvalue
-                when cl.audittype = 'UPDATE' and cl.currentchangelogvalue is not null then cl.previouschangelogvalue
-              end as previousValue, cl.created as createdat, cl.modifiedby as userName, cl.dataElementUid as dataElementUid, cl.firstname, cl.surname, cl.username, cl.useruid, cl.audittype as type
+                when cl.type = 'DELETE' then cl.previouschangelogvalue
+                when cl.type = 'UPDATE' then cl.previouschangelogvalue
+              end as previousvalue, cl.dataelementuid, cl.created, cl.username, cl.firstname, cl.surname, cl.useruid
             from
-              (select t.created, d.uid as dataElementUid, t.modifiedby, t.audittype, u.firstname, u.surname, u.username, u.uid as useruid,
+              (select t.created, d.uid as dataelementuid, t.audittype as type, u.firstname, u.surname, u.username, u.uid as useruid,
                   LAG (t.value) OVER (PARTITION BY t.eventid, t.dataelementid ORDER BY t.created DESC) AS currentchangelogvalue,
                   t.value as previouschangelogvalue,
-                  e.eventdatavalues -> d.uid  ->> 'value' as currentValue
+                  e.eventdatavalues -> d.uid  ->> 'value' as currentvalue
               from trackedentitydatavalueaudit t
               join event e using (eventid)
               join dataelement d using (dataelementid)
               join userinfo u on u.username = t.modifiedby
               where t.audittype in ('CREATE', 'UPDATE', 'DELETE')
               and e.uid = :uid
-              order by t.created desc) cl
+              order by %s) cl
               limit :limit offset :offset
-            """;
+            """
+            .formatted(sortExpressions(order));
 
     final MapSqlParameterSource parameters = new MapSqlParameterSource();
-    parameters.addValue("uid", event.getValue());
-    parameters.addValue("limit", pageParams.getPageSize() + 1);
-    parameters.addValue("offset", (pageParams.getPage() - 1) * pageParams.getPageSize());
+    parameters
+        .addValue("uid", event.getValue())
+        .addValue("limit", pageParams.getPageSize() + 1)
+        .addValue("offset", (pageParams.getPage() - 1) * pageParams.getPageSize());
 
     List<EventChangeLog> changeLogs =
         jdbcTemplate.query(sql, parameters, customEventChangeLogRowMapper);
@@ -113,5 +137,19 @@ class JdbcEventChangeLogStore {
 
     return Page.withPrevAndNext(
         changeLogs, pageParams.getPage(), pageParams.getPageSize(), prevPage, null);
+  }
+
+  private static String sortExpressions(List<Order> order) {
+    if (order.isEmpty()) {
+      return DEFAULT_ORDER;
+    }
+
+    return ORDERABLE_FIELDS.get(order.get(0).getField())
+        + " "
+        + order.get(0).getDirection().getValue();
+  }
+
+  public Set<String> getOrderableFields() {
+    return ORDERABLE_FIELDS.keySet();
   }
 }
