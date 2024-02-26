@@ -51,8 +51,8 @@ public class WebLocale {
   }
 
   /**
-   * By default, for backwards compatibility reasons, Java maps Indonesian locales to the old
-   * 'in' ISO format, even if we pass 'id' into a {@link Locale} constructor. See {@link
+   * By default, for backwards compatibility reasons, Java maps Indonesian locales to the old 'in'
+   * ISO format, even if we pass 'id' into a {@link Locale} constructor. See {@link
    * Locale#convertOldISOCodes(String)}. As we use our own {@link WebLocale} class, we can control
    * the codes being returned through the API. This method sets the Indonesian codes to the codes we
    * want to use in the API (which conform with the newer, universally-accepted ISO language formats
