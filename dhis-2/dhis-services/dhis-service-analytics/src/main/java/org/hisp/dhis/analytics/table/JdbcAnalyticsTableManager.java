@@ -292,22 +292,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   }
 
   /**
-   * Returns a partition SQL clause.
-   *
-   * @param partition the {@link AnalyticsTablePartition}.
-   * @return a partition SQL clause.
-   */
-  private String getPartitionClause(AnalyticsTablePartition partition) {
-    String latestFilter =
-        format("and dv.lastupdated >= '%s' ", toLongDate(partition.getStartDate()));
-    String partitionFilter = format("and ps.year = %d ", partition.getYear());
-
-    return partition.isLatestPartition()
-        ? latestFilter
-        : sqlBuilder.supportsDeclarativePartitioning() ? EMPTY : partitionFilter;
-  }
-
-  /**
    * Populates the given analytics table.
    *
    * @param valueExpression numeric value expression.
@@ -452,6 +436,22 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     }
 
     return StringUtils.EMPTY;
+  }
+
+  /**
+   * Returns a partition SQL clause.
+   *
+   * @param partition the {@link AnalyticsTablePartition}.
+   * @return a partition SQL clause.
+   */
+  private String getPartitionClause(AnalyticsTablePartition partition) {
+    String latestFilter =
+        format("and dv.lastupdated >= '%s' ", toLongDate(partition.getStartDate()));
+    String partitionFilter = format("and ps.year = %d ", partition.getYear());
+
+    return partition.isLatestPartition()
+        ? latestFilter
+        : sqlBuilder.supportsDeclarativePartitioning() ? EMPTY : partitionFilter;
   }
 
   private List<AnalyticsTableColumn> getColumns(AnalyticsTableUpdateParams params) {
