@@ -101,20 +101,17 @@ class JdbcEventChangeLogStore {
     List<EventChangeLog> changeLogs =
         jdbcTemplate.query(sql, parameters, customEventChangeLogRowMapper);
 
+    Integer prevPage = pageParams.getPage() > 1 ? pageParams.getPage() - 1 : null;
     if (changeLogs.size() > pageParams.getPageSize()) {
       return Page.withPrevAndNext(
           changeLogs.subList(0, pageParams.getPageSize()),
           pageParams.getPage(),
           pageParams.getPageSize(),
-          pageParams.getPage() != 1,
-          true);
+          prevPage,
+          pageParams.getPage() + 1);
     }
 
     return Page.withPrevAndNext(
-        changeLogs,
-        pageParams.getPage(),
-        pageParams.getPageSize(),
-        pageParams.getPage() != 1,
-        false);
+        changeLogs, pageParams.getPage(), pageParams.getPageSize(), prevPage, null);
   }
 }
