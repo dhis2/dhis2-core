@@ -17,8 +17,8 @@
   </bean>
 
   <bean id="org.hisp.dhis.security.ActionAccessResolver" class="org.hisp.dhis.security.SpringSecurityActionAccessResolver">
-<!--    <property name="requiredAuthoritiesProvider" ref="org.hisp.dhis.security.authority.RequiredAuthoritiesProvider" />-->
-<!--    <property name="accessDecisionManager" ref="accessDecisionManager" />-->
+    <property name="requiredAuthoritiesProvider" ref="org.hisp.dhis.security.authority.RequiredAuthoritiesProvider" />
+    <property name="accessDecisionManager" ref="accessDecisionManager" />
   </bean>
 
   <bean id="org.hisp.dhis.webportal.module.ModuleManager" class="org.hisp.dhis.webportal.module.DefaultModuleManager">
@@ -459,6 +459,9 @@
   <bean id="org.hisp.dhis.interceptor.SystemSettingInterceptor" class="org.hisp.dhis.interceptor.SystemSettingInterceptor">
     <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
     <property name="configurationService" ref="org.hisp.dhis.configuration.ConfigurationService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.interceptor.ContextInterceptor" class="org.hisp.dhis.interceptor.ContextInterceptor">
   </bean>
 
   <bean id="org.hisp.dhis.interceptor.CacheInterceptor" class="org.hisp.dhis.interceptor.CacheInterceptor" />
