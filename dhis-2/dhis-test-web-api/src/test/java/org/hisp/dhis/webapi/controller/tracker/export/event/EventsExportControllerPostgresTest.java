@@ -157,6 +157,7 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
         () -> assertEquals(currentUser.getUsername(), createdBy.getUsername()),
         () -> assertEquals(currentUser.getFirstName(), createdBy.getFirstName()),
         () -> assertEquals(currentUser.getSurname(), createdBy.getSurname()),
+        () -> assertEquals("DELETE", changeLog.getType()),
         () -> assertEquals(dataElement.getUid(), dataValueChange.getDataElement()),
         () -> assertEquals("value 3", dataValueChange.getPreviousValue()),
         () -> assertHasNoMember(dataValueChange, "currentValue"));

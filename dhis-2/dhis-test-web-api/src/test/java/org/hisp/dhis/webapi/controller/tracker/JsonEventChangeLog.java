@@ -35,6 +35,10 @@ public interface JsonEventChangeLog extends JsonObject {
     return get("createdBy").as(JsonUser.class);
   }
 
+  default String getType() {
+    return getString("type").string();
+  }
+
   default JsonChange getChange() {
     return get("change").as(JsonChange.class);
   }

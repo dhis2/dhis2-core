@@ -56,6 +56,7 @@ class JdbcEventChangeLogStore {
         return new EventChangeLog(
             createdBy,
             rs.getTimestamp("updatedAt"),
+            rs.getString("type"),
             new Change(
                 new EventChangeLog.DataValueChange(
                     rs.getString("dataElementUid"),
@@ -76,7 +77,7 @@ class JdbcEventChangeLogStore {
                 when cl.audittype = 'DELETE' then cl.previouschangelogvalue
                 when cl.audittype = 'UPDATE' and cl.currentchangelogvalue is null then cl.previouschangelogvalue
                 when cl.audittype = 'UPDATE' and cl.currentchangelogvalue is not null then cl.previouschangelogvalue
-              end as previousValue, cl.created as updatedAt, cl.modifiedby as userName, cl.dataElementUid as dataElementUid, cl.firstname, cl.surname, cl.username, cl.useruid
+              end as previousValue, cl.created as updatedAt, cl.modifiedby as userName, cl.dataElementUid as dataElementUid, cl.firstname, cl.surname, cl.username, cl.useruid, cl.audittype as type
             from
               (select t.created, d.uid as dataElementUid, t.modifiedby, t.audittype, u.firstname, u.surname, u.username, u.uid as useruid,
                   LAG (t.value) OVER (PARTITION BY t.eventid, t.dataelementid ORDER BY t.created DESC) AS currentchangelogvalue,
