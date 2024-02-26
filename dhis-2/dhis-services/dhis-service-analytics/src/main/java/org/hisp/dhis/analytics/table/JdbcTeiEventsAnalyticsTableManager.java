@@ -33,7 +33,6 @@ import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getEndDate;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getStartDate;
-import static org.hisp.dhis.analytics.util.AnalyticsUtils.getDateLinkedToStatus;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_32;
@@ -201,7 +200,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
         new StringBuilder("select temp.supportedyear from")
             .append(
                 " (select distinct extract(year from "
-                    + getDateLinkedToStatus()
+                    + dateLinkedToStatusClause
                     + ") as supportedyear ")
             .append(" from trackedentity tei ")
             .append(
@@ -210,14 +209,14 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
             .append(" inner join event psi on psi.enrollmentid = pi.enrollmentid")
             .append(" where psi.lastupdated <= '" + toLongDate(params.getStartTime()) + "' ")
             .append(" and tet.trackedentitytypeid = " + tet.getId() + " ")
-            .append(AND + getDateLinkedToStatus() + ") is not null ")
-            .append(AND + getDateLinkedToStatus() + ") > '1000-01-01' ")
+            .append(AND + dateLinkedToStatusClause + ") is not null ")
+            .append(AND + dateLinkedToStatusClause + ") > '1000-01-01' ")
             .append(" and psi.deleted is false ")
             .append(" and tei.deleted is false");
 
     if (params.getFromDate() != null) {
       sql.append(
-          AND + getDateLinkedToStatus() + ") >= '" + toMediumDate(params.getFromDate()) + "'");
+          AND + dateLinkedToStatusClause + ") >= '" + toMediumDate(params.getFromDate()) + "'");
     }
 
     List<Integer> availableDataYears =
@@ -308,10 +307,11 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
   private String getPartitionClause(AnalyticsTablePartition partition) {
     String start = toLongDate(partition.getStartDate());
     String end = toLongDate(partition.getEndDate());
-    String statusDate = getDateLinkedToStatus();
     String latestFilter = format("and psi.lastupdated >= '%s' ", start);
     String partitionFilter =
-        format("and (%s) >= '%s' and (%s) < '%s' ", statusDate, start, statusDate, end);
+        format(
+            "and (%s) >= '%s' and (%s) < '%s' ",
+            dateLinkedToStatusClause, start, dateLinkedToStatusClause, end);
 
     return partition.isLatestPartition() ? latestFilter : partitionFilter;
   }

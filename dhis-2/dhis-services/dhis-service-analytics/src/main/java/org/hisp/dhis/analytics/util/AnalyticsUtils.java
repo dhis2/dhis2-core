@@ -1145,15 +1145,4 @@ public class AnalyticsUtils {
 
     return Optional.empty();
   }
-
-  /**
-   * Encapsulates the SQL logic to get the correct date column based on the event(program stage
-   * instance) status. If new statuses need to be loaded into the analytics events tables, they have
-   * to be supported/added into this logic.
-   *
-   * @return a statement that returns the date column related to the event status.
-   */
-  public static String getDateLinkedToStatus() {
-    return "CASE WHEN 'SCHEDULE' = psi.status THEN psi.scheduleddate ELSE psi.occurreddate END";
-  }
 }
