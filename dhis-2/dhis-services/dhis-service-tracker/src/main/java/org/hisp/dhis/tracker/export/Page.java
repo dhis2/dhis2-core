@@ -28,24 +28,42 @@
 package org.hisp.dhis.tracker.export;
 
 import java.util.List;
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
-import org.hisp.dhis.common.Pager;
 
-@RequiredArgsConstructor(staticName = "of")
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
 @ToString
 @EqualsAndHashCode
 public class Page<T> {
   private final List<T> items;
-  private final Pager pager;
+  private final int page;
+  private final int pageSize;
+  private final Long total;
+  private final Boolean prev;
+  private final Boolean next;
 
   /**
-   * Indicates if the {@link #pager} contains the total number of items. The current {@link #pager}
-   * does not reveal that information as it was meant for metadata that does not allow disabling the
-   * return of totals.
+   * Create a new page based on an existing one but with given {@code items}. Page related counts
+   * will not be changed so make sure the given {@code items} match the previous page size.
    */
-  private final boolean pageTotal;
+  public <U> Page<U> withItems(List<U> items) {
+    return new Page<>(items, this.page, this.pageSize, this.total, this.prev, this.next);
+  }
+
+  public static <T> Page<T> withTotals(List<T> items, int page, int pageSize, long total) {
+    return new Page<>(items, page, pageSize, total, null, null);
+  }
+
+  public static <T> Page<T> withoutTotals(List<T> items, int page, int pageSize) {
+    return new Page<>(items, page, pageSize, null, null, null);
+  }
+
+  public static <T> Page<T> withPrevAndNext(
+      List<T> items, int page, int pageSize, boolean prev, boolean next) {
+    return new Page<>(items, page, pageSize, null, prev, next);
+  }
 }

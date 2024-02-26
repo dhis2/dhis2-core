@@ -37,7 +37,6 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.deduplication.DeduplicationMergeParams;
 import org.hisp.dhis.deduplication.DeduplicationService;
 import org.hisp.dhis.deduplication.DeduplicationStatus;
@@ -113,11 +112,12 @@ public class DeduplicationController {
     setNoStore(response);
 
     if (criteria.isPaged()) {
-      Pager pager = new Pager(criteria.getPageWithDefault(), 0, criteria.getPageSizeWithDefault());
-      pager.force(criteria.getPageWithDefault(), criteria.getPageSizeWithDefault());
       org.hisp.dhis.tracker.export.Page<PotentialDuplicate> page =
-          org.hisp.dhis.tracker.export.Page.of(potentialDuplicates, pager, false);
-      return Page.withPager("potentialDuplicates", objectNodes, page);
+          org.hisp.dhis.tracker.export.Page.withoutTotals(
+              potentialDuplicates,
+              criteria.getPageWithDefault(),
+              criteria.getPageSizeWithDefault());
+      return Page.withPager("potentialDuplicates", page.withItems(objectNodes));
     }
 
     return Page.withoutPager("potentialDuplicates", objectNodes);

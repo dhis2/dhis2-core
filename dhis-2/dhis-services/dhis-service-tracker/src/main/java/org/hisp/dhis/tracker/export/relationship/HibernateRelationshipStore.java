@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.IntSupplier;
+import java.util.function.LongSupplier;
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -42,7 +42,6 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
@@ -162,7 +161,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
    * @return
    * @param <T> relationships count
    */
-  private <T extends SoftDeletableObject> int countRelationships(
+  private <T extends SoftDeletableObject> long countRelationships(
       T entity, RelationshipQueryParams queryParams) {
 
     CriteriaBuilder builder = getCriteriaBuilder();
@@ -176,7 +175,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
         whereConditionPredicates(
             entity, builder, criteriaQuery, root, queryParams.isIncludeDeleted()));
 
-    return getSession().createQuery(criteriaQuery).getSingleResult().intValue();
+    return getSession().createQuery(criteriaQuery).getSingleResult().longValue();
   }
 
   private <T extends SoftDeletableObject> CriteriaQuery<Relationship> criteriaQuery(
@@ -268,17 +267,16 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
   }
 
   private Page<Relationship> getPage(
-      PageParams pageParams, List<Relationship> relationships, IntSupplier relationshipsCount) {
-
+      PageParams pageParams, List<Relationship> relationships, LongSupplier relationshipsCount) {
     if (pageParams.isPageTotal()) {
-      Pager pager =
-          new Pager(pageParams.getPage(), relationshipsCount.getAsInt(), pageParams.getPageSize());
-      return Page.of(relationships, pager, pageParams.isPageTotal());
+      return Page.withTotals(
+          relationships,
+          pageParams.getPage(),
+          pageParams.getPageSize(),
+          relationshipsCount.getAsLong());
     }
 
-    Pager pager = new Pager(pageParams.getPage(), 0, pageParams.getPageSize());
-    pager.force(pageParams.getPage(), pageParams.getPageSize());
-    return Page.of(relationships, pager, pageParams.isPageTotal());
+    return Page.withoutTotals(relationships, pageParams.getPage(), pageParams.getPageSize());
   }
 
   @Override
