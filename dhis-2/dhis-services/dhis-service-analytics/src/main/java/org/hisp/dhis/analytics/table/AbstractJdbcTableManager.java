@@ -147,7 +147,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * instance) status. If new statuses need to be loaded into the analytics events tables, they have
    * to be supported/added into this logic.
    */
-  protected final String dateLinkedToStatusClause =
+  protected final String eventDateExpression =
       "CASE WHEN 'SCHEDULE' = psi.status THEN psi.scheduleddate ELSE psi.occurreddate END";
 
   // -------------------------------------------------------------------------

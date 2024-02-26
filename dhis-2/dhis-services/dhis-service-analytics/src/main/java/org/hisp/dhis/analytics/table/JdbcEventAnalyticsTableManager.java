@@ -434,13 +434,13 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             + "left join _orgunitstructure ous on psi.organisationunitid=ous.organisationunitid "
             + "left join _organisationunitgroupsetstructure ougs on psi.organisationunitid=ougs.organisationunitid "
             + "and (cast(date_trunc('month', "
-            + dateLinkedToStatusClause
+            + eventDateExpression
             + ") as date)"
             + "=ougs.startdate or ougs.startdate is null) "
             + "left join organisationunit enrollmentou on pi.organisationunitid=enrollmentou.organisationunitid "
             + "inner join _categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid "
             + "left join _dateperiodstructure dps on cast("
-            + dateLinkedToStatusClause
+            + eventDateExpression
             + " as date)=dps.dateperiod "
             + "where psi.lastupdated < '"
             + toLongDate(params.getStartTime())
@@ -451,7 +451,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             + " "
             + "and psi.organisationunitid is not null "
             + "and ("
-            + dateLinkedToStatusClause
+            + eventDateExpression
             + ") is not null "
             + "and dps.year >= "
             + firstDataYear
@@ -476,7 +476,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   private String getPartitionClause(AnalyticsTablePartition partition) {
     String start = toLongDate(partition.getStartDate());
     String end = toLongDate(partition.getEndDate());
-    String statusDate = dateLinkedToStatusClause;
+    String statusDate = eventDateExpression;
     String latestFilter = format("and psi.lastupdated >= '%s' ", start);
     String partitionFilter =
         format("and (%s) >= '%s' and (%s) < '%s' ", statusDate, start, statusDate, end);
@@ -770,7 +770,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String sql =
         "select temp.supportedyear from "
             + "(select distinct extract(year from "
-            + dateLinkedToStatusClause
+            + eventDateExpression
             + ") as supportedyear "
             + "from event psi "
             + "inner join enrollment pi on psi.enrollmentid = pi.enrollmentid "
@@ -781,16 +781,15 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             + program.getId()
             + " "
             + "and ("
-            + dateLinkedToStatusClause
+            + eventDateExpression
             + ") is not null "
             + "and ("
-            + dateLinkedToStatusClause
+            + eventDateExpression
             + ") > '1000-01-01' "
             + "and psi.deleted is false ";
 
     if (params.getFromDate() != null) {
-      sql +=
-          "and (" + dateLinkedToStatusClause + ") >= '" + toMediumDate(params.getFromDate()) + "'";
+      sql += "and (" + eventDateExpression + ") >= '" + toMediumDate(params.getFromDate()) + "'";
     }
 
     sql +=
