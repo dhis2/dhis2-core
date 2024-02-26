@@ -28,9 +28,17 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
+import java.util.stream.Collectors;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.domain.JsonWebLocale;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -79,5 +87,31 @@ class LocaleControllerTest extends DhisControllerConvenienceTest {
         "ERROR",
         "Locale code existed.",
         POST("/locales/dbLocales?language=en&country=GB").content(HttpStatus.CONFLICT));
+  }
+
+  @Test
+  @DisplayName("Indonesian locales are returned with the expected locale codes")
+  void indonesianLocaleCodesTest() {
+    // given
+    String userEnglishLocale =
+        GET("/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID)
+            .content("text/plain; charset=UTF-8");
+    assertEquals("en", userEnglishLocale);
+
+    // when
+    JsonObject response = GET("/locales/ui").content();
+
+    // then
+    List<String> localeCodes =
+        response.asList(JsonWebLocale.class).stream()
+            .map(JsonWebLocale::getLocale)
+            .collect(Collectors.toList());
+
+    assertTrue(
+        localeCodes.containsAll(List.of("id", "id_ID")),
+        "Locales 'id' and 'id_ID' should be present");
+    assertFalse(
+        localeCodes.containsAll(List.of("in", "in_ID")),
+        "Locales 'in' and 'in_ID' should not be present");
   }
 }
