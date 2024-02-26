@@ -30,7 +30,6 @@ package org.hisp.dhis.db.sql;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.util.List;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
@@ -122,9 +121,7 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
             new Column("p", DataType.GEOMETRY_POINT),
             new Column("q", DataType.JSONB));
 
-    List<String> primaryKey = List.of("id");
-
-    return new Table("a", columns, primaryKey);
+    return new Table("a", columns, List.of());
   }
 
   @Test
