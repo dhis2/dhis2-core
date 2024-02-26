@@ -34,7 +34,7 @@ import static org.hisp.dhis.db.model.DataType.INTEGER;
 import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
-import static org.hisp.dhis.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -190,7 +190,7 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
             + partition.getYear()
             + " "
             + "and vrs.created < '"
-            + getLongDateString(params.getStartTime())
+            + toLongDate(params.getStartTime())
             + "' "
             + "and vrs.created is not null";
 
@@ -204,11 +204,11 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
             + "inner join period pe on vrs.periodid=pe.periodid "
             + "where pe.startdate is not null "
             + "and vrs.created < '"
-            + getLongDateString(params.getStartTime())
+            + toLongDate(params.getStartTime())
             + "' ";
 
     if (params.getFromDate() != null) {
-      sql += "and pe.startdate >= '" + DateUtils.getMediumDateString(params.getFromDate()) + "'";
+      sql += "and pe.startdate >= '" + DateUtils.toMediumDate(params.getFromDate()) + "'";
     }
 
     return jdbcTemplate.queryForList(sql, Integer.class);

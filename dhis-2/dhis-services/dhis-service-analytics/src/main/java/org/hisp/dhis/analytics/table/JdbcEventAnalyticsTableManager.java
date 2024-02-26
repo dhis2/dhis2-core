@@ -45,7 +45,7 @@ import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
-import static org.hisp.dhis.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.time.Year;
 import java.util.ArrayList;
@@ -345,14 +345,14 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         log.info(
             "Added latest event analytics partition for program: '{}' with start: '{}' and end: '{}'",
             program.getUid(),
-            getLongDateString(startDate),
-            getLongDateString(endDate));
+            toLongDate(startDate),
+            toLongDate(endDate));
       } else {
         log.info(
             "No updated latest event data found for program: '{}' with start: '{}' and end: '{}",
             program.getUid(),
-            getLongDateString(lastAnyTableUpdate),
-            getLongDateString(endDate));
+            toLongDate(lastAnyTableUpdate),
+            toLongDate(endDate));
       }
     }
 
@@ -377,10 +377,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             + program.getId()
             + " "
             + "and psi.lastupdated >= '"
-            + getLongDateString(startDate)
+            + toLongDate(startDate)
             + "' "
             + "and psi.lastupdated < '"
-            + getLongDateString(endDate)
+            + toLongDate(endDate)
             + "' "
             + "limit 1";
 
@@ -404,10 +404,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               + table.getProgram().getId()
               + " "
               + "and psi.lastupdated >= '"
-              + getLongDateString(partition.getStartDate())
+              + toLongDate(partition.getStartDate())
               + "' "
               + "and psi.lastupdated < '"
-              + getLongDateString(partition.getEndDate())
+              + toLongDate(partition.getEndDate())
               + "')";
 
       invokeTimeAndLog(sql, format("Remove updated events for table: '%s'", table.getName()));
@@ -430,8 +430,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     Integer latestDataYear = availableDataYears.get(availableDataYears.size() - 1);
 
     Program program = partition.getMasterTable().getProgram();
-    String start = DateUtils.getLongDateString(partition.getStartDate());
-    String end = DateUtils.getLongDateString(partition.getEndDate());
+    String start = DateUtils.toLongDate(partition.getStartDate());
+    String end = DateUtils.toLongDate(partition.getEndDate());
     String partitionClause =
         partition.isLatestPartition()
             ? "and psi.lastupdated >= '" + start + "' "
@@ -470,7 +470,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             + getDateLinkedToStatus()
             + " as date)=dps.dateperiod "
             + "where psi.lastupdated < '"
-            + getLongDateString(params.getStartTime())
+            + toLongDate(params.getStartTime())
             + "' "
             + partitionClause
             + "and pr.programid="
@@ -786,7 +786,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             + "from event psi "
             + "inner join enrollment pi on psi.enrollmentid = pi.enrollmentid "
             + "where psi.lastupdated <= '"
-            + getLongDateString(params.getStartTime())
+            + toLongDate(params.getStartTime())
             + "' "
             + "and pi.programid = "
             + program.getId()
@@ -804,7 +804,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
           "and ("
               + getDateLinkedToStatus()
               + ") >= '"
-              + DateUtils.getMediumDateString(params.getFromDate())
+              + DateUtils.toMediumDate(params.getFromDate())
               + "'";
     }
 

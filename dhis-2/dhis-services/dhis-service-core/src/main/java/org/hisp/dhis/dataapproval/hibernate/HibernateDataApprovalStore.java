@@ -374,8 +374,8 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
         CurrentUserUtil.getCurrentUserDetails() != null
             && CurrentUserUtil.getCurrentUserDetails().isSuper();
 
-    final String startDate = DateUtils.getMediumDateString(period.getStartDate());
-    final String endDate = DateUtils.getMediumDateString(period.getEndDate());
+    final String startDate = DateUtils.toMediumDate(period.getStartDate());
+    final String endDate = DateUtils.toMediumDate(period.getEndDate());
 
     DataApprovalLevel highestApprovalLevel = approvalLevels.get(0);
     DataApprovalLevel highestUserApprovalLevel = userApprovalLevels.get(0);
