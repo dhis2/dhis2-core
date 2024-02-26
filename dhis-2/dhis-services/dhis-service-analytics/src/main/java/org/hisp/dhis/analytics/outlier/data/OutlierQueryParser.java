@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.data.DimensionalObjectProducer;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -233,12 +234,13 @@ public class OutlierQueryParser {
    * @param relativePeriod the {@link RelativePeriodEnum}.
    * @return list of the {@link Period}.
    */
-  private List<Period> getPeriods(RelativePeriodEnum relativePeriod, Date relativePeriodDate) {
-    if (relativePeriod == null) {
-      return new ArrayList<>();
+  private List<Period> getPeriods(String relativePeriod, Date relativePeriodDate) {
+    if (StringUtils.isBlank(relativePeriod)) {
+      return List.of();
     }
+
     return dimensionalObjectProducer
-        .getPeriodDimension(List.of(relativePeriod.name()), relativePeriodDate)
+        .getPeriodDimension(List.of(relativePeriod), relativePeriodDate)
         .getItems()
         .stream()
         .map(pe -> (Period) pe)
