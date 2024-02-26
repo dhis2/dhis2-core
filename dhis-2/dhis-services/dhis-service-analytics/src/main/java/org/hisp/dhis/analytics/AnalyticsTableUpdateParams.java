@@ -128,7 +128,7 @@ public class AnalyticsTableUpdateParams {
         .add("skip table types", skipTableTypes)
         .add("skip programs", skipPrograms)
         .add("skip outliers statistics", skipOutliers)
-        .add("start time", DateUtils.getLongDateString(startTime))
+        .add("start time", DateUtils.toLongDate(startTime))
         .toString();
   }
 

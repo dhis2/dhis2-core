@@ -28,10 +28,10 @@
 package org.hisp.dhis.db.model;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 import static org.hisp.dhis.db.model.Logged.UNLOGGED;
 import static org.hisp.dhis.util.ObjectUtils.notNull;
 
+import java.util.ArrayList;
 import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -67,8 +67,11 @@ public class Table {
   /** Whether table is logged or unlogged. PostgreSQL-only feature. */
   private final Logged logged;
 
-  /** Parent table. This table will inherit from the parent table, if specified. Optional. */
+  /** Parent table. This table inherits from the parent if specified. Optional. */
   private final Table parent;
+
+  /** Table partitions. */
+  private final List<TablePartition> partitions = new ArrayList<>();
 
   /**
    * Constructor.
@@ -78,7 +81,12 @@ public class Table {
    * @param primaryKey the primary key.
    */
   public Table(String name, List<Column> columns, List<String> primaryKey) {
-    this(name, columns, primaryKey, List.of(), UNLOGGED, null);
+    this.name = name;
+    this.columns = columns;
+    this.primaryKey = primaryKey;
+    this.checks = List.of();
+    this.logged = Logged.UNLOGGED;
+    this.parent = null;
     this.validate();
   }
 
@@ -91,7 +99,12 @@ public class Table {
    * @param logged the {@link Logged} parameter.
    */
   public Table(String name, List<Column> columns, List<String> primaryKey, Logged logged) {
-    this(name, columns, primaryKey, List.of(), logged, null);
+    this.name = name;
+    this.columns = columns;
+    this.primaryKey = primaryKey;
+    this.checks = List.of();
+    this.logged = logged;
+    this.parent = null;
     this.validate();
   }
 
@@ -110,7 +123,12 @@ public class Table {
       List<String> primaryKey,
       List<String> checks,
       Logged logged) {
-    this(name, columns, primaryKey, checks, logged, null);
+    this.name = name;
+    this.columns = columns;
+    this.primaryKey = primaryKey;
+    this.checks = checks;
+    this.logged = logged;
+    this.parent = null;
     this.validate();
   }
 
@@ -135,7 +153,7 @@ public class Table {
     this.columns = columns;
     this.primaryKey = primaryKey;
     this.checks = checks;
-    this.logged = firstNonNull(logged, UNLOGGED);
+    this.logged = logged;
     this.parent = parent;
     this.validate();
   }
@@ -165,6 +183,15 @@ public class Table {
   }
 
   /**
+   * Returns the first primary key column name, or null if none exist.
+   *
+   * @return the first primary key column name, or null if none exist.
+   */
+  public String getFirstPrimaryKey() {
+    return hasPrimaryKey() ? primaryKey.get(0) : null;
+  }
+
+  /**
    * Indicates whether the table has at least one check.
    *
    * @return true if the table has at least one check.
@@ -189,6 +216,24 @@ public class Table {
    */
   public boolean hasParent() {
     return notNull(parent);
+  }
+
+  /**
+   * Indicates whether the table has at least one partition.
+   *
+   * @return true if the table has at least one partition.
+   */
+  public boolean hasPartitions() {
+    return isNotEmpty(partitions);
+  }
+
+  /**
+   * Adds a partition to this table.
+   *
+   * @param partition the {@link TablePartition}.
+   */
+  public void addPartition(TablePartition partition) {
+    this.partitions.add(partition);
   }
 
   /**

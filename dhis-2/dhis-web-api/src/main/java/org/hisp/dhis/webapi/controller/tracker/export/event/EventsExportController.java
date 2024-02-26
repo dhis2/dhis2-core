@@ -62,6 +62,8 @@ import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.tracker.export.PageParams;
+import org.hisp.dhis.tracker.export.event.EventChangeLog;
+import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
@@ -101,19 +103,23 @@ class EventsExportController {
 
   private final ObjectMapper objectMapper;
 
+  private final EventChangeLogService eventChangeLogService;
+
   public EventsExportController(
       EventService eventService,
       EventRequestParamsMapper eventParamsMapper,
       CsvService<Event> csvEventService,
       FieldFilterService fieldFilterService,
       EventFieldsParamMapper eventsMapper,
-      ObjectMapper objectMapper) {
+      ObjectMapper objectMapper,
+      EventChangeLogService eventChangeLogService) {
     this.eventService = eventService;
     this.eventParamsMapper = eventParamsMapper;
     this.csvEventService = csvEventService;
     this.fieldFilterService = fieldFilterService;
     this.eventsMapper = eventsMapper;
     this.objectMapper = objectMapper;
+    this.eventChangeLogService = eventChangeLogService;
 
     assertUserOrderableFieldsAreSupported(
         "event", EventMapper.ORDERABLE_FIELDS, eventService.getOrderableFields());
@@ -137,7 +143,7 @@ class EventsExportController {
           fieldFilterService.toObjectNodes(
               EVENTS_MAPPER.fromCollection(eventsPage.getItems()), requestParams.getFields());
 
-      return Page.withPager(EVENTS, objectNodes, eventsPage);
+      return Page.withPager(EVENTS, eventsPage.withItems(objectNodes));
     }
 
     List<org.hisp.dhis.program.Event> events = eventService.getEvents(eventOperationParams);
@@ -287,5 +293,21 @@ class EventsExportController {
       throws NotFoundException, ConflictException, BadRequestException {
     return handleFileRequest(
         request, eventService.getFileResourceImage(event, dataElement, dimension));
+  }
+
+  @GetMapping("/{event}/changeLogs")
+  Page<ObjectNode> getEventChangeLogByUid(
+      @OpenApi.Param({UID.class, Event.class}) @PathVariable UID event,
+      ChangeLogRequestParams requestParams,
+      HttpServletRequest request)
+      throws NotFoundException {
+    PageParams pageParams =
+        new PageParams(requestParams.getPage(), requestParams.getPageSize(), false);
+    org.hisp.dhis.tracker.export.Page<EventChangeLog> changeLogs =
+        eventChangeLogService.getEventChangeLog(event, pageParams);
+
+    List<ObjectNode> objectNodes =
+        fieldFilterService.toObjectNodes(changeLogs.getItems(), requestParams.getFields());
+    return Page.withPager("changeLogs", changeLogs.withItems(objectNodes), request);
   }
 }

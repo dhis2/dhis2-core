@@ -187,12 +187,7 @@ public enum SettingKey {
   REMOTE_INSTANCE_USERNAME("keyRemoteInstanceUsername", "", String.class),
   REMOTE_INSTANCE_PASSWORD("keyRemoteInstancePassword", "", String.class, true, false),
   GOOGLE_MAPS_API_KEY("keyGoogleMapsApiKey", "", String.class, false, false),
-  BING_MAPS_API_KEY(
-      "keyBingMapsApiKey",
-      "AoifMs0zqvpAEuI6OX5Kk93rEM-oLrvQIJe_xdCv1BF4J3yquFnUozze-M7gEf0b",
-      String.class,
-      false,
-      false),
+  BING_MAPS_API_KEY("keyBingMapsApiKey", "", String.class, false, false),
   LAST_SUCCESSFUL_METADATA_SYNC("keyLastMetaDataSyncSuccess", Date.class),
   METADATAVERSION_ENABLED("keyVersionEnabled", Boolean.FALSE, Boolean.class),
   METADATA_FAILED_VERSION("keyMetadataFailedVersion", String.class),

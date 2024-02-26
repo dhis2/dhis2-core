@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.security.ForwardedIpAwareWebAuthenticationDetails;
 import org.hisp.dhis.security.TwoFactoryAuthenticationUtils;
+import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
@@ -84,9 +85,13 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
       throw new LockedException(String.format("IP is temporarily locked: %s", ip));
     }
 
+    // Calls the UserDetailsService#loadUserByUsername(), to create the UserDetails object,
+    // after password is validated.
     Authentication result = super.authenticate(auth);
     UserDetails principal = (UserDetails) result.getPrincipal();
 
+    // Prevents other authentication methods (e.g. OAuth2/LDAP),
+    // to use password login.
     if (principal.isExternalAuth()) {
       log.info(
           "User is using external authentication, password login attempt aborted: '{}'", username);
@@ -138,13 +143,13 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
       log.debug("Two-factor authentication failure for user: '{}'", user.getUsername());
 
       if (UserService.hasTwoFactorSecretForApproval(user)) {
-        userService.resetTwoFactor(user);
+        userService.resetTwoFactor(user, new SystemUser());
         throw new TwoFactorAuthenticationEnrolmentException("Invalid verification code");
       } else {
         throw new TwoFactorAuthenticationException("Invalid verification code");
       }
     } else if (UserService.hasTwoFactorSecretForApproval(user)) {
-      userService.approveTwoFactorSecret(user);
+      userService.approveTwoFactorSecret(user, new SystemUser());
     }
   }
 

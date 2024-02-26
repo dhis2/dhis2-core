@@ -34,7 +34,7 @@ import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.feedback.ErrorCode.E7229;
 import static org.hisp.dhis.feedback.ErrorCode.E7234;
 import static org.hisp.dhis.system.util.ValidationUtils.valueIsComparable;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import java.util.List;
 import java.util.Set;
@@ -105,8 +105,8 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
       error =
           new ErrorMessage(
               ErrorCode.E7206,
-              getMediumDateString(params.getStartDate()),
-              getMediumDateString(params.getEndDate()));
+              toMediumDate(params.getStartDate()),
+              toMediumDate(params.getEndDate()));
     } else if (params.getPage() != null && params.getPage() <= 0) {
       error = new ErrorMessage(ErrorCode.E7207, params.getPage());
     } else if (params.getPageSize() != null && params.getPageSize() < 0) {

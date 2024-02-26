@@ -420,7 +420,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
     addSearchAudit(trackedEntities, queryParams.getUser());
 
-    return Page.of(trackedEntities, ids.getPager(), ids.isPageTotal());
+    return ids.withItems(trackedEntities);
   }
 
   public List<Long> getTrackedEntityIds(TrackedEntityQueryParams params) {
