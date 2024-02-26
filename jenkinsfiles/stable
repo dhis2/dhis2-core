@@ -184,7 +184,8 @@ pipeline {
                             echo "Database: ${env.DATABASE_ID}"
 
                             dir('scripts/instances') {
-                                sh "(./findByName.sh play ${instanceName} && ./restart.sh play ${instanceName}) || ./deploy-dhis2.sh play ${instanceName}"
+                                description = "DHIS 2 stable branch ${env.GIT_BRANCH}"
+                                sh "./findByName.sh play ${instanceName} | jq --exit-status 'has(\"id\")' && ./restart.sh \$(./findByName.sh play ${instanceName} | jq '.instances[] | select(.stackName==\"dhis2-core\") | .id') || ./deploy-dhis2.sh play ${instanceName} ${description}"
                                 timeout(5) {
                                     waitFor.statusOk("${env.INSTANCE_URL}/${instanceName}")
                                 }
