@@ -206,6 +206,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   // Statements
+
   @Override
   public String createTable(Table table) {
     Validate.isTrue(table.hasPrimaryKey());
