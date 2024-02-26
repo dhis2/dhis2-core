@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.commons.util;
 
-import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -41,6 +40,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.helpers.MessageFormatter;
+import com.google.common.collect.Lists;
 
 /**
  * Utility class with methods for managing strings.
@@ -474,6 +474,17 @@ public class TextUtils {
    */
   public static String emptyIfFalse(String string, boolean test) {
     return test ? string : EMPTY;
+  }
+
+  /**
+   * Returns the empty string if the given test is true, the string if not.
+   *
+   * @param string the string.
+   * @param test the test to check.
+   * @return a string.
+   */
+  public static String emptyIfTrue(String string, boolean test) {
+    return test ? EMPTY : string;
   }
 
   /**
