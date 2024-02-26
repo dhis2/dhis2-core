@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.table;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -133,19 +132,8 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
   }
 
   @Override
-  public String validState() {
-    // Data values might be '{}' / empty object if data values existed
-    // and were removed later
-
-    String sql = "select eventid " + "from event " + "where eventdatavalues != '{}' limit 1;";
-
-    boolean hasData = jdbcTemplate.queryForRowSet(sql).next();
-
-    if (!hasData) {
-      return "No events exist, not updating event analytics tables";
-    }
-
-    return null;
+  public boolean validState() {
+    return tableIsNotEmpty("event");
   }
 
   @Override

@@ -36,7 +36,6 @@ import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -129,17 +128,8 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
   }
 
   @Override
-  public String validState() {
-    boolean hasData =
-        jdbcTemplate
-            .queryForRowSet("select validationresultid from validationresult limit 1")
-            .next();
-
-    if (!hasData) {
-      return "No validation results exist, not updating validation result analytics tables";
-    }
-
-    return null;
+  public boolean validState() {
+    return tableIsNotEmpty("validationresult");
   }
 
   @Override
