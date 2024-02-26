@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,20 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling;
+package org.hisp.dhis.scheduling.parameters;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dashboard.Dashboard;
+import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.user.UserGroup;
 
 /**
- * This interface is used for jobs in the system which are scheduled or executed by the Spring
- * scheduler. The actual job will contain an execute method which performs the appropriate actions.
- *
- * <p>See {@link JobSchedulerService} for more information about the scheduling.
- *
- * @see <a href= "https://github.com/dhis2/wow-backend/blob/master/docs/job_scheduling.md">Docs</a>
- * @author Henning Håkonsen
+ * @author Jan Bernitt
  */
-public interface Job {
+@Setter
+@Getter
+@NoArgsConstructor
+public class HtmlPushAnalyticsJobParameters implements JobParameters {
 
-  JobType getJobType();
+  @OpenApi.Property({UID.class, Dashboard.class})
+  @JsonProperty(required = true)
+  private String dashboard;
 
-  void execute(JobConfiguration config, JobProgress progress);
+  @OpenApi.Property({UID.class, UserGroup.class})
+  @JsonProperty(required = true)
+  private String receivers;
+
+  @JsonProperty(required = true)
+  private ViewMode mode;
+
+  public enum ViewMode {
+    /** The dashboard is viewed as the user running (executing) the push analytics job */
+    EXECUTOR,
+    /** The dashboard is viewed as the user receiving the push analytics email */
+    RECEIVER
+  }
 }
