@@ -66,6 +66,8 @@ class EventChangeLogServiceTest extends TrackerTest {
 
   private TrackerImportParams importParams;
 
+  private final EventChangeLogOperationParams defaultOperationParams =
+      EventChangeLogOperationParams.builder().build();
   private final PageParams defaultPageParams = new PageParams(null, null, false);
 
   @Override
@@ -83,7 +85,9 @@ class EventChangeLogServiceTest extends TrackerTest {
   void shouldFailWhenEventDoesNotExist() {
     assertThrows(
         NotFoundException.class,
-        () -> eventChangeLogService.getEventChangeLog(UID.of(CodeGenerator.generateUid()), null));
+        () ->
+            eventChangeLogService.getEventChangeLog(
+                UID.of(CodeGenerator.generateUid()), null, null));
   }
 
   @Test
@@ -92,7 +96,7 @@ class EventChangeLogServiceTest extends TrackerTest {
 
     assertThrows(
         NotFoundException.class,
-        () -> eventChangeLogService.getEventChangeLog(UID.of("D9PbzJY8bJM"), null));
+        () -> eventChangeLogService.getEventChangeLog(UID.of("D9PbzJY8bJM"), null, null));
   }
 
   @Test
@@ -101,7 +105,7 @@ class EventChangeLogServiceTest extends TrackerTest {
 
     assertThrows(
         NotFoundException.class,
-        () -> eventChangeLogService.getEventChangeLog(UID.of("G9PbzJY8bJG"), null));
+        () -> eventChangeLogService.getEventChangeLog(UID.of("G9PbzJY8bJG"), null, null));
   }
 
   @Test
@@ -110,7 +114,7 @@ class EventChangeLogServiceTest extends TrackerTest {
 
     assertThrows(
         NotFoundException.class,
-        () -> eventChangeLogService.getEventChangeLog(UID.of("H0PbzJY8bJG"), null));
+        () -> eventChangeLogService.getEventChangeLog(UID.of("H0PbzJY8bJG"), null, null));
   }
 
   @Test
@@ -119,7 +123,7 @@ class EventChangeLogServiceTest extends TrackerTest {
 
     assertThrows(
         NotFoundException.class,
-        () -> eventChangeLogService.getEventChangeLog(UID.of("G9PbzJY8bJG"), null));
+        () -> eventChangeLogService.getEventChangeLog(UID.of("G9PbzJY8bJG"), null, null));
   }
 
   @Test
@@ -129,7 +133,8 @@ class EventChangeLogServiceTest extends TrackerTest {
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
 
     Page<EventChangeLog> changeLogs =
-        eventChangeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"), defaultPageParams);
+        eventChangeLogService.getEventChangeLog(
+            UID.of("QRYjLTiJTrA"), defaultOperationParams, defaultPageParams);
 
     assertNumberOfChanges(1, changeLogs.getItems());
     assertAll(
@@ -149,7 +154,9 @@ class EventChangeLogServiceTest extends TrackerTest {
     assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
 
     Page<EventChangeLog> changeLogs =
-        eventChangeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"), defaultPageParams);
+        eventChangeLogService.getEventChangeLog(
+            UID.of("QRYjLTiJTrA"), defaultOperationParams, defaultPageParams);
+
     assertNumberOfChanges(2, changeLogs.getItems());
     assertAll(
         () -> assertDelete(dataElementUid, "15", changeLogs.getItems().get(0)),
@@ -174,7 +181,9 @@ class EventChangeLogServiceTest extends TrackerTest {
     assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
 
     Page<EventChangeLog> changeLogs =
-        eventChangeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"), defaultPageParams);
+        eventChangeLogService.getEventChangeLog(
+            UID.of("QRYjLTiJTrA"), defaultOperationParams, defaultPageParams);
+
     assertNumberOfChanges(2, changeLogs.getItems());
     assertAll(
         () -> assertDelete(dataElementUid, "15", changeLogs.getItems().get(0)),
@@ -196,7 +205,9 @@ class EventChangeLogServiceTest extends TrackerTest {
     assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
 
     Page<EventChangeLog> changeLogs =
-        eventChangeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"), defaultPageParams);
+        eventChangeLogService.getEventChangeLog(
+            UID.of("QRYjLTiJTrA"), defaultOperationParams, defaultPageParams);
+
     assertNumberOfChanges(2, changeLogs.getItems());
     assertAll(
         () -> assertUpdate(dataElementUid, "15", "20", changeLogs.getItems().get(0)),
@@ -221,7 +232,9 @@ class EventChangeLogServiceTest extends TrackerTest {
     assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
 
     Page<EventChangeLog> changeLogs =
-        eventChangeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"), defaultPageParams);
+        eventChangeLogService.getEventChangeLog(
+            UID.of("QRYjLTiJTrA"), defaultOperationParams, defaultPageParams);
+
     assertNumberOfChanges(3, changeLogs.getItems());
     assertAll(
         () -> assertUpdate(dataElementUid, "20", "25", changeLogs.getItems().get(0)),
@@ -250,7 +263,9 @@ class EventChangeLogServiceTest extends TrackerTest {
     assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
 
     Page<EventChangeLog> changeLogs =
-        eventChangeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"), defaultPageParams);
+        eventChangeLogService.getEventChangeLog(
+            UID.of("QRYjLTiJTrA"), defaultOperationParams, defaultPageParams);
+
     assertNumberOfChanges(3, changeLogs.getItems());
     assertAll(
         () -> assertDelete(dataElementUid, "20", changeLogs.getItems().get(0)),
@@ -262,6 +277,35 @@ class EventChangeLogServiceTest extends TrackerTest {
         () -> assertCreate(dataElementUid, "15", changeLogs.getItems().get(2)),
         () -> assertUser(importUser, changeLogs.getItems().get(2)));
   }
+
+  // TODO test here or in controller test?
+  //  @Test
+  //  void shouldOrderChangeLogsByCreatedAsc()
+  //      throws ForbiddenException, BadRequestException, NotFoundException {
+  //    TrackedEntity QS6w44flWAf = get(TrackedEntity.class, "QS6w44flWAf");
+  //    TrackedEntity dUE514NMOlo = get(TrackedEntity.class, "dUE514NMOlo");
+  //
+  //    EventChangeLogOperationParams params =
+  //        EventChangeLogOperationParams.builder().orderBy("created", SortDirection.ASC).build();
+  //
+  //    Page<EventChangeLog> changeLogs =
+  //        eventChangeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"), params,
+  // defaultPageParams);
+  //
+  //    boolean isSameCreatedDate = QS6w44flWAf.getCreated().equals(dUE514NMOlo.getCreated());
+  //    if (isSameCreatedDate) {
+  //      // the order is non-deterministic if the created date is the same. we can then only assert
+  //      // the correct TEs are in the result. otherwise the test is flaky
+  //      assertContainsOnly(List.of("QS6w44flWAf", "dUE514NMOlo"), changeLogs);
+  //    } else {
+  //      List<String> expected =
+  //          Stream.of(QS6w44flWAf, dUE514NMOlo)
+  //              .sorted(Comparator.comparing(TrackedEntity::getCreated)) // asc
+  //              .map(TrackedEntity::getUid)
+  //              .toList();
+  //      assertEquals(expected, changeLogs);
+  //    }
+  //  }
 
   private void updateDataValue(
       TrackerObjects trackerObjects, Event event, String dataElementUid, String newValue) {

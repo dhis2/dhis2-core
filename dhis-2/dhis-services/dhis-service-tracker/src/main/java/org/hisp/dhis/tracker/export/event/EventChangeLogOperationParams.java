@@ -25,30 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.event;
+package org.hisp.dhis.tracker.export.event;
 
 import java.util.ArrayList;
 import java.util.List;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.fieldfiltering.FieldFilterParser;
-import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import org.hisp.dhis.common.SortDirection;
+import org.hisp.dhis.tracker.export.Order;
 
-@OpenApi.Shared(name = "ChangeLogRequestParams")
-@OpenApi.Property
-@Data
-@NoArgsConstructor
-public class ChangeLogRequestParams {
+@Getter
+@Builder(toBuilder = true)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public class EventChangeLogOperationParams {
 
-  private static final String DEFAULT_FIELDS_PARAM = "change,createdAt,createdBy,type";
+  private List<Order> order;
 
-  private int page = 1;
+  public static class EventChangeLogOperationParamsBuilder {
 
-  private int pageSize = 50;
+    private final List<Order> order = new ArrayList<>();
 
-  private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
+    // Do not remove this unused method. This hides the order field from the builder which Lombok
+    // does not support. The repeated order field and private order method prevent access to order
+    // via the builder.
+    // Order should be added via the orderBy builder methods.
+    private EventChangeLogOperationParamsBuilder order(List<Order> order) {
+      return this;
+    }
 
-  private List<OrderCriteria> order = new ArrayList<>();
+    public EventChangeLogOperationParamsBuilder orderBy(String field, SortDirection direction) {
+      this.order.add(new Order(field, direction));
+      return this;
+    }
+  }
 }

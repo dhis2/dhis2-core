@@ -27,10 +27,15 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
+import static java.util.Map.entry;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.event.EventChangeLog.Change;
@@ -42,6 +47,15 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.tracker.export.event.ChangeLogStore")
 @RequiredArgsConstructor
 class JdbcEventChangeLogStore {
+  /**
+   * Event change logs can be ordered by given fields which correspond to fields on {@link
+   * org.hisp.dhis.tracker.export.event.EventChangeLog}. Maps fields to DB columns.
+   */
+  private static final Map<String, String> ORDERABLE_FIELDS =
+      Map.ofEntries(entry("createdAt", "createdat"));
+
+  private static final String COLUMN_EVENT_ID = "created";
+  private static final String DEFAULT_ORDER = COLUMN_EVENT_ID + " desc";
 
   private final NamedParameterJdbcTemplate jdbcTemplate;
 
@@ -64,7 +78,8 @@ class JdbcEventChangeLogStore {
                     rs.getString("currentValue"))));
       };
 
-  public Page<EventChangeLog> getEventChangeLog(UID event, PageParams pageParams) {
+  public Page<EventChangeLog> getEventChangeLog(
+      UID event, List<Order> order, PageParams pageParams) {
     final String sql =
         """
             select
@@ -113,5 +128,9 @@ class JdbcEventChangeLogStore {
 
     return Page.withPrevAndNext(
         changeLogs, pageParams.getPage(), pageParams.getPageSize(), prevPage, null);
+  }
+
+  public Set<String> getOrderableFields() {
+    return ORDERABLE_FIELDS.keySet();
   }
 }
