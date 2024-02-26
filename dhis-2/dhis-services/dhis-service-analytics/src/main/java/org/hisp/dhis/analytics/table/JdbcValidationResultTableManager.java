@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static java.lang.String.format;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DATE;
@@ -156,6 +157,7 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
+    String partitionClause = getPartitionClause(partition);
 
     String sql = "insert into " + tableName + " (";
 
@@ -186,13 +188,11 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
             + "and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null) "
             + "left join _orgunitstructure ous on vrs.organisationunitid=ous.organisationunitid "
             + "inner join _categorystructure acs on vrs.attributeoptioncomboid=acs.categoryoptioncomboid "
-            + "where ps.year = "
-            + partition.getYear()
-            + " "
-            + "and vrs.created < '"
+            + "where vrs.created < '"
             + toLongDate(params.getStartTime())
             + "' "
-            + "and vrs.created is not null";
+            + "and vrs.created is not null "
+            + partitionClause;
 
     invokeTimeAndLog(sql, String.format("Populate %s", tableName));
   }
@@ -212,6 +212,16 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
     }
 
     return jdbcTemplate.queryForList(sql, Integer.class);
+  }
+
+  /**
+   * Returns a partition SQL clause.
+   *
+   * @param partition the {@link AnalyticsTablePartition}.
+   * @return a partition SQL clause.
+   */
+  private String getPartitionClause(AnalyticsTablePartition partition) {
+    return format("and ps.year = %d ", partition.getYear());
   }
 
   private List<AnalyticsTableColumn> getColumns() {
