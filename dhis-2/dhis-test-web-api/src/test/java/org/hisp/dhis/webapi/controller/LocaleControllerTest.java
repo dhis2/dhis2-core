@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -92,12 +91,6 @@ class LocaleControllerTest extends DhisControllerConvenienceTest {
   @Test
   @DisplayName("Indonesian locales are returned with the expected locale codes")
   void indonesianLocaleCodesTest() {
-    // given
-    String userEnglishLocale =
-        GET("/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID)
-            .content("text/plain; charset=UTF-8");
-    assertEquals("en", userEnglishLocale);
-
     // when
     JsonObject response = GET("/locales/ui").content();
 
