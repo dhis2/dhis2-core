@@ -160,14 +160,6 @@ public class DefaultCustomIconService implements CustomIconService {
     }
   }
 
-  private void validateIconKeyNotNullOrEmpty(CustomIcon customIcon) throws BadRequestException {
-    if (customIcon == null) {
-      throw new BadRequestException("CustomIcon cannot be null.");
-    }
-
-    validateIconKeyNotNullOrEmpty(customIcon.getKey());
-  }
-
   private void validateIconKeyNotNullOrEmpty(String key) throws BadRequestException {
     if (Strings.isNullOrEmpty(key)) {
       throw new BadRequestException("CustomIcon key not specified.");
