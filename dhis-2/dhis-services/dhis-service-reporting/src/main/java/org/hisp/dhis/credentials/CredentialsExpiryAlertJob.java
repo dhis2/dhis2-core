@@ -46,8 +46,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.email.EmailResponse;
 import org.hisp.dhis.email.EmailService;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
@@ -88,23 +86,19 @@ public class CredentialsExpiryAlertJob implements Job {
   }
 
   @Override
-  public ErrorReport validate() {
-    if (!emailService.emailConfigured()) {
-      return new ErrorReport(
-          CredentialsExpiryAlertJob.class,
-          ErrorCode.E7010,
-          "EMAIL gateway configuration does not exist");
-    }
-    return Job.super.validate();
-  }
-
-  @Override
   public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
     if (!systemSettingManager.getBoolSetting(SettingKey.CREDENTIALS_EXPIRY_ALERT)) {
       log.info("credentialsExpiryAlertTask aborted. Expiry alerts are disabled");
       return;
     }
     progress.startingProcess("User password expiry alerts");
+    progress.startingStage("Validating environment setup");
+    if (!emailService.emailConfigured()) {
+      progress.failedStage("EMAIL gateway configuration does not exist, job aborted");
+      return;
+    }
+    progress.completedStage(null);
+
     int daysUntilDisable =
         systemSettingManager.getIntSetting(SettingKey.CREDENTIALS_EXPIRES_REMINDER_IN_DAYS);
     int daysBeforePasswordChangeRequired =
