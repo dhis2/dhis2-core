@@ -1781,7 +1781,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
     QueryParamsBuilder params =
         new QueryParamsBuilder()
             .add("program=IpHINAT79UW")
-            .add("enrollmentDate=IpHINAT79UW[-1].LAST_YEAR")
+            .add("enrollmentDate=IpHINAT79UW[1].LAST_YEAR")
             .add("desc=lastupdated")
             .add("relativePeriodDate=2023-04-03")
             .add("headers=ouname,w75KJ2mc4zz,zDhUuAYrxNC");

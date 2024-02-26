@@ -56,7 +56,7 @@ class SqlQueryHelper {
     return "select innermost_enr.*"
         + " from (select *,"
         + " row_number() over (partition by trackedentityinstanceuid order by enrollmentdate "
-        + (offset >= 0 ? "desc" : "asc")
+        + (offset > 0 ? "asc" : "desc")
         + ") as rn "
         + " from "
         + ANALYTICS_TEI_ENR
@@ -68,7 +68,7 @@ class SqlQueryHelper {
         + ") innermost_enr"
         + " where innermost_enr.rn = "
         // This logic is needed because of the row_number(), which starts in 1.
-        + (offset >= 0 ? ++offset : abs(offset));
+        + (offset > 0 ? offset : abs(offset) + 1);
   }
 
   static String eventSelect(
@@ -81,7 +81,7 @@ class SqlQueryHelper {
     return "select innermost_evt.*"
         + " from (select *,"
         + " row_number() over (partition by programinstanceuid order by occurreddate "
-        + (offset >= 0 ? "desc" : "asc")
+        + (offset > 0 ? "asc" : "desc")
         + " ) as rn"
         + " from "
         + ANALYTICS_TEI_EVT
@@ -97,6 +97,6 @@ class SqlQueryHelper {
         + ") innermost_evt"
         + " where innermost_evt.rn = "
         // This logic is needed because of the row_number(), which starts in 1.
-        + (offset >= 0 ? ++offset : abs(offset));
+        + (offset > 0 ? offset : abs(offset) + 1);
   }
 }
