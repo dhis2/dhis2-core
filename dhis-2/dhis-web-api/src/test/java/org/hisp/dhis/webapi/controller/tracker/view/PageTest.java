@@ -127,6 +127,8 @@ class PageTest {
 
     assertEquals(1, page.getPager().getPage());
     assertEquals(3, page.getPager().getPageSize());
+    assertNull(page.getPager().getTotal());
+    assertNull(page.getPager().getPageCount());
 
     assertNull(page.getPager().getPrevPage());
     assertNull(page.getPager().getNextPage());
@@ -151,6 +153,8 @@ class PageTest {
 
     assertEquals(2, page.getPager().getPage());
     assertEquals(3, page.getPager().getPageSize());
+    assertNull(page.getPager().getTotal());
+    assertNull(page.getPager().getPageCount());
 
     assertPagerLink(
         page.getPager().getPrevPage(),
@@ -180,6 +184,8 @@ class PageTest {
 
     assertEquals(2, page.getPager().getPage());
     assertEquals(3, page.getPager().getPageSize());
+    assertNull(page.getPager().getTotal());
+    assertNull(page.getPager().getPageCount());
 
     assertNull(page.getPager().getPrevPage());
     assertPagerLink(
