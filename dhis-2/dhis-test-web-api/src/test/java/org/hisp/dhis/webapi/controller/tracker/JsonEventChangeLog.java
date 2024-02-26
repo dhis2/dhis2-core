@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,51 +29,33 @@ package org.hisp.dhis.webapi.controller.tracker;
 
 import org.hisp.dhis.jsontree.JsonObject;
 
-/** Representation of {@link org.hisp.dhis.webapi.controller.tracker.view.Page}. */
-public interface JsonPage extends JsonObject {
-  default JsonPager getPager() {
-    return get("pager").as(JsonPager.class);
+/** Representation of {@link org.hisp.dhis.tracker.export.event.EventChangeLog}. */
+public interface JsonEventChangeLog extends JsonObject {
+  default JsonUser getCreatedBy() {
+    return get("createdBy").as(JsonUser.class);
   }
 
-  default Integer getPage() {
-    return getNumber("page").integer();
+  default JsonChange getChange() {
+    return get("change").as(JsonChange.class);
   }
 
-  default Integer getPageSize() {
-    return getNumber("pageSize").integer();
+  interface JsonChange extends JsonObject {
+    default JsonDataValueChange getDataValueChange() {
+      return get("dataValue").as(JsonDataValueChange.class);
+    }
   }
 
-  default Integer getTotal() {
-    return getNumber("total").integer();
-  }
-
-  default Integer getPageCount() {
-    return getNumber("pageCount").integer();
-  }
-
-  interface JsonPager extends JsonObject {
-    default Integer getPage() {
-      return getNumber("page").integer();
+  interface JsonDataValueChange extends JsonObject {
+    default String getDataElement() {
+      return getString("dataElement").string();
     }
 
-    default Integer getPageSize() {
-      return getNumber("pageSize").integer();
+    default String getPreviousValue() {
+      return getString("previousValue").string();
     }
 
-    default Integer getTotal() {
-      return getNumber("total").integer();
-    }
-
-    default Integer getPageCount() {
-      return getNumber("pageCount").integer();
-    }
-
-    default String getPrevPage() {
-      return getString("prevPage").string();
-    }
-
-    default String getNextPage() {
-      return getString("nextPage").string();
+    default String getCurrentValue() {
+      return getString("currentValue").string();
     }
   }
 }

@@ -30,10 +30,10 @@ package org.hisp.dhis.webapi.controller.tracker.export.event;
 import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 import com.google.common.collect.Sets;
 import java.util.Date;
@@ -43,7 +43,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
@@ -60,6 +59,11 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.hisp.dhis.webapi.controller.tracker.JsonEventChangeLog;
+import org.hisp.dhis.webapi.controller.tracker.JsonEventChangeLog.JsonDataValueChange;
+import org.hisp.dhis.webapi.controller.tracker.JsonPage;
+import org.hisp.dhis.webapi.controller.tracker.JsonPage.JsonPager;
+import org.hisp.dhis.webapi.controller.tracker.JsonUser;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -138,50 +142,45 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
 
   @Test
   void shouldGetEventChangeLogWhenDataValueUpdatedAndThenDeleted() {
-    JsonWebMessage changeLogResponse =
+    JsonList<JsonEventChangeLog> changeLogs =
         GET("/tracker/events/{id}/changeLogs", event.getUid())
             .content(HttpStatus.OK)
-            .as(JsonWebMessage.class);
+            .getList("changeLogs", JsonEventChangeLog.class);
 
-    JsonObject changeLogObject =
-        changeLogResponse.get("changeLogs").asList(JsonList.class).get(0).asObject();
-    JsonObject updatedByValue = changeLogObject.get("createdBy").asObject();
-    JsonObject dataValueObject =
-        changeLogObject.get("change").asObject().get("dataValue").asObject();
+    JsonEventChangeLog changeLog = changeLogs.get(0);
+    JsonUser createdBy = changeLog.getCreatedBy();
+    JsonDataValueChange dataValueChange = changeLog.getChange().getDataValueChange();
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
     assertAll(
-        () -> {
-          assertEquals(currentUser.getUid(), updatedByValue.getString("uid").string());
-          assertEquals(currentUser.getUsername(), updatedByValue.getString("username").string());
-          assertEquals(currentUser.getFirstName(), updatedByValue.getString("firstName").string());
-          assertEquals(currentUser.getSurname(), updatedByValue.getString("surname").string());
-
-          assertEquals(dataElement.getUid(), dataValueObject.getString("dataElement").string());
-          assertEquals("value 3", dataValueObject.getString("previousValue").string());
-          assertNull(dataValueObject.getString("currentValue").string());
-        });
+        () -> assertEquals(currentUser.getUid(), createdBy.getUid()),
+        () -> assertEquals(currentUser.getUsername(), createdBy.getUsername()),
+        () -> assertEquals(currentUser.getFirstName(), createdBy.getFirstName()),
+        () -> assertEquals(currentUser.getSurname(), createdBy.getSurname()),
+        () -> assertEquals(dataElement.getUid(), dataValueChange.getDataElement()),
+        () -> assertEquals("value 3", dataValueChange.getPreviousValue()),
+        () -> assertHasNoMember(dataValueChange, "currentValue"));
   }
 
   @Test
   void shouldGetChangeLogPagerWithNextElementWhenMultipleElementsImportedAndFirstPageRequested() {
-    JsonWebMessage changeLogResponse =
+    JsonPage changeLogs =
         GET(
                 "/tracker/events/{id}/changeLogs?page={page}&pageSize={pageSize}",
                 event.getUid(),
                 "1",
                 "1")
             .content(HttpStatus.OK)
-            .as(JsonWebMessage.class);
+            .asA(JsonPage.class);
 
-    JsonObject pagerObject = changeLogResponse.get("pager").asObject();
+    JsonPager pager = changeLogs.getPager();
     assertAll(
-        () -> assertEquals(1, pagerObject.getNumber("page").intValue()),
-        () -> assertEquals(1, pagerObject.getNumber("pageSize").intValue()),
-        () -> assertNull(pagerObject.getString("prevPage").string()),
+        () -> assertEquals(1, pager.getPage()),
+        () -> assertEquals(1, pager.getPageSize()),
+        () -> assertHasNoMember(pager, "prevPage"),
         () ->
             assertPagerLink(
-                pagerObject.getString("nextPage").string(),
+                pager.getNextPage(),
                 2,
                 1,
                 String.format("http://localhost/tracker/events/%s/changeLogs", event.getUid())));
@@ -190,28 +189,28 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
   @Test
   void
       shouldGetChangeLogPagerWithNextAndPreviousElementsWhenMultipleElementsImportedAndSecondPageRequested() {
-    JsonWebMessage changeLogResponse =
+    JsonPage changeLogs =
         GET(
                 "/tracker/events/{id}/changeLogs?page={page}&pageSize={pageSize}",
                 event.getUid(),
                 "2",
                 "1")
             .content(HttpStatus.OK)
-            .as(JsonWebMessage.class);
+            .asA(JsonPage.class);
 
-    JsonObject pagerObject = changeLogResponse.get("pager").asObject();
+    JsonPager pager = changeLogs.getPager();
     assertAll(
-        () -> assertEquals(2, pagerObject.getNumber("page").intValue()),
-        () -> assertEquals(1, pagerObject.getNumber("pageSize").intValue()),
+        () -> assertEquals(2, pager.getPage()),
+        () -> assertEquals(1, pager.getPageSize()),
         () ->
             assertPagerLink(
-                pagerObject.getString("prevPage").string(),
+                pager.getPrevPage(),
                 1,
                 1,
                 String.format("http://localhost/tracker/events/%s/changeLogs", event.getUid())),
         () ->
             assertPagerLink(
-                pagerObject.getString("nextPage").string(),
+                pager.getNextPage(),
                 3,
                 1,
                 String.format("http://localhost/tracker/events/%s/changeLogs", event.getUid())));
@@ -220,49 +219,46 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
   @Test
   void
       shouldGetChangeLogPagerWithPreviousElementWhenMultipleElementsImportedAndLastPageRequested() {
-    JsonWebMessage changeLogResponse =
+    JsonPage changeLogs =
         GET(
                 "/tracker/events/{id}/changeLogs?page={page}&pageSize={pageSize}",
                 event.getUid(),
                 "3",
                 "1")
             .content(HttpStatus.OK)
-            .as(JsonWebMessage.class);
+            .asA(JsonPage.class);
 
-    JsonObject pagerObject = changeLogResponse.get("pager").asObject();
+    JsonPager pager = changeLogs.getPager();
     assertAll(
-        () -> {
-          assertEquals(3, pagerObject.getNumber("page").intValue());
-          assertEquals(1, pagerObject.getNumber("pageSize").intValue());
-          assertPagerLink(
-              pagerObject.getString("prevPage").string(),
-              2,
-              1,
-              String.format("http://localhost/tracker/events/%s/changeLogs", event.getUid()));
-          assertNull(pagerObject.getString("nextPage").string());
-        });
+        () -> assertEquals(3, pager.getPage()),
+        () -> assertEquals(1, pager.getPageSize()),
+        () ->
+            assertPagerLink(
+                pager.getPrevPage(),
+                2,
+                1,
+                String.format("http://localhost/tracker/events/%s/changeLogs", event.getUid())),
+        () -> assertHasNoMember(pager, "nextPage"));
   }
 
   @Test
   void
       shouldGetChangeLogPagerWithoutPreviousNorNextElementWhenMultipleElementsImportedAndAllElementsFitInOnePage() {
-    JsonWebMessage changeLogResponse =
+    JsonPage changeLogs =
         GET(
                 "/tracker/events/{id}/changeLogs?page={page}&pageSize={pageSize}",
                 event.getUid(),
                 "1",
                 "3")
             .content(HttpStatus.OK)
-            .as(JsonWebMessage.class);
+            .asA(JsonPage.class);
 
-    JsonObject pagerObject = changeLogResponse.get("pager").asObject();
+    JsonPager pagerObject = changeLogs.getPager();
     assertAll(
-        () -> {
-          assertEquals(1, pagerObject.getNumber("page").intValue());
-          assertEquals(3, pagerObject.getNumber("pageSize").intValue());
-          assertNull(pagerObject.getString("prevPage").string());
-          assertNull(pagerObject.getString("nextPage").string());
-        });
+        () -> assertEquals(1, pagerObject.getPage()),
+        () -> assertEquals(3, pagerObject.getPageSize()),
+        () -> assertHasNoMember(pagerObject, "prevPage"),
+        () -> assertHasNoMember(pagerObject, "nextPage"));
   }
 
   private TrackedEntity trackedEntity() {
