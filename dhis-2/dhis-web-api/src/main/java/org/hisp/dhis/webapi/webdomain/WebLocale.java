@@ -58,7 +58,9 @@ public class WebLocale {
    * want to use in the API (which conform with the newer, universally-accepted ISO language formats
    * for Indonesia 'id'). <br>
    * <br>
-   * JDK 17 does not have this issue. This is purely for DHIS2 versions <41
+   * JDK 17 does not have this issue and allows switching between both codes - see <a
+   * href="https://bugs.openjdk.org/browse/JDK-8267069">JDK bug</a>. This is needed purely for DHIS2
+   * versions not running on JDK 17.
    *
    * @param locale locale loaded from resources
    * @return adjusted locale for Indonesian codes or standard for anything else
