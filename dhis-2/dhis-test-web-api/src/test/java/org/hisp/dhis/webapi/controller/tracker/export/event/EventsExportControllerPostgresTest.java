@@ -60,7 +60,7 @@ import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.hisp.dhis.webapi.controller.tracker.JsonEventChangeLog;
-import org.hisp.dhis.webapi.controller.tracker.JsonEventChangeLog.JsonDataValueChange;
+import org.hisp.dhis.webapi.controller.tracker.JsonEventChangeLog.JsonDataValue;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage.JsonPager;
 import org.hisp.dhis.webapi.controller.tracker.JsonUser;
@@ -149,7 +149,7 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
 
     JsonEventChangeLog changeLog = changeLogs.get(0);
     JsonUser createdBy = changeLog.getCreatedBy();
-    JsonDataValueChange dataValueChange = changeLog.getChange().getDataValueChange();
+    JsonDataValue dataValueChange = changeLog.getChange().getDataValueChange();
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
     assertAll(
