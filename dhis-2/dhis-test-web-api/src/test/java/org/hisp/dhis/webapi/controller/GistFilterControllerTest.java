@@ -141,8 +141,7 @@ class GistFilterControllerTest extends AbstractGistControllerTest {
 
   @Test
   void testFilter_ILike() {
-    List<User> allUsers = userService.getAllUsers();
-    assertEquals(1, GET("/users/gist?filter=surname:ilike:MIN&headless=true").content().size());
+    assertEquals(1, GET("/users/gist?filter=surname:ilike:DMIN&headless=true").content().size());
     assertEquals(
         0, GET("/users/gist?filter=surname:ilike:?headless&headless=true").content().size());
     assertEquals(3, GET("/users/gist?filter=surname:ilike:Sur*&headless=true").content().size());
