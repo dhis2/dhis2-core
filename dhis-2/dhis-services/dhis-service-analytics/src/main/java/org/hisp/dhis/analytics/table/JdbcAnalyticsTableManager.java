@@ -316,9 +316,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     String approvalSelectExpression = getApprovalSelectExpression(partition.getYear());
     String approvalClause = getApprovalJoinClause(partition.getYear());
     String partitionClause = getPartitionClause(partition);
-        partition.isLatestPartition()
-            ? "and dv.lastupdated >= '" + toLongDate(partition.getStartDate()) + "' "
-            : "and ps.year = " + partition.getYear() + " ";
 
     String sql = "insert into " + tableName + " (";
 
@@ -669,7 +666,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         // standard deviation of the normal distribution
         + "stddev_pop(t3.value::double precision) as std_dev "
         // Table "t3" is the composition of the tables "t2" (median of xi) and "t3" (values xi).
-        // For Z-Score  the mean (avg_middle_value) and standard deviation (std_dev) is used ((xi -
+        // For Z-Score the mean (avg_middle_value) and standard deviation (std_dev) is used ((xi -
         // mean(x))/std_dev).
         // For modified Z-Score the median (percentile_middle_value) and the median of absolute
         // deviations (mad) is used (0.6745*(xi - median(x)/mad)).
@@ -702,7 +699,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         // Table "t2" is the complement of the t1 table. It contains all values belong to the
         // specific median (see t1).
         // To "group by" criteria is added the time dimension (periodid). This part of the query has
-        // to be verified (maybe add tei to aggregation criteria).
+        // to be verified (maybe add TEI to aggregation criteria).
         + "(select dv1.dataelementid as dataelementid, "
         + "dv1.sourceid as sourceid, "
         + "dv1.categoryoptioncomboid  as categoryoptioncomboid, "

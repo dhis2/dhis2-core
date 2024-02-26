@@ -46,6 +46,7 @@ import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import java.time.Year;
 import java.util.ArrayList;
@@ -55,7 +56,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -93,6 +94,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -430,23 +433,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     Integer latestDataYear = availableDataYears.get(availableDataYears.size() - 1);
 
     Program program = partition.getMasterTable().getProgram();
-    String start = DateUtils.toLongDate(partition.getStartDate());
-    String end = DateUtils.toLongDate(partition.getEndDate());
-    String partitionClause =
-        partition.isLatestPartition()
-            ? "and psi.lastupdated >= '" + start + "' "
-            : "and "
-                + "("
-                + getDateLinkedToStatus()
-                + ") >= '"
-                + start
-                + "' "
-                + "and "
-                + "("
-                + getDateLinkedToStatus()
-                + ") < '"
-                + end
-                + "' ";
+    String partitionClause = getPartitionClause(partition);
 
     String fromClause =
         "from event psi "
@@ -494,6 +481,25 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     populateTableInternal(partition, fromClause);
   }
 
+  /**
+   * Returns a partition SQL clause.
+   *
+   * @param partition the {@link AnalyticsTablePartition}.
+   * @return a partition SQL clause.
+   */
+  private String getPartitionClause(AnalyticsTablePartition partition) {
+    String start = toLongDate(partition.getStartDate());
+    String end = toLongDate(partition.getEndDate());
+    String statusDate = getDateLinkedToStatus();
+    String latestFilter = format("and psi.lastupdated >= '%s' ", start);
+    String partitionFilter =
+        format("and (%s) >= '%s' and (%s) < '%s' ", statusDate, start, statusDate, end);
+
+    return partition.isLatestPartition()
+        ? latestFilter
+        : partitionFilter;
+  }
+  
   /**
    * Returns dimensional analytics table columns.
    *
@@ -724,8 +730,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   private String selectForInsert(
       TrackedEntityAttribute attribute, String fromType, String dataClause) {
     return format(
-        "(select %s"
-            + " from trackedentityattributevalue where trackedentityid=pi.trackedentityid "
+        "(select %s from trackedentityattributevalue where trackedentityid=pi.trackedentityid "
             + "and trackedentityattributeid="
             + attribute.getId()
             + dataClause
@@ -804,7 +809,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
           "and ("
               + getDateLinkedToStatus()
               + ") >= '"
-              + DateUtils.toMediumDate(params.getFromDate())
+              + toMediumDate(params.getFromDate())
               + "'";
     }
 
