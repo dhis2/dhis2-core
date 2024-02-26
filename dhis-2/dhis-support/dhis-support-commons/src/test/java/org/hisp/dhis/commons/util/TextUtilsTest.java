@@ -32,6 +32,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.commons.util.TextUtils.removeAnyTrailingSlash;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+
 import java.util.AbstractSequentialList;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -274,7 +275,7 @@ class TextUtilsTest {
     assertEquals(
         "Found 2 items of type text", TextUtils.format("Found {} items of type {}", 2, "text"));
   }
-  
+
   @Test
   void testEmptyIfFalse() {
     assertEquals("", TextUtils.emptyIfFalse("foo", false));

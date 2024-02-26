@@ -28,8 +28,8 @@
 package org.hisp.dhis.analytics.table;
 
 import static java.lang.String.format;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
+import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DATE;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
@@ -223,7 +223,7 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
    */
   private String getPartitionClause(AnalyticsTablePartition partition) {
     String partitionFilter = format("and ps.year = %d ", partition.getYear());
-    return sqlBuilder.supportsDeclarativePartitioning() ? EMPTY : partitionFilter;
+    return emptyIfTrue(partitionFilter, sqlBuilder.supportsDeclarativePartitioning());
   }
 
   private List<AnalyticsTableColumn> getColumns() {

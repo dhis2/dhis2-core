@@ -28,9 +28,9 @@
 package org.hisp.dhis.analytics.table;
 
 import static java.lang.String.format;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getLatestTablePartition;
+import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
 import static org.hisp.dhis.db.model.DataType.BOOLEAN;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DATE;
@@ -250,7 +250,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
 
     return partition.isLatestPartition()
         ? latestFilter
-        : sqlBuilder.supportsDeclarativePartitioning() ? EMPTY : partitionFilter;
+        : emptyIfTrue(partitionFilter, sqlBuilder.supportsDeclarativePartitioning());
   }
 
   private List<AnalyticsTableColumn> getColumns() {

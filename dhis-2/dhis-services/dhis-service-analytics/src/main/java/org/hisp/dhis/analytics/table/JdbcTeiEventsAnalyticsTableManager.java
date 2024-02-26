@@ -29,11 +29,11 @@ package org.hisp.dhis.analytics.table;
 
 import static java.lang.String.format;
 import static java.lang.String.join;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getEndDate;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getStartDate;
+import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_32;
@@ -313,7 +313,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
 
     return partition.isLatestPartition()
         ? latestFilter
-        : sqlBuilder.supportsDeclarativePartitioning() ? EMPTY : partitionFilter;
+        : emptyIfTrue(partitionFilter, sqlBuilder.supportsDeclarativePartitioning());
   }
 
   /**
