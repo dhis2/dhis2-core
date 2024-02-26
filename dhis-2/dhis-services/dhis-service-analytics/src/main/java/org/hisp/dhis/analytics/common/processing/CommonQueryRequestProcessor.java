@@ -246,10 +246,17 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
       String parameter, Predicate<String> valueValidator, int allowedLength, ErrorCode errorCode) {
     String[] parts = parameter.split("\\.");
 
+    if (parts.length == allowedLength) {
+      // in this case the last part is the value and should be validated
+      if (valueValidator.test(parts[parts.length - 1])) {
+        return parts;
+      }
+      throw new IllegalQueryException(new ErrorMessage(errorCode));
+    }
     // valid if the length is correct or the last part is not valid (i.e. means that is allows
     // status to be like programStatus=IpHINAT79UW -- in this case wrong number of parts but the
     // last values is not a keyword of the enum)
-    if (parts.length == allowedLength || !valueValidator.test(parts[parts.length - 1])) {
+    if (parts.length < allowedLength && !valueValidator.test(parts[parts.length - 1])) {
       return parts;
     }
 
