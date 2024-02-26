@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
@@ -44,11 +45,11 @@ import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.model.constraint.Unique;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+@RequiredArgsConstructor
 class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
-  @Autowired private JdbcTemplate jdbcTemplate;
+  private JdbcTemplate jdbcTemplate;
 
   private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
