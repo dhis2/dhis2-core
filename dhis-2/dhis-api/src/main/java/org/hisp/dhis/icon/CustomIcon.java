@@ -87,7 +87,7 @@ public class CustomIcon extends BaseIdentifiableObject {
     }
 
     CustomIcon other = (CustomIcon) obj;
-    return uid == other.uid && java.util.Objects.equals(key, other.key);
+    return Objects.equals(uid, other.uid) && Objects.equals(key, other.key);
   }
 
   @Override
