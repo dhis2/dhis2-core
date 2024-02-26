@@ -48,7 +48,6 @@ import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
-
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -57,7 +56,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -95,6 +93,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -235,18 +234,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     return params.isLatestUpdate()
         ? getLatestAnalyticsTables(params)
         : getRegularAnalyticsTables(params, availableDataYears);
-  }
-
-  /**
-   * This method encapsulates the SQL logic to get the correct date column based on the
-   * event(program stage instance) status. If new statuses need to be loaded into the analytics
-   * events tables, they have to be supported/added into this logic.
-   *
-   * @return a statement that returns the date column related to the event(program stage instance)
-   *     status
-   */
-  static String getDateLinkedToStatus() {
-    return "CASE WHEN 'SCHEDULE' = psi.status THEN psi.scheduleddate ELSE psi.occurreddate END";
   }
 
   /**
@@ -445,13 +432,13 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             + "left join _orgunitstructure ous on psi.organisationunitid=ous.organisationunitid "
             + "left join _organisationunitgroupsetstructure ougs on psi.organisationunitid=ougs.organisationunitid "
             + "and (cast(date_trunc('month', "
-            + getDateLinkedToStatus()
+            + eventDateExpression
             + ") as date)"
             + "=ougs.startdate or ougs.startdate is null) "
             + "left join organisationunit enrollmentou on pi.organisationunitid=enrollmentou.organisationunitid "
             + "inner join _categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid "
             + "left join _dateperiodstructure dps on cast("
-            + getDateLinkedToStatus()
+            + eventDateExpression
             + " as date)=dps.dateperiod "
             + "where psi.lastupdated < '"
             + toLongDate(params.getStartTime())
@@ -462,7 +449,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             + " "
             + "and psi.organisationunitid is not null "
             + "and ("
-            + getDateLinkedToStatus()
+            + eventDateExpression
             + ") is not null "
             + "and dps.year >= "
             + firstDataYear
@@ -487,10 +474,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   private String getPartitionClause(AnalyticsTablePartition partition) {
     String start = toLongDate(partition.getStartDate());
     String end = toLongDate(partition.getEndDate());
-    String statusDate = getDateLinkedToStatus();
     String latestFilter = format("and psi.lastupdated >= '%s' ", start);
     String partitionFilter =
-        format("and (%s) >= '%s' and (%s) < '%s' ", statusDate, start, statusDate, end);
+        format("and (%s) >= '%s' and (%s) < '%s' ", 
+            eventDateExpression, start, eventDateExpression, end);
 
     return partition.isLatestPartition()
         ? latestFilter
@@ -783,7 +770,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String sql =
         "select temp.supportedyear from "
             + "(select distinct extract(year from "
-            + getDateLinkedToStatus()
+            + eventDateExpression
             + ") as supportedyear "
             + "from event psi "
             + "inner join enrollment pi on psi.enrollmentid = pi.enrollmentid "
@@ -794,16 +781,15 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             + program.getId()
             + " "
             + "and ("
-            + getDateLinkedToStatus()
+            + eventDateExpression
             + ") is not null "
             + "and ("
-            + getDateLinkedToStatus()
+            + eventDateExpression
             + ") > '1000-01-01' "
             + "and psi.deleted is false ";
 
     if (params.getFromDate() != null) {
-      sql +=
-          "and (" + getDateLinkedToStatus() + ") >= '" + toMediumDate(params.getFromDate()) + "'";
+      sql += "and (" + eventDateExpression + ") >= '" + toMediumDate(params.getFromDate()) + "'";
     }
 
     sql +=

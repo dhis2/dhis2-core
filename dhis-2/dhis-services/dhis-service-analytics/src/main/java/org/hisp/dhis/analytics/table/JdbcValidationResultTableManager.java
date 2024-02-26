@@ -37,7 +37,6 @@ import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -198,17 +197,6 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
     invokeTimeAndLog(sql, String.format("Populate %s", tableName));
   }
 
-  /**
-   * Returns a partition SQL clause.
-   *
-   * @param partition the {@link AnalyticsTablePartition}.
-   * @return a partition SQL clause.
-   */
-  private String getPartitionClause(AnalyticsTablePartition partition) {
-    String partitionFilter = format("and ps.year = %d ", partition.getYear());
-    return sqlBuilder.supportsDeclarativePartitioning() ? EMPTY : partitionFilter;
-  }
-
   private List<Integer> getDataYears(AnalyticsTableUpdateParams params) {
     String sql =
         "select distinct(extract(year from pe.startdate)) "
@@ -224,6 +212,17 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
     }
 
     return jdbcTemplate.queryForList(sql, Integer.class);
+  }
+
+  /**
+   * Returns a partition SQL clause.
+   *
+   * @param partition the {@link AnalyticsTablePartition}.
+   * @return a partition SQL clause.
+   */
+  private String getPartitionClause(AnalyticsTablePartition partition) {
+    String partitionFilter = format("and ps.year = %d ", partition.getYear());
+    return sqlBuilder.supportsDeclarativePartitioning() ? EMPTY : partitionFilter;
   }
 
   private List<AnalyticsTableColumn> getColumns() {

@@ -40,15 +40,12 @@ import static org.hisp.dhis.db.model.DataType.VARCHAR_255;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
-
-import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -84,6 +81,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.google.common.collect.Sets;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * This class manages the analytics tables. The analytics table is a denormalized table designed for
@@ -697,7 +696,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         // Table "t2" is the complement of the t1 table. It contains all values belong to the
         // specific median (see t1).
         // To "group by" criteria is added the time dimension (periodid). This part of the query has
-        // to be verified (maybe add tei to aggregation criteria).
+        // to be verified (maybe add TEI to aggregation criteria).
         + "(select dv1.dataelementid as dataelementid, "
         + "dv1.sourceid as sourceid, "
         + "dv1.categoryoptioncomboid  as categoryoptioncomboid, "
