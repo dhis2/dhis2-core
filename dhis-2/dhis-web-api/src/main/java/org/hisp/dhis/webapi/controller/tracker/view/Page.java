@@ -88,6 +88,10 @@ public class Page<T> {
   @JsonProperty
   private final Integer pageCount;
 
+  /**
+   * Create a page without totals but prev and next page links. This page will also not include any
+   * of the deprecated flat pagination fields.
+   */
   private Page(
       String key, List<T> values, int page, int pageSize, String prevPage, String nextPage) {
     this.items.put(key, values);
@@ -99,40 +103,48 @@ public class Page<T> {
   }
 
   /**
+   * Returns a page which will only serialize the items into {@link #items} under given {@code key}.
+   * All other fields will be omitted from the JSON.
+   */
+  private Page(String key, List<T> values) {
+    this.items.put(key, values);
+    this.pager = null;
+    this.page = null;
+    this.pageSize = null;
+    this.total = null;
+    this.pageCount = null;
+  }
+
+  /**
+   * Create a page without totals.
+   *
    * @deprecated Only use if you need to serialize the deprecated flat pagination fields in addition
    *     to the standard pager object.
    */
   @Deprecated(since = "2.41")
-  private Page(
-      String key, List<T> values, org.hisp.dhis.common.Pager pager, boolean showPageTotal) {
+  private Page(String key, List<T> values, int page, int pageSize) {
     this.items.put(key, values);
-    if (pager == null) {
-      this.pager = null;
-      this.page = null;
-      this.pageSize = null;
-      this.total = null;
-      this.pageCount = null;
-      return;
-    }
+    this.page = page;
+    this.pageSize = pageSize;
+    this.total = null;
+    this.pageCount = null;
+    this.pager = new Pager(page, pageSize, null, null, null, null);
+  }
 
-    this.page = pager.getPage();
-    this.pageSize = pager.getPageSize();
-    if (showPageTotal) {
-      this.total = pager.getTotal();
-      this.pageCount = pager.getPageCount();
-      this.pager =
-          new Pager(
-              pager.getPage(),
-              pager.getPageSize(),
-              pager.getTotal(),
-              pager.getPageCount(),
-              null,
-              null);
-    } else {
-      this.total = null;
-      this.pageCount = null;
-      this.pager = new Pager(pager.getPage(), pager.getPageSize(), null, null, null, null);
-    }
+  /**
+   * Create a page with totals.
+   *
+   * @deprecated Only use if you need to serialize the deprecated flat pagination fields in addition
+   *     to the standard pager object.
+   */
+  @Deprecated(since = "2.41")
+  private Page(String key, List<T> values, int page, int pageSize, long total) {
+    this.items.put(key, values);
+    this.page = page;
+    this.pageSize = pageSize;
+    this.total = total;
+    this.pageCount = (int) Math.ceil(total / (double) pageSize);
+    this.pager = new Pager(page, pageSize, total, this.pageCount, null, null);
   }
 
   /**
@@ -146,16 +158,11 @@ public class Page<T> {
    */
   @Deprecated(since = "2.41")
   public static <T> Page<T> withPager(String key, org.hisp.dhis.tracker.export.Page<T> pager) {
-    org.hisp.dhis.common.Pager commonPager;
     if (pager.getTotal() != null) {
-      commonPager =
-          new org.hisp.dhis.common.Pager(pager.getPage(), pager.getTotal(), pager.getPageSize());
-      commonPager.force(pager.getPage(), pager.getPageSize());
-    } else {
-      commonPager = new org.hisp.dhis.common.Pager(pager.getPage(), 0, pager.getPageSize());
-      commonPager.force(pager.getPage(), pager.getPageSize());
+      return new Page<>(
+          key, pager.getItems(), pager.getPage(), pager.getPageSize(), pager.getTotal());
     }
-    return new Page<>(key, pager.getItems(), commonPager, pager.getTotal() != null);
+    return new Page<>(key, pager.getItems(), pager.getPage(), pager.getPageSize());
   }
 
   /**
@@ -178,7 +185,7 @@ public class Page<T> {
    * All other fields will be omitted from the JSON.
    */
   public static <T> Page<T> withoutPager(String key, List<T> items) {
-    return new Page<>(key, items, null, false);
+    return new Page<>(key, items);
   }
 
   @OpenApi.Shared(pattern = Pattern.TRACKER)
