@@ -257,7 +257,7 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
 
     // if the number of parts is less than the allowed length, we ensure the last part is
     // not valid enum value.
-    if (parts.length < allowedLength - 1 && !valueValidator.test(parts[parts.length - 1])) {
+    if (parts.length == allowedLength - 1 && !valueValidator.test(parts[parts.length - 1])) {
       return parts;
     }
 
