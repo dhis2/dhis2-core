@@ -115,7 +115,14 @@ public class DefaultCustomIconService implements CustomIconService {
 
   @Override
   @Transactional
-  public void updateCustomIcon(CustomIcon customIcon) {
+  public void updateCustomIcon(CustomIcon customIcon) throws BadRequestException {
+
+    if (customIcon == null) {
+      throw new BadRequestException("CustomIcon cannot be null.");
+    }
+
+    validateIconKeyNotNullOrEmpty(customIcon.getKey());
+
     customIcon.setAutoFields();
     customIconStore.update(customIcon);
   }
@@ -151,6 +158,14 @@ public class DefaultCustomIconService implements CustomIconService {
     if (customIconExists(key)) {
       throw new BadRequestException(String.format("CustomIcon with key %s already exists.", key));
     }
+  }
+
+  private void validateIconKeyNotNullOrEmpty(CustomIcon customIcon) throws BadRequestException {
+    if (customIcon == null) {
+      throw new BadRequestException("CustomIcon cannot be null.");
+    }
+
+    validateIconKeyNotNullOrEmpty(customIcon.getKey());
   }
 
   private void validateIconKeyNotNullOrEmpty(String key) throws BadRequestException {

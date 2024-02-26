@@ -46,7 +46,6 @@ import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -59,7 +58,6 @@ class CustomIconServiceTest extends DhisConvenienceTest {
   @Mock private CustomIconStore customIconStore;
 
   @Mock private FileResourceService fileResourceService;
-  @Mock private UserService userService;
 
   @Spy @InjectMocks private DefaultCustomIconService iconService;
 
@@ -159,9 +157,7 @@ class CustomIconServiceTest extends DhisConvenienceTest {
   }
 
   @Test
-  void shouldUpdateCustomIconIconWhenKeyPresentAndCustomIconExists()
-      throws BadRequestException, NotFoundException {
-    when(customIconStore.getCustomIconByKey(anyString())).thenReturn(new CustomIcon());
+  void shouldUpdateCustomIcon() throws BadRequestException {
 
     CustomIcon customIcon =
         createCustomIcon('I', Set.of("k1", "k2"), createFileResource('F', "123".getBytes()));
@@ -185,39 +181,11 @@ class CustomIconServiceTest extends DhisConvenienceTest {
 
   @Test
   void shouldFailWhenUpdatingNonExistingCustomIcon() {
-    String key = "key";
-    when(customIconStore.getCustomIconByKey(key)).thenReturn(null);
 
-    CustomIcon customIcon =
-        createCustomIcon('I', Set.of("k1", "k2"), createFileResource('F', "123".getBytes()));
-    customIcon.setKey(key);
     Exception exception =
-        assertThrows(NotFoundException.class, () -> iconService.updateCustomIcon(customIcon));
+        assertThrows(BadRequestException.class, () -> iconService.updateCustomIcon(null));
 
-    String expectedMessage = String.format("CustomIcon not found: %s", key);
-    assertEquals(expectedMessage, exception.getMessage());
-  }
-
-  @Test
-  void shouldFailWhenUpdatingCustomIconWithoutDescriptionNorKeywords() {
-    String uniqueKey = "key";
-
-    CustomIcon customIcon =
-        createCustomIcon('I', Set.of("k1", "k2"), createFileResource('F', "123".getBytes()));
-    customIcon.setKey(uniqueKey);
-
-    customIcon.setDescription(null);
-    customIcon.setKeywords(null);
-
-    when(customIconStore.getCustomIconByKey(uniqueKey)).thenReturn(customIcon);
-    Exception exception =
-        assertThrows(BadRequestException.class, () -> iconService.updateCustomIcon(customIcon));
-
-    String expectedMessage =
-        String.format(
-            "Can't update icon %s if none of description and keywords are present in the request",
-            uniqueKey);
-    assertEquals(expectedMessage, exception.getMessage());
+    assertEquals("CustomIcon cannot be null.", exception.getMessage());
   }
 
   @Test
