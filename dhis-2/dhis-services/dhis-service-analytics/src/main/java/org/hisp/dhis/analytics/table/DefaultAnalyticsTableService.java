@@ -30,7 +30,7 @@ package org.hisp.dhis.analytics.table;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexes;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
-import static org.hisp.dhis.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.List;
 import java.util.Set;
@@ -115,7 +115,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     clock.logTime(
         "Table update start: {}, earliest: {}, parameters: {}",
         tableType.getTableName(),
-        getLongDateString(params.getFromDate()),
+        toLongDate(params.getFromDate()),
         params);
     progress.startingStage("Performing pre-create table work");
     progress.runStage(() -> tableManager.preCreateTables(params));

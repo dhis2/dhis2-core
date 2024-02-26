@@ -143,7 +143,7 @@ class EventsExportController {
           fieldFilterService.toObjectNodes(
               EVENTS_MAPPER.fromCollection(eventsPage.getItems()), requestParams.getFields());
 
-      return Page.withPager(EVENTS, objectNodes, eventsPage);
+      return Page.withPager(EVENTS, eventsPage.withItems(objectNodes));
     }
 
     List<org.hisp.dhis.program.Event> events = eventService.getEvents(eventOperationParams);
@@ -295,10 +295,19 @@ class EventsExportController {
         request, eventService.getFileResourceImage(event, dataElement, dimension));
   }
 
-  @GetMapping("/{uid}/changeLog")
-  List<EventChangeLog> getEventByUid(@OpenApi.Param({UID.class, Event.class}) @PathVariable UID uid)
+  @GetMapping("/{event}/changeLogs")
+  Page<ObjectNode> getEventChangeLogByUid(
+      @OpenApi.Param({UID.class, Event.class}) @PathVariable UID event,
+      ChangeLogRequestParams requestParams,
+      HttpServletRequest request)
       throws NotFoundException {
+    PageParams pageParams =
+        new PageParams(requestParams.getPage(), requestParams.getPageSize(), false);
+    org.hisp.dhis.tracker.export.Page<EventChangeLog> changeLogs =
+        eventChangeLogService.getEventChangeLog(event, pageParams);
 
-    return eventChangeLogService.getEventChangeLog(uid);
+    List<ObjectNode> objectNodes =
+        fieldFilterService.toObjectNodes(changeLogs.getItems(), requestParams.getFields());
+    return Page.withPager("changeLogs", changeLogs.withItems(objectNodes), request);
   }
 }

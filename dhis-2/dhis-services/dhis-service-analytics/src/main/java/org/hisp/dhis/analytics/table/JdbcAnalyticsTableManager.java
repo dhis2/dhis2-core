@@ -39,16 +39,15 @@ import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
 import static org.hisp.dhis.db.model.DataType.VARCHAR_255;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
-import static org.hisp.dhis.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.util.DateUtils.toLongDate;
 
-import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -84,6 +83,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.google.common.collect.Sets;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * This class manages the analytics tables. The analytics table is a denormalized table designed for
@@ -193,10 +196,10 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         "select dv.dataelementid "
             + "from datavalue dv "
             + "where dv.lastupdated >= '"
-            + getLongDateString(startDate)
+            + toLongDate(startDate)
             + "' "
             + "and dv.lastupdated < '"
-            + getLongDateString(endDate)
+            + toLongDate(endDate)
             + "' "
             + "limit 1";
 
@@ -227,10 +230,10 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             + "inner join categoryoptioncombo co on dv.categoryoptioncomboid=co.categoryoptioncomboid "
             + "inner join categoryoptioncombo ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid "
             + "where dv.lastupdated >= '"
-            + getLongDateString(partition.getStartDate())
+            + toLongDate(partition.getStartDate())
             + "' "
             + "and dv.lastupdated < '"
-            + getLongDateString(partition.getEndDate())
+            + toLongDate(partition.getEndDate())
             + "')";
 
     invokeTimeAndLog(sql, "Remove updated data values");
@@ -240,7 +243,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   protected List<String> getPartitionChecks(Integer year, Date endDate) {
     Objects.requireNonNull(year);
     return List.of(
-        "year = " + year + "", "pestartdate < '" + DateUtils.getMediumDateString(endDate) + "'");
+        "year = " + year + "", "pestartdate < '" + DateUtils.toMediumDate(endDate) + "'");
   }
 
   @Override
@@ -299,7 +302,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
    */
   private String getPartitionClause(AnalyticsTablePartition partition) {
     String latestFilter =
-        format("and dv.lastupdated >= '%s' ", getLongDateString(partition.getStartDate()));
+        format("and dv.lastupdated >= '%s' ", toLongDate(partition.getStartDate()));
     String partitionFilter = format("and ps.year = %d ", partition.getYear());
 
     return partition.isLatestPartition()
@@ -386,7 +389,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             + "and de.domaintype = 'AGGREGATE' "
             + partitionClause
             + "and dv.lastupdated < '"
-            + getLongDateString(params.getStartTime())
+            + toLongDate(params.getStartTime())
             + "' "
             + "and dv.value is not null "
             + "and dv.deleted is false ";
@@ -582,11 +585,11 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             + "inner join period pe on dv.periodid=pe.periodid "
             + "where pe.startdate is not null "
             + "and dv.lastupdated < '"
-            + getLongDateString(params.getStartTime())
+            + toLongDate(params.getStartTime())
             + "' ";
 
     if (params.getFromDate() != null) {
-      sql += "and pe.startdate >= '" + DateUtils.getMediumDateString(params.getFromDate()) + "'";
+      sql += "and pe.startdate >= '" + DateUtils.toMediumDate(params.getFromDate()) + "'";
     }
 
     return jdbcTemplate.queryForList(sql, Integer.class);

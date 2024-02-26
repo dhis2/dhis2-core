@@ -36,13 +36,14 @@ import static org.hisp.dhis.db.model.DataType.INTEGER;
 import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
-import static org.hisp.dhis.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -190,7 +191,7 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
             + "left join _orgunitstructure ous on vrs.organisationunitid=ous.organisationunitid "
             + "inner join _categorystructure acs on vrs.attributeoptioncomboid=acs.categoryoptioncomboid "
             + "where vrs.created < '"
-            + getLongDateString(params.getStartTime())
+            + toLongDate(params.getStartTime())
             + "' "
             + "and vrs.created is not null "
             + partitionClause;
@@ -216,11 +217,11 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
             + "inner join period pe on vrs.periodid=pe.periodid "
             + "where pe.startdate is not null "
             + "and vrs.created < '"
-            + getLongDateString(params.getStartTime())
+            + toLongDate(params.getStartTime())
             + "' ";
 
     if (params.getFromDate() != null) {
-      sql += "and pe.startdate >= '" + DateUtils.getMediumDateString(params.getFromDate()) + "'";
+      sql += "and pe.startdate >= '" + DateUtils.toMediumDate(params.getFromDate()) + "'";
     }
 
     return jdbcTemplate.queryForList(sql, Integer.class);

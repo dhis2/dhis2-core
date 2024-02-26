@@ -38,13 +38,14 @@ import static org.hisp.dhis.db.model.DataType.INTEGER;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
-import static org.hisp.dhis.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -150,10 +151,10 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
         "select cdr.datasetid "
             + "from completedatasetregistration cdr "
             + "where cdr.lastupdated >= '"
-            + getLongDateString(startDate)
+            + toLongDate(startDate)
             + "' "
             + "and cdr.lastupdated < '"
-            + getLongDateString(endDate)
+            + toLongDate(endDate)
             + "' "
             + "limit 1";
 
@@ -175,10 +176,10 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             + "inner join organisationunit ou on cdr.sourceid=ou.organisationunitid "
             + "inner join categoryoptioncombo ao on cdr.attributeoptioncomboid=ao.categoryoptioncomboid "
             + "where cdr.lastupdated >= '"
-            + getLongDateString(partition.getStartDate())
+            + toLongDate(partition.getStartDate())
             + "' "
             + "and cdr.lastupdated < '"
-            + getLongDateString(partition.getEndDate())
+            + toLongDate(partition.getEndDate())
             + "')";
 
     invokeTimeAndLog(sql, "Remove updated data values");
@@ -230,7 +231,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             + "where cdr.date is not null "
             + partitionClause
             + "and cdr.lastupdated < '"
-            + getLongDateString(params.getStartTime())
+            + toLongDate(params.getStartTime())
             + "' "
             + "and cdr.completed = true";
 
@@ -245,7 +246,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
    */
   private String getPartitionClause(AnalyticsTablePartition partition) {
     String latestFilter =
-        format("and cdr.lastupdated >= '%s' ", getLongDateString(partition.getStartDate()));
+        format("and cdr.lastupdated >= '%s' ", toLongDate(partition.getStartDate()));
     String partitionFilter = format("and ps.year = %d ", partition.getYear());
 
     return partition.isLatestPartition()
@@ -280,11 +281,11 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             + "inner join period pe on cdr.periodid=pe.periodid "
             + "where pe.startdate is not null "
             + "and cdr.date < '"
-            + getLongDateString(params.getStartTime())
+            + toLongDate(params.getStartTime())
             + "' ";
 
     if (params.getFromDate() != null) {
-      sql += "and pe.startdate >= '" + DateUtils.getMediumDateString(params.getFromDate()) + "'";
+      sql += "and pe.startdate >= '" + DateUtils.toMediumDate(params.getFromDate()) + "'";
     }
 
     return jdbcTemplate.queryForList(sql, Integer.class);

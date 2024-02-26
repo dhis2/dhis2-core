@@ -450,7 +450,7 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
             programStage.getName(),
             RuleEvent.Status.valueOf(eventA.getStatus().name()),
             Instant.Companion.fromEpochMilliseconds(now.getTime()),
-            LocalDateTime.Companion.parse(DateUtils.getIso8601NoTz(now)).getDate(),
+            LocalDateTime.Companion.parse(DateUtils.toIso8601NoTz(now)).getDate(),
             null,
             organisationUnit.getUid(),
             organisationUnit.getCode(),

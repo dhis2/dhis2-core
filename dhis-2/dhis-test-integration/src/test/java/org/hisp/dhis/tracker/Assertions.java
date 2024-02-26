@@ -312,7 +312,7 @@ public class Assertions {
   private static boolean hasTimeStamp(Date date) {
     try {
 
-      DATE_WITH_TIMESTAMP.parseDateTime(DateUtils.getLongGmtDateString(date));
+      DATE_WITH_TIMESTAMP.parseDateTime(DateUtils.toLongGmtDate(date));
     } catch (IllegalArgumentException e) {
       return false;
     }

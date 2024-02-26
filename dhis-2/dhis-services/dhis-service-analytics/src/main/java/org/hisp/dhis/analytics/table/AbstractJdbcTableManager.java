@@ -31,7 +31,7 @@ import static org.hisp.dhis.analytics.table.util.PartitionUtils.getEndDate;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getStartDate;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.TEXT;
-import static org.hisp.dhis.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -406,13 +406,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
           List.of(), AnalyticsTablePartition.LATEST_PARTITION, lastFullTableUpdate, endDate);
       log.info(
           "Added latest analytics partition with start: '{}' and end: '{}'",
-          getLongDateString(lastFullTableUpdate),
-          getLongDateString(endDate));
+          toLongDate(lastFullTableUpdate),
+          toLongDate(endDate));
     } else {
       log.info(
           "No updated latest data found with start: '{}' and end: '{}'",
-          getLongDateString(lastAnyTableUpdate),
-          getLongDateString(endDate));
+          toLongDate(lastAnyTableUpdate),
+          toLongDate(endDate));
     }
 
     return table;

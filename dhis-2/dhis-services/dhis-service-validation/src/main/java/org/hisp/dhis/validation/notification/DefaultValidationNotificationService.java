@@ -279,8 +279,7 @@ public class DefaultValidationNotificationService implements ValidationNotificat
             .map(m -> m.result.getValidationRule().getImportance())
             .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
 
-    String subject =
-        format("Validation violations as of %s", DateUtils.getLongDateString(validationDate));
+    String subject = format("Validation violations as of %s", DateUtils.toLongDate(validationDate));
 
     String message =
         format(
