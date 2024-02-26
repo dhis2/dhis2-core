@@ -50,6 +50,7 @@ import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -310,9 +311,9 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
             "and (%s) >= '%s' and (%s) < '%s' ",
             eventDateExpression, start, eventDateExpression, end);
 
-    return partition.isLatestPartition() 
-        ? latestFilter 
-            : sqlBuilder.supportsDeclarativePartitioning() ? EMPTY : partitionFilter;
+    return partition.isLatestPartition()
+        ? latestFilter
+        : sqlBuilder.supportsDeclarativePartitioning() ? EMPTY : partitionFilter;
   }
 
   /**
