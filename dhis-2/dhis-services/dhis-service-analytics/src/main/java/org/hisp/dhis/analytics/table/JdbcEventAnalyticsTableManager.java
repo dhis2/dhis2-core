@@ -32,6 +32,7 @@ import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.getDateLinkedToStatus;
 import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
@@ -56,7 +57,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -94,8 +95,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -236,18 +235,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     return params.isLatestUpdate()
         ? getLatestAnalyticsTables(params)
         : getRegularAnalyticsTables(params, availableDataYears);
-  }
-
-  /**
-   * This method encapsulates the SQL logic to get the correct date column based on the
-   * event(program stage instance) status. If new statuses need to be loaded into the analytics
-   * events tables, they have to be supported/added into this logic.
-   *
-   * @return a statement that returns the date column related to the event(program stage instance)
-   *     status
-   */
-  static String getDateLinkedToStatus() {
-    return "CASE WHEN 'SCHEDULE' = psi.status THEN psi.scheduleddate ELSE psi.occurreddate END";
   }
 
   /**
@@ -495,11 +482,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String partitionFilter =
         format("and (%s) >= '%s' and (%s) < '%s' ", statusDate, start, statusDate, end);
 
-    return partition.isLatestPartition()
-        ? latestFilter
-        : partitionFilter;
+    return partition.isLatestPartition() ? latestFilter : partitionFilter;
   }
-  
+
   /**
    * Returns dimensional analytics table columns.
    *
@@ -806,11 +791,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     if (params.getFromDate() != null) {
       sql +=
-          "and ("
-              + getDateLinkedToStatus()
-              + ") >= '"
-              + toMediumDate(params.getFromDate())
-              + "'";
+          "and (" + getDateLinkedToStatus() + ") >= '" + toMediumDate(params.getFromDate()) + "'";
     }
 
     sql +=

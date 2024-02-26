@@ -44,7 +44,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -248,11 +247,9 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
         format("and cdr.lastupdated >= '%s' ", toLongDate(partition.getStartDate()));
     String partitionFilter = format("and ps.year = %d ", partition.getYear());
 
-    return partition.isLatestPartition()
-        ? latestFilter
-        : partitionFilter;
+    return partition.isLatestPartition() ? latestFilter : partitionFilter;
   }
-  
+
   private List<AnalyticsTableColumn> getColumns() {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 

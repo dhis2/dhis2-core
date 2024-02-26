@@ -31,9 +31,9 @@ import static java.lang.String.format;
 import static java.lang.String.join;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
-import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.getDateLinkedToStatus;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getEndDate;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getStartDate;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.getDateLinkedToStatus;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_32;
@@ -55,7 +55,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -314,11 +313,9 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
     String partitionFilter =
         format("and (%s) >= '%s' and (%s) < '%s' ", statusDate, start, statusDate, end);
 
-    return partition.isLatestPartition()
-        ? latestFilter
-        : partitionFilter;
+    return partition.isLatestPartition() ? latestFilter : partitionFilter;
   }
-  
+
   /**
    * Indicates whether data was created or updated for the given time range since last successful
    * "latest" table partition update.
