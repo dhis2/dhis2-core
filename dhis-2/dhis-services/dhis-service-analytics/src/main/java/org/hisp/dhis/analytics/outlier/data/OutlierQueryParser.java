@@ -50,7 +50,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -231,7 +230,7 @@ public class OutlierQueryParser {
   /**
    * The method retrieves the list of the periods
    *
-   * @param relativePeriod the {@link RelativePeriodEnum}.
+   * @param relativePeriod, the period dimension.
    * @return list of the {@link Period}.
    */
   private List<Period> getPeriods(String relativePeriod, Date relativePeriodDate) {
