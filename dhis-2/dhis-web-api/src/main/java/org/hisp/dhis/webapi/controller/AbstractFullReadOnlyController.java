@@ -164,6 +164,11 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
    */
   protected void forceFiltering(final WebOptions webOptions, final List<String> filters) {}
 
+  /** To override default fields if they are not provided. */
+  protected void getFields(List<String> fields) {
+    fields.addAll(Preset.defaultPreset().getFields());
+  }
+
   // --------------------------------------------------------------------------
   // GET Full
   // --------------------------------------------------------------------------
@@ -221,7 +226,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     List<String> filters = Lists.newArrayList(contextService.getParameterValues("filter"));
 
     if (fields.isEmpty()) {
-      fields.addAll(Preset.defaultPreset().getFields());
+      getFields(fields);
     }
 
     WebOptions options = new WebOptions(rpParameters);

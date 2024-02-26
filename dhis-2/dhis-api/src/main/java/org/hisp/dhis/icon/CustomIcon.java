@@ -48,6 +48,8 @@ import org.hisp.dhis.fileresource.FileResource;
 @JacksonXmlRootElement(localName = "customIcon", namespace = DxfNamespaces.DXF_2_0)
 public class CustomIcon extends BaseIdentifiableObject {
 
+  public static final String DEFAULT_FIELDS_PARAM = "key,description,keywords,reference";
+
   @JsonProperty private String key;
 
   @JsonProperty private String description;

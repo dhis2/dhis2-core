@@ -31,6 +31,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 
 import com.google.common.net.MediaType;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -117,6 +118,11 @@ public class IconController extends AbstractFullReadOnlyController<CustomIcon> {
     response.sendRedirect(ContextUtils.getRootPath(request) + location);
   }
 
+  @GetMapping("/keywords")
+  public @ResponseBody Set<String> getKeywords() {
+    return iconService.getKeywords();
+  }
+
   @PostMapping
   public WebMessage addCustomIcon(HttpServletRequest request)
       throws IOException, BadRequestException, NotFoundException {
@@ -168,11 +174,6 @@ public class IconController extends AbstractFullReadOnlyController<CustomIcon> {
     return WebMessageUtils.ok(String.format("CustomIcon with uid %s deleted", uid));
   }
 
-  @GetMapping("/keywords")
-  public @ResponseBody Set<String> getKeywords() {
-    return iconService.getKeywords();
-  }
-
   @Override
   protected void postProcessResponseEntities(
       List<CustomIcon> entityList, WebOptions options, Map<String, String> parameters) {
@@ -193,6 +194,11 @@ public class IconController extends AbstractFullReadOnlyController<CustomIcon> {
         entity.getCustom()
             ? getCustomIconReference(entity.getKey())
             : getDefaultIconReference(entity.getKey()));
+  }
+
+  @Override
+  protected void getFields(List<String> fields) {
+    fields.addAll(Arrays.stream(CustomIcon.DEFAULT_FIELDS_PARAM.split(",")).toList());
   }
 
   private void downloadDefaultIcon(String key, HttpServletResponse response)

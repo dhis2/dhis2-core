@@ -27,13 +27,18 @@
  */
 package org.hisp.dhis.webapi.controller.icon;
 
+import static org.hamcrest.CoreMatchers.hasItems;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
+import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
@@ -144,6 +149,26 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     JsonList<JsonIcon> icons = content.getList("icons", JsonIcon.class);
 
     assertCustomIcons(icons.get(0), keywords, fileResourceId);
+  }
+
+  @Test
+  void shouldGetAllKeywords() throws IOException {
+
+    String fileResourceId1 = createFileResource();
+    createCustomIcon(fileResourceId1, keyword, key1);
+
+    String fileResourceId2 = createFileResource();
+    createCustomIcon(fileResourceId2, keywords, key2);
+
+    JsonArray response = GET("/icons/keywords").content(HttpStatus.OK);
+
+    assertNotNull(response);
+
+    List<String> keywords = response.stringValues();
+
+    assertEquals(3, keywords.size());
+
+    assertThat(keywords, hasItems("m1", "k1", "k2"));
   }
 
   @Test
