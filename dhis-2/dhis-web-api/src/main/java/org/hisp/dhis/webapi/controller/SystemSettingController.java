@@ -53,7 +53,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
@@ -195,8 +195,8 @@ public class SystemSettingController {
       @PathVariable("key") String key,
       @RequestParam(value = "locale", required = false) String locale,
       HttpServletResponse response,
-      @CurrentUser User currentUser) {
-    if (!settingExistsAndIsNotConfidential(key)) {
+      @CurrentUser UserDetails currentUser) {
+    if (!settingExistsAndIsNotConfidential(key, currentUser)) {
       return ResponseEntity.status(404).body(SETTING_DOESNT_EXIST_OR_CONFIDENTIAL);
     }
     response.setHeader(
@@ -213,9 +213,9 @@ public class SystemSettingController {
       getSystemSettingOrTranslationAsJson(
           @PathVariable("key") String key,
           @RequestParam(value = "locale", required = false) String locale,
-          @CurrentUser User currentUser)
+          @CurrentUser UserDetails currentUser)
           throws NotFoundException {
-    if (!settingExistsAndIsNotConfidential(key)) {
+    if (!settingExistsAndIsNotConfidential(key, currentUser)) {
       throw new NotFoundException(SETTING_DOESNT_EXIST_OR_CONFIDENTIAL);
     }
 
@@ -225,12 +225,14 @@ public class SystemSettingController {
         .body(Map.of(key, getSystemSettingOrTranslation(key, locale, currentUser)));
   }
 
-  private boolean settingExistsAndIsNotConfidential(String key) {
-    return SettingKey.getByName(key).isPresent() && !systemSettingManager.isConfidential(key);
+  private boolean settingExistsAndIsNotConfidential(String key, UserDetails currentUser) {
+    if (SettingKey.getByName(key).isEmpty()) return false;
+    return !systemSettingManager.isConfidential(key) || currentUser.isSuper();
   }
 
-  private Serializable getSystemSettingOrTranslation(String key, String locale, User currentUser) {
-    if (settingExistsAndIsNotConfidential(key)) {
+  private Serializable getSystemSettingOrTranslation(
+      String key, String locale, UserDetails currentUser) {
+    if (settingExistsAndIsNotConfidential(key, currentUser)) {
       Optional<SettingKey> settingKey = SettingKey.getByName(key);
       if (settingKey.isEmpty()) return StringUtils.EMPTY;
 
@@ -258,11 +260,12 @@ public class SystemSettingController {
     return StringUtils.EMPTY;
   }
 
-  private Optional<String> getLocaleToFetch(String locale, String key, User currentUser) {
+  private Optional<String> getLocaleToFetch(String locale, String key, UserDetails currentUser) {
     if (systemSettingManager.isTranslatable(key)) {
       if (StringUtils.isNotEmpty(locale)) {
         return Optional.of(locale);
-      } else if (currentUser != null) {
+      }
+      if (currentUser != null) {
         Locale userLocale =
             (Locale)
                 userSettingService.getUserSetting(
