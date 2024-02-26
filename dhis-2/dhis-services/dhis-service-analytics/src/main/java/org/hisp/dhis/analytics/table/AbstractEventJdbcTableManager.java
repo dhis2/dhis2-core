@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.table;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
