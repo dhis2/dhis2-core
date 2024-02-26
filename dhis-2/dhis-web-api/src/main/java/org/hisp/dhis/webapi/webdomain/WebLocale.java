@@ -60,7 +60,7 @@ public class WebLocale {
    * <br>
    * JDK 17 does not have this issue and allows switching between both codes - see <a
    * href="https://bugs.openjdk.org/browse/JDK-8267069">JDK bug</a>. This is needed purely for DHIS2
-   * versions not running on JDK 17.
+   * versions running on a JDK below 17.
    *
    * @param locale locale loaded from resources
    * @return adjusted locale for Indonesian codes or standard for anything else
