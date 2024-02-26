@@ -58,6 +58,7 @@ import org.hisp.dhis.scheduling.parameters.DataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.DisableInactiveUsersJobParameters;
 import org.hisp.dhis.scheduling.parameters.EventProgramsDataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.GeoJsonImportJobParams;
+import org.hisp.dhis.scheduling.parameters.HtmlPushAnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.LockExceptionCleanupJobParameters;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
@@ -279,6 +280,9 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
         @JsonSubTypes.Type(value = MonitoringJobParameters.class, name = "MONITORING"),
         @JsonSubTypes.Type(value = PredictorJobParameters.class, name = "PREDICTOR"),
         @JsonSubTypes.Type(value = PushAnalysisJobParameters.class, name = "PUSH_ANALYSIS"),
+        @JsonSubTypes.Type(
+            value = HtmlPushAnalyticsJobParameters.class,
+            name = "HTML_PUSH_ANALYTICS"),
         @JsonSubTypes.Type(value = SmsJobParameters.class, name = "SMS_SEND"),
         @JsonSubTypes.Type(value = MetadataSyncJobParameters.class, name = "META_DATA_SYNC"),
         @JsonSubTypes.Type(

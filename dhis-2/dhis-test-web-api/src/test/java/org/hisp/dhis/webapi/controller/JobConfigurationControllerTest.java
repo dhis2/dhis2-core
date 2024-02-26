@@ -63,19 +63,17 @@ import org.junit.jupiter.api.Test;
 class JobConfigurationControllerTest extends DhisControllerConvenienceTest {
 
   private static final String UID1 = "asdflksadfjlkj";
-
   private static final String UID2 = "kajshdfkjahsdkfhj";
 
   @Test
   void testCONTINUOUS_ANALYTICS_TABLE() {
-    String jobId =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/jobConfigurations",
-                "{'name':'test','jobType':'CONTINUOUS_ANALYTICS_TABLE','delay':'1',"
-                    + "'jobParameters':{'fullUpdateHourOfDay':'1','lastYears':'2',"
-                    + "'skipTableTypes':['DATA_VALUE','COMPLETENESS','COMPLETENESS_TARGET','ORG_UNIT_TARGET','EVENT','ENROLLMENT','VALIDATION_RESULT']}}"));
+    // language=JSON
+    String json =
+        """
+      {"name":"test","jobType":"CONTINUOUS_ANALYTICS_TABLE","delay":"1",
+      "jobParameters":{"fullUpdateHourOfDay":"1","lastYears":"2",
+        "skipTableTypes":["DATA_VALUE","COMPLETENESS","COMPLETENESS_TARGET","ORG_UNIT_TARGET","EVENT","ENROLLMENT","VALIDATION_RESULT"]}}""";
+    String jobId = assertStatus(HttpStatus.CREATED, POST("/jobConfigurations", json));
     JsonObject parameters = assertJobConfigurationExists(jobId, "CONTINUOUS_ANALYTICS_TABLE");
     assertEquals(1, parameters.getNumber("fullUpdateHourOfDay").intValue());
     assertEquals(2, parameters.getNumber("lastYears").intValue());
@@ -93,56 +91,42 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void testDISABLE_INACTIVE_USERS() {
-    String jobId =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/jobConfigurations",
-                "{'name':'test','jobType':'DISABLE_INACTIVE_USERS','cronExpression':'0 0 1 ? * *','jobParameters':{'inactiveMonths':'3'}}"));
+    String json =
+        "{'name':'test','jobType':'DISABLE_INACTIVE_USERS','cronExpression':'0 0 1 ? * *','jobParameters':{'inactiveMonths':'3'}}";
+    String jobId = assertStatus(HttpStatus.CREATED, POST("/jobConfigurations", json));
     JsonObject parameters = assertJobConfigurationExists(jobId, "DISABLE_INACTIVE_USERS");
     assertEquals(3, parameters.getNumber("inactiveMonths").intValue());
   }
 
   @Test
   void testDATA_INTEGRITY() {
-    String jobId =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/jobConfigurations",
-                "{'name':'test','jobType':'DATA_INTEGRITY','cronExpression':'0 0 12 ? * MON-FRI'}"));
+    String json =
+        "{'name':'test','jobType':'DATA_INTEGRITY','cronExpression':'0 0 12 ? * MON-FRI'}";
+    String jobId = assertStatus(HttpStatus.CREATED, POST("/jobConfigurations", json));
     JsonObject parameters = assertJobConfigurationExists(jobId, "DATA_INTEGRITY");
     assertTrue(parameters.exists());
   }
 
   @Test
   void testRESOURCE_TABLE() {
-    String jobId =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/jobConfigurations",
-                "{'name':'test','jobType':'RESOURCE_TABLE','cronExpression':'0 0 3 ? * MON'}"));
+    String json = "{'name':'test','jobType':'RESOURCE_TABLE','cronExpression':'0 0 3 ? * MON'}";
+    String jobId = assertStatus(HttpStatus.CREATED, POST("/jobConfigurations", json));
     JsonObject parameters = assertJobConfigurationExists(jobId, "RESOURCE_TABLE");
     assertFalse(parameters.exists());
   }
 
   @Test
   void testANALYTICS_TABLE() {
-    String jobId =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/jobConfigurations",
-                "{'name':'test','jobType':'ANALYTICS_TABLE','cronExpression':'0 0 3 ? * *',"
-                    + "'jobParameters':{'lastYears':'1',"
-                    + "'skipTableTypes':['DATA_VALUE','COMPLETENESS','ENROLLMENT'],"
-                    + "'skipPrograms':['"
-                    + UID1
-                    + "','"
-                    + UID2
-                    + "'],"
-                    + "'skipResourceTables':true}}"));
+    // language=JSON
+    String json =
+        """
+      {"name":"test","jobType":"ANALYTICS_TABLE","cronExpression":"0 0 3 ? * *",
+      "jobParameters":{"lastYears":"1",
+        "skipTableTypes":["DATA_VALUE","COMPLETENESS","ENROLLMENT"],
+        "skipPrograms":["%s", "%s"],
+        "skipResourceTables": true}}"""
+            .formatted(UID1, UID2);
+    String jobId = assertStatus(HttpStatus.CREATED, POST("/jobConfigurations", json));
     JsonObject parameters = assertJobConfigurationExists(jobId, "ANALYTICS_TABLE");
     assertEquals(1, parameters.getNumber("lastYears").intValue());
     assertTrue(parameters.getBoolean("skipResourceTables").booleanValue());
@@ -154,25 +138,21 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void testPROGRAM_NOTIFICATIONS() {
-    String jobId =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/jobConfigurations",
-                "{'name':'test','jobType':'PROGRAM_NOTIFICATIONS','cronExpression':'0 0 1 ? * *'}"));
+    String json =
+        "{'name':'test','jobType':'PROGRAM_NOTIFICATIONS','cronExpression':'0 0 1 ? * *'}";
+    String jobId = assertStatus(HttpStatus.CREATED, POST("/jobConfigurations", json));
     JsonObject parameters = assertJobConfigurationExists(jobId, "PROGRAM_NOTIFICATIONS");
     assertFalse(parameters.exists());
   }
 
   @Test
   void testMONITORING() {
-    String jobId =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/jobConfigurations",
-                "{'name':'test','jobType':'MONITORING','cronExpression':'0 0 12 ? * MON-FRI',"
-                    + "'jobParameters':{'relativeStart':'1','relativeEnd':'2','validationRuleGroups':[],'sendNotifications':true,'persistResults':true}}"));
+    // language=JSON
+    String json =
+        """
+            {"name":"test","jobType":"MONITORING","cronExpression":"0 0 12 ? * MON-FRI",
+            "jobParameters":{"relativeStart":"1","relativeEnd":"2","validationRuleGroups":[],"sendNotifications":true,"persistResults":true}}""";
+    String jobId = assertStatus(HttpStatus.CREATED, POST("/jobConfigurations", json));
     JsonObject parameters = assertJobConfigurationExists(jobId, "MONITORING");
     assertEquals(1, parameters.getNumber("relativeStart").intValue());
     assertEquals(2, parameters.getNumber("relativeEnd").intValue());
@@ -182,14 +162,33 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
+  void testHTML_PUSH_ANALYTICS() {
+    // language=JSON
+    String json =
+        """
+      {
+        "name": "test",
+        "jobType": "HTML_PUSH_ANALYTICS",
+        "jobParameters": {
+          "dashboard": "nghVC4wtyzi",
+          "receivers": "wl5cDMuUhmF",
+          "mode":"EXECUTOR"
+        },
+        "cronExpression": "0 0 1 ? * *"
+      }""";
+    String jobId = assertStatus(HttpStatus.CREATED, POST("/jobConfigurations", json));
+    JsonObject parameters = assertJobConfigurationExists(jobId, "HTML_PUSH_ANALYTICS");
+    assertEquals("nghVC4wtyzi", parameters.getString("dashboard").string());
+    assertEquals("wl5cDMuUhmF", parameters.getString("receivers").string());
+    assertEquals("EXECUTOR", parameters.getString("mode").string());
+  }
+
+  @Test
   void testLOCK_EXCEPTION_CLEANUP() {
-    String jobId =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/jobConfigurations",
-                "{'name':'test','jobType':'LOCK_EXCEPTION_CLEANUP','cronExpression':'0 0 12 ? * MON-FRI',"
-                    + "'jobParameters':{'expiresAfterMonths':'3'}}"));
+    String json =
+        "{'name':'test','jobType':'LOCK_EXCEPTION_CLEANUP','cronExpression':'0 0 12 ? * MON-FRI',"
+            + "'jobParameters':{'expiresAfterMonths':'3'}}";
+    String jobId = assertStatus(HttpStatus.CREATED, POST("/jobConfigurations", json));
     JsonObject parameters = assertJobConfigurationExists(jobId, "LOCK_EXCEPTION_CLEANUP");
     assertEquals(3, parameters.getNumber("expiresAfterMonths").intValue());
   }
