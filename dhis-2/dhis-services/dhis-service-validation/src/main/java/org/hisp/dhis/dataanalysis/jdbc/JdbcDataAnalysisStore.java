@@ -94,7 +94,7 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore {
             + catOptionComboIds
             + ") "
             + "and pe.startdate >= '"
-            + DateUtils.getMediumDateString(from)
+            + DateUtils.toMediumDate(from)
             + "' "
             + "and dv.sourceid = "
             + orgUnit.getId()

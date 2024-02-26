@@ -28,8 +28,12 @@
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.hisp.dhis.security.Authorities.ALL;
+import static org.hisp.dhis.utils.Assertions.assertContains;
+import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import com.google.common.collect.Sets;
 import java.util.Date;
@@ -62,8 +66,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
-  private static final String DATA_ELEMENT_VALUE = "value";
-  private static final String NEW_DATA_ELEMENT_VALUE = "new value";
+  private static final String DATA_ELEMENT_VALUE = "value 1";
 
   @Autowired private IdentifiableObjectManager manager;
   private User user;
@@ -72,7 +75,8 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
   private OrganisationUnit orgUnit;
   private User owner;
   private TrackedEntityType trackedEntityType;
-  private EventDataValue dataValue;
+  private Event event;
+  private DataElement dataElement;
 
   @BeforeEach
   void setUp() {
@@ -91,33 +95,235 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
     program.setTrackedEntityType(trackedEntityType);
     manager.save(program);
 
-    DataElement de = createDataElement('A', ValueType.TEXT, AggregationType.NONE);
-    de.getSharing().setOwner(owner);
-    manager.save(de, false);
+    dataElement = createDataElement('A', ValueType.TEXT, AggregationType.NONE);
+    dataElement.getSharing().setOwner(owner);
+    manager.save(dataElement, false);
 
     programStage = createProgramStage('A', program);
     programStage.setUid("pSllsjpfLH2");
     program.getProgramStages().add(programStage);
     ProgramStageDataElement programStageDataElement =
-        createProgramStageDataElement(programStage, de, 1, false);
+        createProgramStageDataElement(programStage, dataElement, 1, false);
     manager.save(programStageDataElement);
     programStage.setProgramStageDataElements(Sets.newHashSet(programStageDataElement));
     manager.save(programStage);
 
-    dataValue = new EventDataValue();
-    dataValue.setDataElement(de.getUid());
+    EventDataValue dataValue = new EventDataValue();
+    dataValue.setDataElement(dataElement.getUid());
     dataValue.setStoredBy("user");
     dataValue.setValue(DATA_ELEMENT_VALUE);
-  }
 
-  @Test
-  void shouldGetEventChangeLogWhenDataValueUpdated() {
-    Event event = event(enrollment(trackedEntity()));
+    event = event(enrollment(trackedEntity()));
     event.getEventDataValues().add(dataValue);
     manager.update(event);
 
-    String json =
-        """
+    JsonWebMessage importResponse =
+        POST("/tracker?async=false&importStrategy=UPDATE", createJson(event, "value 2"))
+            .content(HttpStatus.OK)
+            .as(JsonWebMessage.class);
+    assertEquals(HttpStatus.OK.toString(), importResponse.getStatus());
+
+    importResponse =
+        POST("/tracker?async=false&importStrategy=UPDATE", createJson(event, "value 3"))
+            .content(HttpStatus.OK)
+            .as(JsonWebMessage.class);
+    assertEquals(HttpStatus.OK.toString(), importResponse.getStatus());
+
+    importResponse =
+        POST("/tracker?async=false&importStrategy=UPDATE", createJson(event, ""))
+            .content(HttpStatus.OK)
+            .as(JsonWebMessage.class);
+    assertEquals(HttpStatus.OK.toString(), importResponse.getStatus());
+  }
+
+  @Test
+  void shouldGetEventChangeLogWhenDataValueUpdatedAndThenDeleted() {
+    JsonWebMessage changeLogResponse =
+        GET("/tracker/events/{id}/changeLogs", event.getUid())
+            .content(HttpStatus.OK)
+            .as(JsonWebMessage.class);
+
+    JsonObject changeLogObject =
+        changeLogResponse.get("changeLogs").asList(JsonList.class).get(0).asObject();
+    JsonObject updatedByValue = changeLogObject.get("createdBy").asObject();
+    JsonObject dataValueObject =
+        changeLogObject.get("change").asObject().get("dataValue").asObject();
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+
+    assertAll(
+        () -> {
+          assertEquals(currentUser.getUid(), updatedByValue.getString("uid").string());
+          assertEquals(currentUser.getUsername(), updatedByValue.getString("username").string());
+          assertEquals(currentUser.getFirstName(), updatedByValue.getString("firstName").string());
+          assertEquals(currentUser.getSurname(), updatedByValue.getString("surname").string());
+
+          assertEquals(dataElement.getUid(), dataValueObject.getString("dataElement").string());
+          assertEquals("value 3", dataValueObject.getString("previousValue").string());
+          assertNull(dataValueObject.getString("currentValue").string());
+        });
+  }
+
+  @Test
+  void shouldGetChangeLogPagerWithNextElementWhenMultipleElementsImportedAndFirstPageRequested() {
+    JsonWebMessage changeLogResponse =
+        GET(
+                "/tracker/events/{id}/changeLogs?page={page}&pageSize={pageSize}",
+                event.getUid(),
+                "1",
+                "1")
+            .content(HttpStatus.OK)
+            .as(JsonWebMessage.class);
+
+    JsonObject pagerObject = changeLogResponse.get("pager").asObject();
+    assertAll(
+        () -> assertEquals(1, pagerObject.getNumber("page").intValue()),
+        () -> assertEquals(1, pagerObject.getNumber("pageSize").intValue()),
+        () -> assertNull(pagerObject.getString("prevPage").string()),
+        () ->
+            assertPagerLink(
+                pagerObject.getString("nextPage").string(),
+                2,
+                1,
+                String.format("http://localhost/tracker/events/%s/changeLogs", event.getUid())));
+  }
+
+  @Test
+  void
+      shouldGetChangeLogPagerWithNextAndPreviousElementsWhenMultipleElementsImportedAndSecondPageRequested() {
+    JsonWebMessage changeLogResponse =
+        GET(
+                "/tracker/events/{id}/changeLogs?page={page}&pageSize={pageSize}",
+                event.getUid(),
+                "2",
+                "1")
+            .content(HttpStatus.OK)
+            .as(JsonWebMessage.class);
+
+    JsonObject pagerObject = changeLogResponse.get("pager").asObject();
+    assertAll(
+        () -> assertEquals(2, pagerObject.getNumber("page").intValue()),
+        () -> assertEquals(1, pagerObject.getNumber("pageSize").intValue()),
+        () ->
+            assertPagerLink(
+                pagerObject.getString("prevPage").string(),
+                1,
+                1,
+                String.format("http://localhost/tracker/events/%s/changeLogs", event.getUid())),
+        () ->
+            assertPagerLink(
+                pagerObject.getString("nextPage").string(),
+                3,
+                1,
+                String.format("http://localhost/tracker/events/%s/changeLogs", event.getUid())));
+  }
+
+  @Test
+  void
+      shouldGetChangeLogPagerWithPreviousElementWhenMultipleElementsImportedAndLastPageRequested() {
+    JsonWebMessage changeLogResponse =
+        GET(
+                "/tracker/events/{id}/changeLogs?page={page}&pageSize={pageSize}",
+                event.getUid(),
+                "3",
+                "1")
+            .content(HttpStatus.OK)
+            .as(JsonWebMessage.class);
+
+    JsonObject pagerObject = changeLogResponse.get("pager").asObject();
+    assertAll(
+        () -> {
+          assertEquals(3, pagerObject.getNumber("page").intValue());
+          assertEquals(1, pagerObject.getNumber("pageSize").intValue());
+          assertPagerLink(
+              pagerObject.getString("prevPage").string(),
+              2,
+              1,
+              String.format("http://localhost/tracker/events/%s/changeLogs", event.getUid()));
+          assertNull(pagerObject.getString("nextPage").string());
+        });
+  }
+
+  @Test
+  void
+      shouldGetChangeLogPagerWithoutPreviousNorNextElementWhenMultipleElementsImportedAndAllElementsFitInOnePage() {
+    JsonWebMessage changeLogResponse =
+        GET(
+                "/tracker/events/{id}/changeLogs?page={page}&pageSize={pageSize}",
+                event.getUid(),
+                "1",
+                "3")
+            .content(HttpStatus.OK)
+            .as(JsonWebMessage.class);
+
+    JsonObject pagerObject = changeLogResponse.get("pager").asObject();
+    assertAll(
+        () -> {
+          assertEquals(1, pagerObject.getNumber("page").intValue());
+          assertEquals(3, pagerObject.getNumber("pageSize").intValue());
+          assertNull(pagerObject.getString("prevPage").string());
+          assertNull(pagerObject.getString("nextPage").string());
+        });
+  }
+
+  private TrackedEntity trackedEntity() {
+    TrackedEntity te = trackedEntity(orgUnit);
+    manager.save(te, false);
+    return te;
+  }
+
+  private TrackedEntity trackedEntity(OrganisationUnit orgUnit) {
+    return trackedEntity(orgUnit, trackedEntityType);
+  }
+
+  private TrackedEntity trackedEntity(
+      OrganisationUnit orgUnit, TrackedEntityType trackedEntityType) {
+    TrackedEntity te = createTrackedEntity(orgUnit);
+    te.setTrackedEntityType(trackedEntityType);
+    te.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    te.getSharing().setOwner(owner);
+    return te;
+  }
+
+  private TrackedEntityType trackedEntityTypeAccessible() {
+    TrackedEntityType type = trackedEntityType();
+    type.getSharing().addUserAccess(userAccess());
+    manager.save(type, false);
+    return type;
+  }
+
+  private TrackedEntityType trackedEntityType() {
+    TrackedEntityType type = createTrackedEntityType('A');
+    type.getSharing().setOwner(owner);
+    type.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    return type;
+  }
+
+  private UserAccess userAccess() {
+    UserAccess a = new UserAccess();
+    a.setUser(user);
+    a.setAccess(AccessStringHelper.FULL);
+    return a;
+  }
+
+  private Enrollment enrollment(TrackedEntity te) {
+    Enrollment enrollment = new Enrollment(program, te, te.getOrganisationUnit());
+    enrollment.setAutoFields();
+    enrollment.setEnrollmentDate(new Date());
+    enrollment.setOccurredDate(new Date());
+    enrollment.setStatus(ProgramStatus.COMPLETED);
+    manager.save(enrollment);
+    return enrollment;
+  }
+
+  private Event event(Enrollment enrollment) {
+    Event event = new Event(enrollment, programStage, enrollment.getOrganisationUnit());
+    event.setAutoFields();
+    manager.save(event);
+    return event;
+  }
+
+  private String createJson(Event event, String value) {
+    return """
       {
         "events": [
           {
@@ -151,102 +357,22 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
         ]
       }}
         """
-            .formatted(
-                event.getUid(),
-                program.getUid(),
-                programStage.getUid(),
-                event.getEnrollment().getUid(),
-                event.getEnrollment().getTrackedEntity().getUid(),
-                event.getOrganisationUnit().getUid(),
-                event.getEventDataValues().iterator().next().getDataElement(),
-                NEW_DATA_ELEMENT_VALUE);
+        .formatted(
+            event.getUid(),
+            program.getUid(),
+            programStage.getUid(),
+            event.getEnrollment().getUid(),
+            event.getEnrollment().getTrackedEntity().getUid(),
+            event.getOrganisationUnit().getUid(),
+            event.getEventDataValues().iterator().next().getDataElement(),
+            value);
+  }
 
-    JsonWebMessage importResponse =
-        POST("/tracker?async=false&importStrategy=UPDATE", json)
-            .content(HttpStatus.OK)
-            .as(JsonWebMessage.class);
-    assertEquals(HttpStatus.OK.toString(), importResponse.getStatus());
-
-    JsonWebMessage changeLogResponse =
-        GET("/tracker/events/{id}/changeLog", event.getUid())
-            .content(HttpStatus.OK)
-            .as(JsonWebMessage.class);
-
-    JsonObject changeLogObject = changeLogResponse.asList(JsonList.class).get(0).asObject();
-    JsonObject updatedByValue = changeLogObject.get("createdBy").asObject();
-    JsonObject dataValueObject =
-        changeLogObject.get("change").asObject().get("dataValue").asObject();
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-
+  private static void assertPagerLink(String actual, int page, int pageSize, String start) {
+    assertNotNull(actual);
     assertAll(
-        () -> {
-          assertEquals(currentUser.getUid(), updatedByValue.getString("uid").string());
-          assertEquals(currentUser.getUsername(), updatedByValue.getString("username").string());
-          assertEquals(currentUser.getFirstName(), updatedByValue.getString("firstName").string());
-          assertEquals(currentUser.getSurname(), updatedByValue.getString("surname").string());
-
-          assertEquals(
-              event.getEventDataValues().iterator().next().getDataElement(),
-              dataValueObject.getString("dataElement").string());
-          assertEquals(DATA_ELEMENT_VALUE, dataValueObject.getString("previousValue").string());
-          assertEquals(NEW_DATA_ELEMENT_VALUE, dataValueObject.getString("currentValue").string());
-        });
-  }
-
-  private TrackedEntity trackedEntity() {
-    TrackedEntity te = trackedEntity(orgUnit);
-    manager.save(te, false);
-    return te;
-  }
-
-  private TrackedEntity trackedEntity(OrganisationUnit orgUnit) {
-    return trackedEntity(orgUnit, trackedEntityType);
-  }
-
-  private TrackedEntity trackedEntity(
-      OrganisationUnit orgUnit, TrackedEntityType trackedEntityType) {
-    TrackedEntity te = createTrackedEntity(orgUnit);
-    te.setTrackedEntityType(trackedEntityType);
-    te.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
-    te.getSharing().setOwner(owner);
-    return te;
-  }
-
-  private TrackedEntityType trackedEntityTypeAccessible() {
-    TrackedEntityType type = trackedEntityType('A');
-    type.getSharing().addUserAccess(userAccess());
-    manager.save(type, false);
-    return type;
-  }
-
-  private TrackedEntityType trackedEntityType(char uniqueChar) {
-    TrackedEntityType type = createTrackedEntityType(uniqueChar);
-    type.getSharing().setOwner(owner);
-    type.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
-    return type;
-  }
-
-  private UserAccess userAccess() {
-    UserAccess a = new UserAccess();
-    a.setUser(user);
-    a.setAccess(AccessStringHelper.FULL);
-    return a;
-  }
-
-  private Enrollment enrollment(TrackedEntity te) {
-    Enrollment enrollment = new Enrollment(program, te, te.getOrganisationUnit());
-    enrollment.setAutoFields();
-    enrollment.setEnrollmentDate(new Date());
-    enrollment.setOccurredDate(new Date());
-    enrollment.setStatus(ProgramStatus.COMPLETED);
-    manager.save(enrollment);
-    return enrollment;
-  }
-
-  private Event event(Enrollment enrollment) {
-    Event event = new Event(enrollment, programStage, enrollment.getOrganisationUnit());
-    event.setAutoFields();
-    manager.save(event);
-    return event;
+        () -> assertStartsWith(start, actual),
+        () -> assertContains("page=" + page, actual),
+        () -> assertContains("pageSize=" + pageSize, actual));
   }
 }

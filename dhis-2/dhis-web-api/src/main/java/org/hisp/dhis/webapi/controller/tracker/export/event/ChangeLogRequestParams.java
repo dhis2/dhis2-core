@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,33 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity;
+package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import java.util.List;
-import java.util.Set;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 
-interface TrackedEntityStore extends IdentifiableObjectStore<TrackedEntity> {
-  String ID = TrackedEntityStore.class.getName();
+@OpenApi.Shared(name = "ChangeLogRequestParams")
+@OpenApi.Property
+@Data
+@NoArgsConstructor
+public class ChangeLogRequestParams {
 
-  /** Get all tracked entity ids matching given params. */
-  List<Long> getTrackedEntityIds(TrackedEntityQueryParams params);
+  private static final String DEFAULT_FIELDS_PARAM = "change,createdAt,createdBy";
 
-  /** Get a page of tracked entities matching given params. */
-  Page<Long> getTrackedEntityIds(TrackedEntityQueryParams params, PageParams pageParams);
+  private int page = 1;
 
-  /**
-   * Fields the {@link #getTrackedEntityIds(TrackedEntityQueryParams)})} can order tracked entities
-   * by. Ordering by fields other than these is considered a programmer error. Validation of user
-   * provided field names should occur before calling {@link
-   * #getTrackedEntityIds(TrackedEntityQueryParams)}.
-   */
-  Set<String> getOrderableFields();
+  private int pageSize = 50;
 
-  Long getTrackedEntityCount(TrackedEntityQueryParams params);
-
-  int getTrackedEntityCountWithMaxTrackedEntityLimit(TrackedEntityQueryParams params);
+  private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
 }

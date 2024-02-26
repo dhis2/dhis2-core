@@ -53,7 +53,7 @@ import static org.hisp.dhis.dxf2.deprecated.tracker.event.EventSearchParams.EVEN
 import static org.hisp.dhis.dxf2.deprecated.tracker.event.EventSearchParams.EVENT_STORED_BY_ID;
 import static org.hisp.dhis.dxf2.deprecated.tracker.event.EventSearchParams.PAGER_META_KEY;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Lists;
@@ -592,18 +592,18 @@ public abstract class AbstractEventService
     event.setEnrollmentStatus(
         EnrollmentStatus.fromProgramStatus(programStageInstance.getEnrollment().getStatus()));
     event.setStatus(programStageInstance.getStatus());
-    event.setEventDate(DateUtils.getIso8601NoTz(programStageInstance.getOccurredDate()));
-    event.setDueDate(DateUtils.getIso8601NoTz(programStageInstance.getScheduledDate()));
+    event.setEventDate(DateUtils.toIso8601NoTz(programStageInstance.getOccurredDate()));
+    event.setDueDate(DateUtils.toIso8601NoTz(programStageInstance.getScheduledDate()));
     event.setStoredBy(programStageInstance.getStoredBy());
     event.setCompletedBy(programStageInstance.getCompletedBy());
-    event.setCompletedDate(DateUtils.getIso8601NoTz(programStageInstance.getCompletedDate()));
-    event.setCreated(DateUtils.getIso8601NoTz(programStageInstance.getCreated()));
+    event.setCompletedDate(DateUtils.toIso8601NoTz(programStageInstance.getCompletedDate()));
+    event.setCreated(DateUtils.toIso8601NoTz(programStageInstance.getCreated()));
     event.setCreatedByUserInfo(programStageInstance.getCreatedByUserInfo());
     event.setLastUpdatedByUserInfo(programStageInstance.getLastUpdatedByUserInfo());
-    event.setCreatedAtClient(DateUtils.getIso8601NoTz(programStageInstance.getCreatedAtClient()));
-    event.setLastUpdated(DateUtils.getIso8601NoTz(programStageInstance.getLastUpdated()));
+    event.setCreatedAtClient(DateUtils.toIso8601NoTz(programStageInstance.getCreatedAtClient()));
+    event.setLastUpdated(DateUtils.toIso8601NoTz(programStageInstance.getLastUpdated()));
     event.setLastUpdatedAtClient(
-        DateUtils.getIso8601NoTz(programStageInstance.getLastUpdatedAtClient()));
+        DateUtils.toIso8601NoTz(programStageInstance.getLastUpdatedAtClient()));
     event.setGeometry(programStageInstance.getGeometry());
     event.setDeleted(programStageInstance.isDeleted());
 
@@ -670,9 +670,9 @@ public abstract class AbstractEventService
       if (getDataElement(
           CurrentUserUtil.getCurrentUserDetails().getUid(), dataValue.getDataElement())) {
         DataValue value = new DataValue();
-        value.setCreated(DateUtils.getIso8601NoTz(dataValue.getCreated()));
+        value.setCreated(DateUtils.toIso8601NoTz(dataValue.getCreated()));
         value.setCreatedByUserInfo(dataValue.getCreatedByUserInfo());
-        value.setLastUpdated(DateUtils.getIso8601NoTz(dataValue.getLastUpdated()));
+        value.setLastUpdated(DateUtils.toIso8601NoTz(dataValue.getLastUpdated()));
         value.setLastUpdatedByUserInfo(dataValue.getLastUpdatedByUserInfo());
         value.setDataElement(dataValue.getDataElement());
         value.setValue(dataValue.getValue());
@@ -1024,9 +1024,9 @@ public abstract class AbstractEventService
       if (option.getStartDate() != null && date.compareTo(option.getStartDate()) < 0) {
         throw new IllegalQueryException(
             "Event date "
-                + getMediumDateString(date)
+                + toMediumDate(date)
                 + " is before start date "
-                + getMediumDateString(option.getStartDate())
+                + toMediumDate(option.getStartDate())
                 + " for attributeOption '"
                 + option.getName()
                 + "'");
@@ -1035,9 +1035,9 @@ public abstract class AbstractEventService
       if (option.getEndDate() != null && date.compareTo(option.getEndDate()) > 0) {
         throw new IllegalQueryException(
             "Event date "
-                + getMediumDateString(date)
+                + toMediumDate(date)
                 + " is after end date "
-                + getMediumDateString(option.getEndDate())
+                + toMediumDate(option.getEndDate())
                 + " for attributeOption '"
                 + option.getName()
                 + "'");

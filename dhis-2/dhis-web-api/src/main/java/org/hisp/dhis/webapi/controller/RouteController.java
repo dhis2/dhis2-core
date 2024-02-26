@@ -45,7 +45,6 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -59,9 +58,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class RouteController extends AbstractCrudController<Route> {
   private final RouteService routeService;
 
-  @RequestMapping(
-      value = "/{id}/run",
-      method = {RequestMethod.GET, RequestMethod.POST})
+  @RequestMapping(value = "/{id}/run")
   public ResponseEntity<String> run(
       @PathVariable("id") String id,
       @CurrentUser UserDetails currentUser,
@@ -70,9 +67,7 @@ public class RouteController extends AbstractCrudController<Route> {
     return runWithSubpath(id, currentUser, request);
   }
 
-  @RequestMapping(
-      value = "/{id}/run/**",
-      method = {RequestMethod.GET, RequestMethod.POST})
+  @RequestMapping(value = "/{id}/run/**")
   public ResponseEntity<String> runWithSubpath(
       @PathVariable("id") String id,
       @CurrentUser UserDetails currentUser,

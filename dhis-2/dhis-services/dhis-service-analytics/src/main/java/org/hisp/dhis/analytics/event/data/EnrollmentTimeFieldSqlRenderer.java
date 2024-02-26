@@ -31,8 +31,8 @@ import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.util.DateUtils.plusOneDay;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -163,11 +163,11 @@ class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
     return "( "
         + timeCol
         + " >= '"
-        + getMediumDateString(period.getStartDate())
+        + toMediumDate(period.getStartDate())
         + "' and "
         + timeCol
         + " < '"
-        + getMediumDateString(plusOneDay(period.getEndDate()))
+        + toMediumDate(plusOneDay(period.getEndDate()))
         + "') ";
   }
 }

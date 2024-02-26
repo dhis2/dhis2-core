@@ -36,7 +36,7 @@ import static org.hisp.dhis.db.model.DataType.INTEGER;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
-import static org.hisp.dhis.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -148,10 +148,10 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
         "select cdr.datasetid "
             + "from completedatasetregistration cdr "
             + "where cdr.lastupdated >= '"
-            + getLongDateString(startDate)
+            + toLongDate(startDate)
             + "' "
             + "and cdr.lastupdated < '"
-            + getLongDateString(endDate)
+            + toLongDate(endDate)
             + "' "
             + "limit 1";
 
@@ -166,17 +166,17 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             + quote(getAnalyticsTableType().getTableName())
             + " ax "
             + "where ax.id in ("
-            + "select (ds.uid || '-' || ps.iso || '-' || ou.uid || '-' || ao.uid) as id "
+            + "select concat(ds.uid,'-',ps.iso,'-',ou.uid,'-',ao.uid) as id "
             + "from completedatasetregistration cdr "
             + "inner join dataset ds on cdr.datasetid=ds.datasetid "
             + "inner join _periodstructure ps on cdr.periodid=ps.periodid "
             + "inner join organisationunit ou on cdr.sourceid=ou.organisationunitid "
             + "inner join categoryoptioncombo ao on cdr.attributeoptioncomboid=ao.categoryoptioncomboid "
             + "where cdr.lastupdated >= '"
-            + getLongDateString(partition.getStartDate())
+            + toLongDate(partition.getStartDate())
             + "' "
             + "and cdr.lastupdated < '"
-            + getLongDateString(partition.getEndDate())
+            + toLongDate(partition.getEndDate())
             + "')";
 
     invokeTimeAndLog(sql, "Remove updated data values");
@@ -194,7 +194,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     String tableName = partition.getName();
     String partitionClause =
         partition.isLatestPartition()
-            ? "and cdr.lastupdated >= '" + getLongDateString(partition.getStartDate()) + "' "
+            ? "and cdr.lastupdated >= '" + toLongDate(partition.getStartDate()) + "' "
             : "and ps.year = " + partition.getYear() + " ";
 
     String sql = "insert into " + tableName + " (";
@@ -231,7 +231,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             + "where cdr.date is not null "
             + partitionClause
             + "and cdr.lastupdated < '"
-            + getLongDateString(params.getStartTime())
+            + toLongDate(params.getStartTime())
             + "' "
             + "and cdr.completed = true";
 
@@ -241,7 +241,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
   private List<AnalyticsTableColumn> getColumns() {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-    String idColAlias = "(ds.uid || '-' || ps.iso || '-' || ou.uid || '-' || ao.uid) as id ";
+    String idColAlias = "concat(ds.uid,'-',ps.iso,'-',ou.uid,'-',ao.uid) as id ";
     String timelyDateDiff = "cast(cdr.date as date) - pe.enddate";
     String timelyAlias = "(select (" + timelyDateDiff + ") <= ds.timelydays) as timely";
 
@@ -265,11 +265,11 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             + "inner join period pe on cdr.periodid=pe.periodid "
             + "where pe.startdate is not null "
             + "and cdr.date < '"
-            + getLongDateString(params.getStartTime())
+            + toLongDate(params.getStartTime())
             + "' ";
 
     if (params.getFromDate() != null) {
-      sql += "and pe.startdate >= '" + DateUtils.getMediumDateString(params.getFromDate()) + "'";
+      sql += "and pe.startdate >= '" + DateUtils.toMediumDate(params.getFromDate()) + "'";
     }
 
     return jdbcTemplate.queryForList(sql, Integer.class);

@@ -488,19 +488,19 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         where
             .append(sqlHelper.whereAnd())
             .append("p.startdate >= '")
-            .append(DateUtils.getMediumDateString(params.getStartDate()))
+            .append(DateUtils.toMediumDate(params.getStartDate()))
             .append("'")
             .append(" and p.enddate <= '")
-            .append(DateUtils.getMediumDateString(params.getStartDate()))
+            .append(DateUtils.toMediumDate(params.getStartDate()))
             .append("'");
       } else if (params.hasIncludedDate()) {
         where
             .append(sqlHelper.whereAnd())
             .append("p.startdate <= '")
-            .append(DateUtils.getMediumDateString(params.getIncludedDate()))
+            .append(DateUtils.toMediumDate(params.getIncludedDate()))
             .append("'")
             .append(" and p.enddate >= '")
-            .append(DateUtils.getMediumDateString(params.getIncludedDate()))
+            .append(DateUtils.toMediumDate(params.getIncludedDate()))
             .append("'");
       }
     }
@@ -603,7 +603,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
       where
           .append(sqlHelper.whereAnd())
           .append("dv.lastupdated >= ")
-          .append(DateUtils.getMediumDateString(params.getLastUpdated()));
+          .append(DateUtils.toMediumDate(params.getLastUpdated()));
     }
   }
 

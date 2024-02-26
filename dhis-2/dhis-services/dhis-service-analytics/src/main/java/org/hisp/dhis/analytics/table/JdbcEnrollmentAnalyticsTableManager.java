@@ -37,7 +37,7 @@ import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
 import static org.hisp.dhis.db.model.DataType.VARCHAR_255;
 import static org.hisp.dhis.db.model.DataType.VARCHAR_50;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
-import static org.hisp.dhis.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -222,7 +222,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
             + " "
             + "and pi.organisationunitid is not null "
             + "and pi.lastupdated <= '"
-            + getLongDateString(params.getStartTime())
+            + toLongDate(params.getStartTime())
             + "' "
             + "and pi.occurreddate is not null "
             + "and pi.deleted is false ";
