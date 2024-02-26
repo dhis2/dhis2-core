@@ -36,13 +36,14 @@ import org.junit.jupiter.api.Test;
 class WebLocaleTest {
 
   @Test
-  @DisplayName("The default DHIS2 locale should have the correct properties")
+  @DisplayName(
+      "The default DHIS2 locale should have the correct properties when using the new format")
   void testThatTheCorrectIndonesianCodeIsReturned() {
     // given
     Locale locale = new Locale("en");
 
     // when
-    var webLocale = WebLocale.fromLocale(locale);
+    var webLocale = WebLocale.fromLocaleHandlingIndonesiaFormat(locale);
 
     // then
     assertEquals("en", webLocale.getLocale());
@@ -50,13 +51,14 @@ class WebLocaleTest {
   }
 
   @Test
-  @DisplayName("The Indonesian locale 'in' should have the updated 'id' code")
+  @DisplayName(
+      "The Indonesian locale 'in' should have the updated 'id' code when using the new format")
   void indonesianCodeShouldBeUpdated() {
     // given
     Locale locale = new Locale("in");
 
     // when
-    var webLocale = WebLocale.fromLocale(locale);
+    var webLocale = WebLocale.fromLocaleHandlingIndonesiaFormat(locale);
 
     // then
     assertEquals("id", webLocale.getLocale());
@@ -64,16 +66,31 @@ class WebLocaleTest {
   }
 
   @Test
-  @DisplayName("The Indonesian locale 'in_ID' should have the updated 'id_ID' code")
+  @DisplayName(
+      "The Indonesian locale 'in_ID' should have the updated 'id_ID' code when using the new format")
   void indonesianCodeShouldBeUpdated2() {
     // given
     Locale locale = new Locale("in", "ID");
 
     // when
-    var webLocale = WebLocale.fromLocale(locale);
+    var webLocale = WebLocale.fromLocaleHandlingIndonesiaFormat(locale);
 
     // then
     assertEquals("id_ID", webLocale.getLocale());
     assertEquals("Indonesian (Indonesia)", webLocale.getName());
+  }
+
+  @Test
+  @DisplayName("The Indonesian locale 'in' should stay as 'in' when using the old format")
+  void oldIndonesianCodeShouldNotBeUpdated() {
+    // given
+    Locale locale = new Locale("in");
+
+    // when
+    var webLocale = WebLocale.fromLocale(locale);
+
+    // then
+    assertEquals("in", webLocale.getLocale());
+    assertEquals("Indonesian", webLocale.getName());
   }
 }

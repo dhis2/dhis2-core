@@ -44,6 +44,15 @@ public class WebLocale {
   public static WebLocale fromLocale(Locale locale) {
     WebLocale loc = new WebLocale();
 
+    loc.setLocale(locale.toString());
+    loc.setName(locale.getDisplayName());
+
+    return loc;
+  }
+
+  public static WebLocale fromLocaleHandlingIndonesiaFormat(Locale locale) {
+    WebLocale loc = new WebLocale();
+
     loc.setLocale(handleIndonesianLocale(locale));
     loc.setName(locale.getDisplayName());
 

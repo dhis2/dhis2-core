@@ -89,8 +89,8 @@ class LocaleControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  @DisplayName("Indonesian locales are returned with the expected locale codes")
-  void indonesianLocaleCodesTest() {
+  @DisplayName("Indonesian ui locales are returned with the expected locale codes")
+  void indonesianUiLocaleCodesTest() {
     // when
     JsonObject response = GET("/locales/ui").content();
 

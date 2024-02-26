@@ -81,7 +81,9 @@ public class LocaleController {
   public @ResponseBody List<WebLocale> getUiLocales() {
     List<Locale> locales = localeManager.getAvailableLocales();
 
-    return locales.stream().map(WebLocale::fromLocale).collect(Collectors.toList());
+    return locales.stream()
+        .map(WebLocale::fromLocaleHandlingIndonesiaFormat)
+        .collect(Collectors.toList());
   }
 
   @GetMapping(value = "/db")
