@@ -50,7 +50,8 @@ public class RenderableDataValueIndicator extends BaseRenderable {
                 List.of(
                     IsNotNullCondition.of(
                         () -> doubleQuote(dimensionIdentifier.getProgram().toString())),
-                    IsNotNullCondition.of(() -> doubleQuote(dimensionIdentifier.getPrefix())),
+                    IsNotNullCondition.of(
+                        () -> doubleQuote(dimensionIdentifier.getPrefix()) + "::varchar"),
                     Field.of(
                         doubleQuote(dimensionIdentifier.getPrefix()),
                         () -> "eventdatavalues",
