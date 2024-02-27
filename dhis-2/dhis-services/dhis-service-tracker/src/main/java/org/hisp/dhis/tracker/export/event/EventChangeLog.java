@@ -34,6 +34,7 @@ import org.hisp.dhis.program.UserInfoSnapshot;
 public record EventChangeLog(
     @JsonProperty UserInfoSnapshot createdBy,
     @JsonProperty Date createdAt,
+    @JsonProperty String type,
     @JsonProperty Change change) {
 
   public record Change(@JsonProperty DataValueChange dataValue) {}

@@ -33,8 +33,8 @@ import static org.hisp.dhis.analytics.AnalyticsConstants.ORG_UNIT_STRUCT_ALIAS;
 import static org.hisp.dhis.analytics.AnalyticsConstants.OWNERSHIP_TBL_ALIAS;
 import static org.hisp.dhis.analytics.OrgUnitFieldType.OWNER_AT_START;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.util.DateUtils.plusOneDay;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import java.util.Date;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -105,7 +105,7 @@ public final class OrgUnitTableJoiner {
         + " = "
         + quote(OWNERSHIP_TBL_ALIAS, "teiuid")
         + " and '"
-        + getMediumDateString(compareDate)
+        + toMediumDate(compareDate)
         + "' between "
         + quote(OWNERSHIP_TBL_ALIAS, "startdate")
         + " and "

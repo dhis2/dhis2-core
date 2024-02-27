@@ -139,6 +139,15 @@ public interface UserStore extends IdentifiableObjectStore<User> {
   Map<String, Optional<Locale>> findNotifiableUsersWithPasswordLastUpdatedBetween(
       Date from, Date to);
 
+  /**
+   * Find users with email that are members of a user-group and return them by username.
+   *
+   * @param userGroupId a user group ID
+   * @return a map of user emails by username for all users in the group that have an email
+   *     configured
+   */
+  Map<String, String> getUserGroupUserEmailsByUsername(String userGroupId);
+
   String getDisplayName(String userUid);
 
   /**

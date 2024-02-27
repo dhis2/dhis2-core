@@ -96,7 +96,7 @@
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
     <nimbus.jose.jwt.version>9.37.3</nimbus.jose.jwt.version>
-    <com.google.zxing.core.version>3.5.2</com.google.zxing.core.version>
+    <com.google.zxing.core.version>3.5.3</com.google.zxing.core.version>
     <com.google.zxing.javase.version>3.5.3</com.google.zxing.javase.version>
 
     <!-- Spring -->
@@ -115,7 +115,7 @@
     <hibernate.version>5.6.15.Final</hibernate.version>
     <hibernate-types.version>2.21.1</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
-    <c3p0.version>0.10.0-pre1</c3p0.version>
+    <c3p0.version>0.10.0-pre3</c3p0.version>
     <HikariCP.version>5.1.0</HikariCP.version>
     <postgresql-driver.version>42.7.2</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
@@ -202,7 +202,7 @@
     <micrometer.version>1.12.3</micrometer.version>
 
     <!-- Logging -->
-    <log4j.version>2.22.1</log4j.version>
+    <log4j.version>2.23.0</log4j.version>
     <slf4j.version>1.7.36</slf4j.version>
 
     <!-- Test -->
