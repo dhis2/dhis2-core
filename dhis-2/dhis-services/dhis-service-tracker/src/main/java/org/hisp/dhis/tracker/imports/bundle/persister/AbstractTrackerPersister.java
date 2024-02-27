@@ -397,7 +397,7 @@ public abstract class AbstractTrackerPersister<
       trackedEntity.getTrackedEntityAttributeValues().add(trackedEntityAttributeValue);
       changeLogType = ChangeLogType.CREATE;
     } else {
-        entityManager.merge(trackedEntityAttributeValue);
+      entityManager.merge(trackedEntityAttributeValue);
 
       if (isUpdated) {
         changeLogType = ChangeLogType.UPDATE;
