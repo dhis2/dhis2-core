@@ -475,11 +475,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   private String getPartitionClause(AnalyticsTablePartition partition) {
     String start = toLongDate(partition.getStartDate());
     String end = toLongDate(partition.getEndDate());
+    String statusDate = eventDateExpression;
     String latestFilter = format("and psi.lastupdated >= '%s' ", start);
     String partitionFilter =
-        format(
-            "and (%s) >= '%s' and (%s) < '%s' ",
-            eventDateExpression, start, eventDateExpression, end);
+        format("and (%s) >= '%s' and (%s) < '%s' ", statusDate, start, statusDate, end);
 
     return partition.isLatestPartition()
         ? latestFilter
