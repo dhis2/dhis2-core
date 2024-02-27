@@ -106,7 +106,7 @@ class MessageFormatter {
     } else if (Date.class.isAssignableFrom(argument.getClass())) {
       return (DateFormat.getInstance().format(argument));
     } else if (Instant.class.isAssignableFrom(argument.getClass())) {
-      return DateUtils.getIso8601NoTz(DateUtils.fromInstant((Instant) argument));
+      return DateUtils.toIso8601NoTz(DateUtils.fromInstant((Instant) argument));
     } else if (Enrollment.class.isAssignableFrom(argument.getClass())) {
       return ((Enrollment) argument).getEnrollment();
     } else if (Event.class.isAssignableFrom(argument.getClass())) {

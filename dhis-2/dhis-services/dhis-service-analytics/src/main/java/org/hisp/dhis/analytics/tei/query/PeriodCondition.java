@@ -31,7 +31,7 @@ import static java.time.temporal.ChronoUnit.DAYS;
 import static org.hisp.dhis.analytics.common.ValueTypeMapping.DATE;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getPrefix;
 import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import java.util.Date;
 import java.util.List;
@@ -108,12 +108,10 @@ public class PeriodCondition extends BaseRenderable {
             BinaryConditionRenderer.of(
                 Field.of(prefix, timeField::getField, EMPTY),
                 QueryOperator.GE,
-                ConstantValuesRenderer.of(
-                    getMediumDateString(interval.getLeft()), DATE, queryContext)),
+                ConstantValuesRenderer.of(toMediumDate(interval.getLeft()), DATE, queryContext)),
             BinaryConditionRenderer.of(
                 Field.of(prefix, timeField::getField, EMPTY),
                 QueryOperator.LT,
-                ConstantValuesRenderer.of(
-                    getMediumDateString(interval.getRight()), DATE, queryContext))));
+                ConstantValuesRenderer.of(toMediumDate(interval.getRight()), DATE, queryContext))));
   }
 }

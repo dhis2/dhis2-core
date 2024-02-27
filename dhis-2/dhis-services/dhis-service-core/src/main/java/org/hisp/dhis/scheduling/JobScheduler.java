@@ -242,6 +242,7 @@ public class JobScheduler implements Runnable, JobRunner {
         service.finishRunCancel(jobId);
       }
     } catch (Exception ex) {
+      if (progress != null) progress.failedProcess(ex);
       service.finishRunFail(jobId, ex);
     } finally {
       if (service.finishRunSuccess(jobId) && config.isUsedInQueue()) {

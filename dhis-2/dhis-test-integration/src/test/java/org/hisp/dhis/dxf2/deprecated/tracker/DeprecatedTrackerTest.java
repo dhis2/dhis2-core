@@ -303,7 +303,7 @@ public abstract class DeprecatedTrackerTest extends IntegrationTestBase {
     enrollment.setCompletedBy("hello-world");
     if (events > 0) {
       List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> eventList = new ArrayList<>();
-      String now = DateUtils.getIso8601NoTz(new Date());
+      String now = DateUtils.toIso8601NoTz(new Date());
       for (int i = 0; i < events; i++) {
         org.hisp.dhis.dxf2.deprecated.tracker.event.Event event1 =
             new org.hisp.dhis.dxf2.deprecated.tracker.event.Event();

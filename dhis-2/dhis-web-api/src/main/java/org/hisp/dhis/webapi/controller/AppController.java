@@ -274,7 +274,7 @@ public class AppController {
 
       response.setContentLengthLong(resource.contentLength());
       response.setHeader(
-          "Last-Modified", DateUtils.getHttpDateString(new Date(resource.lastModified())));
+          "Last-Modified", DateUtils.toHttpDateString(new Date(resource.lastModified())));
 
       StreamUtils.copyThenCloseInputStream(resource.getInputStream(), response.getOutputStream());
     }

@@ -823,9 +823,9 @@ public class DefaultPdfDataEntryFormService implements PdfDataEntryFormService {
 
       periodTitles[i] +=
           " - "
-              + DateUtils.getMediumDateString(period.getStartDate())
+              + DateUtils.toMediumDate(period.getStartDate())
               + " - "
-              + DateUtils.getMediumDateString(period.getEndDate());
+              + DateUtils.toMediumDate(period.getEndDate());
     }
 
     return periodTitles;
@@ -852,8 +852,8 @@ public class DefaultPdfDataEntryFormService implements PdfDataEntryFormService {
       endYear = currYear + PERIODRANGE_FUTUREYEARS_YEARLY;
     }
 
-    period.setStartDate(DateUtils.getMediumDate(String.valueOf(startYear) + "-01-01"));
-    period.setEndDate(DateUtils.getMediumDate(String.valueOf(endYear) + "-01-01"));
+    period.setStartDate(DateUtils.toMediumDate(String.valueOf(startYear) + "-01-01"));
+    period.setEndDate(DateUtils.toMediumDate(String.valueOf(endYear) + "-01-01"));
 
     return period;
   }

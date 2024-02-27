@@ -41,7 +41,7 @@ import static org.hisp.dhis.db.model.DataType.VARCHAR_255;
 import static org.hisp.dhis.db.model.DataType.VARCHAR_50;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
-import static org.hisp.dhis.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -204,7 +204,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
         .append(
             " and tei.trackedentitytypeid = "
                 + partition.getMasterTable().getTrackedEntityType().getId())
-        .append(" and tei.lastupdated < '" + getLongDateString(params.getStartTime()) + "'")
+        .append(" and tei.lastupdated < '" + toLongDate(params.getStartTime()) + "'")
         .append(" left join program p on p.programid = pi.programid")
         .append(" left join organisationunit ou on pi.organisationunitid = ou.organisationunitid")
         .append(

@@ -33,6 +33,7 @@ import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_END_DATE_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_START_DATE_ID;
 import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_START_DATE_NAME;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +54,6 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -187,10 +187,10 @@ public class JdbcRawAnalyticsManager implements RawAnalyticsManager {
         sqlHelper.whereAnd()
             + " "
             + "ps.startdate >= '"
-            + DateUtils.getMediumDateString(params.getStartDate())
+            + toMediumDate(params.getStartDate())
             + "' and "
             + "ps.enddate <= '"
-            + DateUtils.getMediumDateString(params.getEndDate())
+            + toMediumDate(params.getEndDate())
             + "' ";
 
     return sql;

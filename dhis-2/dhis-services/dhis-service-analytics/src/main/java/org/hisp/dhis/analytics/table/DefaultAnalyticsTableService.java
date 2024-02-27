@@ -30,7 +30,7 @@ package org.hisp.dhis.analytics.table;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexes;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
-import static org.hisp.dhis.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.List;
 import java.util.Set;
@@ -94,10 +94,10 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
                 parallelJobs);
 
     progress.startingStage("Validating analytics table: {}", tableType);
-    String validState = tableManager.validState();
-    progress.completedStage(validState);
+    boolean validState = tableManager.validState();
+    progress.completedStage("Validated analytics tables with outcome: {}", validState);
 
-    if (validState != null || progress.isCancelled()) {
+    if (!validState || progress.isCancelled()) {
       return;
     }
 
@@ -115,7 +115,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     clock.logTime(
         "Table update start: {}, earliest: {}, parameters: {}",
         tableType.getTableName(),
-        getLongDateString(params.getFromDate()),
+        toLongDate(params.getFromDate()),
         params);
     progress.startingStage("Performing pre-create table work");
     progress.runStage(() -> tableManager.preCreateTables(params));
