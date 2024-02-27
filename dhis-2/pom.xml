@@ -119,6 +119,7 @@
     <HikariCP.version>5.1.0</HikariCP.version>
     <postgresql-driver.version>42.7.2</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
+    <mysql-connector-j.version>8.3.0</mysql-connector-j.version>
     <datasource-proxy.version>1.10</datasource-proxy.version>
 
     <!-- Servlet -->
@@ -1062,6 +1063,11 @@
         <groupId>net.postgis</groupId>
         <artifactId>postgis-jdbc</artifactId>
         <version>${postgis-jdbc.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.mysql</groupId>
+        <artifactId>mysql-connector-j</artifactId>
+        <version>${mysql-connector-j.version}</version>
       </dependency>
 
       <!-- Flyway -->
