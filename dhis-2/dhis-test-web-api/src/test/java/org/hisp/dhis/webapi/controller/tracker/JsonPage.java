@@ -67,5 +67,13 @@ public interface JsonPage extends JsonObject {
     default Integer getPageCount() {
       return getNumber("pageCount").integer();
     }
+
+    default String getPrevPage() {
+      return getString("prevPage").string();
+    }
+
+    default String getNextPage() {
+      return getString("nextPage").string();
+    }
   }
 }

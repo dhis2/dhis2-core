@@ -130,17 +130,8 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
   }
 
   @Override
-  public String validState() {
-    boolean hasData =
-        jdbcTemplate
-            .queryForRowSet("select datasetid from completedatasetregistration limit 1")
-            .next();
-
-    if (!hasData) {
-      return "No complete registrations exist, not updating completeness analytics tables";
-    }
-
-    return null;
+  public boolean validState() {
+    return tableIsNotEmpty("completedatasetregistration");
   }
 
   @Override
