@@ -46,4 +46,12 @@ public interface CustomIconStore extends IdentifiableObjectStore<CustomIcon> {
    * @return set of unique keywords
    */
   Set<String> getKeywords();
+
+  /**
+   * Search custom icons based on keywords provided
+   *
+   * @param keywords key of the icon to find
+   * @return custom icons filtered based on keywords
+   */
+  Set<CustomIcon> getCustomIconsByKeywords(Set<String> keywords);
 }

@@ -27,17 +27,21 @@
  */
 package org.hisp.dhis.icon.hibernate;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.icon.CustomIcon;
 import org.hisp.dhis.icon.CustomIconStore;
 import org.hisp.dhis.security.acl.AclService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -48,6 +52,9 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.icon.CustomIconStore")
 public class HibernateCustomIconStore extends HibernateIdentifiableObjectStore<CustomIcon>
     implements CustomIconStore {
+
+  private static final ObjectMapper objectMapper = new ObjectMapper();
+  @Autowired private JdbcTemplate jdbcTemplate;
 
   public HibernateCustomIconStore(
       EntityManager entityManager,
@@ -81,5 +88,19 @@ public class HibernateCustomIconStore extends HibernateIdentifiableObjectStore<C
     entityManager.createQuery(criteriaQuery).getResultList().forEach(keys::addAll);
 
     return keys;
+  }
+
+  @Override
+  public Set<CustomIcon> getCustomIconsByKeywords(Set<String> keywords) {
+
+    CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+    CriteriaQuery<CustomIcon> criteriaQuery = criteriaBuilder.createQuery(CustomIcon.class);
+    Root<CustomIcon> root = criteriaQuery.from(CustomIcon.class);
+
+    Predicate predicate = criteriaBuilder.isMember(keywords, root.get("keywords"));
+
+    criteriaQuery.where(predicate);
+
+    return entityManager.createQuery(criteriaQuery).getResultStream().collect(Collectors.toSet());
   }
 }

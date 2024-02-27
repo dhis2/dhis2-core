@@ -47,6 +47,14 @@ public interface CustomIconService {
   CustomIcon getCustomIcon(String key) throws NotFoundException;
 
   /**
+   * Search custom icons based on keywords provided
+   *
+   * @param keywords key of the icon to find
+   * @return custom icons filtered based on keywords
+   */
+  Set<CustomIcon> getCustomIconsByKeywords(Set<String> keywords);
+
+  /**
    * Gets the custom icon associated to a uid, if it exists
    *
    * @param uid key of the icon to find

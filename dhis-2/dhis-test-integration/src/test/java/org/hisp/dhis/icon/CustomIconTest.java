@@ -107,10 +107,9 @@ class CustomIconTest extends TrackerTest {
 
     Set<String> words = Sets.newHashSet();
     words.addAll(Set.of("m1", "m2"));
-    CustomIcon customIconWithNoKeywords =
-        new CustomIcon("iconKey2", "description", words, true, fileResource);
+    CustomIcon customIcon2 = new CustomIcon("iconKey2", "description", words, true, fileResource);
 
-    iconService.addCustomIcon(customIconWithNoKeywords);
+    iconService.addCustomIcon(customIcon2);
 
     Set<String> keywords = iconService.getKeywords();
 
@@ -120,7 +119,15 @@ class CustomIconTest extends TrackerTest {
   }
 
   @Test
-  void shouldGetIconDataWhenKeyBelongsToCustomIcon() throws NotFoundException, IOException {
+  void shouldSearchAndFetchAllCustomIconsAssociatedWithTheKeywords() {
+
+    Set<CustomIcon> icons = iconService.getCustomIconsByKeywords(Set.of("k1"));
+
+    System.out.println(icons);
+  }
+
+  @Test
+  void shouldGetIconDataWhenKeyBelongsToCustomIcon() throws NotFoundException {
 
     assertNotNull(iconService.getCustomIconResource(Key));
   }
