@@ -57,10 +57,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrationTest {
-  private static final String UNIQUE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  private static final String EVENT_OCCURRED_AT = "2023-03-23T12:23:00.000";
-
+class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrationTest {
   @Autowired private IdentifiableObjectManager manager;
 
   private OrganisationUnit orgUnit;
@@ -124,7 +121,9 @@ public class TrackedEntitiesExportControllerPostgresTest extends DhisControllerI
     injectSecurityContextUser(user);
 
     JsonWebMessage importResponse =
-        POST("/tracker?async=false&importStrategy=UPDATE", createJson(trackedEntity, trackedEntityAttribute))
+        POST(
+                "/tracker?async=false&importStrategy=UPDATE",
+                createJson(trackedEntity, trackedEntityAttribute))
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
     assertEquals(HttpStatus.OK.toString(), importResponse.getStatus());
@@ -132,7 +131,7 @@ public class TrackedEntitiesExportControllerPostgresTest extends DhisControllerI
 
   @Test
   void shouldGetTrackedEntityAttributeChangeLogWhenValueUpdatedAndThenDeleted() {
-    //TODO Do an e2e test instead?
+    // TODO Do an e2e test instead?
     JsonList<JsonTrackedEntityChangeLog> changeLogs =
         GET(
                 "/tracker/trackedEntities/{id}/changeLogs?program={programUid}",

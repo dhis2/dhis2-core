@@ -37,6 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import org.awaitility.Awaitility;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
@@ -59,7 +60,6 @@ import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog.Tracked
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testcontainers.shaded.org.awaitility.Awaitility;
 
 class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
 
