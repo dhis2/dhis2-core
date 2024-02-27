@@ -255,9 +255,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
-
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
-
     String partitionClause = getPartitionClause(partition);
 
     StringBuilder sql = new StringBuilder("insert into " + tableName + " (");
