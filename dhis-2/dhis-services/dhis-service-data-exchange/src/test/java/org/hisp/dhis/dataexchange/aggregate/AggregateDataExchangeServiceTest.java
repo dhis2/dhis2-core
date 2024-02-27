@@ -62,7 +62,6 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -123,7 +122,7 @@ class AggregateDataExchangeServiceTest {
                 DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of()));
     when(dataValueSetService.importDataValueSet(any(DataValueSet.class), any(ImportOptions.class)))
         .thenReturn(new ImportSummary(ImportStatus.SUCCESS));
-    when(aclService.canDataWrite(any(UserDetails.class), any(IdentifiableObject.class)))
+    when(aclService.canDataWrite(any(User.class), any(IdentifiableObject.class)))
         .thenReturn(true);
 
     SourceRequest sourceRequest =
@@ -143,7 +142,7 @@ class AggregateDataExchangeServiceTest {
         new AggregateDataExchange().setSource(source).setTarget(target);
 
     ImportSummaries summaries =
-        service.exchangeData(UserDetails.fromUser(new User()), exchange, NoopJobProgress.INSTANCE);
+        service.exchangeData(new User(), exchange, NoopJobProgress.INSTANCE);
 
     assertNotNull(summaries);
     assertEquals(1, summaries.getImportSummaries().size());

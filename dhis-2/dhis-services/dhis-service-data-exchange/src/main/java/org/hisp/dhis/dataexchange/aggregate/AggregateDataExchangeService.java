@@ -61,7 +61,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobProgress.FailurePolicy;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.User;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -112,26 +112,26 @@ public class AggregateDataExchangeService {
    * @return an {@link ImportSummaries}.
    */
   @Transactional
-  public ImportSummaries exchangeData(UserDetails userDetails, String uid, JobProgress progress) {
+  public ImportSummaries exchangeData(User user, String uid, JobProgress progress) {
     AggregateDataExchange exchange = aggregateDataExchangeStore.loadByUid(uid);
 
-    return exchangeData(userDetails, exchange, progress);
+    return exchangeData(user, exchange, progress);
   }
 
   /**
    * Runs the given analytics data exchange.
    *
-   * @param userDetails CurrentUser who executing the exchange.
+   * @param user CurrentUser who executing the exchange.
    * @param exchange the {@link AggregateDataExchange}.
    * @param progress {@link JobProgress} to track progress when running in a job context
    * @return an {@link ImportSummaries}.
    */
   @Transactional
   public ImportSummaries exchangeData(
-      UserDetails userDetails, AggregateDataExchange exchange, JobProgress progress) {
+      User user, AggregateDataExchange exchange, JobProgress progress) {
     ImportSummaries summaries = new ImportSummaries();
 
-    if (!aclService.canDataWrite(userDetails, exchange)) {
+    if (!aclService.canDataWrite(user, exchange)) {
       summaries.addImportSummary(
           new ImportSummary(
               ImportStatus.ERROR,

@@ -42,6 +42,8 @@ import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.AggregateDataExchangeJobParameters;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Component;
 
@@ -56,6 +58,8 @@ public class AggregateDataExchangeJob implements Job {
   private final AggregateDataExchangeService dataExchangeService;
 
   private final Notifier notifier;
+
+    private final CurrentUserService currentUserService;
 
   @Override
   public JobType getJobType() {
@@ -84,7 +88,7 @@ public class AggregateDataExchangeJob implements Job {
       }
       allSummaries.addImportSummaries(
           dataExchangeService.exchangeData(
-              CurrentUserUtil.getCurrentUserDetails(), exchange, progress));
+              currentUserService.getCurrentUser(), exchange, progress));
     }
     notifier.addJobSummary(config, NotificationLevel.INFO, allSummaries, ImportSummaries.class);
     ImportStatus status = allSummaries.getStatus();
