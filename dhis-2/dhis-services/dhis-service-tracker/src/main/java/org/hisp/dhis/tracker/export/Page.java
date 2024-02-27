@@ -34,6 +34,10 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
+/**
+ * Create a page of items. A page is guaranteed to have a page number and size. All other fields are
+ * optional.
+ */
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
 @ToString
@@ -43,15 +47,15 @@ public class Page<T> {
   private final int page;
   private final int pageSize;
   private final Long total;
-  private final Boolean prev;
-  private final Boolean next;
+  private final Integer prevPage;
+  private final Integer nextPage;
 
   /**
    * Create a new page based on an existing one but with given {@code items}. Page related counts
    * will not be changed so make sure the given {@code items} match the previous page size.
    */
   public <U> Page<U> withItems(List<U> items) {
-    return new Page<>(items, this.page, this.pageSize, this.total, this.prev, this.next);
+    return new Page<>(items, this.page, this.pageSize, this.total, this.prevPage, this.nextPage);
   }
 
   public static <T> Page<T> withTotals(List<T> items, int page, int pageSize, long total) {
@@ -63,7 +67,7 @@ public class Page<T> {
   }
 
   public static <T> Page<T> withPrevAndNext(
-      List<T> items, int page, int pageSize, boolean prev, boolean next) {
-    return new Page<>(items, page, pageSize, null, prev, next);
+      List<T> items, int page, int pageSize, Integer prevPage, Integer nextPage) {
+    return new Page<>(items, page, pageSize, null, prevPage, nextPage);
   }
 }
