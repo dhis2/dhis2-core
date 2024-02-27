@@ -109,7 +109,6 @@ public class AuthenticationController {
 
     try {
       Authentication authenticationToken = createAuthenticationToken(request, loginRequest);
-
       Authentication authenticationResult = getAuthProvider().authenticate(authenticationToken);
 
       this.sessionStrategy.onAuthentication(authenticationResult, request, response);
@@ -117,7 +116,6 @@ public class AuthenticationController {
       saveContext(request, response, authenticationResult);
 
       String redirectUrl = getRedirectUrl(request, response);
-
       return LoginResponse.builder().loginStatus(STATUS.SUCCESS).redirectUrl(redirectUrl).build();
 
     } catch (TwoFactorAuthenticationException e) {

@@ -1,0 +1,169 @@
+/*
+ * Copyright (c) 2004-2024, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.webapi.controller.security;
+
+import static org.hisp.dhis.user.UserService.RECOVERY_LOCKOUT_MINS;
+
+import javax.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.configuration.ConfigurationService;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.security.PasswordManager;
+import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
+import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.user.CredentialsInfo;
+import org.hisp.dhis.user.PasswordValidationResult;
+import org.hisp.dhis.user.PasswordValidationService;
+import org.hisp.dhis.user.RestoreOptions;
+import org.hisp.dhis.user.RestoreType;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+@OpenApi.Tags({"user", "login", "account"})
+@RestController
+@RequestMapping("/auth")
+@RequiredArgsConstructor
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+@Slf4j
+public class UserAccountController {
+
+  private static final int MAX_LENGTH = 80;
+
+  private static final int MAX_PHONE_NO_LENGTH = 30;
+
+  private final UserService userService;
+
+  private final TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
+
+  private final ConfigurationService configurationService;
+
+  private final PasswordManager passwordManager;
+
+  private final SystemSettingManager systemSettingManager;
+
+  private final PasswordValidationService passwordValidationService;
+
+  @PostMapping("/forgotPassword")
+  @ResponseStatus(HttpStatus.OK)
+  public void forgotPassword(HttpServletRequest request, @RequestBody String username)
+      throws NotFoundException, ConflictException, ForbiddenException {
+
+    if (userService.isRecoveryLocked(username)) {
+      throw new ForbiddenException(
+          "The account recovery operation for the given user is temporarily locked due to too "
+              + "many calls to this endpoint in the last '"
+              + RECOVERY_LOCKOUT_MINS
+              + "' minutes. Username:"
+              + username);
+    } else {
+      userService.registerRecoveryAttempt(username);
+    }
+
+    User user = userService.getUserByUsername(username);
+
+    if (user == null) {
+      throw new NotFoundException("User does not exist: " + username);
+    }
+
+    ErrorCode errorCode = userService.validateRestore(user);
+
+    if (errorCode != null) {
+      throw new IllegalQueryException(errorCode);
+    }
+
+    if (!userService.sendRestoreOrInviteMessage(
+        user, ContextUtils.getContextPath(request), RestoreOptions.RECOVER_PASSWORD_OPTION)) {
+      throw new ConflictException("Account could not be recovered");
+    }
+
+    log.info("Recovery message sent for user: " + username);
+  }
+
+  @PostMapping("/resetPassword")
+  @ResponseStatus(HttpStatus.OK)
+  public void resetPassword(@RequestBody ResetPasswordRequest resetRequest)
+      throws ConflictException, BadRequestException {
+
+    String token = resetRequest.getResetToken();
+    String newPassword = resetRequest.getNewPassword();
+    String[] idAndRestoreToken = userService.decodeEncodedTokens(token);
+    String idToken = idAndRestoreToken[0];
+
+    User user = userService.getUserByIdToken(idToken);
+    if (user == null || idAndRestoreToken.length < 2) {
+      throw new ConflictException("Account recovery failed");
+    }
+    String restoreToken = idAndRestoreToken[1];
+
+    if (!systemSettingManager.accountRecoveryEnabled()) {
+      throw new ConflictException("Account recovery is not enabled");
+    }
+
+    if (newPassword.trim().equals(user.getUsername())) {
+      throw new BadRequestException("Password cannot be equal to username");
+    }
+
+    CredentialsInfo credentialsInfo =
+        new CredentialsInfo(
+            user.getUsername(), newPassword, user.getEmail() != null ? user.getEmail() : "", false);
+
+    PasswordValidationResult result = passwordValidationService.validate(credentialsInfo);
+
+    if (!result.isValid()) {
+      throw new BadRequestException(result.getErrorMessage());
+    }
+
+    boolean restoreSuccess =
+        userService.restore(user, restoreToken, newPassword, RestoreType.RECOVER_PASSWORD);
+
+    if (!restoreSuccess) {
+      throw new BadRequestException("Account could not be restored");
+    }
+
+    log.info("Account restored for user: " + user.getUsername());
+  }
+}
