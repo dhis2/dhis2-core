@@ -261,7 +261,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     Integer latestDataYear = availableDataYears.get(availableDataYears.size() - 1);
 
     for (Program program : programs) {
-
       List<Integer> yearsForPartitionTables =
           getYearsForPartitionTable(getDataYears(params, program, firstDataYear, latestDataYear));
 
@@ -417,7 +416,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             analyticsTableSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
     Integer firstDataYear = availableDataYears.get(0);
     Integer latestDataYear = availableDataYears.get(availableDataYears.size() - 1);
-
     Program program = partition.getMasterTable().getProgram();
     String partitionClause = getPartitionClause(partition);
 
