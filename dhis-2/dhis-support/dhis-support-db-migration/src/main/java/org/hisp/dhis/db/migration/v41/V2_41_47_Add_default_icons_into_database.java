@@ -33,7 +33,9 @@ import org.flywaydb.core.api.migration.Context;
 /**
  * @author Zubair Asghar
  */
-public class V2_41_45_Add_default_icons_into_database extends BaseJavaMigration {
+public class V2_41_47_Add_default_icons_into_database extends BaseJavaMigration {
   @Override
-  public void migrate(Context context) throws Exception {}
+  public void migrate(Context context) throws Exception {
+    
+  }
 }
