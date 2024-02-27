@@ -1068,6 +1068,7 @@
         <groupId>com.mysql</groupId>
         <artifactId>mysql-connector-j</artifactId>
         <version>${mysql-connector-j.version}</version>
+        <scope>runtime</scope>
       </dependency>
 
       <!-- Flyway -->
