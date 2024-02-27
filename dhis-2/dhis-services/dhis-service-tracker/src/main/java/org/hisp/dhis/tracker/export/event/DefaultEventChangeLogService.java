@@ -41,7 +41,7 @@ import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service("org.hisp.dhis.tracker.export.event.ChangeLogService")
+@Service("org.hisp.dhis.tracker.export.event.EventChangeLogService")
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class DefaultEventChangeLogService implements EventChangeLogService {

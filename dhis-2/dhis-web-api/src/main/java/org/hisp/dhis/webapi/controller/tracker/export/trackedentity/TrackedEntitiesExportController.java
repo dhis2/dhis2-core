@@ -60,6 +60,8 @@ import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.export.PageParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
@@ -113,17 +115,21 @@ class TrackedEntitiesExportController {
 
   private final TrackedEntityFieldsParamMapper fieldsMapper;
 
+  private final TrackedEntityChangeLogService trackedEntityChangeLogService;
+
   public TrackedEntitiesExportController(
       TrackedEntityService trackedEntityService,
       TrackedEntityRequestParamsMapper paramsMapper,
       CsvService<TrackedEntity> csvEventService,
       FieldFilterService fieldFilterService,
-      TrackedEntityFieldsParamMapper fieldsMapper) {
+      TrackedEntityFieldsParamMapper fieldsMapper,
+      TrackedEntityChangeLogService trackedEntityChangeLogService) {
     this.trackedEntityService = trackedEntityService;
     this.paramsMapper = paramsMapper;
     this.csvEventService = csvEventService;
     this.fieldFilterService = fieldFilterService;
     this.fieldsMapper = fieldsMapper;
+    this.trackedEntityChangeLogService = trackedEntityChangeLogService;
 
     assertUserOrderableFieldsAreSupported(
         "tracked entity",
@@ -309,5 +315,14 @@ class TrackedEntitiesExportController {
     return handleFileRequest(
         request,
         trackedEntityService.getFileResourceImage(trackedEntity, attribute, program, dimension));
+  }
+
+  @GetMapping("/{trackedEntity}/changeLogs")
+  List<TrackedEntityChangeLog> getTrackedEntityAttributeChangeLog(
+      @OpenApi.Param({UID.class, TrackedEntity.class}) @PathVariable UID trackedEntity,
+      @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) UID program)
+      throws NotFoundException {
+
+    return trackedEntityChangeLogService.getTrackedEntityChangeLog(trackedEntity, program);
   }
 }

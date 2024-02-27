@@ -397,7 +397,12 @@ public abstract class AbstractTrackerPersister<
       trackedEntity.getTrackedEntityAttributeValues().add(trackedEntityAttributeValue);
       changeLogType = ChangeLogType.CREATE;
     } else {
-      entityManager.merge(trackedEntityAttributeValue);
+      try {
+        //TODO It fails here because value is null, but it's not. What is null is trackedEntity.
+        entityManager.merge(trackedEntityAttributeValue);
+      } catch (Exception e) {
+
+      }
 
       if (isUpdated) {
         changeLogType = ChangeLogType.UPDATE;

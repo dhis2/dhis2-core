@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,27 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentityattributevalue;
+package org.hisp.dhis.tracker.export.trackedentity;
 
-import java.util.List;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Date;
+import org.hisp.dhis.program.UserInfoSnapshot;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public interface TrackedEntityAttributeValueChangeLogService {
-  void addTrackedEntityAttributeValueChangLog(
-      TrackedEntityAttributeValueChangeLog trackedEntityAttributeValueChangeLog);
+public record TrackedEntityChangeLog(
+    @JsonProperty UserInfoSnapshot createdBy,
+    @JsonProperty Date createdAt,
+    @JsonProperty String type,
+    @JsonProperty Change change) {
 
-  /**
-   * @deprecated use TrackedEntityChangeLogService.getEventChangeLog(UID) instead
-   */
-  @Deprecated(since = "2.41")
-  List<TrackedEntityAttributeValueChangeLog> getTrackedEntityAttributeValueChangeLogs(
-      TrackedEntityAttributeValueChangeLogQueryParams params);
+  public record Change(@JsonProperty TrackedEntityAttributeChange attributeValue) {}
 
-  int countTrackedEntityAttributeValueChangeLogs(
-      TrackedEntityAttributeValueChangeLogQueryParams params);
-
-  void deleteTrackedEntityAttributeValueChangeLogs(TrackedEntity trackedEntity);
+  public record TrackedEntityAttributeChange(
+      @JsonProperty String attribute,
+      @JsonProperty String previousValue,
+      @JsonProperty String currentValue) {}
 }
