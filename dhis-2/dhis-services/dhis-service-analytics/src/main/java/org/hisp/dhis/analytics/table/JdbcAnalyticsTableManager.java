@@ -167,24 +167,9 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   }
 
   @Override
-  public String validState() {
-    boolean hasData =
-        jdbcTemplate
-            .queryForRowSet(
-                "select dataelementid from datavalue dv where dv.deleted is false limit 1")
-            .next();
-
-    if (!hasData) {
-      return "No data values exist, not updating aggregate analytics tables";
-    }
-
-    int orgUnitLevels = organisationUnitService.getNumberOfOrganisationalLevels();
-
-    if (orgUnitLevels == 0) {
-      return "No organisation unit levels exist, not updating aggregate analytics tables";
-    }
-
-    return null;
+  public boolean validState() {
+    return tableIsNotEmpty("datavalue")
+        && organisationUnitService.getNumberOfOrganisationalLevels() > 0;
   }
 
   @Override

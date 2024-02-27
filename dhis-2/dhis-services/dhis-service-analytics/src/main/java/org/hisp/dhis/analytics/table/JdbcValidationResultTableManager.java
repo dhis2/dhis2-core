@@ -130,17 +130,8 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
   }
 
   @Override
-  public String validState() {
-    boolean hasData =
-        jdbcTemplate
-            .queryForRowSet("select validationresultid from validationresult limit 1")
-            .next();
-
-    if (!hasData) {
-      return "No validation results exist, not updating validation result analytics tables";
-    }
-
-    return null;
+  public boolean validState() {
+    return tableIsNotEmpty("validationresult");
   }
 
   @Override
