@@ -87,10 +87,10 @@ class DashboardCheckTest extends DhisConvenienceTest {
     ErrorReport errorReport = check.getFirstObjectReport().getErrorReports().get(0);
 
     assertEquals(1, check.getErrorReportsCount());
-    assertEquals(1, check.getStats().getIgnored());
+    assertEquals(0, check.getStats().getIgnored());
     assertEquals(0, check.getStats().getCreated());
     assertEquals(0, check.getStats().getUpdated());
-    assertEquals(1, check.getStats().getTotal());
+    assertEquals(0, check.getStats().getTotal());
     assertEquals(E4070, errorReport.getErrorCode());
     assertEquals(
         "Dashboard `" + uid + "` has a layout with more than 60 columns. `61` columns found",
@@ -112,10 +112,10 @@ class DashboardCheckTest extends DhisConvenienceTest {
     ErrorReport errorReport = check.getFirstObjectReport().getErrorReports().get(0);
 
     assertEquals(1, check.getErrorReportsCount());
-    assertEquals(1, check.getStats().getIgnored());
+    assertEquals(0, check.getStats().getIgnored());
     assertEquals(0, check.getStats().getCreated());
     assertEquals(0, check.getStats().getUpdated());
-    assertEquals(1, check.getStats().getTotal());
+    assertEquals(0, check.getStats().getTotal());
     assertEquals(E4070, errorReport.getErrorCode());
     assertEquals(
         "Dashboard `" + uid + "` has a layout with more than 60 columns. `61` columns found",
