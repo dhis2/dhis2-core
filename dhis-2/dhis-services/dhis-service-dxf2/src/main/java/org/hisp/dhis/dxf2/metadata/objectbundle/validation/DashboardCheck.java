@@ -41,7 +41,6 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
-import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.stereotype.Component;
@@ -51,33 +50,6 @@ import org.springframework.stereotype.Component;
 public class DashboardCheck implements ObjectValidationCheck {
   private final AclService aclService;
   public static final byte LAYOUT_COLUMN_LIMIT = 60;
-
-  @Override
-  public <T extends IdentifiableObject> TypeReport check(
-      ObjectBundle bundle,
-      Class<T> klass,
-      List<T> persistedObjects,
-      List<T> nonPersistedObjects,
-      ImportStrategy importStrategy,
-      ValidationContext context) {
-    TypeReport[] reportBox = new TypeReport[1];
-    check(
-        bundle,
-        klass,
-        persistedObjects,
-        nonPersistedObjects,
-        importStrategy,
-        context,
-        objectReport -> {
-          TypeReport report = reportBox[0];
-          if (report == null) {
-            report = new TypeReport(klass);
-            reportBox[0] = report;
-          }
-          report.addObjectReport(objectReport);
-        });
-    return reportBox[0] == null ? TypeReport.empty(klass) : reportBox[0];
-  }
 
   @Override
   public <T extends IdentifiableObject> void check(
