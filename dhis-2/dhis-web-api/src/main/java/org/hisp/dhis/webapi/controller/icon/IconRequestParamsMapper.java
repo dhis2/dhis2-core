@@ -66,7 +66,7 @@ public class IconRequestParamsMapper {
 
     if (iconRequestParams.hasCreatedStartDate()
         && !DateUtils.dateTimeIsValid(
-            DateUtils.getLongDateString(iconRequestParams.getCreatedStartDate()))) {
+            DateUtils.toLongDate(iconRequestParams.getCreatedStartDate()))) {
       throw new BadRequestException(
           String.format(
               "createdStartDate %s is not valid",
@@ -75,7 +75,7 @@ public class IconRequestParamsMapper {
 
     if (iconRequestParams.hasCreatedEndDate()
         && !DateUtils.dateTimeIsValid(
-            DateUtils.getLongDateString(iconRequestParams.getCreatedEndDate()))) {
+            DateUtils.toLongDate(iconRequestParams.getCreatedEndDate()))) {
       throw new BadRequestException(
           String.format(
               "createdEndDate %s is not valid", iconRequestParams.getCreatedEndDate().toString()));
@@ -83,7 +83,7 @@ public class IconRequestParamsMapper {
 
     if (iconRequestParams.hasLastUpdatedStartDate()
         && !DateUtils.dateTimeIsValid(
-            DateUtils.getLongDateString(iconRequestParams.getLastUpdatedStartDate()))) {
+            DateUtils.toLongDate(iconRequestParams.getLastUpdatedStartDate()))) {
       throw new BadRequestException(
           String.format(
               "lastUpdatedStartDate %s is not valid",
@@ -92,7 +92,7 @@ public class IconRequestParamsMapper {
 
     if (iconRequestParams.hasLastUpdatedEndDate()
         && !DateUtils.dateTimeIsValid(
-            DateUtils.getLongDateString(iconRequestParams.getLastUpdatedEndDate()))) {
+            DateUtils.toLongDate(iconRequestParams.getLastUpdatedEndDate()))) {
       throw new BadRequestException(
           String.format(
               "lastUpdatedEndDate %s is not valid",

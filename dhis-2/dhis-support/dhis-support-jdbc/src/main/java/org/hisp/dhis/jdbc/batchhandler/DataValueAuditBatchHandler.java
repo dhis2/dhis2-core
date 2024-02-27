@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.jdbc.batchhandler;
 
-import static org.hisp.dhis.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -112,7 +112,7 @@ public class DataValueAuditBatchHandler extends AbstractBatchHandler<DataValueAu
         dataValueAudit.getAttributeOptionCombo().getId(),
         dataValueAudit.getValue(),
         dataValueAudit.getModifiedBy(),
-        getLongDateString(dataValueAudit.getCreated()),
+        toLongDate(dataValueAudit.getCreated()),
         dataValueAudit.getAuditType().toString());
   }
 

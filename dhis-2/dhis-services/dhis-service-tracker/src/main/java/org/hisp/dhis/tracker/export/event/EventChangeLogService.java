@@ -27,16 +27,17 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
-import java.util.List;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.tracker.export.Page;
+import org.hisp.dhis.tracker.export.PageParams;
 
 public interface EventChangeLogService {
 
   /**
    * Retrieves the change log data for a particular event
    *
-   * @return list with the change logs of the supplied event, if any
+   * @return event change logs page
    */
-  List<EventChangeLog> getEventChangeLog(UID event) throws NotFoundException;
+  Page<EventChangeLog> getEventChangeLog(UID event, PageParams pageParams) throws NotFoundException;
 }

@@ -33,6 +33,8 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.tracker.export.Page;
+import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -53,7 +55,8 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
   private final UserService userService;
 
   @Override
-  public List<EventChangeLog> getEventChangeLog(UID eventUid) throws NotFoundException {
+  public Page<EventChangeLog> getEventChangeLog(UID eventUid, PageParams pageParams)
+      throws NotFoundException {
     Event event = eventService.getEvent(eventUid.getValue());
     if (event == null) {
       throw new NotFoundException(Event.class, eventUid.getValue());
@@ -65,6 +68,6 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
       throw new NotFoundException(Event.class, eventUid.getValue());
     }
 
-    return jdbcEventChangeLogStore.getEventChangeLog(eventUid.getValue());
+    return jdbcEventChangeLogStore.getEventChangeLog(eventUid, pageParams);
   }
 }

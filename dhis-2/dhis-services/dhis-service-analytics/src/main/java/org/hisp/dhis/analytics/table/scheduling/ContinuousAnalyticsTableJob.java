@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics.table.scheduling;
 
-import static org.hisp.dhis.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import com.google.common.base.Preconditions;
 import java.util.Date;
@@ -99,9 +99,9 @@ public class ContinuousAnalyticsTableJob implements Job {
 
     log.info(
         "Starting continuous analytics table update, current time: '{}', default next full update: '{}', next full update: '{}'",
-        getLongDateString(startTime),
-        getLongDateString(defaultNextFullUpdate),
-        getLongDateString(nextFullUpdate));
+        toLongDate(startTime),
+        toLongDate(defaultNextFullUpdate),
+        toLongDate(nextFullUpdate));
 
     Preconditions.checkNotNull(nextFullUpdate);
 
@@ -123,7 +123,7 @@ public class ContinuousAnalyticsTableJob implements Job {
       } finally {
         Date nextUpdate = DateUtils.getNextDate(fullUpdateHourOfDay, startTime);
         systemSettingManager.saveSystemSetting(SettingKey.NEXT_ANALYTICS_TABLE_UPDATE, nextUpdate);
-        log.info("Next full analytics table update: '{}'", getLongDateString(nextUpdate));
+        log.info("Next full analytics table update: '{}'", toLongDate(nextUpdate));
       }
     } else {
       log.info("Performing latest analytics table partition update");

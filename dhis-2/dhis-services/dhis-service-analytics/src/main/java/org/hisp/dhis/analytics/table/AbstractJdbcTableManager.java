@@ -31,7 +31,7 @@ import static org.hisp.dhis.analytics.table.util.PartitionUtils.getEndDate;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getStartDate;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.TEXT;
-import static org.hisp.dhis.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -141,6 +141,14 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
       spatialSupport = databaseInfoProvider.getDatabaseInfo().isSpatialSupport();
     return spatialSupport;
   }
+
+  /**
+   * Encapsulates the SQL logic to get the correct date column based on the event(program stage
+   * instance) status. If new statuses need to be loaded into the analytics events tables, they have
+   * to be supported/added into this logic.
+   */
+  protected final String eventDateExpression =
+      "CASE WHEN 'SCHEDULE' = psi.status THEN psi.scheduleddate ELSE psi.occurreddate END";
 
   // -------------------------------------------------------------------------
   // Implementation
@@ -406,13 +414,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
           List.of(), AnalyticsTablePartition.LATEST_PARTITION, lastFullTableUpdate, endDate);
       log.info(
           "Added latest analytics partition with start: '{}' and end: '{}'",
-          getLongDateString(lastFullTableUpdate),
-          getLongDateString(endDate));
+          toLongDate(lastFullTableUpdate),
+          toLongDate(endDate));
     } else {
       log.info(
           "No updated latest data found with start: '{}' and end: '{}'",
-          getLongDateString(lastAnyTableUpdate),
-          getLongDateString(endDate));
+          toLongDate(lastAnyTableUpdate),
+          toLongDate(endDate));
     }
 
     return table;
@@ -536,6 +544,17 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
                   name, CHARACTER_11, "acs." + quote(name), category.getCreated());
             })
         .toList();
+  }
+
+  /**
+   * Indicates whether the table with the given name is not empty, i.e. has at least one row.
+   *
+   * @param name the table name.
+   * @return true if the table is not empty.
+   */
+  protected boolean tableIsNotEmpty(String name) {
+    String sql = String.format("select 1 from %s limit 1;", sqlBuilder.quote(name));
+    return jdbcTemplate.queryForRowSet(sql).next();
   }
 
   /**

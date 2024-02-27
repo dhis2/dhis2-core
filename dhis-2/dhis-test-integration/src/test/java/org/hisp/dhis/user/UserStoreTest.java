@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.common.collect.Sets;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -219,5 +220,19 @@ class UserStoreTest extends SingleSetupIntegrationTestBase {
     assertTrue(usersWithAuthorityA.contains(userA));
     List<User> usersWithAuthorityB = userService.getUsersWithAuthority(AUTH_D);
     assertFalse(usersWithAuthorityB.contains(userB));
+  }
+
+  @Test
+  void testGetUserGroupUserEmailsByUsername() {
+    User userA = makeUser("A");
+    User userB = makeUser("B");
+    userStore.save(userA);
+    userStore.save(userB);
+    UserGroup group = createUserGroup('A', Set.of(userA, userB));
+    userGroupService.addUserGroup(group);
+
+    Map<String, String> emailsByUsername =
+        userStore.getUserGroupUserEmailsByUsername(group.getUid());
+    assertEquals(Map.of("usernamea", "emaila", "usernameb", "emailb"), emailsByUsername);
   }
 }

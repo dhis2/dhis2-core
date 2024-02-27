@@ -33,6 +33,7 @@ import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUs
 import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeGzip;
 import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeZip;
 import static org.hisp.dhis.webapi.controller.tracker.export.FileResourceRequestHandler.handleFileRequest;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationBounds;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateUnsupportedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.event.EventRequestParams.DEFAULT_FIELDS_PARAM;
@@ -143,7 +144,7 @@ class EventsExportController {
           fieldFilterService.toObjectNodes(
               EVENTS_MAPPER.fromCollection(eventsPage.getItems()), requestParams.getFields());
 
-      return Page.withPager(EVENTS, objectNodes, eventsPage);
+      return Page.withPager(EVENTS, eventsPage.withItems(objectNodes));
     }
 
     List<org.hisp.dhis.program.Event> events = eventService.getEvents(eventOperationParams);
@@ -295,10 +296,20 @@ class EventsExportController {
         request, eventService.getFileResourceImage(event, dataElement, dimension));
   }
 
-  @GetMapping("/{uid}/changeLog")
-  List<EventChangeLog> getEventByUid(@OpenApi.Param({UID.class, Event.class}) @PathVariable UID uid)
-      throws NotFoundException {
+  @GetMapping("/{event}/changeLogs")
+  Page<ObjectNode> getEventChangeLogsByUid(
+      @OpenApi.Param({UID.class, Event.class}) @PathVariable UID event,
+      ChangeLogRequestParams requestParams,
+      HttpServletRequest request)
+      throws NotFoundException, BadRequestException {
+    validatePaginationBounds(requestParams.getPage(), requestParams.getPageSize());
+    PageParams pageParams =
+        new PageParams(requestParams.getPage(), requestParams.getPageSize(), false);
+    org.hisp.dhis.tracker.export.Page<EventChangeLog> changeLogs =
+        eventChangeLogService.getEventChangeLog(event, pageParams);
 
-    return eventChangeLogService.getEventChangeLog(uid);
+    List<ObjectNode> objectNodes =
+        fieldFilterService.toObjectNodes(changeLogs.getItems(), requestParams.getFields());
+    return Page.withPager("changeLogs", changeLogs.withItems(objectNodes), request);
   }
 }

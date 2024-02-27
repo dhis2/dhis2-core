@@ -48,6 +48,7 @@ import org.hisp.dhis.scheduling.parameters.DataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.DisableInactiveUsersJobParameters;
 import org.hisp.dhis.scheduling.parameters.EventProgramsDataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.GeoJsonImportJobParams;
+import org.hisp.dhis.scheduling.parameters.HtmlPushAnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.LockExceptionCleanupJobParameters;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
 import org.hisp.dhis.scheduling.parameters.MockJobParameters;
@@ -85,6 +86,7 @@ public enum JobType {
   PROGRAM_NOTIFICATIONS(),
   MONITORING(MonitoringJobParameters.class),
   PUSH_ANALYSIS(PushAnalysisJobParameters.class),
+  HTML_PUSH_ANALYTICS(HtmlPushAnalyticsJobParameters.class),
   TRACKER_SEARCH_OPTIMIZATION(TrackerTrigramIndexJobParameters.class),
   PREDICTOR(PredictorJobParameters.class),
   MATERIALIZED_SQL_VIEW_UPDATE(SqlViewUpdateParameters.class),
@@ -184,6 +186,14 @@ public enum JobType {
       @CheckForNull Class<? extends JobParameters> jobParameters, @CheckForNull Defaults defaults) {
     this.jobParameters = jobParameters;
     this.defaults = defaults;
+  }
+
+  /**
+   * @return when true, the {@link JobConfiguration#getExecutedBy()} is set to the job creator on
+   *     creation unless it was set explicitly
+   */
+  public boolean isDefaultExecutedByCreator() {
+    return this == HTML_PUSH_ANALYTICS;
   }
 
   /**

@@ -45,7 +45,7 @@ import static org.hisp.dhis.db.model.DataType.VARCHAR_255;
 import static org.hisp.dhis.db.model.DataType.VARCHAR_50;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
-import static org.hisp.dhis.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -410,7 +410,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
                         + tea.getId()));
 
     sql.append(" where tei.trackedentitytypeid = " + trackedEntityType.getId())
-        .append(" and tei.lastupdated < '" + getLongDateString(params.getStartTime()) + "'")
+        .append(" and tei.lastupdated < '" + toLongDate(params.getStartTime()) + "'")
         .append(
             " and exists ( select 1 from enrollment pi"
                 + " where pi.trackedentityid = tei.trackedentityid"

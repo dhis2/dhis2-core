@@ -220,7 +220,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
         .put(SYSTEM_ID, systemInfo.getSystemId())
         .put(SYSTEM_REVISION, systemInfo.getRevision())
         .put(SYSTEM_VERSION, systemInfo.getVersion())
-        .put(SYSTEM_DATE, DateUtils.getIso8601(systemInfo.getServerDate()));
+        .put(SYSTEM_DATE, DateUtils.toIso8601(systemInfo.getServerDate()));
 
     Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadata =
         getMetadata(params);
@@ -267,7 +267,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
       generator.writeStringField(SYSTEM_ID, systemInfo.getSystemId());
       generator.writeStringField(SYSTEM_REVISION, systemInfo.getRevision());
       generator.writeStringField(SYSTEM_VERSION, systemInfo.getVersion());
-      generator.writeStringField(SYSTEM_DATE, DateUtils.getIso8601(systemInfo.getServerDate()));
+      generator.writeStringField(SYSTEM_DATE, DateUtils.toIso8601(systemInfo.getServerDate()));
       generator.writeEndObject();
 
       for (Class<? extends IdentifiableObject> klass : metadata.keySet()) {
@@ -311,7 +311,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
       generator.writeStringField(SYSTEM_ID, systemInfo.getSystemId());
       generator.writeStringField(SYSTEM_REVISION, systemInfo.getRevision());
       generator.writeStringField(SYSTEM_VERSION, systemInfo.getVersion());
-      generator.writeStringField(SYSTEM_DATE, DateUtils.getIso8601(systemInfo.getServerDate()));
+      generator.writeStringField(SYSTEM_DATE, DateUtils.toIso8601(systemInfo.getServerDate()));
       generator.writeEndObject();
 
       for (Class<? extends IdentifiableObject> klass : metadata.keySet()) {
@@ -346,7 +346,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
         fieldFilterService
             .createObjectNode()
             .putObject(SYSTEM)
-            .put(SYSTEM_DATE, DateUtils.getIso8601(new Date()));
+            .put(SYSTEM_DATE, DateUtils.toIso8601(new Date()));
 
     SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata =
         getMetadataWithDependencies(object);

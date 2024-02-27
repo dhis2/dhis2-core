@@ -29,17 +29,21 @@ package org.hisp.dhis.tracker.export.event;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.tracker.export.Page;
+import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.event.EventChangeLog.Change;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 @Repository("org.hisp.dhis.tracker.export.event.ChangeLogStore")
 @RequiredArgsConstructor
 class JdbcEventChangeLogStore {
 
-  private final JdbcTemplate jdbcTemplate;
+  private final NamedParameterJdbcTemplate jdbcTemplate;
 
   private static final RowMapper<EventChangeLog> customEventChangeLogRowMapper =
       (rs, rowNum) -> {
@@ -51,7 +55,8 @@ class JdbcEventChangeLogStore {
 
         return new EventChangeLog(
             createdBy,
-            rs.getTimestamp("updatedAt"),
+            rs.getTimestamp("createdat"),
+            rs.getString("type"),
             new Change(
                 new EventChangeLog.DataValueChange(
                     rs.getString("dataElementUid"),
@@ -59,7 +64,7 @@ class JdbcEventChangeLogStore {
                     rs.getString("currentValue"))));
       };
 
-  public List<EventChangeLog> getEventChangeLog(String eventUid) {
+  public Page<EventChangeLog> getEventChangeLog(UID event, PageParams pageParams) {
     final String sql =
         """
             select
@@ -72,7 +77,7 @@ class JdbcEventChangeLogStore {
                 when cl.audittype = 'DELETE' then cl.previouschangelogvalue
                 when cl.audittype = 'UPDATE' and cl.currentchangelogvalue is null then cl.previouschangelogvalue
                 when cl.audittype = 'UPDATE' and cl.currentchangelogvalue is not null then cl.previouschangelogvalue
-              end as previousValue, cl.created as updatedAt, cl.modifiedby as userName, cl.dataElementUid as dataElementUid, cl.firstname, cl.surname, cl.username, cl.useruid
+              end as previousValue, cl.created as createdat, cl.modifiedby as userName, cl.dataElementUid as dataElementUid, cl.firstname, cl.surname, cl.username, cl.useruid, cl.audittype as type
             from
               (select t.created, d.uid as dataElementUid, t.modifiedby, t.audittype, u.firstname, u.surname, u.username, u.uid as useruid,
                   LAG (t.value) OVER (PARTITION BY t.eventid, t.dataelementid ORDER BY t.created DESC) AS currentchangelogvalue,
@@ -83,10 +88,30 @@ class JdbcEventChangeLogStore {
               join dataelement d using (dataelementid)
               join userinfo u on u.username = t.modifiedby
               where t.audittype in ('CREATE', 'UPDATE', 'DELETE')
-              and e.uid = ?
+              and e.uid = :uid
               order by t.created desc) cl
+              limit :limit offset :offset
             """;
 
-    return jdbcTemplate.query(sql, customEventChangeLogRowMapper, eventUid);
+    final MapSqlParameterSource parameters = new MapSqlParameterSource();
+    parameters.addValue("uid", event.getValue());
+    parameters.addValue("limit", pageParams.getPageSize() + 1);
+    parameters.addValue("offset", (pageParams.getPage() - 1) * pageParams.getPageSize());
+
+    List<EventChangeLog> changeLogs =
+        jdbcTemplate.query(sql, parameters, customEventChangeLogRowMapper);
+
+    Integer prevPage = pageParams.getPage() > 1 ? pageParams.getPage() - 1 : null;
+    if (changeLogs.size() > pageParams.getPageSize()) {
+      return Page.withPrevAndNext(
+          changeLogs.subList(0, pageParams.getPageSize()),
+          pageParams.getPage(),
+          pageParams.getPageSize(),
+          prevPage,
+          pageParams.getPage() + 1);
+    }
+
+    return Page.withPrevAndNext(
+        changeLogs, pageParams.getPage(), pageParams.getPageSize(), prevPage, null);
   }
 }
