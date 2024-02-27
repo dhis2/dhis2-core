@@ -2047,7 +2047,7 @@ jasperreports.version=${jasperreports.version}
               <!-- Removing makes the startup with Jetty fail -->
               <ignoredUnusedDeclaredDependency>javax.media:jai_imageio</ignoredUnusedDeclaredDependency>
               <!-- Runtime only -->
-              <ignoredUnusedDeclaredDependency>com.mysql.mysql-connector-j</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>com.mysql:mysql-connector-j</ignoredUnusedDeclaredDependency>
               <!-- Only exist at runtime -->
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-hibernate</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-db-migration</ignoredUnusedDeclaredDependency>
