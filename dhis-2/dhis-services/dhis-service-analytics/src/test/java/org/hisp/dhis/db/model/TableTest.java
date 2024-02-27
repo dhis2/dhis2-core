@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.util.List;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.junit.jupiter.api.Test;
@@ -42,13 +43,15 @@ class TableTest {
 
   @Test
   void testToStagingTable() {
-    assertEquals("analytics_rs_categorystructure_temp", Table.toStaging("analytics_rs_categorystructure"));
+    assertEquals(
+        "analytics_rs_categorystructure_temp", Table.toStaging("analytics_rs_categorystructure"));
     assertEquals("analytics_temp", Table.toStaging("analytics"));
   }
 
   @Test
   void testFromStagingTable() {
-    assertEquals("analytics_rs_categorystructure", Table.fromStaging("analytics_rs_categorystructure_temp"));
+    assertEquals(
+        "analytics_rs_categorystructure", Table.fromStaging("analytics_rs_categorystructure_temp"));
     assertEquals("analytics", Table.fromStaging("analytics_temp"));
   }
 

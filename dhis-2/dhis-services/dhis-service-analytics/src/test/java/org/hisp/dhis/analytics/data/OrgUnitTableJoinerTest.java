@@ -33,6 +33,7 @@ import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitT
 import static org.hisp.dhis.program.AnalyticsType.ENROLLMENT;
 import static org.hisp.dhis.program.AnalyticsType.EVENT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;

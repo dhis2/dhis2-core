@@ -35,6 +35,7 @@ import static org.hisp.dhis.analytics.OrgUnitFieldType.OWNER_AT_START;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.util.DateUtils.plusOneDay;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
+
 import java.util.Date;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -112,7 +113,10 @@ public final class OrgUnitTableJoiner {
         + " ";
   }
 
-  /** Joins the analytics_rs_orgunitstructure table and, if needed, the analytics_rs_orgunitgroupsetstructure table. */
+  /**
+   * Joins the analytics_rs_orgunitstructure table and, if needed, the
+   * analytics_rs_orgunitgroupsetstructure table.
+   */
   private static String joinOrgUnitStructureTables(
       EventQueryParams params, AnalyticsType analyticsType) {
     String orgUnitJoinCol = params.getOrgUnitField().getOrgUnitJoinCol(analyticsType);

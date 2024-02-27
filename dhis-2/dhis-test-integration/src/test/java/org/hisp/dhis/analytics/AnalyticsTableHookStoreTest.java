@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import java.util.List;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;

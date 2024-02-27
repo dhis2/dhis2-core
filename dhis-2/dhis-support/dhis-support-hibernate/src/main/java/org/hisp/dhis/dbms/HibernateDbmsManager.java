@@ -30,12 +30,12 @@ package org.hisp.dhis.dbms;
 import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.EntityManager;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -440,13 +440,13 @@ public class HibernateDbmsManager implements DbmsManager {
 
   private void emptyRelationships() {
     try {
-      String sql = 
+      String sql =
           """
-          update relationshipitem set relationshipid = null; 
-          delete from relationship; 
-          delete from relationshipitem; 
-          update relationshiptype set from_relationshipconstraintid = null,to_relationshipconstraintid = null; 
-          delete from relationshipconstraint; 
+          update relationshipitem set relationshipid = null;
+          delete from relationship;
+          delete from relationshipitem;
+          update relationshiptype set from_relationshipconstraintid = null,to_relationshipconstraintid = null;
+          delete from relationshipconstraint;
           delete from relationshiptype;
           """;
       jdbcTemplate.update(sql);

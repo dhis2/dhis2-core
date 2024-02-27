@@ -35,10 +35,12 @@ import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.feedback.ErrorCode.E7302;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.common.TableInfoReader;
 import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsManager;
 import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
@@ -52,7 +54,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
-import lombok.RequiredArgsConstructor;
 
 /**
  * @author Lars Helge Overland
@@ -89,10 +90,10 @@ public class JdbcOrgUnitAnalyticsManager implements OrgUnitAnalyticsManager {
 
   /**
    * Checks if there is an org. unit dimension column, specified in the given params, not present in
-   * the respective DB table ("analytics_rs_organisationunitgroupsetstructure"). If a dimension column (which in
-   * this case represents an org. unit group set) is found to be missing in the table, it will not
-   * be possible to query for the missing org. unit group set. In such cases, the request cannot be
-   * processed.
+   * the respective DB table ("analytics_rs_organisationunitgroupsetstructure"). If a dimension
+   * column (which in this case represents an org. unit group set) is found to be missing in the
+   * table, it will not be possible to query for the missing org. unit group set. In such cases, the
+   * request cannot be processed.
    *
    * @param params the query params {@link OrgUnitQueryParams}.
    * @throws QueryRuntimeException if there are missing columns.
