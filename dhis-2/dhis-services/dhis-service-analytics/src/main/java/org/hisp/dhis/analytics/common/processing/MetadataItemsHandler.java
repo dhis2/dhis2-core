@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.analytics.common.params.CommonParams;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
@@ -88,8 +89,18 @@ public class MetadataItemsHandler {
    * @return the map of {@link MetadataItem}.
    */
   Map<String, MetadataItem> handle(Grid grid, CommonParams commonParams) {
-    List<QueryItem> items = commonParams.delegate().getAllItems();
-    Set<Option> itemOptions = commonParams.delegate().getItemsOptions();
+    List<QueryItem> items =
+        commonParams.delegate().getAllItems().stream()
+            .filter(
+                it ->
+                    isInRequestDimensionOrFilter(
+                        it.getItem().getUid(), commonParams.getOriginalRequest()))
+            .toList();
+    Set<Option> itemOptions =
+        commonParams.delegate().getItemsOptions().stream()
+            .filter(
+                o -> isInRequestDimensionOrFilter(o.getUid(), commonParams.getOriginalRequest()))
+            .collect(toSet());
     Map<String, List<Option>> optionsPresentInGrid = getItemOptions(grid, items);
     Set<Option> optionItems = getOptionItems(grid, itemOptions, items, optionsPresentInGrid);
     List<DimensionalObject> allDimensionalObjects =
@@ -97,8 +108,16 @@ public class MetadataItemsHandler {
     List<DimensionItemKeywords.Keyword> periodKeywords =
         commonParams.delegate().getPeriodKeywords();
     Set<Legend> itemLegends = commonParams.delegate().getItemsLegends();
-    List<Program> programs = commonParams.getPrograms();
-    Set<ProgramStage> programStages = commonParams.delegate().getProgramStages();
+    List<Program> programs =
+        commonParams.getPrograms().stream()
+            .filter(
+                p -> isInRequestDimensionOrFilter(p.getUid(), commonParams.getOriginalRequest()))
+            .toList();
+    Set<ProgramStage> programStages =
+        commonParams.delegate().getProgramStages().stream()
+            .filter(
+                p -> isInRequestDimensionOrFilter(p.getUid(), commonParams.getOriginalRequest()))
+            .collect(toSet());
     boolean includeMetadataDetails = commonParams.isIncludeMetadataDetails();
     DisplayProperty displayProperty = commonParams.getDisplayProperty();
     DimensionalItemObject value = commonParams.getValue();
@@ -150,6 +169,23 @@ public class MetadataItemsHandler {
     }
 
     return metadataItemMap;
+  }
+
+  /**
+   * The method returns true if uid matches dimension or filter uids. If the request is null uid is
+   * considered to be in dimension or filter set.
+   *
+   * @param uid
+   * @param request the {@link CommonQueryRequest}.
+   * @return the boolean indicator.
+   */
+  private boolean isInRequestDimensionOrFilter(String uid, CommonQueryRequest request) {
+    if (request == null) {
+      return true;
+    }
+
+    return request.getDimension().stream().anyMatch(uId -> uId.contains(uid))
+        || request.getFilter().stream().anyMatch(uId -> uId.contains(uid));
   }
 
   /**
