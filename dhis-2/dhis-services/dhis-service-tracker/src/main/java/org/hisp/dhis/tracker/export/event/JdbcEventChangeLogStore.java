@@ -55,7 +55,8 @@ class JdbcEventChangeLogStore {
 
         return new EventChangeLog(
             createdBy,
-            rs.getTimestamp("updatedAt"),
+            rs.getTimestamp("createdat"),
+            rs.getString("type"),
             new Change(
                 new EventChangeLog.DataValueChange(
                     rs.getString("dataElementUid"),
@@ -76,7 +77,7 @@ class JdbcEventChangeLogStore {
                 when cl.audittype = 'DELETE' then cl.previouschangelogvalue
                 when cl.audittype = 'UPDATE' and cl.currentchangelogvalue is null then cl.previouschangelogvalue
                 when cl.audittype = 'UPDATE' and cl.currentchangelogvalue is not null then cl.previouschangelogvalue
-              end as previousValue, cl.created as updatedAt, cl.modifiedby as userName, cl.dataElementUid as dataElementUid, cl.firstname, cl.surname, cl.username, cl.useruid
+              end as previousValue, cl.created as createdat, cl.modifiedby as userName, cl.dataElementUid as dataElementUid, cl.firstname, cl.surname, cl.username, cl.useruid, cl.audittype as type
             from
               (select t.created, d.uid as dataElementUid, t.modifiedby, t.audittype, u.firstname, u.surname, u.username, u.uid as useruid,
                   LAG (t.value) OVER (PARTITION BY t.eventid, t.dataelementid ORDER BY t.created DESC) AS currentchangelogvalue,
@@ -100,20 +101,17 @@ class JdbcEventChangeLogStore {
     List<EventChangeLog> changeLogs =
         jdbcTemplate.query(sql, parameters, customEventChangeLogRowMapper);
 
+    Integer prevPage = pageParams.getPage() > 1 ? pageParams.getPage() - 1 : null;
     if (changeLogs.size() > pageParams.getPageSize()) {
       return Page.withPrevAndNext(
           changeLogs.subList(0, pageParams.getPageSize()),
           pageParams.getPage(),
           pageParams.getPageSize(),
-          pageParams.getPage() != 1,
-          true);
+          prevPage,
+          pageParams.getPage() + 1);
     }
 
     return Page.withPrevAndNext(
-        changeLogs,
-        pageParams.getPage(),
-        pageParams.getPageSize(),
-        pageParams.getPage() != 1,
-        false);
+        changeLogs, pageParams.getPage(), pageParams.getPageSize(), prevPage, null);
   }
 }

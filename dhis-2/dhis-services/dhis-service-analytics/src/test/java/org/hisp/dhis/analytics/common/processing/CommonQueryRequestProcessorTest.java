@@ -167,12 +167,12 @@ class CommonQueryRequestProcessorTest {
   void testProgramStatusWrongEnum() {
     CommonQueryRequest request =
         new CommonQueryRequest().withProgramStatus(Set.of("programUid.WRONG_PROGRAM_STATUS"));
-    IllegalArgumentException exception =
+    IllegalQueryException exception =
         assertThrows(
-            IllegalArgumentException.class, () -> commonQueryRequestProcessor.process(request));
+            IllegalQueryException.class, () -> commonQueryRequestProcessor.process(request));
 
     assertEquals(
-        "No enum constant org.hisp.dhis.dxf2.deprecated.tracker.enrollment.EnrollmentStatus.WRONG_PROGRAM_STATUS",
+        "Parameters programStatus/enrollmentStatus must be of the form: [programUid].[ENROLLMENT_STATUS]",
         exception.getMessage());
   }
 
@@ -180,12 +180,12 @@ class CommonQueryRequestProcessorTest {
   void testEnrollmentStatusStatusWrongEnum() {
     CommonQueryRequest request =
         new CommonQueryRequest().withEnrollmentStatus(Set.of("programUid.WRONG_PROGRAM_STATUS"));
-    IllegalArgumentException exception =
+    IllegalQueryException exception =
         assertThrows(
-            IllegalArgumentException.class, () -> commonQueryRequestProcessor.process(request));
+            IllegalQueryException.class, () -> commonQueryRequestProcessor.process(request));
 
     assertEquals(
-        "No enum constant org.hisp.dhis.dxf2.deprecated.tracker.enrollment.EnrollmentStatus.WRONG_PROGRAM_STATUS",
+        "Parameters programStatus/enrollmentStatus must be of the form: [programUid].[ENROLLMENT_STATUS]",
         exception.getMessage());
   }
 
@@ -194,12 +194,12 @@ class CommonQueryRequestProcessorTest {
     CommonQueryRequest request =
         new CommonQueryRequest()
             .withEventStatus(Set.of("programUid.programStageUid.WRONG_EVENT_STATUS"));
-    IllegalArgumentException exception =
+    IllegalQueryException exception =
         assertThrows(
-            IllegalArgumentException.class, () -> commonQueryRequestProcessor.process(request));
+            IllegalQueryException.class, () -> commonQueryRequestProcessor.process(request));
 
     assertEquals(
-        "No enum constant org.hisp.dhis.event.EventStatus.WRONG_EVENT_STATUS",
+        "Parameter eventStatus must be of the form: [programUid].[programStageUid].[EVENT_STATUS]",
         exception.getMessage());
   }
 

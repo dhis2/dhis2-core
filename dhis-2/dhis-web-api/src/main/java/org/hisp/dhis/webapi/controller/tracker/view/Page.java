@@ -168,13 +168,13 @@ public class Page<T> {
   /**
    * Returns a page which will serialize the items into {@link #items} under given {@code key}.
    * Previous and next page links will be generated based on the request and only if {@link
-   * org.hisp.dhis.tracker.export.Page#getPrev()} or next are not null.
+   * org.hisp.dhis.tracker.export.Page#getPrevPage()} or next are not null.
    */
   public static <T> Page<T> withPager(
       String key, org.hisp.dhis.tracker.export.Page<T> pager, HttpServletRequest request) {
     String url = getRequestURL(request);
-    String prevPage = getPageLink(url, pager.getPrev(), pager.getPage() - 1);
-    String nextPage = getPageLink(url, pager.getNext(), pager.getPage() + 1);
+    String prevPage = getPageLink(url, pager.getPrevPage());
+    String nextPage = getPageLink(url, pager.getNextPage());
 
     return new Page<>(
         key, pager.getItems(), pager.getPage(), pager.getPageSize(), prevPage, nextPage);
@@ -212,8 +212,8 @@ public class Page<T> {
     return requestURL.append('?').append(queryString).toString();
   }
 
-  private static String getPageLink(String url, Boolean hasPage, int page) {
-    if (Boolean.FALSE.equals(hasPage)) {
+  private static String getPageLink(String url, Integer page) {
+    if (page == null) {
       return null;
     }
 

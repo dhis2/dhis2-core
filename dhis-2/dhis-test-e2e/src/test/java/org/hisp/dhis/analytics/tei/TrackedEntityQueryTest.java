@@ -1781,7 +1781,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
     QueryParamsBuilder params =
         new QueryParamsBuilder()
             .add("program=IpHINAT79UW")
-            .add("enrollmentDate=IpHINAT79UW[-1].LAST_YEAR")
+            .add("enrollmentDate=IpHINAT79UW[1].LAST_YEAR")
             .add("desc=lastupdated")
             .add("relativePeriodDate=2023-04-03")
             .add("headers=ouname,w75KJ2mc4zz,zDhUuAYrxNC");
@@ -3182,5 +3182,24 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         .statusCode(200)
         .body("headers[0].name", equalTo("J5jldMd8OHv"))
         .body("headers[0].column", equalTo("Facility Type"));
+  }
+
+  @Test
+  public void testProgramStatusAsDimensionNoValue() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("programStatus=IpHINAT79UW")
+            .add("headers=IpHINAT79UW.programstatus")
+            .add("pageSize=0");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers[0].column", equalTo("Program Status, Child Programme"));
   }
 }
