@@ -76,6 +76,14 @@ public class PasswordHistoryValidationRule implements PasswordValidationRule {
       return true;
     }
 
-    return !credentials.isNewUser();
+    boolean hasCurrentUser = CurrentUserUtil.hasCurrentUser();
+    if (hasCurrentUser) {
+      boolean isCurrentUser =
+          CurrentUserUtil.getCurrentUsername().equals(credentials.getUsername());
+      return !credentials.isNewUser() && isCurrentUser;
+
+    } else {
+      return !credentials.isNewUser();
+    }
   }
 }
