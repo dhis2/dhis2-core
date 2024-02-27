@@ -122,8 +122,7 @@ class AggregateDataExchangeServiceTest {
                 DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of()));
     when(dataValueSetService.importDataValueSet(any(DataValueSet.class), any(ImportOptions.class)))
         .thenReturn(new ImportSummary(ImportStatus.SUCCESS));
-    when(aclService.canDataWrite(any(User.class), any(IdentifiableObject.class)))
-        .thenReturn(true);
+    when(aclService.canDataWrite(any(User.class), any(IdentifiableObject.class))).thenReturn(true);
 
     SourceRequest sourceRequest =
         new SourceRequest()

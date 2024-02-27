@@ -73,8 +73,7 @@ public class AggregateDataExchangeController extends AbstractCrudController<Aggr
 
   @PostMapping("/{uid}/exchange")
   @ResponseStatus(value = HttpStatus.OK)
-  public WebMessage runDataExchangeByUid(
-      @PathVariable String uid, @CurrentUser User user) {
+  public WebMessage runDataExchangeByUid(@PathVariable String uid, @CurrentUser User user) {
     return WebMessageUtils.importSummaries(
         service.exchangeData(user, uid, NoopJobProgress.INSTANCE));
   }

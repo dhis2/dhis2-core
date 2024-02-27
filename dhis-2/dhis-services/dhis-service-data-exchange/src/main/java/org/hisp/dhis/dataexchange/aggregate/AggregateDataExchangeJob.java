@@ -42,9 +42,7 @@ import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.AggregateDataExchangeJobParameters;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Component;
 
 /**
@@ -59,7 +57,7 @@ public class AggregateDataExchangeJob implements Job {
 
   private final Notifier notifier;
 
-    private final CurrentUserService currentUserService;
+  private final CurrentUserService currentUserService;
 
   @Override
   public JobType getJobType() {
