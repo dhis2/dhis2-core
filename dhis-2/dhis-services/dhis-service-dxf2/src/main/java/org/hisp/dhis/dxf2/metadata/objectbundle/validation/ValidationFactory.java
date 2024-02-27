@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleHooks;
 import org.hisp.dhis.feedback.TypeReport;
@@ -85,20 +84,17 @@ public class ValidationFactory {
       ObjectBundle bundle,
       List<T> persistedObjects,
       List<T> nonPersistedObjects) {
-    // only increase the stats if there are no errors
-    if (!typeReport.hasErrorReports() || AtomicMode.NONE == bundle.getAtomicMode()) {
-      if (bundle.getImportMode().isCreateAndUpdate()) {
-        typeReport.getStats().incCreated(nonPersistedObjects.size());
-        typeReport.getStats().incUpdated(persistedObjects.size());
-      } else if (bundle.getImportMode().isCreate()) {
-        typeReport.getStats().incCreated(nonPersistedObjects.size());
+    if (bundle.getImportMode().isCreateAndUpdate()) {
+      typeReport.getStats().incCreated(nonPersistedObjects.size());
+      typeReport.getStats().incUpdated(persistedObjects.size());
+    } else if (bundle.getImportMode().isCreate()) {
+      typeReport.getStats().incCreated(nonPersistedObjects.size());
 
-      } else if (bundle.getImportMode().isUpdate()) {
-        typeReport.getStats().incUpdated(persistedObjects.size());
+    } else if (bundle.getImportMode().isUpdate()) {
+      typeReport.getStats().incUpdated(persistedObjects.size());
 
-      } else if (bundle.getImportMode().isDelete()) {
-        typeReport.getStats().incDeleted(persistedObjects.size());
-      }
+    } else if (bundle.getImportMode().isDelete()) {
+      typeReport.getStats().incDeleted(persistedObjects.size());
     }
 
     return typeReport;
