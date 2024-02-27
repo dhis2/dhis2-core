@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -94,7 +93,7 @@ class JdbcOrgUnitAnalyticsManagerTest {
 
     // When
     when(tableInfoReader.checkColumnsPresence(
-            "_organisationunitgroupsetstructure", Set.of("abc123", "abc456")))
+            "analytics_rs_organisationunitgroupsetstructure", Set.of("abc123", "abc456")))
         .thenReturn(Set.of());
     when(jdbcTemplate.queryForRowSet(anyString())).thenReturn(sqlRowSet);
     Map<String, Integer> data = jdbcOrgUnitAnalyticsManager.getOrgUnitData(params);
@@ -123,7 +122,7 @@ class JdbcOrgUnitAnalyticsManagerTest {
 
     // When
     when(tableInfoReader.checkColumnsPresence(
-            "_organisationunitgroupsetstructure", Set.of("abc123", "abc456")))
+            "analytics_rs_organisationunitgroupsetstructure", Set.of("abc123", "abc456")))
         .thenReturn(Set.of(invalidOrgUnitSetDim));
 
     // Then

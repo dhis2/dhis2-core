@@ -47,7 +47,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.mockingDetails;
 import static org.mockito.Mockito.when;
-
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -298,8 +297,8 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
             + ") a "
             + "inner join trackedentity tei on a.trackedentityid = tei.trackedentityid "
             + "inner join organisationunit ou on a.organisationunitid = ou.organisationunitid "
-            + "left join _orgunitstructure ous on a.organisationunitid = ous.organisationunitid "
-            + "left join _organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid "
+            + "left join analytics_rs_orgunitstructure ous on a.organisationunitid = ous.organisationunitid "
+            + "left join analytics_rs_organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid "
             + "order by tei.uid, a.startdate, a.enddate",
         sqlMasked);
 

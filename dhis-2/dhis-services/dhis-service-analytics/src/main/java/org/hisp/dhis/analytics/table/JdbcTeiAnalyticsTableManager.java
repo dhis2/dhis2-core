@@ -46,7 +46,6 @@ import static org.hisp.dhis.db.model.DataType.VARCHAR_50;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -386,9 +385,9 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
         .append(" from trackedentity tei")
         .append(" left join organisationunit ou on tei.organisationunitid = ou.organisationunitid")
         .append(
-            " left join _orgunitstructure ous on ous.organisationunitid = ou.organisationunitid")
+            " left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid")
         .append(
-            " left join _organisationunitgroupsetstructure ougs "
+            " left join analytics_rs_organisationunitgroupsetstructure ougs "
                 + "on tei.organisationunitid = ougs.organisationunitid "
                 + "and (cast(date_trunc('month', tei.created) as date) = ougs.startdate "
                 + "or ougs.startdate is null)");

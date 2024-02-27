@@ -47,7 +47,6 @@ import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
-
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -56,7 +55,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -94,6 +92,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -429,15 +428,14 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             + "and tei.deleted is false "
             + "left join organisationunit registrationou on tei.organisationunitid=registrationou.organisationunitid "
             + "inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid "
-            + "left join _orgunitstructure ous on psi.organisationunitid=ous.organisationunitid "
-            + "left join _organisationunitgroupsetstructure ougs on psi.organisationunitid=ougs.organisationunitid "
+            + "left join analytics_rs_orgunitstructure ous on psi.organisationunitid=ous.organisationunitid "
+            + "left join analytics_rs_organisationunitgroupsetstructure ougs on psi.organisationunitid=ougs.organisationunitid "
             + "and (cast(date_trunc('month', "
             + eventDateExpression
-            + ") as date)"
-            + "=ougs.startdate or ougs.startdate is null) "
+            + ") as date)=ougs.startdate or ougs.startdate is null) "
             + "left join organisationunit enrollmentou on pi.organisationunitid=enrollmentou.organisationunitid "
-            + "inner join _categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid "
-            + "left join _dateperiodstructure dps on cast("
+            + "inner join analytics_rs_categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid "
+            + "left join analytics_rs_dateperiodstructure dps on cast("
             + eventDateExpression
             + " as date)=dps.dateperiod "
             + "where psi.lastupdated < '"

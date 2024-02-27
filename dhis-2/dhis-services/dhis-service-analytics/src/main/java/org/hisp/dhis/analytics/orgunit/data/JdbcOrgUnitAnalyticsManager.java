@@ -35,12 +35,10 @@ import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.feedback.ErrorCode.E7302;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.common.TableInfoReader;
 import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsManager;
 import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
@@ -49,10 +47,12 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.resourcetable.table.OrganisationUnitGroupSetResourceTable;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Lars Helge Overland
@@ -89,7 +89,7 @@ public class JdbcOrgUnitAnalyticsManager implements OrgUnitAnalyticsManager {
 
   /**
    * Checks if there is an org. unit dimension column, specified in the given params, not present in
-   * the respective DB table ("_organisationunitgroupsetstructure"). If a dimension column (which in
+   * the respective DB table ("analytics_rs_organisationunitgroupsetstructure"). If a dimension column (which in
    * this case represents an org. unit group set) is found to be missing in the table, it will not
    * be possible to query for the missing org. unit group set. In such cases, the request cannot be
    * processed.
@@ -100,7 +100,7 @@ public class JdbcOrgUnitAnalyticsManager implements OrgUnitAnalyticsManager {
   private void checkForMissingOrgUnitGroupSetColumns(OrgUnitQueryParams params) {
     Set<String> missingColumns =
         tableInfoReader.checkColumnsPresence(
-            "_organisationunitgroupsetstructure", getOrgUnitGroupSetUids(params));
+            OrganisationUnitGroupSetResourceTable.TABLE_NAME, getOrgUnitGroupSetUids(params));
 
     boolean hasMissingColumns = isNotEmpty(missingColumns);
 
@@ -159,13 +159,9 @@ public class JdbcOrgUnitAnalyticsManager implements OrgUnitAnalyticsManager {
         + getCommaDelimitedString(quotedGroupSets)
         + ", "
         + "count(ougs.organisationunitid) as count "
-        + "from "
-        + sqlBuilder.quote("_orgunitstructure")
-        + " ous "
-        + "inner join "
-        + sqlBuilder.quote("_organisationunitgroupsetstructure")
-        + " "
-        + "ougs on ous.organisationunitid = ougs.organisationunitid "
+        + "from analytics_rs_orgunitstructure ous "
+        + "inner join analytics_rs_organisationunitgroupsetstructure ougs "
+        + "on ous.organisationunitid = ougs.organisationunitid "
         + "where "
         + levelCol
         + " in ("

@@ -31,8 +31,8 @@ import java.io.OutputStream;
 import java.io.Writer;
 import java.util.Date;
 import java.util.List;
-import net.sf.jasperreports.engine.JasperPrint;
 import org.hisp.dhis.period.Period;
+import net.sf.jasperreports.engine.JasperPrint;
 
 /**
  * @author Lars Helge Overland
@@ -71,7 +71,7 @@ public interface ReportService {
    * organisation unit ids (String) "period_name" Name of the selected period (String)
    * "organisationunit_name" Name of the selected organisation unit (String)
    * "organisationunit_level" Level of the selected organisation unit (int)
-   * "organisationunit_level_column" Name of the relevant level column in table _orgunitstructure
+   * "organisationunit_level_column" Name of the relevant level column in table analytics_rs_orgunitstructure
    * (String)
    *
    * @param out the OutputStream to write the report to.

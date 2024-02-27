@@ -33,7 +33,6 @@ import static org.hisp.dhis.db.model.DataType.DATE;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -157,13 +156,13 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
     sql = TextUtils.removeLastComma(sql) + " ";
 
     sql +=
-        "from _datasetorganisationunitcategory doc "
+        "from analytics_rs_datasetorganisationunitcategory doc "
             + "inner join dataset ds on doc.datasetid=ds.datasetid "
             + "inner join organisationunit ou on doc.organisationunitid=ou.organisationunitid "
-            + "left join _orgunitstructure ous on doc.organisationunitid=ous.organisationunitid "
-            + "left join _organisationunitgroupsetstructure ougs on doc.organisationunitid=ougs.organisationunitid "
+            + "left join analytics_rs_orgunitstructure ous on doc.organisationunitid=ous.organisationunitid "
+            + "left join analytics_rs_organisationunitgroupsetstructure ougs on doc.organisationunitid=ougs.organisationunitid "
             + "left join categoryoptioncombo ao on doc.attributeoptioncomboid=ao.categoryoptioncomboid "
-            + "left join _categorystructure acs on doc.attributeoptioncomboid=acs.categoryoptioncomboid ";
+            + "left join analytics_rs_categorystructure acs on doc.attributeoptioncomboid=acs.categoryoptioncomboid ";
 
     invokeTimeAndLog(sql, String.format("Populate %s", tableName));
   }

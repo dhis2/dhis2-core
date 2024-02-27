@@ -30,11 +30,8 @@ package org.hisp.dhis.resourcetable.table;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.db.model.Table.toStaging;
 import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
-
-import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
@@ -46,13 +43,15 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
+import com.google.common.collect.Lists;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Lars Helge Overland
  */
 @RequiredArgsConstructor
 public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
-  private static final String TABLE_NAME = "_organisationunitgroupsetstructure";
+  public static final String TABLE_NAME = "analytics_rs_organisationunitgroupsetstructure";
 
   private final SqlBuilder sqlBuilder;
 
@@ -195,7 +194,7 @@ public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
     sql = removeLastComma(sql) + " ";
     sql +=
         "from organisationunit ou "
-            + "inner join _orgunitstructure ous on ous.organisationunitid = ou.organisationunitid";
+            + "inner join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid";
 
     return Optional.of(sql);
   }

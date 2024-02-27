@@ -47,16 +47,12 @@ import static org.hisp.dhis.feedback.ErrorCode.E7132;
 import static org.hisp.dhis.feedback.ErrorCode.E7133;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 import static org.postgresql.util.PSQLState.DIVISION_BY_ZERO;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.AggregationType;
@@ -94,6 +90,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * TODO could use row_number() and filtering for paging. TODO introduce dedicated "year" partition
@@ -374,7 +373,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     if (params.hasTimeField()) {
       String joinCol = quoteAlias(params.getTimeFieldAsField());
       sql +=
-          "left join _dateperiodstructure as "
+          "left join analytics_rs_dateperiodstructure as "
               + DATE_PERIOD_STRUCT_ALIAS
               + " on cast("
               + joinCol

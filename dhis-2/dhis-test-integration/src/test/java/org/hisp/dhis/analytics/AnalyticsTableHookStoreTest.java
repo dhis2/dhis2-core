@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-
 import java.util.List;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
@@ -40,10 +39,9 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Lars Helge Overland
  */
 class AnalyticsTableHookStoreTest extends SingleSetupIntegrationTestBase {
-
   @Autowired private AnalyticsTableHookStore sqlHookStore;
 
-  private final String sql = "update _orgunitstructure set organisationunitid=1";
+  private final String sql = "update analytics_rs_orgunitstructure set organisationunitid=1";
 
   @Test
   void testGetByType() {

@@ -34,12 +34,9 @@ import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_START_DATE_ID;
 import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_START_DATE_NAME;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.RawAnalyticsManager;
@@ -60,6 +57,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Class responsible for retrieving raw data from the analytics tables.
@@ -153,9 +152,9 @@ public class JdbcRawAnalyticsManager implements RawAnalyticsManager {
             + " as "
             + ANALYTICS_TBL_ALIAS
             + " "
-            + "inner join organisationunit ou on ax.ou = ou.uid "
-            + "inner join _orgunitstructure ous on ax.ou = ous.organisationunituid "
-            + "inner join _periodstructure ps on ax.pe = ps.iso ";
+            + "inner join organisationunit ou on ax.ou=ou.uid "
+            + "inner join analytics_rs_orgunitstructure ous on ax.ou=ous.organisationunituid "
+            + "inner join analytics_rs_periodstructure ps on ax.pe=ps.iso ";
 
     for (DimensionalObject dim : dimensions) {
       if (!dim.getItems().isEmpty() && !dim.isFixed()) {

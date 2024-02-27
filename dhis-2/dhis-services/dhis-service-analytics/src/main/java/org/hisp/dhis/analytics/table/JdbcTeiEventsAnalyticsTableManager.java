@@ -49,7 +49,6 @@ import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -287,7 +286,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
         .append(" left join program p on p.programid = ps.programid")
         .append(" left join organisationunit ou on psi.organisationunitid = ou.organisationunitid")
         .append(
-            " left join _orgunitstructure ous on ous.organisationunitid = ou.organisationunitid")
+            " left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid")
         .append(" where psi.status in (" + join(",", EXPORTABLE_EVENT_STATUSES) + ") ")
         .append(partitionClause)
         .append(" and psi.deleted is false ");

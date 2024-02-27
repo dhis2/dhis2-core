@@ -28,10 +28,8 @@
 package org.hisp.dhis.resourcetable.table;
 
 import static org.hisp.dhis.db.model.Table.toStaging;
-
 import java.util.List;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
@@ -41,13 +39,14 @@ import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Lars Helge Overland
  */
 @RequiredArgsConstructor
 public class DataApprovalMinLevelResourceTable implements ResourceTable {
-  private static final String TABLE_NAME = "_dataapprovalminlevel";
+  public static final String TABLE_NAME = "analytics_rs_dataapprovalminlevel";
 
   private final List<OrganisationUnitLevel> levels;
 
@@ -87,7 +86,7 @@ public class DataApprovalMinLevelResourceTable implements ResourceTable {
             + "from dataapproval da "
             + "inner join _dataapprovalremaplevel dal on "
             + "dal.workflowid=da.workflowid and dal.dataapprovallevelid=da.dataapprovallevelid "
-            + "inner join _orgunitstructure ous on da.organisationunitid=ous.organisationunitid "
+            + "inner join analytics_rs_orgunitstructure ous on da.organisationunitid=ous.organisationunitid "
             + "where not exists ( "
             + "select 1 from dataapproval da2 "
             + "inner join _dataapprovalremaplevel dal2 on "

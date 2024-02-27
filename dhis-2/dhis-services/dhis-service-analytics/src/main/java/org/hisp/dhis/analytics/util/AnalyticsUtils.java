@@ -45,10 +45,6 @@ import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_SQL_SYNTAX_ERROR;
 import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_TABLE_NOT_EXISTING;
 import static org.hisp.dhis.util.SqlExceptionUtils.relationDoesNotExist;
 import static org.springframework.util.Assert.isTrue;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -60,9 +56,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
@@ -115,6 +108,12 @@ import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.util.Assert;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -186,7 +185,7 @@ public class AnalyticsUtils {
       OrganisationUnit ou = (OrganisationUnit) orgUnit;
       int level = ou.getLevel();
       sql +=
-          "(dv.sourceid in (select organisationunitid from _orgunitstructure where idlevel"
+          "(dv.sourceid in (select organisationunitid from analytics_rs_orgunitstructure where idlevel"
               + level
               + " = "
               + ou.getId()

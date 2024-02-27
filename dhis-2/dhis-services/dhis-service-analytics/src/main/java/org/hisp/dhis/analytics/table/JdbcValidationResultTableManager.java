@@ -36,7 +36,6 @@ import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -173,12 +172,12 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
     sql +=
         "from validationresult vrs "
             + "inner join period pe on vrs.periodid=pe.periodid "
-            + "inner join _periodstructure ps on vrs.periodid=ps.periodid "
+            + "inner join analytics_rs_periodstructure ps on vrs.periodid=ps.periodid "
             + "inner join validationrule vr on vr.validationruleid=vrs.validationruleid "
-            + "inner join _organisationunitgroupsetstructure ougs on vrs.organisationunitid=ougs.organisationunitid "
+            + "inner join analytics_rs_organisationunitgroupsetstructure ougs on vrs.organisationunitid=ougs.organisationunitid "
             + "and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null) "
-            + "left join _orgunitstructure ous on vrs.organisationunitid=ous.organisationunitid "
-            + "inner join _categorystructure acs on vrs.attributeoptioncomboid=acs.categoryoptioncomboid "
+            + "left join analytics_rs_orgunitstructure ous on vrs.organisationunitid=ous.organisationunitid "
+            + "inner join analytics_rs_categorystructure acs on vrs.attributeoptioncomboid=acs.categoryoptioncomboid "
             + "where vrs.created < '"
             + toLongDate(params.getStartTime())
             + "' "

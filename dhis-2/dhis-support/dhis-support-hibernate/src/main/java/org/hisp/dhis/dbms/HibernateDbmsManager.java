@@ -30,12 +30,12 @@ package org.hisp.dhis.dbms;
 import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.EntityManager;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -333,18 +333,19 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("userinfo");
     emptyTable("route");
 
-    dropTable("_orgunitstructure");
-    dropTable("_datasetorganisationunitcategory");
-    dropTable("_categoryoptioncomboname");
-    dropTable("_dataelementgroupsetstructure");
-    dropTable("_indicatorgroupsetstructure");
-    dropTable("_organisationunitgroupsetstructure");
-    dropTable("_categorystructure");
-    dropTable("_dataelementstructure");
-    dropTable("_dateperiodstructure");
-    dropTable("_periodstructure");
-    dropTable("_dataelementcategoryoptioncombo");
-    dropTable("_dataapprovalminlevel");
+    dropTable("analytics_rs_orgunitstructure");
+    dropTable("analytics_rs_datasetorganisationunitcategory");
+    dropTable("analytics_rs_categoryoptioncomboname");
+    dropTable("analytics_rs_dataelementgroupsetstructure");
+    dropTable("analytics_rs_indicatorgroupsetstructure");
+    dropTable("analytics_rs_organisationunitgroupsetstructure");
+    dropTable("analytics_rs_categorystructure");
+    dropTable("analytics_rs_dataelementstructure");
+    dropTable("analytics_rs_dateperiodstructure");
+    dropTable("analytics_rs_periodstructure");
+    dropTable("analytics_rs_dataelementcategoryoptioncombo");
+    dropTable("analytics_rs_dataapprovalremaplevel");
+    dropTable("analytics_rs_dataapprovalminlevel");
 
     emptyTable("reservedvalue");
     emptyTable("sequentialnumbercounter");
@@ -430,7 +431,8 @@ public class HibernateDbmsManager implements DbmsManager {
 
   private void dropTable(String table) {
     try {
-      jdbcTemplate.execute("drop table  if exists " + table);
+      String sql = String.format("drop table if exists %s;", table);
+      jdbcTemplate.execute(sql);
     } catch (BadSqlGrammarException ex) {
       log.debug("Table " + table + " does not exist");
     }
@@ -438,8 +440,16 @@ public class HibernateDbmsManager implements DbmsManager {
 
   private void emptyRelationships() {
     try {
-      jdbcTemplate.update(
-          "update relationshipitem set relationshipid = null; delete from relationship; delete from relationshipitem; update relationshiptype set from_relationshipconstraintid = null,to_relationshipconstraintid = null; delete from relationshipconstraint; delete from relationshiptype;");
+      String sql = 
+          """
+          update relationshipitem set relationshipid = null; 
+          delete from relationship; 
+          delete from relationshipitem; 
+          update relationshiptype set from_relationshipconstraintid = null,to_relationshipconstraintid = null; 
+          delete from relationshipconstraint; 
+          delete from relationshiptype;
+          """;
+      jdbcTemplate.update(sql);
     } catch (BadSqlGrammarException ex) {
       log.debug("Could not empty relationship tables");
     }
