@@ -37,6 +37,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -46,15 +47,12 @@ import org.hisp.dhis.i18n.locale.I18nLocale;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.system.util.LocaleUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebLocale;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -66,25 +64,24 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @Controller
 @RequestMapping(value = "/locales")
+@RequiredArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class LocaleController {
-  @Autowired private LocaleManager localeManager;
+  private final LocaleManager localeManager;
 
-  @Autowired private ContextService contextService;
-
-  @Autowired private I18nLocaleService localeService;
+  private final I18nLocaleService localeService;
 
   // -------------------------------------------------------------------------
   // Resources
   // -------------------------------------------------------------------------
 
   @GetMapping(value = "/ui")
-  public @ResponseBody List<WebLocale> getUiLocales(Model model) {
+  public @ResponseBody List<WebLocale> getUiLocales() {
     List<Locale> locales = localeManager.getAvailableLocales();
-    List<WebLocale> webLocales =
-        locales.stream().map(WebLocale::fromLocale).collect(Collectors.toList());
 
-    return webLocales;
+    return locales.stream()
+        .map(WebLocale::fromLocaleHandlingIndonesiaFormat)
+        .collect(Collectors.toList());
   }
 
   @GetMapping(value = "/db")

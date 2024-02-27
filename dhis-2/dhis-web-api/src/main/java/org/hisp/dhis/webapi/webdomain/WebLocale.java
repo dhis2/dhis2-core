@@ -50,6 +50,41 @@ public class WebLocale {
     return loc;
   }
 
+  public static WebLocale fromLocaleHandlingIndonesiaFormat(Locale locale) {
+    WebLocale loc = new WebLocale();
+
+    loc.setLocale(handleIndonesianLocale(locale));
+    loc.setName(locale.getDisplayName());
+
+    return loc;
+  }
+
+  /**
+   * By default, for backwards compatibility reasons, Java maps Indonesian locales to the old 'in'
+   * ISO format, even if we pass 'id' into a {@link Locale} constructor. See {@link
+   * Locale#convertOldISOCodes(String)}. As we use our own {@link WebLocale} class, we can control
+   * the codes being returned through the API. This method sets the Indonesian codes to the codes we
+   * want to use in the API (which conform with the newer, universally-accepted ISO language formats
+   * for Indonesia 'id'). <br>
+   * <br>
+   * JDK 17 does not have this issue and allows switching between both codes - see <a
+   * href="https://bugs.openjdk.org/browse/JDK-8267069">JDK bug</a>. This is needed purely for DHIS2
+   * versions running on a JDK below 17.
+   *
+   * @param locale locale loaded from resources
+   * @return adjusted locale for Indonesian codes or standard for anything else
+   */
+  private static String handleIndonesianLocale(Locale locale) {
+    switch (locale.toString()) {
+      case "in":
+        return "id";
+      case "in_ID":
+        return "id_ID";
+      default:
+        return locale.toString();
+    }
+  }
+
   @JsonProperty
   @JacksonXmlProperty
   public String getLocale() {
