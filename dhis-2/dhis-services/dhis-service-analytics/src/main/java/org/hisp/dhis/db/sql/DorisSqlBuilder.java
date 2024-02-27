@@ -263,7 +263,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
       sql.append("distributed by hash(")
           .append(quote(table.getFirstPrimaryKey()))
           .append(") ")
-          .append("buckets = 10 "); // Verify this
+          .append("buckets 10 "); // Verify this
     }
 
     // Properties
