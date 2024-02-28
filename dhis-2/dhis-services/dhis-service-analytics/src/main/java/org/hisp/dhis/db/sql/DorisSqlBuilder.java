@@ -232,15 +232,14 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
         );
         """;
 
-    Map<String, String> variables =
+    return replace(
+        sql,
         Map.of(
             "catalog", catalog,
             "username", username,
             "password", password,
             "connection_url", connectionUrl,
-            "driver_filename", driverFilename);
-
-    return replace(sql, variables);
+            "driver_filename", driverFilename));
   }
 
   // Statements
