@@ -89,7 +89,7 @@ public class AnalyticsDatabaseInit {
 
   /**
    * Work for initializing a Doris analytics database. Creates a JDBC catalog which is used to
-   * connect and read from the PostgreSQL transaction database. Read more at {@link
+   * connect to and read from the PostgreSQL transaction database. Read more at {@link
    * https://t.ly/igk10}.
    */
   private void initDoris() {
