@@ -87,7 +87,6 @@ public class AnalyticsDatabaseInit {
 
   /** Work for initializing a Doris analytics database. */
   private void initDoris() {
-
     String connectionUrl = config.getProperty(ConfigurationKey.CONNECTION_URL);
     String username = config.getProperty(ConfigurationKey.CONNECTION_USERNAME);
     String password = config.getProperty(ConfigurationKey.CONNECTION_PASSWORD);
