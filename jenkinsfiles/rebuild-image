@@ -1,0 +1,57 @@
+#!/usr/bin/env groovy
+
+@Library('pipeline-library') _
+
+pipeline {
+    agent {
+        label 'ec2-jdk11-large-spot'
+    }
+
+    parameters {
+        booleanParam(name: 'ALL_SUPPORTED_VERSIONS', defaultValue: false, description: '[OPTIONAL] Rebuild for all supported versions.')
+        string(name: 'VERSIONS', defaultValue: '', description: 'Space separated list of DHIS2 versions to rebuild (new format).')
+    }
+
+    options {
+        disableConcurrentBuilds()
+    }
+
+    stages {
+        stage('Rebuild Docker images') {
+            environment {
+                OLD_VERSION_SCHEMA_PREFIX = '2'
+                SUPPORTED_VERSIONS_JSON = sh(returnStdout: true, script: 'curl -fsSL "https://raw.githubusercontent.com/dhis2/dhis2-releases/master/downloads/v1/versions/stable.json" | jq -r \'.versions[] | select(.supported == true)\'').trim()
+            }
+
+            steps {
+                script {
+                    withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
+                        env.VERSIONS_TO_REBUILD = env.VERSIONS
+                        if (params.ALL_SUPPORTED_VERSIONS.toBoolean()) {
+                            env.VERSIONS_TO_REBUILD = sh(
+                                returnStdout: true,
+                                script: '''#!/bin/bash
+                                    jq -r \'.patchVersions[] | .displayName\' <<< "$SUPPORTED_VERSIONS_JSON" | xargs
+                                ''').trim()
+                        }
+
+                        // We don't have 2.M.m.p tags with 0 patch version in the dhis2-core git repo,
+                        // hence we have to use the version "name" from the stable.json as the matching git tag.
+                        env.VERSIONS_TO_REBUILD.tokenize(" ").each { version ->
+                            sh """#!/bin/bash
+                                export VERSION_NAME=\$(jq -r '.patchVersions[] | select(.displayName == \"$version\") .name' <<< \$SUPPORTED_VERSIONS_JSON)
+                                export DHIS2_VERSION=\$VERSION_NAME
+                                export GIT_BRANCH=\$DHIS2_VERSION
+                                export GIT_COMMIT=\$(git rev-parse \$VERSION_NAME)
+                                echo "DHIS2 version is \$DHIS2_VERSION"
+                                echo "Git commit is \$GIT_COMMIT"
+
+                                ./dhis-2/build-docker-image.sh -t \"$version\" -r
+                            """
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
