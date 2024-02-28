@@ -37,7 +37,7 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 /**
  * Responsible for performing work for initialization of a configured analytics database.
@@ -45,9 +45,9 @@ import org.springframework.stereotype.Service;
  * @author Lars Helge Overland
  */
 @Slf4j
-@Service
+@Component
 @RequiredArgsConstructor
-public class AnalyticsDatabaseManager {
+public class AnalyticsDatabaseInit {
   private final DhisConfigurationProvider config;
 
   private final AnalyticsTableSettings settings;
