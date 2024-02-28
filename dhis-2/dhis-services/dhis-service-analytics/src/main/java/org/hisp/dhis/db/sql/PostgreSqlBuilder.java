@@ -215,6 +215,11 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
         .replace(BACKSLASH, (BACKSLASH + BACKSLASH));
   }
 
+  @Override
+  public String qualifyTable(String name) {
+    return String.format("%s.%s", SCHEMA, name);
+  }
+
   // Statements
 
   @Override

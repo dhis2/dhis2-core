@@ -41,4 +41,21 @@ class DorisSqlBuilderTest {
     assertEquals("double", sqlBuilder.dataTypeDouble());
     assertEquals("datetime", sqlBuilder.dataTypeTimestamp());
   }
+
+  // Utilities
+
+  @Test
+  void testQuote() {
+    assertEquals(
+        "`Treated \"malaria\" at facility`", sqlBuilder.quote("Treated \"malaria\" at facility"));
+    assertEquals(
+        "`Patients on ``treatment`` for TB`", sqlBuilder.quote("Patients on `treatment` for TB"));
+    assertEquals("`quarterly`", sqlBuilder.quote("quarterly"));
+    assertEquals("`Fully immunized`", sqlBuilder.quote("Fully immunized"));
+  }
+
+  @Test
+  void testQualifyTable() {
+    assertEquals("pg_dhis.public.category", sqlBuilder.qualifyTable("category"));
+  }
 }

@@ -41,6 +41,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   // Constants
 
   private static final String QUOTE = "`";
+  private static final String CATALOG = "pg_dhis";
 
   // Data types
 
@@ -203,6 +204,11 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     return value
         .replace(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE))
         .replace(BACKSLASH, (BACKSLASH + BACKSLASH));
+  }
+
+  @Override
+  public String qualifyTable(String name) {
+    return String.format("%s.%s.%s", CATALOG, SCHEMA, name);
   }
 
   // Statements

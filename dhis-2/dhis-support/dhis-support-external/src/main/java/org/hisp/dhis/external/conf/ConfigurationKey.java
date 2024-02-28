@@ -84,6 +84,9 @@ public enum ConfigurationKey {
   /** Analytics database platform. */
   ANALYTICS_DATABASE("analytics.database", "POSTGRESQL", false),
 
+  /** Analytics database JDBC catalog name. */
+  ANALYTICS_DATABASE_CATALOG("analytics.database.catalog", "pg_dhis", false),
+
   /** JDBC driver class. */
   CONNECTION_DRIVER_CLASS("connection.driver_class", "org.postgresql.Driver", false),
 
