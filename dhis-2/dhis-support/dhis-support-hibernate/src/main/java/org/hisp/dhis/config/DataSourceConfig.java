@@ -109,7 +109,7 @@ public class DataSourceConfig {
     } catch (SQLException | PropertyVetoException e) {
       String message =
           String.format(
-              "Connection test failed for main database pool, " + "jdbcUrl: '%s', user: '%s'",
+              "Connection test failed for main database pool, jdbcUrl: '%s', user: '%s'",
               jdbcUrl, username);
 
       log.error(message);

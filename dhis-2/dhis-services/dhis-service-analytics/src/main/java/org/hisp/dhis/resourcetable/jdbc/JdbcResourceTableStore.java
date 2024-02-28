@@ -84,7 +84,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
 
     createIndexes(indexes);
 
-    jdbcTemplate.execute(sqlBuilder.analyzeTable(stagingTable));
+    analyzeTable(stagingTable);
 
     jdbcTemplate.execute(sqlBuilder.dropTableIfExists(tableName));
 
@@ -121,7 +121,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
   /**
    * Invokes table hooks.
    *
-   * @param tableType the {@link TableType}.
+   * @param tableType the {@link ResourceTableType}.
    */
   private void invokeTableHooks(ResourceTableType tableType) {
     List<AnalyticsTableHook> hooks =
@@ -145,6 +145,17 @@ public class JdbcResourceTableStore implements ResourceTableStore {
       for (Index index : indexes) {
         jdbcTemplate.execute(sqlBuilder.createIndex(index));
       }
+    }
+  }
+
+  /**
+   * Analyzes the given table.
+   *
+   * @param table the {@link Table}.
+   */
+  private void analyzeTable(Table table) {
+    if (sqlBuilder.supportsAnalyze()) {
+      jdbcTemplate.execute(sqlBuilder.analyzeTable(table));
     }
   }
 

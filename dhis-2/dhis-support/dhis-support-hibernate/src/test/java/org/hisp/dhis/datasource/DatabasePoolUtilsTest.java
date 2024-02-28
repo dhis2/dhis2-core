@@ -51,7 +51,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
-public class DatabasePoolUtilsTest {
+class DatabasePoolUtilsTest {
 
   private static ListAppender appender;
 
