@@ -63,6 +63,7 @@ import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
+import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -73,6 +74,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.message.MessageService")
+@Profile("!test")
 public class DefaultMessageService implements MessageService {
   private static final String COMPLETE_SUBJECT = "Form registered as complete";
 

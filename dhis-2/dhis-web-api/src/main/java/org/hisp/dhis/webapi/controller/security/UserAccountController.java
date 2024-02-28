@@ -35,14 +35,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.security.PasswordManager;
-import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CredentialsInfo;
 import org.hisp.dhis.user.PasswordValidationResult;
@@ -71,26 +68,17 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class UserAccountController {
 
-  private static final int MAX_LENGTH = 80;
-
-  private static final int MAX_PHONE_NO_LENGTH = 30;
-
   private final UserService userService;
-
-  private final TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
-
-  private final ConfigurationService configurationService;
-
-  private final PasswordManager passwordManager;
-
   private final SystemSettingManager systemSettingManager;
-
   private final PasswordValidationService passwordValidationService;
 
   @PostMapping("/forgotPassword")
   @ResponseStatus(HttpStatus.OK)
-  public void forgotPassword(HttpServletRequest request, @RequestBody String username)
+  public void forgotPassword(
+      HttpServletRequest request, @RequestBody ForgotPasswordRequest forgotPasswordRequest)
       throws NotFoundException, ConflictException, ForbiddenException {
+
+    String username = forgotPasswordRequest.getUsername();
 
     if (userService.isRecoveryLocked(username)) {
       throw new ForbiddenException(
@@ -130,6 +118,7 @@ public class UserAccountController {
 
     String token = resetRequest.getResetToken();
     String newPassword = resetRequest.getNewPassword();
+
     String[] idAndRestoreToken = userService.decodeEncodedTokens(token);
     String idToken = idAndRestoreToken[0];
 
