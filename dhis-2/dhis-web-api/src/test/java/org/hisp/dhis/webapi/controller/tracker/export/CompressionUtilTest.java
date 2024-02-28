@@ -69,7 +69,7 @@ class CompressionUtilTest {
 
     List<Event> eventToZip = getEvents();
 
-    writeZip(outputStream, eventToZip, objectMapper.writer(), "file.json.zip");
+    writeZip(outputStream, eventToZip, objectMapper.writer(), "file.json");
 
     ZipInputStream zipInputStream =
         new ZipInputStream(new ByteArrayInputStream(outputStream.toByteArray()));

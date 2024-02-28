@@ -159,7 +159,7 @@ class CsvTrackedEntityServiceTest {
 
     trackedEntities.add(getTrackedEntityToCompress());
 
-    service.writeZip(outputStream, trackedEntities, false, "file.json.zip");
+    service.writeZip(outputStream, trackedEntities, false, "file.json");
 
     ZipInputStream zipInputStream =
         new ZipInputStream(new ByteArrayInputStream(outputStream.toByteArray()));
