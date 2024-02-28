@@ -30,6 +30,7 @@ package org.hisp.dhis.config;
 import static org.hisp.dhis.config.DataSourceConfig.createLoggingDataSource;
 import static org.hisp.dhis.datasource.DatabasePoolUtils.ConfigKeyMapper.ANALYTICS;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_URL;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 
 import com.google.common.base.MoreObjects;
 import java.beans.PropertyVetoException;
@@ -73,8 +74,8 @@ public class AnalyticsDataSourceConfig {
     if (config.isAnalyticsDatabaseConfigured()) {
       log.info(
           "Analytics data source found, database: '{}', connection URL: '{}'",
-          config.getProperty(ConfigurationKey.ANALYTICS_DATABASE),
-          config.getProperty(ConfigurationKey.ANALYTICS_CONNECTION_URL));
+          config.getProperty(ANALYTICS_DATABASE),
+          config.getProperty(ANALYTICS_CONNECTION_URL));
 
       return getAnalyticsDataSource();
     } else {
