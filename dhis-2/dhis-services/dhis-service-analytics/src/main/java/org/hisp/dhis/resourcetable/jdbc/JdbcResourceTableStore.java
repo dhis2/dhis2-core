@@ -30,7 +30,6 @@ package org.hisp.dhis.resourcetable.jdbc;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 
-import com.mysql.cj.jdbc.DatabaseMetaData.TableType;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -122,7 +121,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
   /**
    * Invokes table hooks.
    *
-   * @param tableType the {@link TableType}.
+   * @param tableType the {@link ResourceTableType}.
    */
   private void invokeTableHooks(ResourceTableType tableType) {
     List<AnalyticsTableHook> hooks =
