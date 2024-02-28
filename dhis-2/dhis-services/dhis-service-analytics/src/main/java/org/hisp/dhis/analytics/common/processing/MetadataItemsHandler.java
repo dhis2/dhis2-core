@@ -92,14 +92,11 @@ public class MetadataItemsHandler {
     List<QueryItem> items =
         commonParams.delegate().getAllItems().stream()
             .filter(
-                it ->
-                    isInOriginalRequest(
-                        it.getItem().getUid(), commonParams.getOriginalRequest()))
+                it -> isInOriginalRequest(it.getItem().getUid(), commonParams.getOriginalRequest()))
             .toList();
     Set<Option> itemOptions =
         commonParams.delegate().getItemsOptions().stream()
-            .filter(
-                o -> isInOriginalRequest(o.getUid(), commonParams.getOriginalRequest()))
+            .filter(o -> isInOriginalRequest(o.getUid(), commonParams.getOriginalRequest()))
             .collect(toSet());
     Map<String, List<Option>> optionsPresentInGrid = getItemOptions(grid, items);
     Set<Option> optionItems = getOptionItems(grid, itemOptions, items, optionsPresentInGrid);
@@ -110,13 +107,11 @@ public class MetadataItemsHandler {
     Set<Legend> itemLegends = commonParams.delegate().getItemsLegends();
     List<Program> programs =
         commonParams.getPrograms().stream()
-            .filter(
-                p -> isInOriginalRequest(p.getUid(), commonParams.getOriginalRequest()))
+            .filter(p -> isInOriginalRequest(p.getUid(), commonParams.getOriginalRequest()))
             .toList();
     Set<ProgramStage> programStages =
         commonParams.delegate().getProgramStages().stream()
-            .filter(
-                p -> isInOriginalRequest(p.getUid(), commonParams.getOriginalRequest()))
+            .filter(p -> isInOriginalRequest(p.getUid(), commonParams.getOriginalRequest()))
             .collect(toSet());
     boolean includeMetadataDetails = commonParams.isIncludeMetadataDetails();
     DisplayProperty displayProperty = commonParams.getDisplayProperty();
