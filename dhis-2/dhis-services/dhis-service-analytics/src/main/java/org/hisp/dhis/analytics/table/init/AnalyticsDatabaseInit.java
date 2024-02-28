@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.analytics.table.init;
 
+import static org.hisp.dhis.db.model.Database.DORIS;
+
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -75,11 +77,8 @@ public class AnalyticsDatabaseInit {
 
     Database database = settings.getAnalyticsDatabase();
 
-    switch (database) {
-      case DORIS:
-        initDoris();
-      case POSTGRESQL:
-        initPostgreSql();
+    if (DORIS == database) {
+      initDoris();
     }
 
     log.info("Initialized analytics database: '{}'", database);
@@ -94,7 +93,4 @@ public class AnalyticsDatabaseInit {
     jdbcTemplate.execute(sqlBuilder.dropCatalogIfExists());
     jdbcTemplate.execute(sqlBuilder.createCatalog(connectionUrl, username, password));
   }
-
-  /** Work for initializing a PostgreSQL analytics database. */
-  private void initPostgreSql() {}
 }
