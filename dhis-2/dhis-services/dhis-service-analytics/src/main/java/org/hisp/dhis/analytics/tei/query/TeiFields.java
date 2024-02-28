@@ -352,7 +352,9 @@ public class TeiFields {
             .anyMatch(f -> f.equals(queryItem.getItem().getUid()))) {
       return new GridHeader(
           queryItem.getItem().getUid(),
-          queryItem.getItem().getDisplayProperty(commonParams.getDisplayProperty()),
+          joinedWithPrefixesIfNeeded(
+              dimIdentifier,
+              queryItem.getItem().getDisplayProperty(commonParams.getDisplayProperty())),
           COORDINATE,
           false,
           true,
@@ -367,7 +369,7 @@ public class TeiFields {
 
       return new GridHeader(
           dimName,
-          column,
+          joinedWithPrefixesIfNeeded(dimIdentifier, column),
           valueType,
           false,
           true,
@@ -381,7 +383,7 @@ public class TeiFields {
 
       return new GridHeader(
           itemUid,
-          column,
+          joinedWithPrefixesIfNeeded(dimIdentifier, column),
           queryItem.getValueType(),
           false,
           true,

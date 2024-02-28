@@ -1726,6 +1726,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         .body("metaData.dimensions", not(hasKey("ou")))
         .body("metaData.dimensions", hasKey("pe"))
         .body("metaData.items.GQY2lXrypjO.name", equalTo("MCH Infant Weight  (g)"))
+        .body(
+            "metaData.items[\"IpHINAT79UW.ZzYYXq4fJie.GQY2lXrypjO\"].name",
+            equalTo("MCH Infant Weight  (g), Child Programme, Baby Postnatal"))
         .body("height", equalTo(1))
         .body("width", equalTo(17))
         .body("headerWidth", equalTo(17));
@@ -1819,7 +1822,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"page\":1,\"pageSize\":50,\"isLastPage\":false},\"items\":{\"lZGmxYbs97q\":{\"name\":\"Unique ID\"},\"zDhUuAYrxNC\":{\"name\":\"Last name\"},\"pe\":{\"name\":\"Period\"},\"IpHINAT79UW.pe\":{\"name\":\"Period\"},\"w75KJ2mc4zz\":{\"name\":\"First name\"},\"2022\":{\"name\":\"2022\"},\"LAST_YEAR\":{\"name\":\"Last year\"}},\"dimensions\":{\"lZGmxYbs97q\":[],\"zDhUuAYrxNC\":[],\"pe\":[\"2022\"],\"w75KJ2mc4zz\":[],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
+        "{\"pager\":{\"page\":1,\"pageSize\":50,\"isLastPage\":false},\"items\":{\"lZGmxYbs97q\":{\"name\":\"Unique ID\"},\"zDhUuAYrxNC\":{\"name\":\"Last name\"},\"pe\":{\"name\":\"Period\"},\"IpHINAT79UW.pe\":{\"name\":\"Period, Child Programme\"},\"w75KJ2mc4zz\":{\"name\":\"First name\"},\"2022\":{\"name\":\"2022\"},\"LAST_YEAR\":{\"name\":\"Last year\"}},\"dimensions\":{\"lZGmxYbs97q\":[],\"zDhUuAYrxNC\":[],\"pe\":[\"2022\"],\"w75KJ2mc4zz\":[],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -2974,7 +2977,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         .body("headers[1].column", equalTo("Date of enrollment, Child Programme"))
         .body(
             "metaData.items['IpHINAT79UW.ZzYYXq4fJie.cYGaxwK615G'].name",
-            equalTo("MCH Infant HIV Test Result"));
+            equalTo("MCH Infant HIV Test Result, Child Programme, Baby Postnatal"));
   }
 
   @Test
@@ -3142,7 +3145,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         .validate()
         .statusCode(200)
         .body("headers[0].name", equalTo("IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6"))
-        .body("headers[0].column", equalTo("MCH Apgar Score"));
+        .body("headers[0].column", equalTo("MCH Apgar Score, Child Programme, Birth"));
   }
 
   @Test
