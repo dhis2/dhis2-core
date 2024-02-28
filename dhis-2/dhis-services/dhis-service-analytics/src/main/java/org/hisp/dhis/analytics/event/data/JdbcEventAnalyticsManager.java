@@ -374,7 +374,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     if (params.hasTimeField()) {
       String joinCol = quoteAlias(params.getTimeFieldAsField());
       sql +=
-          "left join _dateperiodstructure as "
+          "left join analytics_rs_dateperiodstructure as "
               + DATE_PERIOD_STRUCT_ALIAS
               + " on cast("
               + joinCol

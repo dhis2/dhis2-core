@@ -94,7 +94,7 @@ class JdbcOrgUnitAnalyticsManagerTest {
 
     // When
     when(tableInfoReader.checkColumnsPresence(
-            "_organisationunitgroupsetstructure", Set.of("abc123", "abc456")))
+            "analytics_rs_organisationunitgroupsetstructure", Set.of("abc123", "abc456")))
         .thenReturn(Set.of());
     when(jdbcTemplate.queryForRowSet(anyString())).thenReturn(sqlRowSet);
     Map<String, Integer> data = jdbcOrgUnitAnalyticsManager.getOrgUnitData(params);
@@ -123,7 +123,7 @@ class JdbcOrgUnitAnalyticsManagerTest {
 
     // When
     when(tableInfoReader.checkColumnsPresence(
-            "_organisationunitgroupsetstructure", Set.of("abc123", "abc456")))
+            "analytics_rs_organisationunitgroupsetstructure", Set.of("abc123", "abc456")))
         .thenReturn(Set.of(invalidOrgUnitSetDim));
 
     // Then

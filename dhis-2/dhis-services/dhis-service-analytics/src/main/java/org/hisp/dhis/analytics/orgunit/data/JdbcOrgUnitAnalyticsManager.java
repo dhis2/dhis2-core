@@ -49,6 +49,7 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.resourcetable.table.OrganisationUnitGroupSetResourceTable;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -89,10 +90,10 @@ public class JdbcOrgUnitAnalyticsManager implements OrgUnitAnalyticsManager {
 
   /**
    * Checks if there is an org. unit dimension column, specified in the given params, not present in
-   * the respective DB table ("_organisationunitgroupsetstructure"). If a dimension column (which in
-   * this case represents an org. unit group set) is found to be missing in the table, it will not
-   * be possible to query for the missing org. unit group set. In such cases, the request cannot be
-   * processed.
+   * the respective DB table ("analytics_rs_organisationunitgroupsetstructure"). If a dimension
+   * column (which in this case represents an org. unit group set) is found to be missing in the
+   * table, it will not be possible to query for the missing org. unit group set. In such cases, the
+   * request cannot be processed.
    *
    * @param params the query params {@link OrgUnitQueryParams}.
    * @throws QueryRuntimeException if there are missing columns.
@@ -100,7 +101,7 @@ public class JdbcOrgUnitAnalyticsManager implements OrgUnitAnalyticsManager {
   private void checkForMissingOrgUnitGroupSetColumns(OrgUnitQueryParams params) {
     Set<String> missingColumns =
         tableInfoReader.checkColumnsPresence(
-            "_organisationunitgroupsetstructure", getOrgUnitGroupSetUids(params));
+            OrganisationUnitGroupSetResourceTable.TABLE_NAME, getOrgUnitGroupSetUids(params));
 
     boolean hasMissingColumns = isNotEmpty(missingColumns);
 
@@ -159,13 +160,9 @@ public class JdbcOrgUnitAnalyticsManager implements OrgUnitAnalyticsManager {
         + getCommaDelimitedString(quotedGroupSets)
         + ", "
         + "count(ougs.organisationunitid) as count "
-        + "from "
-        + sqlBuilder.quote("_orgunitstructure")
-        + " ous "
-        + "inner join "
-        + sqlBuilder.quote("_organisationunitgroupsetstructure")
-        + " "
-        + "ougs on ous.organisationunitid = ougs.organisationunitid "
+        + "from analytics_rs_orgunitstructure ous "
+        + "inner join analytics_rs_organisationunitgroupsetstructure ougs "
+        + "on ous.organisationunitid = ougs.organisationunitid "
         + "where "
         + levelCol
         + " in ("

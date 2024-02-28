@@ -89,7 +89,7 @@ public class DatabasePoolUtilsTest {
     DataSource dataSource = DatabasePoolUtils.createDbPool(poolConfigBuilder.build());
     assertInstanceOf(DriverManagerDataSource.class, dataSource);
 
-    assertEquals("Database pool type value is [UNPOOLED]", getLogEntry());
+    assertEquals("Database pool type value is 'UNPOOLED'", getLogEntry());
   }
 
   @Test
@@ -128,7 +128,7 @@ public class DatabasePoolUtilsTest {
     DataSource dataSource = DatabasePoolUtils.createDbPool(poolConfigBuilder.build());
     assertInstanceOf(ComboPooledDataSource.class, dataSource);
 
-    assertEquals("Database pool type value is [C3P0]", getLogEntry());
+    assertEquals("Database pool type value is 'C3P0'", getLogEntry());
   }
 
   @Test
@@ -157,7 +157,7 @@ public class DatabasePoolUtilsTest {
     DataSource dataSource = DatabasePoolUtils.createDbPool(poolConfigBuilder.build());
     assertInstanceOf(HikariDataSource.class, dataSource);
 
-    assertEquals("Database pool type value is [HIKARI]", getLogEntry());
+    assertEquals("Database pool type value is 'HIKARI'", getLogEntry());
   }
 
   private String getLogEntry() {

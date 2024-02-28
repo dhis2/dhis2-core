@@ -53,7 +53,7 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
  */
 @RequiredArgsConstructor
 public class DataElementResourceTable implements ResourceTable {
-  private static final String TABLE_NAME = "_dataelementstructure";
+  public static final String TABLE_NAME = "analytics_rs_dataelementstructure";
 
   private final List<DataElement> dataElements;
 
