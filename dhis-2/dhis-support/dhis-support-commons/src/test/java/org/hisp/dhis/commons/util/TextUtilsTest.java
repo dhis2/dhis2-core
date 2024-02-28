@@ -32,11 +32,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.commons.util.TextUtils.removeAnyTrailingSlash;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-
 import java.util.AbstractSequentialList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -210,17 +210,8 @@ class TextUtilsTest {
 
   @Test
   void testReplace() {
-    String actual =
-        TextUtils.replace(
-            "select * from {table} where {column} = 'Foo'",
-            "{table}",
-            "dataelement",
-            "{column}",
-            "name");
-    assertEquals("select * from dataelement where name = 'Foo'", actual);
-    actual =
-        TextUtils.replace("Hi [name] and welcome to [place]", "[name]", "Frank", "[place]", "Oslo");
-    assertEquals("Hi Frank and welcome to Oslo", actual);
+    assertEquals("Welcome John Doe", TextUtils.replace("Welcome ${first_name} ${last_name}", Map.of(
+        "first_name", "John", "last_name", "Doe")));
   }
 
   @Test

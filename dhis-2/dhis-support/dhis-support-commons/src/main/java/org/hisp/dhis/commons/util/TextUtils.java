@@ -27,20 +27,22 @@
  */
 package org.hisp.dhis.commons.util;
 
-import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringSubstitutor;
 import org.slf4j.helpers.MessageFormatter;
+import com.google.common.collect.Lists;
 
 /**
  * Utility class with methods for managing strings.
@@ -615,26 +617,14 @@ public class TextUtils {
   }
 
   /**
-   * Replaces all occurrences of the given symbols with the given replacements in the given string.
-   * Note that the replacement will match the symbol as is, i.e. no regular expression matching.
+   * Replaces variables in the given template string with the given variable values.
    *
-   * @param string the string to replace.
-   * @param symbolReplacementPairs the pairs of symbols and replacements.
-   * @return the replaced string.
+   * @param template the template string.
+   * @param variables the map of variables and values.
+   * @return a resolved string.
    */
-  public static String replace(String string, String... symbolReplacementPairs) {
-    List<String> pairs = Arrays.asList(symbolReplacementPairs);
-
-    String replaced = string;
-
-    for (int i = 0; i < pairs.size(); i += 2) {
-      String symbol = Pattern.quote(pairs.get(i));
-      String replacement = pairs.get(i + 1);
-
-      replaced = replaced.replaceAll(symbol, replacement);
-    }
-
-    return replaced;
+  public static String replace(String template, Map<String, String> variables) {
+    return new StringSubstitutor(variables).replace(template);
   }
 
   /**
