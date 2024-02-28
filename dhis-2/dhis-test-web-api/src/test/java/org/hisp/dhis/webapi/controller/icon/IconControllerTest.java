@@ -29,6 +29,8 @@ package org.hisp.dhis.webapi.controller.icon;
 
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContainsAll;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -37,7 +39,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -50,29 +54,31 @@ import org.hisp.dhis.webapi.service.ContextService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockMultipartFile;
+import org.testcontainers.shaded.com.fasterxml.jackson.core.JsonProcessingException;
+import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 class IconControllerTest extends DhisControllerIntegrationTest {
+
+  private static final ObjectMapper mapper = new ObjectMapper();
+
   private static final String key1 = "key1";
   private static final String key2 = "key2";
   private static final String key3 = "key3";
 
   private static final String description = "description";
 
-  private static final String keywordsList1 = "[\"k1\",\"k2\"]";
+  private static final Set<String> keywordsList1 = Set.of("k1", "k2");
 
-  private static final String keywordsList2 = "[\"m1\"]";
+  private static final Set<String> keywordsList2 = Set.of("k1", "m1");
+
+  private static final Set<String> keywordsList3 = Set.of("k1", "m1", "m2");
 
   @Autowired private ContextService contextService;
 
   @Test
   void shouldCreateCustomIconWhenFileResourceExist() throws IOException {
 
-    String customIcon =
-        """
-    {'key': '%s','description': '%s','fileResourceId': '%s','keywords': %s}"""
-            .formatted(key1, description, createFileResource(), keywordsList1);
-    JsonWebMessage message =
-        POST("/icons/", customIcon).content(HttpStatus.CREATED).as(JsonWebMessage.class);
+    JsonWebMessage message = createCustomIcon(createFileResource(), keywordsList1, key1);
 
     assertEquals(String.format("CustomIcon created with key %s", key1), message.getMessage());
   }
@@ -127,7 +133,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     assertEquals(key1, response.getString("key").string());
     assertEquals(description, response.getString("description").string());
     assertEquals(fileResourceId, response.getObject("fileResource").getString("id").string());
-    assertEquals(keywordsList1, response.getArray("keywords").toString());
+    assertEquals(keywordsList1, new HashSet<>(response.getArray("keywords").stringValues()));
     assertEquals(
         getCurrentUser().getUid(), response.getObject("createdBy").getString("id").string());
     assertEquals(
@@ -139,14 +145,20 @@ class IconControllerTest extends DhisControllerIntegrationTest {
   void shouldSearchAndFetchAllCustomIconWithAssociatedKeywords() throws IOException {
     String fileResourceId1 = createFileResource();
     String fileResourceId2 = createFileResource();
+    String fileResourceId3 = createFileResource();
     createCustomIcon(fileResourceId1, keywordsList1, key1);
     createCustomIcon(fileResourceId2, keywordsList2, key2);
+    createCustomIcon(fileResourceId3, keywordsList3, key3);
 
-    JsonObject content = GET("/icons/search?keywords=k1,m1").content(HttpStatus.OK);
+    JsonArray response =
+        GET("/icons/search?keywords=m1,k1&fields=key,keywords,description,fileResource")
+            .content(HttpStatus.OK);
 
-    JsonList<JsonIcon> icons = content.getList("icons", JsonIcon.class);
+    assertNotNull(response);
+    JsonList<JsonIcon> icons = response.asList(JsonIcon.class);
 
-    System.out.println(icons);
+    assertEquals(2, icons.size());
+    assertContainsAll(List.of(key2, key3), icons, JsonIcon::getKey);
   }
 
   @Test
@@ -162,7 +174,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
 
     JsonList<JsonIcon> icons = content.getList("icons", JsonIcon.class);
 
-    assertCustomIcons(icons.get(0), keywordsList1, fileResourceId);
+    assertCustomIcons(icons.get(0), keywordsList1, fileResourceId, key1);
   }
 
   @Test
@@ -266,16 +278,28 @@ class IconControllerTest extends DhisControllerIntegrationTest {
         () -> String.format("mismatch in number of expected Icon(s), fetched %s", icons));
   }
 
-  private String createCustomIcon(String fileResourceId, String keywords, String key) {
+  private JsonWebMessage createCustomIcon(String fileResourceId, Set<String> keywords, String key) {
 
-    String customIcon =
-        """
-    {'key': '%s','description': '%s','fileResourceId': '%s','keywords': %s}"""
-            .formatted(key, description, fileResourceId, keywords);
-    JsonWebMessage message =
-        POST("/icons/", customIcon).content(HttpStatus.CREATED).as(JsonWebMessage.class);
+    CustomIconRequest request =
+        CustomIconRequest.builder()
+            .key(key)
+            .custom(true)
+            .fileResourceId(fileResourceId)
+            .keywords(keywords)
+            .description("description")
+            .build();
 
-    return message.getMessage();
+    JsonWebMessage message = null;
+    try {
+      message =
+          POST("/icons/", mapper.writeValueAsString(request))
+              .content(HttpStatus.CREATED)
+              .as(JsonWebMessage.class);
+    } catch (JsonProcessingException e) {
+      e.printStackTrace();
+    }
+
+    return message;
   }
 
   private String createFileResource() throws IOException {
@@ -289,18 +313,19 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     return savedObject.getString("id").string();
   }
 
-  private void assertCustomIcons(JsonIcon icon, String keywords, String fileResourceId) {
+  private void assertCustomIcons(
+      JsonIcon icon, Set<String> keywords, String fileResourceId, String key) {
 
     String actualKey = icon.getString("key").string();
     String actualDescription = icon.getString("description").string();
     String actualFileResourceId = icon.getObject("fileResource").getString("id").string();
-    String actualKeywords = icon.getArray("keywords").toString();
+    List<String> actualKeywords = icon.getArray("keywords").stringValues();
     assertAll(
         () ->
             assertEquals(
-                key1,
+                key,
                 actualKey,
-                String.format("Expected IconKey was %s but found %s", key1, actualKey)),
+                String.format("Expected IconKey was %s but found %s", key, actualKey)),
         () ->
             assertEquals(
                 description,
@@ -314,11 +339,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
                 String.format(
                     "Expected FileResourceId was %s but found %s",
                     fileResourceId, actualFileResourceId)),
-        () ->
-            assertEquals(
-                keywords,
-                actualKeywords,
-                String.format("Expected keywords were %s but found %s", keywords, actualKeywords)));
+        () -> assertContainsOnly(keywords, actualKeywords));
   }
 
   private String getCustomIconUid(String key) {

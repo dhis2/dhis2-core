@@ -83,7 +83,7 @@ class CustomIconTest extends TrackerTest {
     currentUser = userService.getUserByUsername(currentUsername);
     injectSecurityContextUser(currentUser);
 
-    keywords.addAll(Set.of("k1", "k2", "k3"));
+    keywords.addAll(Set.of("k1", "k2", "m1"));
     fileResource = createAndPersistFileResource('A');
     customIcon = new CustomIcon(Key, "description", keywords, true, fileResource);
     customIcon.setUid(uid);
@@ -119,11 +119,21 @@ class CustomIconTest extends TrackerTest {
   }
 
   @Test
-  void shouldSearchAndFetchAllCustomIconsAssociatedWithTheKeywords() {
+  void shouldSearchAndFetchAllCustomIconsAssociatedWithTheKeywords()
+      throws BadRequestException, NotFoundException {
 
-    Set<CustomIcon> icons = iconService.getCustomIconsByKeywords(Set.of("k1"));
+    FileResource fileResource = createAndPersistFileResource('V');
 
-    System.out.println(icons);
+    Set<String> words = Sets.newHashSet();
+    words.addAll(Set.of("m1", "k1"));
+    CustomIcon customIcon2 = new CustomIcon("iconKey2", "description", words, true, fileResource);
+
+    iconService.addCustomIcon(customIcon2);
+
+    Set<CustomIcon> icons = iconService.getCustomIconsByKeywords(Set.of("k1", "m1"));
+
+    assertEquals(2, icons.size());
+    assertThat(icons, hasItems(customIcon, customIcon2));
   }
 
   @Test

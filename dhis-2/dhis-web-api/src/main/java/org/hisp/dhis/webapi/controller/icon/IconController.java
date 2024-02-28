@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.icon;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.net.MediaType;
 import java.io.IOException;
 import java.util.Arrays;
@@ -50,6 +51,8 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.icon.CustomIcon;
@@ -65,6 +68,8 @@ import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.core.io.Resource;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -72,7 +77,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -111,9 +115,15 @@ public class IconController extends AbstractFullReadOnlyController<CustomIcon> {
   }
 
   @GetMapping(value = "/search")
-  public List<CustomIcon> getIconsByKeywords(@RequestParam String keywords) {
+  public List<ObjectNode> getIconsByKeywords(
+      @RequestParam Set<String> keywords,
+      @RequestParam(defaultValue = CustomIcon.DEFAULT_FIELDS_PARAM) List<FieldPath> fields) {
 
-    return iconService.getCustomIconsByKeywords(keywords).stream().toList();
+    List<CustomIcon> customIcons = iconService.getCustomIconsByKeywords(keywords).stream().toList();
+
+    return fieldFilterService.toObjectNodes(
+        customIcons,
+        fields.isEmpty() ? FieldFilterParser.parse(CustomIcon.DEFAULT_FIELDS_PARAM) : fields);
   }
 
   @GetMapping("/{iconKey}/icon.svg")
@@ -126,8 +136,8 @@ public class IconController extends AbstractFullReadOnlyController<CustomIcon> {
   }
 
   @GetMapping("/keywords")
-  public @ResponseBody Set<String> getKeywords() {
-    return iconService.getKeywords();
+  public ResponseEntity<Set<String>> getKeywords() {
+    return new ResponseEntity<>(iconService.getKeywords(), HttpStatus.OK);
   }
 
   @PostMapping
