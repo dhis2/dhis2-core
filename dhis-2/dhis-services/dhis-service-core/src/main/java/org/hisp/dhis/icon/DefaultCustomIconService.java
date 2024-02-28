@@ -89,13 +89,13 @@ public class DefaultCustomIconService implements CustomIconService {
 
   @Override
   @Transactional
-  public Resource getCustomIconResource(String iconKey) throws NotFoundException {
+  public Resource getCustomIconResource(String key) throws NotFoundException {
 
-    if (customIconExists(iconKey)) {
-      return new ClassPathResource(String.format("%s/%s.%s", ICON_PATH, iconKey, Icon.SUFFIX));
+    if (customIconExists(key)) {
+      return new ClassPathResource(String.format("%s/%s.%s", ICON_PATH, key, Icon.SUFFIX));
     }
 
-    throw new NotFoundException(String.format("No CustomIcon found with key %s.", iconKey));
+    throw new NotFoundException(String.format("No CustomIcon found with key %s.", key));
   }
 
   @Override

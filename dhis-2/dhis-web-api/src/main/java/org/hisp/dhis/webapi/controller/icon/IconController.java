@@ -126,12 +126,12 @@ public class IconController extends AbstractFullReadOnlyController<CustomIcon> {
         fields.isEmpty() ? FieldFilterParser.parse(CustomIcon.DEFAULT_FIELDS_PARAM) : fields);
   }
 
-  @GetMapping("/{iconKey}/icon.svg")
+  @GetMapping("/{key}/icon.svg")
   @Deprecated
   public void getIconData(
-      HttpServletResponse response, HttpServletRequest request, @PathVariable String iconKey)
+      HttpServletResponse response, HttpServletRequest request, @PathVariable String key)
       throws IOException {
-    String location = response.encodeRedirectURL("/icons/" + iconKey + "/icon");
+    String location = response.encodeRedirectURL("/icons/" + key + "/icon");
     response.sendRedirect(ContextUtils.getRootPath(request) + location);
   }
 

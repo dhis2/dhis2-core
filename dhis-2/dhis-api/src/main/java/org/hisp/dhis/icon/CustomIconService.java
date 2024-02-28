@@ -66,11 +66,11 @@ public interface CustomIconService {
   /**
    * Gets the icon with the correct key if one exists
    *
-   * @param iconKey key of the icon
+   * @param key key of the icon
    * @return the icon resource
    * @throws NotFoundException if no default icon exists with the provided key
    */
-  Resource getCustomIconResource(String iconKey) throws NotFoundException;
+  Resource getCustomIconResource(String key) throws NotFoundException;
 
   /**
    * Gets a set of all unique keywords assigned to icons
