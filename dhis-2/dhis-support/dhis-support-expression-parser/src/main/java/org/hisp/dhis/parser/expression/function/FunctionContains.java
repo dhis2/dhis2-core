@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.parser.expression.function;
 
-import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 import java.util.List;
