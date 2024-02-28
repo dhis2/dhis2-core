@@ -34,7 +34,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 public interface TrackedEntityChangeLogService {
 
   /**
-   * Retrieves the change log data for a particular tracked entity
+   * Retrieves the change log data for a particular tracked entity.
    *
    * @return list with the change logs of the supplied tracked entity, if any
    */
