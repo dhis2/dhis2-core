@@ -30,8 +30,10 @@ package org.hisp.dhis.resourcetable.table;
 import static org.hisp.dhis.db.model.Table.toStaging;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
@@ -86,17 +88,19 @@ public class DataApprovalRemapLevelResourceTable implements ResourceTable {
   @Override
   public Optional<String> getPopulateTempTableStatement() {
     String sql =
-        "insert into "
-            + toStaging(TABLE_NAME)
-            + " (workflowid,dataapprovallevelid,level) "
-            + "select w.workflowid, w.dataapprovallevelid, "
-            + "1 + coalesce((select max(l2.level) "
-            + "from dataapprovalworkflowlevels w2 "
-            + "join dataapprovallevel l2 on l2.dataapprovallevelid = w2.dataapprovallevelid "
-            + "where w2.workflowid = w.workflowid "
-            + "and l2.level < l.level), 0) as level "
-            + "from dataapprovalworkflowlevels w "
-            + "join dataapprovallevel l on l.dataapprovallevelid = w.dataapprovallevelid";
+        """
+        insert into ${table_name} \
+        (workflowid,dataapprovallevelid,level) \
+        select w.workflowid, w.dataapprovallevelid, 1 + coalesce((select max(l2.level) \
+        from dataapprovalworkflowlevels w2 \
+        inner join dataapprovallevel l2 on l2.dataapprovallevelid=w2.dataapprovallevelid \
+        where w2.workflowid=w.workflowid \
+        and l2.level < l.level), 0) as level \
+        from dataapprovalworkflowlevels w \
+        inner join dataapprovallevel l on l.dataapprovallevelid=w.dataapprovallevelid
+        """;
+
+    sql = TextUtils.replace(sql, Map.of("table_name", toStaging(TABLE_NAME)));
 
     return Optional.of(sql);
   }

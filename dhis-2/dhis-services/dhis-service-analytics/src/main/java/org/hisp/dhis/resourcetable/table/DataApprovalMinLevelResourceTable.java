@@ -30,6 +30,7 @@ package org.hisp.dhis.resourcetable.table;
 import static org.hisp.dhis.db.model.Table.toStaging;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -79,30 +80,33 @@ public class DataApprovalMinLevelResourceTable implements ResourceTable {
   @Override
   public Optional<String> getPopulateTempTableStatement() {
     String sql =
-        "insert into "
-            + toStaging(TABLE_NAME)
-            + " (workflowid,periodid,organisationunitid,attributeoptioncomboid,minlevel) "
-            + "select da.workflowid, da.periodid, da.organisationunitid, "
-            + "da.attributeoptioncomboid, dal.level as minlevel "
-            + "from dataapproval da "
-            + "inner join analytics_rs_dataapprovalremaplevel dal on "
-            + "dal.workflowid=da.workflowid and dal.dataapprovallevelid=da.dataapprovallevelid "
-            + "inner join analytics_rs_orgunitstructure ous on da.organisationunitid=ous.organisationunitid "
-            + "where not exists ( "
-            + "select 1 from dataapproval da2 "
-            + "inner join analytics_rs_dataapprovalremaplevel dal2 on "
-            + "da2.workflowid = dal2.workflowid and da2.dataapprovallevelid=dal2.dataapprovallevelid "
-            + "where da.workflowid=da2.workflowid "
-            + "and da.periodid=da2.periodid "
-            + "and da.attributeoptioncomboid=da2.attributeoptioncomboid "
-            + "and dal.level > dal2.level "
-            + "and ( ";
+        """
+        insert into ${table_name} \
+        (workflowid,periodid,organisationunitid,attributeoptioncomboid,minlevel) \
+        select da.workflowid, da.periodid, da.organisationunitid, \
+        da.attributeoptioncomboid, dal.level as minlevel \
+        from dataapproval da \
+        inner join analytics_rs_dataapprovalremaplevel dal on \
+        dal.workflowid=da.workflowid and dal.dataapprovallevelid=da.dataapprovallevelid \
+        inner join analytics_rs_orgunitstructure ous on da.organisationunitid=ous.organisationunitid \
+        where not exists (
+        select 1 from dataapproval da2 \
+        inner join analytics_rs_dataapprovalremaplevel dal2 on \
+        da2.workflowid=dal2.workflowid and da2.dataapprovallevelid=dal2.dataapprovallevelid \
+        where da.workflowid=da2.workflowid \
+        and da.periodid=da2.periodid \
+        and da.attributeoptioncomboid=da2.attributeoptioncomboid \
+        and dal.level > dal2.level \
+        and (
+        """;
 
     for (OrganisationUnitLevel level : levels) {
       sql += "ous.idlevel" + level.getLevel() + " = da2.organisationunitid or ";
     }
 
-    sql = TextUtils.removeLastOr(sql) + ") )";
+    sql = TextUtils.removeLastOr(sql) + "))";
+
+    sql = TextUtils.replace(sql, Map.of("table_name", toStaging(TABLE_NAME)));
 
     return Optional.of(sql);
   }

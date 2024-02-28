@@ -31,8 +31,10 @@ import static org.hisp.dhis.db.model.Table.toStaging;
 import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
@@ -81,14 +83,17 @@ public class CategoryOptionComboResourceTable implements ResourceTable {
   @Override
   public Optional<String> getPopulateTempTableStatement() {
     String sql =
-        "insert into "
-            + toStaging(TABLE_NAME)
-            + " (dataelementid, dataelementuid, categoryoptioncomboid, categoryoptioncombouid) "
-            + "select de.dataelementid as dataelementid, de.uid as dataelementuid, "
-            + "coc.categoryoptioncomboid as categoryoptioncomboid, coc.uid as categoryoptioncombouid "
-            + "from dataelement de "
-            + "join categorycombos_optioncombos cc on de.categorycomboid = cc.categorycomboid "
-            + "join categoryoptioncombo coc on cc.categoryoptioncomboid = coc.categoryoptioncomboid";
+        """
+        insert into ${table_name} \
+        (dataelementid, dataelementuid, categoryoptioncomboid, categoryoptioncombouid) \
+        select de.dataelementid as dataelementid, de.uid as dataelementuid, \
+        coc.categoryoptioncomboid as categoryoptioncomboid, coc.uid as categoryoptioncombouid \
+        from dataelement de \
+        inner join categorycombos_optioncombos cc on de.categorycomboid = cc.categorycomboid \
+        inner join categoryoptioncombo coc on cc.categoryoptioncomboid = coc.categoryoptioncomboid;
+        """;
+
+    sql = TextUtils.replace(sql, Map.of("table_name", toStaging(TABLE_NAME)));
 
     return Optional.of(sql);
   }
