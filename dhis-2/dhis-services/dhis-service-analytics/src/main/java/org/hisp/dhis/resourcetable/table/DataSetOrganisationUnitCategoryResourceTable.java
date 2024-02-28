@@ -59,7 +59,7 @@ import org.hisp.dhis.util.DateUtils;
  */
 @RequiredArgsConstructor
 public class DataSetOrganisationUnitCategoryResourceTable implements ResourceTable {
-  private static final String TABLE_NAME = "_datasetorganisationunitcategory";
+  public static final String TABLE_NAME = "analytics_rs_datasetorganisationunitcategory";
 
   private final List<DataSet> dataSets;
 
@@ -85,7 +85,7 @@ public class DataSetOrganisationUnitCategoryResourceTable implements ResourceTab
   public List<Index> getIndexes() {
     return List.of(
         new Index(
-            appendRandom("_datasetorganisationunitcategory"),
+            appendRandom("in_datasetorganisationunitcategory"),
             toStaging(TABLE_NAME),
             Unique.UNIQUE,
             List.of("datasetid", "organisationunitid", "attributeoptioncomboid")));

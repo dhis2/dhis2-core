@@ -54,7 +54,7 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
  */
 @RequiredArgsConstructor
 public class OrganisationUnitStructureResourceTable implements ResourceTable {
-  private static final String TABLE_NAME = "_orgunitstructure";
+  public static final String TABLE_NAME = "analytics_rs_orgunitstructure";
 
   private final OrganisationUnitService organisationUnitService;
 

@@ -152,8 +152,8 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
     sql +=
         "from orgunitgroupmembers ougm "
             + "inner join orgunitgroup oug on ougm.orgunitgroupid=oug.orgunitgroupid "
-            + "left join _orgunitstructure ous on ougm.organisationunitid=ous.organisationunitid "
-            + "left join _organisationunitgroupsetstructure ougs on ougm.organisationunitid=ougs.organisationunitid";
+            + "left join analytics_rs_orgunitstructure ous on ougm.organisationunitid=ous.organisationunitid "
+            + "left join analytics_rs_organisationunitgroupsetstructure ougs on ougm.organisationunitid=ougs.organisationunitid";
 
     invokeTimeAndLog(sql, tableName);
   }

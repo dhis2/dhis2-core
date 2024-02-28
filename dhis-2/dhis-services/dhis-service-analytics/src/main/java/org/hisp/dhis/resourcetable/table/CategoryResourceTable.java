@@ -51,7 +51,7 @@ import org.hisp.dhis.resourcetable.util.UniqueNameContext;
  */
 @RequiredArgsConstructor
 public class CategoryResourceTable implements ResourceTable {
-  private static final String TABLE_NAME = "_categorystructure";
+  private static final String TABLE_NAME = "analytics_rs_categorystructure";
 
   private final SqlBuilder sqlBuilder;
 

@@ -58,7 +58,7 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
  */
 @RequiredArgsConstructor
 public class DataApprovalRemapLevelResourceTable implements ResourceTable {
-  private static final String TABLE_NAME = "_dataapprovalremaplevel";
+  public static final String TABLE_NAME = "analytics_rs_dataapprovalremaplevel";
 
   private final Logged logged;
 
