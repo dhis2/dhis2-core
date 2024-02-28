@@ -46,7 +46,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -105,6 +104,11 @@ public class TrackerEventsExportController {
   private final EventFieldsParamMapper eventsMapper;
 
   private final ObjectMapper objectMapper;
+  private static final String EVENT_CSV_FILE = EVENTS + ".csv";
+  private static final String EVENT_JSON_FILE = EVENTS + ".json";
+
+  private static final String GZIP_EXT = ".gz";
+  private static final String ZIP_EXT = ".zip";
 
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   public PagingWrapper<ObjectNode> getEvents(
@@ -146,10 +150,9 @@ public class TrackerEventsExportController {
 
     Events events = eventService.getEvents(eventQueryParams);
 
-    String attachment = getAttachmentOrDefault(eventCriteria.getAttachment(), "json", "gz");
-
     response.addHeader(
-        ContextUtils.HEADER_CONTENT_DISPOSITION, getContentDispositionHeaderValue(attachment));
+        ContextUtils.HEADER_CONTENT_DISPOSITION,
+        getContentDispositionHeaderValue(EVENT_JSON_FILE + GZIP_EXT));
     response.addHeader(HEADER_CONTENT_TRANSFER_ENCODING, BINARY_HEADER_CONTENT_TRANSFER_ENCODING);
     response.setContentType(CONTENT_TYPE_JSON_GZIP);
 
@@ -170,10 +173,9 @@ public class TrackerEventsExportController {
 
     Events events = eventService.getEvents(eventQueryParams);
 
-    String attachment = getAttachmentOrDefault(eventCriteria.getAttachment(), "json", "zip");
-
     response.addHeader(
-        ContextUtils.HEADER_CONTENT_DISPOSITION, getContentDispositionHeaderValue(attachment));
+        ContextUtils.HEADER_CONTENT_DISPOSITION,
+        getContentDispositionHeaderValue(EVENT_JSON_FILE + ZIP_EXT));
     response.addHeader(HEADER_CONTENT_TRANSFER_ENCODING, BINARY_HEADER_CONTENT_TRANSFER_ENCODING);
     response.setContentType(CONTENT_TYPE_JSON_ZIP);
 
@@ -181,7 +183,7 @@ public class TrackerEventsExportController {
         response.getOutputStream(),
         EVENTS_MAPPER.fromCollection(events.getEvents()),
         objectMapper.writer(),
-        attachment);
+        EVENT_JSON_FILE);
   }
 
   @GetMapping(produces = {CONTENT_TYPE_CSV, CONTENT_TYPE_TEXT_CSV})
@@ -198,12 +200,10 @@ public class TrackerEventsExportController {
 
     Events events = eventService.getEvents(eventQueryParams);
 
-    String attachment = getAttachmentOrDefault(eventCriteria.getAttachment(), "csv");
-
     OutputStream outputStream = response.getOutputStream();
     response.setContentType(CONTENT_TYPE_CSV);
     response.setHeader(
-        HttpHeaders.CONTENT_DISPOSITION, getContentDispositionHeaderValue(attachment));
+        HttpHeaders.CONTENT_DISPOSITION, getContentDispositionHeaderValue(EVENT_CSV_FILE));
 
     csvEventService.writeEvents(
         outputStream, EVENTS_MAPPER.fromCollection(events.getEvents()), !skipHeader);
@@ -223,13 +223,12 @@ public class TrackerEventsExportController {
 
     Events events = eventService.getEvents(eventQueryParams);
 
-    String attachment = getAttachmentOrDefault(eventCriteria.getAttachment(), "csv", "gz");
-
     response.addHeader(
         ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, BINARY_HEADER_CONTENT_TRANSFER_ENCODING);
     response.setContentType(CONTENT_TYPE_CSV_GZIP);
     response.addHeader(
-        ContextUtils.HEADER_CONTENT_DISPOSITION, getContentDispositionHeaderValue(attachment));
+        ContextUtils.HEADER_CONTENT_DISPOSITION,
+        getContentDispositionHeaderValue(EVENT_CSV_FILE + GZIP_EXT));
 
     csvEventService.writeGzip(
         response.getOutputStream(), EVENTS_MAPPER.fromCollection(events.getEvents()), !skipHeader);
@@ -249,27 +248,18 @@ public class TrackerEventsExportController {
 
     Events events = eventService.getEvents(eventQueryParams);
 
-    String attachment = getAttachmentOrDefault(eventCriteria.getAttachment(), "csv", "zip");
-
     response.addHeader(
         ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, BINARY_HEADER_CONTENT_TRANSFER_ENCODING);
     response.setContentType(CONTENT_TYPE_CSV_ZIP);
     response.addHeader(
-        ContextUtils.HEADER_CONTENT_DISPOSITION, getContentDispositionHeaderValue(attachment));
+        ContextUtils.HEADER_CONTENT_DISPOSITION,
+        getContentDispositionHeaderValue(EVENT_CSV_FILE + ZIP_EXT));
 
     csvEventService.writeZip(
         response.getOutputStream(),
         EVENTS_MAPPER.fromCollection(events.getEvents()),
         !skipHeader,
-        attachment);
-  }
-
-  private String getAttachmentOrDefault(String filename, String type, String compression) {
-    return Objects.toString(filename, String.join(".", EVENTS, type, compression));
-  }
-
-  private String getAttachmentOrDefault(String filename, String type) {
-    return Objects.toString(filename, String.join(".", EVENTS, type));
+        EVENT_CSV_FILE);
   }
 
   public String getContentDispositionHeaderValue(String filename) {

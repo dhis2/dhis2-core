@@ -159,7 +159,7 @@ class TrackerCsvTrackedEntityServiceTest {
 
     trackedEntities.add(getTrackedEntityToCompress());
 
-    service.writeZip(outputStream, trackedEntities, false, "file.json.zip");
+    service.writeZip(outputStream, trackedEntities, false, "file.json");
 
     ZipInputStream zipInputStream =
         new ZipInputStream(new ByteArrayInputStream(outputStream.toByteArray()));
@@ -168,7 +168,7 @@ class TrackerCsvTrackedEntityServiceTest {
     ZipEntry zipEntry = zipInputStream.getNextEntry();
 
     assertNotNull(zipEntry, "Events Zip file has no entry");
-    assertEquals("file.json.zip", zipEntry.getName(), "Events Zip file has a wrong name");
+    assertEquals("file.json", zipEntry.getName(), "Events Zip file entry has a wrong name");
 
     var csvStream = new ByteArrayOutputStream();
     int l;
