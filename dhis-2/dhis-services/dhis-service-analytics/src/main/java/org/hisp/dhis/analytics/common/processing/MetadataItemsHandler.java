@@ -185,7 +185,9 @@ public class MetadataItemsHandler {
     }
 
     return request.getDimension().stream().anyMatch(uId -> uId.contains(uid))
-        || request.getFilter().stream().anyMatch(uId -> uId.contains(uid));
+        || request.getFilter().stream().anyMatch(uId -> uId.contains(uid))
+        || request.getHeaders().stream().anyMatch(uId -> uId.contains(uid))
+        || request.getProgram().stream().anyMatch(uId -> uId.contains(uid));
   }
 
   /**
