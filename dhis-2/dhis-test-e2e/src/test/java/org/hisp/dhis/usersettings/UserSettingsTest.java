@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -51,6 +52,15 @@ class UserSettingsTest extends ApiTest {
   public void setUp() {
     userSettingsActions = new RestApiActions("/userSettings");
 
+    LoginActions loginActions = new LoginActions();
+    loginActions.loginAsSuperUser();
+
+    userSettingsActions.post(UI_LOCALE_KEY, "en").validateStatus(200);
+    userSettingsActions.post(DB_LOCALE_KEY, "en").validateStatus(200);
+  }
+
+  @AfterAll
+  public void after() {
     LoginActions loginActions = new LoginActions();
     loginActions.loginAsSuperUser();
 

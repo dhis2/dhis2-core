@@ -41,6 +41,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
@@ -56,7 +57,6 @@ import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -74,13 +74,13 @@ import org.springframework.web.bind.annotation.RestController;
 @OpenApi.Tags({"user", "management"})
 @RestController
 @RequestMapping("/userSettings")
+@RequiredArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class UserSettingController {
-  @Autowired private UserSettingService userSettingService;
 
-  @Autowired private UserService userService;
-
-  @Autowired private CurrentUserService currentUserService;
+  private final UserSettingService userSettingService;
+  private final UserService userService;
+  private final CurrentUserService currentUserService;
 
   private static final Set<UserSettingKey> USER_SETTING_KEYS =
       Sets.newHashSet(UserSettingKey.values()).stream().collect(Collectors.toSet());
