@@ -29,9 +29,11 @@ package org.hisp.dhis.i18n.ui.locale;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManagerException;
@@ -42,6 +44,7 @@ import org.springframework.stereotype.Component;
 /**
  * @author Torgeir Lorange Ostby
  */
+@Slf4j
 @Component("org.hisp.dhis.i18n.locale.LocaleManager")
 public class UserSettingLocaleManager implements LocaleManager {
   // -------------------------------------------------------------------------
@@ -97,7 +100,12 @@ public class UserSettingLocaleManager implements LocaleManager {
   }
 
   private Locale getUserSelectedLocale() {
-    return (Locale) userSettingService.getUserSetting(UserSettingKey.UI_LOCALE);
+    Serializable userSetting = userSettingService.getUserSetting(UserSettingKey.UI_LOCALE);
+
+    if (userSetting instanceof Locale) {
+      return (Locale) userSetting;
+    }
+    return new Locale((String) userSetting);
   }
 
   @Override
