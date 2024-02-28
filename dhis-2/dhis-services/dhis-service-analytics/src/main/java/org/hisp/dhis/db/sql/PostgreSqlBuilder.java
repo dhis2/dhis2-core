@@ -28,7 +28,6 @@
 package org.hisp.dhis.db.sql;
 
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
-
 import java.util.stream.Collectors;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
@@ -220,11 +219,6 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
     return String.format("%s.%s", SCHEMA, name);
   }
 
-  @Override
-  public String createCatalog(String connectionUrl, String username, String password) {
-    return notSupported();
-  }
-
   // Statements
 
   @Override
@@ -348,5 +342,15 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
     return String.format(
         "create %sindex %s on %s using %s(%s);",
         unique, quote(index.getName()), quote(tableName), typeName, columns);
+  }
+
+  @Override
+  public String createCatalog(String connectionUrl, String username, String password) {
+    return notSupported();
+  }
+
+  @Override
+  public String dropCatalogIfExists() {
+    return notSupported();
   }
 }
