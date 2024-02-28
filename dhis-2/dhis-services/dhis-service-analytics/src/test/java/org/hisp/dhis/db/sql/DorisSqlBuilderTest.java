@@ -34,7 +34,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class DorisSqlBuilderTest {
-  private final SqlBuilder sqlBuilder = new DorisSqlBuilder("pg_dhis");
+  private final SqlBuilder sqlBuilder = new DorisSqlBuilder("pg_dhis", "postgresql.jar");
 
   // Data types
 

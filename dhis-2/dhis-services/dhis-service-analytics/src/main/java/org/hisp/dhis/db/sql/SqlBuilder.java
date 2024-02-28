@@ -221,6 +221,14 @@ public interface SqlBuilder {
    */
   String qualifyTable(String name);
 
+  /**
+   * @param connectionUrl the JDBC connection URL.
+   * @param username the JDBC connection username.
+   * @param password the JDBC connection password.
+   * @return a create catalog statement.
+   */
+  String createCatalog(String connectionUrl, String username, String password);
+
   // Statements
 
   /**

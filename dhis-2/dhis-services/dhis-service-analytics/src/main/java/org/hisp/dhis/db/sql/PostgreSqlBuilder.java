@@ -220,6 +220,11 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
     return String.format("%s.%s", SCHEMA, name);
   }
 
+  @Override
+  public String createCatalog(String connectionUrl, String username, String password) {
+    return notSupported();
+  }
+
   // Statements
 
   @Override

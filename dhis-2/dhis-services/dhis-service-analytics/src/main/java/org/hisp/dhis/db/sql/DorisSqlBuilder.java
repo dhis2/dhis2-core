@@ -29,6 +29,7 @@ package org.hisp.dhis.db.sql;
 
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.db.model.Column;
@@ -41,6 +42,8 @@ import org.hisp.dhis.db.model.constraint.Nullable;
 public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   private final String catalog;
+
+  private final String driverFilename;
 
   // Constants
 
@@ -212,6 +215,31 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   @Override
   public String qualifyTable(String name) {
     return String.format("%s.%s.%s", catalog, SCHEMA, name);
+  }
+
+  @Override
+  public String createCatalog(String connectionUrl, String username, String password) {
+    String sql =
+        """
+    create catalog ${catalog} \
+    properties (
+    "type" = "jdbc",
+    "user" = "${username}",
+    "password" = "${password}",
+    "jdbc_url" = "${connection_url}",
+    "driver_url" = "${driver_filename}",
+    "driver_class" = "org.postgresql.Driver"
+    """;
+
+    Map<String, String> variables =
+        Map.of(
+            "catalog", catalog,
+            "username", username,
+            "password", password,
+            "connection_url", connectionUrl,
+            "driver_filename", driverFilename);
+
+    return replace(sql, variables);
   }
 
   // Statements
