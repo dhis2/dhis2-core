@@ -174,6 +174,13 @@ class PostgreSqlBuilderTest {
     assertEquals("", sqlBuilder.singleQuotedCommaDelimited(null));
   }
 
+  @Test
+  void testQualifyTable() {
+    assertEquals("public.category", sqlBuilder.qualifyTable("category"));
+    assertEquals(
+        "public.categories_categoryoptions", sqlBuilder.qualifyTable("categories_categoryoptions"));
+  }
+
   // Statements
 
   @Test
