@@ -89,8 +89,8 @@ public class AnalyticsDatabaseInit {
 
   /**
    * Work for initializing a Doris analytics database. Creates a JDBC catalog which is used to
-   * connect to and read from the PostgreSQL transaction database. Read more at {@link
-   * https://t.ly/igk10}.
+   * connect to and read from the PostgreSQL transaction database as an external data source. Read
+   * more at {@link https://t.ly/igk10}.
    */
   private void initDoris() {
     String connectionUrl = config.getProperty(ConfigurationKey.CONNECTION_URL);
