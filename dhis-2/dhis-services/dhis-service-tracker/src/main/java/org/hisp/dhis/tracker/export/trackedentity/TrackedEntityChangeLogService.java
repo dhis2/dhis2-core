@@ -27,17 +27,18 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
-import java.util.List;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.tracker.export.Page;
+import org.hisp.dhis.tracker.export.PageParams;
 
 public interface TrackedEntityChangeLogService {
 
   /**
    * Retrieves the change log data for a particular tracked entity.
    *
-   * @return list with the change logs of the supplied tracked entity, if any
+   * @return the paged change logs of the supplied tracked entity, if any
    */
-  List<TrackedEntityChangeLog> getTrackedEntityChangeLog(UID trackedEntity, UID program)
-      throws NotFoundException;
+  Page<TrackedEntityChangeLog> getTrackedEntityChangeLog(
+      UID trackedEntityUid, UID programUid, PageParams pageParams) throws NotFoundException;
 }

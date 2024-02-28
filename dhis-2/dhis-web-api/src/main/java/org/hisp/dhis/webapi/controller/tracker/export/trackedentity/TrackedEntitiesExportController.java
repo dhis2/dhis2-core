@@ -31,6 +31,7 @@ import static org.hisp.dhis.common.OpenApi.Response.Status;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
 import static org.hisp.dhis.webapi.controller.tracker.export.FileResourceRequestHandler.handleFileRequest;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationBounds;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateUnsupportedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.trackedentity.TrackedEntityRequestParams.DEFAULT_FIELDS_PARAM;
@@ -69,6 +70,7 @@ import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.export.ResponseHeader;
+import org.hisp.dhis.webapi.controller.tracker.export.event.ChangeLogRequestParams;
 import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
@@ -318,11 +320,21 @@ class TrackedEntitiesExportController {
   }
 
   @GetMapping("/{trackedEntity}/changeLogs")
-  List<TrackedEntityChangeLog> getTrackedEntityAttributeChangeLog(
+  Page<ObjectNode> getTrackedEntityAttributeChangeLog(
       @OpenApi.Param({UID.class, TrackedEntity.class}) @PathVariable UID trackedEntity,
-      @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) UID program)
-      throws NotFoundException {
+      @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) UID program,
+      ChangeLogRequestParams requestParams,
+      HttpServletRequest request)
+      throws NotFoundException, BadRequestException {
+    validatePaginationBounds(requestParams.getPage(), requestParams.getPageSize());
+    PageParams pageParams =
+        new PageParams(requestParams.getPage(), requestParams.getPageSize(), false);
 
-    return trackedEntityChangeLogService.getTrackedEntityChangeLog(trackedEntity, program);
+    org.hisp.dhis.tracker.export.Page<TrackedEntityChangeLog> changeLogs =
+        trackedEntityChangeLogService.getTrackedEntityChangeLog(trackedEntity, program, pageParams);
+
+    List<ObjectNode> objectNodes =
+        fieldFilterService.toObjectNodes(changeLogs.getItems(), requestParams.getFields());
+    return Page.withPager("changeLogs", changeLogs.withItems(objectNodes), request);
   }
 }

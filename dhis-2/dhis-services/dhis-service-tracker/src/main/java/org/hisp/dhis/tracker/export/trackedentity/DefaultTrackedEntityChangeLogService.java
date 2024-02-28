@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.export.trackedentity;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +42,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.tracker.export.Page;
+import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -69,8 +70,8 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
   private final JdbcTrackedEntityChangeLogStore jdbcTrackedEntityChangeLogStore;
 
   @Override
-  public List<TrackedEntityChangeLog> getTrackedEntityChangeLog(
-      UID trackedEntityUid, UID programUid) throws NotFoundException {
+  public Page<TrackedEntityChangeLog> getTrackedEntityChangeLog(
+      UID trackedEntityUid, UID programUid, PageParams pageParams) throws NotFoundException {
     TrackedEntity trackedEntity =
         trackedEntityService.getTrackedEntity(trackedEntityUid.getValue());
     if (trackedEntity == null) {
@@ -88,7 +89,7 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
     }
 
     return jdbcTrackedEntityChangeLogStore.getTrackedEntityChangeLog(
-        trackedEntityUid, trackedEntityAttributes);
+        trackedEntityUid, trackedEntityAttributes, pageParams);
   }
 
   private Program validateProgram(String programUid) throws NotFoundException {

@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
@@ -70,7 +71,9 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
 
   private TrackedEntity trackedEntity;
 
-  private TrackedEntityAttribute trackedEntityAttribute;
+  private TrackedEntityAttribute firstNameTEA;
+
+  private TrackedEntityAttribute surnameTEA;
 
   private User owner;
 
@@ -108,14 +111,20 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
     program.setTrackedEntityType(trackedEntityType);
     manager.save(program, false);
 
-    trackedEntityAttribute = createTrackedEntityAttribute('A');
-    manager.save(trackedEntityAttribute, false);
-    TrackedEntityAttributeValue attributeValue =
-        createTrackedEntityAttributeValue('A', trackedEntity, trackedEntityAttribute);
+    firstNameTEA = createTrackedEntityAttribute('A');
+    manager.save(firstNameTEA, false);
+    TrackedEntityAttributeValue firstNameAttributeValue =
+        createTrackedEntityAttributeValue('A', trackedEntity, firstNameTEA);
+
+    surnameTEA = createTrackedEntityAttribute('B');
+    manager.save(surnameTEA, false);
+    TrackedEntityAttributeValue surnameAttributeValue =
+        createTrackedEntityAttributeValue('B', trackedEntity, surnameTEA);
 
     trackedEntity = createTrackedEntity(orgUnit);
     trackedEntity.setTrackedEntityType(trackedEntityType);
-    trackedEntity.setTrackedEntityAttributeValues(Set.of(attributeValue));
+    trackedEntity.setTrackedEntityAttributeValues(
+        Set.of(firstNameAttributeValue, surnameAttributeValue));
     manager.save(trackedEntity);
 
     injectSecurityContextUser(user);
@@ -123,7 +132,7 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
     JsonWebMessage importResponse =
         POST(
                 "/tracker?async=false&importStrategy=UPDATE",
-                createJson(trackedEntity, trackedEntityAttribute))
+                createJson(trackedEntity, firstNameTEA, surnameTEA))
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
     assertEquals(HttpStatus.OK.toString(), importResponse.getStatus());
@@ -152,11 +161,33 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
         () -> assertEquals(currentUser.getFirstName(), createdBy.getFirstName()),
         () -> assertEquals(currentUser.getSurname(), createdBy.getSurname()),
         () -> assertEquals("DELETE", changeLog.getType()),
-        () ->
-            assertEquals(
-                trackedEntityAttribute.getUid(), attributeChange.getTrackedEntityAttribute()),
+        () -> assertEquals(firstNameTEA.getUid(), attributeChange.getTrackedEntityAttribute()),
         () -> assertEquals("value 3", attributeChange.getPreviousValue()),
         () -> assertHasNoMember(attributeChange, "currentValue"));
+  }
+
+  @Test
+  void
+      shouldGetChangeLogPagerWithNextAttributeWhenMultipleAttributesImportedAndFirstPageRequested() {
+    fail();
+  }
+
+  @Test
+  void
+      shouldGetChangeLogPagerWithNextAndPreviousAttributesWhenMultipleAttributesImportedAndSecondPageRequested() {
+    fail();
+  }
+
+  @Test
+  void
+      shouldGetChangeLogPagerWithPreviousAttributeWhenMultipleAttributesImportedAndLastPageRequested() {
+    fail();
+  }
+
+  @Test
+  void
+      shouldGetChangeLogPagerWithoutPreviousNorNextAttributeWhenMultipleAttributesImportedAndAllAttributesFitInOnePage() {
+    fail();
   }
 
   private UserAccess userAccess() {
@@ -167,87 +198,48 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
   }
 
   private String createJson(
-      TrackedEntity trackedEntity, TrackedEntityAttribute trackedEntityAttribute) {
+      TrackedEntity trackedEntity,
+      TrackedEntityAttribute firstNameTEA,
+      TrackedEntityAttribute surnameTEA) {
     return """
         {
           "trackedEntities": [
           {
-            "orgUnit": "%s",
-            "createdAtClient": "2015-08-06T21:20:42.878",
             "trackedEntity": "%s",
-            "lastUpdated": "2015-08-06T21:20:42.880",
             "trackedEntityType": "%s",
-            "potentialDuplicate": false,
-            "deleted": false,
+            "createdAt": "2017-01-26T13:48:13.343",
+            "createdAtClient": "2017-01-26T13:48:13.343",
+            "updatedAt": "2017-01-26T13:48:13.343",
+            "orgUnit": "%s",
             "inactive": false,
-            "featureType": "NONE",
+            "deleted": false,
+            "potentialDuplicate": false,
             "attributes": [
             {
-              "lastUpdated": "2016-01-12T09:10:35.884",
-              "displayName": "Gender",
-              "created": "2016-01-12T09:10:26.986",
-              "valueType": "TEXT",
               "attribute": "%s",
-              "value": "Male"
+              "code": "MMD_PER_NAM",
+              "displayName": "First name",
+              "createdAt": "2017-01-26T13:48:13.343",
+              "updatedAt": "2017-01-26T13:48:13.343",
+              "valueType": "TEXT",
+              "value": "Marie"
+            },
+            {
+              "attribute": "%s",
+              "displayName": "Last name",
+              "createdAt": "2017-01-26T13:48:13.343",
+              "updatedAt": "2017-01-26T13:48:13.343",
+              "valueType": "TEXT",
+              "value": "James"
             }]
-          }
-        ]}
+          }]
+        }
       """
         .formatted(
-            orgUnit.getUid(),
             trackedEntity.getUid(),
             trackedEntity.getTrackedEntityType().getUid(),
-            trackedEntityAttribute.getUid());
-  }
-
-  private String createJson() {
-    return """
-        {
-          "trackedEntityInstances": [
-            {
-              "created": "2015-08-06T21:20:42.878",
-              "orgUnit": "g8upMTyEZGZ",
-              "createdAtClient": "2015-08-06T21:20:42.878",
-              "trackedEntityInstance": "SybVCbSDTaQ",
-              "lastUpdated": "2015-08-06T21:20:42.880",
-              "trackedEntityType": "nEenWmSyUEp",
-              "potentialDuplicate": false,
-              "deleted": false,
-              "inactive": false,
-              "featureType": "NONE",
-              "programOwners": [],
-              "enrollments": [],
-              "relationships": [],
-              "attributes": [
-                {
-                  "lastUpdated": "2016-01-12T09:10:35.884",
-                  "created": "2016-01-12T09:10:26.986",
-                  "displayName": "Gender",
-                  "valueType": "TEXT",
-                  "attribute": "cejWyOfXge6",
-                  "value": "Male"
-                },
-                {
-                  "lastUpdated": "2016-01-12T09:10:35.884",
-                  "code": "MMD_PER_NAM",
-                  "created": "2016-01-12T09:10:26.986",
-                  "displayName": "First name",
-                  "valueType": "TEXT",
-                  "attribute": "w75KJ2mc4zz",
-                  "value": "Harold"
-                },
-                {
-                  "lastUpdated": "2016-01-12T09:10:35.884",
-                  "created": "2016-01-12T09:10:26.986",
-                  "displayName": "Last name",
-                  "valueType": "TEXT",
-                  "attribute": "zDhUuAYrxNC",
-                  "value": "Perez"
-                }
-              ]
-            }
-          ]
-        }
-    """;
+            orgUnit.getUid(),
+            firstNameTEA.getUid(),
+            surnameTEA.getUid());
   }
 }

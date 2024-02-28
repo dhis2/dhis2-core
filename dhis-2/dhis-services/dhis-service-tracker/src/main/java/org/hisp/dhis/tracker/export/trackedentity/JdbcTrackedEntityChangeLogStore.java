@@ -32,6 +32,8 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.tracker.export.Page;
+import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog.Change;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -64,8 +66,8 @@ public class JdbcTrackedEntityChangeLogStore {
                     rs.getString("currentvalue"))));
       };
 
-  public List<TrackedEntityChangeLog> getTrackedEntityChangeLog(
-      UID trackedEntity, Set<String> attributes) {
+  public Page<TrackedEntityChangeLog> getTrackedEntityChangeLog(
+      UID trackedEntity, Set<String> attributes, PageParams pageParams) {
     String sql =
         """
           select cl.type,
@@ -90,14 +92,15 @@ public class JdbcTrackedEntityChangeLogStore {
                   and t.uid = :trackedEntity
        """;
 
+    List<TrackedEntityChangeLog> changeLogs;
     if (attributes.isEmpty()) {
       sql += """
               order by audit.created desc) cl
           """;
       SqlParameterSource parameters =
           new MapSqlParameterSource("trackedEntity", trackedEntity.getValue());
-      return namedParameterJdbcTemplate.query(
-          sql, parameters, customTrackedEntityChangeLogRowMapper);
+      changeLogs =
+          namedParameterJdbcTemplate.query(sql, parameters, customTrackedEntityChangeLogRowMapper);
     } else {
       sql +=
           """
@@ -107,8 +110,21 @@ public class JdbcTrackedEntityChangeLogStore {
       SqlParameterSource parameters =
           new MapSqlParameterSource("attributes", attributes)
               .addValue("trackedEntity", trackedEntity.getValue());
-      return namedParameterJdbcTemplate.query(
-          sql, parameters, customTrackedEntityChangeLogRowMapper);
+      changeLogs =
+          namedParameterJdbcTemplate.query(sql, parameters, customTrackedEntityChangeLogRowMapper);
     }
+
+    Integer prevPage = pageParams.getPage() > 1 ? pageParams.getPage() - 1 : null;
+    if (changeLogs.size() > pageParams.getPageSize()) {
+      return Page.withPrevAndNext(
+          changeLogs.subList(0, pageParams.getPageSize()),
+          pageParams.getPage(),
+          pageParams.getPageSize(),
+          prevPage,
+          pageParams.getPage() + 1);
+    }
+
+    return Page.withPrevAndNext(
+        changeLogs, pageParams.getPage(), pageParams.getPageSize(), prevPage, null);
   }
 }
