@@ -100,10 +100,12 @@ class TeiQueryRequestMapperTest {
 
     when(programService.getPrograms(Set.of("A", "B"))).thenReturn(Set.of(programA, programB));
 
+    CommonQueryRequest commonQueryRequest = new CommonQueryRequest();
+
     final IllegalQueryException thrown =
         assertThrows(
             IllegalQueryException.class,
-            () -> teiQueryRequestMapper.map(queryRequest, queryRequest.getCommonQueryRequest()));
+            () -> teiQueryRequestMapper.map(queryRequest, commonQueryRequest));
 
     assertEquals(expectedMessage, thrown.getMessage());
   }
