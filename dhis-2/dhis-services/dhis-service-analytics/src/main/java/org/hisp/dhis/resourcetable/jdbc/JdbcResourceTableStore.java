@@ -30,6 +30,7 @@ package org.hisp.dhis.resourcetable.jdbc;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 
+import com.mysql.cj.jdbc.DatabaseMetaData.TableType;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -84,7 +85,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
 
     createIndexes(indexes);
 
-    jdbcTemplate.execute(sqlBuilder.analyzeTable(stagingTable));
+    analyzeTable(stagingTable);
 
     jdbcTemplate.execute(sqlBuilder.dropTableIfExists(tableName));
 
@@ -141,10 +142,21 @@ public class JdbcResourceTableStore implements ResourceTableStore {
    * @param indexes the list of {@link Index} to create.
    */
   private void createIndexes(List<Index> indexes) {
-    if (isNotEmpty(indexes)) {
+    if (isNotEmpty(indexes) && sqlBuilder.requiresIndexesForAnalytics()) {
       for (Index index : indexes) {
         jdbcTemplate.execute(sqlBuilder.createIndex(index));
       }
+    }
+  }
+
+  /**
+   * Analyzes the given table.
+   *
+   * @param table the {@link Table}.
+   */
+  private void analyzeTable(Table table) {
+    if (sqlBuilder.supportsAnalyze()) {
+      jdbcTemplate.execute(sqlBuilder.analyzeTable(table));
     }
   }
 
