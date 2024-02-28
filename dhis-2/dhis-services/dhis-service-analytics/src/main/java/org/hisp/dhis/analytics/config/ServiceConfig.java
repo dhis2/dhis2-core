@@ -57,13 +57,15 @@ public class ServiceConfig {
       OrganisationUnitService organisationUnitService,
       DataElementService dataElementService,
       ResourceTableService resourceTableService,
-      SystemSettingManager systemSettingManager) {
+      SystemSettingManager systemSettingManager,
+      SqlBuilder sqlBuilder) {
     return new DefaultAnalyticsTableService(
         tableManager,
         organisationUnitService,
         dataElementService,
         resourceTableService,
-        systemSettingManager);
+        systemSettingManager,
+        sqlBuilder);
   }
 
   @Bean("org.hisp.dhis.analytics.TeiEventsAnalyticsTableService")
@@ -73,13 +75,15 @@ public class ServiceConfig {
       OrganisationUnitService organisationUnitService,
       DataElementService dataElementService,
       ResourceTableService resourceTableService,
-      SystemSettingManager systemSettingManager) {
+      SystemSettingManager systemSettingManager,
+      SqlBuilder sqlBuilder) {
     return new DefaultAnalyticsTableService(
         tableManager,
         organisationUnitService,
         dataElementService,
         resourceTableService,
-        systemSettingManager);
+        systemSettingManager,
+        sqlBuilder);
   }
 
   @Bean("org.hisp.dhis.analytics.TeiEnrollmentsAnalyticsTableService")
@@ -89,13 +93,15 @@ public class ServiceConfig {
       OrganisationUnitService organisationUnitService,
       DataElementService dataElementService,
       ResourceTableService resourceTableService,
-      SystemSettingManager systemSettingManager) {
+      SystemSettingManager systemSettingManager,
+      SqlBuilder sqlBuilder) {
     return new DefaultAnalyticsTableService(
         tableManager,
         organisationUnitService,
         dataElementService,
         resourceTableService,
-        systemSettingManager);
+        systemSettingManager,
+        sqlBuilder);
   }
 
   @Bean("org.hisp.dhis.analytics.AnalyticsTableService")
@@ -105,13 +111,15 @@ public class ServiceConfig {
       OrganisationUnitService organisationUnitService,
       DataElementService dataElementService,
       ResourceTableService resourceTableService,
-      SystemSettingManager systemSettingManager) {
+      SystemSettingManager systemSettingManager,
+      SqlBuilder sqlBuilder) {
     return new DefaultAnalyticsTableService(
         tableManager,
         organisationUnitService,
         dataElementService,
         resourceTableService,
-        systemSettingManager);
+        systemSettingManager,
+        sqlBuilder);
   }
 
   @Bean("org.hisp.dhis.analytics.CompletenessTableService")
@@ -121,13 +129,15 @@ public class ServiceConfig {
       OrganisationUnitService organisationUnitService,
       DataElementService dataElementService,
       ResourceTableService resourceTableService,
-      SystemSettingManager systemSettingManager) {
+      SystemSettingManager systemSettingManager,
+      SqlBuilder sqlBuilder) {
     return new DefaultAnalyticsTableService(
         tableManager,
         organisationUnitService,
         dataElementService,
         resourceTableService,
-        systemSettingManager);
+        systemSettingManager,
+        sqlBuilder);
   }
 
   @Bean("org.hisp.dhis.analytics.CompletenessTargetTableService")
@@ -137,13 +147,15 @@ public class ServiceConfig {
       OrganisationUnitService organisationUnitService,
       DataElementService dataElementService,
       ResourceTableService resourceTableService,
-      SystemSettingManager systemSettingManager) {
+      SystemSettingManager systemSettingManager,
+      SqlBuilder sqlBuilder) {
     return new DefaultAnalyticsTableService(
         tableManager,
         organisationUnitService,
         dataElementService,
         resourceTableService,
-        systemSettingManager);
+        systemSettingManager,
+        sqlBuilder);
   }
 
   @Bean("org.hisp.dhis.analytics.OrgUnitTargetTableService")
@@ -153,13 +165,15 @@ public class ServiceConfig {
       OrganisationUnitService organisationUnitService,
       DataElementService dataElementService,
       ResourceTableService resourceTableService,
-      SystemSettingManager systemSettingManager) {
+      SystemSettingManager systemSettingManager,
+      SqlBuilder sqlBuilder) {
     return new DefaultAnalyticsTableService(
         tableManager,
         organisationUnitService,
         dataElementService,
         resourceTableService,
-        systemSettingManager);
+        systemSettingManager,
+        sqlBuilder);
   }
 
   @Bean("org.hisp.dhis.analytics.OwnershipAnalyticsTableService")
@@ -169,13 +183,15 @@ public class ServiceConfig {
       OrganisationUnitService organisationUnitService,
       DataElementService dataElementService,
       ResourceTableService resourceTableService,
-      SystemSettingManager systemSettingManager) {
+      SystemSettingManager systemSettingManager,
+      SqlBuilder sqlBuilder) {
     return new DefaultAnalyticsTableService(
         tableManager,
         organisationUnitService,
         dataElementService,
         resourceTableService,
-        systemSettingManager);
+        systemSettingManager,
+        sqlBuilder);
   }
 
   @Bean("org.hisp.dhis.analytics.EventAnalyticsTableService")
@@ -185,13 +201,15 @@ public class ServiceConfig {
       OrganisationUnitService organisationUnitService,
       DataElementService dataElementService,
       ResourceTableService resourceTableService,
-      SystemSettingManager systemSettingManager) {
+      SystemSettingManager systemSettingManager,
+      SqlBuilder sqlBuilder) {
     return new DefaultAnalyticsTableService(
         tableManager,
         organisationUnitService,
         dataElementService,
         resourceTableService,
-        systemSettingManager);
+        systemSettingManager,
+        sqlBuilder);
   }
 
   @Bean("org.hisp.dhis.analytics.ValidationResultTableService")
@@ -201,13 +219,15 @@ public class ServiceConfig {
       OrganisationUnitService organisationUnitService,
       DataElementService dataElementService,
       ResourceTableService resourceTableService,
-      SystemSettingManager systemSettingManager) {
+      SystemSettingManager systemSettingManager,
+      SqlBuilder sqlBuilder) {
     return new DefaultAnalyticsTableService(
         tableManager,
         organisationUnitService,
         dataElementService,
         resourceTableService,
-        systemSettingManager);
+        systemSettingManager,
+        sqlBuilder);
   }
 
   @Bean("org.hisp.dhis.analytics.EnrollmentAnalyticsTableService")
@@ -217,12 +237,14 @@ public class ServiceConfig {
       OrganisationUnitService organisationUnitService,
       DataElementService dataElementService,
       ResourceTableService resourceTableService,
-      SystemSettingManager systemSettingManager) {
+      SystemSettingManager systemSettingManager,
+      SqlBuilder sqlBuilder) {
     return new DefaultAnalyticsTableService(
         tableManager,
         organisationUnitService,
         dataElementService,
         resourceTableService,
-        systemSettingManager);
+        systemSettingManager,
+        sqlBuilder);
   }
 }
