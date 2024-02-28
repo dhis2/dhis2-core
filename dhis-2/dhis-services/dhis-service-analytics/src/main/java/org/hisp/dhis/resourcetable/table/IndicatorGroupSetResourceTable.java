@@ -49,7 +49,7 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
  */
 @RequiredArgsConstructor
 public class IndicatorGroupSetResourceTable implements ResourceTable {
-  private static final String TABLE_NAME = "_indicatorgroupsetstructure";
+  public static final String TABLE_NAME = "analytics_rs_indicatorgroupsetstructure";
 
   private final SqlBuilder sqlBuilder;
 

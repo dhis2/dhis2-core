@@ -94,10 +94,10 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
                 parallelJobs);
 
     progress.startingStage("Validating analytics table: {}", tableType);
-    String validState = tableManager.validState();
-    progress.completedStage(validState);
+    boolean validState = tableManager.validState();
+    progress.completedStage("Validated analytics tables with outcome: {}", validState);
 
-    if (validState != null || progress.isCancelled()) {
+    if (!validState || progress.isCancelled()) {
       return;
     }
 

@@ -51,6 +51,7 @@ import org.hisp.dhis.analytics.tei.query.StatusCondition;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.tei.query.context.sql.RenderableSqlQuery;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilderAdaptor;
+import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -99,6 +100,7 @@ public class StatusQueryBuilder extends SqlQueryBuilderAdaptor {
         .forEach(builder::selectField);
 
     acceptedDimensions.stream()
+        .filter(SqlQueryBuilders::hasRestrictions)
         .map(
             dimensionIdentifier ->
                 GroupableCondition.of(

@@ -130,17 +130,8 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
   }
 
   @Override
-  public String validState() {
-    boolean hasData =
-        jdbcTemplate
-            .queryForRowSet("select datasetid from completedatasetregistration limit 1")
-            .next();
-
-    if (!hasData) {
-      return "No complete registrations exist, not updating completeness analytics tables";
-    }
-
-    return null;
+  public boolean validState() {
+    return tableIsNotEmpty("completedatasetregistration");
   }
 
   @Override
@@ -170,7 +161,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             + "select concat(ds.uid,'-',ps.iso,'-',ou.uid,'-',ao.uid) as id "
             + "from completedatasetregistration cdr "
             + "inner join dataset ds on cdr.datasetid=ds.datasetid "
-            + "inner join _periodstructure ps on cdr.periodid=ps.periodid "
+            + "inner join analytics_rs_periodstructure ps on cdr.periodid=ps.periodid "
             + "inner join organisationunit ou on cdr.sourceid=ou.organisationunitid "
             + "inner join categoryoptioncombo ao on cdr.attributeoptioncomboid=ao.categoryoptioncomboid "
             + "where cdr.lastupdated >= '"
@@ -219,12 +210,12 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
         "from completedatasetregistration cdr "
             + "inner join dataset ds on cdr.datasetid=ds.datasetid "
             + "inner join period pe on cdr.periodid=pe.periodid "
-            + "inner join _periodstructure ps on cdr.periodid=ps.periodid "
+            + "inner join analytics_rs_periodstructure ps on cdr.periodid=ps.periodid "
             + "inner join organisationunit ou on cdr.sourceid=ou.organisationunitid "
-            + "inner join _organisationunitgroupsetstructure ougs on cdr.sourceid=ougs.organisationunitid "
+            + "inner join analytics_rs_organisationunitgroupsetstructure ougs on cdr.sourceid=ougs.organisationunitid "
             + "and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null) "
-            + "left join _orgunitstructure ous on cdr.sourceid=ous.organisationunitid "
-            + "inner join _categorystructure acs on cdr.attributeoptioncomboid=acs.categoryoptioncomboid "
+            + "left join analytics_rs_orgunitstructure ous on cdr.sourceid=ous.organisationunitid "
+            + "inner join analytics_rs_categorystructure acs on cdr.attributeoptioncomboid=acs.categoryoptioncomboid "
             + "inner join categoryoptioncombo ao on cdr.attributeoptioncomboid=ao.categoryoptioncomboid "
             + "where cdr.date is not null "
             + partitionClause

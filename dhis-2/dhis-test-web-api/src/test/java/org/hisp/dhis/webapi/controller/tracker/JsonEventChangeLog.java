@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,22 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.webapi.controller.tracker;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Date;
-import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.jsontree.JsonObject;
 
-public record EventChangeLog(
-    @JsonProperty UserInfoSnapshot createdBy,
-    @JsonProperty Date createdAt,
-    @JsonProperty String type,
-    @JsonProperty Change change) {
+/** Representation of {@link org.hisp.dhis.tracker.export.event.EventChangeLog}. */
+public interface JsonEventChangeLog extends JsonObject {
+  default JsonUser getCreatedBy() {
+    return get("createdBy").as(JsonUser.class);
+  }
 
-  public record Change(@JsonProperty DataValueChange dataValue) {}
+  default String getType() {
+    return getString("type").string();
+  }
 
-  public record DataValueChange(
-      @JsonProperty String dataElement,
-      @JsonProperty String previousValue,
-      @JsonProperty String currentValue) {}
+  default JsonChange getChange() {
+    return get("change").as(JsonChange.class);
+  }
+
+  interface JsonChange extends JsonObject {
+    default JsonDataValue getDataValueChange() {
+      return get("dataValue").as(JsonDataValue.class);
+    }
+  }
+
+  interface JsonDataValue extends JsonObject {
+    default String getDataElement() {
+      return getString("dataElement").string();
+    }
+
+    default String getPreviousValue() {
+      return getString("previousValue").string();
+    }
+
+    default String getCurrentValue() {
+      return getString("currentValue").string();
+    }
+  }
 }

@@ -186,7 +186,7 @@ public class AnalyticsUtils {
       OrganisationUnit ou = (OrganisationUnit) orgUnit;
       int level = ou.getLevel();
       sql +=
-          "(dv.sourceid in (select organisationunitid from _orgunitstructure where idlevel"
+          "(dv.sourceid in (select organisationunitid from analytics_rs_orgunitstructure where idlevel"
               + level
               + " = "
               + ou.getId()
