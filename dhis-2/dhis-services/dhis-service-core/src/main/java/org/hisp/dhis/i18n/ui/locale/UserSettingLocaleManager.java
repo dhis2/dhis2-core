@@ -33,7 +33,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManagerException;
@@ -44,7 +43,6 @@ import org.springframework.stereotype.Component;
 /**
  * @author Torgeir Lorange Ostby
  */
-@Slf4j
 @Component("org.hisp.dhis.i18n.locale.LocaleManager")
 public class UserSettingLocaleManager implements LocaleManager {
   // -------------------------------------------------------------------------
@@ -99,6 +97,23 @@ public class UserSettingLocaleManager implements LocaleManager {
     return locales;
   }
 
+  /**
+   * This method tries to handle the 2 following scenarios: <br>
+   *
+   * <ol>
+   *   <li>when a user Locale is stored as a Locale, the locale will be returned
+   *   <li>when a user Locale is stored as a String, the string will be used as an argument to
+   *       create a new Locale which is then returned <br>
+   * </ol>
+   *
+   * <br>
+   * This is necessary because of the requirement to be able to store unsupported JDK Locales e.g.
+   * 'id' and 'id_ID' (they are stored as strings). In the scenario where 'id' is the user ui
+   * locale, then Java will transform this to the older locale 'in'. This is only required for
+   * anything lower than Java 17 and is not planned for v41 or higher.
+   *
+   * @return locale
+   */
   private Locale getUserSelectedLocale() {
     Serializable userSetting = userSettingService.getUserSetting(UserSettingKey.UI_LOCALE);
 
