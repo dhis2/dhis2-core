@@ -51,7 +51,7 @@ import org.springframework.stereotype.Component;
  *   <li>Add value to {@link Database}
  *   <li>Add implementation class of {@link SqlBuilder}
  *   <li>Add entry to switch statement in {@link SqlBuilderProvider}
- *   <li>Add method and entry to switch statement in {@link AnalyticsDatabaseInit}
+ *   <li>Add method to {@link AnalyticsDatabaseInit} if necessary
  * </ul>
  *
  * @author Lars Helge Overland
