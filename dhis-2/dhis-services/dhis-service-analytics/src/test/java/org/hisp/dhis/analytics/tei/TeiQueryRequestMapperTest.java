@@ -100,8 +100,12 @@ class TeiQueryRequestMapperTest {
 
     when(programService.getPrograms(Set.of("A", "B"))).thenReturn(Set.of(programA, programB));
 
+    CommonQueryRequest commonQueryRequest = new CommonQueryRequest();
+
     final IllegalQueryException thrown =
-        assertThrows(IllegalQueryException.class, () -> teiQueryRequestMapper.map(queryRequest));
+        assertThrows(
+            IllegalQueryException.class,
+            () -> teiQueryRequestMapper.map(queryRequest, commonQueryRequest));
 
     assertEquals(expectedMessage, thrown.getMessage());
   }
@@ -126,9 +130,9 @@ class TeiQueryRequestMapperTest {
 
     when(programService.getPrograms(Set.of("A", "B"))).thenReturn(Set.of(programA, programB));
 
-    when(commonQueryRequestMapper.map(any())).thenReturn(CommonParams.builder().build());
+    when(commonQueryRequestMapper.map(any(), any())).thenReturn(CommonParams.builder().build());
 
-    assertDoesNotThrow(() -> teiQueryRequestMapper.map(queryRequest));
+    assertDoesNotThrow(() -> teiQueryRequestMapper.map(queryRequest, new CommonQueryRequest()));
   }
 
   @Test
@@ -148,9 +152,9 @@ class TeiQueryRequestMapperTest {
 
     when(programService.getPrograms(Set.of("A", "B"))).thenReturn(Set.of());
 
-    when(commonQueryRequestMapper.map(any())).thenReturn(CommonParams.builder().build());
+    when(commonQueryRequestMapper.map(any(), any())).thenReturn(CommonParams.builder().build());
 
-    assertDoesNotThrow(() -> teiQueryRequestMapper.map(queryRequest));
+    assertDoesNotThrow(() -> teiQueryRequestMapper.map(queryRequest, new CommonQueryRequest()));
   }
 
   private Program stubProgram(String uid, String tetUid) {

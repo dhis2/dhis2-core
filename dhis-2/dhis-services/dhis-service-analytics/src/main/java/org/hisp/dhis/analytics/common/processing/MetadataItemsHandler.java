@@ -92,14 +92,11 @@ public class MetadataItemsHandler {
     List<QueryItem> items =
         commonParams.delegate().getAllItems().stream()
             .filter(
-                it ->
-                    isInRequestDimensionOrFilter(
-                        it.getItem().getUid(), commonParams.getOriginalRequest()))
+                it -> isInOriginalRequest(it.getItem().getUid(), commonParams.getOriginalRequest()))
             .toList();
     Set<Option> itemOptions =
         commonParams.delegate().getItemsOptions().stream()
-            .filter(
-                o -> isInRequestDimensionOrFilter(o.getUid(), commonParams.getOriginalRequest()))
+            .filter(o -> isInOriginalRequest(o.getUid(), commonParams.getOriginalRequest()))
             .collect(toSet());
     Map<String, List<Option>> optionsPresentInGrid = getItemOptions(grid, items);
     Set<Option> optionItems = getOptionItems(grid, itemOptions, items, optionsPresentInGrid);
@@ -110,13 +107,11 @@ public class MetadataItemsHandler {
     Set<Legend> itemLegends = commonParams.delegate().getItemsLegends();
     List<Program> programs =
         commonParams.getPrograms().stream()
-            .filter(
-                p -> isInRequestDimensionOrFilter(p.getUid(), commonParams.getOriginalRequest()))
+            .filter(p -> isInOriginalRequest(p.getUid(), commonParams.getOriginalRequest()))
             .toList();
     Set<ProgramStage> programStages =
         commonParams.delegate().getProgramStages().stream()
-            .filter(
-                p -> isInRequestDimensionOrFilter(p.getUid(), commonParams.getOriginalRequest()))
+            .filter(p -> isInOriginalRequest(p.getUid(), commonParams.getOriginalRequest()))
             .collect(toSet());
     boolean includeMetadataDetails = commonParams.isIncludeMetadataDetails();
     DisplayProperty displayProperty = commonParams.getDisplayProperty();
@@ -176,16 +171,20 @@ public class MetadataItemsHandler {
    * considered to be in dimension or filter set.
    *
    * @param uid
-   * @param request the {@link CommonQueryRequest}.
+   * @param originalRequest the {@link CommonQueryRequest}.
    * @return the boolean indicator.
    */
-  private boolean isInRequestDimensionOrFilter(String uid, CommonQueryRequest request) {
-    if (request == null) {
+  private boolean isInOriginalRequest(String uid, CommonQueryRequest originalRequest) {
+    if (originalRequest == null) {
       return true;
     }
 
-    return request.getDimension().stream().anyMatch(uId -> uId.contains(uid))
-        || request.getFilter().stream().anyMatch(uId -> uId.contains(uid));
+    return originalRequest.getDimension().stream().anyMatch(uId -> uId.contains(uid))
+        || originalRequest.getFilter().stream().anyMatch(uId -> uId.contains(uid))
+        || originalRequest.getHeaders().stream().anyMatch(uId -> uId.contains(uid))
+        || originalRequest.getProgram().stream().anyMatch(uId -> uId.contains(uid))
+        || originalRequest.getAsc().stream().anyMatch(uId -> uId.contains(uid))
+        || originalRequest.getDesc().stream().anyMatch(uId -> uId.contains(uid));
   }
 
   /**
