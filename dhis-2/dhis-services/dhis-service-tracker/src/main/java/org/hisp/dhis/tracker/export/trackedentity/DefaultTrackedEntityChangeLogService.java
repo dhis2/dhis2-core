@@ -88,7 +88,7 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
     }
 
     return jdbcTrackedEntityChangeLogStore.getTrackedEntityChangeLog(
-        trackedEntityUid.getValue(), trackedEntityAttributes);
+        trackedEntityUid, trackedEntityAttributes);
   }
 
   private Program validateProgram(String programUid) throws NotFoundException {
@@ -124,10 +124,9 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
   private Set<String> validateTrackedEntityAttributes(TrackedEntity trackedEntity)
       throws NotFoundException {
     Set<TrackedEntityAttribute> attributes =
-        trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes(
-            CurrentUserUtil.getCurrentUserDetails(),
-            List.of(),
-            List.of(trackedEntity.getTrackedEntityType()));
+        trackedEntityAttributeService.getTrackedEntityTypeAttributes(
+            trackedEntity.getTrackedEntityType());
+
     if (attributes.isEmpty()) {
       throw new NotFoundException(TrackedEntity.class, trackedEntity.getUid());
     }

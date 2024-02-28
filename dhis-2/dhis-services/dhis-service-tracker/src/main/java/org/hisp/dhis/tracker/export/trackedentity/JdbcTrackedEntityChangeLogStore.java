@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.export.trackedentity;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog.Change;
 import org.springframework.jdbc.core.RowMapper;
@@ -47,38 +48,38 @@ public class JdbcTrackedEntityChangeLogStore {
   private static final RowMapper<TrackedEntityChangeLog> customTrackedEntityChangeLogRowMapper =
       (rs, rowNum) -> {
         UserInfoSnapshot createdBy = new UserInfoSnapshot();
-        createdBy.setUsername(rs.getString("userName"));
+        createdBy.setUsername(rs.getString("username"));
         createdBy.setFirstName(rs.getString("firstname"));
         createdBy.setSurname(rs.getString("surname"));
         createdBy.setUid(rs.getString("useruid"));
 
         return new TrackedEntityChangeLog(
             createdBy,
-            rs.getTimestamp("updatedAt"),
+            rs.getTimestamp("createdat"),
             rs.getString("type"),
             new Change(
                 new TrackedEntityChangeLog.TrackedEntityAttributeChange(
-                    rs.getString("trackedEntityAttributeUid"),
-                    rs.getString("previousValue"),
-                    rs.getString("currentValue"))));
+                    rs.getString("trackedentityattributeuid"),
+                    rs.getString("previousvalue"),
+                    rs.getString("currentvalue"))));
       };
 
   public List<TrackedEntityChangeLog> getTrackedEntityChangeLog(
-      String trackedEntity, Set<String> attributes) {
+      UID trackedEntity, Set<String> attributes) {
     String sql =
         """
-          select cl.audittype,
+          select cl.type,
               case
-          when cl.audittype = 'CREATE' then cl.currentchangelogvalue
-          when cl.audittype = 'UPDATE' then cl.currentchangelogvalue
-          end as currentValue,
+          when cl.type = 'CREATE' then cl.currentchangelogvalue
+          when cl.type = 'UPDATE' then cl.currentchangelogvalue
+          end as currentvalue,
               case
-          when cl.audittype = 'DELETE' then cl.currentchangelogvalue
-          when cl.audittype = 'UPDATE' then cl.previouschangelogvalue
-          end as previousValue, cl.created as updatedAt, cl.modifiedby as userName, cl.trackedEntityAttributeUid, cl.firstname, cl.surname, cl.username, cl.useruid, cl.audittype as type
+          when cl.type = 'DELETE' then cl.currentchangelogvalue
+          when cl.type = 'UPDATE' then cl.previouschangelogvalue
+          end as previousvalue, cl.createdat , cl.trackedentityattributeuid, cl.firstname, cl.surname, cl.username, cl.useruid, cl.type
           from
               (
-                  select audit.created, tea.uid as trackedEntityAttributeUid, audit.modifiedby, audit.audittype, u.firstname, u.surname, u.username, u.uid as useruid,
+                  select audit.created as createdat, tea.uid as trackedentityattributeuid, audit.audittype as type, u.firstname, u.surname, u.username, u.uid as useruid,
                   lead (audit.value) over (partition by audit.trackedentityid, audit.trackedentityattributeid order by audit.created DESC) as previouschangelogvalue,
                   audit.value as currentchangelogvalue
                   from trackedEntityAttributeValueAudit audit
@@ -93,7 +94,8 @@ public class JdbcTrackedEntityChangeLogStore {
       sql += """
               order by audit.created desc) cl
           """;
-      SqlParameterSource parameters = new MapSqlParameterSource("trackedEntity", trackedEntity);
+      SqlParameterSource parameters =
+          new MapSqlParameterSource("trackedEntity", trackedEntity.getValue());
       return namedParameterJdbcTemplate.query(
           sql, parameters, customTrackedEntityChangeLogRowMapper);
     } else {
@@ -104,7 +106,7 @@ public class JdbcTrackedEntityChangeLogStore {
           """;
       SqlParameterSource parameters =
           new MapSqlParameterSource("attributes", attributes)
-              .addValue("trackedEntity", trackedEntity);
+              .addValue("trackedEntity", trackedEntity.getValue());
       return namedParameterJdbcTemplate.query(
           sql, parameters, customTrackedEntityChangeLogRowMapper);
     }

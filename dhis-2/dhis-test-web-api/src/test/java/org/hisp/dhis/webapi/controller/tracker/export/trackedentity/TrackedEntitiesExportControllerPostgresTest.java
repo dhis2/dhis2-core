@@ -172,7 +172,6 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
         {
           "trackedEntities": [
           {
-            "created": "2015-08-06T21:20:42.878",
             "orgUnit": "%s",
             "createdAtClient": "2015-08-06T21:20:42.878",
             "trackedEntity": "%s",
@@ -182,9 +181,6 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
             "deleted": false,
             "inactive": false,
             "featureType": "NONE",
-            "programOwners": [],
-            "enrollments": [],
-            "relationships": [],
             "attributes": [
             {
               "lastUpdated": "2016-01-12T09:10:35.884",
@@ -202,5 +198,56 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
             trackedEntity.getUid(),
             trackedEntity.getTrackedEntityType().getUid(),
             trackedEntityAttribute.getUid());
+  }
+
+  private String createJson() {
+    return """
+        {
+          "trackedEntityInstances": [
+            {
+              "created": "2015-08-06T21:20:42.878",
+              "orgUnit": "g8upMTyEZGZ",
+              "createdAtClient": "2015-08-06T21:20:42.878",
+              "trackedEntityInstance": "SybVCbSDTaQ",
+              "lastUpdated": "2015-08-06T21:20:42.880",
+              "trackedEntityType": "nEenWmSyUEp",
+              "potentialDuplicate": false,
+              "deleted": false,
+              "inactive": false,
+              "featureType": "NONE",
+              "programOwners": [],
+              "enrollments": [],
+              "relationships": [],
+              "attributes": [
+                {
+                  "lastUpdated": "2016-01-12T09:10:35.884",
+                  "created": "2016-01-12T09:10:26.986",
+                  "displayName": "Gender",
+                  "valueType": "TEXT",
+                  "attribute": "cejWyOfXge6",
+                  "value": "Male"
+                },
+                {
+                  "lastUpdated": "2016-01-12T09:10:35.884",
+                  "code": "MMD_PER_NAM",
+                  "created": "2016-01-12T09:10:26.986",
+                  "displayName": "First name",
+                  "valueType": "TEXT",
+                  "attribute": "w75KJ2mc4zz",
+                  "value": "Harold"
+                },
+                {
+                  "lastUpdated": "2016-01-12T09:10:35.884",
+                  "created": "2016-01-12T09:10:26.986",
+                  "displayName": "Last name",
+                  "valueType": "TEXT",
+                  "attribute": "zDhUuAYrxNC",
+                  "value": "Perez"
+                }
+              ]
+            }
+          ]
+        }
+    """;
   }
 }
