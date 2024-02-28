@@ -27,10 +27,13 @@
  */
 package org.hisp.dhis.user;
 
-import static org.hisp.dhis.user.UserSettingKey.UI_LOCALE;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.io.Serializable;
 import org.hisp.dhis.common.DisplayProperty;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -52,5 +55,88 @@ class UserSettingKeyTest {
     Assertions.assertSame(
         "Test Layout",
         UserSettingKey.getAsRealClass(UserSettingKey.TRACKER_DASHBOARD_LAYOUT, "Test Layout"));
+  }
+
+  @Test
+  @DisplayName("An exception should be thrown when an invalid locale is detected")
+  void invalidLocaleTest() {
+    IllegalArgumentException ex =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> UserSettingKey.getAsRealClass(UserSettingKey.UI_LOCALE, "invalidLocale"));
+
+    assertEquals("Invalid locale format: invalidLocale", ex.getMessage());
+  }
+
+  @Test
+  @DisplayName("The correct Indonesian UI locale should be returned for 'id'")
+  void validLocaleId1Test() {
+    Serializable locale = UserSettingKey.getAsRealClass(UserSettingKey.UI_LOCALE, "id");
+
+    assertEquals("id", locale.toString());
+  }
+
+  @Test
+  @DisplayName("The correct Indonesian UI locale should be returned for 'id_ID'")
+  void validLocaleId2Test() {
+    Serializable locale = UserSettingKey.getAsRealClass(UserSettingKey.UI_LOCALE, "id_ID");
+
+    assertEquals("id_ID", locale.toString());
+  }
+
+  @Test
+  @DisplayName("The correct Indonesian UI locale should be returned for 'in'")
+  void validLocaleId3Test() {
+    Serializable locale = UserSettingKey.getAsRealClass(UserSettingKey.UI_LOCALE, "in");
+
+    assertEquals("id", locale.toString());
+  }
+
+  @Test
+  @DisplayName("The correct Indonesian UI locale should be returned for 'in_ID'")
+  void validLocaleId4Test() {
+    Serializable locale = UserSettingKey.getAsRealClass(UserSettingKey.UI_LOCALE, "in_ID");
+
+    assertEquals("id_ID", locale.toString());
+  }
+
+  @Test
+  @DisplayName("The correct English UI locale should be returned for 'en'")
+  void validLocaleEnTest() {
+    Serializable locale = UserSettingKey.getAsRealClass(UserSettingKey.UI_LOCALE, "en");
+
+    assertEquals("en", locale.toString());
+  }
+
+  @Test
+  @DisplayName("The correct Indonesian DB locale should be returned for 'in'")
+  void validDbLocaleTest() {
+    Serializable locale = UserSettingKey.getAsRealClass(UserSettingKey.DB_LOCALE, "in");
+
+    assertEquals("in", locale.toString());
+  }
+
+  @Test
+  @DisplayName("The correct Indonesian DB locale should be returned for 'in_ID'")
+  void validDbLocale2Test() {
+    Serializable locale = UserSettingKey.getAsRealClass(UserSettingKey.DB_LOCALE, "in_ID");
+
+    assertEquals("in_ID", locale.toString());
+  }
+
+  @Test
+  @DisplayName("The correct Indonesian DB locale should be returned for 'id'")
+  void validDbLocale3Test() {
+    Serializable locale = UserSettingKey.getAsRealClass(UserSettingKey.DB_LOCALE, "id");
+
+    assertEquals("in", locale.toString());
+  }
+
+  @Test
+  @DisplayName("The correct Indonesian DB locale should be returned for 'id_ID'")
+  void validDbLocale4Test() {
+    Serializable locale = UserSettingKey.getAsRealClass(UserSettingKey.DB_LOCALE, "id_ID");
+
+    assertEquals("in_ID", locale.toString());
   }
 }
