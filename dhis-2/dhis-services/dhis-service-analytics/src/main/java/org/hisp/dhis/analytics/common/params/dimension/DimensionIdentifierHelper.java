@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.common.params.dimension;
 
+import static java.lang.String.join;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.PRIVATE;
@@ -208,18 +209,41 @@ public class DimensionIdentifierHelper {
   private static String getCustomLabel(
       DimensionIdentifier<DimensionParam> dimensionIdentifier,
       Function<StaticDimension, String> defaultLabelMapper) {
-    return Optional.of(dimensionIdentifier)
-        .filter(DimensionIdentifierHelper::supportsCustomLabel)
-        .map(DimensionIdentifierHelper::getStaticDimensionDisplayName)
-        .orElseGet(
-            () ->
-                defaultLabelMapper.apply(dimensionIdentifier.getDimension().getStaticDimension()));
+    return joinedWithPrefixesIfNeeded(
+        dimensionIdentifier,
+        Optional.of(dimensionIdentifier)
+            .filter(DimensionIdentifierHelper::supportsCustomLabel)
+            .map(DimensionIdentifierHelper::getStaticDimensionDisplayName)
+            .orElseGet(
+                () ->
+                    defaultLabelMapper.apply(
+                        dimensionIdentifier.getDimension().getStaticDimension())));
+  }
+
+  public static String joinedWithPrefixesIfNeeded(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier, String label) {
+    if (dimensionIdentifier.isEventDimension()) {
+      return join(
+              ", ",
+              label,
+              dimensionIdentifier.getProgram().getElement().getDisplayName(),
+              dimensionIdentifier.getProgramStage().getElement().getDisplayName())
+          .trim();
+    } else if (dimensionIdentifier.isEnrollmentDimension()) {
+      return join(", ", label, dimensionIdentifier.getProgram().getElement().getDisplayName())
+          .trim();
+    }
+    return label;
   }
 
   private static String getStaticDimensionDisplayName(
       DimensionIdentifier<DimensionParam> dimensionIdentifier) {
-    return DISPLAYNAME_EXTRACTOR_BY_STATIC_DIMENSION
-        .get(dimensionIdentifier.getDimension().getStaticDimension())
-        .apply(dimensionIdentifier);
+    try {
+      return DISPLAYNAME_EXTRACTOR_BY_STATIC_DIMENSION
+          .get(dimensionIdentifier.getDimension().getStaticDimension())
+          .apply(dimensionIdentifier);
+    } catch (Exception e) {
+      return null;
+    }
   }
 }

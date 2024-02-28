@@ -27,17 +27,13 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
-import static java.lang.String.join;
 import static java.util.Arrays.stream;
 import static lombok.AccessLevel.PRIVATE;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getCustomLabelOrFullName;
-import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getCustomLabelOrHeaderColumnName;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.joinedWithPrefixesIfNeeded;
 import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.common.ValueType.COORDINATE;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.ValueType.REFERENCE;
-import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -48,11 +44,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.common.params.CommonParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.common.query.Field;
@@ -292,80 +288,34 @@ public class TeiFields {
   }
 
   private static GridHeader getCustomGridHeaderForStaticDimension(
-      DimensionIdentifier<DimensionParam> dimensionIdentifier) {
-    if (dimensionIdentifier.hasProgramStage()) { // Event static dimension.
-      return getCustomGridHeaderForStaticEventDimension(dimensionIdentifier);
+      DimensionIdentifier<DimensionParam> dimId) {
+    if (dimId.isEventDimension() || dimId.isEnrollmentDimension()) {
+      return getGridHeader(DimensionIdentifierHelper::getCustomLabelOrHeaderColumnName, dimId);
     }
-    if (dimensionIdentifier.hasProgram()) { // Enrollment static dimension.
-      return getCustomGridHeaderForStaticEnrollmentDimension(dimensionIdentifier);
-    }
-    return getCustomGridHeaderForStaticTeiDimension(dimensionIdentifier);
+    return getGridHeader(DimensionIdentifierHelper::getCustomLabelOrFullName, dimId);
   }
 
-  @Nonnull
-  private static GridHeader getCustomGridHeaderForStaticTeiDimension(
+  private static GridHeader getGridHeader(
+      Function<DimensionIdentifier<DimensionParam>, String> labelProvider,
       DimensionIdentifier<DimensionParam> dimensionIdentifier) {
     return new GridHeader(
         dimensionIdentifier.getKey(),
-        getCustomLabelOrFullName(dimensionIdentifier),
+        labelProvider.apply(dimensionIdentifier),
         getValueType(dimensionIdentifier),
         false,
         true);
-  }
-
-  @Nonnull
-  private static GridHeader getCustomGridHeaderForStaticEnrollmentDimension(
-      DimensionIdentifier<DimensionParam> dimensionIdentifier) {
-    String program = dimensionIdentifier.getProgram().getElement().getDisplayName();
-
-    return new GridHeader(
-        dimensionIdentifier.getKey(),
-        joined(getCustomLabelOrHeaderColumnName(dimensionIdentifier), program),
-        getValueType(dimensionIdentifier),
-        false,
-        true);
-  }
-
-  @Nonnull
-  private static GridHeader getCustomGridHeaderForStaticEventDimension(
-      DimensionIdentifier<DimensionParam> dimensionIdentifier) {
-    String program = dimensionIdentifier.getProgram().getElement().getDisplayName();
-    String programStage = dimensionIdentifier.getProgramStage().getElement().getDisplayName();
-
-    return new GridHeader(
-        dimensionIdentifier.getKey(),
-        joined(getCustomLabelOrHeaderColumnName(dimensionIdentifier), program, programStage),
-        getValueType(dimensionIdentifier),
-        false,
-        true);
-  }
-
-  private static String joined(String... parts) {
-    return join(", ", parts).trim();
   }
 
   private static GridHeader getCustomGridHeaderForDimensionalObject(
       DimensionIdentifier<DimensionParam> dimensionIdentifier,
-      Function<DimensionParam, String> dimensionNameProvider) {
+      Function<DimensionParam, String> labelProvider) {
     return new GridHeader(
         dimensionIdentifier.getKey(),
-        join(
-                SPACE,
-                getColumnPrefix(dimensionIdentifier),
-                dimensionNameProvider.apply(dimensionIdentifier.getDimension()))
-            .trim(),
+        joinedWithPrefixesIfNeeded(
+            dimensionIdentifier, labelProvider.apply(dimensionIdentifier.getDimension())),
         getValueType(dimensionIdentifier),
         false,
         true);
-  }
-
-  private static String getColumnPrefix(DimensionIdentifier<DimensionParam> dimIdentifier) {
-    if (dimIdentifier.hasProgramStage()) {
-      return EVENT_COLUMN_PREFIX;
-    } else if (dimIdentifier.hasProgram()) {
-      return ENROLLMENT_COLUMN_PREFIX;
-    }
-    return EMPTY;
   }
 
   private static ValueType getValueType(DimensionIdentifier<DimensionParam> dimensionIdentifier) {

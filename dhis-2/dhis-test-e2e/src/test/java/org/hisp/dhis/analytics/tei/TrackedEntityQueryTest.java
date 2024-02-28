@@ -2968,7 +2968,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
     response
         .validate()
         .statusCode(200)
-        .body("metaData.items['IpHINAT79UW.enrollmentdate'].name", equalTo("Date of enrollment"))
+        .body(
+            "metaData.items['IpHINAT79UW.enrollmentdate'].name",
+            equalTo("Date of enrollment, Child Programme"))
         .body("headers[1].column", equalTo("Date of enrollment, Child Programme"))
         .body(
             "metaData.items['IpHINAT79UW.ZzYYXq4fJie.cYGaxwK615G'].name",
@@ -3203,6 +3205,10 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
     ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
 
     // Then
-    response.validate().statusCode(200).body("headers[0].column", equalTo(expected));
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers[0].column", equalTo(expected))
+        .body("metaData.items['" + header + "'].name", equalTo(expected));
   }
 }
