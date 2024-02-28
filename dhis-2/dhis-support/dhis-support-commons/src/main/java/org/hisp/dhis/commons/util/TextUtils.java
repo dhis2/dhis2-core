@@ -37,9 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.slf4j.helpers.MessageFormatter;
@@ -64,9 +62,6 @@ public class TextUtils {
 
   public static final String COMMA = ",";
 
-  private static final Pattern LINK_PATTERN =
-      Pattern.compile("((http://|https://|www\\.).+?)($|\\n|\\r|\\r\\n| )");
-
   private static final String DELIMITER = ", ";
 
   private static final String OPTION_SEP = ";";
@@ -81,63 +76,6 @@ public class TextUtils {
    */
   public static String removeNonEssentialChars(String str) {
     return str.replaceAll("[^a-zA-Z0-9 ;:,'=._@-]", "");
-  }
-
-  /**
-   * Performs the htmlNewline(String) and htmlLinks(String) methods against the given text.
-   *
-   * @param text the text to substitute.
-   * @return the substituted text.
-   */
-  public static String htmlify(String text) {
-    text = htmlLinks(text);
-    text = htmlNewline(text);
-    return text;
-  }
-
-  /**
-   * Substitutes links in the given text with valid HTML mark-up. For instance, http://dhis2.org is
-   * replaced with <a href="http://dhis2.org">http://dhis2.org</a>, and www.dhis2.org is replaced
-   * with <a href="http://dhis2.org">www.dhis2.org</a>.
-   *
-   * @param text the text to substitute links for.
-   * @return the substituted text.
-   */
-  public static String htmlLinks(String text) {
-    if (text == null || text.trim().isEmpty()) {
-      return null;
-    }
-
-    Matcher matcher = LINK_PATTERN.matcher(text);
-
-    StringBuffer buffer = new StringBuffer();
-
-    while (matcher.find()) {
-      String url = matcher.group(1);
-      String suffix = matcher.group(3);
-
-      String ref = url.startsWith("www.") ? "http://" + url : url;
-
-      url = "<a href=\"" + ref + "\">" + url + "</a>" + suffix;
-
-      matcher.appendReplacement(buffer, url);
-    }
-
-    return matcher.appendTail(buffer).toString();
-  }
-
-  /**
-   * Replaces common newline characters like \n, \r, \r\n to the HTML line break tag br.
-   *
-   * @param text the text to substitute.
-   * @return the substituted text.
-   */
-  public static String htmlNewline(String text) {
-    if (text == null || text.trim().isEmpty()) {
-      return null;
-    }
-
-    return text.replaceAll("(\n|\r|\r\n)", "<br>");
   }
 
   /**
@@ -261,22 +199,6 @@ public class TextUtils {
    */
   public static String removeNewlines(String string) {
     return string.replaceAll("\r", EMPTY).replaceAll("\n", EMPTY);
-  }
-
-  /**
-   * Trims the given string from the end.
-   *
-   * @param value the value to trim.
-   * @param length the number of characters to trim.
-   * @return the trimmed value, empty if given value is null or length is higher than the value
-   *     length.
-   */
-  public static String trimEnd(String value, int length) {
-    if (value == null || length > value.length()) {
-      return EMPTY;
-    }
-
-    return value.substring(0, value.length() - length);
   }
 
   /**
@@ -690,7 +612,7 @@ public class TextUtils {
    * @param string
    * @return string with no trailing '/' or the string unchanged
    */
-  public static String removeAnyTrailingSlash(@Nonnull String string) {
+  public static String removeAnyTrailingSlash(String string) {
     return string.endsWith("/") ? StringUtils.chop(string) : string;
   }
 

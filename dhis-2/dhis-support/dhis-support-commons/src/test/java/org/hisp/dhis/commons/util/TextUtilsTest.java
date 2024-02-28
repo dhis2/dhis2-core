@@ -66,21 +66,6 @@ class TextUtilsTest {
   }
 
   @Test
-  void testHtmlLinks() {
-    assertEquals(
-        "<a href=\"http://dhis2.org\">http://dhis2.org</a>",
-        TextUtils.htmlLinks("http://dhis2.org"));
-    assertEquals(
-        "<a href=\"https://dhis2.org\">https://dhis2.org</a>",
-        TextUtils.htmlLinks("https://dhis2.org"));
-    assertEquals(
-        "<a href=\"http://www.dhis2.org\">www.dhis2.org</a>", TextUtils.htmlLinks("www.dhis2.org"));
-    assertEquals(
-        "Navigate to <a href=\"http://dhis2.org\">http://dhis2.org</a> or <a href=\"http://www.dhis2.com\">www.dhis2.com</a> to read more.",
-        TextUtils.htmlLinks("Navigate to http://dhis2.org or www.dhis2.com to read more."));
-  }
-
-  @Test
   void testSubString() {
     assertEquals("abcdefghij", TextUtils.subString(STRING, 0, 10));
     assertEquals("cdef", TextUtils.subString(STRING, 2, 4));
@@ -89,11 +74,6 @@ class TextUtilsTest {
     assertEquals("", TextUtils.subString(STRING, 11, 3));
     assertEquals("j", TextUtils.subString(STRING, 9, 1));
     assertEquals("", TextUtils.subString(STRING, 4, 0));
-  }
-
-  @Test
-  void testTrim() {
-    assertEquals("abcdefgh", TextUtils.trimEnd("abcdefghijkl", 4));
   }
 
   @Test
