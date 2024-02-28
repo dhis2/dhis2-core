@@ -32,6 +32,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.commons.util.TextUtils.removeAnyTrailingSlash;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+
 import java.util.AbstractSequentialList;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -210,8 +211,11 @@ class TextUtilsTest {
 
   @Test
   void testReplace() {
-    assertEquals("Welcome John Doe", TextUtils.replace("Welcome ${first_name} ${last_name}", Map.of(
-        "first_name", "John", "last_name", "Doe")));
+    assertEquals(
+        "Welcome John Doe",
+        TextUtils.replace(
+            "Welcome ${first_name} ${last_name}",
+            Map.of("first_name", "John", "last_name", "Doe")));
   }
 
   @Test

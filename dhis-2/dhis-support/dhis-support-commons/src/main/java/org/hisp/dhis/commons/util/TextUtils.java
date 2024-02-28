@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.commons.util;
 
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -42,7 +43,6 @@ import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.slf4j.helpers.MessageFormatter;
-import com.google.common.collect.Lists;
 
 /**
  * Utility class with methods for managing strings.
