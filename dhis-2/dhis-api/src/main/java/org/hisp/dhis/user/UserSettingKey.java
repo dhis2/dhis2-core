@@ -115,28 +115,65 @@ public enum UserSettingKey {
   }
 
   @SuppressWarnings({"unchecked", "rawtypes"})
-  public static Serializable getAsRealClass(String name, String value) {
-    Optional<UserSettingKey> setting = getByName(name);
+  public static Serializable getAsRealClass(UserSettingKey key, String value) {
 
-    if (setting.isPresent()) {
-      Class<?> settingClazz = setting.get().getClazz();
+    Class<?> settingClazz = key.getClazz();
 
-      if (Double.class.isAssignableFrom(settingClazz)) {
-        return Double.valueOf(value);
-      } else if (Integer.class.isAssignableFrom(settingClazz)) {
-        return Integer.valueOf(value);
-      } else if (Boolean.class.isAssignableFrom(settingClazz)) {
-        return Boolean.valueOf(value);
-      } else if (Locale.class.isAssignableFrom(settingClazz)) {
-        return LocaleUtils.toLocale(value);
-      } else if (Enum.class.isAssignableFrom(settingClazz)) {
-        return Enum.valueOf((Class<? extends Enum>) settingClazz, value.toUpperCase());
-      }
-
-      // TODO handle Dates
+    if (Double.class.isAssignableFrom(settingClazz)) {
+      return Double.valueOf(value);
+    } else if (Integer.class.isAssignableFrom(settingClazz)) {
+      return Integer.valueOf(value);
+    } else if (Boolean.class.isAssignableFrom(settingClazz)) {
+      return Boolean.valueOf(value);
+    } else if (Locale.class.isAssignableFrom(settingClazz)) {
+      return handleLocale(key, LocaleUtils.toLocale(value));
+    } else if (Enum.class.isAssignableFrom(settingClazz)) {
+      return Enum.valueOf((Class<? extends Enum>) settingClazz, value.toUpperCase());
     }
 
+    // TODO handle Dates
+
     return value;
+  }
+
+  /**
+   * Method to determine whether a locale should be transformed or not. We only want to transform UI
+   * locales. We do not want to transform DB locales.
+   *
+   * @param key key to check whether the transformation should apply or not
+   * @param locale locale to transform or return
+   * @return the received locale if it's the DC_LOCALE or the possibly-transformed UI locale
+   */
+  private static Serializable handleLocale(UserSettingKey key, Locale locale) {
+    if (DB_LOCALE == key) return locale;
+
+    return handleObsoleteLocales(locale);
+  }
+
+  /**
+   * By default, for backwards compatibility reasons, Java maps Indonesian locales to the old 'in'
+   * ISO format, even if we pass 'id' into a {@link Locale} constructor. See {@link
+   * Locale#convertOldISOCodes(String)}. This method sets the Indonesian codes to the codes we want
+   * to use (which conform with the newer, universally-accepted ISO language formats for Indonesia
+   * 'id'). <br>
+   * <br>
+   * JDK 17 does not have this issue and allows switching between both codes - see <a
+   * href="https://bugs.openjdk.org/browse/JDK-8267069">JDK bug</a>. This is needed purely for DHIS2
+   * versions running on a JDK below 17.
+   *
+   * @param locale locale
+   * @return adjusted locale for Indonesian codes or as is for anything else
+   */
+  public static String handleObsoleteLocales(Locale locale) {
+
+    switch (locale.toString()) {
+      case "in":
+        return "id";
+      case "in_ID":
+        return "id_ID";
+      default:
+        return locale.toString();
+    }
   }
 
   // -------------------------------------------------------------------------

@@ -162,7 +162,7 @@ public class UserSettingController {
     }
 
     userSettingService.saveUserSetting(
-        userSettingKey, UserSettingKey.getAsRealClass(key, newValue), user);
+        userSettingKey, UserSettingKey.getAsRealClass(userSettingKey, newValue), user);
 
     return ok("User setting saved");
   }
@@ -190,7 +190,7 @@ public class UserSettingController {
   private UserSettingKey getUserSettingKey(String key) throws WebMessageException {
     Optional<UserSettingKey> userSettingKey = UserSettingKey.getByName(key);
 
-    if (!userSettingKey.isPresent()) {
+    if (userSettingKey.isEmpty()) {
       throw new WebMessageException(notFound("No user setting found with key: " + key));
     }
 

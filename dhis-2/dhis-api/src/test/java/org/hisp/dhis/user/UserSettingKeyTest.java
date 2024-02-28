@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.user;
 
+import static org.hisp.dhis.user.UserSettingKey.UI_LOCALE;
+
 import org.hisp.dhis.common.DisplayProperty;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -42,15 +44,13 @@ class UserSettingKeyTest {
   void getAsRealClassEnum() {
     Assertions.assertSame(
         DisplayProperty.SHORTNAME,
-        UserSettingKey.getAsRealClass(
-            UserSettingKey.ANALYSIS_DISPLAY_PROPERTY.getName(), "shortName"));
+        UserSettingKey.getAsRealClass(UserSettingKey.ANALYSIS_DISPLAY_PROPERTY, "shortName"));
   }
 
   @Test
   void getAsRealClassOther() {
     Assertions.assertSame(
         "Test Layout",
-        UserSettingKey.getAsRealClass(
-            UserSettingKey.TRACKER_DASHBOARD_LAYOUT.getName(), "Test Layout"));
+        UserSettingKey.getAsRealClass(UserSettingKey.TRACKER_DASHBOARD_LAYOUT, "Test Layout"));
   }
 }
