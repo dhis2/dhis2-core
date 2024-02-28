@@ -28,10 +28,11 @@
 package org.hisp.dhis.external.conf;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
+
 import java.util.Arrays;
 import java.util.Optional;
-import org.hisp.dhis.security.utils.CspConstants;
 import lombok.Getter;
+import org.hisp.dhis.security.utils.CspConstants;
 
 /**
  * @author Lars Helge Overland
@@ -85,7 +86,7 @@ public enum ConfigurationKey {
 
   /** Analytics database JDBC catalog name. */
   ANALYTICS_DATABASE_CATALOG("analytics.database.catalog", "pg_dhis", false),
-  
+
   /** Analytics database JDBC driver filename. */
   ANALYTICS_DATABASE_DRIVER_FILENAME("analytics.database.driver_filename", "postgresql.jar", false),
 
