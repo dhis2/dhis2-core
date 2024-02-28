@@ -518,8 +518,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         .body("metaData.pager", not(hasKey("total")))
         .body("metaData.pager", not(hasKey("pageCount")))
         .body("metaData.items.ImspTQPwCqd.name", equalTo(null))
-        .body("metaData.items.lZGmxYbs97q.name", equalTo("Unique ID"))
-        .body("metaData.items.zDhUuAYrxNC.name", equalTo("Last name"))
         .body("metaData.items.w75KJ2mc4zz.name", equalTo("First name"))
         .body("metaData.items.cejWyOfXge6.name", equalTo("Gender"))
         .body("metaData.items.ou.name", equalTo(null))
@@ -618,8 +616,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         .body("metaData.pager", not(hasKey("total")))
         .body("metaData.pager", not(hasKey("pageCount")))
         .body("metaData.items.ImspTQPwCqd.name", equalTo(null))
-        .body("metaData.items.lZGmxYbs97q.name", equalTo("Unique ID"))
-        .body("metaData.items.zDhUuAYrxNC.name", equalTo("Last name"))
         .body("metaData.items.w75KJ2mc4zz.name", equalTo("First name"))
         .body("metaData.items.ou.name", equalTo(null))
         .body("metaData.dimensions", hasKey("lZGmxYbs97q"))
@@ -1819,7 +1815,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"page\":1,\"pageSize\":50,\"isLastPage\":false},\"items\":{\"lZGmxYbs97q\":{\"name\":\"Unique ID\"},\"zDhUuAYrxNC\":{\"name\":\"Last name\"},\"pe\":{\"name\":\"Period\"},\"IpHINAT79UW.pe\":{\"name\":\"Period\"},\"w75KJ2mc4zz\":{\"name\":\"First name\"},\"2022\":{\"name\":\"2022\"},\"LAST_YEAR\":{\"name\":\"Last year\"}},\"dimensions\":{\"lZGmxYbs97q\":[],\"zDhUuAYrxNC\":[],\"pe\":[\"2022\"],\"w75KJ2mc4zz\":[],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
+        "{\"pager\":{\"page\":1,\"pageSize\":50,\"isLastPage\":false},\"items\":{\"zDhUuAYrxNC\":{\"name\":\"Last name\"},\"pe\":{\"name\":\"Period\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"IpHINAT79UW.pe\":{\"name\":\"Period\"},\"w75KJ2mc4zz\":{\"name\":\"First name\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"2022\":{\"name\":\"2022\"},\"LAST_YEAR\":{\"name\":\"Last year\"}},\"dimensions\":{\"lZGmxYbs97q\":[],\"zDhUuAYrxNC\":[],\"pe\":[\"2022\"],\"w75KJ2mc4zz\":[],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 

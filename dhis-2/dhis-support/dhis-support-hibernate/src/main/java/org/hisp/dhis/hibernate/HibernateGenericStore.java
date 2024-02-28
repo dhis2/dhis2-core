@@ -209,6 +209,16 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
     return list != null && !list.isEmpty() ? list.get(0) : null;
   }
 
+  protected <V> V getSingleResult(NativeQuery<V> nativeQuery) {
+    List<V> list = nativeQuery.getResultList();
+
+    if (list != null && list.size() > 1) {
+      throw new NonUniqueResultException("More than one entity found for query");
+    }
+
+    return list != null && !list.isEmpty() ? list.get(0) : null;
+  }
+
   /**
    * Get List objects returned by executable TypedQuery
    *
