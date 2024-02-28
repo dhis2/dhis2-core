@@ -40,8 +40,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 /**
- * Manager responsible for performing work for initialization of an analytics database, if
- * configured.
+ * Responsible for performing work for initialization of a configured analytics database.
+ *
+ * @author Lars Helge Overland
  */
 @Slf4j
 @Service
