@@ -1,0 +1,41 @@
+apiVersion: jib/v1alpha1
+kind: BuildFile
+
+from:
+  image: ${baseImage}
+  platforms:
+    - architecture: "amd64"
+      os: "linux"
+    - architecture: "arm64"
+      os: "linux"
+
+creationTime: ${timestamp}
+
+format: Docker
+
+environment:
+  "CATALINA_OPTS": "-Dcontext.path=''"
+
+labels:
+  "DHIS2_VERSION": ${dhis2Version}
+  "DHIS2_BUILD_REVISION": ${gitCommit}
+  "DHIS2_BUILD_BRANCH": ${gitBranch}
+
+user: ${imageUser}
+
+layers:
+  entries:
+    - name: "WAR"
+      properties:
+      files:
+        - src: ${unarchivedWarDir}
+          dest: ${imageAppRoot}
+        - src: "dhis-2/dhis-web/dhis-web-portal/src/main/jib/usr/local/tomcat/conf/server.xml"
+          dest: "/usr/local/tomcat/conf/server.xml"
+        - src: "dhis-2/dhis-web/dhis-web-portal/src/main/jib/usr/local/tomcat/conf/Catalina/localhost"
+          dest: "/usr/local/tomcat/conf/Catalina/localhost"
+        - src: "dhis-2/dhis-web/dhis-web-portal/src/main/jib/opt/dhis2"
+          dest: "/opt/dhis2"
+          properties:
+            user: ${imageUser}
+            group: ${imageUser}
