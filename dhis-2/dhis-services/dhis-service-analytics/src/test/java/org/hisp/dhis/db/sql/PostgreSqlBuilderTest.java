@@ -177,8 +177,7 @@ class PostgreSqlBuilderTest {
   @Test
   void testQualifyTable() {
     assertEquals("public.category", sqlBuilder.qualifyTable("category"));
-    assertEquals(
-        "public.categories_categoryoptions", sqlBuilder.qualifyTable("categories_categoryoptions"));
+    assertEquals("public.categories_options", sqlBuilder.qualifyTable("categories_options"));
   }
 
   // Statements
