@@ -65,6 +65,6 @@ public class FunctionContainsItems implements ExpressionItem {
 
   /** Gets the codes (second expr argument and following) as strings. */
   private List<String> getCodes(ExprContext ctx, CommonExpressionVisitor visitor) {
-    return ctx.expr().stream().skip(1).map(visitor::castStringVisit).collect(toList());
+    return ctx.expr().stream().skip(1).map(visitor::castStringVisit).toList();
   }
 }

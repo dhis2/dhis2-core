@@ -47,7 +47,7 @@ public class FunctionContains implements ExpressionItem {
   public Object evaluate(ExprContext ctx, CommonExpressionVisitor visitor) {
     String arg0 = visitor.castStringVisit(ctx.expr(0));
     List<String> searches = getCodes(ctx, visitor);
-    return searches.stream().allMatch(s -> arg0.contains(s));
+    return searches.stream().allMatch(arg0::contains);
   }
 
   @Override
@@ -67,6 +67,6 @@ public class FunctionContains implements ExpressionItem {
 
   /** Gets the codes (second expr argument and following) as strings. */
   private List<String> getCodes(ExprContext ctx, CommonExpressionVisitor visitor) {
-    return ctx.expr().stream().skip(1).map(visitor::castStringVisit).collect(toList());
+    return ctx.expr().stream().skip(1).map(visitor::castStringVisit).toList();
   }
 }
