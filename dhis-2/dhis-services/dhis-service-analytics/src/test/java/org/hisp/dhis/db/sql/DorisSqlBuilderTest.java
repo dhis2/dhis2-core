@@ -30,6 +30,7 @@ package org.hisp.dhis.db.sql;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class DorisSqlBuilderTest {
@@ -53,6 +54,31 @@ class DorisSqlBuilderTest {
   @Test
   void testSupportsVacuum() {
     assertFalse(sqlBuilder.supportsVacuum());
+  }
+
+  @Test
+  void testSingleQuote() {
+    assertEquals("'jkhYg65ThbF'", sqlBuilder.singleQuote("jkhYg65ThbF"));
+    assertEquals("'Age ''<5'' years'", sqlBuilder.singleQuote("Age '<5' years"));
+    assertEquals("'Status \"not checked\"'", sqlBuilder.singleQuote("Status \"not checked\""));
+  }
+
+  @Test
+  void testEscape() {
+    assertEquals("Age group ''under 5'' years", sqlBuilder.escape("Age group 'under 5' years"));
+    assertEquals("Level ''high'' found", sqlBuilder.escape("Level 'high' found"));
+    assertEquals("C:\\\\Downloads\\\\File.doc", sqlBuilder.escape("C:\\Downloads\\File.doc"));
+  }
+
+  @Test
+  void testSinqleQuotedCommaDelimited() {
+    assertEquals(
+        "'dmPbDBKwXyF', 'zMl4kciwJtz', 'q1Nqu1r1GTn'",
+        sqlBuilder.singleQuotedCommaDelimited(
+            List.of("dmPbDBKwXyF", "zMl4kciwJtz", "q1Nqu1r1GTn")));
+    assertEquals("'1', '3', '5'", sqlBuilder.singleQuotedCommaDelimited(List.of("1", "3", "5")));
+    assertEquals("", sqlBuilder.singleQuotedCommaDelimited(List.of()));
+    assertEquals("", sqlBuilder.singleQuotedCommaDelimited(null));
   }
 
   // Utilities
