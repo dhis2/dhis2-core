@@ -58,24 +58,30 @@ public class AnalyticsDataSourceConfig {
 
   private static final int FETCH_SIZE = 1000;
 
-  private final DhisConfigurationProvider dhisConfig;
+  private final DhisConfigurationProvider config;
 
   @Bean("analyticsDataSource")
   @DependsOn("analyticsActualDataSource")
   public DataSource jdbcDataSource(
       @Qualifier("analyticsActualDataSource") DataSource actualDataSource) {
-    return createLoggingDataSource(dhisConfig, actualDataSource);
+    return createLoggingDataSource(config, actualDataSource);
   }
 
   @Bean("analyticsActualDataSource")
   public DataSource jdbcActualDataSource(
       @Qualifier("actualDataSource") DataSource actualDataSource) {
-    if (dhisConfig.isAnalyticsDatabaseConfigured()) {
+    if (config.isAnalyticsDatabaseConfigured()) {
+      log.info(
+          "Analytics data source found, database: '{}', connection URL: '{}'",
+          config.getProperty(ConfigurationKey.ANALYTICS_DATABASE),
+          config.getProperty(ConfigurationKey.ANALYTICS_CONNECTION_URL));
+
       return getAnalyticsDataSource();
     } else {
       log.info(
           "Analytics data source connection URL not specified with key: '{}'",
           ANALYTICS_CONNECTION_URL.getKey());
+
       return actualDataSource;
     }
   }
@@ -98,7 +104,7 @@ public class AnalyticsDataSourceConfig {
   @DependsOn("analyticsDataSource")
   public JdbcTemplate readOnlyJdbcTemplate(
       @Qualifier("analyticsDataSource") DataSource dataSource) {
-    ReadOnlyDataSourceManager manager = new ReadOnlyDataSourceManager(dhisConfig);
+    ReadOnlyDataSourceManager manager = new ReadOnlyDataSourceManager(config);
     DataSource ds = MoreObjects.firstNonNull(manager.getReadOnlyDataSource(), dataSource);
     return getJdbcTemplate(ds);
   }
@@ -119,15 +125,11 @@ public class AnalyticsDataSourceConfig {
    * @return a {@link DataSource}.
    */
   private DataSource getAnalyticsDataSource() {
-    String jdbcUrl = dhisConfig.getProperty(ANALYTICS_CONNECTION_URL);
-    String dbPoolType = dhisConfig.getProperty(ConfigurationKey.DB_POOL_TYPE);
+    String jdbcUrl = config.getProperty(ANALYTICS_CONNECTION_URL);
+    String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
 
     PoolConfig poolConfig =
-        PoolConfig.builder()
-            .dhisConfig(dhisConfig)
-            .mapper(ANALYTICS)
-            .dbPoolType(dbPoolType)
-            .build();
+        PoolConfig.builder().dhisConfig(config).mapper(ANALYTICS).dbPoolType(dbPoolType).build();
 
     try {
       return DatabasePoolUtils.createDbPool(poolConfig);

@@ -154,7 +154,7 @@ public final class DatabasePoolUtils {
 
     ConfigKeyMapper mapper = config.getMapper();
     DbPoolType dbPoolType = DbPoolType.valueOf(config.getDbPoolType().toUpperCase());
-    log.info("Database pool type value is [{}]", dbPoolType);
+    log.info("Database pool type value is '{}'", dbPoolType);
 
     DhisConfigurationProvider dhisConfig = config.getDhisConfig();
     final String driverClassName =
