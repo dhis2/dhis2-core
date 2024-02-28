@@ -221,15 +221,16 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   public String createCatalog(String connectionUrl, String username, String password) {
     String sql =
         """
-    create catalog ${catalog} \
-    properties (
-    "type" = "jdbc",
-    "user" = "${username}",
-    "password" = "${password}",
-    "jdbc_url" = "${connection_url}",
-    "driver_url" = "${driver_filename}",
-    "driver_class" = "org.postgresql.Driver"
-    """;
+        create catalog ${catalog} \
+        properties (
+        "type" = "jdbc", \
+        "user" = "${username}", \
+        "password" = "${password}", \
+        "jdbc_url" = "${connection_url}", \
+        "driver_url" = "${driver_filename}", \
+        "driver_class" = "org.postgresql.Driver"
+        );
+        """;
 
     Map<String, String> variables =
         Map.of(
