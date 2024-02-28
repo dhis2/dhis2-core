@@ -131,10 +131,7 @@ public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
                 + "where ougm.organisationunitid = ou.organisationunitid "
                 + "limit 1) as "
                 + sqlBuilder.quote(groupSet.getName())
-                + ", ";
-
-        sql +=
-            "("
+                + ", ("
                 + "select oug.uid from orgunitgroup oug "
                 + "inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid "
                 + "inner join orgunitgroupsetmembers ougsm on "

@@ -107,10 +107,7 @@ public class DataElementGroupSetResourceTable implements ResourceTable {
               + "where degm.dataelementid = d.dataelementid "
               + "limit 1) as "
               + sqlBuilder.quote(groupSet.getName())
-              + ", ";
-
-      sql +=
-          "("
+              + ", ("
               + "select deg.uid from dataelementgroup deg "
               + "inner join dataelementgroupmembers degm on degm.dataelementgroupid = deg.dataelementgroupid "
               + "inner join dataelementgroupsetmembers degsm on "
