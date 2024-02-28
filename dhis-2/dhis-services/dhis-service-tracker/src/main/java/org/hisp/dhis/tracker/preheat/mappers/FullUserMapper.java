@@ -31,13 +31,20 @@ import java.util.Set;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserRole;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = {DebugMapper.class, OrganisationUnitMapper.class, UserGroupMapper.class})
+@Mapper(
+    uses = {
+      DebugMapper.class,
+      OrganisationUnitMapper.class,
+      UserGroupMapper.class,
+      UserRoleMapper.class
+    })
 public interface FullUserMapper extends PreheatMapper<User> {
   FullUserMapper INSTANCE = Mappers.getMapper(FullUserMapper.class);
 
@@ -63,4 +70,6 @@ public interface FullUserMapper extends PreheatMapper<User> {
 
   @Named("groups")
   Set<UserGroup> groups(Set<UserGroup> groups);
+
+  Set<UserRole> map(Set<UserRole> userRoles);
 }

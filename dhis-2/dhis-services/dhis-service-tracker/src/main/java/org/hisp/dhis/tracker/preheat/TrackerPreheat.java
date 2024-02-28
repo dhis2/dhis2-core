@@ -66,6 +66,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -90,6 +91,8 @@ import org.hisp.dhis.user.User;
 public class TrackerPreheat {
   /** User to use for import job (important for threaded imports). */
   @Getter @Setter private User user;
+
+  @Getter @Setter private UserInfoSnapshot userInfo;
 
   /**
    * Internal map of all metadata objects mapped by class type => [id] The value of each id can be

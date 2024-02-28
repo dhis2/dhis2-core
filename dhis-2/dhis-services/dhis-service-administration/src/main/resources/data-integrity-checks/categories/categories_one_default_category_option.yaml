@@ -39,6 +39,7 @@ details_id_type: categoryOptions
 severity: SEVERE
 introduction: >
   There should only exist one category option with name and code "default".
+section_order: 4
 recommendation: >
   Only the category option with UID "xYerKDKCefk" should be named "default" and have code "default".
   Either rename the conflicting category option or move all references to category option "xYerKDKCefk"

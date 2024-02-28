@@ -54,7 +54,7 @@ public interface EnrollmentAnalyticsManager {
   void getEnrollments(EventQueryParams params, Grid grid, int maxLimit);
 
   /**
-   * Retreives count of enrollments based on params.
+   * Retrieves count of enrollments based on params.
    *
    * @param params the qyery to count enrollments for,
    * @return number of enrollments macting the parameter criteria.

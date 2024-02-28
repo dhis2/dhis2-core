@@ -36,10 +36,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
-import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
-import org.apache.commons.lang3.time.DateUtils;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.CodeGenerator;
@@ -62,6 +61,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.DhisWebSpringTest;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
+import org.hisp.dhis.webapi.controller.event.mapper.OrderParam.SortDirection;
 import org.hisp.dhis.webapi.controller.event.mapper.TrackedEntityCriteriaMapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.event.webrequest.TrackedEntityInstanceCriteria;
@@ -166,9 +166,9 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest {
     criteria.setSkipPaging(false);
     criteria.setIncludeDeleted(true);
     criteria.setIncludeAllAttributes(true);
-    criteria.setOrder(
-        Collections.singletonList(OrderCriteria.of("created", OrderParam.SortDirection.ASC)));
-    final TrackedEntityInstanceQueryParams queryParams = trackedEntityCriteriaMapper.map(criteria);
+
+    TrackedEntityInstanceQueryParams queryParams = trackedEntityCriteriaMapper.map(criteria);
+
     assertThat(queryParams.getQuery().getFilter(), is("query-test"));
     assertThat(queryParams.getQuery().getOperator(), is(QueryOperator.EQ));
     assertThat(queryParams.getProgram(), is(programA));
@@ -200,13 +200,10 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest {
     assertThat(
         queryParams.getProgramEnrollmentStartDate(), is(criteria.getProgramEnrollmentStartDate()));
     assertThat(
-        queryParams.getProgramEnrollmentEndDate(),
-        is(DateUtils.addDays(criteria.getProgramEnrollmentEndDate(), 1)));
+        queryParams.getProgramEnrollmentEndDate(), is(criteria.getProgramEnrollmentEndDate()));
     assertThat(
         queryParams.getProgramIncidentStartDate(), is(criteria.getProgramIncidentStartDate()));
-    assertThat(
-        queryParams.getProgramIncidentEndDate(),
-        is(DateUtils.addDays(criteria.getProgramIncidentEndDate(), 1)));
+    assertThat(queryParams.getProgramIncidentEndDate(), is(criteria.getProgramIncidentEndDate()));
     assertThat(queryParams.getEventStatus(), is(EventStatus.COMPLETED));
     assertThat(queryParams.getEventStartDate(), is(criteria.getEventStartDate()));
     assertThat(queryParams.getEventEndDate(), is(criteria.getEventEndDate()));
@@ -216,11 +213,23 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest {
     assertThat(queryParams.getAssignedUsers().stream().anyMatch(u -> u.equals(userId3)), is(false));
     assertThat(queryParams.isIncludeDeleted(), is(true));
     assertThat(queryParams.isIncludeAllAttributes(), is(true));
-    assertTrue(
-        queryParams.getOrders().stream()
-            .anyMatch(
-                orderParam ->
-                    orderParam.equals(new OrderParam("created", OrderParam.SortDirection.ASC))));
+  }
+
+  @Test
+  void mapOrderParam() {
+    TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
+    criteria.setOrder(
+        List.of(
+            OrderCriteria.of("inactive", SortDirection.ASC),
+            OrderCriteria.of("createdAt", SortDirection.DESC)));
+
+    TrackedEntityInstanceQueryParams queryParams = trackedEntityCriteriaMapper.map(criteria);
+
+    assertEquals(
+        List.of(
+            new OrderParam("inactive", SortDirection.ASC),
+            new OrderParam("createdAt", SortDirection.DESC)),
+        queryParams.getOrders());
   }
 
   @Test

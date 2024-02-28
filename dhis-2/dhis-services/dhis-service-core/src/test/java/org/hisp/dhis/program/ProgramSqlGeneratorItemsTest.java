@@ -144,7 +144,10 @@ class ProgramSqlGeneratorItemsTest extends DhisConvenienceTest {
     when(programStageService.getProgramStage(programStageA.getUid())).thenReturn(programStageA);
 
     String sql = test("#{ProgrmStagA.DataElmentA}");
-    assertThat(sql, is("coalesce(\"DataElmentA\"::numeric,0)"));
+    assertThat(
+        sql,
+        is(
+            "coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentA\" else null end::numeric,0)"));
   }
 
   @Test
@@ -153,7 +156,10 @@ class ProgramSqlGeneratorItemsTest extends DhisConvenienceTest {
     when(programStageService.getProgramStage(programStageA.getUid())).thenReturn(programStageA);
 
     String sql = test("d2:oizp(#{ProgrmStagA.DataElmentA})");
-    assertThat(sql, is("coalesce(case when \"DataElmentA\" >= 0 then 1 else 0 end, 0)"));
+    assertThat(
+        sql,
+        is(
+            "coalesce(case when case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentA\" else null end >= 0 then 1 else 0 end, 0)"));
   }
 
   @Test

@@ -42,6 +42,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -57,6 +58,8 @@ import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.message.FakeMessageSender;
 import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.security.RestoreType;
 import org.hisp.dhis.security.SecurityService;
@@ -65,6 +68,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.web.HttpStatus;
@@ -77,6 +81,7 @@ import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.session.SessionRegistry;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.user.UserController}.
@@ -89,6 +94,12 @@ class UserControllerTest extends DhisControllerConvenienceTest {
   @Autowired private SecurityService securityService;
 
   @Autowired private SystemSettingManager systemSettingManager;
+
+  @Autowired private OrganisationUnitService organisationUnitService;
+
+  @Autowired private SessionRegistry sessionRegistry;
+
+  @Autowired private UserService userService;
 
   private User peter;
 
@@ -228,6 +239,152 @@ class UserControllerTest extends DhisControllerConvenienceTest {
             .as(JsonImportSummary.class);
 
     return response;
+  }
+
+  @Test
+  void testRemoveALLNonAllAdmin() {
+    UserRole roleAll = createUserRole("ROLE_ALL", "ALL");
+    userService.addUserRole(roleAll);
+
+    User user = createUserWithAuth("someone", "F_USERROLE_PUBLIC_ADD");
+    userService.updateUser(user);
+    switchContextToUser(user);
+
+    checkRoleChangFailsWhenNonALLAdmin("'ANYTHING'");
+  }
+
+  @Test
+  void testAddALLNonAllAdmin() {
+    UserRole roleAll = createUserRole("ROLE_ALL", "NONE");
+    userService.addUserRole(roleAll);
+
+    User user = createUserWithAuth("someone", "F_USERROLE_PUBLIC_ADD");
+    userService.updateUser(user);
+    switchContextToUser(user);
+
+    checkRoleChangFailsWhenNonALLAdmin("'ALL'");
+  }
+
+  private void checkRoleChangFailsWhenNonALLAdmin(String roleName) {
+    String roleAllId = userService.getUserRoleByName("ROLE_ALL").getUid();
+
+    JsonImportSummary response =
+        PATCH(
+                "/userRoles/" + roleAllId,
+                "["
+                    + " {"
+                    + "   'op': 'add',"
+                    + "   'path': '/authorities',"
+                    + "   'value': ["
+                    + roleName
+                    + "   ]"
+                    + " }"
+                    + "]")
+            .content(HttpStatus.CONFLICT)
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    assertEquals(
+        "User `someone` does not have access to user role",
+        response
+            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E3032)
+            .getMessage());
+  }
+
+  @Test
+  void testChangeOrgUnitLevelGivesAccessError() {
+    systemSettingManager.saveSystemSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES, Boolean.TRUE);
+
+    OrganisationUnit orgA = createOrganisationUnit('A');
+    organisationUnitService.addOrganisationUnit(orgA);
+    OrganisationUnit orgB = createOrganisationUnit('B', orgA);
+    organisationUnitService.addOrganisationUnit(orgB);
+    OrganisationUnit orgC = createOrganisationUnit('C', orgB);
+    organisationUnitService.addOrganisationUnit(orgC);
+
+    User user = createUserWithAuth("someone", "F_USER_ADD");
+    user.addOrganisationUnit(orgC);
+    userService.updateUser(user);
+
+    switchContextToUser(user);
+
+    JsonImportSummary response =
+        PATCH(
+                "/users/" + user.getUid(),
+                "[{'op':'add','path':'/organisationUnits','value':[{'id':'"
+                    + orgC.getUid()
+                    + "'},{'id':'"
+                    + orgA.getUid()
+                    + "'},{'id':'"
+                    + orgB.getUid()
+                    + "'}]},"
+                    + "{'op':'add','path':'/dataViewOrganisationUnits','value':[{'id':'"
+                    + orgC.getUid()
+                    + "'},{'id':'"
+                    + orgA.getUid()
+                    + "'},{'id':'"
+                    + orgB.getUid()
+                    + "'}]},"
+                    + "{'op':'add','path':'/teiSearchOrganisationUnits','value':[{'id':'"
+                    + orgC.getUid()
+                    + "'},{'id':'"
+                    + orgA.getUid()
+                    + "'},{'id':'"
+                    + orgB.getUid()
+                    + "'}]}]")
+            .content(HttpStatus.CONFLICT)
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    JsonList<JsonErrorReport> errorReports =
+        response.getList("errorReports", JsonErrorReport.class);
+
+    assertEquals(6, errorReports.size());
+
+    assertEquals(
+        "Organisation unit: `ouabcdefghA` not in hierarchy of current user: `someone`",
+        response
+            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E7617)
+            .getMessage());
+  }
+
+  @Test
+  void updateUserHasAccessToUpdateGroups() {
+    systemSettingManager.saveSystemSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES, Boolean.TRUE);
+
+    UserRole roleB = createUserRole("ROLE_B", "F_USER_ADD", "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS");
+    userService.addUserRole(roleB);
+
+    UserGroup userGroupA = createUserGroup('A', Collections.emptySet());
+    manager.save(userGroupA);
+
+    User user = createUserWithAuth("someone", "NONE");
+    user.getUserRoles().add(roleB);
+    userService.updateUser(user);
+
+    switchContextToUser(user);
+
+    assertStatus(
+        HttpStatus.OK,
+        PUT(
+            "/users/" + user.getUid(),
+            " {"
+                + "'name': 'test',"
+                + "'username':'someone',"
+                + "'userRoles': ["
+                + "{"
+                + "'id':'"
+                + roleB.getUid()
+                + "'"
+                + "}"
+                + "],"
+                + "'userGroups': ["
+                + "{"
+                + "'id':'"
+                + userGroupA.getUid()
+                + "'"
+                + "}]"
+                + "}"));
   }
 
   @Test

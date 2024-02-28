@@ -30,6 +30,8 @@ package org.hisp.dhis.dxf2.events;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
+import static org.hisp.dhis.user.UserRole.AUTHORITY_ALL;
+import static org.hisp.dhis.util.DateUtils.getIso8601NoTz;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -73,6 +75,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -87,6 +90,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
@@ -162,8 +166,6 @@ class EventImportTest extends TransactionalIntegrationTest {
   @Override
   protected void setUpTest() throws Exception {
     userService = _userService;
-    superUser = preCreateInjectAdminUser();
-    injectSecurityContext(superUser);
 
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitB = createOrganisationUnit('B');
@@ -253,7 +255,87 @@ class EventImportTest extends TransactionalIntegrationTest {
     pi.setUid(CodeGenerator.generateUid());
     manager.save(pi);
     event = createEvent("eventUid001");
-    createUserAndInjectSecurityContext(true);
+    superUser = createAndAddAdminUser(AUTHORITY_ALL);
+    injectSecurityContext(superUser);
+  }
+
+  @Test
+  void shouldUpdateEventDataValues_whenAddingDataValuesToEvent() throws IOException {
+    InputStream is =
+        createEventJsonInputStream(
+            programB.getUid(),
+            programStageB.getUid(),
+            organisationUnitB.getUid(),
+            trackedEntityInstanceMaleA.getTrackedEntityInstance(),
+            dataElementB,
+            "10");
+    String uid = eventService.addEventsJson(is, null).getImportSummaries().get(0).getReference();
+
+    Event event = createEvent(uid);
+
+    ProgramStageInstance ev = programStageInstanceService.getProgramStageInstance(event.getUid());
+
+    assertNotNull(ev);
+    assertEquals(1, ev.getEventDataValues().size());
+
+    // add a new data value and update an existing one
+
+    DataValue dataValueA = new DataValue();
+    dataValueA.setValue("10");
+    dataValueA.setDataElement(dataElementA.getUid());
+    dataValueA.setStoredBy(superUser.getName());
+
+    DataValue dataValueB = new DataValue();
+    dataValueB.setValue("20");
+    dataValueB.setDataElement(dataElementB.getUid());
+    dataValueB.setStoredBy(superUser.getName());
+
+    event.setDataValues(Set.of(dataValueA, dataValueB));
+
+    Date now = new Date();
+
+    eventService.updateEventDataValues(event);
+
+    manager.clear();
+
+    ev = programStageInstanceService.getProgramStageInstance(event.getUid());
+
+    assertNotNull(ev);
+    assertNotNull(ev.getEventDataValues());
+    assertEquals(2, ev.getEventDataValues().size());
+
+    EventDataValue eventDataValueA =
+        ev.getEventDataValues().stream()
+            .filter(edv -> edv.getDataElement().equals(dataValueA.getDataElement()))
+            .findFirst()
+            .orElse(null);
+
+    assertNotNull(eventDataValueA);
+    assertEquals(eventDataValueA.getValue(), dataValueA.getValue());
+    assertEquals(eventDataValueA.getStoredBy(), superUser.getName());
+    assertNotNull(eventDataValueA.getCreatedByUserInfo());
+    assertNotNull(eventDataValueA.getLastUpdatedByUserInfo());
+    assertNotNull(eventDataValueA.getCreated());
+    assertNotNull(eventDataValueA.getLastUpdated());
+
+    EventDataValue eventDataValueB =
+        ev.getEventDataValues().stream()
+            .filter(edv -> edv.getDataElement().equals(dataValueB.getDataElement()))
+            .findFirst()
+            .orElse(null);
+
+    assertNotNull(eventDataValueB);
+    assertEquals(eventDataValueB.getValue(), dataValueB.getValue());
+    assertEquals(eventDataValueB.getStoredBy(), superUser.getName());
+    assertNotNull(eventDataValueB.getCreatedByUserInfo());
+    assertNotNull(eventDataValueB.getLastUpdatedByUserInfo());
+    assertNotNull(eventDataValueB.getCreated());
+    assertNotNull(eventDataValueB.getLastUpdated());
+
+    TrackedEntityInstance trackedEntityInstance =
+        trackedEntityInstanceService.getTrackedEntityInstance(
+            trackedEntityInstanceMaleA.getTrackedEntityInstance());
+    assertTrue(trackedEntityInstance.getLastUpdated().compareTo(getIso8601NoTz(now)) > 0);
   }
 
   @Test
@@ -565,6 +647,67 @@ class EventImportTest extends TransactionalIntegrationTest {
   }
 
   @Test
+  void shouldUpdateTrackedEntityAndDeleteEventWhenEventIsDeleted() throws IOException {
+    String entityLastUpdateDateBefore =
+        trackedEntityInstanceService
+            .getTrackedEntityInstance(trackedEntityInstanceMaleA.getTrackedEntityInstance())
+            .getLastUpdated();
+    Enrollment enrollment =
+        createEnrollment(programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance());
+    ImportSummary importSummary = enrollmentService.addEnrollment(enrollment, null, null);
+    assertEquals(ImportStatus.SUCCESS, importSummary.getStatus());
+    InputStream is =
+        createEventJsonInputStream(
+            programA.getUid(),
+            programStageA.getUid(),
+            organisationUnitA.getUid(),
+            trackedEntityInstanceMaleA.getTrackedEntityInstance(),
+            dataElementA,
+            "10");
+    ImportSummaries importSummaries = eventService.addEventsJson(is, null);
+    assertEquals(ImportStatus.SUCCESS, importSummaries.getStatus());
+
+    Date eventLastUpdatedBefore =
+        getEvent(importSummaries.getImportSummaries().get(0).getReference()).getLastUpdated();
+
+    dbmsManager.clearSession();
+
+    User user = createAndAddUser("userDelete", organisationUnitA, "ALL");
+    injectSecurityContext(user);
+
+    eventService.deleteEvent(importSummaries.getImportSummaries().get(0).getReference());
+    manager.flush();
+
+    org.hisp.dhis.program.ProgramStageInstance ev =
+        getEvent(importSummaries.getImportSummaries().get(0).getReference());
+
+    TrackedEntityInstance entityAfter =
+        trackedEntityInstanceService.getTrackedEntityInstance(
+            enrollment.getTrackedEntityInstance());
+
+    assertTrue(ev.isDeleted());
+    assertTrue(ev.getLastUpdated().getTime() > eventLastUpdatedBefore.getTime());
+    assertTrue(entityAfter.getLastUpdated().compareTo(entityLastUpdateDateBefore) > 0);
+    assertEquals(
+        entityAfter.getLastUpdatedByUserInfo().getUid(), UserInfoSnapshot.from(user).getUid());
+    assertEquals(ev.getLastUpdatedByUserInfo().getUid(), UserInfoSnapshot.from(user).getUid());
+  }
+
+  /** Get with the current session because some Store exclude deleted */
+  public org.hisp.dhis.program.ProgramStageInstance getEvent(String uid) {
+
+    return (org.hisp.dhis.program.ProgramStageInstance)
+        sessionFactory
+            .getCurrentSession()
+            .createQuery(
+                "SELECT e FROM "
+                    + ProgramStageInstance.class.getSimpleName()
+                    + " e WHERE e.uid = :uid")
+            .setParameter("uid", uid)
+            .getSingleResult();
+  }
+
+  @Test
   void testGeometry() throws IOException {
     InputStream is =
         createEventJsonInputStream(
@@ -700,6 +843,32 @@ class EventImportTest extends TransactionalIntegrationTest {
     assertThat(psi.isDeleted(), is(psi2.isDeleted()));
     assertThat(psi.getEventDataValues().size(), is(1));
     assertThat(psi2.getEventDataValues().size(), is(0));
+  }
+
+  @Test
+  void testVerifyEventUpdatedForEventDateHasActiveStatus() {
+    String eventUid = CodeGenerator.generateUid();
+
+    Enrollment enrollment =
+        createEnrollment(programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance());
+    ImportSummary importSummary = enrollmentService.addEnrollment(enrollment, null, null);
+    assertEquals(ImportStatus.SUCCESS, importSummary.getStatus());
+
+    Event event =
+        createScheduledTrackerEvent(
+            eventUid, programA, programStageA, EventStatus.SCHEDULE, organisationUnitA);
+
+    ImportSummary summary = eventService.addEvent(event, null, false);
+    assertEquals(ImportStatus.SUCCESS, summary.getStatus());
+
+    event.setEventDate(EVENT_DATE);
+
+    eventService.updateEventForEventDate(event);
+
+    dbmsManager.clearSession();
+
+    ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance(eventUid);
+    assertThat(psi.getStatus(), is(EventStatus.ACTIVE));
   }
 
   private void cleanSession() {

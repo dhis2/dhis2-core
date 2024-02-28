@@ -28,14 +28,15 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport.RESOURCE_PATH;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.List;
+import java.util.Set;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
@@ -44,6 +45,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.webapi.controller.event.mapper.TrackedEntityCriteriaMapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerTrackedEntityCriteria;
+import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.TrackedEntityFieldsParamMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -61,6 +63,22 @@ import org.springframework.web.bind.annotation.RestController;
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequiredArgsConstructor
 public class TrackerTrackedEntitiesExportController {
+
+  /**
+   * Tracked entities can be ordered by given fields which correspond to fields on {@link
+   * org.hisp.dhis.trackedentity.TrackedEntityInstance}. These user facing field names are
+   * translated to internal ones in {@link TrackedEntityInstanceQueryParams.OrderColumn}.
+   */
+  private static final Set<String> ORDERABLE_FIELD_NAMES =
+      Set.of(
+          "trackedEntity",
+          "createdAt",
+          "createdAtClient",
+          "updatedAt",
+          "updatedAtClient",
+          "enrolledAt",
+          "inactive");
+
   protected static final String TRACKED_ENTITIES = "trackedEntities";
 
   private static final String DEFAULT_FIELDS_PARAM =
@@ -82,7 +100,11 @@ public class TrackerTrackedEntitiesExportController {
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   PagingWrapper<ObjectNode> getInstances(
       TrackerTrackedEntityCriteria criteria,
-      @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) List<FieldPath> fields) {
+      @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) List<FieldPath> fields)
+      throws BadRequestException {
+    // validating order param field names here and not in mapper as the mapper is shared by old and
+    // new tracker
+    validateOrderParams(criteria.getRawOrder(), ORDERABLE_FIELD_NAMES, "attribute");
     TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map(criteria);
 
     TrackedEntityInstanceParams trackedEntityInstanceParams =
@@ -93,25 +115,25 @@ public class TrackerTrackedEntitiesExportController {
             trackedEntityInstanceService.getTrackedEntityInstances(
                 queryParams, trackedEntityInstanceParams, false, false));
 
-    PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
-
     if (criteria.isPagingRequest()) {
-      Long count = 0L;
-
+      List<ObjectNode> objectNodes =
+          fieldFilterService.toObjectNodes(trackedEntityInstances, fields);
       if (criteria.isTotalPages()) {
-        count =
-            (long)
-                trackedEntityInstanceService.getTrackedEntityInstanceCount(queryParams, true, true);
+        long count =
+            trackedEntityInstanceService.getTrackedEntityInstanceCount(queryParams, true, true);
+        return PagingWrapper.withPager(
+            objectNodes,
+            queryParams.getPageWithDefault(),
+            queryParams.getPageSizeWithDefault(),
+            count);
       }
 
-      Pager pager =
-          new Pager(criteria.getPageWithDefault(), count, criteria.getPageSizeWithDefault());
-
-      pagingWrapper = pagingWrapper.withPager(PagingWrapper.Pager.fromLegacy(criteria, pager));
+      return PagingWrapper.withPager(
+          objectNodes, queryParams.getPageWithDefault(), queryParams.getPageSizeWithDefault());
     }
 
     List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(trackedEntityInstances, fields);
-    return pagingWrapper.withInstances(objectNodes);
+    return PagingWrapper.withoutPager(objectNodes);
   }
 
   @GetMapping(value = "{id}")

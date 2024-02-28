@@ -68,7 +68,9 @@ public class IntegrationTestConfig {
             .withUsername(POSTGRES_USERNAME)
             .withPassword(POSTGRES_PASSWORD)
             .withInitScript("db/extensions.sql")
-            .withTmpFs(Map.of("/testtmpfs", "rw"));
+            .withTmpFs(Map.of("/testtmpfs", "rw"))
+            .withEnv("LC_COLLATE", "C");
+
     POSTGRES_CONTAINER.start();
   }
 

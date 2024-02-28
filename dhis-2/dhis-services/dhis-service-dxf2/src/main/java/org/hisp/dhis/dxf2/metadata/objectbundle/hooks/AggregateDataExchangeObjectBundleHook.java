@@ -149,7 +149,7 @@ public class AggregateDataExchangeObjectBundleHook
           new ErrorReport(AggregateDataExchange.class, ErrorCode.E4000, "target.api.url"));
     }
 
-    if (api != null && !(api.isAccessTokenAuth() || api.isBasicAuth())) {
+    if (exchange.getId() == 0 && api != null && !(api.isAccessTokenAuth() || api.isBasicAuth())) {
       addReports.accept(new ErrorReport(AggregateDataExchange.class, ErrorCode.E6305));
     }
   }

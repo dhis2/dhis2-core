@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.events.event;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
@@ -165,4 +166,6 @@ public interface EventService {
   ImportSummaries deleteEvents(List<String> uids, boolean clearSession);
 
   void validate(EventQueryParams params, User user);
+
+  ImportSummary updateEventDataValues(Event updatedEvent) throws JsonProcessingException;
 }

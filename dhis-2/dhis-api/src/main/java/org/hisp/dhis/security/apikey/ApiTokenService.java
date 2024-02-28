@@ -36,9 +36,9 @@ import org.hisp.dhis.user.User;
 public interface ApiTokenService {
   List<ApiToken> getAll();
 
-  List<ApiToken> getAllOwning(User currentUser);
+  List<ApiToken> getAllOwning(User user);
 
-  ApiToken getWithKey(String key, User currentUser);
+  ApiToken getWithKey(String key, User user);
 
   ApiToken getWithKey(String key);
 

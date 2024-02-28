@@ -28,8 +28,8 @@
 package org.hisp.dhis.dataset.notifications;
 
 import static java.lang.String.format;
-import static java.util.stream.Collectors.*;
-import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_DUE_DATE;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 
 import com.google.common.base.Function;
@@ -141,7 +141,7 @@ public class DefaultDataSetNotificationService implements DataSetNotificationSer
   @Override
   public void sendScheduledDataSetNotificationsForDay(Date day, JobProgress progress) {
     List<DataSetNotificationTemplate> templates =
-        dsntService.getScheduledNotifications(SCHEDULED_DAYS_DUE_DATE);
+        dsntService.getScheduledNotifications(DataSetNotificationTrigger.SCHEDULED_DAYS);
 
     if (templates == null || templates.isEmpty()) {
       log.info("No template found");

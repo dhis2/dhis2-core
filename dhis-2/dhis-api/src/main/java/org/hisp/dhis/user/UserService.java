@@ -99,6 +99,14 @@ public interface UserService {
   User getUserByUsername(String username);
 
   /**
+   * Retrieves the User with the given username. Ignores case when checking the username.
+   *
+   * @param username the username of the User to retrieve.
+   * @return the User.
+   */
+  User getUserByUsernameIgnoreCase(String username);
+
+  /**
    * Retrieves the User by attempting to look up by various identifiers in the following order:
    *
    * <ul>
@@ -363,7 +371,7 @@ public interface UserService {
    * @param currentUser
    * @return
    */
-  List<ErrorReport> validateUserCreateOrUpdate(User user, User currentUser);
+  List<ErrorReport> validateUserCreateOrUpdateAccess(User user, User currentUser);
 
   List<ErrorReport> validateUserRoleCreateOrUpdate(UserRole user, User currentUser);
 

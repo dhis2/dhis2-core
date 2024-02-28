@@ -122,8 +122,10 @@ public class DefaultRelationshipService implements RelationshipService {
   public List<Relationship> getRelationshipsByTrackedEntityInstance(
       TrackedEntityInstance tei,
       PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean skipAccessValidation) {
-    return relationshipStore.getByTrackedEntityInstance(tei, pagingAndSortingCriteriaAdapter);
+      boolean skipAccessValidation,
+      boolean includeDeleted) {
+    return relationshipStore.getByTrackedEntityInstance(
+        tei, pagingAndSortingCriteriaAdapter, includeDeleted);
   }
 
   @Override
@@ -131,8 +133,10 @@ public class DefaultRelationshipService implements RelationshipService {
   public List<Relationship> getRelationshipsByProgramInstance(
       ProgramInstance pi,
       PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean skipAccessValidation) {
-    return relationshipStore.getByProgramInstance(pi, pagingAndSortingCriteriaAdapter);
+      boolean skipAccessValidation,
+      boolean includeDeleted) {
+    return relationshipStore.getByProgramInstance(
+        pi, pagingAndSortingCriteriaAdapter, includeDeleted);
   }
 
   @Override
@@ -140,8 +144,10 @@ public class DefaultRelationshipService implements RelationshipService {
   public List<Relationship> getRelationshipsByProgramStageInstance(
       ProgramStageInstance psi,
       PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean skipAccessValidation) {
-    return relationshipStore.getByProgramStageInstance(psi, pagingAndSortingCriteriaAdapter);
+      boolean skipAccessValidation,
+      boolean includeDeleted) {
+    return relationshipStore.getByProgramStageInstance(
+        psi, pagingAndSortingCriteriaAdapter, includeDeleted);
   }
 
   @Override

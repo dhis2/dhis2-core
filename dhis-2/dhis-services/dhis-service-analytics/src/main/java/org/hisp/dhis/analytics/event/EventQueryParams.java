@@ -243,6 +243,8 @@ public class EventQueryParams extends DataQueryParams {
 
   @Getter protected EndpointAction endpointAction;
 
+  @Getter protected boolean multipleQueries = false;
+
   // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
@@ -312,6 +314,7 @@ public class EventQueryParams extends DataQueryParams {
     params.endpointItem = this.endpointItem;
     params.endpointAction = this.endpointAction;
     params.rowContext = this.rowContext;
+    params.multipleQueries = this.multipleQueries;
     return params;
   }
 
@@ -1379,6 +1382,11 @@ public class EventQueryParams extends DataQueryParams {
 
     public Builder withRowContext(boolean rowContext) {
       this.params.rowContext = rowContext;
+      return this;
+    }
+
+    public Builder withMultipleQueries(boolean multipleQueries) {
+      this.params.multipleQueries = multipleQueries;
       return this;
     }
   }

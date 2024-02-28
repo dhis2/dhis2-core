@@ -39,6 +39,7 @@ import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchOperation;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -86,6 +87,8 @@ public class JsonPatchManager {
     // we need to make another trip to make sure all collections are
     // correctly made into json nodes.
     handleCollectionUpdates(object, schema, (ObjectNode) node);
+
+    validatePatchPath(patch, schema);
 
     node = patch.apply(node);
     return (T)
@@ -136,5 +139,18 @@ public class JsonPatchManager {
     clone.setId(source.getId());
     clone.setUid(source.getUid());
     return clone;
+  }
+
+  /** Check if all patch paths are valid for the given schema. */
+  private void validatePatchPath(JsonPatch patch, Schema schema) throws JsonPatchException {
+    for (JsonPatchOperation op : patch.getOperations()) {
+      if (!schema.haveProperty(op.getPath().getMatchingProperty())) {
+        throw new JsonPatchException(
+            "Property "
+                + op.getPath().getMatchingProperty()
+                + " does not exist on "
+                + schema.getClass().getSimpleName());
+      }
+    }
   }
 }

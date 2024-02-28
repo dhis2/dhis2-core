@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.program;
 
+import static java.lang.String.format;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.program.ProgramIndicator.KEY_ATTRIBUTE;
@@ -477,11 +478,9 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest {
   @Test
   void testGetAnalyticsSQl() {
     String expected =
-        "coalesce(\""
-            + deAInteger.getUid()
-            + "\"::numeric,0) + coalesce(\""
-            + atA.getUid()
-            + "\"::numeric,0) > 10";
+        format(
+            "coalesce(case when ax.\"ps\" = '%s' then \"%s\" else null end::numeric,0) + coalesce(\"%s\"::numeric,0) > 10",
+            psA.getUid(), deAInteger.getUid(), atA.getUid());
     assertEquals(
         expected,
         programIndicatorService.getAnalyticsSql(
@@ -551,26 +550,29 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void testBooleanAsNumeric() {
-    assertEquals("coalesce(\"DataElmentG\"::numeric,0)", sql("#{ProgrmStagA.DataElmentG}"));
+    assertEquals(
+        "coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentG\" else null end::numeric,0)",
+        sql("#{ProgrmStagA.DataElmentG}"));
   }
 
   @Test
   void testBooleanAsBoolean() {
     assertEquals(
-        "coalesce(\"DataElmentG\"::numeric!=0,false)", filter("#{ProgrmStagA.DataElmentG}"));
+        "coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentG\" else null end::numeric!=0,false)",
+        filter("#{ProgrmStagA.DataElmentG}"));
   }
 
   @Test
   void testBooleanAsBooleanWithinIf() {
     assertEquals(
-        " case when coalesce(\"DataElmentG\"::numeric!=0,false) then 4 else 5 end",
+        " case when coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentG\" else null end::numeric!=0,false) then 4 else 5 end",
         sql("if(#{ProgrmStagA.DataElmentG},4,5)"));
   }
 
   @Test
   void testBooleanAsNumericWithinIf() {
     assertEquals(
-        " case when coalesce(\"DataElmentG\"::numeric,0) > 1 then 4 else 5 end",
+        " case when coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentG\" else null end::numeric,0) > 1 then 4 else 5 end",
         sql("if(#{ProgrmStagA.DataElmentG} > 1,4,5)"));
   }
 
@@ -591,7 +593,8 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void testComparisonOperator() {
-    String expected = "coalesce(\"DataElmentA\"::numeric,0) = 'Ongoing'";
+    String expected =
+        "coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentA\" else null end::numeric,0) = 'Ongoing'";
     String expression = "#{ProgrmStagA.DataElmentA} == 'Ongoing'";
     assertEquals(
         expected,

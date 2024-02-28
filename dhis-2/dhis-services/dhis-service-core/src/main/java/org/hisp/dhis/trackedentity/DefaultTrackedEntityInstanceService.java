@@ -817,10 +817,10 @@ public class DefaultTrackedEntityInstanceService implements TrackedEntityInstanc
 
   @Override
   @Transactional
-  public void updateTrackedEntityInstanceLastUpdated(
-      Set<String> trackedEntityInstanceUIDs, Date lastUpdated) {
+  public void updateTrackedEntityInstancesLastUpdated(
+      Set<String> trackedEntityInstanceUIDs, Date lastUpdated, String userInfoSnapshot) {
     trackedEntityInstanceStore.updateTrackedEntityInstancesLastUpdated(
-        trackedEntityInstanceUIDs, lastUpdated);
+        trackedEntityInstanceUIDs, lastUpdated, userInfoSnapshot);
   }
 
   @Override

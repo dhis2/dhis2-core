@@ -439,6 +439,96 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
   }
 
   @Test
+  void shouldNotGetRelationshipsByTrackedEntityWhenRelationshipIsDeleted() {
+    TrackedEntityInstance to = trackedEntityInstance();
+    ProgramInstance from = programInstance(to);
+    Relationship r = relationship(from, to);
+
+    r.setDeleted(true);
+    manager.update(r);
+
+    assertNoRelationships(
+        GET("/tracker/relationships?trackedEntity={tei}", to.getUid()).content(HttpStatus.OK));
+  }
+
+  @Test
+  void shouldNotGetRelationshipsByEnrollmentWhenRelationshipIsDeleted() {
+    TrackedEntityInstance to = trackedEntityInstance();
+    ProgramInstance from = programInstance(to);
+    Relationship r = relationship(from, to);
+
+    r.setDeleted(true);
+    manager.update(r);
+
+    assertNoRelationships(
+        GET("/tracker/relationships?enrollment={en}", from.getUid()).content(HttpStatus.OK));
+  }
+
+  @Test
+  void shouldNotGetRelationshipsByEventWhenRelationshipIsDeleted() {
+    TrackedEntityInstance to = trackedEntityInstance();
+    ProgramStageInstance from = programStageInstance(programInstance(to));
+    Relationship r = relationship(from, to);
+
+    r.setDeleted(true);
+    manager.update(r);
+
+    assertNoRelationships(
+        GET("/tracker/relationships?event={ev}", from.getUid()).content(HttpStatus.OK));
+  }
+
+  @Test
+  void shouldGetRelationshipsByTrackedEntityWhenRelationshipIsDeleted() {
+    TrackedEntityInstance to = trackedEntityInstance();
+    ProgramInstance from = programInstance(to);
+    Relationship r = relationship(from, to);
+
+    r.setDeleted(true);
+    manager.update(r);
+
+    JsonList<JsonRelationship> relationships =
+        GET("/tracker/relationships?trackedEntity={tei}&includeDeleted=true", to.getUid())
+            .content(HttpStatus.OK)
+            .getList("instances", JsonRelationship.class);
+
+    assertFirstRelationship(r, relationships);
+  }
+
+  @Test
+  void shouldGetRelationshipsByEventWhenRelationshipIsDeleted() {
+    TrackedEntityInstance to = trackedEntityInstance();
+    ProgramStageInstance from = programStageInstance(programInstance(to));
+    Relationship r = relationship(from, to);
+
+    r.setDeleted(true);
+    manager.update(r);
+
+    JsonList<JsonRelationship> relationships =
+        GET("/tracker/relationships?event={ev}&includeDeleted=true", from.getUid())
+            .content(HttpStatus.OK)
+            .getList("instances", JsonRelationship.class);
+
+    assertFirstRelationship(r, relationships);
+  }
+
+  @Test
+  void shouldGetRelationshipsByEnrollmentWhenRelationshipIsDeleted() {
+    TrackedEntityInstance to = trackedEntityInstance();
+    ProgramInstance from = programInstance(to);
+    Relationship r = relationship(from, to);
+
+    r.setDeleted(true);
+    manager.update(r);
+
+    JsonList<JsonRelationship> relationships =
+        GET("/tracker/relationships?enrollment={en}&includeDeleted=true", from.getUid())
+            .content(HttpStatus.OK)
+            .getList("instances", JsonRelationship.class);
+
+    assertFirstRelationship(r, relationships);
+  }
+
+  @Test
   void getRelationshipsByTei() {
     TrackedEntityInstance to = trackedEntityInstance();
     ProgramInstance from = programInstance(to);
@@ -472,6 +562,18 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
         relationships.get(0).getTo().getTrackedEntity().getEnrollments().get(0);
     assertEquals(from.getUid(), enrollment.getEnrollment());
     assertEquals(to.getUid(), enrollment.getTrackedEntity());
+  }
+
+  @Test
+  void getRelationshipsByTrackedEntityWithEnrollmentsOrderByIllegalField() {
+    TrackedEntityInstance to = trackedEntityInstance();
+    ProgramInstance from = programInstance(to);
+    relationship(from, to);
+
+    GET(
+            "/tracker/relationships?trackedEntity={tei}&order=created&fields=relationship,createdAt",
+            to.getUid())
+        .content(HttpStatus.BAD_REQUEST);
   }
 
   @Test

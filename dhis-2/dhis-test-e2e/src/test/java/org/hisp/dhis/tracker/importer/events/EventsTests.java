@@ -34,6 +34,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.gson.JsonObject;
 import io.restassured.http.ContentType;
@@ -43,8 +44,11 @@ import java.util.stream.Stream;
 import joptsimple.internal.Strings;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
+import org.hisp.dhis.actions.SystemActions;
 import org.hisp.dhis.actions.metadata.ProgramStageActions;
+import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.dto.ImportSummary;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
@@ -71,6 +75,9 @@ public class EventsTests extends TrackerNtiApiTest {
 
   private static final String OU_ID_2 = Constants.ORG_UNIT_IDS[2];
 
+  private EventActions eventActions;
+  private SystemActions systemActions;
+
   private static Stream<Arguments> provideEventFilesTestArguments() {
     return Stream.of(
         Arguments.arguments("event.json", ContentType.JSON.toString()),
@@ -80,6 +87,8 @@ public class EventsTests extends TrackerNtiApiTest {
   @BeforeAll
   public void beforeAll() {
     loginActions.loginAsSuperUser();
+    eventActions = new EventActions();
+    systemActions = new SystemActions();
   }
 
   @Test
@@ -135,6 +144,42 @@ public class EventsTests extends TrackerNtiApiTest {
     response = trackerActions.getJobReport(jobId, "FULL");
 
     response.validate().statusCode(200).body("status", equalTo("OK"));
+  }
+
+  /**
+   * This test name has the postfix 'EventsApi' (/events) to distinguish it from other tests in this
+   * class that call the '/tracker' API. There is a concept of 'old' & 'new' tracker APIs. This test
+   * tests the 'old' API
+   */
+  @Test
+  void asyncImportEventsFromCsvFile_EventsApi() {
+    // given we want to import events asynchronously with csv format
+
+    // when
+    // an async event import with csv file is posted
+    ApiResponse postAsyncResponse =
+        eventActions.postFile(
+            new File("src/test/resources/tracker/events/event-with-de-optionset.csv"),
+            new QueryParamsBuilder()
+                .addAll(
+                    "skipFirst=true",
+                    "dryRun=false",
+                    "async=true",
+                    "eventIdScheme=UID",
+                    "orgUnitIdScheme=UID",
+                    "payloadFormat=csv"),
+            "text/csv");
+
+    postAsyncResponse.validate().statusCode(200);
+    String jobId = postAsyncResponse.extractString("response.id");
+
+    // then
+    // the task event completes
+    systemActions.waitUntilTaskCompleted("EVENT_IMPORT", jobId);
+
+    // and the task summary shows a successful import
+    List<ImportSummary> eventImport = systemActions.getTaskSummaries("EVENT_IMPORT", jobId);
+    assertEquals("SUCCESS", eventImport.get(0).getStatus());
   }
 
   @ParameterizedTest

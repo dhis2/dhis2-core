@@ -69,9 +69,10 @@ public class AnalyticsExportSettings {
    * Returns the years' offset defined for the period generation. See {@link
    * ANALYTICS_MAX_PERIOD_YEARS_OFFSET}.
    *
-   * @return the offset defined in system settings.
+   * @return the offset defined in system settings, or null if nothing is set.
    */
-  public int getMaxPeriodYearsOffset() {
-    return systemSettingManager.getIntSetting(ANALYTICS_MAX_PERIOD_YEARS_OFFSET);
+  public Integer getMaxPeriodYearsOffset() {
+    Integer yearsOffset = systemSettingManager.getIntSetting(ANALYTICS_MAX_PERIOD_YEARS_OFFSET);
+    return yearsOffset < 0 ? null : yearsOffset;
   }
 }

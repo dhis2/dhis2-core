@@ -43,7 +43,9 @@ import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
 import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.QueryOperator.NEQ;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
@@ -85,6 +87,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
@@ -370,6 +373,29 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + " > '10' limit 10001";
 
     assertSql(sql.getValue(), expected);
+  }
+
+  @Test
+  void testBadGrammarExceptionNonMultipleQueries() {
+    // Given
+    mockEmptyRowSet();
+    EventQueryParams params = createRequestParamsWithStatuses();
+    when(jdbcTemplate.queryForRowSet(anyString())).thenThrow(BadSqlGrammarException.class);
+
+    // Then
+    assertThrows(
+        BadSqlGrammarException.class, () -> subject.getEnrollments(params, new ListGrid(), 10000));
+  }
+
+  @Test
+  void testBadGrammarExceptionWithMultipleQueries() {
+    // Given
+    mockEmptyRowSet();
+    EventQueryParams params = createRequestParamsWithMultipleQueries();
+    when(jdbcTemplate.queryForRowSet(anyString())).thenThrow(BadSqlGrammarException.class);
+
+    // Then
+    assertDoesNotThrow(() -> subject.getEnrollments(params, new ListGrid(), 10000));
   }
 
   @Test

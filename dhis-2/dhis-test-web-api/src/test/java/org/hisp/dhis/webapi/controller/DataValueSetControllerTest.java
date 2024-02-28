@@ -37,10 +37,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 
+import java.util.Set;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -205,5 +208,35 @@ class DataValueSetControllerTest extends DhisControllerConvenienceTest {
             .as(JsonWebMessage.class);
     assertEquals(
         String.format("User is not allowed to view org unit: `%s`", ouId), response.getMessage());
+  }
+
+  @Test
+  @DisplayName("Should return error message when user does not have DATA_READ to DataSet")
+  void testGetDataValueSetJsonWithNonAccessibleDataSet() {
+    String orgUnitId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits/",
+                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01', 'code':'OU1'}"));
+    String dsId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataSets/",
+                "{'name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly'}"));
+
+    switchToNewUser(
+        createAndAddUser(Set.of(), Set.of(manager.get(OrganisationUnit.class, orgUnitId))));
+    JsonWebMessage response =
+        GET(
+                "/dataValueSets/?inputOrgUnitIdScheme=code&idScheme=name&orgUnit={ou}&period=2022-01&dataSet={ds}&async=true",
+                "OU1",
+                dsId)
+            .content(HttpStatus.CONFLICT)
+            .as(JsonWebMessage.class);
+    assertEquals(
+        String.format("User is not allowed to read data for data set: `%s`", dsId),
+        response.getMessage());
   }
 }
