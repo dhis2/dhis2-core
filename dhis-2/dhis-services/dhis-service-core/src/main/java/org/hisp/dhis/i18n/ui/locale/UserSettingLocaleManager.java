@@ -33,6 +33,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import org.apache.commons.lang3.LocaleUtils;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManagerException;
@@ -107,10 +108,11 @@ public class UserSettingLocaleManager implements LocaleManager {
    * </ol>
    *
    * <br>
-   * This is necessary because of the requirement to be able to store unsupported JDK Locales e.g.
-   * 'id' and 'id_ID' (they are stored as strings). In the scenario where 'id' is the user ui
-   * locale, then Java will transform this to the older locale 'in'. This is only required for
-   * anything lower than Java 17 and is not planned for v41 or higher.
+   * This ensures that a valid Locale is used in the system. This is necessary because of the
+   * requirement to be able to store newer JDK Locales e.g. 'id' and 'id_ID' (they are stored as
+   * strings). In the scenario where 'id' is the user ui locale, then Java will transform this to
+   * the older locale 'in'. This is only required for anything lower than Java 17 and is not needed
+   * for v41 or higher.
    *
    * @return locale
    */
@@ -120,7 +122,7 @@ public class UserSettingLocaleManager implements LocaleManager {
     if (userSetting instanceof Locale) {
       return (Locale) userSetting;
     }
-    return new Locale((String) userSetting);
+    return LocaleUtils.toLocale((String) userSetting);
   }
 
   @Override
