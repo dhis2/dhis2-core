@@ -28,6 +28,7 @@
 package org.hisp.dhis.db.sql;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import org.junit.jupiter.api.Test;
 
@@ -42,6 +43,18 @@ class DorisSqlBuilderTest {
     assertEquals("datetime", sqlBuilder.dataTypeTimestamp());
   }
 
+  // Capabilities
+
+  @Test
+  void testSupportsAnalyze() {
+    assertFalse(sqlBuilder.supportsAnalyze());
+  }
+
+  @Test
+  void testSupportsVacuum() {
+    assertFalse(sqlBuilder.supportsVacuum());
+  }
+
   // Utilities
 
   @Test
@@ -52,6 +65,18 @@ class DorisSqlBuilderTest {
         "`Patients on ``treatment`` for TB`", sqlBuilder.quote("Patients on `treatment` for TB"));
     assertEquals("`quarterly`", sqlBuilder.quote("quarterly"));
     assertEquals("`Fully immunized`", sqlBuilder.quote("Fully immunized"));
+  }
+
+  @Test
+  void testQuoteAlias() {
+    assertEquals(
+        "ax.`Treated \"malaria\" at facility`",
+        sqlBuilder.quote("ax", "Treated \"malaria\" at facility"));
+    assertEquals(
+        "analytics.`Patients on ``treatment`` for TB`",
+        sqlBuilder.quote("analytics", "Patients on `treatment` for TB"));
+    assertEquals("analytics.`quarterly`", sqlBuilder.quote("analytics", "quarterly"));
+    assertEquals("dv.`Fully immunized`", sqlBuilder.quote("dv", "Fully immunized"));
   }
 
   @Test
