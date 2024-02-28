@@ -29,6 +29,7 @@ package org.hisp.dhis.db.sql;
 
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Index;
@@ -36,12 +37,14 @@ import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.TablePartition;
 import org.hisp.dhis.db.model.constraint.Nullable;
 
+@RequiredArgsConstructor
 public class DorisSqlBuilder extends AbstractSqlBuilder {
+
+  private final String catalog;
 
   // Constants
 
   private static final String QUOTE = "`";
-  private static final String CATALOG = "pg_dhis";
 
   // Data types
 
@@ -208,7 +211,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String qualifyTable(String name) {
-    return String.format("%s.%s.%s", CATALOG, SCHEMA, name);
+    return String.format("%s.%s.%s", catalog, SCHEMA, name);
   }
 
   // Statements

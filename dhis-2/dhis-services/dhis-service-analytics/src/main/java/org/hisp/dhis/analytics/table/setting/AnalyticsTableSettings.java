@@ -31,6 +31,7 @@ import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.db.model.Logged.LOGGED;
 import static org.hisp.dhis.db.model.Logged.UNLOGGED;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE_CATALOG;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_ORDERING;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_UNLOGGED;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_PERIOD_YEARS_OFFSET;
@@ -97,6 +98,15 @@ public class AnalyticsTableSettings {
     String value = config.getProperty(ANALYTICS_DATABASE);
     String valueUpperCase = StringUtils.trimToEmpty(value).toUpperCase();
     return getAndValidateDatabase(valueUpperCase);
+  }
+
+  /**
+   * Returns the analytics database JDBC catalog name.
+   *
+   * @return the analytics database JDBC catalog name.
+   */
+  public String getAnalyticsDatabaseCatalog() {
+    return config.getProperty(ANALYTICS_DATABASE_CATALOG);
   }
 
   /**

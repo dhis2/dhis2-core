@@ -59,10 +59,11 @@ public class SqlBuilderProvider {
    */
   private SqlBuilder getSqlBuilder(AnalyticsTableSettings config) {
     Database database = config.getAnalyticsDatabase();
+    String catalog = config.getAnalyticsDatabaseCatalog();
     Objects.requireNonNull(database);
     switch (database) {
       case DORIS:
-        return new DorisSqlBuilder();
+        return new DorisSqlBuilder(catalog);
       default:
         return new PostgreSqlBuilder();
     }
