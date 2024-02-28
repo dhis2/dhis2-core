@@ -113,7 +113,6 @@ class TrackedEntitiesExportController {
   private final TrackedEntityFieldsParamMapper fieldsMapper;
 
   private static final String TE_CSV_FILE = TRACKED_ENTITIES + ".csv";
-  private static final String TE_JSON_FILE = TRACKED_ENTITIES + ".json";
 
   private static final String GZIP_EXT = ".gz";
   private static final String ZIP_EXT = ".zip";
