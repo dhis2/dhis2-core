@@ -31,9 +31,8 @@ import static java.lang.String.join;
 import static java.util.Arrays.stream;
 import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension.ENROLLMENTDATE;
-import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension.EXECUTIONDATE;
-import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension.INCIDENTDATE;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getCustomLabelOrFullName;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getCustomLabelOrHeaderColumnName;
 import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.common.ValueType.COORDINATE;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
@@ -49,13 +48,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.common.params.CommonParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
-import org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
@@ -137,7 +135,7 @@ public class TeiFields {
    */
   public static Stream<Field> getStaticFields() {
     return Stream.of(TeiStaticField.values())
-        .map(v -> v.getAlias())
+        .map(TeiStaticField::getAlias)
         .map(a -> Field.of(TEI_ALIAS, () -> a, a));
   }
 
@@ -162,7 +160,18 @@ public class TeiFields {
             f ->
                 headersMap.put(
                     f.getAlias(),
-                    new GridHeader(f.getAlias(), f.getFullName(), f.getType(), false, true)));
+                    new GridHeader(
+                        f.getAlias(),
+                        // should be a custom label instead of fullName in case the dimension is OU,
+                        // however the ou label is stored in program definitions and  there are
+                        // multiple programs in the query by design (it's cross program), so we
+                        // can't  decide which program to use for the label. This is probably a bad
+                        // design decision, but it's not something we can fix here, unless adopting
+                        // some ugly workarounds. (DHIS2-16807)
+                        f.getFullName(),
+                        f.getType(),
+                        false,
+                        true)));
 
     // Adding dimension headers.
     fields.stream()
@@ -220,7 +229,7 @@ public class TeiFields {
 
   /**
    * Checks if the given {@link DimensionIdentifier} is eligible to be added as a header. It is
-   * eligible if it is a static dimension and it is either an event or enrollment dimension.
+   * eligible if it is a static dimension, and it is either an event or enrollment dimension.
    *
    * @param parsedHeader the {@link DimensionIdentifier}.
    * @return true if it is eligible, false otherwise.
@@ -268,91 +277,74 @@ public class TeiFields {
   private static GridHeader getHeaderForDimensionParam(
       DimensionIdentifier<DimensionParam> dimIdentifier, CommonParams commonParams) {
     DimensionParam dimensionParam = dimIdentifier.getDimension();
-    QueryItem item = dimensionParam.getQueryItem();
+    QueryItem queryItem = dimensionParam.getQueryItem();
     DimensionalObject dimensionalObject = dimensionParam.getDimensionalObject();
 
-    if (item != null) {
-      return getCustomGridHeaderForItem(item, commonParams, dimIdentifier);
+    if (queryItem != null) {
+      return getCustomGridHeaderForQueryItem(queryItem, commonParams, dimIdentifier);
     } else if (dimensionalObject != null) {
-      return getCustomGridHeader(
+      return getCustomGridHeaderForDimensionalObject(
           dimIdentifier, d -> d.getDimensionalObject().getDimensionDisplayName());
     } else {
       // It is a static dimension.
-      return getStaticGridHeader(dimIdentifier);
+      return getCustomGridHeaderForStaticDimension(dimIdentifier);
     }
   }
 
-  private static GridHeader getStaticGridHeader(
+  private static GridHeader getCustomGridHeaderForStaticDimension(
       DimensionIdentifier<DimensionParam> dimensionIdentifier) {
-    if (dimensionIdentifier.hasProgramStage()) {
-      return getStaticGridHeaderForEvent(dimensionIdentifier);
+    if (dimensionIdentifier.hasProgramStage()) { // Event static dimension.
+      return getCustomGridHeaderForStaticEventDimension(dimensionIdentifier);
     }
-    if (dimensionIdentifier.hasProgram()) {
-      return getStaticGridHeaderForEnrollment(dimensionIdentifier);
+    if (dimensionIdentifier.hasProgram()) { // Enrollment static dimension.
+      return getCustomGridHeaderForStaticEnrollmentDimension(dimensionIdentifier);
     }
-    return getCustomGridHeader(dimensionIdentifier, d -> d.getStaticDimension().getFullName());
+    return getCustomGridHeaderForStaticTeiDimension(dimensionIdentifier);
   }
 
-  private static GridHeader getStaticGridHeaderForEnrollment(
+  @Nonnull
+  private static GridHeader getCustomGridHeaderForStaticTeiDimension(
       DimensionIdentifier<DimensionParam> dimensionIdentifier) {
-
-    StaticDimension staticDimension = dimensionIdentifier.getDimension().getStaticDimension();
-
-    String dimensionName =
-        Optional.of(dimensionIdentifier)
-            .map(DimensionIdentifier::getProgram)
-            .map(ElementWithOffset::getElement)
-            .map(
-                program -> {
-                  if (ENROLLMENTDATE == staticDimension) {
-                    return program.getEnrollmentDateLabel();
-                  } else if (INCIDENTDATE == staticDimension) {
-                    return program.getIncidentDateLabel();
-                  }
-                  return null;
-                })
-            .filter(StringUtils::isNotBlank)
-            .orElseGet(staticDimension::getHeaderColumnName);
-
-    String program = dimensionIdentifier.getProgram().getElement().getDisplayName();
     return new GridHeader(
         dimensionIdentifier.getKey(),
-        join(", ", dimensionName, program).trim(),
+        getCustomLabelOrFullName(dimensionIdentifier),
         getValueType(dimensionIdentifier),
         false,
         true);
   }
 
-  private static GridHeader getStaticGridHeaderForEvent(
+  @Nonnull
+  private static GridHeader getCustomGridHeaderForStaticEnrollmentDimension(
       DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+    String program = dimensionIdentifier.getProgram().getElement().getDisplayName();
 
-    StaticDimension staticDimension = dimensionIdentifier.getDimension().getStaticDimension();
+    return new GridHeader(
+        dimensionIdentifier.getKey(),
+        joined(getCustomLabelOrHeaderColumnName(dimensionIdentifier), program),
+        getValueType(dimensionIdentifier),
+        false,
+        true);
+  }
 
-    String dimensionName =
-        Optional.of(dimensionIdentifier)
-            .map(DimensionIdentifier::getProgramStage)
-            .map(ElementWithOffset::getElement)
-            .map(
-                programStage -> {
-                  if (EXECUTIONDATE == staticDimension) {
-                    return programStage.getExecutionDateLabel();
-                  }
-                  return null;
-                })
-            .filter(StringUtils::isNotBlank)
-            .orElseGet(staticDimension::getHeaderColumnName);
-
+  @Nonnull
+  private static GridHeader getCustomGridHeaderForStaticEventDimension(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier) {
     String program = dimensionIdentifier.getProgram().getElement().getDisplayName();
     String programStage = dimensionIdentifier.getProgramStage().getElement().getDisplayName();
+
     return new GridHeader(
         dimensionIdentifier.getKey(),
-        join(", ", dimensionName, program, programStage).trim(),
+        joined(getCustomLabelOrHeaderColumnName(dimensionIdentifier), program, programStage),
         getValueType(dimensionIdentifier),
         false,
         true);
   }
 
-  private static GridHeader getCustomGridHeader(
+  private static String joined(String... parts) {
+    return join(", ", parts).trim();
+  }
+
+  private static GridHeader getCustomGridHeaderForDimensionalObject(
       DimensionIdentifier<DimensionParam> dimensionIdentifier,
       Function<DimensionParam, String> dimensionNameProvider) {
     return new GridHeader(
@@ -373,7 +365,6 @@ public class TeiFields {
     } else if (dimIdentifier.hasProgram()) {
       return ENROLLMENT_COLUMN_PREFIX;
     }
-
     return EMPTY;
   }
 
@@ -397,7 +388,7 @@ public class TeiFields {
    * @param commonParams the {@link CommonParams}.
    * @return the correct {@link GridHeader} version.
    */
-  private static GridHeader getCustomGridHeaderForItem(
+  private static GridHeader getCustomGridHeaderForQueryItem(
       QueryItem queryItem,
       CommonParams commonParams,
       DimensionIdentifier<DimensionParam> dimIdentifier) {

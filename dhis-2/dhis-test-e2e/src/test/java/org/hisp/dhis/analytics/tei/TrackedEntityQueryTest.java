@@ -2969,6 +2969,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         .validate()
         .statusCode(200)
         .body("metaData.items['IpHINAT79UW.enrollmentdate'].name", equalTo("Date of enrollment"))
+        .body("headers[1].column", equalTo("Date of enrollment, Child Programme"))
         .body(
             "metaData.items['IpHINAT79UW.ZzYYXq4fJie.cYGaxwK615G'].name",
             equalTo("MCH Infant HIV Test Result"));
@@ -3179,5 +3180,29 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         .validate()
         .statusCode(200)
         .body("headers[0].column", equalTo("Program Status, Child Programme"));
+  }
+
+  @Test
+  public void metaAndHeadersContainsCustomLabels() {
+
+    Map<String, String> customLabels =
+        Map.of(
+            "IpHINAT79UW.enrollmentdate", "Date of enrollment, Child Programme",
+            "IpHINAT79UW.incidentdate", "Date of birth, Child Programme",
+            "IpHINAT79UW.A03MvHHogjR.occurreddate", "Report date, Child Programme, Birth",
+            "IpHINAT79UW.ouname", "Organisation Unit Name, Child Programme");
+
+    customLabels.forEach(this::testCustomLabel);
+  }
+
+  private void testCustomLabel(String header, String expected) {
+    // Given
+    QueryParamsBuilder params = new QueryParamsBuilder().add("headers=" + header).add("pageSize=0");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response.validate().statusCode(200).body("headers[0].column", equalTo(expected));
   }
 }
