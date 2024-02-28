@@ -121,6 +121,13 @@ public class IconController extends AbstractFullReadOnlyController<CustomIcon> {
 
     List<CustomIcon> customIcons = iconService.getCustomIconsByKeywords(keywords).stream().toList();
 
+    customIcons.forEach(
+        ci ->
+            ci.setReference(
+                ci.getCustom()
+                    ? getCustomIconReference(ci.getKey())
+                    : getDefaultIconReference(ci.getKey())));
+
     return fieldFilterService.toObjectNodes(
         customIcons,
         fields.isEmpty() ? FieldFilterParser.parse(CustomIcon.DEFAULT_FIELDS_PARAM) : fields);
@@ -256,10 +263,9 @@ public class IconController extends AbstractFullReadOnlyController<CustomIcon> {
     }
   }
 
-  private String getCustomIconReference(String fileResourceUid) {
+  private String getCustomIconReference(String key) {
     return String.format(
-        "%s%s/%s/icon",
-        contextService.getApiPath(), IconSchemaDescriptor.API_ENDPOINT, fileResourceUid);
+        "%s%s/%s/icon", contextService.getApiPath(), IconSchemaDescriptor.API_ENDPOINT, key);
   }
 
   private String getDefaultIconReference(String key) {
