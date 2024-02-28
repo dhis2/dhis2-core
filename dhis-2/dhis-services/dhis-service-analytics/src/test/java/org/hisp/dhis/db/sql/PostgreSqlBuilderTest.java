@@ -29,7 +29,6 @@ package org.hisp.dhis.db.sql;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.util.List;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
@@ -176,8 +175,8 @@ class PostgreSqlBuilderTest {
 
   @Test
   void testQualifyTable() {
-    assertEquals("public.category", sqlBuilder.qualifyTable("category"));
-    assertEquals("public.categories_options", sqlBuilder.qualifyTable("categories_options"));
+    assertEquals("category", sqlBuilder.qualifyTable("category"));
+    assertEquals("categories_options", sqlBuilder.qualifyTable("categories_options"));
   }
 
   // Statements
