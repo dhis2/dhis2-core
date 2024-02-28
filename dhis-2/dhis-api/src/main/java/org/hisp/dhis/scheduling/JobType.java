@@ -281,6 +281,8 @@ public enum JobType {
           Map.of(
               "predictors", "/api/predictors",
               "predictorGroups", "/api/predictorGroups");
+      case HTML_PUSH_ANALYTICS ->
+          Map.of("dashboard", "/api/dashboards", "receivers", "/api/userGroups");
       default -> Map.of();
     };
   }

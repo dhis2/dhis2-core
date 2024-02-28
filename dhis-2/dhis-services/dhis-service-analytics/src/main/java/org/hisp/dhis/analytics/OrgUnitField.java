@@ -94,8 +94,8 @@ public class OrgUnitField {
   }
 
   /**
-   * Returns true if we need to join the _orgunitstructure table (and, if group set columns, the
-   * _organisationunitgroupsetstructure table).
+   * Returns true if we need to join the analytics_rs_orgunitstructure table (and, if group set
+   * columns, the analytics_rs_organisationunitgroupsetstructure table).
    *
    * @param analyticsType EVENT or ENROLLMENT
    * @return true if orgUnit resource table joins are needed
@@ -145,8 +145,8 @@ public class OrgUnitField {
   }
 
   /**
-   * Gets table and column to join the _orgunitstructure table and, if there are group set columns,
-   * the _organisationunitgroupsetstructure table.
+   * Gets table and column to join the analytics_rs_orgunitstructure table and, if there are group
+   * set columns, the analytics_rs_organisationunitgroupsetstructure table.
    *
    * @param analyticsType EVENT or ENROLLMENT
    * @return the table alias and column name
@@ -208,9 +208,10 @@ public class OrgUnitField {
   }
 
   /**
-   * Quotes the table alias and column. However, if the table alias is for the _orgunitstructure
-   * table and the column is "ou", change the column to "organisationunituid" because that is how it
-   * is called in that table. Add "ou" as a column alias if requested.
+   * Quotes the table alias and column. However, if the table alias is for the
+   * analytics_rs_orgunitstructure table and the column is "ou", change the column to
+   * "organisationunituid" because that is how it is called in that table. Add "ou" as a column
+   * alias if requested.
    */
   private String ouQuote(String tableAlias, String col, boolean noColumnAlias) {
     if (ORG_UNIT_STRUCT_ALIAS.equals(tableAlias) && DEFAULT_ORG_UNIT_COL.equals(col)) {

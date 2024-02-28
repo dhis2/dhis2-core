@@ -46,6 +46,7 @@ import static org.hisp.dhis.feedback.ErrorCode.E7250;
 import static org.hisp.dhis.feedback.ErrorCode.E7251;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -111,6 +112,11 @@ public class CommonQueryRequestMapper {
    * @return the {@link CommonParams}.
    */
   public CommonParams map(CommonQueryRequest request) {
+    CommonQueryRequest originalRequest =
+        request
+            .withDimension(ImmutableSet.copyOf(request.getDimension()))
+            .withFilter(ImmutableSet.copyOf(request.getFilter()));
+
     List<OrganisationUnit> userOrgUnits =
         dataQueryService.getUserOrgUnits(null, request.getUserOrgUnit());
     List<Program> programs = getPrograms(request);
@@ -159,6 +165,7 @@ public class CommonQueryRequestMapper {
         .userOrgUnit(userOrgUnits)
         .coordinatesOnly(request.isCoordinatesOnly())
         .geometryOnly(request.isGeometryOnly())
+        .originalRequest(originalRequest)
         .build();
   }
 

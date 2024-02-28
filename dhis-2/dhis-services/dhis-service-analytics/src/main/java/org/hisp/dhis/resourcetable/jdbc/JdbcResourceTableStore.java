@@ -45,6 +45,7 @@ import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableStore;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.hisp.dhis.system.util.Clock;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -58,6 +59,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
 
   private final AnalyticsTableHookService analyticsTableHookService;
 
+  @Qualifier("analyticsJdbcTemplate")
   private final JdbcTemplate jdbcTemplate;
 
   private final SqlBuilder sqlBuilder;
