@@ -47,7 +47,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -104,6 +103,12 @@ class EventsExportController {
   private final ObjectMapper objectMapper;
 
   private final EventChangeLogService eventChangeLogService;
+
+  private static final String EVENT_CSV_FILE = EVENTS + ".csv";
+  private static final String EVENT_JSON_FILE = EVENTS + ".json";
+
+  private static final String GZIP_EXT = ".gz";
+  private static final String ZIP_EXT = ".zip";
 
   public EventsExportController(
       EventService eventService,
@@ -163,13 +168,16 @@ class EventsExportController {
 
     List<org.hisp.dhis.program.Event> events = eventService.getEvents(eventOperationParams);
 
-    String attachment = getAttachmentOrDefault(eventRequestParams.getAttachment(), "json", "gz");
-    ResponseHeader.addContentDispositionAttachment(response, attachment);
+    ResponseHeader.addContentDispositionAttachment(response, EVENT_JSON_FILE + GZIP_EXT);
     ResponseHeader.addContentTransferEncodingBinary(response);
     response.setContentType(CONTENT_TYPE_JSON_GZIP);
 
+    List<ObjectNode> objectNodes =
+        fieldFilterService.toObjectNodes(
+            EVENTS_MAPPER.fromCollection(events), eventRequestParams.getFields());
+
     writeGzip(
-        response.getOutputStream(), EVENTS_MAPPER.fromCollection(events), objectMapper.writer());
+        response.getOutputStream(), Page.withoutPager(EVENTS, objectNodes), objectMapper.writer());
   }
 
   @GetMapping(produces = CONTENT_TYPE_JSON_ZIP)
@@ -181,16 +189,19 @@ class EventsExportController {
 
     List<org.hisp.dhis.program.Event> events = eventService.getEvents(eventOperationParams);
 
-    String attachment = getAttachmentOrDefault(eventRequestParams.getAttachment(), "json", "zip");
-    ResponseHeader.addContentDispositionAttachment(response, attachment);
+    ResponseHeader.addContentDispositionAttachment(response, EVENT_JSON_FILE + ZIP_EXT);
     ResponseHeader.addContentTransferEncodingBinary(response);
     response.setContentType(CONTENT_TYPE_JSON_ZIP);
 
+    List<ObjectNode> objectNodes =
+        fieldFilterService.toObjectNodes(
+            EVENTS_MAPPER.fromCollection(events), eventRequestParams.getFields());
+
     writeZip(
         response.getOutputStream(),
-        EVENTS_MAPPER.fromCollection(events),
+        Page.withoutPager(EVENTS, objectNodes),
         objectMapper.writer(),
-        attachment);
+        EVENT_JSON_FILE);
   }
 
   @GetMapping(produces = {CONTENT_TYPE_CSV, CONTENT_TYPE_TEXT_CSV})
@@ -203,8 +214,7 @@ class EventsExportController {
 
     List<org.hisp.dhis.program.Event> events = eventService.getEvents(eventOperationParams);
 
-    String attachment = getAttachmentOrDefault(eventRequestParams.getAttachment(), "csv");
-    ResponseHeader.addContentDispositionAttachment(response, attachment);
+    ResponseHeader.addContentDispositionAttachment(response, EVENT_CSV_FILE);
     response.setContentType(CONTENT_TYPE_CSV);
 
     csvEventService.write(
@@ -221,8 +231,7 @@ class EventsExportController {
 
     List<org.hisp.dhis.program.Event> events = eventService.getEvents(eventOperationParams);
 
-    String attachment = getAttachmentOrDefault(eventRequestParams.getAttachment(), "csv", "gz");
-    ResponseHeader.addContentDispositionAttachment(response, attachment);
+    ResponseHeader.addContentDispositionAttachment(response, EVENT_CSV_FILE + GZIP_EXT);
     ResponseHeader.addContentTransferEncodingBinary(response);
     response.setContentType(CONTENT_TYPE_CSV_GZIP);
 
@@ -240,21 +249,15 @@ class EventsExportController {
 
     List<org.hisp.dhis.program.Event> events = eventService.getEvents(eventOperationParams);
 
-    String attachment = getAttachmentOrDefault(eventRequestParams.getAttachment(), "csv", "zip");
-    ResponseHeader.addContentDispositionAttachment(response, attachment);
+    ResponseHeader.addContentDispositionAttachment(response, EVENT_CSV_FILE + ZIP_EXT);
     ResponseHeader.addContentTransferEncodingBinary(response);
     response.setContentType(CONTENT_TYPE_CSV_ZIP);
 
     csvEventService.writeZip(
-        response.getOutputStream(), EVENTS_MAPPER.fromCollection(events), !skipHeader, attachment);
-  }
-
-  private static String getAttachmentOrDefault(String filename, String type, String compression) {
-    return Objects.toString(filename, String.join(".", EVENTS, type, compression));
-  }
-
-  private static String getAttachmentOrDefault(String filename, String type) {
-    return Objects.toString(filename, String.join(".", EVENTS, type));
+        response.getOutputStream(),
+        EVENTS_MAPPER.fromCollection(events),
+        !skipHeader,
+        EVENT_CSV_FILE);
   }
 
   @OpenApi.Response(OpenApi.EntityType.class)

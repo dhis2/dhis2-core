@@ -78,7 +78,7 @@ class CompressionUtilTest {
     ZipEntry zipEntry = zipInputStream.getNextEntry();
 
     assertNotNull(zipEntry, "Events Zip file has no entry");
-    assertEquals("file.json.zip", zipEntry.getName(), "Events Zip file has a wrong name");
+    assertEquals("file.json", zipEntry.getName(), "Events Zip file has a wrong name");
 
     var byteArrayOutputStream = new ByteArrayOutputStream();
     int l;
