@@ -279,7 +279,9 @@ public enum SettingKey {
   /** Max tracked entity records that can be retrieved from database. */
   TRACKED_ENTITY_MAX_LIMIT("KeyTrackedEntityMaxLimit", 50000, Integer.class),
 
-  LOGIN_POPUP("loginPopup", "", String.class, false, true);
+  LOGIN_POPUP("loginPopup", "", String.class, false, true),
+
+  HTML_PUSH_ANALYTICS_URL("keyHtmlPushAnalyticsUrl", "", String.class, false, false);
 
   private final String name;
 

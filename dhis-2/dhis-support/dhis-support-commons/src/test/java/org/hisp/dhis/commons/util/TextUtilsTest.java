@@ -275,4 +275,16 @@ class TextUtilsTest {
     assertEquals(
         "Found 2 items of type text", TextUtils.format("Found {} items of type {}", 2, "text"));
   }
+
+  @Test
+  void testEmptyIfFalse() {
+    assertEquals("", TextUtils.emptyIfFalse("foo", false));
+    assertEquals("foo", TextUtils.emptyIfFalse("foo", true));
+  }
+
+  @Test
+  void testEmptyIfTrue() {
+    assertEquals("", TextUtils.emptyIfTrue("foo", true));
+    assertEquals("foo", TextUtils.emptyIfTrue("foo", false));
+  }
 }

@@ -142,6 +142,14 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     return spatialSupport;
   }
 
+  /**
+   * Encapsulates the SQL logic to get the correct date column based on the event(program stage
+   * instance) status. If new statuses need to be loaded into the analytics events tables, they have
+   * to be supported/added into this logic.
+   */
+  protected final String eventDateExpression =
+      "CASE WHEN 'SCHEDULE' = psi.status THEN psi.scheduleddate ELSE psi.occurreddate END";
+
   // -------------------------------------------------------------------------
   // Implementation
   // -------------------------------------------------------------------------
@@ -536,6 +544,17 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
                   name, CHARACTER_11, "acs." + quote(name), category.getCreated());
             })
         .toList();
+  }
+
+  /**
+   * Indicates whether the table with the given name is not empty, i.e. has at least one row.
+   *
+   * @param name the table name.
+   * @return true if the table is not empty.
+   */
+  protected boolean tableIsNotEmpty(String name) {
+    String sql = String.format("select 1 from %s limit 1;", sqlBuilder.quote(name));
+    return jdbcTemplate.queryForRowSet(sql).next();
   }
 
   /**

@@ -419,11 +419,16 @@ public class RequestParamsValidator {
           "Paging cannot be skipped with isSkipPaging=true while also requesting a paginated response with page, pageSize and/or totalPages=true");
     }
 
-    if (lessThan(params.getPage(), 1)) {
+    validatePaginationBounds(params.getPage(), params.getPageSize());
+  }
+
+  public static void validatePaginationBounds(Integer page, Integer pageSize)
+      throws BadRequestException {
+    if (lessThan(page, 1)) {
       throw new BadRequestException("page must be greater than or equal to 1 if specified");
     }
 
-    if (lessThan(params.getPageSize(), 1)) {
+    if (lessThan(pageSize, 1)) {
       throw new BadRequestException("pageSize must be greater than or equal to 1 if specified");
     }
   }

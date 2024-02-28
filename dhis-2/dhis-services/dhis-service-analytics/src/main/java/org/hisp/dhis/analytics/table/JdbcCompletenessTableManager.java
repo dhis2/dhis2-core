@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static java.lang.String.format;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getLatestTablePartition;
 import static org.hisp.dhis.db.model.DataType.BOOLEAN;
@@ -129,17 +130,8 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
   }
 
   @Override
-  public String validState() {
-    boolean hasData =
-        jdbcTemplate
-            .queryForRowSet("select datasetid from completedatasetregistration limit 1")
-            .next();
-
-    if (!hasData) {
-      return "No complete registrations exist, not updating completeness analytics tables";
-    }
-
-    return null;
+  public boolean validState() {
+    return tableIsNotEmpty("completedatasetregistration");
   }
 
   @Override
@@ -192,10 +184,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
-    String partitionClause =
-        partition.isLatestPartition()
-            ? "and cdr.lastupdated >= '" + toLongDate(partition.getStartDate()) + "' "
-            : "and ps.year = " + partition.getYear() + " ";
+    String partitionClause = getPartitionClause(partition);
 
     String sql = "insert into " + tableName + " (";
 
@@ -236,6 +225,20 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             + "and cdr.completed = true";
 
     invokeTimeAndLog(sql, String.format("Populate %s", tableName));
+  }
+
+  /**
+   * Returns a partition SQL clause.
+   *
+   * @param partition the {@link AnalyticsTablePartition}.
+   * @return a partition SQL clause.
+   */
+  private String getPartitionClause(AnalyticsTablePartition partition) {
+    String latestFilter =
+        format("and cdr.lastupdated >= '%s' ", toLongDate(partition.getStartDate()));
+    String partitionFilter = format("and ps.year = %d ", partition.getYear());
+
+    return partition.isLatestPartition() ? latestFilter : partitionFilter;
   }
 
   private List<AnalyticsTableColumn> getColumns() {

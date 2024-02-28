@@ -25,22 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.scheduling.parameters;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Date;
-import org.hisp.dhis.program.UserInfoSnapshot;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dashboard.Dashboard;
+import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.user.UserGroup;
 
-public record EventChangeLog(
-    @JsonProperty UserInfoSnapshot createdBy,
-    @JsonProperty Date createdAt,
-    @JsonProperty String type,
-    @JsonProperty Change change) {
+/**
+ * @author Jan Bernitt
+ */
+@Setter
+@Getter
+@NoArgsConstructor
+public class HtmlPushAnalyticsJobParameters implements JobParameters {
 
-  public record Change(@JsonProperty DataValueChange dataValue) {}
+  @OpenApi.Property({UID.class, Dashboard.class})
+  @JsonProperty(required = true)
+  private String dashboard;
 
-  public record DataValueChange(
-      @JsonProperty String dataElement,
-      @JsonProperty String previousValue,
-      @JsonProperty String currentValue) {}
+  @OpenApi.Property({UID.class, UserGroup.class})
+  @JsonProperty(required = true)
+  private String receivers;
+
+  @JsonProperty(required = true)
+  private ViewMode mode;
+
+  public enum ViewMode {
+    /** The dashboard is viewed as the user running (executing) the push analytics job */
+    EXECUTOR,
+    /** The dashboard is viewed as the user receiving the push analytics email */
+    RECEIVER
+  }
 }
