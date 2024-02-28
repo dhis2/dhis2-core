@@ -31,11 +31,8 @@ import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexes;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
-
 import java.util.List;
 import java.util.Set;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableManager;
 import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -47,12 +44,15 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.db.model.Index;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.Clock;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -69,6 +69,8 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
   private final ResourceTableService resourceTableService;
 
   private final SystemSettingManager systemSettingManager;
+  
+  private final SqlBuilder sqlBuilder;
 
   @Override
   public AnalyticsTableType getAnalyticsTableType() {
@@ -142,20 +144,24 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     tableUpdates += applyAggregationLevels(tableType, partitions, progress);
     clock.logTime("Applied aggregation levels");
 
-    List<Index> indexes = getIndexes(partitions);
-    progress.startingStage("Creating indexes " + tableType, indexes.size(), SKIP_ITEM_OUTLIER);
-    createIndexes(indexes, progress);
-    clock.logTime("Created indexes");
+    if (sqlBuilder.requiresIndexesForAnalytics()) {
+      List<Index> indexes = getIndexes(partitions);
+      progress.startingStage("Creating indexes " + tableType, indexes.size(), SKIP_ITEM_OUTLIER);
+      createIndexes(indexes, progress);
+      clock.logTime("Created indexes");
+    }
 
-    if (tableUpdates > 0) {
+    if (tableUpdates > 0 && sqlBuilder.supportsVacuum()) {
       progress.startingStage("Vacuuming tables " + tableType, partitions.size());
       vacuumTables(partitions, progress);
       clock.logTime("Tables vacuumed");
     }
 
-    progress.startingStage("Analyzing analytics tables " + tableType, partitions.size());
-    analyzeTables(partitions, progress);
-    clock.logTime("Analyzed tables");
+    if (sqlBuilder.supportsAnalyze()) {
+      progress.startingStage("Analyzing analytics tables " + tableType, partitions.size());
+      analyzeTables(partitions, progress);
+      clock.logTime("Analyzed tables");
+    }
 
     if (params.isLatestUpdate()) {
       progress.startingStage("Removing updated and deleted data " + tableType, SKIP_STAGE);
