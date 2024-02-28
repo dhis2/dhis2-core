@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.table.init;
 
 import static org.hisp.dhis.db.model.Database.DORIS;
+import static org.hisp.dhis.db.model.Database.POSTGRESQL;
 
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -48,8 +49,8 @@ import org.springframework.stereotype.Component;
  * <p>The following steps are required to introduce a new analytics database platform.
  *
  * <ul>
- *   <li>Add value to {@link Database}
- *   <li>Add implementation class of {@link SqlBuilder}
+ *   <li>Add value to enum {@link Database}
+ *   <li>Add implementation of interface {@link SqlBuilder}
  *   <li>Add entry to switch statement in {@link SqlBuilderProvider}
  *   <li>Add method to {@link AnalyticsDatabaseInit} if necessary
  * </ul>
@@ -79,12 +80,18 @@ public class AnalyticsDatabaseInit {
 
     if (DORIS == database) {
       initDoris();
+    } else if (POSTGRESQL == database) {
+      initPostgreSql();
     }
 
     log.info("Initialized analytics database: '{}'", database);
   }
 
-  /** Work for initializing a Doris analytics database. */
+  /**
+   * Work for initializing a Doris analytics database. Creates a JDBC catalog which is used to
+   * connect and read from the PostgreSQL transaction database. Read more at {@link
+   * https://t.ly/igk10}.
+   */
   private void initDoris() {
     String connectionUrl = config.getProperty(ConfigurationKey.CONNECTION_URL);
     String username = config.getProperty(ConfigurationKey.CONNECTION_USERNAME);
@@ -92,5 +99,10 @@ public class AnalyticsDatabaseInit {
 
     jdbcTemplate.execute(sqlBuilder.dropCatalogIfExists());
     jdbcTemplate.execute(sqlBuilder.createCatalog(connectionUrl, username, password));
+  }
+
+  /** Work for initializing a PostgreSQL analytics database. */
+  private void initPostgreSql() {
+    // No work at this point
   }
 }
