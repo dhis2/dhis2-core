@@ -103,7 +103,7 @@ class TeiQueryRequestMapperTest {
     final IllegalQueryException thrown =
         assertThrows(
             IllegalQueryException.class,
-            () -> teiQueryRequestMapper.map(queryRequest, new CommonQueryRequest()));
+            () -> teiQueryRequestMapper.map(queryRequest, queryRequest.getCommonQueryRequest()));
 
     assertEquals(expectedMessage, thrown.getMessage());
   }
