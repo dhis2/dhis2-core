@@ -52,7 +52,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Lars Helge Overland
  */
 @ExtendWith(MockitoExtension.class)
-public class AggregateDataExchangeObjectBundleHookTest {
+class AggregateDataExchangeObjectBundleHookTest {
   @Mock private ObjectBundle objectBundle;
 
   @InjectMocks private AggregateDataExchangeObjectBundleHook objectBundleHook;
