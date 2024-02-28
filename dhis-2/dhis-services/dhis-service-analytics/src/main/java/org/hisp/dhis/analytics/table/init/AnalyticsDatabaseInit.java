@@ -33,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.db.sql.SqlBuilderProvider;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -41,6 +42,15 @@ import org.springframework.stereotype.Component;
 
 /**
  * Responsible for performing work for initialization of a configured analytics database.
+ *
+ * <p>The following steps are required to introduce a new analytics database platform.
+ *
+ * <ul>
+ *   <li>Add value to {@link Database}
+ *   <li>Add implementation class of {@link SqlBuilder}
+ *   <li>Add entry to switch statement in {@link SqlBuilderProvider}
+ *   <li>Add method and entry to switch statement in {@link AnalyticsDatabaseInit}
+ * </ul>
  *
  * @author Lars Helge Overland
  */
