@@ -217,7 +217,8 @@ public interface SqlBuilder {
 
   /**
    * @param name the table name.
-   * @return a fully qualified table reference which specifies the catalog, database and table.
+   * @return a fully qualified and quoted table reference which specifies the catalog, database and
+   *     table.
    */
   String qualifyTable(String name);
 

@@ -249,7 +249,7 @@ public class DimensionParam implements UidObject {
     ENROLLMENTDATE("Enrollment Date", DATETIME, DimensionParamObjectType.PERIOD),
     ENDDATE("End Date", DATETIME, DimensionParamObjectType.PERIOD),
     INCIDENTDATE("Incident Date", DATETIME, DimensionParamObjectType.PERIOD),
-    EXECUTIONDATE("Execution Date", DATETIME, DimensionParamObjectType.PERIOD),
+    OCCURREDDATE("Execution Date", DATETIME, DimensionParamObjectType.PERIOD),
     LASTUPDATED(DATETIME, DimensionParamObjectType.PERIOD, TeiStaticField.LAST_UPDATED),
     LASTUPDATEDBYDISPLAYNAME("Last Updated By", TEXT, STATIC),
     CREATED("Created", DATETIME, DimensionParamObjectType.PERIOD),
