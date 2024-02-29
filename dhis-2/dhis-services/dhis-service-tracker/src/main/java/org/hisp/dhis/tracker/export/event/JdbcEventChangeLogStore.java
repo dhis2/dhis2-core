@@ -111,8 +111,8 @@ class JdbcEventChangeLogStore {
               join userinfo u on u.username = t.modifiedby
               where t.audittype in ('CREATE', 'UPDATE', 'DELETE')
               and e.uid = :uid
-              order by %s) cl
-              limit :limit offset :offset
+              order by %s
+              limit :limit offset :offset) cl
             """
             .formatted(sortExpressions(order));
 
