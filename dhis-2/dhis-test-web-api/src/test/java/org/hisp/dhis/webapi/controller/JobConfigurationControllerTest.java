@@ -172,11 +172,8 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void testMATERIALIZED_SQL_VIEW_UPDATE() {
-    // language=JSON
     String json =
-        """
-                {"name":"test","jobType":"MATERIALIZED_SQL_VIEW_UPDATE","cronExpression":"0 0 12 ? * MON-FRI",
-                "jobParameters":{"sqlViews":["u0123456789"]}}""";
+        "{'name':'test','jobType':'MATERIALIZED_SQL_VIEW_UPDATE','cronExpression':'0 0 12 ? * MON-FRI', 'jobParameters':{'sqlViews':['u0123456789']}}";
     String jobId = assertStatus(HttpStatus.CREATED, POST("/jobConfigurations", json));
     JsonObject parameters = assertJobConfigurationExists(jobId, "MATERIALIZED_SQL_VIEW_UPDATE");
     assertEquals("u0123456789", parameters.getArray("sqlViews").getString(0).string());
