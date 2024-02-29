@@ -106,7 +106,22 @@ public class TrackerExportFileTests extends TrackerNtiApiTest {
                 + "                   \"value\": \"%s\","
                 + "                   \"providedElsewhere\": false"
                 + "                 }"
-                + "               ]"
+                + "               ],"
+                + "               \"relationships\": ["
+                + "                 {"
+                + "                 \"relationshipType\": \"gdc6uOvgoji\","
+                + "                 \"from\": {"
+                + "                  \"event\": {"
+                + "                     \"event\": \"ZwwuwNp6gVd\""
+                + "                     }"
+                + "                   },"
+                + "                 \"to\": {"
+                + "                  \"trackedEntity\": {"
+                + "                    \"trackedEntity\": \"Kj6vYde4LHZ\""
+                + "                    }"
+                + "                   }"
+                + "                  }"
+                + "                ]"
                 + "             }"
                 + "           ]"
                 + "         }"
@@ -278,7 +293,8 @@ public class TrackerExportFileTests extends TrackerNtiApiTest {
     String s =
         gZipToStringContent(
             trackerActions
-                .getEventsJsonGZip(new QueryParamsBuilder().add("events", event))
+                .getEventsJsonGZip(
+                    new QueryParamsBuilder().add("events", event).add("fields", "*,relationships"))
                 .validate()
                 .statusCode(200)
                 .contentType("application/json+gzip;charset=utf-8")
@@ -298,7 +314,8 @@ public class TrackerExportFileTests extends TrackerNtiApiTest {
     Map<String, String> s =
         mapZipEntryToStringContent(
             trackerActions
-                .getEventsJsonZip(new QueryParamsBuilder().add("events", event))
+                .getEventsJsonZip(
+                    new QueryParamsBuilder().add("events", event).add("fields", "*,relationships"))
                 .validate()
                 .statusCode(200)
                 .contentType("application/json+zip;charset=utf-8")
@@ -311,7 +328,7 @@ public class TrackerExportFileTests extends TrackerNtiApiTest {
         JsonParser.parseString(s.get("events.json")).getAsJsonObject().getAsJsonArray("instances");
 
     assertEventSize(eventsJson);
-    assertEventSize(eventsJson);
+    assertEventJson(eventsJson);
   }
 
   private void assertEventSize(JsonArray eventsJson) {
@@ -376,6 +393,34 @@ public class TrackerExportFileTests extends TrackerNtiApiTest {
           assertNotNull(eventJson.get("updatedAt"), "Expected updatedAt to be not null");
           assertNotNull(eventJson.get("createdBy"), "Expected createdBy to be not null");
           assertNotNull(eventJson.get("updatedBy"), "Expected updatedBy to be not null");
+
+          JsonArray relationships = eventJson.get("relationships").getAsJsonArray();
+
+          JsonObject relationship = relationships.get(0).getAsJsonObject();
+          assertEquals(
+              event,
+              relationship
+                  .get("from")
+                  .getAsJsonObject()
+                  .get("event")
+                  .getAsJsonObject()
+                  .get("event")
+                  .getAsString(),
+              String.format(
+                  "Expected relationship event from %s but got %s",
+                  event, relationship.get("from")));
+          assertEquals(
+              trackedEntity,
+              relationship
+                  .get("to")
+                  .getAsJsonObject()
+                  .get("trackedEntity")
+                  .getAsJsonObject()
+                  .get("trackedEntity")
+                  .getAsString(),
+              String.format(
+                  "Expected relationship tracked entity to %s but got %s",
+                  trackedEntity, relationship.get("to")));
 
           JsonArray dataValues = eventJson.get("dataValues").getAsJsonArray();
           JsonObject dataValue = dataValues.get(0).getAsJsonObject();
