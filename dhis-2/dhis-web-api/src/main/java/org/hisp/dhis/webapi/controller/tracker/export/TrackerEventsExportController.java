@@ -140,7 +140,10 @@ public class TrackerEventsExportController {
   }
 
   @GetMapping(produces = CONTENT_TYPE_JSON_GZIP)
-  void getEventsAsGzip(TrackerEventCriteria eventCriteria, HttpServletResponse response)
+  void getEventsAsGzip(
+      TrackerEventCriteria eventCriteria,
+      @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) List<FieldPath> fields,
+      HttpServletResponse response)
       throws BadRequestException, IOException, ForbiddenException {
     EventQueryParams eventQueryParams = requestToSearchParams.map(eventCriteria);
 
@@ -148,22 +151,25 @@ public class TrackerEventsExportController {
       return;
     }
 
-    Events events = eventService.getEvents(eventQueryParams);
-
     response.addHeader(
         ContextUtils.HEADER_CONTENT_DISPOSITION,
         getContentDispositionHeaderValue(EVENT_JSON_FILE + GZIP_EXT));
     response.addHeader(HEADER_CONTENT_TRANSFER_ENCODING, BINARY_HEADER_CONTENT_TRANSFER_ENCODING);
     response.setContentType(CONTENT_TYPE_JSON_GZIP);
 
+    Events events = eventService.getEvents(eventQueryParams);
+
+    List<ObjectNode> objectNodes =
+        fieldFilterService.toObjectNodes(EVENTS_MAPPER.fromCollection(events.getEvents()), fields);
     writeGzip(
-        response.getOutputStream(),
-        EVENTS_MAPPER.fromCollection(events.getEvents()),
-        objectMapper.writer());
+        response.getOutputStream(), PagingWrapper.withoutPager(objectNodes), objectMapper.writer());
   }
 
   @GetMapping(produces = CONTENT_TYPE_JSON_ZIP)
-  void getEventsAsZip(TrackerEventCriteria eventCriteria, HttpServletResponse response)
+  void getEventsAsZip(
+      TrackerEventCriteria eventCriteria,
+      @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) List<FieldPath> fields,
+      HttpServletResponse response)
       throws BadRequestException, ForbiddenException, IOException {
     EventQueryParams eventQueryParams = requestToSearchParams.map(eventCriteria);
 
@@ -171,17 +177,20 @@ public class TrackerEventsExportController {
       return;
     }
 
-    Events events = eventService.getEvents(eventQueryParams);
-
     response.addHeader(
         ContextUtils.HEADER_CONTENT_DISPOSITION,
         getContentDispositionHeaderValue(EVENT_JSON_FILE + ZIP_EXT));
     response.addHeader(HEADER_CONTENT_TRANSFER_ENCODING, BINARY_HEADER_CONTENT_TRANSFER_ENCODING);
     response.setContentType(CONTENT_TYPE_JSON_ZIP);
 
+    Events events = eventService.getEvents(eventQueryParams);
+
+    List<ObjectNode> objectNodes =
+        fieldFilterService.toObjectNodes(EVENTS_MAPPER.fromCollection(events.getEvents()), fields);
+
     writeZip(
         response.getOutputStream(),
-        EVENTS_MAPPER.fromCollection(events.getEvents()),
+        PagingWrapper.withoutPager(objectNodes),
         objectMapper.writer(),
         EVENT_JSON_FILE);
   }
