@@ -44,7 +44,7 @@ public interface JsonEventChangeLog extends JsonObject {
   }
 
   interface JsonChange extends JsonObject {
-    default JsonDataValue getDataValueChange() {
+    default JsonDataValue getDataValue() {
       return get("dataValue").as(JsonDataValue.class);
     }
   }

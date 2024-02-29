@@ -32,6 +32,10 @@ import java.util.Date;
 import org.hisp.dhis.program.UserInfoSnapshot;
 
 public record EventChangeLog(
+    /**
+     * Ideally we would reuse {@code org.hisp.dhis.webapi.controller.tracker.view.User} so our
+     * responses stay consistent.
+     */
     @JsonProperty UserInfoSnapshot createdBy,
     @JsonProperty Date createdAt,
     @JsonProperty String type,
