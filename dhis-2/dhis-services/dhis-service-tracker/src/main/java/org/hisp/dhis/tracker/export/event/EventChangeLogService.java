@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
+import java.util.Set;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.tracker.export.Page;
@@ -35,9 +36,19 @@ import org.hisp.dhis.tracker.export.PageParams;
 public interface EventChangeLogService {
 
   /**
-   * Retrieves the change log data for a particular event
+   * Retrieves the change log data for a particular event.
    *
    * @return event change logs page
    */
-  Page<EventChangeLog> getEventChangeLog(UID event, PageParams pageParams) throws NotFoundException;
+  Page<EventChangeLog> getEventChangeLog(
+      UID event, EventChangeLogOperationParams operationParams, PageParams pageParams)
+      throws NotFoundException;
+
+  /**
+   * Fields the {@link #getEventChangeLog(UID, EventChangeLogOperationParams, PageParams)} can order
+   * event change logs by. Ordering by fields other than these is considered a programmer error.
+   * Validation of user provided field names should occur before calling {@link
+   * #getEventChangeLog(UID, EventChangeLogOperationParams, PageParams)}.
+   */
+  Set<String> getOrderableFields();
 }
