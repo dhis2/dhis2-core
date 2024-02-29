@@ -107,10 +107,7 @@ public class IndicatorGroupSetResourceTable implements ResourceTable {
               + "where igm.indicatorid = i.indicatorid "
               + "limit 1) as "
               + sqlBuilder.quote(groupSet.getName())
-              + ", ";
-
-      sql +=
-          "("
+              + ", ("
               + "select ig.uid from indicatorgroup ig "
               + "inner join indicatorgroupmembers igm on "
               + "igm.indicatorgroupid = ig.indicatorgroupid "
