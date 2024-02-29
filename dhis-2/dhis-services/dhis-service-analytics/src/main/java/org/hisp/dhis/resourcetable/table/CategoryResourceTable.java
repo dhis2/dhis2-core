@@ -27,12 +27,13 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
+import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
 
-import com.google.common.collect.Lists;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -45,6 +46,10 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.hisp.dhis.resourcetable.util.UniqueNameContext;
+
+import com.google.common.collect.Lists;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Lars Helge Overland
@@ -109,31 +114,27 @@ public class CategoryResourceTable implements ResourceTable {
             + "select coc.categoryoptioncomboid as cocid, coc.name as cocname, ";
 
     for (Category category : categories) {
-      sql +=
-          "("
-              + "select co.name from categoryoptioncombos_categoryoptions cocco "
-              + "inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid "
-              + "inner join categories_categoryoptions cco on co.categoryoptionid = cco.categoryoptionid "
-              + "where coc.categoryoptioncomboid = cocco.categoryoptioncomboid "
-              + "and cco.categoryid = "
-              + category.getId()
-              + " "
-              + "limit 1) as "
-              + sqlBuilder.quote(category.getName())
-              + ", ";
 
-      sql +=
-          "("
-              + "select co.uid from categoryoptioncombos_categoryoptions cocco "
-              + "inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid "
-              + "inner join categories_categoryoptions cco on co.categoryoptionid = cco.categoryoptionid "
-              + "where coc.categoryoptioncomboid = cocco.categoryoptioncomboid "
-              + "and cco.categoryid = "
-              + category.getId()
-              + " "
-              + "limit 1) as "
-              + sqlBuilder.quote(category.getUid())
-              + ", ";
+        sql +=
+            replace(
+                """
+            (
+              select co.name from categoryoptioncombos_categoryoptions cocco \
+              inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid \
+              inner join categories_categoryoptions cco on co.categoryoptionid = cco.categoryoptionid \
+              where coc.categoryoptioncomboid = cocco.categoryoptioncomboid \
+              and cco.categoryid = ${categoryId} limit 1) as ${categoryName}, \
+              (
+              select co.uid from categoryoptioncombos_categoryoptions cocco \
+              inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid \
+              inner join categories_categoryoptions cco on co.categoryoptionid = cco.categoryoptionid \
+              where coc.categoryoptioncomboid = cocco.categoryoptioncomboid 
+              and cco.categoryid = ${categoryId} limit 1) as ${categoryUid}, \
+              """, Map.of(
+                  "categoryId", String.valueOf( category.getId() ),
+                  "categoryName", sqlBuilder.quote( category.getName() ),
+                  "categoryUid", sqlBuilder.quote( category.getUid() )
+                  ));
     }
 
     for (CategoryOptionGroupSet groupSet : groupSets) {
@@ -150,10 +151,7 @@ public class CategoryResourceTable implements ResourceTable {
               + " "
               + "limit 1) as "
               + sqlBuilder.quote(groupSet.getName())
-              + ", ";
-
-      sql +=
-          "("
+              + ", ("
               + "select cog.uid from categoryoptioncombos_categoryoptions cocco "
               + "inner join categoryoptiongroupmembers cogm on cocco.categoryoptionid = cogm.categoryoptionid "
               + "inner join categoryoptiongroup cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid "
