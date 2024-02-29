@@ -59,9 +59,18 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
+ * This class is responsible for handling user account related operations such as password reset and
+ * account creation.
+ *
+ * <p>These operations are migrated from the AccountController and adapted to the new LoginApp and
+ * JSON input.
+ *
+ * <p>Operations migrated here, should be deprecated in the AccountController and will be removed in
+ * the future.
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@OpenApi.Tags({"user", "login", "account"})
+@OpenApi.Tags({"user"})
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor

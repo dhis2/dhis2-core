@@ -69,6 +69,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
+ * The AuthenticationController class is responsible for handling login authentication. It provides
+ * endpoints for user login and manages session authentication strategies.
+ *
+ * <p>This class is targeted for the new LoginApp and JSON input/output.
+ *
+ * <p>This class is inspired by, and partly copied from the UsernamePasswordAuthenticationFilter and
+ * AbstractAuthenticationProcessingFilter in Spring.
+ *
+ * <p>
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @OpenApi.Tags({"login"})
