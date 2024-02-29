@@ -89,7 +89,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     String updatedKeywords = "['new k1', 'new k2']";
     createCustomIcon(createFileResource(), keywordsList1, key1);
 
-    String uid = getCustomIconUid(key1);
+    String uid = getCustomIconId(key1);
 
     JsonObject response =
         PUT(
@@ -112,9 +112,9 @@ class IconControllerTest extends DhisControllerIntegrationTest {
   void shouldDeleteIconWhenKeyExists() throws IOException {
     createCustomIcon(createFileResource(), keywordsList1, key1);
 
-    String uid = getCustomIconUid(key1);
+    String uid = getCustomIconId(key1);
 
-    JsonObject response = DELETE(String.format("/icons/%s", uid)).content();
+    JsonObject response = DELETE(String.format("/icons/%s", key1)).content();
 
     assertEquals(
         String.format("CustomIcon with uid %s deleted", uid),
@@ -126,9 +126,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     String fileResourceId = createFileResource();
     createCustomIcon(fileResourceId, keywordsList1, key1);
 
-    String uid = getCustomIconUid(key1);
-
-    JsonObject response = GET(String.format("/icons/%s", uid)).content();
+    JsonObject response = GET(String.format("/icons/%s", key1)).content();
 
     assertEquals(key1, response.getString("key").string());
     assertEquals(description, response.getString("description").string());
@@ -151,7 +149,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     createCustomIcon(fileResourceId3, keywordsList3, key3);
 
     JsonArray response =
-        GET("/icons/search?keywords=m1,k1&fields=key,keywords,description,fileResource")
+        GET("/icons?keywords=m1,k1&type=custom&fields=key,keywords,description,fileResource")
             .content(HttpStatus.OK);
 
     assertNotNull(response);
@@ -167,9 +165,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     createCustomIcon(fileResourceId, keywordsList1, key1);
 
     JsonObject content =
-        GET("/icons?filter=key:eq:"
-                + key1
-                + "&fields=id,key,description,keywords,fileResource&paging=false")
+        GET("/icons?keys=" + key1 + "&fields=id,key,description,keywords,fileResource&paging=false")
             .content(HttpStatus.OK);
 
     JsonList<JsonIcon> icons = content.getList("icons", JsonIcon.class);
@@ -342,11 +338,9 @@ class IconControllerTest extends DhisControllerIntegrationTest {
         () -> assertContainsOnly(keywords, actualKeywords));
   }
 
-  private String getCustomIconUid(String key) {
+  private String getCustomIconId(String key) {
     JsonObject content =
-        GET("/icons?filter=key:eq:"
-                + key
-                + "&fields=id,key,description,keywords,fileResource&paging=false")
+        GET("/icons?key=" + key + "&fields=id,key,description,keywords,fileResource&paging=false")
             .content(HttpStatus.OK);
     JsonList<JsonIcon> icons = content.getList("icons", JsonIcon.class);
 

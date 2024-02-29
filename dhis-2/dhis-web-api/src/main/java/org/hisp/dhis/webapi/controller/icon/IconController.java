@@ -212,20 +212,20 @@ public class IconController {
     return WebMessageUtils.ok(String.format("CustomIcon with uid %s updated", uid));
   }
 
-  @DeleteMapping(value = "/{uid}")
-  public WebMessage deleteCustomIcon(@PathVariable String uid)
+  @DeleteMapping(value = "/{key}")
+  public WebMessage deleteCustomIcon(@PathVariable String key)
       throws NotFoundException, WebMessageException, BadRequestException {
 
-    CustomIcon customIcon = iconService.getCustomIconByUid(uid);
+    CustomIcon customIcon = iconService.getCustomIcon(key);
 
     if (customIcon == null) {
       throw new WebMessageException(
-          WebMessageUtils.notFound(String.format("CustomIcon with uid %s not found", uid)));
+          WebMessageUtils.notFound(String.format("CustomIcon with key %s not found", key)));
     }
 
     iconService.deleteCustomIcon(customIcon);
 
-    return WebMessageUtils.ok(String.format("CustomIcon with uid %s deleted", uid));
+    return WebMessageUtils.ok(String.format("CustomIcon with key %s deleted", key));
   }
 
   private void downloadDefaultIcon(String key, HttpServletResponse response)

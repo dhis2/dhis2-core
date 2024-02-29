@@ -91,7 +91,7 @@ public class HibernateCustomIconStore extends HibernateIdentifiableObjectStore<C
   public Set<CustomIcon> getCustomIcons(CustomIconOperationParams iconOperationParams) {
     String sql =
         """
-              select c.key as iconkey, c.description as icondescription, c.keywords as keywords, c.created as created, c.lastupdated as lastupdated,
+              select c.iconkey as iconkey, c.description as icondescription, c.keywords as keywords, c.created as created, c.lastupdated as lastupdated,
               f.uid as fileresourceuid, u.uid as useruid
               from customicon c join fileresource f on f.fileresourceid = c.fileresourceid
               join userinfo u on u.userinfoid = c.createdby
@@ -197,6 +197,12 @@ public class HibernateCustomIconStore extends HibernateIdentifiableObjectStore<C
           "createdEndDate", iconOperationParams.getCreatedEndDate(), Types.TIMESTAMP);
     }
 
+    if (iconOperationParams.hasCustom()) {
+      sql += hlp.whereAnd() + " c.custom <= :custom ";
+
+      parameterSource.addValue("custom", iconOperationParams.getCustom(), Types.TIMESTAMP);
+    }
+
     if (iconOperationParams.hasKeywords()) {
 
       sql += hlp.whereAnd() + " keywords @> cast(:keywords as jsonb)";
@@ -211,7 +217,7 @@ public class HibernateCustomIconStore extends HibernateIdentifiableObjectStore<C
     }
 
     if (iconOperationParams.hasKeys()) {
-      sql += hlp.whereAnd() + " c.key IN (:keys )";
+      sql += hlp.whereAnd() + " c.iconkey IN (:keys )";
 
       parameterSource.addValue("keys", iconOperationParams.getKeys());
     }

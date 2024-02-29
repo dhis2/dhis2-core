@@ -35,6 +35,7 @@ import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.icon.IconTypeFilter;
 
 /**
  * @author Zubair Asghar
@@ -43,8 +44,7 @@ import org.hisp.dhis.fieldfiltering.FieldPath;
 @NoArgsConstructor
 public class CustomIconRequestParams {
 
-  static final String DEFAULT_FIELDS_PARAM =
-      "key,keywords,description,fileResourceUid,createdByUserUid,href";
+  static final String DEFAULT_FIELDS_PARAM = "key,keywords,description,fileResource,createdBy,href";
 
   private List<String> keys = new ArrayList<>();
   private List<String> keywords = new ArrayList<>();
@@ -52,6 +52,7 @@ public class CustomIconRequestParams {
   private Date createdEndDate;
   private Date lastUpdatedStartDate;
   private Date lastUpdatedEndDate;
+  private IconTypeFilter type = IconTypeFilter.ALL;
   private boolean paging = true;
   private int pageSize = Pager.DEFAULT_PAGE_SIZE;
   private int page = 1;

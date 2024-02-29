@@ -27,10 +27,12 @@
  */
 package org.hisp.dhis.webapi.controller.icon;
 
+import com.google.common.collect.ImmutableMap;
 import java.util.ArrayList;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.icon.CustomIconOperationParams;
+import org.hisp.dhis.icon.IconTypeFilter;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
@@ -40,6 +42,12 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class CustomIconRequestParamMapper {
+
+  private static final ImmutableMap<IconTypeFilter, Boolean> TYPE_MAPPER =
+      ImmutableMap.<IconTypeFilter, Boolean>builder()
+          .put(IconTypeFilter.DEFAULT, Boolean.FALSE)
+          .put(IconTypeFilter.CUSTOM, Boolean.TRUE)
+          .build();
 
   public CustomIconOperationParams map(CustomIconRequestParams iconRequestParams)
       throws BadRequestException {
@@ -57,6 +65,7 @@ public class CustomIconRequestParamMapper {
     operationParams.setLastUpdatedStartDate(iconRequestParams.getLastUpdatedStartDate());
     operationParams.setLastUpdatedEndDate(iconRequestParams.getLastUpdatedEndDate());
     operationParams.setPaging(iconRequestParams.isPaging());
+    operationParams.setCustom(TYPE_MAPPER.getOrDefault(iconRequestParams.getType(), null));
 
     return operationParams;
   }

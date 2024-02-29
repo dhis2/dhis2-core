@@ -62,7 +62,9 @@ public class CustomIcon extends BaseIdentifiableObject {
   @JsonSerialize(as = BaseIdentifiableObject.class)
   private FileResource fileResource;
 
-  @Transient @JsonProperty private String reference;
+  @Transient
+  @JsonProperty(value = "href")
+  private String reference;
 
   public CustomIcon(
       String key,
