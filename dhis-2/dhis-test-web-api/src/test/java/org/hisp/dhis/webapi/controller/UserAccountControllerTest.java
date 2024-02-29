@@ -43,7 +43,6 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -68,9 +67,8 @@ class UserAccountControllerTest extends DhisControllerIntegrationTest {
 
     String newPassword = "Abxf123###...";
 
-    POST(
-            "/auth/resetPassword",
-            "{'newPassword':'" + newPassword + "', 'resetToken':'" + token + "'}")
+    POST("/auth/resetPassword",
+        "{'newPassword':'%s', 'resetToken':'%s'}".formatted(newPassword, token))
         .content(HttpStatus.OK);
 
     User updatedUser = userService.getUserByUsername(test.getUsername());
@@ -80,9 +78,8 @@ class UserAccountControllerTest extends DhisControllerIntegrationTest {
     assertTrue(passwordMatch);
   }
 
-  @NotNull
   private String sendForgotPasswordRequest(User test) {
-    POST("/auth/forgotPassword", "{'username':'" + test.getUsername() + "'}")
+    POST("/auth/forgotPassword", "{'username':'%s'}".formatted(test.getUsername()))
         .content(HttpStatus.OK);
 
     OutboundMessage message = assertMessageSendTo(test.getEmail());
