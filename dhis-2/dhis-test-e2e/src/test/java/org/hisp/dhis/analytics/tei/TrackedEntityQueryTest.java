@@ -3184,19 +3184,63 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
   }
 
   @Test
-  public void metaAndHeadersContainsCustomLabels() {
+  public void headersContainsCustomLabels() {
 
-    Map<String, String> customLabels =
+    Map<String, String> headersCustomLabels =
         Map.of(
-            "IpHINAT79UW.enrollmentdate", "Date of enrollment, Child Programme",
-            "IpHINAT79UW.incidentdate", "Date of birth, Child Programme",
-            "IpHINAT79UW.A03MvHHogjR.occurreddate", "Report date, Child Programme, Birth",
-            "IpHINAT79UW.ouname", "Organisation Unit Name, Child Programme");
+            "IpHINAT79UW.enrollmentdate",
+            "Date of enrollment, Child Programme",
+            "IpHINAT79UW[-1].enrollmentdate",
+            "Date of enrollment, Child Programme (-1)",
+            "IpHINAT79UW.incidentdate",
+            "Date of birth, Child Programme",
+            "IpHINAT79UW[-1].incidentdate",
+            "Date of birth, Child Programme (-1)",
+            "IpHINAT79UW.A03MvHHogjR.occurreddate",
+            "Report date, Child Programme, Birth",
+            "IpHINAT79UW[-1].A03MvHHogjR.occurreddate",
+            "Report date, Child Programme (-1), Birth",
+            "IpHINAT79UW.A03MvHHogjR[-1].occurreddate",
+            "Report date, Child Programme, Birth (-1)",
+            "IpHINAT79UW[-1].A03MvHHogjR[-1].occurreddate",
+            "Report date, Child Programme (-1), Birth (-1)",
+            "IpHINAT79UW.ouname",
+            "Organisation Unit Name, Child Programme",
+            "IpHINAT79UW[-1].ouname",
+            "Organisation Unit Name, Child Programme (-1)");
 
-    customLabels.forEach(this::testCustomLabel);
+    headersCustomLabels.forEach(this::testHeadersCustomLabel);
   }
 
-  private void testCustomLabel(String header, String expected) {
+  private void testHeadersCustomLabel(String header, String expected) {
+    // Given
+    QueryParamsBuilder params = new QueryParamsBuilder().add("headers=" + header).add("pageSize=0");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response.validate().statusCode(200).body("headers[0].column", equalTo(expected));
+  }
+
+  @Test
+  public void metaItemsContainsCustomLabels() {
+
+    Map<String, String> headersCustomLabels =
+        Map.of(
+            "IpHINAT79UW.enrollmentdate",
+            "Date of enrollment, Child Programme",
+            "IpHINAT79UW.incidentdate",
+            "Date of birth, Child Programme",
+            "IpHINAT79UW.A03MvHHogjR.occurreddate",
+            "Report date, Child Programme, Birth",
+            "IpHINAT79UW.ouname",
+            "Organisation Unit Name, Child Programme");
+
+    headersCustomLabels.forEach(this::testMetaCustomLabel);
+  }
+
+  private void testMetaCustomLabel(String header, String expected) {
     // Given
     QueryParamsBuilder params = new QueryParamsBuilder().add("headers=" + header).add("pageSize=0");
 
@@ -3207,7 +3251,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
     response
         .validate()
         .statusCode(200)
-        .body("headers[0].column", equalTo(expected))
         .body("metaData.items['" + header + "'].name", equalTo(expected));
   }
 }

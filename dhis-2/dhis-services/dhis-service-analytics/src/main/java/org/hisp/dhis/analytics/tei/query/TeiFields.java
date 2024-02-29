@@ -29,6 +29,8 @@ package org.hisp.dhis.analytics.tei.query;
 
 import static java.util.Arrays.stream;
 import static lombok.AccessLevel.PRIVATE;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getCustomLabelOrFullName;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getCustomLabelOrHeaderColumnName;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.joinedWithPrefixesIfNeeded;
 import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.common.ValueType.COORDINATE;
@@ -48,7 +50,6 @@ import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.common.params.CommonParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.common.query.Field;
@@ -290,9 +291,10 @@ public class TeiFields {
   private static GridHeader getCustomGridHeaderForStaticDimension(
       DimensionIdentifier<DimensionParam> dimId) {
     if (dimId.isEventDimension() || dimId.isEnrollmentDimension()) {
-      return getGridHeader(DimensionIdentifierHelper::getCustomLabelOrHeaderColumnName, dimId);
+      return getGridHeader(
+          dimensionId -> getCustomLabelOrHeaderColumnName(dimensionId, true), dimId);
     }
-    return getGridHeader(DimensionIdentifierHelper::getCustomLabelOrFullName, dimId);
+    return getGridHeader(dimensionId -> getCustomLabelOrFullName(dimensionId, false), dimId);
   }
 
   private static GridHeader getGridHeader(
@@ -312,7 +314,7 @@ public class TeiFields {
     return new GridHeader(
         dimensionIdentifier.getKey(),
         joinedWithPrefixesIfNeeded(
-            dimensionIdentifier, labelProvider.apply(dimensionIdentifier.getDimension())),
+            dimensionIdentifier, labelProvider.apply(dimensionIdentifier.getDimension()), true),
         getValueType(dimensionIdentifier),
         false,
         true);
@@ -354,7 +356,8 @@ public class TeiFields {
           queryItem.getItem().getUid(),
           joinedWithPrefixesIfNeeded(
               dimIdentifier,
-              queryItem.getItem().getDisplayProperty(commonParams.getDisplayProperty())),
+              queryItem.getItem().getDisplayProperty(commonParams.getDisplayProperty()),
+              true),
           COORDINATE,
           false,
           true,
@@ -369,7 +372,7 @@ public class TeiFields {
 
       return new GridHeader(
           dimName,
-          joinedWithPrefixesIfNeeded(dimIdentifier, column),
+          joinedWithPrefixesIfNeeded(dimIdentifier, column, true),
           valueType,
           false,
           true,
@@ -383,7 +386,7 @@ public class TeiFields {
 
       return new GridHeader(
           itemUid,
-          joinedWithPrefixesIfNeeded(dimIdentifier, column),
+          joinedWithPrefixesIfNeeded(dimIdentifier, column, true),
           queryItem.getValueType(),
           false,
           true,

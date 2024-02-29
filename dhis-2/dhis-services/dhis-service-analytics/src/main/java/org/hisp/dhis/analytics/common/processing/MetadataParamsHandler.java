@@ -173,7 +173,7 @@ public class MetadataParamsHandler {
   private MetadataItem getMetadataWithCustomLabel(
       DimensionIdentifier<DimensionParam> dimensionIdentifier) {
 
-    String customLabel = getCustomLabelOrHeaderColumnName(dimensionIdentifier);
+    String customLabel = getCustomLabelOrHeaderColumnName(dimensionIdentifier, false);
 
     MetadataItem metadataItem = new MetadataItem(customLabel);
     metadataItem.setDimensionType(
@@ -186,7 +186,8 @@ public class MetadataParamsHandler {
       DimensionIdentifier<DimensionParam> dimensionIdentifier, Entry<String, Object> entry) {
     if (entry.getValue() instanceof MetadataItem metadataItem) {
       MetadataItem clone =
-          new MetadataItem(joinedWithPrefixesIfNeeded(dimensionIdentifier, metadataItem.getName()));
+          new MetadataItem(
+              joinedWithPrefixesIfNeeded(dimensionIdentifier, metadataItem.getName(), false));
       clone.setDimensionType(metadataItem.getDimensionType());
       clone.setValueType(metadataItem.getValueType());
       return Map.entry(dimensionIdentifier.getKeyNoOffset(), clone);

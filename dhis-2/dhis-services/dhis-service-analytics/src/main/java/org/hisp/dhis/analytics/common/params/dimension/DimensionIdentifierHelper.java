@@ -50,6 +50,7 @@ import java.util.function.Function;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.UidObject;
 import org.hisp.dhis.feedback.ErrorCode;
 
@@ -197,18 +198,19 @@ public class DimensionIdentifierHelper {
   }
 
   public static String getCustomLabelOrHeaderColumnName(
-      DimensionIdentifier<DimensionParam> dimensionIdentifier) {
-    return getCustomLabel(dimensionIdentifier, StaticDimension::getHeaderColumnName);
+      DimensionIdentifier<DimensionParam> dimensionIdentifier, boolean useOffset) {
+    return getCustomLabel(dimensionIdentifier, StaticDimension::getHeaderColumnName, useOffset);
   }
 
   public static String getCustomLabelOrFullName(
-      DimensionIdentifier<DimensionParam> dimensionIdentifier) {
-    return getCustomLabel(dimensionIdentifier, StaticDimension::getFullName);
+      DimensionIdentifier<DimensionParam> dimensionIdentifier, boolean useOffset) {
+    return getCustomLabel(dimensionIdentifier, StaticDimension::getFullName, useOffset);
   }
 
   private static String getCustomLabel(
       DimensionIdentifier<DimensionParam> dimensionIdentifier,
-      Function<StaticDimension, String> defaultLabelMapper) {
+      Function<StaticDimension, String> defaultLabelMapper,
+      boolean useOffset) {
     return joinedWithPrefixesIfNeeded(
         dimensionIdentifier,
         Optional.of(dimensionIdentifier)
@@ -217,23 +219,44 @@ public class DimensionIdentifierHelper {
             .orElseGet(
                 () ->
                     defaultLabelMapper.apply(
-                        dimensionIdentifier.getDimension().getStaticDimension())));
+                        dimensionIdentifier.getDimension().getStaticDimension())),
+        useOffset);
   }
 
   public static String joinedWithPrefixesIfNeeded(
-      DimensionIdentifier<DimensionParam> dimensionIdentifier, String label) {
+      DimensionIdentifier<DimensionParam> dimensionIdentifier, String label, boolean useOffset) {
     if (dimensionIdentifier.isEventDimension()) {
       return join(
               ", ",
               label,
-              dimensionIdentifier.getProgram().getElement().getDisplayName(),
-              dimensionIdentifier.getProgramStage().getElement().getDisplayName())
+              getDisplayNameWithOffset(
+                  dimensionIdentifier.getProgram(),
+                  BaseIdentifiableObject::getDisplayName,
+                  useOffset),
+              getDisplayNameWithOffset(
+                  dimensionIdentifier.getProgramStage(),
+                  BaseIdentifiableObject::getDisplayName,
+                  useOffset))
           .trim();
     } else if (dimensionIdentifier.isEnrollmentDimension()) {
-      return join(", ", label, dimensionIdentifier.getProgram().getElement().getDisplayName())
+      return join(
+              ", ",
+              label,
+              getDisplayNameWithOffset(
+                  dimensionIdentifier.getProgram(),
+                  BaseIdentifiableObject::getDisplayName,
+                  useOffset))
           .trim();
     }
     return label;
+  }
+
+  private static <T extends UidObject> String getDisplayNameWithOffset(
+      ElementWithOffset<T> element, Function<T, String> displayNameExtractor, boolean useOffset) {
+    String displayName = displayNameExtractor.apply(element.getElement());
+    return element.hasOffset() && element.getOffset() != 0 && useOffset
+        ? displayName + " (" + element.getOffset() + ")"
+        : displayName;
   }
 
   private static String getStaticDimensionDisplayName(
