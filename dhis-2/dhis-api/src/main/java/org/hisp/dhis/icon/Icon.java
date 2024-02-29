@@ -28,7 +28,8 @@
 package org.hisp.dhis.icon;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.Getter;
 
 /** Default icons are pre-installed immutable icons. */
@@ -518,7 +519,7 @@ public enum Icon {
   YOUNG_PEOPLE(
       "young_people", "Young people", new String[] {"young", "juvenile", "teens", "youth"});
 
-  private static final String[] VARIANTS = {"positive", "negative", "outline"};
+  public static final Set<String> VARIANTS = Set.of("positive", "negative", "outline");
 
   public static final String SUFFIX = "svg";
 
@@ -534,7 +535,7 @@ public enum Icon {
     this.keywords = keywords;
   }
 
-  public List<String> getKeywords() {
-    return Arrays.stream(this.keywords).toList();
+  public Set<String> getKeywords() {
+    return Arrays.stream(this.keywords).collect(Collectors.toSet());
   }
 }

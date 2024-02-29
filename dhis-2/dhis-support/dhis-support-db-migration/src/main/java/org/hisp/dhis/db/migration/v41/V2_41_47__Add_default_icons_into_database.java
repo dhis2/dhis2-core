@@ -31,12 +31,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.flywaydb.core.api.FlywayException;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.icon.CustomIcon;
 import org.hisp.dhis.icon.Icon;
 import org.postgresql.util.PGobject;
@@ -65,12 +68,14 @@ public class V2_41_47__Add_default_icons_into_database extends BaseJavaMigration
 
     Map<String, CustomIcon> customIconMap =
         Arrays.stream(Icon.values())
-            .collect(Collectors.toMap(Icon::getKey, this::createCustomIcon));
+            .map(this::createCustomIconWithVariants)
+            .flatMap(Collection::stream)
+            .collect(Collectors.toMap(CustomIcon::getKey, Function.identity()));
 
     try (PreparedStatement ps = context.getConnection().prepareStatement(INSERT_DEFAULT_ICONS)) {
 
       for (Map.Entry<String, CustomIcon> entry : customIconMap.entrySet()) {
-        ps.setString(1, "code_" + entry.getKey());
+        ps.setString(1, "code_" + CodeGenerator.generateCode(5));
         ps.setString(2, entry.getValue().getKey());
         ps.setString(3, entry.getValue().getDescription());
 
@@ -91,13 +96,17 @@ public class V2_41_47__Add_default_icons_into_database extends BaseJavaMigration
     }
   }
 
-  private CustomIcon createCustomIcon(Icon icon) {
+  private List<CustomIcon> createCustomIconWithVariants(Icon icon) {
 
-    CustomIcon customIcon = new CustomIcon();
-    customIcon.setKey(icon.getKey());
-    customIcon.setDescription(icon.getDescription());
-    customIcon.setKeywords(new HashSet<>(icon.getKeywords()));
-
-    return customIcon;
+    return Icon.VARIANTS.stream()
+        .map(
+            variant ->
+                new CustomIcon(
+                    String.format("%s_%s", icon.getKey(), variant),
+                    icon.getDescription(),
+                    icon.getKeywords(),
+                    false,
+                    null))
+        .toList();
   }
 }
