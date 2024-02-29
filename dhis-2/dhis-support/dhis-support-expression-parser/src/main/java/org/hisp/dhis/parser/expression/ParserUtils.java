@@ -29,6 +29,8 @@ package org.hisp.dhis.parser.expression;
 
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.AMPERSAND_2;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.AND;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.CONTAINS;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.CONTAINS_ITEMS;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.C_BRACE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.DIV;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.EQ;
@@ -66,6 +68,8 @@ import java.util.Date;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.parser.expression.dataitem.ItemConstant;
+import org.hisp.dhis.parser.expression.function.FunctionContains;
+import org.hisp.dhis.parser.expression.function.FunctionContainsItems;
 import org.hisp.dhis.parser.expression.function.FunctionFirstNonNull;
 import org.hisp.dhis.parser.expression.function.FunctionGreatest;
 import org.hisp.dhis.parser.expression.function.FunctionIf;
@@ -140,6 +144,8 @@ public class ParserUtils {
 
           // Functions (alphabetical)
 
+          .put(CONTAINS, new FunctionContains())
+          .put(CONTAINS_ITEMS, new FunctionContainsItems())
           .put(FIRST_NON_NULL, new FunctionFirstNonNull())
           .put(GREATEST, new FunctionGreatest())
           .put(IF, new FunctionIf())
