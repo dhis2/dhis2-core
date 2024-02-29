@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
+import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
 import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
 
@@ -81,14 +82,18 @@ public class CategoryOptionComboResourceTable implements ResourceTable {
   @Override
   public Optional<String> getPopulateTempTableStatement() {
     String sql =
-        "insert into "
-            + toStaging(TABLE_NAME)
-            + " (dataelementid, dataelementuid, categoryoptioncomboid, categoryoptioncombouid) "
-            + "select de.dataelementid as dataelementid, de.uid as dataelementuid, "
-            + "coc.categoryoptioncomboid as categoryoptioncomboid, coc.uid as categoryoptioncombouid "
-            + "from dataelement de "
-            + "join categorycombos_optioncombos cc on de.categorycomboid = cc.categorycomboid "
-            + "join categoryoptioncombo coc on cc.categoryoptioncomboid = coc.categoryoptioncomboid";
+        replace(
+            """
+        insert into ${table_name} \
+        (dataelementid, dataelementuid, categoryoptioncomboid, categoryoptioncombouid) \
+        select de.dataelementid as dataelementid, de.uid as dataelementuid, \
+        coc.categoryoptioncomboid as categoryoptioncomboid, coc.uid as categoryoptioncombouid \
+        from dataelement de \
+        inner join categorycombos_optioncombos cc on de.categorycomboid = cc.categorycomboid \
+        inner join categoryoptioncombo coc on cc.categoryoptioncomboid = coc.categoryoptioncomboid;
+        """,
+            "table_name",
+            toStaging(TABLE_NAME));
 
     return Optional.of(sql);
   }
