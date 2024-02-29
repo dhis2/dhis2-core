@@ -215,6 +215,11 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
         .replace(BACKSLASH, (BACKSLASH + BACKSLASH));
   }
 
+  @Override
+  public String qualifyTable(String name) {
+    return quote(name);
+  }
+
   // Statements
 
   @Override
@@ -319,8 +324,9 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   @Override
   public String tableExists(String name) {
     return String.format(
-        "select t.table_name from information_schema.tables t "
-            + "where t.table_schema = 'public' and t.table_name = %s;",
+        """
+        select t.table_name from information_schema.tables t \
+        where t.table_schema = 'public' and t.table_name = %s;""",
         singleQuote(name));
   }
 
@@ -338,5 +344,15 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
     return String.format(
         "create %sindex %s on %s using %s(%s);",
         unique, quote(index.getName()), quote(tableName), typeName, columns);
+  }
+
+  @Override
+  public String createCatalog(String connectionUrl, String username, String password) {
+    return notSupported();
+  }
+
+  @Override
+  public String dropCatalogIfExists() {
+    return notSupported();
   }
 }

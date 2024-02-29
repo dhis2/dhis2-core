@@ -55,6 +55,7 @@ class AccountControllerTest extends DhisControllerIntegrationTest {
   void testRecoverAccount_NotEnabled() {
     User test = switchToNewUser("test");
     switchToSuperuser();
+    clearSecurityContext();
     assertWebMessage(
         "Conflict",
         409,
@@ -65,12 +66,45 @@ class AccountControllerTest extends DhisControllerIntegrationTest {
 
   @Test
   void testRestoreAccount_InvalidTokenPassword() {
+    clearSecurityContext();
     assertWebMessage(
         "Conflict",
         409,
         "ERROR",
         "Account recovery failed",
         POST("/account/restore?token=xyz&password=secret").content(HttpStatus.CONFLICT));
+  }
+
+  @Test
+  void testRecoverAccount_UsernameNotExist() {
+    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, Boolean.TRUE);
+    clearSecurityContext();
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "User does not exist: BART",
+        POST("/account/recovery?username=BART").content(HttpStatus.CONFLICT));
+  }
+
+  @Test
+  void testRecoverAccount_NotValidEmail() {
+    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, Boolean.TRUE);
+    clearSecurityContext();
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "User account does not have a valid email address",
+        POST("/account/recovery?username=" + superUser.getUsername()).content(HttpStatus.CONFLICT));
+  }
+
+  @Test
+  void testRecoverAccount_OK() {
+    switchToNewUser("test");
+    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, Boolean.TRUE);
+    clearSecurityContext();
+    POST("/account/recovery?username=test").content(HttpStatus.OK);
   }
 
   @Test

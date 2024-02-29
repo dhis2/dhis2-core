@@ -27,10 +27,12 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
+import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
 
 import com.google.common.collect.Lists;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -49,7 +51,7 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
  */
 @RequiredArgsConstructor
 public class IndicatorGroupSetResourceTable implements ResourceTable {
-  private static final String TABLE_NAME = "_indicatorgroupsetstructure";
+  public static final String TABLE_NAME = "analytics_rs_indicatorgroupsetstructure";
 
   private final SqlBuilder sqlBuilder;
 
@@ -97,31 +99,25 @@ public class IndicatorGroupSetResourceTable implements ResourceTable {
 
     for (IndicatorGroupSet groupSet : groupSets) {
       sql +=
-          "("
-              + "select ig.name from indicatorgroup ig "
-              + "inner join indicatorgroupmembers igm on igm.indicatorgroupid = ig.indicatorgroupid "
-              + "inner join indicatorgroupsetmembers igsm on "
-              + "igsm.indicatorgroupid = igm.indicatorgroupid and igsm.indicatorgroupsetid = "
-              + groupSet.getId()
-              + " "
-              + "where igm.indicatorid = i.indicatorid "
-              + "limit 1) as "
-              + sqlBuilder.quote(groupSet.getName())
-              + ", ";
-
-      sql +=
-          "("
-              + "select ig.uid from indicatorgroup ig "
-              + "inner join indicatorgroupmembers igm on "
-              + "igm.indicatorgroupid = ig.indicatorgroupid "
-              + "inner join indicatorgroupsetmembers igsm on "
-              + "igsm.indicatorgroupid = igm.indicatorgroupid and igsm.indicatorgroupsetid = "
-              + groupSet.getId()
-              + " "
-              + "where igm.indicatorid = i.indicatorid "
-              + "limit 1) as "
-              + sqlBuilder.quote(groupSet.getUid())
-              + ", ";
+          replace(
+              """
+          (
+          select ig.name from indicatorgroup ig \
+          inner join indicatorgroupmembers igm on igm.indicatorgroupid = ig.indicatorgroupid \
+          inner join indicatorgroupsetmembers igsm on igsm.indicatorgroupid = igm.indicatorgroupid \
+          and igsm.indicatorgroupsetid = ${groupSetId} \
+          where igm.indicatorid = i.indicatorid limit 1) as ${groupSetName}, \
+          (
+          select ig.uid from indicatorgroup ig \
+          inner join indicatorgroupmembers igm on igm.indicatorgroupid = ig.indicatorgroupid \
+          inner join indicatorgroupsetmembers igsm on igsm.indicatorgroupid = igm.indicatorgroupid \
+          and igsm.indicatorgroupsetid = ${groupSetId} \
+          where igm.indicatorid = i.indicatorid limit 1) as ${groupSetUid}, \
+          """,
+              Map.of(
+                  "groupSetId", String.valueOf(groupSet.getId()),
+                  "groupSetName", sqlBuilder.quote(groupSet.getName()),
+                  "groupSetUid", sqlBuilder.quote(groupSet.getUid())));
     }
 
     sql = TextUtils.removeLastComma(sql) + " ";

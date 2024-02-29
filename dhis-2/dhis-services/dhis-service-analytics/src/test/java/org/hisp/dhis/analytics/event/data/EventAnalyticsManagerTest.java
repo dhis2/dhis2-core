@@ -335,7 +335,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     String expected =
         "ps.\"quarterly\",ax.\"ou\"  from "
             + getTable(programA.getUid())
-            + " as ax left join _dateperiodstructure as ps on cast(ax.\"scheduleddate\" as date) = ps.\"dateperiod\" "
+            + " as ax left join analytics_rs_dateperiodstructure as ps on cast(ax.\"scheduleddate\" as date) = ps.\"dateperiod\" "
             + "where (ps.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" "
             + "in ('ouabcdefghA') and pistatus in ('ACTIVE','COMPLETED') limit 101";
 

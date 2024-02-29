@@ -25,36 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.monitoring.metrics;
+package org.hisp.dhis.parser.expression.function;
 
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.core.type.AnnotatedTypeMetadata;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+
+import java.util.List;
+import java.util.stream.Collectors;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ExpressionItem;
 
 /**
- * @author Luciano Fiandesio
+ * Function contains
+ *
+ * <p>returns true the first argument contains all other arguments as substrings.
+ *
+ * @author Jim Grace
  */
-@Slf4j
-public abstract class MetricsEnabler extends PropertiesAwareConfigurationCondition {
+public class FunctionContains implements ExpressionItem {
   @Override
-  public ConfigurationPhase getConfigurationPhase() {
-    return ConfigurationPhase.REGISTER_BEAN;
+  public Object evaluate(ExprContext ctx, CommonExpressionVisitor visitor) {
+    String arg0 = visitor.castStringVisit(ctx.expr(0));
+    List<String> searches = getCodes(ctx, visitor);
+    return searches.stream().allMatch(arg0::contains);
   }
 
   @Override
-  public boolean matches(
-      ConditionContext conditionContext, AnnotatedTypeMetadata annotatedTypeMetadata) {
-    ConfigurationKey key = getConfigKey();
-
-    boolean isEnabled = !isTestRun(conditionContext) && getBooleanValue(getConfigKey());
-    log.info(
-        String.format(
-            "Monitoring metric for key '%s' is %s",
-            key.getKey(), isEnabled ? "enabled" : "disabled"));
-    return isEnabled;
+  public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    String arg0 = visitor.castStringVisit(ctx.expr(0));
+    List<String> searches = getCodes(ctx, visitor);
+    String tests =
+        searches.stream()
+            .map(s -> "position(" + s + " in " + arg0 + ")>0")
+            .collect(Collectors.joining(" and "));
+    return "(" + tests + ")";
   }
 
-  protected abstract ConfigurationKey getConfigKey();
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+
+  /** Gets the codes (second expr argument and following) as strings. */
+  private List<String> getCodes(ExprContext ctx, CommonExpressionVisitor visitor) {
+    return ctx.expr().stream().skip(1).map(visitor::castStringVisit).toList();
+  }
 }
