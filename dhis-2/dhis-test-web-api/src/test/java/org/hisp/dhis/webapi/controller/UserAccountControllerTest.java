@@ -62,13 +62,14 @@ class UserAccountControllerTest extends DhisControllerIntegrationTest {
 
     User test = switchToNewUser("test");
 
-    switchToSuperuser();
+    clearSecurityContext();
     String token = sendForgotPasswordRequest(test);
 
     String newPassword = "Abxf123###...";
 
-    POST("/auth/resetPassword",
-        "{'newPassword':'%s', 'resetToken':'%s'}".formatted(newPassword, token))
+    POST(
+            "/auth/resetPassword",
+            "{'newPassword':'%s', 'resetToken':'%s'}".formatted(newPassword, token))
         .content(HttpStatus.OK);
 
     User updatedUser = userService.getUserByUsername(test.getUsername());
