@@ -29,9 +29,11 @@ package org.hisp.dhis.i18n.ui.locale;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import org.apache.commons.lang3.LocaleUtils;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManagerException;
@@ -96,8 +98,31 @@ public class UserSettingLocaleManager implements LocaleManager {
     return locales;
   }
 
+  /**
+   * This method tries to handle the 2 following scenarios: <br>
+   *
+   * <ol>
+   *   <li>when a user Locale is stored as a Locale, the locale will be returned
+   *   <li>when a user Locale is stored as a String, the string will be used as an argument to
+   *       create a new Locale which is then returned <br>
+   * </ol>
+   *
+   * <br>
+   * This ensures that a valid Locale is used in the system. This is necessary because of the
+   * requirement to be able to store newer JDK Locales e.g. 'id' and 'id_ID' (they are stored as
+   * strings). In the scenario where 'id' is the user ui locale, then Java will transform this to
+   * the older locale 'in'. This is only required for anything lower than Java 17 and is not needed
+   * for v41 or higher.
+   *
+   * @return locale
+   */
   private Locale getUserSelectedLocale() {
-    return (Locale) userSettingService.getUserSetting(UserSettingKey.UI_LOCALE);
+    Serializable userSetting = userSettingService.getUserSetting(UserSettingKey.UI_LOCALE);
+
+    if (userSetting instanceof Locale) {
+      return (Locale) userSetting;
+    }
+    return LocaleUtils.toLocale((String) userSetting);
   }
 
   @Override
