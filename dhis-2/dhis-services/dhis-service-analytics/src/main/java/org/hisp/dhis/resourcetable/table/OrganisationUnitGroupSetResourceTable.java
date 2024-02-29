@@ -149,18 +149,19 @@ public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
         sql += "coalesce(";
 
         for (int i = organisationUnitLevels; i > 0; i--) {
-          sql +=
-              "(select oug.name from orgunitgroup oug "
-                  + "inner join orgunitgroupmembers ougm on "
-                  + "ougm.orgunitgroupid = oug.orgunitgroupid and ougm.organisationunitid = ous.idlevel"
-                  + i
-                  + " "
-                  + "inner join orgunitgroupsetmembers ougsm on "
-                  + "ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = "
-                  + groupSet.getId()
-                  + " "
-                  + "limit 1),";
-        }
+          sql +=replace(
+              """
+              (
+              select oug.name from orgunitgroup oug \
+              inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid \
+              and ougm.organisationunitid = ous.idlevel${level} \
+              inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid \
+              and ougsm.orgunitgroupsetid = ${groupSetId} limit 1), \
+              """, Map.of(
+                  "level", String.valueOf(i),
+                  "groupSetId", String.valueOf(groupSet.getId())
+                  ));
+          }
 
         if (organisationUnitLevels == 0) {
           sql += "null";
