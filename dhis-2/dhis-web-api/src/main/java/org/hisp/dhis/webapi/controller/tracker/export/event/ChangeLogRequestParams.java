@@ -40,7 +40,7 @@ import org.hisp.dhis.fieldfiltering.FieldPath;
 @NoArgsConstructor
 public class ChangeLogRequestParams {
 
-  private static final String DEFAULT_FIELDS_PARAM = "change,createdAt,createdBy";
+  private static final String DEFAULT_FIELDS_PARAM = "change,createdAt,createdBy,type";
 
   private int page = 1;
 

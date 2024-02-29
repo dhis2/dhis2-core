@@ -153,9 +153,9 @@ public class JdbcRawAnalyticsManager implements RawAnalyticsManager {
             + " as "
             + ANALYTICS_TBL_ALIAS
             + " "
-            + "inner join organisationunit ou on ax.ou = ou.uid "
-            + "inner join _orgunitstructure ous on ax.ou = ous.organisationunituid "
-            + "inner join _periodstructure ps on ax.pe = ps.iso ";
+            + "inner join organisationunit ou on ax.ou=ou.uid "
+            + "inner join analytics_rs_orgunitstructure ous on ax.ou=ous.organisationunituid "
+            + "inner join analytics_rs_periodstructure ps on ax.pe=ps.iso ";
 
     for (DimensionalObject dim : dimensions) {
       if (!dim.getItems().isEmpty() && !dim.isFixed()) {

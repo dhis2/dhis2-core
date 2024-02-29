@@ -49,7 +49,7 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
  */
 @RequiredArgsConstructor
 public class DataElementGroupSetResourceTable implements ResourceTable {
-  private static final String TABLE_NAME = "_dataelementgroupsetstructure";
+  public static final String TABLE_NAME = "analytics_rs_dataelementgroupsetstructure";
 
   private final SqlBuilder sqlBuilder;
 

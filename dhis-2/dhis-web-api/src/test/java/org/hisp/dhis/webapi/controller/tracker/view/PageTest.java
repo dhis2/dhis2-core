@@ -112,7 +112,7 @@ class PageTest {
   void shouldNotSetNoPageLinkIfThereAreNone() {
     List<String> fruits = List.of("apple", "banana", "cherry");
     org.hisp.dhis.tracker.export.Page<String> exportPage =
-        org.hisp.dhis.tracker.export.Page.withPrevAndNext(fruits, 1, 3, false, false);
+        org.hisp.dhis.tracker.export.Page.withPrevAndNext(fruits, 1, 3, null, null);
 
     MockHttpServletRequest request = new MockHttpServletRequest("GET", "/organisationUnits");
     request.setQueryString("page=1&pageSize=3&fields=displayName");
@@ -127,6 +127,8 @@ class PageTest {
 
     assertEquals(1, page.getPager().getPage());
     assertEquals(3, page.getPager().getPageSize());
+    assertNull(page.getPager().getTotal());
+    assertNull(page.getPager().getPageCount());
 
     assertNull(page.getPager().getPrevPage());
     assertNull(page.getPager().getNextPage());
@@ -136,7 +138,7 @@ class PageTest {
   void shouldSetPrevPage() {
     List<String> fruits = List.of("apple", "banana", "cherry");
     org.hisp.dhis.tracker.export.Page<String> exportPage =
-        org.hisp.dhis.tracker.export.Page.withPrevAndNext(fruits, 2, 3, true, false);
+        org.hisp.dhis.tracker.export.Page.withPrevAndNext(fruits, 2, 3, 1, null);
 
     MockHttpServletRequest request = new MockHttpServletRequest("GET", "/organisationUnits");
     request.setQueryString("page=2&pageSize=3&fields=displayName");
@@ -151,6 +153,8 @@ class PageTest {
 
     assertEquals(2, page.getPager().getPage());
     assertEquals(3, page.getPager().getPageSize());
+    assertNull(page.getPager().getTotal());
+    assertNull(page.getPager().getPageCount());
 
     assertPagerLink(
         page.getPager().getPrevPage(),
@@ -165,7 +169,7 @@ class PageTest {
   void shouldSetNextPage() {
     List<String> fruits = List.of("apple", "banana", "cherry");
     org.hisp.dhis.tracker.export.Page<String> exportPage =
-        org.hisp.dhis.tracker.export.Page.withPrevAndNext(fruits, 2, 3, false, true);
+        org.hisp.dhis.tracker.export.Page.withPrevAndNext(fruits, 2, 3, null, 3);
 
     MockHttpServletRequest request = new MockHttpServletRequest("GET", "/organisationUnits");
     request.setQueryString("page=2&pageSize=3&fields=displayName");
@@ -180,6 +184,8 @@ class PageTest {
 
     assertEquals(2, page.getPager().getPage());
     assertEquals(3, page.getPager().getPageSize());
+    assertNull(page.getPager().getTotal());
+    assertNull(page.getPager().getPageCount());
 
     assertNull(page.getPager().getPrevPage());
     assertPagerLink(

@@ -52,7 +52,7 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
  */
 @RequiredArgsConstructor
 public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
-  private static final String TABLE_NAME = "_organisationunitgroupsetstructure";
+  public static final String TABLE_NAME = "analytics_rs_organisationunitgroupsetstructure";
 
   private final SqlBuilder sqlBuilder;
 
@@ -195,7 +195,7 @@ public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
     sql = removeLastComma(sql) + " ";
     sql +=
         "from organisationunit ou "
-            + "inner join _orgunitstructure ous on ous.organisationunitid = ou.organisationunitid";
+            + "inner join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid";
 
     return Optional.of(sql);
   }

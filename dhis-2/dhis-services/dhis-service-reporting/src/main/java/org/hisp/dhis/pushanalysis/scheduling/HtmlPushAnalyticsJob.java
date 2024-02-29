@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.pushanalysis.scheduling;
 
-import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 
 import java.util.Map;
 import java.util.Set;
@@ -114,7 +114,7 @@ public class HtmlPushAnalyticsJob implements Job {
       progress.startingStage(
           "Sending push analytics to %d receivers as viewed by themselves"
               .formatted(receiversEmailsByUsername.size()),
-          SKIP_ITEM_OUTLIER);
+          SKIP_ITEM);
       progress.runStage(
           receiversEmailsByUsername.entrySet().stream(),
           e -> "For user %s (%s)".formatted(e.getKey(), url.replace("{username}", e.getKey())),

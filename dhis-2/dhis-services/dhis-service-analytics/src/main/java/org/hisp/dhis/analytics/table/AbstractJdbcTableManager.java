@@ -547,6 +547,17 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   /**
+   * Indicates whether the table with the given name is not empty, i.e. has at least one row.
+   *
+   * @param name the table name.
+   * @return true if the table is not empty.
+   */
+  protected boolean tableIsNotEmpty(String name) {
+    String sql = String.format("select 1 from %s limit 1;", sqlBuilder.quote(name));
+    return jdbcTemplate.queryForRowSet(sql).next();
+  }
+
+  /**
    * Quotes the given relation.
    *
    * @param relation the relation to quote, e.g. a table or column name.
