@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,49 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.icon;
+package org.hisp.dhis.webapi.controller.icon;
 
-import java.util.Set;
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.hisp.dhis.common.Pager;
 
-public interface CustomIconStore extends IdentifiableObjectStore<CustomIcon> {
-
-  /**
-   * Get the count of CustomIcons based on filters provided in {@link CustomIconOperationParams}
-   *
-   * @param operationParams filters
-   * @return total count
-   */
-  long count(CustomIconOperationParams operationParams);
-
-  /**
-   * Get list of CustomIcons based on filters provided in {@link CustomIconOperationParams}
-   *
-   * @param operationParams filters to build query
-   * @return list of CustomIcons
-   */
-  Set<CustomIcon> getCustomIcons(CustomIconOperationParams operationParams);
-
-  /**
-   * Returns a custom icon that contains a given key
-   *
-   * @param key of the icon
-   * @return the custom icon matching the key, or null instead
-   */
-  CustomIcon getCustomIconByKey(String key);
-
-  /**
-   * Gets a set of all unique keywords assigned to icons
-   *
-   * @return set of unique keywords
-   */
-  Set<String> getKeywords();
-
-  /**
-   * Search custom icons based on keywords provided
-   *
-   * @param keywords key of the icon to find
-   * @return custom icons filtered based on keywords
-   */
-  Set<CustomIcon> getCustomIconsByKeywords(Set<String> keywords);
+/**
+ * @author Zubair Asghar
+ */
+@Getter
+@AllArgsConstructor
+public class PaginatedIconResponse {
+  @JsonProperty private final Pager pager;
+  @JsonProperty private final List<ObjectNode> icons;
 }

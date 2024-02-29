@@ -27,30 +27,52 @@
  */
 package org.hisp.dhis.icon;
 
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.Pager;
 
 /**
+ * Represents query parameters sent to {@link org.hisp.dhis.icon.CustomIcon}.
+ *
  * @author Zubair Asghar
  */
-public enum IconTypeFilter {
-  ALL("all"),
-  CUSTOM("custom"),
-  DEFAULT("default");
+@Data
+@NoArgsConstructor
+public class CustomIconOperationParams {
 
-  private String type;
+  private List<String> keys = new ArrayList<>();
+  private List<String> keywords = new ArrayList<>();
+  private Date createdStartDate;
+  private Date createdEndDate;
+  private Date lastUpdatedStartDate;
+  private Date lastUpdatedEndDate;
+  private boolean paging = true;
+  private Pager pager = new Pager();
 
-  IconTypeFilter(String type) {
-
-    this.type = type;
+  public boolean hasLastUpdatedStartDate() {
+    return lastUpdatedStartDate != null;
   }
 
-  public static Optional<IconTypeFilter> from(String iconType) {
-    for (IconTypeFilter type : IconTypeFilter.values()) {
-      if (type.type.equals(iconType)) {
-        return Optional.of(type);
-      }
-    }
+  public boolean hasLastUpdatedEndDate() {
+    return lastUpdatedEndDate != null;
+  }
 
-    return Optional.empty();
+  public boolean hasCreatedStartDate() {
+    return createdStartDate != null;
+  }
+
+  public boolean hasCreatedEndDate() {
+    return createdEndDate != null;
+  }
+
+  public boolean hasKeywords() {
+    return !keywords.isEmpty();
+  }
+
+  public boolean hasKeys() {
+    return !keys.isEmpty();
   }
 }

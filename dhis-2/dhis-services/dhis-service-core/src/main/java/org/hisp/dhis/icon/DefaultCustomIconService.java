@@ -56,6 +56,18 @@ public class DefaultCustomIconService implements CustomIconService {
 
   @Override
   @Transactional(readOnly = true)
+  public Set<CustomIcon> getCustomIcons(CustomIconOperationParams iconOperationParams) {
+    return customIconStore.getCustomIcons(iconOperationParams);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public long count(CustomIconOperationParams iconOperationParams) {
+    return customIconStore.count(iconOperationParams);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public CustomIcon getCustomIcon(String key) throws NotFoundException {
     CustomIcon customIcon = customIconStore.getCustomIconByKey(key);
     if (customIcon == null) {

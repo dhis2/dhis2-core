@@ -38,6 +38,22 @@ import org.springframework.core.io.Resource;
 public interface CustomIconService {
 
   /**
+   * Get the count of CustomIcons based on filters provided in {@link CustomIconOperationParams}
+   *
+   * @param operationParams filters
+   * @return total count
+   */
+  long count(CustomIconOperationParams operationParams);
+
+  /**
+   * Get list of CustomIcons based on filters provided in {@link CustomIconOperationParams}
+   *
+   * @param operationParams filters to build query
+   * @return list of CustomIcons
+   */
+  Set<CustomIcon> getCustomIcons(CustomIconOperationParams operationParams);
+
+  /**
    * Gets the custom icon associated to a key, if it exists
    *
    * @param key key of the icon to find

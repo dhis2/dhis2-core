@@ -32,9 +32,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.net.MediaType;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import javax.servlet.http.HttpServletRequest;
@@ -43,6 +41,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -51,20 +50,20 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.fieldfiltering.FieldFilterParser;
-import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.icon.CustomIcon;
+import org.hisp.dhis.icon.CustomIconOperationParams;
 import org.hisp.dhis.icon.CustomIconService;
 import org.hisp.dhis.icon.Icon;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
-import org.hisp.dhis.webapi.controller.AbstractFullReadOnlyController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.service.ContextService;
+import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.HeaderUtils;
-import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.core.io.Resource;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
@@ -76,7 +75,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -88,7 +87,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @AllArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-public class IconController extends AbstractFullReadOnlyController<CustomIcon> {
+public class IconController {
   private static final int TTL = 365;
 
   private final CustomIconService iconService;
@@ -100,6 +99,39 @@ public class IconController extends AbstractFullReadOnlyController<CustomIcon> {
   private final RenderService renderService;
 
   private final IconMapper iconMapper;
+
+  private final FieldFilterService fieldFilterService;
+
+  private final ContextService contextService;
+
+  private final LinkService linkService;
+
+  private final CustomIconRequestParamMapper iconRequestParamMapper;
+
+  @GetMapping
+  public @ResponseBody PaginatedIconResponse getAllIcons(CustomIconRequestParams iconRequestParams)
+      throws BadRequestException {
+
+    CustomIconOperationParams iconOperationParams = iconRequestParamMapper.map(iconRequestParams);
+
+    Pager pager = null;
+
+    if (iconRequestParams.isPaging()) {
+      long total = iconService.count(iconOperationParams);
+      pager = new Pager(iconRequestParams.getPage(), total, iconRequestParams.getPageSize());
+      iconOperationParams.setPager(pager);
+    }
+
+    Set<CustomIcon> iconResponses = iconService.getCustomIcons(iconOperationParams);
+
+    List<ObjectNode> objectNodes =
+        fieldFilterService.toObjectNodes(
+            iconResponses.stream().toList(), iconRequestParams.getFields());
+
+    linkService.generatePagerLinks(pager, CustomIcon.class);
+
+    return new PaginatedIconResponse(pager, objectNodes);
+  }
 
   @GetMapping(value = "/{key}/icon")
   public void getIconData(@PathVariable String key, HttpServletResponse response)
@@ -114,23 +146,21 @@ public class IconController extends AbstractFullReadOnlyController<CustomIcon> {
     }
   }
 
-  @GetMapping(value = "/search")
-  public List<ObjectNode> getIconsByKeywords(
-      @RequestParam Set<String> keywords,
-      @RequestParam(defaultValue = CustomIcon.DEFAULT_FIELDS_PARAM) List<FieldPath> fields) {
+  @GetMapping(value = "/{key}")
+  public ResponseEntity<CustomIcon> getIconByKey(
+      @PathVariable String key, HttpServletResponse response)
+      throws NotFoundException, WebMessageException {
 
-    List<CustomIcon> customIcons = iconService.getCustomIconsByKeywords(keywords).stream().toList();
+    CustomIcon customIcon = iconService.getCustomIcon(key);
 
-    customIcons.forEach(
-        ci ->
-            ci.setReference(
-                ci.getCustom()
-                    ? getCustomIconReference(ci.getKey())
-                    : getDefaultIconReference(ci.getKey())));
+    if (customIcon == null) {
+      throw new WebMessageException(
+          WebMessageUtils.notFound(String.format("CustomIcon with key %s not found", key)));
+    }
 
-    return fieldFilterService.toObjectNodes(
-        customIcons,
-        fields.isEmpty() ? FieldFilterParser.parse(CustomIcon.DEFAULT_FIELDS_PARAM) : fields);
+    customIcon.setReference(getDefaultIconReference(key));
+
+    return new ResponseEntity<>(customIcon, HttpStatus.OK);
   }
 
   @GetMapping("/{key}/icon.svg")
@@ -196,33 +226,6 @@ public class IconController extends AbstractFullReadOnlyController<CustomIcon> {
     iconService.deleteCustomIcon(customIcon);
 
     return WebMessageUtils.ok(String.format("CustomIcon with uid %s deleted", uid));
-  }
-
-  @Override
-  protected void postProcessResponseEntities(
-      List<CustomIcon> entityList, WebOptions options, Map<String, String> parameters) {
-
-    entityList.forEach(
-        ci ->
-            ci.setReference(
-                ci.getCustom()
-                    ? getCustomIconReference(ci.getKey())
-                    : getDefaultIconReference(ci.getKey())));
-  }
-
-  @Override
-  protected void postProcessResponseEntity(
-      CustomIcon entity, WebOptions options, Map<String, String> parameters) {
-
-    entity.setReference(
-        entity.getCustom()
-            ? getCustomIconReference(entity.getKey())
-            : getDefaultIconReference(entity.getKey()));
-  }
-
-  @Override
-  protected void getFields(List<String> fields) {
-    fields.addAll(Arrays.stream(CustomIcon.DEFAULT_FIELDS_PARAM.split(",")).toList());
   }
 
   private void downloadDefaultIcon(String key, HttpServletResponse response)
