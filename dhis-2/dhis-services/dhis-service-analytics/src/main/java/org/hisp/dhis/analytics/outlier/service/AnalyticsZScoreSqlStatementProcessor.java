@@ -195,15 +195,26 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
               + "       end) as z_score, ";
     }
     sql +=
-        middleValue
-            + " - (ax.std_dev * "
-            + thresholdParam
-            + ") as lower_bound, "
-            + middleValue
-            + " + (ax.std_dev * "
-            + thresholdParam
-            + ") as upper_bound "
-            + "from analytics ax "
+        modifiedZ
+            ? middleValue
+                + " - (ax.mad * "
+                + thresholdParam
+                + "/0.6745) as lower_bound, "
+                + middleValue
+                + " + (ax.mad * "
+                + thresholdParam
+                + "/0.6745) as upper_bound "
+            : middleValue
+                + " - (ax.std_dev * "
+                + thresholdParam
+                + ") as lower_bound, "
+                + middleValue
+                + " + (ax.std_dev * "
+                + thresholdParam
+                + ") as upper_bound ";
+    ;
+    sql +=
+        "from analytics ax "
             + "where "
             + getDataDimensionSql(withParams, request.getDataDimensions())
             + ouPathClause
