@@ -171,9 +171,8 @@ public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
 
         for (int i = organisationUnitLevels; i > 0; i--) {
           sql +=
-              sql +=
-                  replace(
-                      """
+              replace(
+                  """
                   (
               select oug.uid from orgunitgroup oug \
               inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid \
@@ -181,9 +180,9 @@ public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
               inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid \
               and ougsm.orgunitgroupsetid = ${groupSetId} limit 1), \
               """,
-                      Map.of(
-                          "level", String.valueOf(i),
-                          "groupSetId", String.valueOf(groupSet.getId())));
+                  Map.of(
+                      "level", String.valueOf(i),
+                      "groupSetId", String.valueOf(groupSet.getId())));
         }
 
         if (organisationUnitLevels == 0) {
