@@ -147,6 +147,10 @@ public class TrackerEventsExportController {
       throws BadRequestException, IOException, ForbiddenException {
     EventQueryParams eventQueryParams = requestToSearchParams.map(eventCriteria);
 
+    EventParams eventParams = eventsMapper.map(fields);
+
+    eventQueryParams.setIncludeRelationships(eventParams.isIncludeRelationships());
+
     if (areAllEnrollmentsInvalid(eventCriteria, eventQueryParams)) {
       return;
     }
@@ -172,6 +176,10 @@ public class TrackerEventsExportController {
       HttpServletResponse response)
       throws BadRequestException, ForbiddenException, IOException {
     EventQueryParams eventQueryParams = requestToSearchParams.map(eventCriteria);
+
+    EventParams eventParams = eventsMapper.map(fields);
+
+    eventQueryParams.setIncludeRelationships(eventParams.isIncludeRelationships());
 
     if (areAllEnrollmentsInvalid(eventCriteria, eventQueryParams)) {
       return;
