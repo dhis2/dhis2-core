@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.security;
 
 import static org.hisp.dhis.user.UserService.RECOVERY_LOCKOUT_MINS;
 
+import java.util.Arrays;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -132,11 +133,20 @@ public class UserAccountController {
     String[] idAndRestoreToken = userService.decodeEncodedTokens(token);
     String idToken = idAndRestoreToken[0];
 
+    log.error("idAndRestoreToken: {}", Arrays.toString(idAndRestoreToken));
+    log.error("idToken: {}", idToken);
+
     User user = userService.getUserByIdToken(idToken);
-    if (user == null || idAndRestoreToken.length < 2) {
+    if (user == null) {
+      throw new ConflictException("User is null");
+    }
+    if (idAndRestoreToken.length < 2) {
       throw new ConflictException("Account recovery failed");
     }
+
     String restoreToken = idAndRestoreToken[1];
+
+    log.error("restoreToken: {}", restoreToken);
 
     if (!systemSettingManager.accountRecoveryEnabled()) {
       throw new ConflictException("Account recovery is not enabled");

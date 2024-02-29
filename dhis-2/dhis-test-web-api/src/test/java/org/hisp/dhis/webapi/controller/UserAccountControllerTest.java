@@ -66,6 +66,8 @@ class UserAccountControllerTest extends DhisControllerIntegrationTest {
     clearSecurityContext();
     String token = sendForgotPasswordRequest(test);
 
+    log.error("token: {}", token);
+
     String newPassword = "Abxf123###...";
 
     HttpResponse response =
