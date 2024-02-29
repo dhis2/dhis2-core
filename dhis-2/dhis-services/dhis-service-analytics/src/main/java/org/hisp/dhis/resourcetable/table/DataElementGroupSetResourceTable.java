@@ -27,10 +27,12 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
+import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
 
 import com.google.common.collect.Lists;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -97,27 +99,25 @@ public class DataElementGroupSetResourceTable implements ResourceTable {
 
     for (DataElementGroupSet groupSet : groupSets) {
       sql +=
-          "("
-              + "select deg.name from dataelementgroup deg "
-              + "inner join dataelementgroupmembers degm on degm.dataelementgroupid = deg.dataelementgroupid "
-              + "inner join dataelementgroupsetmembers degsm on "
-              + "degsm.dataelementgroupid = degm.dataelementgroupid and degsm.dataelementgroupsetid = "
-              + groupSet.getId()
-              + " "
-              + "where degm.dataelementid = d.dataelementid "
-              + "limit 1) as "
-              + sqlBuilder.quote(groupSet.getName())
-              + ", ("
-              + "select deg.uid from dataelementgroup deg "
-              + "inner join dataelementgroupmembers degm on degm.dataelementgroupid = deg.dataelementgroupid "
-              + "inner join dataelementgroupsetmembers degsm on "
-              + "degsm.dataelementgroupid = degm.dataelementgroupid and degsm.dataelementgroupsetid = "
-              + groupSet.getId()
-              + " "
-              + "where degm.dataelementid = d.dataelementid "
-              + "limit 1) as "
-              + sqlBuilder.quote(groupSet.getUid())
-              + ", ";
+          replace(
+              """
+          (
+          select deg.name from dataelementgroup deg \
+          inner join dataelementgroupmembers degm on degm.dataelementgroupid = deg.dataelementgroupid \
+          inner join dataelementgroupsetmembers degsm on degsm.dataelementgroupid = degm.dataelementgroupid \
+          and degsm.dataelementgroupsetid = ${groupSetId} \
+          where degm.dataelementid = d.dataelementid limit 1) as ${groupSetName}, \
+          (
+          select deg.uid from dataelementgroup deg \
+          inner join dataelementgroupmembers degm on degm.dataelementgroupid = deg.dataelementgroupid \
+          inner join dataelementgroupsetmembers degsm on degsm.dataelementgroupid = degm.dataelementgroupid \
+          and degsm.dataelementgroupsetid = ${groupSetId} \
+          where degm.dataelementid = d.dataelementid limit 1) as ${groupSetUid}, \
+          """,
+              Map.of(
+                  "groupSetId", String.valueOf(groupSet.getId()),
+                  "groupSetName", sqlBuilder.quote(groupSet.getName()),
+                  "groupSetUid", sqlBuilder.quote(groupSet.getUid())));
     }
 
     sql = TextUtils.removeLastComma(sql) + " ";

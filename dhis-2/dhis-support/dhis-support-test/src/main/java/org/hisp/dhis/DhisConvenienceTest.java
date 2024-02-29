@@ -2340,6 +2340,16 @@ public abstract class DhisConvenienceTest {
     return option;
   }
 
+  public static Option createOption(String code) {
+    Option option = new Option();
+    option.setAutoFields();
+
+    option.setName("Option" + code);
+    option.setCode(code);
+
+    return option;
+  }
+
   public static void configureHierarchy(
       OrganisationUnit root,
       OrganisationUnit lvlOneLeft,

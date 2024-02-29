@@ -305,7 +305,9 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
         @JsonSubTypes.Type(
             value = AggregateDataExchangeJobParameters.class,
             name = "AGGREGATE_DATA_EXCHANGE"),
-        @JsonSubTypes.Type(value = SqlViewUpdateParameters.class, name = "SQL_VIEW_UPDATE"),
+        @JsonSubTypes.Type(
+            value = SqlViewUpdateParameters.class,
+            name = "MATERIALIZED_SQL_VIEW_UPDATE"),
         @JsonSubTypes.Type(
             value = LockExceptionCleanupJobParameters.class,
             name = "LOCK_EXCEPTION_CLEANUP"),

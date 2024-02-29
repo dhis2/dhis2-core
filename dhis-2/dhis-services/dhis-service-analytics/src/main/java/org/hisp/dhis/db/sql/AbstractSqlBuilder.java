@@ -54,6 +54,7 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
   protected static final String DOT = ".";
   protected static final String EMPTY = "";
   protected static final String ALIAS_AX = "ax";
+  protected static final String SCHEMA = "public";
 
   // Utilities
 
