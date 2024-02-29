@@ -68,7 +68,7 @@ class UserAccountControllerTest extends DhisControllerIntegrationTest {
     String newPassword = "Abxf123###...";
 
     POST(
-            "/auth/resetPassword",
+            "/auth/passwordReset",
             "{'newPassword':'%s', 'resetToken':'%s'}".formatted(newPassword, token))
         .content(HttpStatus.OK);
 

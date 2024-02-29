@@ -111,7 +111,7 @@ public class UserAccountController {
     log.info("Recovery message sent for user: " + username);
   }
 
-  @PostMapping("/resetPassword")
+  @PostMapping("/passwordReset")
   @ResponseStatus(HttpStatus.OK)
   public void resetPassword(@RequestBody ResetPasswordRequest resetRequest)
       throws ConflictException, BadRequestException {
