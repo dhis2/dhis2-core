@@ -89,7 +89,7 @@ public class DataApprovalRemapLevelResourceTable implements ResourceTable {
     String sql =
         replace(
             """
-        insert into ${table_name} \
+        insert into ${tableName} \
         (workflowid,dataapprovallevelid,level) \
         select w.workflowid, w.dataapprovallevelid, 1 + coalesce((select max(l2.level) \
         from dataapprovalworkflowlevels w2 \
@@ -99,7 +99,7 @@ public class DataApprovalRemapLevelResourceTable implements ResourceTable {
         from dataapprovalworkflowlevels w \
         inner join dataapprovallevel l on l.dataapprovallevelid=w.dataapprovallevelid
         """,
-            "table_name",
+            "tableName",
             toStaging(TABLE_NAME));
 
     return Optional.of(sql);
