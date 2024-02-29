@@ -99,6 +99,18 @@ public class RestApiActions {
     return post("", ContentType.JSON.toString(), object, queryParamsBuilder);
   }
 
+  /**
+   * Send POST request to specified resource with no body.
+   *
+   * @param resource resource
+   */
+  public ApiResponse postNoBody(String resource) {
+    Response response = this.given().when().post(resource);
+
+    addCoverage("POST", resource);
+    return new ApiResponse(response);
+  }
+
   public ApiResponse post(
       String resource, String contentType, Object object, QueryParamsBuilder queryParams) {
     String path = queryParams == null ? "" : queryParams.build();
