@@ -319,4 +319,17 @@ public interface SqlBuilder {
    * @return a create index statement.
    */
   String createIndex(Index index);
+
+  /**
+   * @param connectionUrl the JDBC connection URL.
+   * @param username the JDBC connection username.
+   * @param password the JDBC connection password.
+   * @return a create catalog statement.
+   */
+  String createCatalog(String connectionUrl, String username, String password);
+
+  /**
+   * @return a drop catalog if exists statement.
+   */
+  String dropCatalogIfExists();
 }
