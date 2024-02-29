@@ -86,7 +86,7 @@ public class DataApprovalRemapLevelResourceTable implements ResourceTable {
 
   @Override
   public Optional<String> getPopulateTempTableStatement() {
-    return Optional.of(
+    String sql =
         replace(
             """
         insert into ${table_name} \
@@ -100,7 +100,9 @@ public class DataApprovalRemapLevelResourceTable implements ResourceTable {
         inner join dataapprovallevel l on l.dataapprovallevelid=w.dataapprovallevelid
         """,
             "table_name",
-            toStaging(TABLE_NAME)));
+            toStaging(TABLE_NAME));
+
+    return Optional.of(sql);
   }
 
   @Override
