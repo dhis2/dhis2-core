@@ -114,10 +114,6 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
       UID trackedEntityUid, User currentUser, TrackedEntity trackedEntity)
       throws NotFoundException {
     if (!trackerAccessManager.canRead(currentUser, trackedEntity).isEmpty()) {
-      // TODO Do we want to show this error if the user has no access to the org unit? Won't it make
-      // it harder for the end user to understand why the tracked entity is not accessible? What's
-      // the advantage of doing this? Are we giving away any detail by saying the user has no access
-      // to an org unit?
       throw new NotFoundException(TrackedEntity.class, trackedEntityUid.getValue());
     }
   }
