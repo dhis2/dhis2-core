@@ -187,9 +187,10 @@ class PostgreSqlBuilderTest {
     Table table = getTableA();
 
     String expected =
-        "create table \"immunization\" (\"id\" bigint not null, \"data\" char(11) not null, "
-            + "\"period\" varchar(50) not null, \"created\" timestamp null, \"user\" jsonb null, "
-            + "\"value\" double precision null, primary key (\"id\"));";
+        """
+        create table \"immunization\" ("id" bigint not null, "data" char(11) not null, \
+        "period\" varchar(50) not null, "created" timestamp null, "user" jsonb null, \
+        "value" double precision null, primary key ("id"));""";
 
     assertEquals(expected, sqlBuilder.createTable(table));
   }
@@ -199,9 +200,10 @@ class PostgreSqlBuilderTest {
     Table table = getTableB();
 
     String expected =
-        "create unlogged table \"vaccination\" (\"id\" integer not null, "
-            + "\"facility_type\" varchar(255) null collate \"C\", \"bcg_doses\" double precision null, "
-            + "check(\"id\">0), check(\"bcg_doses\">0));";
+        """
+        create unlogged table "vaccination" ("id" integer not null, \
+        "facility_type" varchar(255) null collate "C", "bcg_doses" double precision null, \
+        check("id">0), check("bcg_doses">0));""";
 
     assertEquals(expected, sqlBuilder.createTable(table));
   }
@@ -211,8 +213,9 @@ class PostgreSqlBuilderTest {
     Table table = getTableC();
 
     String expected =
-        "create table \"nutrition\" (\"vitamin_a\" bigint null, "
-            + "\"vitamin_d\" bigint null) inherits (\"vaccination\");";
+        """
+        create table "nutrition" ("vitamin_a" bigint null, \
+        "vitamin_d" bigint null) inherits ("vaccination");""";
 
     assertEquals(expected, sqlBuilder.createTable(table));
   }
@@ -279,8 +282,9 @@ class PostgreSqlBuilderTest {
   @Test
   void testSwapTable() {
     String expected =
-        "drop table if exists \"vaccination\" cascade; "
-            + "alter table \"immunization\" rename to \"vaccination\";";
+        """
+        drop table if exists "vaccination" cascade; \
+        alter table "immunization" rename to "vaccination";""";
 
     assertEquals(expected, sqlBuilder.swapTable(getTableA(), "vaccination"));
   }
@@ -302,8 +306,9 @@ class PostgreSqlBuilderTest {
   @Test
   void testSwapParentTable() {
     String expected =
-        "alter table \"immunization\" no inherit \"vaccination\"; "
-            + "alter table \"immunization\" inherit \"nutrition\";";
+        """
+        alter table "immunization" no inherit "vaccination"; \
+        alter table "immunization" inherit \"nutrition\";""";
 
     assertEquals(expected, sqlBuilder.swapParentTable(getTableA(), "vaccination", "nutrition"));
   }
@@ -311,8 +316,9 @@ class PostgreSqlBuilderTest {
   @Test
   void testTableExists() {
     String expected =
-        "select t.table_name from information_schema.tables t "
-            + "where t.table_schema = 'public' and t.table_name = 'immunization';";
+        """
+        select t.table_name from information_schema.tables t \
+        where t.table_schema = 'public' and t.table_name = 'immunization';""";
 
     assertEquals(expected, sqlBuilder.tableExists("immunization"));
   }
