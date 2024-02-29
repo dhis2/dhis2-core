@@ -33,7 +33,6 @@ import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUs
 import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeGzip;
 import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeZip;
 import static org.hisp.dhis.webapi.controller.tracker.export.FileResourceRequestHandler.handleFileRequest;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationBounds;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateUnsupportedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.event.EventRequestParams.DEFAULT_FIELDS_PARAM;
@@ -64,6 +63,7 @@ import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.event.EventChangeLog;
+import org.hisp.dhis.tracker.export.event.EventChangeLogOperationParams;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventParams;
@@ -302,11 +302,13 @@ class EventsExportController {
       ChangeLogRequestParams requestParams,
       HttpServletRequest request)
       throws NotFoundException, BadRequestException {
-    validatePaginationBounds(requestParams.getPage(), requestParams.getPageSize());
+    EventChangeLogOperationParams operationParams =
+        ChangeLogRequestParamsMapper.map(eventChangeLogService.getOrderableFields(), requestParams);
     PageParams pageParams =
         new PageParams(requestParams.getPage(), requestParams.getPageSize(), false);
+
     org.hisp.dhis.tracker.export.Page<EventChangeLog> changeLogs =
-        eventChangeLogService.getEventChangeLog(event, pageParams);
+        eventChangeLogService.getEventChangeLog(event, operationParams, pageParams);
 
     List<ObjectNode> objectNodes =
         fieldFilterService.toObjectNodes(changeLogs.getItems(), requestParams.getFields());

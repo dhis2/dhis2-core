@@ -60,7 +60,6 @@ import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.hisp.dhis.webapi.controller.tracker.JsonEventChangeLog;
-import org.hisp.dhis.webapi.controller.tracker.JsonEventChangeLog.JsonDataValue;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage.JsonPager;
 import org.hisp.dhis.webapi.controller.tracker.JsonUser;
@@ -141,26 +140,31 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
   }
 
   @Test
-  void shouldGetEventChangeLogWhenDataValueUpdatedAndThenDeleted() {
+  void shouldGetEventChangeLogInDescOrderByDefault() {
     JsonList<JsonEventChangeLog> changeLogs =
         GET("/tracker/events/{id}/changeLogs", event.getUid())
             .content(HttpStatus.OK)
             .getList("changeLogs", JsonEventChangeLog.class);
 
-    JsonEventChangeLog changeLog = changeLogs.get(0);
-    JsonUser createdBy = changeLog.getCreatedBy();
-    JsonDataValue dataValueChange = changeLog.getChange().getDataValueChange();
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-
+    assertNumberOfChanges(3, changeLogs);
     assertAll(
-        () -> assertEquals(currentUser.getUid(), createdBy.getUid()),
-        () -> assertEquals(currentUser.getUsername(), createdBy.getUsername()),
-        () -> assertEquals(currentUser.getFirstName(), createdBy.getFirstName()),
-        () -> assertEquals(currentUser.getSurname(), createdBy.getSurname()),
-        () -> assertEquals("DELETE", changeLog.getType()),
-        () -> assertEquals(dataElement.getUid(), dataValueChange.getDataElement()),
-        () -> assertEquals("value 3", dataValueChange.getPreviousValue()),
-        () -> assertHasNoMember(dataValueChange, "currentValue"));
+        () -> assertDelete(dataElement, "value 3", changeLogs.get(0)),
+        () -> assertUpdate(dataElement, "value 2", "value 3", changeLogs.get(1)),
+        () -> assertUpdate(dataElement, "value 1", "value 2", changeLogs.get(2)));
+  }
+
+  @Test
+  void shouldGetEventChangeLogInAscOrder() {
+    JsonList<JsonEventChangeLog> changeLogs =
+        GET("/tracker/events/{id}/changeLogs?order=createdAt:asc", event.getUid())
+            .content(HttpStatus.OK)
+            .getList("changeLogs", JsonEventChangeLog.class);
+
+    assertNumberOfChanges(3, changeLogs);
+    assertAll(
+        () -> assertUpdate(dataElement, "value 1", "value 2", changeLogs.get(0)),
+        () -> assertUpdate(dataElement, "value 2", "value 3", changeLogs.get(1)),
+        () -> assertDelete(dataElement, "value 3", changeLogs.get(2)));
   }
 
   @Test
@@ -335,15 +339,10 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
             "scheduledAt": "2023-01-10",
             "storedBy": "tracker",
             "followUp": false,
-            "deleted": false,
-            "createdAt": "2018-01-20T10:44:03.222",
             "createdAtClient": "2017-01-20T10:44:03.222",
-            "updatedAt": "2018-01-20T10:44:33.777",
             "completedBy": "tracker",
             "completedAt": "2023-01-20",
             "notes": [],
-            "followup": false,
-            "geometry": null,
             "dataValues": [
               {
                 "dataElement": "%s",
@@ -363,6 +362,65 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
             event.getOrganisationUnit().getUid(),
             event.getEventDataValues().iterator().next().getDataElement(),
             value);
+  }
+
+  private static void assertNumberOfChanges(int expected, JsonList<JsonEventChangeLog> changeLogs) {
+    assertNotNull(changeLogs);
+    assertEquals(
+        expected,
+        changeLogs.size(),
+        String.format(
+            "Expected to find %s elements in the change log list, found %s instead: %s",
+            expected, changeLogs.size(), changeLogs));
+  }
+
+  private static void assertUser(JsonEventChangeLog changeLog) {
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+    JsonUser createdBy = changeLog.getCreatedBy();
+    assertAll(
+        () -> assertEquals(currentUser.getUid(), createdBy.getUid()),
+        () -> assertEquals(currentUser.getUsername(), createdBy.getUsername()),
+        () -> assertEquals(currentUser.getFirstName(), createdBy.getFirstName()),
+        () -> assertEquals(currentUser.getSurname(), createdBy.getSurname()));
+  }
+
+  private static void assertCreate(
+      DataElement dataElement, String currentValue, JsonEventChangeLog actual) {
+    assertAll(
+        () -> assertUser(actual),
+        () -> assertEquals("CREATE", actual.getType()),
+        () -> assertChange(dataElement, null, currentValue, actual));
+  }
+
+  private static void assertUpdate(
+      DataElement dataElement,
+      String previousValue,
+      String currentValue,
+      JsonEventChangeLog actual) {
+    assertAll(
+        () -> assertUser(actual),
+        () -> assertEquals("UPDATE", actual.getType()),
+        () -> assertChange(dataElement, previousValue, currentValue, actual));
+  }
+
+  private static void assertDelete(
+      DataElement dataElement, String previousValue, JsonEventChangeLog actual) {
+    assertAll(
+        () -> assertUser(actual),
+        () -> assertEquals("DELETE", actual.getType()),
+        () -> assertChange(dataElement, previousValue, null, actual));
+  }
+
+  private static void assertChange(
+      DataElement dataElement,
+      String previousValue,
+      String currentValue,
+      JsonEventChangeLog actual) {
+    assertAll(
+        () ->
+            assertEquals(dataElement.getUid(), actual.getChange().getDataValue().getDataElement()),
+        () -> assertEquals(previousValue, actual.getChange().getDataValue().getPreviousValue()),
+        () -> assertEquals(currentValue, actual.getChange().getDataValue().getCurrentValue()));
   }
 
   private static void assertPagerLink(String actual, int page, int pageSize, String start) {
