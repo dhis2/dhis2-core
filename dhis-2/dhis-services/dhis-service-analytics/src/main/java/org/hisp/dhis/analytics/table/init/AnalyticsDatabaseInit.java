@@ -44,7 +44,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
- * Responsible for performing work for initialization of a configured analytics database.
+ * Class responsible for performing work for initialization of an analytics database.
  *
  * <p>The following steps are required to introduce a new analytics database platform.
  *
