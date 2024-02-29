@@ -72,7 +72,7 @@ import org.skyscreamer.jsonassert.JSONAssert;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TrackerExportTests extends TrackerApiTest {
+public class TrackerExportTest extends TrackerApiTest {
   private static final String TE = "Kj6vYde4LHh";
 
   private static final String TE_POTENTIAL_DUPLICATE = "Nav6inZRw1u";

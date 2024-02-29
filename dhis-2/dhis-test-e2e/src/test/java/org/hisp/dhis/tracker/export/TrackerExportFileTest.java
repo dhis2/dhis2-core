@@ -29,7 +29,11 @@ package org.hisp.dhis.tracker.export;
 
 import static org.hisp.dhis.tracker.export.FileUtil.gZipToStringContent;
 import static org.hisp.dhis.tracker.export.FileUtil.mapZipEntryToStringContent;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -49,7 +53,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Luca Cambi
  */
-public class TrackerExportFileTests extends TrackerApiTest {
+public class TrackerExportFileTest extends TrackerApiTest {
 
   private static String trackedEntity;
   private static String event;
@@ -86,12 +90,8 @@ public class TrackerExportFileTests extends TrackerApiTest {
                           "trackedEntity": "Kj6vYde4LHZ",
                           "enrollment": "MNWZ6hnuhSw",
                           "enrolledAt": "2019-08-19T00:00:00.000",
-                          "deleted": false,
                           "occurredAt": "2019-08-19T00:00:00.000",
                           "status": "ACTIVE",
-                          "notes": [],
-                          "relationships": [],
-                          "attributes": [],
                           "followUp" : true,
                           "events": [
                             {
@@ -103,7 +103,6 @@ public class TrackerExportFileTests extends TrackerApiTest {
                               "enrollment": "MNWZ6hnuhSw",
                               "status": "ACTIVE",
                               "occurredAt": "2019-08-01T00:00:00.000",
-                              "deleted": false,
                               "dataValues": [
                                 {
                                   "updatedAt": "2019-08-19T13:58:37.477",
@@ -112,9 +111,7 @@ public class TrackerExportFileTests extends TrackerApiTest {
                                   "value": "%s",
                                   "providedElsewhere": false
                                 }
-                              ],
-                              "notes": [],
-                              "relationships": []
+                              ]
                             }
                           ]
                         }
@@ -177,7 +174,7 @@ public class TrackerExportFileTests extends TrackerApiTest {
 
   @Test
   public void shouldGetTrackedEntitiesFromCsvGzip() throws IOException, CsvValidationException {
-    String s =
+    String csvRecords =
         gZipToStringContent(
             trackerImportExportActions
                 .getTrackedEntitiesCsvGZip(
@@ -193,7 +190,9 @@ public class TrackerExportFileTests extends TrackerApiTest {
                 .body()
                 .asByteArray());
 
-    try (CSVReader reader = new CSVReader(new StringReader(s))) {
+    assertCsvRecordSize(csvRecords);
+
+    try (CSVReader reader = new CSVReader(new StringReader(csvRecords))) {
       reader.readNext(); // header
       assertTrackedEntityCsv(reader.readNext());
     }
@@ -201,7 +200,7 @@ public class TrackerExportFileTests extends TrackerApiTest {
 
   @Test
   public void shouldGetTrackedEntitiesFromCsv() throws IOException, CsvException {
-    byte[] s =
+    byte[] csvRecords =
         trackerImportExportActions
             .getTrackedEntitiesCsv(
                 new QueryParamsBuilder()
@@ -216,26 +215,68 @@ public class TrackerExportFileTests extends TrackerApiTest {
             .body()
             .asByteArray();
 
-    try (CSVReader reader = new CSVReader(new StringReader(new String(s)))) {
+    assertCsvRecordSize(new String(csvRecords));
+
+    try (CSVReader reader = new CSVReader(new StringReader(new String(csvRecords)))) {
       reader.readNext(); // header
       assertTrackedEntityCsv(reader.readNext());
     }
   }
 
   private void assertTrackedEntityCsv(String[] record) {
-    assertEquals(trackedEntity, record[0]); // trackedEntity
-    assertEquals(TRACKED_ENTITY_TYPE, record[1]); // trackedEntityType
-    assertNotNull(record[2]); // createdAt
-    assertNotNull(record[4]); // updatedAt
-    assertEquals(ORG_UNIT, record[6]); // orgUnit
-    assertFalse(Boolean.parseBoolean(record[7])); // inactive
-    assertFalse(Boolean.parseBoolean(record[8])); // deleted
-    assertFalse(Boolean.parseBoolean(record[9])); // potentialDuplicate
-    assertEquals(POLYGON, record[10]); // polygon
-    assertNotNull(record[14]); // createdBy
-    assertNotNull(record[15]); // updatedBy
-    assertEquals(ATTRIBUTE, record[18]); // attributes -> attribute
-    assertEquals(ATTRIBUTE_VALUE, record[20]); // attributes -> value
+    assertAll(
+        () ->
+            assertEquals(
+                trackedEntity,
+                record[0],
+                String.format(
+                    "Expected Tracked Entity %s but got %s",
+                    trackedEntity, record[0])), // trackedEntity
+        () ->
+            assertEquals(
+                TRACKED_ENTITY_TYPE,
+                record[1],
+                String.format(
+                    "Expected Tracked Entity Type %s but got %s",
+                    trackedEntity, record[1])), // trackedEntityType
+        () -> assertNotNull(record[2], "Expected createdAt to be not null"), // createdAt
+        () -> assertNotNull(record[4], "Expected updatedAt to be not null"), // updatedAt
+        () ->
+            assertEquals(
+                ORG_UNIT,
+                record[6],
+                String.format("Expected orgUnit %s but got %s", ORG_UNIT, record[6])), // orgUnit
+        () ->
+            assertFalse(
+                Boolean.parseBoolean(record[7]), "Expected inactive to be false"), // inactive
+        () ->
+            assertFalse(Boolean.parseBoolean(record[8]), "Expected deleted to be false"), // deleted
+        () ->
+            assertFalse(
+                Boolean.parseBoolean(record[9]),
+                "Expected potentialDuplicate to be false"), // potentialDuplicate
+        () ->
+            assertEquals(
+                POLYGON,
+                record[10],
+                String.format("Expected polygon %s but got %s", POLYGON, record[10])), // polygon
+        () -> assertNotNull(record[14], "Expected createdBy to be not null"), // createdBy
+        () -> assertNotNull(record[15], "Expected updatedBy to be not null"), // updatedBy
+        () ->
+            assertEquals(
+                ATTRIBUTE,
+                record[18],
+                String.format(
+                    "Expected attribute  %s but got %s",
+                    ATTRIBUTE, record[18])), // attributes -> attribute
+        () ->
+            assertEquals(
+                ATTRIBUTE_VALUE,
+                record[20],
+                String.format(
+                    "Expected attribute value %s but got %s",
+                    ATTRIBUTE_VALUE, record[20])) // attributes -> value
+        );
   }
 
   @Test
@@ -254,6 +295,7 @@ public class TrackerExportFileTests extends TrackerApiTest {
 
     JsonArray eventsJson = JsonParser.parseString(s).getAsJsonObject().getAsJsonArray("events");
 
+    assertEventSize(eventsJson);
     assertEventJson(eventsJson);
   }
 
@@ -274,31 +316,87 @@ public class TrackerExportFileTests extends TrackerApiTest {
     JsonArray eventsJson =
         JsonParser.parseString(s.get("events.json")).getAsJsonObject().getAsJsonArray("events");
 
-    assertEventJson(eventsJson);
+    assertEventSize(eventsJson);
+    assertEventSize(eventsJson);
   }
 
-  private static void assertEventJson(JsonArray eventsJson) {
+  private void assertEventSize(JsonArray eventsJson) {
+    assertEventsSize(eventsJson, 1);
+  }
+
+  private void assertEventsSize(JsonArray eventsJson, int expected) {
+    assertEquals(
+        expected,
+        eventsJson.size(),
+        String.format(
+            "Events Json size is %s but expected %s events", eventsJson.size(), expected));
+  }
+
+  private void assertEventJson(JsonArray eventsJson) {
     assertAll(
-        () -> assertEquals(1, eventsJson.size()),
         () -> {
           JsonObject eventJson = eventsJson.get(0).getAsJsonObject();
-          assertEquals(event, eventJson.get("event").getAsString());
-          assertEquals(ORG_UNIT, eventJson.get("orgUnit").getAsString());
-          assertEquals(ENROLLMENT, eventJson.get("enrollment").getAsString());
-          assertEquals(PROGRAM_STAGE, eventJson.get("programStage").getAsString());
-          assertEquals(PROGRAM, eventJson.get("program").getAsString());
-          assertEquals(CATEGORY_OPTION_COMBO, eventJson.get("attributeOptionCombo").getAsString());
-          assertEquals(CATEGORY_OPTION, eventJson.get("attributeCategoryOptions").getAsString());
-          assertTrue(eventJson.get("followUp").getAsBoolean());
-          assertNotNull(eventJson.get("createdAt"));
-          assertNotNull(eventJson.get("updatedAt"));
-          assertNotNull(eventJson.get("createdBy"));
-          assertNotNull(eventJson.get("updatedBy"));
+          assertEquals(
+              event,
+              eventJson.get("event").getAsString(),
+              String.format(
+                  "Expected event %s but got %s", event, eventJson.get("event").getAsString()));
+          assertEquals(
+              ORG_UNIT,
+              eventJson.get("orgUnit").getAsString(),
+              String.format(
+                  "Expected orgUnit %s but got %s",
+                  ORG_UNIT, eventJson.get("orgUnit").getAsString()));
+          assertEquals(
+              ENROLLMENT,
+              eventJson.get("enrollment").getAsString(),
+              String.format(
+                  "Expected enrollment %s but got %s",
+                  ENROLLMENT, eventJson.get("enrollment").getAsString()));
+          assertEquals(
+              PROGRAM_STAGE,
+              eventJson.get("programStage").getAsString(),
+              String.format(
+                  "Expected programStage %s but got %s",
+                  PROGRAM_STAGE, eventJson.get("programStage").getAsString()));
+          assertEquals(
+              PROGRAM,
+              eventJson.get("program").getAsString(),
+              String.format(
+                  "Expected program %s but got %s",
+                  PROGRAM, eventJson.get("program").getAsString()));
+          assertEquals(
+              CATEGORY_OPTION_COMBO,
+              eventJson.get("attributeOptionCombo").getAsString(),
+              String.format(
+                  "Expected categoryOptionCombo %s but got %s",
+                  CATEGORY_OPTION_COMBO, eventJson.get("attributeOptionCombo").getAsString()));
+          assertEquals(
+              CATEGORY_OPTION,
+              eventJson.get("attributeCategoryOptions").getAsString(),
+              String.format(
+                  "Expected categoryOptions %s but got %s",
+                  CATEGORY_OPTION, eventJson.get("attributeCategoryOptions").getAsString()));
+          assertTrue(eventJson.get("followUp").getAsBoolean(), "Expected followUp to be true");
+          assertNotNull(eventJson.get("createdAt"), "Expected createdAt to be not null");
+          assertNotNull(eventJson.get("updatedAt"), "Expected updatedAt to be not null");
+          assertNotNull(eventJson.get("createdBy"), "Expected createdBy to be not null");
+          assertNotNull(eventJson.get("updatedBy"), "Expected updatedBy to be not null");
 
           JsonArray dataValues = eventJson.get("dataValues").getAsJsonArray();
           JsonObject dataValue = dataValues.get(0).getAsJsonObject();
-          assertEquals(DATA_ELEMENT, dataValue.get("dataElement").getAsString());
-          assertEquals(DATA_ELEMENT_VALUE, dataValue.get("value").getAsString());
+          assertEquals(
+              DATA_ELEMENT,
+              dataValue.get("dataElement").getAsString(),
+              String.format(
+                  "Expected dataElement %s but got %s",
+                  DATA_ELEMENT, dataValue.get("dataElement").getAsString()));
+          assertEquals(
+              DATA_ELEMENT_VALUE,
+              dataValue.get("value").getAsString(),
+              String.format(
+                  "Expected dataElement value %s but got %s",
+                  DATA_ELEMENT_VALUE, dataValue.get("value").getAsString()));
         });
   }
 
@@ -315,6 +413,8 @@ public class TrackerExportFileTests extends TrackerApiTest {
                 .response()
                 .body()
                 .asByteArray());
+
+    assertCsvRecordSize(s);
 
     try (CSVReader reader = new CSVReader(new StringReader(s))) {
       reader.readNext(); // header
@@ -336,6 +436,8 @@ public class TrackerExportFileTests extends TrackerApiTest {
                 .body()
                 .asByteArray());
 
+    assertCsvRecordSize(s.get("events.csv"));
+
     try (CSVReader reader = new CSVReader(new StringReader(s.get("events.csv")))) {
       reader.readNext(); // header
       assertEventCsv(reader.readNext());
@@ -343,21 +445,92 @@ public class TrackerExportFileTests extends TrackerApiTest {
   }
 
   private void assertEventCsv(String[] record) {
-    assertEquals(event, record[0]); // event
-    assertEquals("ACTIVE", record[1]); // status
-    assertEquals(PROGRAM, record[2]); // program
-    assertEquals(PROGRAM_STAGE, record[3]); // programStage
-    assertEquals(ENROLLMENT, record[4]); // enrollment
-    assertEquals(ORG_UNIT, record[5]); // orgUnit
-    assertNotNull(record[6]); // createdAt
-    assertNotNull(record[7]); // updatedAt
-    assertTrue(Boolean.parseBoolean(record[11])); // followUp
-    assertFalse(Boolean.parseBoolean(record[12])); // deleted
-    assertNotNull(record[13]); // createdAt
-    assertNotNull(record[15]); // updatedAt
-    assertEquals(CATEGORY_OPTION_COMBO, record[20]); // attributeOptionCombo
-    assertEquals(CATEGORY_OPTION, record[21]); // attributeCategoryOptions
-    assertEquals(DATA_ELEMENT, record[23]); // dataElement
-    assertEquals(DATA_ELEMENT_VALUE, record[24]); // value
+    assertAll(
+        () ->
+            assertEquals(
+                event,
+                record[0],
+                String.format("Expected event %s but got %s", event, record[0])), // event
+        () ->
+            assertEquals(
+                "ACTIVE",
+                record[1],
+                String.format("Expected %s event but got %s", "ACTIVE", record[1])), // status
+        () ->
+            assertEquals(
+                PROGRAM,
+                record[2],
+                String.format("Expected program %s but got %s", PROGRAM, record[2])), // program
+        () ->
+            assertEquals(
+                PROGRAM_STAGE,
+                record[3],
+                String.format(
+                    "Expected programStage %s but got %s",
+                    PROGRAM_STAGE, record[2])), // programStage
+        () ->
+            assertEquals(
+                ENROLLMENT,
+                record[4],
+                String.format(
+                    "Expected enrollment %s but got %s", ENROLLMENT, record[4])), // enrollment
+        () ->
+            assertEquals(
+                ORG_UNIT,
+                record[5],
+                String.format("Expected orgUnit %s but got %s", ORG_UNIT, record[5])), // orgUnit
+        () -> assertNotNull(record[6]), // createdAt
+        () -> assertNotNull(record[7]), // updatedAt
+        () -> assertTrue(Boolean.parseBoolean(record[11])), // followUp
+        () -> assertFalse(Boolean.parseBoolean(record[12])), // deleted
+        () -> assertNotNull(record[13]), // createdAt
+        () -> assertNotNull(record[15]), // updatedAt
+        () ->
+            assertEquals(
+                CATEGORY_OPTION_COMBO,
+                record[20],
+                String.format(
+                    "Expected categoryOptionCombo %s but got %s",
+                    CATEGORY_OPTION_COMBO, record[20])), // attributeOptionCombo
+        () ->
+            assertEquals(
+                CATEGORY_OPTION,
+                record[21],
+                String.format(
+                    "Expected categoryOption %s but got %s",
+                    CATEGORY_OPTION, record[21])), // attributeCategoryOptions
+        () ->
+            assertEquals(
+                DATA_ELEMENT,
+                record[23],
+                String.format(
+                    "Expected dataElement %s but got %s", DATA_ELEMENT, record[23])), // dataElement
+        () ->
+            assertEquals(
+                DATA_ELEMENT_VALUE,
+                record[24],
+                String.format(
+                    "Expected dataElement value %s but got %s",
+                    DATA_ELEMENT_VALUE, record[24])) // value
+        );
+  }
+
+  private void assertCsvRecordSize(String records) throws IOException, CsvValidationException {
+    assertCsvRecordsSize(records, 1);
+  }
+
+  private void assertCsvRecordsSize(String records, int expected)
+      throws IOException, CsvValidationException {
+    try (CSVReader reader = new CSVReader(new StringReader(records))) {
+      reader.readNext(); // header
+      int count = 0;
+      while (reader.readNext() != null) {
+        count++;
+      }
+      assertEquals(
+          expected,
+          count,
+          String.format("Found %s Csv records but expected %s records", count, expected));
+    }
   }
 }

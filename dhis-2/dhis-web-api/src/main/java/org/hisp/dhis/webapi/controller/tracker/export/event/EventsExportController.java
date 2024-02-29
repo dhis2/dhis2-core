@@ -90,6 +90,14 @@ class EventsExportController {
 
   private static final EventMapper EVENTS_MAPPER = Mappers.getMapper(EventMapper.class);
 
+  private static final String EVENT_CSV_FILE = EVENTS + ".csv";
+
+  private static final String EVENT_JSON_FILE = EVENTS + ".json";
+
+  private static final String GZIP_EXT = ".gz";
+
+  private static final String ZIP_EXT = ".zip";
+
   private final EventService eventService;
 
   private final EventRequestParamsMapper eventParamsMapper;
@@ -103,12 +111,6 @@ class EventsExportController {
   private final ObjectMapper objectMapper;
 
   private final EventChangeLogService eventChangeLogService;
-
-  private static final String EVENT_CSV_FILE = EVENTS + ".csv";
-  private static final String EVENT_JSON_FILE = EVENTS + ".json";
-
-  private static final String GZIP_EXT = ".gz";
-  private static final String ZIP_EXT = ".zip";
 
   public EventsExportController(
       EventService eventService,

@@ -102,6 +102,12 @@ class TrackedEntitiesExportController {
   private static final TrackedEntityMapper TRACKED_ENTITY_MAPPER =
       Mappers.getMapper(TrackedEntityMapper.class);
 
+  private static final String TE_CSV_FILE = TRACKED_ENTITIES + ".csv";
+
+  private static final String GZIP_EXT = ".gz";
+
+  private static final String ZIP_EXT = ".zip";
+
   private final TrackedEntityService trackedEntityService;
 
   private final TrackedEntityRequestParamsMapper paramsMapper;
@@ -111,11 +117,6 @@ class TrackedEntitiesExportController {
   private final FieldFilterService fieldFilterService;
 
   private final TrackedEntityFieldsParamMapper fieldsMapper;
-
-  private static final String TE_CSV_FILE = TRACKED_ENTITIES + ".csv";
-
-  private static final String GZIP_EXT = ".gz";
-  private static final String ZIP_EXT = ".zip";
 
   public TrackedEntitiesExportController(
       TrackedEntityService trackedEntityService,
