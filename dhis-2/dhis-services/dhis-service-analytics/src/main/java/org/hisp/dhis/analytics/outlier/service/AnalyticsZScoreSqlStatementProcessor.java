@@ -212,7 +212,6 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
                 + " + (ax.std_dev * "
                 + thresholdParam
                 + ") as upper_bound ";
-    ;
     sql +=
         "from analytics ax "
             + "where "
