@@ -108,25 +108,19 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
     program = programService.getProgram("BFcipDERJnf");
 
     JsonWebMessage importResponse =
-        POST(
-                "/tracker?async=false&importStrategy=UPDATE",
-              createJsonPayload(2))
+        POST("/tracker?async=false&importStrategy=UPDATE", createJsonPayload(2))
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
     assertEquals(HttpStatus.OK.toString(), importResponse.getStatus());
 
     importResponse =
-        POST(
-            "/tracker?async=false&importStrategy=UPDATE",
-            createJsonPayload(3))
+        POST("/tracker?async=false&importStrategy=UPDATE", createJsonPayload(3))
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
     assertEquals(HttpStatus.OK.toString(), importResponse.getStatus());
 
     importResponse =
-        POST(
-            "/tracker?async=false&importStrategy=UPDATE",
-            createJsonPayload(4))
+        POST("/tracker?async=false&importStrategy=UPDATE", createJsonPayload(4))
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
     assertEquals(HttpStatus.OK.toString(), importResponse.getStatus());
@@ -144,8 +138,7 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
 
     JsonTrackedEntityChangeLog changeLog = changeLogs.get(2);
     JsonUser createdBy = changeLog.getCreatedBy();
-    JsonAttributeValue attributeChange =
-        changeLog.getChange().getAttributeValue();
+    JsonAttributeValue attributeChange = changeLog.getChange().getAttributeValue();
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
     assertAll(
@@ -164,10 +157,11 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
       shouldGetChangeLogPagerWithNextAttributeWhenMultipleAttributesImportedAndFirstPageRequested() {
     JsonPage changeLogs =
         GET(
-            "/tracker/trackedEntities/{id}/changeLogs?program={programUid}&page={page}&pageSize={pageSize}",
-            trackedEntity.getUid(), program.getUid(),
-            "1",
-            "1")
+                "/tracker/trackedEntities/{id}/changeLogs?program={programUid}&page={page}&pageSize={pageSize}",
+                trackedEntity.getUid(),
+                program.getUid(),
+                "1",
+                "1")
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
@@ -181,7 +175,9 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
                 pager.getNextPage(),
                 2,
                 1,
-                String.format("http://localhost/tracker/trackedEntities/%s/changeLogs", trackedEntity.getUid())));
+                String.format(
+                    "http://localhost/tracker/trackedEntities/%s/changeLogs",
+                    trackedEntity.getUid())));
   }
 
   @Test
@@ -189,10 +185,11 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
       shouldGetChangeLogPagerWithNextAndPreviousAttributesWhenMultipleAttributesImportedAndSecondPageRequested() {
     JsonPage changeLogs =
         GET(
-            "/tracker/trackedEntities/{id}/changeLogs?program={programUid}&page={page}&pageSize={pageSize}",
-            trackedEntity.getUid(), program.getUid(),
-            "2",
-            "1")
+                "/tracker/trackedEntities/{id}/changeLogs?program={programUid}&page={page}&pageSize={pageSize}",
+                trackedEntity.getUid(),
+                program.getUid(),
+                "2",
+                "1")
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
@@ -205,13 +202,17 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
                 pager.getPrevPage(),
                 1,
                 1,
-                String.format("http://localhost/tracker/trackedEntities/%s/changeLogs", trackedEntity.getUid())),
+                String.format(
+                    "http://localhost/tracker/trackedEntities/%s/changeLogs",
+                    trackedEntity.getUid())),
         () ->
             assertPagerLink(
                 pager.getNextPage(),
                 3,
                 1,
-                String.format("http://localhost/tracker/trackedEntities/%s/changeLogs", trackedEntity.getUid())));
+                String.format(
+                    "http://localhost/tracker/trackedEntities/%s/changeLogs",
+                    trackedEntity.getUid())));
   }
 
   @Test
@@ -219,10 +220,11 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
       shouldGetChangeLogPagerWithPreviousAttributeWhenMultipleAttributesImportedAndLastPageRequested() {
     JsonPage changeLogs =
         GET(
-            "/tracker/trackedEntities/{id}/changeLogs?program={programUid}&page={page}&pageSize={pageSize}",
-            trackedEntity.getUid(), program.getUid(),
-            "3",
-            "1")
+                "/tracker/trackedEntities/{id}/changeLogs?program={programUid}&page={page}&pageSize={pageSize}",
+                trackedEntity.getUid(),
+                program.getUid(),
+                "3",
+                "1")
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
@@ -235,7 +237,9 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
                 pager.getPrevPage(),
                 2,
                 1,
-                String.format("http://localhost/tracker/trackedEntities/%s/changeLogs", trackedEntity.getUid())),
+                String.format(
+                    "http://localhost/tracker/trackedEntities/%s/changeLogs",
+                    trackedEntity.getUid())),
         () -> assertHasNoMember(pager, "nextPage"));
   }
 
@@ -244,10 +248,11 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
       shouldGetChangeLogPagerWithoutPreviousNorNextAttributeWhenMultipleAttributesImportedAndAllAttributesFitInOnePage() {
     JsonPage changeLogs =
         GET(
-            "/tracker/trackedEntities/{id}/changeLogs?program={programUid}&page={page}&pageSize={pageSize}",
-            trackedEntity.getUid(), program.getUid(),
-            "1",
-            "3")
+                "/tracker/trackedEntities/{id}/changeLogs?program={programUid}&page={page}&pageSize={pageSize}",
+                trackedEntity.getUid(),
+                program.getUid(),
+                "1",
+                "3")
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
@@ -330,7 +335,8 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
             }
           ]
         }
-        """.formatted(value);
+        """
+        .formatted(value);
   }
 
   private static void assertPagerLink(String actual, int page, int pageSize, String start) {
