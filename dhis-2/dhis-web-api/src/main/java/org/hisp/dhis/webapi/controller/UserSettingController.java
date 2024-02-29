@@ -41,6 +41,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -54,7 +55,6 @@ import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -71,13 +71,13 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/userSettings")
+@RequiredArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class UserSettingController {
-  @Autowired private UserSettingService userSettingService;
 
-  @Autowired private UserService userService;
-
-  @Autowired private CurrentUserService currentUserService;
+  private final UserSettingService userSettingService;
+  private final UserService userService;
+  private final CurrentUserService currentUserService;
 
   private static final Set<UserSettingKey> USER_SETTING_KEYS =
       Sets.newHashSet(UserSettingKey.values()).stream().collect(Collectors.toSet());
@@ -155,7 +155,7 @@ public class UserSettingController {
     }
 
     userSettingService.saveUserSetting(
-        userSettingKey, UserSettingKey.getAsRealClass(key, newValue), user);
+        userSettingKey, UserSettingKey.getAsRealClass(userSettingKey, newValue), user);
 
     return ok("User setting saved");
   }
@@ -182,7 +182,7 @@ public class UserSettingController {
   private UserSettingKey getUserSettingKey(String key) throws WebMessageException {
     Optional<UserSettingKey> userSettingKey = UserSettingKey.getByName(key);
 
-    if (!userSettingKey.isPresent()) {
+    if (userSettingKey.isEmpty()) {
       throw new WebMessageException(notFound("No user setting found with key: " + key));
     }
 
