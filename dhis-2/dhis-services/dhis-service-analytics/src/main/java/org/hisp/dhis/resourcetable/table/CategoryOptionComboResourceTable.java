@@ -84,7 +84,7 @@ public class CategoryOptionComboResourceTable implements ResourceTable {
     String sql =
         replace(
             """
-        insert into ${table_name} \
+        insert into ${tableName} \
         (dataelementid, dataelementuid, categoryoptioncomboid, categoryoptioncombouid) \
         select de.dataelementid as dataelementid, de.uid as dataelementuid, \
         coc.categoryoptioncomboid as categoryoptioncomboid, coc.uid as categoryoptioncombouid \
@@ -92,7 +92,7 @@ public class CategoryOptionComboResourceTable implements ResourceTable {
         inner join categorycombos_optioncombos cc on de.categorycomboid = cc.categorycomboid \
         inner join categoryoptioncombo coc on cc.categoryoptioncomboid = coc.categoryoptioncomboid;
         """,
-            "table_name",
+            "tableName",
             toStaging(TABLE_NAME));
 
     return Optional.of(sql);

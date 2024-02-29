@@ -81,7 +81,7 @@ public class DataApprovalMinLevelResourceTable implements ResourceTable {
   public Optional<String> getPopulateTempTableStatement() {
     String sql =
         """
-        insert into ${table_name} \
+        insert into ${tableName} \
         (workflowid,periodid,organisationunitid,attributeoptioncomboid,minlevel) \
         select da.workflowid, da.periodid, da.organisationunitid, \
         da.attributeoptioncomboid, dal.level as minlevel \
@@ -106,7 +106,7 @@ public class DataApprovalMinLevelResourceTable implements ResourceTable {
 
     sql = TextUtils.removeLastOr(sql) + "))";
 
-    return Optional.of(replace(sql, "table_name", toStaging(TABLE_NAME)));
+    return Optional.of(replace(sql, "tableName", toStaging(TABLE_NAME)));
   }
 
   @Override
