@@ -32,6 +32,7 @@ import static org.hisp.dhis.user.UserService.RECOVERY_LOCKOUT_MINS;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
@@ -108,7 +109,7 @@ public class UserAccountController {
       throw new ConflictException("Account could not be recovered");
     }
 
-    log.info("Recovery message sent for user: " + username);
+    log.info("Recovery message sent for user: {}", username);
   }
 
   @PostMapping("/passwordReset")
@@ -138,7 +139,7 @@ public class UserAccountController {
 
     CredentialsInfo credentialsInfo =
         new CredentialsInfo(
-            user.getUsername(), newPassword, user.getEmail() != null ? user.getEmail() : "", false);
+            user.getUsername(), newPassword, StringUtils.trimToEmpty(user.getEmail()), false);
 
     PasswordValidationResult result = passwordValidationService.validate(credentialsInfo);
 
@@ -153,6 +154,6 @@ public class UserAccountController {
       throw new BadRequestException("Account could not be restored");
     }
 
-    log.info("Account restored for user: " + user.getUsername());
+    log.info("Account restored for user: {}", user.getUsername());
   }
 }
