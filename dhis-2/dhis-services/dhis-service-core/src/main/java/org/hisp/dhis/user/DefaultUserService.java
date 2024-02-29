@@ -1145,7 +1145,7 @@ public class DefaultUserService implements UserService {
     user.setRestoreToken(hashedRestoreToken);
     user.setRestoreExpiry(expiry);
 
-    updateUser(user);
+    updateUser(user, new SystemUser());
 
     return Base64.getUrlEncoder()
         .withoutPadding()
