@@ -324,8 +324,10 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   @Override
   public String tableExists(String name) {
     return String.format(
-        "select t.table_name from information_schema.tables t "
-            + "where t.table_schema = 'public' and t.table_name = %s;",
+        """
+        select t.table_name from information_schema.tables t \
+        where t.table_schema = 'public' and t.table_name = %s;
+        """,
         singleQuote(name));
   }
 
