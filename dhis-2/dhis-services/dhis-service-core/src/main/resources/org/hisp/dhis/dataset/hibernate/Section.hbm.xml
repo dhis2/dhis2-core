@@ -53,6 +53,12 @@
     <property name="showRowTotals" />
 
     <property name="showColumnTotals" />
+    
+    <property name="displayOptions" type="jbObject" column="displayoptions" />
+
+    <property name="textBeforeSection" column="textbeforesection" />
+
+    <property name="textAfterSection" column="textaftersection" />
 
     <property name="disableDataElementAutoGroup" column="disabledataelementautogroup" />
 

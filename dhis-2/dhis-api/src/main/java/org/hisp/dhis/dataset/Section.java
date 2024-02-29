@@ -33,8 +33,10 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -64,6 +66,12 @@ public class Section extends BaseIdentifiableObject implements MetadataObject {
   private boolean showColumnTotals;
 
   private boolean disableDataElementAutoGroup;
+
+  private String textBeforeSection;
+
+  private String textAfterSection;
+
+  private Map<String, String> displayOptions = new HashMap<>();
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -212,6 +220,36 @@ public class Section extends BaseIdentifiableObject implements MetadataObject {
 
   public void setShowColumnTotals(boolean showColumnTotals) {
     this.showColumnTotals = showColumnTotals;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getTextBeforeSection() {
+    return textBeforeSection;
+  }
+
+  public void setTextBeforeSection(String textBeforeSection) {
+    this.textBeforeSection = textBeforeSection;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getTextAfterSection() {
+    return textAfterSection;
+  }
+
+  public void setTextAfterSection(String textAfterSection) {
+    this.textAfterSection = textAfterSection;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Map<String, String> getDisplayOptions() {
+    return displayOptions;
+  }
+
+  public void setDisplayOptions(Map<String, String> displayOptions) {
+    this.displayOptions = displayOptions;
   }
 
   @JsonProperty
