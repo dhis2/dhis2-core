@@ -199,6 +199,11 @@ class TextUtilsTest {
   }
 
   @Test
+  void testReplaceVarargs() {
+    assertEquals("Welcome John", TextUtils.replace("Welcome ${first_name}", "first_name", "John"));
+  }
+
+  @Test
   void testGetOptions() {
     assertEquals(List.of("uidA", "uidB"), TextUtils.getOptions("uidA;uidB"));
     assertEquals(List.of("uidA"), TextUtils.getOptions("uidA"));

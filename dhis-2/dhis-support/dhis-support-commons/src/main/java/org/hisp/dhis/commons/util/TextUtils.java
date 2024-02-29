@@ -550,6 +550,18 @@ public class TextUtils {
   }
 
   /**
+   * Replaces variables in the given template string with the given variable key and value.
+   *
+   * @param template the template string.
+   * @param k1 the variable key.
+   * @param v1 the variable value.
+   * @return a resolved string.
+   */
+  public static String replace(String template, String k1, String v1) {
+    return replace(template, Map.of(k1, v1));
+  }
+
+  /**
    * Splits the parameter into options based on {@code ;} (semicolon) as separator.
    *
    * @param param the parameter string.

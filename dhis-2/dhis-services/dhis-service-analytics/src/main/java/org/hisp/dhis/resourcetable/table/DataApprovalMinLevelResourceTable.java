@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
+import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -106,9 +106,7 @@ public class DataApprovalMinLevelResourceTable implements ResourceTable {
 
     sql = TextUtils.removeLastOr(sql) + "))";
 
-    sql = TextUtils.replace(sql, Map.of("table_name", toStaging(TABLE_NAME)));
-
-    return Optional.of(sql);
+    return Optional.of(replace(sql, "table_name", toStaging(TABLE_NAME)));
   }
 
   @Override
