@@ -44,14 +44,14 @@ public interface JsonTrackedEntityChangeLog extends JsonObject {
   }
 
   interface JsonChange extends JsonObject {
-    default JsonTrackedEntityAttribute getTrackedEntityAttributeChange() {
-      return get("trackedEntityAttribute").as(JsonTrackedEntityAttribute.class);
+    default JsonAttributeValue getAttributeValue() {
+      return get("attributeValue").as(JsonAttributeValue.class);
     }
   }
 
-  interface JsonTrackedEntityAttribute extends JsonObject {
-    default String getTrackedEntityAttribute() {
-      return getString("trackedEntityAttribute").string();
+  interface JsonAttributeValue extends JsonObject {
+    default String getAttribute() {
+      return getString("attribute").string();
     }
 
     default String getPreviousValue() {

@@ -1,0 +1,228 @@
+{
+  "attributes": [
+    {
+      "id": "j45AR9cBQKc",
+      "name": "some attribute",
+      "sharing": {
+        "owner": "PQD6wXJ2r5j",
+        "public": "rw------"
+      },
+      "valueType": "TEXT",
+      "mandatory": false,
+      "unique": true,
+      "programAttribute": true,
+      "programStageAttribute": true,
+      "trackedEntityTypeAttribute": true,
+      "trackedEntityAttributeAttribute": true,
+      "organisationUnitAttribute": true,
+      "dataElementAttribute": true,
+      "relationshipTypeAttribute": true,
+      "categoryOptionAttribute": true,
+      "categoryOptionComboAttribute": true
+    }
+  ],
+  "trackedEntityTypes": [
+    {
+      "created": "2020-05-31T08:59:52.758",
+      "lastUpdated": "2020-05-31T11:41:22.419",
+      "name": "Person",
+      "id": "ja8NY4PW7Xm",
+      "publicAccess": "rw------",
+      "description": "person",
+      "maxTeiCountToReturn": 0,
+      "allowAuditLog": true,
+      "featureType": "NONE",
+      "minAttributesRequiredToSearch": 1,
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "sharing": {
+        "external": false,
+        "public": "rwrw----"
+      }
+    },
+    {
+      "created": "2020-05-31T08:59:52.758",
+      "lastUpdated": "2020-05-31T11:41:22.419",
+      "name": "Inaccessible person",
+      "id": "Ip8NY4PW7Xm",
+      "publicAccess": "rw------",
+      "description": "person",
+      "maxTeiCountToReturn": 0,
+      "allowAuditLog": false,
+      "featureType": "NONE",
+      "minAttributesRequiredToSearch": 1,
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "sharing": {
+        "external": false,
+        "public": "--------"
+      }
+    }
+  ],
+  "users": [
+    {
+      "code": "admin",
+      "lastUpdated": "2020-05-31T11:41:22.356",
+      "id": "M5zQapPyTZI",
+      "created": "2020-05-31T08:55:27.984",
+      "password": "Test123###...",
+      "surname": "Surnameadmin",
+      "firstName": "FirstNameadmin",
+      "name": "admin admin",
+      "lastLogin": "2020-05-31T08:55:38.571",
+      "displayName": "admin admin",
+      "externalAuth": false,
+      "externalAccess": false,
+      "disabled": false,
+      "twoFA": false,
+      "passwordLastUpdated": "2020-05-31T08:55:28.232",
+      "invitation": false,
+      "selfRegistered": false,
+      "favorite": false,
+      "username": "admin",
+      "access": {
+        "read": true,
+        "update": true,
+        "externalize": true,
+        "delete": true,
+        "write": true,
+        "manage": true
+      },
+      "userRoles": [
+        {
+          "id": "yrB6vc5Ip3r"
+        }
+      ],
+      "teiSearchOrganisationUnits": [
+        {
+          "id": "h4w96yEMlzO"
+        }
+      ],
+      "organisationUnits": [
+        {
+          "id": "h4w96yEMlzO"
+        }
+      ]
+    }
+  ],
+  "organisationUnits": [
+    {
+      "id": "h4w96yEMlzO",
+      "name": "test-orgunit",
+      "code": "test-orgunit-code",
+      "level": 1,
+      "created": "2020-05-31T08:56:15.922",
+      "lastUpdated": "2020-05-31T11:41:22.384",
+      "publicAccess": "rwrw----",
+      "shortName": "test-orgunit",
+      "description": "test-orgunit",
+      "path": "/h4w96yEMlzO",
+      "openingDate": "2020-05-31T00:00:00.000",
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      }
+    }
+  ],
+  "programs": [
+    {
+      "id": "BFcipDERJnf",
+      "name": "test-program",
+      "shortName": "test-program",
+      "lastUpdated": "2020-05-31T11:41:22.438",
+      "created": "2020-05-31T09:02:52.718",
+      "publicAccess": "rwrw----",
+      "completeEventsExpiryDays": 0,
+      "ignoreOverdueEvents": false,
+      "skipOffline": false,
+      "minAttributesRequiredToSearch": 1,
+      "displayFrontPageList": false,
+      "onlyEnrollOnce": false,
+      "programType": "WITH_REGISTRATION",
+      "accessLevel": "OPEN",
+      "version": 2,
+      "maxTeiCountToReturn": 0,
+      "selectIncidentDatesInFuture": false,
+      "displayIncidentDate": true,
+      "selectEnrollmentDatesInFuture": false,
+      "expiryDays": 0,
+      "useFirstStageDuringRegistration": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "trackedEntityType": {
+        "id": "ja8NY4PW7Xm"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "organisationUnits": [
+        {
+          "id": "h4w96yEMlzO"
+        }
+      ]
+    }
+  ],
+  "userRoles": [
+    {
+      "code": "Superuser",
+      "created": "2020-05-31T08:55:28.141",
+      "lastUpdated": "2020-05-31T11:41:22.347",
+      "name": "Superuser",
+      "id": "yrB6vc5Ip3r",
+      "publicAccess": "--------",
+      "description": "Superuser",
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "authorities": [
+        "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
+        "ALL"
+      ]
+    }
+  ],
+  "trackedEntityAttributes": [
+    {
+      "lastUpdated": "2020-05-31T11:41:22.414",
+      "id": "numericAttr",
+      "created": "2020-05-31T09:00:51.347",
+      "name": "numeric-attribute",
+      "shortName": "numeric-attribute",
+      "aggregationType": "NONE",
+      "displayInListNoProgram": false,
+      "publicAccess": "rw------",
+      "pattern": "",
+      "skipSynchronization": false,
+      "generated": false,
+      "displayOnVisitSchedule": false,
+      "valueType": "INTEGER",
+      "formName": "numeric-attribute",
+      "orgunitScope": false,
+      "confidential": false,
+      "unique": false,
+      "inherit": false,
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      }
+    }
+  ]
+}

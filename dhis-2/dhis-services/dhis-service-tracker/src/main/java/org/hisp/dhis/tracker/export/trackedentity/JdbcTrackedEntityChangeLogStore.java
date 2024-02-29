@@ -96,9 +96,11 @@ public class JdbcTrackedEntityChangeLogStore {
     if (attributes.isEmpty()) {
       sql += """
               order by audit.created desc) cl
+              limit :limit offset :offset
           """;
       SqlParameterSource parameters =
-          new MapSqlParameterSource("trackedEntity", trackedEntity.getValue());
+          new MapSqlParameterSource("trackedEntity", trackedEntity.getValue()).addValue("limit", pageParams.getPageSize() + 1).addValue("offset", (pageParams.getPage() - 1) * pageParams.getPageSize());
+
       changeLogs =
           namedParameterJdbcTemplate.query(sql, parameters, customTrackedEntityChangeLogRowMapper);
     } else {
@@ -106,10 +108,12 @@ public class JdbcTrackedEntityChangeLogStore {
           """
               and tea.uid in (:attributes)
               order by audit.created desc) cl
+              limit :limit offset :offset
           """;
       SqlParameterSource parameters =
           new MapSqlParameterSource("attributes", attributes)
-              .addValue("trackedEntity", trackedEntity.getValue());
+              .addValue("trackedEntity", trackedEntity.getValue())
+              .addValue("limit", pageParams.getPageSize() + 1).addValue("offset", (pageParams.getPage() - 1) * pageParams.getPageSize());
       changeLogs =
           namedParameterJdbcTemplate.query(sql, parameters, customTrackedEntityChangeLogRowMapper);
     }
