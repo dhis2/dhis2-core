@@ -344,6 +344,7 @@ public class OutliersDetection2AutoTest extends AnalyticsApiTest {
     validateRow(response, 1, List.of("s46m5MS0hxu", "BCG doses given", "3.1"));
     validateRow(
         response,
+        2,
         List.of(
             "dU0GquGkGQr", "Q_Early breastfeeding (within 1 hr after delivery) at BCG", "3.02"));
   }
