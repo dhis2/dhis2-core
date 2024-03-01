@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.security;
 import static org.hisp.dhis.user.UserService.RECOVERY_LOCKOUT_MINS;
 
 import java.util.Arrays;
+import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -66,7 +67,8 @@ import org.springframework.web.bind.annotation.RestController;
  * <p>These operations are migrated from the AccountController and adapted to the new LoginApp and
  * JSON input.
  *
- * <p>Operations migrated here, should be deprecated in the AccountController and will be removed in
+ * <p>Operations migrated here, should be deprecated in the AccountController and will be removed
+ * in
  * the future.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -135,6 +137,9 @@ public class UserAccountController {
 
     log.error("idAndRestoreToken: {}", Arrays.toString(idAndRestoreToken));
     log.error("idToken: {}", idToken);
+
+    List<User> allUsers = userService.getAllUsers();
+    allUsers.forEach(user -> log.error("user: {}, idtoken: {}", user, user.getIdToken()));
 
     User user = userService.getUserByIdToken(idToken);
     if (user == null) {
