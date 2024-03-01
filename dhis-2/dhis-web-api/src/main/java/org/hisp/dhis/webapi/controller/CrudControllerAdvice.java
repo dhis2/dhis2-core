@@ -79,7 +79,6 @@ import org.hisp.dhis.schema.SchemaPathException;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationException;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.webapi.common.UIDParamEditor;
 import org.hisp.dhis.webapi.controller.exception.MetadataImportConflictException;
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
 import org.hisp.dhis.webapi.controller.exception.MetadataVersionException;
@@ -151,7 +150,6 @@ public class CrudControllerAdvice {
         IdentifiableProperty.class, new FromTextPropertyEditor(String::toUpperCase));
     this.enumClasses.forEach(c -> binder.registerCustomEditor(c, new ConvertEnum(c)));
     binder.registerCustomEditor(TrackerIdSchemeParam.class, new IdSchemeParamEditor());
-    binder.registerCustomEditor(UID.class, new UIDParamEditor());
   }
 
   @ExceptionHandler
@@ -218,8 +216,8 @@ public class CrudControllerAdvice {
         ex.getParameter().getParameterAnnotation(PathVariable.class);
     String field = ex.getName();
     Object value = ex.getValue();
-    String notValidValueMessage =
-        getNotValidValueMessage(value, field, pathVariableAnnotation != null);
+    boolean isPathVariable = pathVariableAnnotation != null;
+    String notValidValueMessage = getNotValidValueMessage(value, field, isPathVariable);
 
     String customErrorMessage;
     if (requiredType == null) {
@@ -231,7 +229,8 @@ public class CrudControllerAdvice {
     } else if (ex.getCause() instanceof IllegalArgumentException) {
       customErrorMessage = ex.getCause().getMessage();
     } else if (ex.getCause() instanceof ConversionFailedException conversionException) {
-      notValidValueMessage = getConversionErrorMessage(value, field, conversionException);
+      notValidValueMessage =
+          getConversionErrorMessage(value, field, conversionException, isPathVariable);
       customErrorMessage = "";
     } else {
       customErrorMessage = getGenericFieldErrorMessage(requiredType.getSimpleName());
@@ -258,7 +257,7 @@ public class CrudControllerAdvice {
     } else if (ex.getCause() instanceof IllegalArgumentException) {
       customErrorMessage = ex.getCause().getMessage();
     } else if (ex.getCause() instanceof ConversionFailedException conversionException) {
-      notValidValueMessage = getConversionErrorMessage(value, field, conversionException);
+      notValidValueMessage = getConversionErrorMessage(value, field, conversionException, false);
       customErrorMessage = "";
     } else {
       customErrorMessage = getGenericFieldErrorMessage(requiredType.getSimpleName());
@@ -308,7 +307,7 @@ public class CrudControllerAdvice {
   }
 
   private static String getConversionErrorMessage(
-      Object rootValue, String field, ConversionFailedException ex) {
+      Object rootValue, String field, ConversionFailedException ex, boolean isPathVariable) {
     Object invalidValue = ex.getValue();
     if (TypeDescriptor.valueOf(String.class).equals(ex.getSourceType())
         && (invalidValue != null && ((String) invalidValue).contains(","))
@@ -319,7 +318,9 @@ public class CrudControllerAdvice {
           + ex.getCause().getMessage();
     }
 
-    return getNotValidValueMessage(invalidValue, field) + " " + ex.getCause().getMessage();
+    return getNotValidValueMessage(invalidValue, field, isPathVariable)
+        + " "
+        + ex.getCause().getMessage();
   }
 
   /**
