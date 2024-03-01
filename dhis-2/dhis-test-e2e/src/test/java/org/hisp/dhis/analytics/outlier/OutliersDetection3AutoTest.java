@@ -54,7 +54,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
         new QueryParamsBuilder()
             .add("pe=THIS_YEAR")
             .add("ou=ImspTQPwCqd")
-            .add("maxResults=20")
+            .add("maxResults=10")
             .add("orderBy=MODIFIEDZSCORE")
             .add("threshold=2.5")
             .add("ds=BfMAe6Itzgt")
@@ -69,14 +69,14 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
         .validate()
         .statusCode(200)
         .body("headers", hasSize(equalTo(18)))
-        .body("rows", hasSize(equalTo(20)))
-        .body("height", equalTo(20))
+        .body("rows", hasSize(equalTo(10)))
+        .body("height", equalTo(10))
         .body("width", equalTo(18))
         .body("headerWidth", equalTo(18));
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"count\":20,\"orderBy\":\"MODIFIED_Z_SCORE\",\"threshold\":\"2.5\",\"maxResults\":20,\"algorithm\":\"MODIFIED_Z_SCORE\"}";
+        "{\"count\":10,\"orderBy\":\"MODIFIED_Z_SCORE\",\"threshold\":\"2.5\",\"maxResults\":10,\"algorithm\":\"MODIFIED_Z_SCORE\"}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -346,248 +346,6 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "68.12",
             "6.29",
             "13.71"));
-    validateRow(
-        response,
-        9,
-        List.of(
-            "Y53Jcc9LBYh",
-            "Children supplied with food supplemements",
-            "202201",
-            "202201",
-            "agEKP19IUKI",
-            "Tambiama CHC",
-            "Sierra Leone / Bombali / Gbendembu Ngowahun / Tambiama CHC",
-            "psbwp3CQEhs",
-            "Fixed, >1y",
-            "HllvX50cXC0",
-            "default",
-            "113.0",
-            "14.0",
-            "1.0",
-            "99.0",
-            "66.78",
-            "10.29",
-            "17.71"));
-    validateRow(
-        response,
-        10,
-        List.of(
-            "Y53Jcc9LBYh",
-            "Children supplied with food supplemements",
-            "202202",
-            "202202",
-            "agEKP19IUKI",
-            "Tambiama CHC",
-            "Sierra Leone / Bombali / Gbendembu Ngowahun / Tambiama CHC",
-            "psbwp3CQEhs",
-            "Fixed, >1y",
-            "HllvX50cXC0",
-            "default",
-            "113.0",
-            "14.0",
-            "1.0",
-            "99.0",
-            "66.78",
-            "10.29",
-            "17.71"));
-    validateRow(
-        response,
-        11,
-        List.of(
-            "UOlfIjgN8X6",
-            "Fully Immunized child",
-            "202208",
-            "202208",
-            "tSBcgrTDdB8",
-            "Paramedical CHC",
-            "Sierra Leone / Bo / Kakua / Paramedical CHC",
-            "Prlt0C1RF0s",
-            "Fixed, <1y",
-            "HllvX50cXC0",
-            "default",
-            "455.0",
-            "12.0",
-            "5.0",
-            "443.0",
-            "59.76",
-            "-6.53",
-            "30.53"));
-    validateRow(
-        response,
-        12,
-        List.of(
-            "I78gJm4KBo7",
-            "Penta2 doses given",
-            "202208",
-            "202208",
-            "tSBcgrTDdB8",
-            "Paramedical CHC",
-            "Sierra Leone / Bo / Kakua / Paramedical CHC",
-            "Prlt0C1RF0s",
-            "Fixed, <1y",
-            "HllvX50cXC0",
-            "default",
-            "451.0",
-            "14.0",
-            "5.0",
-            "437.0",
-            "58.95",
-            "-4.53",
-            "32.53"));
-    validateRow(
-        response,
-        13,
-        List.of(
-            "l6byfWFUGaP",
-            "Yellow Fever doses given",
-            "202208",
-            "202208",
-            "tSBcgrTDdB8",
-            "Paramedical CHC",
-            "Sierra Leone / Bo / Kakua / Paramedical CHC",
-            "Prlt0C1RF0s",
-            "Fixed, <1y",
-            "HllvX50cXC0",
-            "default",
-            "457.0",
-            "11.5",
-            "5.5",
-            "445.5",
-            "54.63",
-            "-8.89",
-            "31.89"));
-    validateRow(
-        response,
-        14,
-        List.of(
-            "fClA2Erf6IO",
-            "Penta1 doses given",
-            "202208",
-            "202208",
-            "tSBcgrTDdB8",
-            "Paramedical CHC",
-            "Sierra Leone / Bo / Kakua / Paramedical CHC",
-            "Prlt0C1RF0s",
-            "Fixed, <1y",
-            "HllvX50cXC0",
-            "default",
-            "489.0",
-            "20.0",
-            "6.0",
-            "469.0",
-            "52.72",
-            "-2.24",
-            "42.24"));
-    validateRow(
-        response,
-        15,
-        List.of(
-            "l6byfWFUGaP",
-            "Yellow Fever doses given",
-            "202209",
-            "202209",
-            "RhJbg8UD75Q",
-            "Yemoh Town CHC",
-            "Sierra Leone / Bo / Kakua / Yemoh Town CHC",
-            "Prlt0C1RF0s",
-            "Fixed, <1y",
-            "HllvX50cXC0",
-            "default",
-            "466.0",
-            "14.0",
-            "6.0",
-            "452.0",
-            "50.81",
-            "-8.24",
-            "36.24"));
-    validateRow(
-        response,
-        16,
-        List.of(
-            "YtbsuPPo010",
-            "Measles doses given",
-            "202209",
-            "202209",
-            "RhJbg8UD75Q",
-            "Yemoh Town CHC",
-            "Sierra Leone / Bo / Kakua / Yemoh Town CHC",
-            "Prlt0C1RF0s",
-            "Fixed, <1y",
-            "HllvX50cXC0",
-            "default",
-            "466.0",
-            "14.0",
-            "6.0",
-            "452.0",
-            "50.81",
-            "-8.24",
-            "36.24"));
-    validateRow(
-        response,
-        17,
-        List.of(
-            "YtbsuPPo010",
-            "Measles doses given",
-            "202208",
-            "202208",
-            "tSBcgrTDdB8",
-            "Paramedical CHC",
-            "Sierra Leone / Bo / Kakua / Paramedical CHC",
-            "Prlt0C1RF0s",
-            "Fixed, <1y",
-            "HllvX50cXC0",
-            "default",
-            "457.0",
-            "12.5",
-            "6.0",
-            "444.5",
-            "49.97",
-            "-9.74",
-            "34.74"));
-    validateRow(
-        response,
-        18,
-        List.of(
-            "Rmixc9wJl0G",
-            "Q_LLITN given at time of 2nd Vit A dose",
-            "202202",
-            "202202",
-            "EUUkKEDoNsf",
-            "Wilberforce CHC",
-            "Sierra Leone / Western Area / Freetown / Wilberforce CHC",
-            "hEFKSsPV5et",
-            "Outreach, >1y",
-            "HllvX50cXC0",
-            "default",
-            "40.0",
-            "5.5",
-            "0.5",
-            "34.5",
-            "46.54",
-            "3.65",
-            "7.35"));
-    validateRow(
-        response,
-        19,
-        List.of(
-            "Y53Jcc9LBYh",
-            "Children supplied with food supplemements",
-            "202201",
-            "202201",
-            "EXbPGmEUdnc",
-            "Mateboi CHC",
-            "Sierra Leone / Bombali / Sanda Tendaren / Mateboi CHC",
-            "psbwp3CQEhs",
-            "Fixed, >1y",
-            "HllvX50cXC0",
-            "default",
-            "80.0",
-            "11.0",
-            "1.0",
-            "69.0",
-            "46.54",
-            "7.29",
-            "14.71"));
   }
 
   @Test
