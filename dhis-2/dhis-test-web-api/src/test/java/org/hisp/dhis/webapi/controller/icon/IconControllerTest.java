@@ -149,7 +149,9 @@ class IconControllerTest extends DhisControllerIntegrationTest {
             .content(HttpStatus.OK);
 
     assertNotNull(response);
+
     JsonList<JsonIcon> icons = response.getList("icons", JsonIcon.class);
+
     assertEquals(2, icons.size());
     assertContainsAll(List.of(key2, key3), icons, JsonIcon::getKey);
   }
@@ -300,14 +302,5 @@ class IconControllerTest extends DhisControllerIntegrationTest {
                     "Expected FileResourceId was %s but found %s",
                     fileResourceId, actualFileResourceId)),
         () -> assertContainsOnly(keywords, actualKeywords));
-  }
-
-  private String getCustomIconId(String key) {
-    JsonObject content =
-        GET("/icons?key=" + key + "&fields=id,key,description,keywords,fileResource&paging=false")
-            .content(HttpStatus.OK);
-    JsonList<JsonIcon> icons = content.getList("icons", JsonIcon.class);
-
-    return icons.get(0).getUid();
   }
 }
