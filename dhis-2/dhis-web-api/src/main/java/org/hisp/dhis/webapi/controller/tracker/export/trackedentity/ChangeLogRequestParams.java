@@ -25,34 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity;
+package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
-import java.util.Set;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
+import java.util.ArrayList;
+import java.util.List;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
+import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 
-public interface TrackedEntityChangeLogService {
+@OpenApi.Shared(name = "ChangeLogRequestParams")
+@OpenApi.Property
+@Data
+@NoArgsConstructor
+public class ChangeLogRequestParams {
 
-  /**
-   * Retrieves the change log data for a particular tracked entity.
-   *
-   * @return the paged change logs of the supplied tracked entity, if any
-   */
-  Page<TrackedEntityChangeLog> getTrackedEntityChangeLog(
-      UID trackedEntityUid,
-      UID programUid,
-      TrackedEntityChangeLogOperationParams operationParams,
-      PageParams pageParams)
-      throws NotFoundException;
+  private static final String DEFAULT_FIELDS_PARAM = "change,createdAt,createdBy,type";
 
-  /**
-   * Fields the {@link #getTrackedEntityChangeLog(UID, UID, TrackedEntityChangeLogOperationParams,
-   * PageParams)} can order tracked entities change logs by. Ordering by fields other than these are
-   * considered a programmer error. Validation of user provided field names should occur before
-   * calling {@link #getTrackedEntityChangeLog(UID, UID, TrackedEntityChangeLogOperationParams,
-   * PageParams)}.
-   */
-  Set<String> getOrderableFields();
+  private int page = 1;
+
+  private int pageSize = 50;
+
+  private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
+
+  private List<OrderCriteria> order = new ArrayList<>();
 }

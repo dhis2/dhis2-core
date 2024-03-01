@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -55,6 +54,8 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -69,7 +70,6 @@ import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage.JsonPager;
 import org.hisp.dhis.webapi.controller.tracker.JsonTrackedEntityChangeLog;
-import org.hisp.dhis.webapi.controller.tracker.JsonTrackedEntityChangeLog.JsonAttributeValue;
 import org.hisp.dhis.webapi.controller.tracker.JsonUser;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
@@ -91,9 +91,13 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
 
   @Autowired private ProgramService programService;
 
+  @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
+
   private Program program;
 
   private TrackedEntity trackedEntity;
+
+  private TrackedEntityAttribute trackedEntityAttribute;
 
   @BeforeEach
   void setUp() throws IOException {
@@ -124,10 +128,12 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
     assertEquals(HttpStatus.OK.toString(), importResponse.getStatus());
+
+    trackedEntityAttribute = trackedEntityAttributeService.getTrackedEntityAttribute("numericAttr");
   }
 
   @Test
-  void shouldGetTrackedEntityAttributeChangeLogWhenValueCreatedAndThenUpdated() {
+  void shouldGetTrackedEntityChangeLogInDescOrderByDefault() {
     JsonList<JsonTrackedEntityChangeLog> changeLogs =
         GET(
                 "/tracker/trackedEntities/{id}/changeLogs?program={programUid}",
@@ -136,20 +142,28 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
             .content(HttpStatus.OK)
             .getList("changeLogs", JsonTrackedEntityChangeLog.class);
 
-    JsonTrackedEntityChangeLog changeLog = changeLogs.get(2);
-    JsonUser createdBy = changeLog.getCreatedBy();
-    JsonAttributeValue attributeChange = changeLog.getChange().getAttributeValue();
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-
+    assertNumberOfChanges(3, changeLogs);
     assertAll(
-        () -> assertEquals(currentUser.getUid(), createdBy.getUid()),
-        () -> assertEquals(currentUser.getUsername(), createdBy.getUsername()),
-        () -> assertEquals(currentUser.getFirstName(), createdBy.getFirstName()),
-        () -> assertEquals(currentUser.getSurname(), createdBy.getSurname()),
-        () -> assertEquals("CREATE", changeLog.getType()),
-        () -> assertEquals("numericAttr", attributeChange.getAttribute()),
-        () -> assertNull(attributeChange.getPreviousValue()),
-        () -> assertEquals("2", attributeChange.getCurrentValue()));
+        () -> assertUpdate(trackedEntityAttribute, "3", "4", changeLogs.get(0)),
+        () -> assertUpdate(trackedEntityAttribute, "2", "3", changeLogs.get(1)),
+        () -> assertCreate(trackedEntityAttribute, "2", changeLogs.get(2)));
+  }
+
+  @Test
+  void shouldGetTrackedEntityChangeLogInAscOrder() {
+    JsonList<JsonTrackedEntityChangeLog> changeLogs =
+        GET(
+                "/tracker/trackedEntities/{id}/changeLogs?program={programUid}&order=createdAt:asc",
+                trackedEntity.getUid(),
+                program.getUid())
+            .content(HttpStatus.OK)
+            .getList("changeLogs", JsonTrackedEntityChangeLog.class);
+
+    assertNumberOfChanges(3, changeLogs);
+    assertAll(
+        () -> assertCreate(trackedEntityAttribute, "2", changeLogs.get(0)),
+        () -> assertUpdate(trackedEntityAttribute, "2", "3", changeLogs.get(1)),
+        () -> assertUpdate(trackedEntityAttribute, "3", "4", changeLogs.get(2)));
   }
 
   @Test
@@ -345,5 +359,66 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
         () -> assertStartsWith(start, actual),
         () -> assertContains("page=" + page, actual),
         () -> assertContains("pageSize=" + pageSize, actual));
+  }
+
+  private static void assertNumberOfChanges(
+      int expected, JsonList<JsonTrackedEntityChangeLog> changeLogs) {
+    assertNotNull(changeLogs);
+    assertEquals(
+        expected,
+        changeLogs.size(),
+        String.format(
+            "Expected to find %s elements in the change log list, found %s instead: %s",
+            expected, changeLogs.size(), changeLogs));
+  }
+
+  private static void assertUser(JsonTrackedEntityChangeLog changeLog) {
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+    JsonUser createdBy = changeLog.getCreatedBy();
+    assertAll(
+        () -> assertEquals(currentUser.getUid(), createdBy.getUid()),
+        () -> assertEquals(currentUser.getUsername(), createdBy.getUsername()),
+        () -> assertEquals(currentUser.getFirstName(), createdBy.getFirstName()),
+        () -> assertEquals(currentUser.getSurname(), createdBy.getSurname()));
+  }
+
+  private static void assertCreate(
+      TrackedEntityAttribute attribute, String currentValue, JsonTrackedEntityChangeLog actual) {
+    assertAll(
+        () -> assertUser(actual),
+        () -> assertEquals("CREATE", actual.getType()),
+        () -> assertChange(attribute, null, currentValue, actual));
+  }
+
+  private static void assertUpdate(
+      TrackedEntityAttribute attribute,
+      String previousValue,
+      String currentValue,
+      JsonTrackedEntityChangeLog actual) {
+    assertAll(
+        () -> assertUser(actual),
+        () -> assertEquals("UPDATE", actual.getType()),
+        () -> assertChange(attribute, previousValue, currentValue, actual));
+  }
+
+  private static void assertDelete(
+      TrackedEntityAttribute attribute, String previousValue, JsonTrackedEntityChangeLog actual) {
+    assertAll(
+        () -> assertUser(actual),
+        () -> assertEquals("DELETE", actual.getType()),
+        () -> assertChange(attribute, previousValue, null, actual));
+  }
+
+  private static void assertChange(
+      TrackedEntityAttribute attribute,
+      String previousValue,
+      String currentValue,
+      JsonTrackedEntityChangeLog actual) {
+    assertAll(
+        () ->
+            assertEquals(attribute.getUid(), actual.getChange().getAttributeValue().getAttribute()),
+        () ->
+            assertEquals(previousValue, actual.getChange().getAttributeValue().getPreviousValue()),
+        () -> assertEquals(currentValue, actual.getChange().getAttributeValue().getCurrentValue()));
   }
 }
