@@ -217,7 +217,7 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String qualifyTable(String name) {
-    return name;
+    return quote(name);
   }
 
   // Statements
