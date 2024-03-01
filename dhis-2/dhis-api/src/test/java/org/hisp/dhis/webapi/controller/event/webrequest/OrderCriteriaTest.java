@@ -41,36 +41,29 @@ class OrderCriteriaTest {
 
   @Test
   void fromOrderString() {
-    List<OrderCriteria> orderCriteria =
-        OrderCriteria.fromOrderString("one:desc,, two:asc  ,three  ");
+    List<OrderCriteria> order = OrderCriteria.fromOrderString("one:desc,, two:asc  ,three  ");
 
-    assertNotNull(orderCriteria);
     assertEquals(
-        3, orderCriteria.size(), String.format("Expected 3 item, instead got %s", orderCriteria));
-    assertEquals(OrderCriteria.of("one", SortDirection.DESC), orderCriteria.get(0));
-    assertEquals(OrderCriteria.of("two", SortDirection.ASC), orderCriteria.get(1));
-    assertEquals(OrderCriteria.of("three", SortDirection.ASC), orderCriteria.get(2));
+        List.of(
+            OrderCriteria.of("one", SortDirection.DESC),
+            OrderCriteria.of("two", SortDirection.ASC),
+            OrderCriteria.of("three", SortDirection.ASC)),
+        order);
   }
 
   @ValueSource(strings = {"one:desc", "one:Desc", "one:DESC"})
   @ParameterizedTest
   void fromOrderStringSortDirectionParsingIsCaseInsensitive(String source) {
-    List<OrderCriteria> orderCriteria = OrderCriteria.fromOrderString(source);
+    List<OrderCriteria> order = OrderCriteria.fromOrderString(source);
 
-    assertNotNull(orderCriteria);
-    assertEquals(
-        1, orderCriteria.size(), String.format("Expected 1 item, instead got %s", orderCriteria));
-    assertEquals(OrderCriteria.of("one", SortDirection.DESC), orderCriteria.get(0));
+    assertEquals(List.of(OrderCriteria.of("one", SortDirection.DESC)), order);
   }
 
   @Test
   void fromOrderStringDefaultsToAscGivenFieldAndColon() {
-    List<OrderCriteria> orderCriteria = OrderCriteria.fromOrderString("one:");
+    List<OrderCriteria> order = OrderCriteria.fromOrderString("one:");
 
-    assertNotNull(orderCriteria);
-    assertEquals(
-        1, orderCriteria.size(), String.format("Expected 1 item, instead got %s", orderCriteria));
-    assertEquals(OrderCriteria.of("one", SortDirection.ASC), orderCriteria.get(0));
+    assertEquals(List.of(OrderCriteria.of("one", SortDirection.ASC)), order);
   }
 
   @Test
@@ -91,5 +84,10 @@ class OrderCriteriaTest {
   void failGivenMoreThanTwoColons() {
     assertThrows(
         IllegalArgumentException.class, () -> OrderCriteria.fromOrderString("one:desc:wrong"));
+  }
+
+  @Test
+  void failGivenEmptyField() {
+    assertThrows(IllegalArgumentException.class, () -> OrderCriteria.valueOf(" :desc"));
   }
 }

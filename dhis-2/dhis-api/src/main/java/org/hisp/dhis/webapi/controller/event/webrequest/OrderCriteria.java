@@ -77,16 +77,23 @@ public class OrderCriteria {
    */
   public static OrderCriteria valueOf(String input) {
     String[] props = input.split(":");
-    if (props.length == 2) {
-      return OrderCriteria.of(props[0].trim(), SortDirection.of(props[1].trim()));
-    }
-    if (props.length == 1) {
-      return OrderCriteria.of(props[0].trim(), SortDirection.ASC);
+    if (props.length > 2) {
+      throw new IllegalArgumentException(
+          "Invalid order property: '"
+              + input
+              + "'. Valid formats are 'field:direction' or 'field'. Valid directions are 'asc' or 'desc'. Direction defaults to 'asc'.");
     }
 
-    throw new IllegalArgumentException(
-        "Invalid order property: '"
-            + input
-            + "'. Valid formats are 'field:direction' or 'field'. Valid directions are 'asc' or 'desc'. Direction defaults to 'asc'.");
+    String field = props[0].trim();
+    if (StringUtils.isEmpty(field)) {
+      throw new IllegalArgumentException(
+          "Invalid order property: '"
+              + input
+              + "'. Valid formats are 'field:direction' or 'field'. Valid directions are 'asc' or 'desc'. Direction defaults to 'asc'.");
+    }
+
+    SortDirection direction =
+        props.length == 1 ? SortDirection.ASC : SortDirection.of(props[1].trim());
+    return OrderCriteria.of(field, direction);
   }
 }
