@@ -248,7 +248,6 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     CustomIconRequest request =
         CustomIconRequest.builder()
             .key(key)
-            .custom(true)
             .fileResourceId(fileResourceId)
             .keywords(keywords)
             .description("description")
