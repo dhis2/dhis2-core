@@ -47,6 +47,7 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.db.model.Index;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -69,6 +70,8 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
   private final ResourceTableService resourceTableService;
 
   private final SystemSettingManager systemSettingManager;
+
+  private final SqlBuilder sqlBuilder;
 
   @Override
   public AnalyticsTableType getAnalyticsTableType() {
@@ -94,10 +97,10 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
                 parallelJobs);
 
     progress.startingStage("Validating analytics table: {}", tableType);
-    String validState = tableManager.validState();
-    progress.completedStage(validState);
+    boolean validState = tableManager.validState();
+    progress.completedStage("Validated analytics tables with outcome: {}", validState);
 
-    if (validState != null || progress.isCancelled()) {
+    if (!validState || progress.isCancelled()) {
       return;
     }
 
@@ -147,7 +150,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     createIndexes(indexes, progress);
     clock.logTime("Created indexes");
 
-    if (tableUpdates > 0) {
+    if (tableUpdates > 0 && sqlBuilder.supportsVacuum()) {
       progress.startingStage("Vacuuming tables " + tableType, partitions.size());
       vacuumTables(partitions, progress);
       clock.logTime("Tables vacuumed");

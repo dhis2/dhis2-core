@@ -51,8 +51,9 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 /**
  * @author Lars Helge Overland
  */
-public class OrganisationUnitStructureResourceTable extends AbstractResourceTable {
-  private static final String TABLE_NAME = "_orgunitstructure";
+@RequiredArgsConstructor
+public class OrganisationUnitStructureResourceTable implements ResourceTable {
+  public static final String TABLE_NAME = "analytics_rs_orgunitstructure";
 
   private final int organisationUnitLevels;
 

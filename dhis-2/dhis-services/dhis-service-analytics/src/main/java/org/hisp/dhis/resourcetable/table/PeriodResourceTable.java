@@ -57,8 +57,9 @@ import org.joda.time.DateTime;
  * @author Lars Helge Overland
  */
 @Slf4j
-public class PeriodResourceTable extends AbstractResourceTable {
-  private static final String TABLE_NAME = "_periodstructure";
+@RequiredArgsConstructor
+public class PeriodResourceTable implements ResourceTable {
+  public static final String TABLE_NAME = "analytics_rs_periodstructure";
 
   private final List<Period> periods;
 

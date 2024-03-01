@@ -859,6 +859,12 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
+  @Transactional(readOnly = true)
+  public Map<String, String> getUserGroupUserEmailsByUsername(String userGroupId) {
+    return userStore.getUserGroupUserEmailsByUsername(userGroupId);
+  }
+
+  @Override
   public String getDisplayName(String userUid) {
     return userDisplayNameCache.get(userUid, c -> userStore.getDisplayName(userUid));
   }
@@ -1139,7 +1145,7 @@ public class DefaultUserService implements UserService {
     user.setRestoreToken(hashedRestoreToken);
     user.setRestoreExpiry(expiry);
 
-    updateUser(user);
+    updateUser(user, new SystemUser());
 
     return Base64.getUrlEncoder()
         .withoutPadding()

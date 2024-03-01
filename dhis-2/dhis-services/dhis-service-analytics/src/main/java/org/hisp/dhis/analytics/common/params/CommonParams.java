@@ -46,6 +46,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.With;
+import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -66,6 +67,9 @@ import org.hisp.dhis.program.Program;
 @Setter
 @Builder(toBuilder = true)
 public class CommonParams {
+  /** The original incoming request. */
+  private final CommonQueryRequest originalRequest;
+
   /** The list of Program objects carried on by this object. */
   @Builder.Default private final List<Program> programs = new ArrayList<>();
 

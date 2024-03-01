@@ -38,7 +38,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
@@ -90,8 +89,7 @@ class DefaultEventService implements EventService {
 
   @Override
   public FileResourceStream getFileResourceImage(
-      UID eventUid, UID dataElementUid, ImageFileDimension dimension)
-      throws NotFoundException, ConflictException, BadRequestException {
+      UID eventUid, UID dataElementUid, ImageFileDimension dimension) throws NotFoundException {
     FileResource fileResource = getFileResourceMetadata(eventUid, dataElementUid);
     return FileResourceStream.ofImage(fileResourceService, fileResource, dimension);
   }

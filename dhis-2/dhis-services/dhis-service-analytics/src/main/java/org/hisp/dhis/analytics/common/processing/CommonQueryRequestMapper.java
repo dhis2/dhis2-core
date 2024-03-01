@@ -110,7 +110,7 @@ public class CommonQueryRequestMapper {
    * @param request the input {@CommonQueryRequest}.
    * @return the {@link CommonParams}.
    */
-  public CommonParams map(CommonQueryRequest request) {
+  public CommonParams map(CommonQueryRequest request, CommonQueryRequest originalRequest) {
     List<OrganisationUnit> userOrgUnits =
         dataQueryService.getUserOrgUnits(null, request.getUserOrgUnit());
     List<Program> programs = getPrograms(request);
@@ -159,6 +159,7 @@ public class CommonQueryRequestMapper {
         .userOrgUnit(userOrgUnits)
         .coordinatesOnly(request.isCoordinatesOnly())
         .geometryOnly(request.isGeometryOnly())
+        .originalRequest(originalRequest)
         .build();
   }
 

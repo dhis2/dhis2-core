@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
+import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
 
 import java.util.List;
@@ -55,8 +56,9 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
  *
  * @author Jim Grace
  */
-public class DataApprovalRemapLevelResourceTable extends AbstractResourceTable {
-  private static final String TABLE_NAME = "_dataapprovalremaplevel";
+@RequiredArgsConstructor
+public class DataApprovalRemapLevelResourceTable implements ResourceTable {
+  public static final String TABLE_NAME = "analytics_rs_dataapprovalremaplevel";
 
   public DataApprovalRemapLevelResourceTable(SqlBuilder sqlBuilder, Logged logged) {
     super(sqlBuilder, logged);
@@ -86,17 +88,20 @@ public class DataApprovalRemapLevelResourceTable extends AbstractResourceTable {
   @Override
   public Optional<String> getPopulateTempTableStatement() {
     String sql =
-        "insert into "
-            + toStaging(TABLE_NAME)
-            + " (workflowid,dataapprovallevelid,level) "
-            + "select w.workflowid, w.dataapprovallevelid, "
-            + "1 + coalesce((select max(l2.level) "
-            + "from dataapprovalworkflowlevels w2 "
-            + "join dataapprovallevel l2 on l2.dataapprovallevelid = w2.dataapprovallevelid "
-            + "where w2.workflowid = w.workflowid "
-            + "and l2.level < l.level), 0) as level "
-            + "from dataapprovalworkflowlevels w "
-            + "join dataapprovallevel l on l.dataapprovallevelid = w.dataapprovallevelid";
+        replace(
+            """
+        insert into ${tableName} \
+        (workflowid,dataapprovallevelid,level) \
+        select w.workflowid, w.dataapprovallevelid, 1 + coalesce((select max(l2.level) \
+        from dataapprovalworkflowlevels w2 \
+        inner join dataapprovallevel l2 on l2.dataapprovallevelid=w2.dataapprovallevelid \
+        where w2.workflowid=w.workflowid \
+        and l2.level < l.level), 0) as level \
+        from dataapprovalworkflowlevels w \
+        inner join dataapprovallevel l on l.dataapprovallevelid=w.dataapprovallevelid
+        """,
+            "tableName",
+            toStaging(TABLE_NAME));
 
     return Optional.of(sql);
   }

@@ -56,8 +56,9 @@ import org.hisp.dhis.util.DateUtils;
 /**
  * @author Lars Helge Overland
  */
-public class DataSetOrganisationUnitCategoryResourceTable extends AbstractResourceTable {
-  private static final String TABLE_NAME = "_datasetorganisationunitcategory";
+@RequiredArgsConstructor
+public class DataSetOrganisationUnitCategoryResourceTable implements ResourceTable {
+  public static final String TABLE_NAME = "analytics_rs_datasetorganisationunitcategory";
 
   private final List<DataSet> dataSets;
 
@@ -91,7 +92,7 @@ public class DataSetOrganisationUnitCategoryResourceTable extends AbstractResour
   public List<Index> getIndexes() {
     return List.of(
         new Index(
-            appendRandom("_datasetorganisationunitcategory"),
+            appendRandom("in_datasetorganisationunitcategory"),
             toStaging(TABLE_NAME),
             Unique.UNIQUE,
             List.of("datasetid", "organisationunitid", "attributeoptioncomboid")));
