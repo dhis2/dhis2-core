@@ -137,6 +137,7 @@ public class OutliersDetection5AutoTest extends AnalyticsApiTest {
     // Assert rows.
     validateRow(
         response,
+        0,
         List.of(
             "dU0GquGkGQr",
             "Q_Early breastfeeding (within 1 hr after delivery) at BCG",
@@ -158,6 +159,7 @@ public class OutliersDetection5AutoTest extends AnalyticsApiTest {
             "104.3801872349"));
     validateRow(
         response,
+        1,
         List.of(
             "s46m5MS0hxu",
             "BCG doses given",
@@ -179,6 +181,7 @@ public class OutliersDetection5AutoTest extends AnalyticsApiTest {
             "213.992686158"));
     validateRow(
         response,
+        2,
         List.of(
             "l6byfWFUGaP",
             "Yellow Fever doses given",
@@ -263,69 +266,74 @@ public class OutliersDetection5AutoTest extends AnalyticsApiTest {
     // Assert rows.
     validateRow(
         response,
+        0,
         List.of(
             "ANC 3rd visit",
             "Outreach",
             "202210",
             "Kasse MCHP",
             "1926.0",
-            "174.3",
-            "3.3",
-            "528.2",
-            "-1410.2",
-            "1758.9"));
+            "174.33",
+            "3.32",
+            "528.19",
+            "-1410.23",
+            "1758.89"));
     validateRow(
         response,
+        1,
         List.of(
             "ANC 3rd visit",
             "Outreach",
             "202111",
             "Kasse MCHP",
             "1926.0",
-            "174.3",
-            "3.3",
-            "528.2",
-            "-1410.2",
-            "1758.9"));
+            "174.33",
+            "3.32",
+            "528.19",
+            "-1410.23",
+            "1758.89"));
     validateRow(
         response,
+        2,
         List.of(
             "ANC 1st visit",
             "Outreach",
             "202111",
             "Ngelehun CHC",
             "700.0",
-            "40.4",
-            "4.2",
+            "40.37",
+            "4.24",
             "155.5",
-            "-426.1",
-            "506.9"));
+            "-426.12",
+            "506.85"));
     validateRow(
         response,
+        3,
         List.of(
             "ANC 3rd visit",
             "Outreach",
             "202111",
             "Ngelehun CHC",
             "234.0",
-            "24.3",
-            "3.8",
-            "55.5",
-            "-142.3",
-            "190.8"));
+            "24.25",
+            "3.78",
+            "55.51",
+            "-142.29",
+            "190.79"));
     validateRow(
         response,
+        4,
         List.of(
             "ANC 1st visit",
             "Fixed",
             "202205",
             "Ross Road Health Centre",
             "188.0",
-            "72.7",
+            "72.67",
             "3.1",
-            "37.3",
+            "37.26",
             "-39.1",
-            "184.4"));
+            "184.44"));
   }
 
   @Test
@@ -391,58 +399,63 @@ public class OutliersDetection5AutoTest extends AnalyticsApiTest {
     // Assert rows.
     validateRow(
         response,
+        0,
         List.of(
             "ANC 3rd visit",
             "Fixed",
             "202201",
             "St Anthony clinic",
             "145.0",
-            "52.3",
-            "3.0",
-            "30.4",
-            "-39.0",
-            "143.6"));
+            "52.33",
+            "3.05",
+            "30.43",
+            "-38.96",
+            "143.63"));
     validateRow(
         response,
+        1,
         List.of(
             "ANC 1st visit",
             "Fixed",
             "202203",
             "Maforay (B. Sebora) MCHP",
             "92.0",
-            "17.8",
-            "3.1",
+            "17.82",
+            "3.14",
             "23.6",
-            "-53.0",
-            "88.6"));
+            "-52.98",
+            "88.61"));
     validateRow(
         response,
+        2,
         List.of(
             "ANC 3rd visit",
             "Fixed",
             "202203",
             "Maforay (B. Sebora) MCHP",
             "64.0",
-            "11.3",
-            "3.2",
-            "16.7",
-            "-38.8",
-            "61.4"));
+            "11.27",
+            "3.16",
+            "16.71",
+            "-38.85",
+            "61.39"));
     validateRow(
         response,
+        3,
         List.of(
             "ANC 1st visit",
             "Outreach",
             "202201",
             "Tikonko (gaura) MCHP",
             "58.0",
-            "12.8",
-            "3.2",
-            "14.0",
-            "-29.3",
-            "54.8"));
+            "12.75",
+            "3.23",
+            "14.03",
+            "-29.34",
+            "54.84"));
     validateRow(
         response,
+        4,
         List.of(
             "ANC 1st visit",
             "Outreach",
@@ -451,9 +464,9 @@ public class OutliersDetection5AutoTest extends AnalyticsApiTest {
             "45.0",
             "10.8",
             "3.6",
-            "9.5",
-            "-17.7",
-            "39.3"));
+            "9.51",
+            "-17.73",
+            "39.33"));
   }
 
   @Test
@@ -519,58 +532,63 @@ public class OutliersDetection5AutoTest extends AnalyticsApiTest {
     // Assert rows.
     validateRow(
         response,
+        0,
         List.of(
             "ANC 1st visit",
             "Fixed",
             "202205",
             "Ross Road Health Centre",
             "188.0",
-            "72.7",
+            "72.67",
             "3.1",
-            "37.3",
+            "37.26",
             "-39.1",
-            "184.4"));
+            "184.44"));
     validateRow(
         response,
+        1,
         List.of(
             "ANC 1st visit",
             "Fixed",
             "202204",
             "Lyn Maternity MCHP",
             "121.0",
-            "29.3",
-            "3.1",
-            "29.2",
-            "-58.3",
-            "117.0"));
+            "29.33",
+            "3.14",
+            "29.21",
+            "-58.29",
+            "116.95"));
     validateRow(
         response,
+        2,
         List.of(
             "ANC 3rd visit",
             "Outreach",
             "202206",
             "Mondema CHC",
             "90.0",
-            "14.8",
-            "3.1",
+            "14.82",
+            "3.13",
             "24.0",
-            "-57.2",
-            "86.8"));
+            "-57.19",
+            "86.83"));
     validateRow(
         response,
+        3,
         List.of(
             "ANC 1st visit",
             "Fixed",
             "202204",
             "Fogbo (WAR) MCHP",
             "84.0",
-            "25.6",
-            "3.2",
-            "18.0",
-            "-28.4",
-            "79.5"));
+            "25.58",
+            "3.25",
+            "17.98",
+            "-28.35",
+            "79.52"));
     validateRow(
         response,
+        4,
         List.of(
             "ANC 1st visit",
             "Fixed",
@@ -578,9 +596,9 @@ public class OutliersDetection5AutoTest extends AnalyticsApiTest {
             "Gbanja Town MCHP",
             "35.0",
             "14.0",
-            "3.1",
-            "6.7",
-            "-6.0",
-            "34.0"));
+            "3.15",
+            "6.67",
+            "-6.01",
+            "34.01"));
   }
 }
