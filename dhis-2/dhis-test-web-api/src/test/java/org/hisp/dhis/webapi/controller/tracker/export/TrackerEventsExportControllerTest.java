@@ -39,8 +39,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Events;
-import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -104,19 +102,9 @@ class TrackerEventsExportControllerTest extends DhisControllerConvenienceTest {
       shouldMatchContentTypeAndAttachmentWhenEndpointForCompressedEventJsonIsInvoked() {
     return Stream.of(
         arguments(
-            "/tracker/events.json.zip?attachment=file.json.zip",
-            "application/json+zip",
-            "attachment; filename=file.json.zip",
-            "binary"),
-        arguments(
             "/tracker/events.json.zip",
             "application/json+zip",
             "attachment; filename=events.json.zip",
-            "binary"),
-        arguments(
-            "/tracker/events.json.gz?attachment=file.json.gz",
-            "application/json+gzip",
-            "attachment; filename=file.json.gz",
             "binary"),
         arguments(
             "/tracker/events.json.gz",
@@ -129,37 +117,21 @@ class TrackerEventsExportControllerTest extends DhisControllerConvenienceTest {
             "attachment; filename=events.csv",
             null),
         arguments(
-            "/tracker/events.csv?attachment=file.csv",
-            "application/csv; charset=UTF-8",
-            "attachment; filename=file.csv",
-            null),
-        arguments(
             "/tracker/events.csv.gz",
             "application/csv+gzip",
             "attachment; filename=events.csv.gz",
             "binary"),
         arguments(
-            "/tracker/events.csv.gz?attachment=file.csv.gz",
-            "application/csv+gzip",
-            "attachment; filename=file.csv.gz",
-            "binary"),
-        arguments(
             "/tracker/events.csv.zip",
             "application/csv+zip",
             "attachment; filename=events.csv.zip",
-            "binary"),
-        arguments(
-            "/tracker/events.csv.zip?attachment=file.csv.zip",
-            "application/csv+zip",
-            "attachment; filename=file.csv.zip",
             "binary"));
   }
 
   @ParameterizedTest
   @MethodSource
   void shouldMatchContentTypeAndAttachmentWhenEndpointForCompressedEventJsonIsInvoked(
-      String url, String expectedContentType, String expectedAttachment, String encoding)
-      throws ForbiddenException, BadRequestException {
+      String url, String expectedContentType, String expectedAttachment, String encoding) {
 
     when(eventService.getEvents(any())).thenReturn(new Events());
     injectSecurityContext(user);
