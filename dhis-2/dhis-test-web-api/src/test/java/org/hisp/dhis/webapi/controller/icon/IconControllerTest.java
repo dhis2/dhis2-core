@@ -134,7 +134,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
         getCurrentUser().getUid(), response.getObject("createdBy").getString("id").string());
     assertEquals(
         String.format(contextService.getApiPath() + "/icons/%s/icon", key1),
-        response.getString("reference").string());
+        response.getString("href").string());
   }
 
   @Test
@@ -163,8 +163,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     createCustomIcon(fileResourceId, keywordsList1, key1);
 
     JsonObject content =
-        GET("/icons?keys=" + key1 + "&fields=id,key,description,keywords,fileResource&paging=false")
-            .content(HttpStatus.OK);
+        GET("/icons?keys=" + key1 + "&fields=*&paging=false").content(HttpStatus.OK);
 
     JsonList<JsonIcon> icons = content.getList("icons", JsonIcon.class);
 
@@ -203,7 +202,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     String fileResourceId3 = createFileResource();
     createCustomIcon(fileResourceId3, keywordsList2, key3);
 
-    JsonObject iconResponse = GET("/icons?page=2&pageSize=2").content(HttpStatus.OK);
+    JsonObject iconResponse = GET("/icons?paging=true&page=2&pageSize=2").content(HttpStatus.OK);
     JsonPager pager = iconResponse.get("pager", JsonPager.class);
 
     JsonList<JsonIcon> icons = iconResponse.getList("icons", JsonIcon.class);
@@ -211,12 +210,12 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     assertHasMember(iconResponse, "pager");
 
     assertEquals(2, pager.getPage());
-    assertEquals(3, pager.getTotal());
+    assertEquals(900, pager.getTotal());
     assertEquals(2, pager.getPageSize());
-    assertEquals(2, pager.getPageCount());
+    assertEquals(450, pager.getPageCount());
 
     assertEquals(
-        1,
+        2,
         icons.size(),
         () -> String.format("mismatch in number of expected Icon(s), fetched %s", icons));
   }
@@ -234,40 +233,12 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     createCustomIcon(fileResourceId3, keywordsList2, key3);
 
     JsonObject iconResponse = GET("/icons").content(HttpStatus.OK);
-    JsonPager pager = iconResponse.get("pager", JsonPager.class);
 
-    JsonList<JsonIcon> icons = iconResponse.getList("icons", JsonIcon.class);
-
-    assertHasMember(iconResponse, "pager");
-
-    assertEquals(3, pager.getTotal());
-    assertEquals(50, pager.getPageSize());
-    assertEquals(1, pager.getPageCount());
-
-    assertEquals(
-        3,
-        icons.size(),
-        () -> String.format("mismatch in number of expected Icon(s), fetched %s", icons));
-  }
-
-  @Test
-  void shouldGetIconsWithoutPager() throws IOException {
-
-    String fileResourceId1 = createFileResource();
-    createCustomIcon(fileResourceId1, keywordsList2, key1);
-
-    String fileResourceId2 = createFileResource();
-    createCustomIcon(fileResourceId2, keywordsList2, key2);
-
-    String fileResourceId3 = createFileResource();
-    createCustomIcon(fileResourceId3, keywordsList2, key3);
-
-    JsonObject iconResponse = GET("/icons?paging=false").content(HttpStatus.OK);
     JsonList<JsonIcon> icons = iconResponse.getList("icons", JsonIcon.class);
 
     assertHasNoMember(iconResponse, "pager");
     assertEquals(
-        3,
+        900,
         icons.size(),
         () -> String.format("mismatch in number of expected Icon(s), fetched %s", icons));
   }

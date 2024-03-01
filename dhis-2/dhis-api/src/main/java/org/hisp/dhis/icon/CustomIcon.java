@@ -33,7 +33,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import javax.persistence.Transient;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -61,10 +60,6 @@ public class CustomIcon extends BaseIdentifiableObject {
   @JsonProperty
   @JsonSerialize(as = BaseIdentifiableObject.class)
   private FileResource fileResource;
-
-  @Transient
-  @JsonProperty(value = "href")
-  private String reference;
 
   public CustomIcon(
       String key,

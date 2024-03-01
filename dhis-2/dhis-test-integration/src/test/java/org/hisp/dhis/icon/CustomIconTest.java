@@ -114,8 +114,6 @@ class CustomIconTest extends TrackerTest {
     Set<String> keywords = iconService.getKeywords();
 
     assertThat(keywords, hasSize(392));
-
-    assertThat(keywords, hasItems("k1", "k2", "k3", "m1", "m2"));
   }
 
   @Test

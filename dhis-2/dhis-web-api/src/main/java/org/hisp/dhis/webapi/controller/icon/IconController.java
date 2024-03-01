@@ -122,11 +122,18 @@ public class IconController {
       iconOperationParams.setPager(pager);
     }
 
-    Set<CustomIcon> iconResponses = iconService.getCustomIcons(iconOperationParams);
+    Set<CustomIcon> icons = iconService.getCustomIcons(iconOperationParams);
+
+    icons.stream()
+        .forEach(
+            i ->
+                i.setHref(
+                    i.getCustom()
+                        ? getCustomIconReference(i.getKey())
+                        : getDefaultIconReference(i.getKey())));
 
     List<ObjectNode> objectNodes =
-        fieldFilterService.toObjectNodes(
-            iconResponses.stream().toList(), iconRequestParams.getFields());
+        fieldFilterService.toObjectNodes(icons.stream().toList(), iconRequestParams.getFields());
 
     linkService.generatePagerLinks(pager, CustomIcon.class);
 
@@ -158,7 +165,8 @@ public class IconController {
           WebMessageUtils.notFound(String.format("CustomIcon with key %s not found", key)));
     }
 
-    customIcon.setReference(getDefaultIconReference(key));
+    customIcon.setHref(
+        customIcon.getCustom() ? getCustomIconReference(key) : getDefaultIconReference(key));
 
     return new ResponseEntity<>(customIcon, HttpStatus.OK);
   }

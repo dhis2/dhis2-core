@@ -29,9 +29,7 @@ package org.hisp.dhis.icon.hibernate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.sql.Types;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
@@ -39,17 +37,13 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.icon.CustomIcon;
 import org.hisp.dhis.icon.CustomIconOperationParams;
 import org.hisp.dhis.icon.CustomIconStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -60,8 +54,6 @@ public class HibernateCustomIconStore extends HibernateIdentifiableObjectStore<C
     implements CustomIconStore {
 
   private static final ObjectMapper objectMapper = new ObjectMapper();
-
-  @Autowired private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
   public HibernateCustomIconStore(
       EntityManager entityManager,
@@ -74,44 +66,32 @@ public class HibernateCustomIconStore extends HibernateIdentifiableObjectStore<C
   @Override
   public long count(CustomIconOperationParams iconOperationParams) {
 
-    String sql = """
-     select count(*) from customicon c
-                      """;
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-    MapSqlParameterSource parameterSource = new MapSqlParameterSource();
+    JpaQueryParameters<CustomIcon> parameters = new JpaQueryParameters<>();
 
-    sql = buildIconQuery(iconOperationParams, sql, parameterSource);
+    buildIconQuery(iconOperationParams, parameters, builder);
 
-    return Optional.ofNullable(
-            namedParameterJdbcTemplate.queryForObject(sql, parameterSource, Long.class))
-        .orElse(0L);
+    return getCount(builder, parameters);
   }
 
   @Override
   public Set<CustomIcon> getCustomIcons(CustomIconOperationParams iconOperationParams) {
-    String sql =
-        """
-              select c.iconkey as iconkey, c.description as icondescription, c.keywords as keywords, c.created as created, c.lastupdated as lastupdated,
-              f.uid as fileresourceuid, u.uid as useruid
-              from customicon c join fileresource f on f.fileresourceid = c.fileresourceid
-              join userinfo u on u.userinfoid = c.createdby
-              """;
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-    MapSqlParameterSource parameterSource = new MapSqlParameterSource();
+    JpaQueryParameters<CustomIcon> parameters = new JpaQueryParameters<>();
 
-    sql = buildIconQuery(iconOperationParams, sql, parameterSource);
+    parameters.addOrder(root -> builder.desc(root.get("created")));
+
+    buildIconQuery(iconOperationParams, parameters, builder);
 
     if (iconOperationParams.isPaging()) {
-      sql =
-          getPaginatedQuery(
-              iconOperationParams.getPager().getPage(),
-              iconOperationParams.getPager().getPageSize(),
-              sql,
-              parameterSource);
+      parameters
+          .setFirstResult(iconOperationParams.getPager().getPage())
+          .setMaxResults(iconOperationParams.getPager().getPageSize());
     }
 
-    return new HashSet<>(
-        namedParameterJdbcTemplate.queryForList(sql, parameterSource, CustomIcon.class));
+    return getList(builder, parameters).stream().collect(Collectors.toUnmodifiableSet());
   }
 
   @Override
@@ -163,78 +143,70 @@ public class HibernateCustomIconStore extends HibernateIdentifiableObjectStore<C
         .collect(Collectors.toSet());
   }
 
-  private String buildIconQuery(
+  private void buildIconQuery(
       CustomIconOperationParams iconOperationParams,
-      String sql,
-      MapSqlParameterSource parameterSource) {
-    SqlHelper hlp = new SqlHelper(true);
+      JpaQueryParameters<CustomIcon> parameters,
+      CriteriaBuilder builder) {
 
     if (iconOperationParams.hasLastUpdatedStartDate()) {
-      sql += hlp.whereAnd() + " c.lastupdated >= :lastUpdatedStartDate ";
 
-      parameterSource.addValue(
-          ":lastUpdatedStartDate", iconOperationParams.getLastUpdatedStartDate(), Types.TIMESTAMP);
+      parameters.addPredicate(
+          root ->
+              builder.greaterThanOrEqualTo(
+                  root.get("lastupdated"), iconOperationParams.getLastUpdatedStartDate()));
     }
 
     if (iconOperationParams.hasLastUpdatedEndDate()) {
-      sql += hlp.whereAnd() + " c.lastupdated <= :lastUpdatedEndDate ";
 
-      parameterSource.addValue(
-          "lastUpdatedEndDate", iconOperationParams.getLastUpdatedEndDate(), Types.TIMESTAMP);
+      parameters.addPredicate(
+          root ->
+              builder.lessThanOrEqualTo(
+                  root.get("lastupdated"), iconOperationParams.getLastUpdatedEndDate()));
     }
 
     if (iconOperationParams.hasCreatedStartDate()) {
-      sql += hlp.whereAnd() + " c.created >= :createdStartDate";
 
-      parameterSource.addValue(
-          "createdStartDate", iconOperationParams.getCreatedStartDate(), Types.TIMESTAMP);
+      parameters.addPredicate(
+          root ->
+              builder.greaterThanOrEqualTo(
+                  root.get("created"), iconOperationParams.getCreatedStartDate()));
     }
 
     if (iconOperationParams.hasCreatedEndDate()) {
-      sql += hlp.whereAnd() + " c.created <= :createdEndDate ";
 
-      parameterSource.addValue(
-          "createdEndDate", iconOperationParams.getCreatedEndDate(), Types.TIMESTAMP);
+      parameters.addPredicate(
+          root ->
+              builder.lessThanOrEqualTo(
+                  root.get("created"), iconOperationParams.getCreatedStartDate()));
     }
 
     if (iconOperationParams.hasCustom()) {
-      sql += hlp.whereAnd() + " c.custom <= :custom ";
 
-      parameterSource.addValue("custom", iconOperationParams.getCustom(), Types.TIMESTAMP);
+      parameters.addPredicate(
+          root -> builder.equal(root.get("custom"), iconOperationParams.getCustom()));
     }
 
     if (iconOperationParams.hasKeywords()) {
 
-      sql += hlp.whereAnd() + " keywords @> cast(:keywords as jsonb)";
+      parameters.addPredicate(
+          root -> {
+            try {
+              return builder.isMember(
+                  objectMapper.writeValueAsString(iconOperationParams.getKeywords()),
+                  root.get("keywords"));
 
-      try {
-        parameterSource.addValue(
-            "keywords", objectMapper.writeValueAsString(iconOperationParams.getKeywords()));
+            } catch (JsonProcessingException e) {
+              e.printStackTrace();
+            }
 
-      } catch (JsonProcessingException e) {
-        e.printStackTrace();
-      }
+            return null;
+          });
     }
 
     if (iconOperationParams.hasKeys()) {
-      sql += hlp.whereAnd() + " c.iconkey IN (:keys )";
 
-      parameterSource.addValue("keys", iconOperationParams.getKeys());
+      parameters.addPredicate(
+          root -> builder.in(root.get("key")).value(iconOperationParams.getKeys()));
     }
-
-    return sql;
-  }
-
-  private String getPaginatedQuery(
-      int page, int pageSize, String sql, MapSqlParameterSource mapSqlParameterSource) {
-
-    sql = sql + " LIMIT :limit OFFSET :offset ";
-
-    int offset = (page - 1) * pageSize;
-
-    mapSqlParameterSource.addValue("limit", pageSize);
-    mapSqlParameterSource.addValue("offset", offset);
-
-    return sql;
   }
 }
