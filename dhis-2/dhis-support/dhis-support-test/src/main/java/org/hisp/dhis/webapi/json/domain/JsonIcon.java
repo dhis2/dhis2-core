@@ -47,7 +47,7 @@ public interface JsonIcon extends JsonObject {
   }
 
   default String getHref() {
-    return getString("reference").string();
+    return getString("href").string();
   }
 
   default LocalDateTime getCreated() {
@@ -58,8 +58,8 @@ public interface JsonIcon extends JsonObject {
     return get("lastUpdated", JsonDate.class).date();
   }
 
-  default String getUserUid() {
-    return getString("userUid").string();
+  default JsonObject getUserUid() {
+    return getObject("createdBy");
   }
 
   default JsonObject getFileResourceUid() {

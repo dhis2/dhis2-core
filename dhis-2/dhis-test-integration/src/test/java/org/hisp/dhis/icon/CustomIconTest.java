@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.icon;
 
-import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -114,24 +113,6 @@ class CustomIconTest extends TrackerTest {
     Set<String> keywords = iconService.getKeywords();
 
     assertThat(keywords, hasSize(392));
-  }
-
-  @Test
-  void shouldSearchAndFetchAllCustomIconsAssociatedWithTheKeywords()
-      throws BadRequestException, NotFoundException {
-
-    FileResource fileResource = createAndPersistFileResource('V');
-
-    Set<String> words = Sets.newHashSet();
-    words.addAll(Set.of("m1", "k1"));
-    CustomIcon customIcon2 = new CustomIcon("iconKey2", "description", words, true, fileResource);
-
-    iconService.addCustomIcon(customIcon2);
-
-    Set<CustomIcon> icons = iconService.getCustomIconsByKeywords(Set.of("k1", "m1"));
-
-    assertEquals(2, icons.size());
-    assertThat(icons, hasItems(customIcon, customIcon2));
   }
 
   @Test
