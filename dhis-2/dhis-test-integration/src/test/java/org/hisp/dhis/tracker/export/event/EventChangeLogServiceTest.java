@@ -41,6 +41,8 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.tracker.export.Page;
+import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.event.EventChangeLog.DataValueChange;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -64,6 +66,10 @@ class EventChangeLogServiceTest extends TrackerTest {
 
   private TrackerImportParams importParams;
 
+  private final EventChangeLogOperationParams defaultOperationParams =
+      EventChangeLogOperationParams.builder().build();
+  private final PageParams defaultPageParams = new PageParams(null, null, false);
+
   @Override
   protected void initTest() throws IOException {
     userService = _userService;
@@ -79,7 +85,9 @@ class EventChangeLogServiceTest extends TrackerTest {
   void shouldFailWhenEventDoesNotExist() {
     assertThrows(
         NotFoundException.class,
-        () -> eventChangeLogService.getEventChangeLog(UID.of(CodeGenerator.generateUid())));
+        () ->
+            eventChangeLogService.getEventChangeLog(
+                UID.of(CodeGenerator.generateUid()), null, null));
   }
 
   @Test
@@ -88,7 +96,7 @@ class EventChangeLogServiceTest extends TrackerTest {
 
     assertThrows(
         NotFoundException.class,
-        () -> eventChangeLogService.getEventChangeLog(UID.of("D9PbzJY8bJM")));
+        () -> eventChangeLogService.getEventChangeLog(UID.of("D9PbzJY8bJM"), null, null));
   }
 
   @Test
@@ -97,7 +105,7 @@ class EventChangeLogServiceTest extends TrackerTest {
 
     assertThrows(
         NotFoundException.class,
-        () -> eventChangeLogService.getEventChangeLog(UID.of("G9PbzJY8bJG")));
+        () -> eventChangeLogService.getEventChangeLog(UID.of("G9PbzJY8bJG"), null, null));
   }
 
   @Test
@@ -106,7 +114,7 @@ class EventChangeLogServiceTest extends TrackerTest {
 
     assertThrows(
         NotFoundException.class,
-        () -> eventChangeLogService.getEventChangeLog(UID.of("H0PbzJY8bJG")));
+        () -> eventChangeLogService.getEventChangeLog(UID.of("H0PbzJY8bJG"), null, null));
   }
 
   @Test
@@ -115,7 +123,7 @@ class EventChangeLogServiceTest extends TrackerTest {
 
     assertThrows(
         NotFoundException.class,
-        () -> eventChangeLogService.getEventChangeLog(UID.of("G9PbzJY8bJG")));
+        () -> eventChangeLogService.getEventChangeLog(UID.of("G9PbzJY8bJG"), null, null));
   }
 
   @Test
@@ -124,13 +132,12 @@ class EventChangeLogServiceTest extends TrackerTest {
     Event event = getEvent("QRYjLTiJTrA");
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
 
-    List<EventChangeLog> changeLogs =
-        eventChangeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"));
+    Page<EventChangeLog> changeLogs =
+        eventChangeLogService.getEventChangeLog(
+            UID.of("QRYjLTiJTrA"), defaultOperationParams, defaultPageParams);
 
-    assertNumberOfChanges(1, changeLogs);
-    assertAll(
-        () -> assertChange(dataElementUid, null, "15", changeLogs.get(0)),
-        () -> assertUser(importUser, changeLogs.get(0)));
+    assertNumberOfChanges(1, changeLogs.getItems());
+    assertCreate(dataElementUid, "15", changeLogs.getItems().get(0));
   }
 
   @Test
@@ -141,18 +148,17 @@ class EventChangeLogServiceTest extends TrackerTest {
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
 
     TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
-    updateDataValue(trackerObjects, event.getUid(), dataElementUid, "");
+    updateDataValue(trackerObjects, event, dataElementUid, "");
     assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
 
-    List<EventChangeLog> changeLogs =
-        eventChangeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"));
-    assertNumberOfChanges(2, changeLogs);
+    Page<EventChangeLog> changeLogs =
+        eventChangeLogService.getEventChangeLog(
+            UID.of("QRYjLTiJTrA"), defaultOperationParams, defaultPageParams);
+
+    assertNumberOfChanges(2, changeLogs.getItems());
     assertAll(
-        () -> assertChange(dataElementUid, "15", null, changeLogs.get(0)),
-        () -> assertUser(importUser, changeLogs.get(0)));
-    assertAll(
-        () -> assertChange(dataElementUid, null, "15", changeLogs.get(1)),
-        () -> assertUser(importUser, changeLogs.get(1)));
+        () -> assertDelete(dataElementUid, "15", changeLogs.getItems().get(0)),
+        () -> assertCreate(dataElementUid, "15", changeLogs.getItems().get(1)));
   }
 
   @Test
@@ -164,20 +170,19 @@ class EventChangeLogServiceTest extends TrackerTest {
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
 
     TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
-    updateDataValue(trackerObjects, event.getUid(), dataElementUid, "");
+    updateDataValue(trackerObjects, event, dataElementUid, "");
     assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
-    updateDataValue(trackerObjects, event.getUid(), dataElementUid, "");
+    updateDataValue(trackerObjects, event, dataElementUid, "");
     assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
 
-    List<EventChangeLog> changeLogs =
-        eventChangeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"));
-    assertNumberOfChanges(2, changeLogs);
+    Page<EventChangeLog> changeLogs =
+        eventChangeLogService.getEventChangeLog(
+            UID.of("QRYjLTiJTrA"), defaultOperationParams, defaultPageParams);
+
+    assertNumberOfChanges(2, changeLogs.getItems());
     assertAll(
-        () -> assertChange(dataElementUid, "15", null, changeLogs.get(0)),
-        () -> assertUser(importUser, changeLogs.get(0)));
-    assertAll(
-        () -> assertChange(dataElementUid, null, "15", changeLogs.get(1)),
-        () -> assertUser(importUser, changeLogs.get(1)));
+        () -> assertDelete(dataElementUid, "15", changeLogs.getItems().get(0)),
+        () -> assertCreate(dataElementUid, "15", changeLogs.getItems().get(1)));
   }
 
   @Test
@@ -188,18 +193,17 @@ class EventChangeLogServiceTest extends TrackerTest {
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
 
     TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
-    updateDataValue(trackerObjects, event.getUid(), dataElementUid, "20");
+    updateDataValue(trackerObjects, event, dataElementUid, "20");
     assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
 
-    List<EventChangeLog> changeLogs =
-        eventChangeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"));
-    assertNumberOfChanges(2, changeLogs);
+    Page<EventChangeLog> changeLogs =
+        eventChangeLogService.getEventChangeLog(
+            UID.of("QRYjLTiJTrA"), defaultOperationParams, defaultPageParams);
+
+    assertNumberOfChanges(2, changeLogs.getItems());
     assertAll(
-        () -> assertChange(dataElementUid, "15", "20", changeLogs.get(0)),
-        () -> assertUser(importUser, changeLogs.get(0)));
-    assertAll(
-        () -> assertChange(dataElementUid, null, "15", changeLogs.get(1)),
-        () -> assertUser(importUser, changeLogs.get(1)));
+        () -> assertUpdate(dataElementUid, "15", "20", changeLogs.getItems().get(0)),
+        () -> assertCreate(dataElementUid, "15", changeLogs.getItems().get(1)));
   }
 
   @Test
@@ -211,23 +215,20 @@ class EventChangeLogServiceTest extends TrackerTest {
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
 
     TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
-    updateDataValue(trackerObjects, event.getUid(), dataElementUid, "20");
+    updateDataValue(trackerObjects, event, dataElementUid, "20");
     assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
-    updateDataValue(trackerObjects, event.getUid(), dataElementUid, "25");
+    updateDataValue(trackerObjects, event, dataElementUid, "25");
     assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
 
-    List<EventChangeLog> changeLogs =
-        eventChangeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"));
-    assertNumberOfChanges(3, changeLogs);
+    Page<EventChangeLog> changeLogs =
+        eventChangeLogService.getEventChangeLog(
+            UID.of("QRYjLTiJTrA"), defaultOperationParams, defaultPageParams);
+
+    assertNumberOfChanges(3, changeLogs.getItems());
     assertAll(
-        () -> assertChange(dataElementUid, "20", "25", changeLogs.get(0)),
-        () -> assertUser(importUser, changeLogs.get(0)));
-    assertAll(
-        () -> assertChange(dataElementUid, "15", "20", changeLogs.get(1)),
-        () -> assertUser(importUser, changeLogs.get(1)));
-    assertAll(
-        () -> assertChange(dataElementUid, null, "15", changeLogs.get(2)),
-        () -> assertUser(importUser, changeLogs.get(2)));
+        () -> assertUpdate(dataElementUid, "20", "25", changeLogs.getItems().get(0)),
+        () -> assertUpdate(dataElementUid, "15", "20", changeLogs.getItems().get(1)),
+        () -> assertCreate(dataElementUid, "15", changeLogs.getItems().get(2)));
   }
 
   @Test
@@ -239,30 +240,27 @@ class EventChangeLogServiceTest extends TrackerTest {
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
 
     TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
-    updateDataValue(trackerObjects, event.getUid(), dataElementUid, "20");
+    updateDataValue(trackerObjects, event, dataElementUid, "20");
     assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
 
-    updateDataValue(trackerObjects, event.getUid(), dataElementUid, "");
+    updateDataValue(trackerObjects, event, dataElementUid, "");
     assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
 
-    List<EventChangeLog> changeLogs =
-        eventChangeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"));
-    assertNumberOfChanges(3, changeLogs);
+    Page<EventChangeLog> changeLogs =
+        eventChangeLogService.getEventChangeLog(
+            UID.of("QRYjLTiJTrA"), defaultOperationParams, defaultPageParams);
+
+    assertNumberOfChanges(3, changeLogs.getItems());
     assertAll(
-        () -> assertChange(dataElementUid, "20", null, changeLogs.get(0)),
-        () -> assertUser(importUser, changeLogs.get(0)));
-    assertAll(
-        () -> assertChange(dataElementUid, "15", "20", changeLogs.get(1)),
-        () -> assertUser(importUser, changeLogs.get(1)));
-    assertAll(
-        () -> assertChange(dataElementUid, null, "15", changeLogs.get(2)),
-        () -> assertUser(importUser, changeLogs.get(2)));
+        () -> assertDelete(dataElementUid, "20", changeLogs.getItems().get(0)),
+        () -> assertUpdate(dataElementUid, "15", "20", changeLogs.getItems().get(1)),
+        () -> assertCreate(dataElementUid, "15", changeLogs.getItems().get(2)));
   }
 
   private void updateDataValue(
-      TrackerObjects trackerObjects, String eventUid, String dataElementUid, String newValue) {
+      TrackerObjects trackerObjects, Event event, String dataElementUid, String newValue) {
     trackerObjects.getEvents().stream()
-        .filter(e -> e.getEvent().equalsIgnoreCase(eventUid))
+        .filter(e -> e.getEvent().equalsIgnoreCase(event.getUid()))
         .findFirst()
         .flatMap(
             e ->
@@ -292,6 +290,28 @@ class EventChangeLogServiceTest extends TrackerTest {
         String.format(
             "Expected to find %s elements in the change log list, found %s instead: %s",
             expected, changeLogs.size(), changeLogs));
+  }
+
+  private void assertCreate(String dataElement, String currentValue, EventChangeLog changeLog) {
+    assertAll(
+        () -> assertUser(importUser, changeLog),
+        () -> assertEquals("CREATE", changeLog.type()),
+        () -> assertChange(dataElement, null, currentValue, changeLog));
+  }
+
+  private void assertUpdate(
+      String dataElement, String previousValue, String currentValue, EventChangeLog changeLog) {
+    assertAll(
+        () -> assertUser(importUser, changeLog),
+        () -> assertEquals("UPDATE", changeLog.type()),
+        () -> assertChange(dataElement, previousValue, currentValue, changeLog));
+  }
+
+  private void assertDelete(String dataElement, String previousValue, EventChangeLog changeLog) {
+    assertAll(
+        () -> assertUser(importUser, changeLog),
+        () -> assertEquals("DELETE", changeLog.type()),
+        () -> assertChange(dataElement, previousValue, null, changeLog));
   }
 
   private static void assertChange(

@@ -33,8 +33,6 @@ import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLI
 import java.util.Date;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -65,20 +63,16 @@ public class SendScheduledMessageJob implements Job {
 
   @Override
   public void execute(JobConfiguration config, JobProgress progress) {
-    progress.startingProcess("Starting to send messages in outbound");
-    sendMessages(progress);
-    progress.completedProcess("Sending messages in outbound completed");
-  }
-
-  @Override
-  public ErrorReport validate() {
+    progress.startingProcess("Starting to send outbound messages");
+    progress.startingStage("Validating environment setup");
     if (!smsSender.isConfigured()) {
-      return new ErrorReport(
-          SendScheduledMessageJob.class,
-          ErrorCode.E7010,
-          "SMS gateway configuration does not exist");
+      progress.failedStage("SMS gateway configuration does not exist, job aborted");
+      return;
     }
-    return Job.super.validate();
+    progress.completedStage(null);
+
+    sendMessages(progress);
+    progress.completedProcess("Sending outbound messages completed");
   }
 
   private void sendMessages(JobProgress progress) {

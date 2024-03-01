@@ -30,7 +30,9 @@ package org.hisp.dhis.db.sql;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.stream.Collectors;
+import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.IndexFunction;
@@ -52,6 +54,7 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
   protected static final String DOT = ".";
   protected static final String EMPTY = "";
   protected static final String ALIAS_AX = "ax";
+  protected static final String SCHEMA = "public";
 
   // Utilities
 
@@ -122,8 +125,6 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
         return dataTypeVarchar(50);
       case VARCHAR_255:
         return dataTypeVarchar(255);
-      case VARCHAR_1200:
-        return dataTypeVarchar(1200);
       case TEXT:
         return dataTypeText();
       case DATE:
@@ -183,6 +184,17 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
   }
 
   // Supportive
+
+  /**
+   * Replaces variables in the given template string with the given variable values.
+   *
+   * @param template the template string.
+   * @param variables the map of variables and values.
+   * @return a resolved string.
+   */
+  protected String replace(String template, Map<String, String> variables) {
+    return new StringSubstitutor(variables).replace(template);
+  }
 
   /**
    * Returns a quoted column string. If the index has a function, the quoted column is wrapped in

@@ -180,13 +180,23 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
     dataValue.setPeriod(storedPeriod);
 
-    CriteriaBuilder builder = getCriteriaBuilder();
+    String sql =
+        """
+        select * from datavalue where dataelementid = :deid
+        and periodid = :periodid
+        and attributeoptioncomboid = :attributeOptionCombo
+        and categoryoptioncomboid = :categoryOptionCombo
+        and sourceid = :sourceid
+        and deleted is true""";
 
     return getSingleResult(
-        builder,
-        newJpaParameters()
-            .addPredicate(root -> builder.equal(root, dataValue))
-            .addPredicate(root -> builder.equal(root.get(DELETED), true)));
+        getSession()
+            .createNativeQuery(sql, DataValue.class)
+            .setParameter("deid", dataValue.getDataElement().getId())
+            .setParameter("periodid", storedPeriod.getId())
+            .setParameter("attributeOptionCombo", dataValue.getAttributeOptionCombo().getId())
+            .setParameter("categoryOptionCombo", dataValue.getCategoryOptionCombo().getId())
+            .setParameter("sourceid", dataValue.getSource().getId()));
   }
 
   @Override
@@ -488,19 +498,19 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         where
             .append(sqlHelper.whereAnd())
             .append("p.startdate >= '")
-            .append(DateUtils.getMediumDateString(params.getStartDate()))
+            .append(DateUtils.toMediumDate(params.getStartDate()))
             .append("'")
             .append(" and p.enddate <= '")
-            .append(DateUtils.getMediumDateString(params.getStartDate()))
+            .append(DateUtils.toMediumDate(params.getStartDate()))
             .append("'");
       } else if (params.hasIncludedDate()) {
         where
             .append(sqlHelper.whereAnd())
             .append("p.startdate <= '")
-            .append(DateUtils.getMediumDateString(params.getIncludedDate()))
+            .append(DateUtils.toMediumDate(params.getIncludedDate()))
             .append("'")
             .append(" and p.enddate >= '")
-            .append(DateUtils.getMediumDateString(params.getIncludedDate()))
+            .append(DateUtils.toMediumDate(params.getIncludedDate()))
             .append("'");
       }
     }
@@ -603,7 +613,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
       where
           .append(sqlHelper.whereAnd())
           .append("dv.lastupdated >= ")
-          .append(DateUtils.getMediumDateString(params.getLastUpdated()));
+          .append(DateUtils.toMediumDate(params.getLastUpdated()));
     }
   }
 

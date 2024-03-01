@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.trackedentity.job;
 
-import static org.mockito.Mockito.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -56,7 +56,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Ameen
  */
-public class TrackerTrigramIndexingJobTest {
+class TrackerTrigramIndexingJobTest {
 
   private final TrackedEntityAttributeService trackedEntityAttributeService =
       mock(TrackedEntityAttributeService.class);

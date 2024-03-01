@@ -45,7 +45,7 @@ import static org.hisp.dhis.db.model.DataType.VARCHAR_255;
 import static org.hisp.dhis.db.model.DataType.VARCHAR_50;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
-import static org.hisp.dhis.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -386,9 +386,9 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
         .append(" from trackedentity tei")
         .append(" left join organisationunit ou on tei.organisationunitid = ou.organisationunitid")
         .append(
-            " left join _orgunitstructure ous on ous.organisationunitid = ou.organisationunitid")
+            " left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid")
         .append(
-            " left join _organisationunitgroupsetstructure ougs "
+            " left join analytics_rs_organisationunitgroupsetstructure ougs "
                 + "on tei.organisationunitid = ougs.organisationunitid "
                 + "and (cast(date_trunc('month', tei.created) as date) = ougs.startdate "
                 + "or ougs.startdate is null)");
@@ -410,7 +410,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
                         + tea.getId()));
 
     sql.append(" where tei.trackedentitytypeid = " + trackedEntityType.getId())
-        .append(" and tei.lastupdated < '" + getLongDateString(params.getStartTime()) + "'")
+        .append(" and tei.lastupdated < '" + toLongDate(params.getStartTime()) + "'")
         .append(
             " and exists ( select 1 from enrollment pi"
                 + " where pi.trackedentityid = tei.trackedentityid"

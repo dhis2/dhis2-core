@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static java.lang.String.format;
 import static java.lang.String.join;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
-import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.getDateLinkedToStatus;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getEndDate;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getStartDate;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
@@ -47,8 +47,8 @@ import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
-import static org.hisp.dhis.util.DateUtils.getLongDateString;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.util.DateUtils.toLongDate;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -200,27 +200,22 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
         new StringBuilder("select temp.supportedyear from")
             .append(
                 " (select distinct extract(year from "
-                    + getDateLinkedToStatus()
+                    + eventDateExpression
                     + ") as supportedyear ")
             .append(" from trackedentity tei ")
             .append(
                 " inner join trackedentitytype tet on tet.trackedentitytypeid = tei.trackedentitytypeid ")
             .append(" inner join enrollment pi on pi.trackedentityid = tei.trackedentityid ")
             .append(" inner join event psi on psi.enrollmentid = pi.enrollmentid")
-            .append(" where psi.lastupdated <= '" + getLongDateString(params.getStartTime()) + "' ")
+            .append(" where psi.lastupdated <= '" + toLongDate(params.getStartTime()) + "' ")
             .append(" and tet.trackedentitytypeid = " + tet.getId() + " ")
-            .append(AND + getDateLinkedToStatus() + ") is not null ")
-            .append(AND + getDateLinkedToStatus() + ") > '1000-01-01' ")
+            .append(AND + eventDateExpression + ") is not null ")
+            .append(AND + eventDateExpression + ") > '1000-01-01' ")
             .append(" and psi.deleted is false ")
             .append(" and tei.deleted is false");
 
     if (params.getFromDate() != null) {
-      sql.append(
-          AND
-              + getDateLinkedToStatus()
-              + ") >= '"
-              + getMediumDateString(params.getFromDate())
-              + "'");
+      sql.append(AND + eventDateExpression + ") >= '" + toMediumDate(params.getFromDate()) + "'");
     }
 
     List<Integer> availableDataYears =
@@ -260,25 +255,8 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
-
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
-
-    String start = getLongDateString(partition.getStartDate());
-    String end = getLongDateString(partition.getEndDate());
-    String partitionClause =
-        partition.isLatestPartition()
-            ? "psi.lastupdated >= '" + start + "' "
-            : "("
-                + getDateLinkedToStatus()
-                + ") >= '"
-                + start
-                + "' "
-                + "and "
-                + "("
-                + getDateLinkedToStatus()
-                + ") < '"
-                + end
-                + "' ";
+    String partitionClause = getPartitionClause(partition);
 
     StringBuilder sql = new StringBuilder("insert into " + tableName + " (");
 
@@ -303,18 +281,36 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
                 + " and tei.trackedentitytypeid = "
                 + partition.getMasterTable().getTrackedEntityType().getId()
                 + " and tei.lastupdated < '"
-                + getLongDateString(params.getStartTime())
+                + toLongDate(params.getStartTime())
                 + "'")
         .append(" left join programstage ps on ps.programstageid = psi.programstageid")
         .append(" left join program p on p.programid = ps.programid")
         .append(" left join organisationunit ou on psi.organisationunitid = ou.organisationunitid")
         .append(
-            " left join _orgunitstructure ous on ous.organisationunitid = ou.organisationunitid")
-        .append(" where psi.status in (" + join(",", EXPORTABLE_EVENT_STATUSES) + ")")
-        .append(" and " + partitionClause)
+            " left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid")
+        .append(" where psi.status in (" + join(",", EXPORTABLE_EVENT_STATUSES) + ") ")
+        .append(partitionClause)
         .append(" and psi.deleted is false ");
 
     invokeTimeAndLog(sql.toString(), tableName);
+  }
+
+  /**
+   * Returns a partition SQL clause.
+   *
+   * @param partition the {@link AnalyticsTablePartition}.
+   * @return a partition SQL clause.
+   */
+  private String getPartitionClause(AnalyticsTablePartition partition) {
+    String start = toLongDate(partition.getStartDate());
+    String end = toLongDate(partition.getEndDate());
+    String latestFilter = format("and psi.lastupdated >= '%s' ", start);
+    String partitionFilter =
+        format(
+            "and (%s) >= '%s' and (%s) < '%s' ",
+            eventDateExpression, start, eventDateExpression, end);
+
+    return partition.isLatestPartition() ? latestFilter : partitionFilter;
   }
 
   /**

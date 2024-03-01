@@ -116,6 +116,7 @@ class JdbcAnalyticsTableManagerTest {
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder().withStartTime(startTime).build();
 
+    when(analyticsTableSettings.getTableLogged()).thenReturn(UNLOGGED);
     when(jdbcTemplate.queryForList(Mockito.anyString(), ArgumentMatchers.<Class<Integer>>any()))
         .thenReturn(dataYears);
     when(analyticsTableSettings.getTableLogged()).thenReturn(UNLOGGED);

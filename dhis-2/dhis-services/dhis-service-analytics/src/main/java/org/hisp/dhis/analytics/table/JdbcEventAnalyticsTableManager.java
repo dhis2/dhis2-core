@@ -45,7 +45,8 @@ import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
-import static org.hisp.dhis.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.util.DateUtils.toLongDate;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import java.time.Year;
 import java.util.ArrayList;
@@ -236,18 +237,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   }
 
   /**
-   * This method encapsulates the SQL logic to get the correct date column based on the
-   * event(program stage instance) status. If new statuses need to be loaded into the analytics
-   * events tables, they have to be supported/added into this logic.
-   *
-   * @return a statement that returns the date column related to the event(program stage instance)
-   *     status
-   */
-  static String getDateLinkedToStatus() {
-    return "CASE WHEN 'SCHEDULE' = psi.status THEN psi.scheduleddate ELSE psi.occurreddate END";
-  }
-
-  /**
    * Creates a list of {@link AnalyticsTable} for each program. The tables contain a partition for
    * each year for which events exist.
    *
@@ -272,7 +261,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     Integer latestDataYear = availableDataYears.get(availableDataYears.size() - 1);
 
     for (Program program : programs) {
-
       List<Integer> yearsForPartitionTables =
           getYearsForPartitionTable(getDataYears(params, program, firstDataYear, latestDataYear));
 
@@ -345,14 +333,14 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         log.info(
             "Added latest event analytics partition for program: '{}' with start: '{}' and end: '{}'",
             program.getUid(),
-            getLongDateString(startDate),
-            getLongDateString(endDate));
+            toLongDate(startDate),
+            toLongDate(endDate));
       } else {
         log.info(
             "No updated latest event data found for program: '{}' with start: '{}' and end: '{}",
             program.getUid(),
-            getLongDateString(lastAnyTableUpdate),
-            getLongDateString(endDate));
+            toLongDate(lastAnyTableUpdate),
+            toLongDate(endDate));
       }
     }
 
@@ -377,10 +365,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             + program.getId()
             + " "
             + "and psi.lastupdated >= '"
-            + getLongDateString(startDate)
+            + toLongDate(startDate)
             + "' "
             + "and psi.lastupdated < '"
-            + getLongDateString(endDate)
+            + toLongDate(endDate)
             + "' "
             + "limit 1";
 
@@ -404,10 +392,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               + table.getProgram().getId()
               + " "
               + "and psi.lastupdated >= '"
-              + getLongDateString(partition.getStartDate())
+              + toLongDate(partition.getStartDate())
               + "' "
               + "and psi.lastupdated < '"
-              + getLongDateString(partition.getEndDate())
+              + toLongDate(partition.getEndDate())
               + "')";
 
       invokeTimeAndLog(sql, format("Remove updated events for table: '%s'", table.getName()));
@@ -428,25 +416,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             analyticsTableSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
     Integer firstDataYear = availableDataYears.get(0);
     Integer latestDataYear = availableDataYears.get(availableDataYears.size() - 1);
-
     Program program = partition.getMasterTable().getProgram();
-    String start = DateUtils.getLongDateString(partition.getStartDate());
-    String end = DateUtils.getLongDateString(partition.getEndDate());
-    String partitionClause =
-        partition.isLatestPartition()
-            ? "and psi.lastupdated >= '" + start + "' "
-            : "and "
-                + "("
-                + getDateLinkedToStatus()
-                + ") >= '"
-                + start
-                + "' "
-                + "and "
-                + "("
-                + getDateLinkedToStatus()
-                + ") < '"
-                + end
-                + "' ";
+    String partitionClause = getPartitionClause(partition);
 
     String fromClause =
         "from event psi "
@@ -458,19 +429,18 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             + "and tei.deleted is false "
             + "left join organisationunit registrationou on tei.organisationunitid=registrationou.organisationunitid "
             + "inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid "
-            + "left join _orgunitstructure ous on psi.organisationunitid=ous.organisationunitid "
-            + "left join _organisationunitgroupsetstructure ougs on psi.organisationunitid=ougs.organisationunitid "
+            + "left join analytics_rs_orgunitstructure ous on psi.organisationunitid=ous.organisationunitid "
+            + "left join analytics_rs_organisationunitgroupsetstructure ougs on psi.organisationunitid=ougs.organisationunitid "
             + "and (cast(date_trunc('month', "
-            + getDateLinkedToStatus()
-            + ") as date)"
-            + "=ougs.startdate or ougs.startdate is null) "
+            + eventDateExpression
+            + ") as date)=ougs.startdate or ougs.startdate is null) "
             + "left join organisationunit enrollmentou on pi.organisationunitid=enrollmentou.organisationunitid "
-            + "inner join _categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid "
-            + "left join _dateperiodstructure dps on cast("
-            + getDateLinkedToStatus()
+            + "inner join analytics_rs_categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid "
+            + "left join analytics_rs_dateperiodstructure dps on cast("
+            + eventDateExpression
             + " as date)=dps.dateperiod "
             + "where psi.lastupdated < '"
-            + getLongDateString(params.getStartTime())
+            + toLongDate(params.getStartTime())
             + "' "
             + partitionClause
             + "and pr.programid="
@@ -478,7 +448,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             + " "
             + "and psi.organisationunitid is not null "
             + "and ("
-            + getDateLinkedToStatus()
+            + eventDateExpression
             + ") is not null "
             + "and dps.year >= "
             + firstDataYear
@@ -492,6 +462,23 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             + "and psi.deleted is false ";
 
     populateTableInternal(partition, fromClause);
+  }
+
+  /**
+   * Returns a partition SQL clause.
+   *
+   * @param partition the {@link AnalyticsTablePartition}.
+   * @return a partition SQL clause.
+   */
+  private String getPartitionClause(AnalyticsTablePartition partition) {
+    String start = toLongDate(partition.getStartDate());
+    String end = toLongDate(partition.getEndDate());
+    String statusDate = eventDateExpression;
+    String latestFilter = format("and psi.lastupdated >= '%s' ", start);
+    String partitionFilter =
+        format("and (%s) >= '%s' and (%s) < '%s' ", statusDate, start, statusDate, end);
+
+    return partition.isLatestPartition() ? latestFilter : partitionFilter;
   }
 
   /**
@@ -724,8 +711,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   private String selectForInsert(
       TrackedEntityAttribute attribute, String fromType, String dataClause) {
     return format(
-        "(select %s"
-            + " from trackedentityattributevalue where trackedentityid=pi.trackedentityid "
+        "(select %s from trackedentityattributevalue where trackedentityid=pi.trackedentityid "
             + "and trackedentityattributeid="
             + attribute.getId()
             + dataClause
@@ -781,31 +767,26 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String sql =
         "select temp.supportedyear from "
             + "(select distinct extract(year from "
-            + getDateLinkedToStatus()
+            + eventDateExpression
             + ") as supportedyear "
             + "from event psi "
             + "inner join enrollment pi on psi.enrollmentid = pi.enrollmentid "
             + "where psi.lastupdated <= '"
-            + getLongDateString(params.getStartTime())
+            + toLongDate(params.getStartTime())
             + "' "
             + "and pi.programid = "
             + program.getId()
             + " "
             + "and ("
-            + getDateLinkedToStatus()
+            + eventDateExpression
             + ") is not null "
             + "and ("
-            + getDateLinkedToStatus()
+            + eventDateExpression
             + ") > '1000-01-01' "
             + "and psi.deleted is false ";
 
     if (params.getFromDate() != null) {
-      sql +=
-          "and ("
-              + getDateLinkedToStatus()
-              + ") >= '"
-              + DateUtils.getMediumDateString(params.getFromDate())
-              + "'";
+      sql += "and (" + eventDateExpression + ") >= '" + toMediumDate(params.getFromDate()) + "'";
     }
 
     sql +=

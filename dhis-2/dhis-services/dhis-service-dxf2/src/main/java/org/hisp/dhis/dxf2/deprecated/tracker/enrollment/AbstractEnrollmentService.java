@@ -308,11 +308,11 @@ public abstract class AbstractEnrollmentService
       enrollment.setGeometry(programInstance.getGeometry());
     }
 
-    enrollment.setCreated(DateUtils.getIso8601NoTz(programInstance.getCreated()));
-    enrollment.setCreatedAtClient(DateUtils.getIso8601NoTz(programInstance.getCreatedAtClient()));
-    enrollment.setLastUpdated(DateUtils.getIso8601NoTz(programInstance.getLastUpdated()));
+    enrollment.setCreated(DateUtils.toIso8601NoTz(programInstance.getCreated()));
+    enrollment.setCreatedAtClient(DateUtils.toIso8601NoTz(programInstance.getCreatedAtClient()));
+    enrollment.setLastUpdated(DateUtils.toIso8601NoTz(programInstance.getLastUpdated()));
     enrollment.setLastUpdatedAtClient(
-        DateUtils.getIso8601NoTz(programInstance.getLastUpdatedAtClient()));
+        DateUtils.toIso8601NoTz(programInstance.getLastUpdatedAtClient()));
     enrollment.setProgram(programInstance.getProgram().getUid());
     enrollment.setStatus(EnrollmentStatus.fromProgramStatus(programInstance.getStatus()));
     enrollment.setEnrollmentDate(programInstance.getEnrollmentDate());
@@ -366,9 +366,9 @@ public abstract class AbstractEnrollmentService
           programInstance.getTrackedEntity().getTrackedEntityAttributeValues()) {
         if (readableAttributes.contains(trackedEntityAttributeValue.getAttribute())) {
           Attribute attribute = new Attribute();
-          attribute.setCreated(DateUtils.getIso8601NoTz(trackedEntityAttributeValue.getCreated()));
+          attribute.setCreated(DateUtils.toIso8601NoTz(trackedEntityAttributeValue.getCreated()));
           attribute.setLastUpdated(
-              DateUtils.getIso8601NoTz(trackedEntityAttributeValue.getLastUpdated()));
+              DateUtils.toIso8601NoTz(trackedEntityAttributeValue.getLastUpdated()));
           attribute.setDisplayName(trackedEntityAttributeValue.getAttribute().getDisplayName());
           attribute.setAttribute(trackedEntityAttributeValue.getAttribute().getUid());
           attribute.setValueType(trackedEntityAttributeValue.getAttribute().getValueType());
@@ -677,8 +677,7 @@ public abstract class AbstractEnrollmentService
     }
 
     if (programInstance.getOccurredDate() != null
-        && !DateUtils.dateIsValid(
-            DateUtils.getMediumDateString(programInstance.getOccurredDate()))) {
+        && !DateUtils.dateIsValid(DateUtils.toMediumDate(programInstance.getOccurredDate()))) {
       importSummary.setStatus(ImportStatus.ERROR);
       importSummary.setDescription(
           "Invalid enollment incident date:  " + programInstance.getOccurredDate());
@@ -688,8 +687,7 @@ public abstract class AbstractEnrollmentService
     }
 
     if (programInstance.getEnrollmentDate() != null
-        && !DateUtils.dateIsValid(
-            DateUtils.getMediumDateString(programInstance.getEnrollmentDate()))) {
+        && !DateUtils.dateIsValid(DateUtils.toMediumDate(programInstance.getEnrollmentDate()))) {
       importSummary.setStatus(ImportStatus.ERROR);
       importSummary.setDescription(
           "Invalid enollment date:  " + programInstance.getEnrollmentDate());

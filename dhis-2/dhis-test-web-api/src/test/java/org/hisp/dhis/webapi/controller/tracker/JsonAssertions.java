@@ -69,7 +69,7 @@ public class JsonAssertions {
     assertFalse(actual.isEmpty(), "relationship should not be empty");
     assertEquals(expected.getUid(), actual.getRelationship(), "relationship UID");
     assertEquals(
-        DateUtils.getIso8601NoTz(expected.getCreatedAtClient()),
+        DateUtils.toIso8601NoTz(expected.getCreatedAtClient()),
         actual.getCreatedAtClient(),
         "createdAtClient date");
     assertEquals(

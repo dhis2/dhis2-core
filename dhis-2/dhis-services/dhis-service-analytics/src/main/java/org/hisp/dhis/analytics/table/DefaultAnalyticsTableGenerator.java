@@ -29,7 +29,7 @@ package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.commons.collection.CollectionUtils.emptyIfNull;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
-import static org.hisp.dhis.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -89,7 +89,7 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
 
     log.info("Found {} analytics table types: {}", availableTypes.size(), availableTypes);
     log.info("Analytics table update: {}", params);
-    log.info("Last successful analytics table update: {}", getLongDateString(lastSuccessfulUpdate));
+    log.info("Last successful analytics table update: {}", toLongDate(lastSuccessfulUpdate));
 
     progress.startingProcess(
         "Analytics table update process{}", (params.isLatestUpdate() ? " (latest partition)" : ""));
