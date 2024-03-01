@@ -50,8 +50,7 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 /**
  * @author Lars Helge Overland
  */
-@RequiredArgsConstructor
-public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
+public class OrganisationUnitGroupSetResourceTable extends AbstractResourceTable {
   public static final String TABLE_NAME = "analytics_rs_organisationunitgroupsetstructure";
 
   private final List<OrganisationUnitGroupSet> groupSets;

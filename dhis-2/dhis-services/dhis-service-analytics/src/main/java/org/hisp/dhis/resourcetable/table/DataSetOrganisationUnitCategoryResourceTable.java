@@ -56,8 +56,7 @@ import org.hisp.dhis.util.DateUtils;
 /**
  * @author Lars Helge Overland
  */
-@RequiredArgsConstructor
-public class DataSetOrganisationUnitCategoryResourceTable implements ResourceTable {
+public class DataSetOrganisationUnitCategoryResourceTable extends AbstractResourceTable {
   public static final String TABLE_NAME = "analytics_rs_datasetorganisationunitcategory";
 
   private final List<DataSet> dataSets;

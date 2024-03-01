@@ -45,8 +45,7 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 /**
  * @author Lars Helge Overland
  */
-@RequiredArgsConstructor
-public class DataApprovalMinLevelResourceTable implements ResourceTable {
+public class DataApprovalMinLevelResourceTable extends AbstractResourceTable {
   public static final String TABLE_NAME = "analytics_rs_dataapprovalminlevel";
 
   private final List<OrganisationUnitLevel> levels;

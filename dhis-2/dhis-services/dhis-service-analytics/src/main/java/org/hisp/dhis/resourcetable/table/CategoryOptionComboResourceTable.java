@@ -45,8 +45,7 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 /**
  * @author Lars Helge Overland
  */
-@RequiredArgsConstructor
-public class CategoryOptionComboResourceTable implements ResourceTable {
+public class CategoryOptionComboResourceTable extends AbstractResourceTable {
   public static final String TABLE_NAME = "analytics_rs_dataelementcategoryoptioncombo";
 
   public CategoryOptionComboResourceTable(SqlBuilder sqlBuilder, Logged logged) {

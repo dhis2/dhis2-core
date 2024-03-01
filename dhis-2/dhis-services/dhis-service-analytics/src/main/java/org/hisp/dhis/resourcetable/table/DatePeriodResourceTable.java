@@ -52,8 +52,7 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 /**
  * @author Lars Helge Overland
  */
-@RequiredArgsConstructor
-public class DatePeriodResourceTable implements ResourceTable {
+public class DatePeriodResourceTable extends AbstractResourceTable {
   public static final String TABLE_NAME = "analytics_rs_dateperiodstructure";
 
   private final List<Integer> years;

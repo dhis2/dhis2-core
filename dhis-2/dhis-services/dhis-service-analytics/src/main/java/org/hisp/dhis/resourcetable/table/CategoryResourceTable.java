@@ -49,8 +49,7 @@ import org.hisp.dhis.resourcetable.util.UniqueNameContext;
 /**
  * @author Lars Helge Overland
  */
-@RequiredArgsConstructor
-public class CategoryResourceTable implements ResourceTable {
+public class CategoryResourceTable extends AbstractResourceTable {
   private static final String TABLE_NAME = "analytics_rs_categorystructure";
 
   private final List<Category> categories;

@@ -47,8 +47,7 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 /**
  * @author Lars Helge Overland
  */
-@RequiredArgsConstructor
-public class DataElementGroupSetResourceTable implements ResourceTable {
+public class DataElementGroupSetResourceTable extends AbstractResourceTable {
   public static final String TABLE_NAME = "analytics_rs_dataelementgroupsetstructure";
 
   private final List<DataElementGroupSet> groupSets;

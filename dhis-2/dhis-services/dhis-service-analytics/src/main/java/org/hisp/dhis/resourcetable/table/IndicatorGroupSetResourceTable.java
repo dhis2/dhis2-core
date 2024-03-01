@@ -47,8 +47,7 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 /**
  * @author Lars Helge Overland
  */
-@RequiredArgsConstructor
-public class IndicatorGroupSetResourceTable implements ResourceTable {
+public class IndicatorGroupSetResourceTable extends AbstractResourceTable {
   public static final String TABLE_NAME = "analytics_rs_indicatorgroupsetstructure";
 
   private final List<IndicatorGroupSet> groupSets;

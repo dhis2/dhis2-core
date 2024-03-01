@@ -56,8 +56,7 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
  *
  * @author Jim Grace
  */
-@RequiredArgsConstructor
-public class DataApprovalRemapLevelResourceTable implements ResourceTable {
+public class DataApprovalRemapLevelResourceTable extends AbstractResourceTable {
   public static final String TABLE_NAME = "analytics_rs_dataapprovalremaplevel";
 
   public DataApprovalRemapLevelResourceTable(SqlBuilder sqlBuilder, Logged logged) {

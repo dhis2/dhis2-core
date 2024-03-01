@@ -50,8 +50,7 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 /**
  * @author Lars Helge Overland
  */
-@RequiredArgsConstructor
-public class DataElementResourceTable implements ResourceTable {
+public class DataElementResourceTable extends AbstractResourceTable {
   public static final String TABLE_NAME = "analytics_rs_dataelementstructure";
 
   private final List<DataElement> dataElements;
