@@ -150,6 +150,7 @@ public class OutliersDetection6AutoTest extends AnalyticsApiTest {
     // Assert rows.
     validateRow(
         response,
+        0,
         List.of(
             "tU7GixyHhsv",
             "Vitamin A given to < 5y",
@@ -171,6 +172,7 @@ public class OutliersDetection6AutoTest extends AnalyticsApiTest {
             "23.34"));
     validateRow(
         response,
+        1,
         List.of(
             "qw2sIef52Fu",
             "Children getting therapeutic feeding",
@@ -192,6 +194,7 @@ public class OutliersDetection6AutoTest extends AnalyticsApiTest {
             "12.45"));
     validateRow(
         response,
+        2,
         List.of(
             "pnL2VG8Bn7N",
             "Weight for height 70-79 percent",
@@ -213,6 +216,7 @@ public class OutliersDetection6AutoTest extends AnalyticsApiTest {
             "7.45"));
     validateRow(
         response,
+        3,
         List.of(
             "bTcRDVjC66S",
             "Weight for age below lower line (red)",
@@ -234,6 +238,7 @@ public class OutliersDetection6AutoTest extends AnalyticsApiTest {
             "8.45"));
     validateRow(
         response,
+        4,
         List.of(
             "tU7GixyHhsv",
             "Vitamin A given to < 5y",
