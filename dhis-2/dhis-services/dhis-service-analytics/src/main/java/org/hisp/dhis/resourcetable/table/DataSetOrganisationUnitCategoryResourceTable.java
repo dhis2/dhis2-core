@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -49,23 +48,30 @@ import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.model.constraint.Unique;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.hisp.dhis.util.DateUtils;
 
 /**
  * @author Lars Helge Overland
  */
-@RequiredArgsConstructor
-public class DataSetOrganisationUnitCategoryResourceTable implements ResourceTable {
+public class DataSetOrganisationUnitCategoryResourceTable extends AbstractResourceTable {
   private static final String TABLE_NAME = "_datasetorganisationunitcategory";
 
   private final List<DataSet> dataSets;
 
   private final CategoryOptionCombo defaultOptionCombo;
 
-  private final Logged logged;
+  public DataSetOrganisationUnitCategoryResourceTable(
+      SqlBuilder sqlBuilder,
+      Logged logged,
+      List<DataSet> dataSets,
+      CategoryOptionCombo defaultOptionCombo) {
+    super(sqlBuilder, logged);
+    this.dataSets = dataSets;
+    this.defaultOptionCombo = defaultOptionCombo;
+  }
 
   @Override
   public Table getTable() {

@@ -31,27 +31,29 @@ import static org.hisp.dhis.db.model.Table.toStaging;
 
 import java.util.List;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
-import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
 /**
  * @author Lars Helge Overland
  */
-@RequiredArgsConstructor
-public class DataApprovalMinLevelResourceTable implements ResourceTable {
+public class DataApprovalMinLevelResourceTable extends AbstractResourceTable {
   private static final String TABLE_NAME = "_dataapprovalminlevel";
 
   private final List<OrganisationUnitLevel> levels;
 
-  private final Logged logged;
+  public DataApprovalMinLevelResourceTable(
+      SqlBuilder sqlBuilder, Logged logged, List<OrganisationUnitLevel> levels) {
+    super(sqlBuilder, logged);
+    this.levels = levels;
+  }
 
   @Override
   public Table getTable() {

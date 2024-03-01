@@ -32,7 +32,6 @@ import static org.hisp.dhis.db.model.Table.toStaging;
 import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -42,24 +41,28 @@ import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.sql.SqlBuilder;
-import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.hisp.dhis.resourcetable.util.UniqueNameContext;
 
 /**
  * @author Lars Helge Overland
  */
-@RequiredArgsConstructor
-public class CategoryResourceTable implements ResourceTable {
+public class CategoryResourceTable extends AbstractResourceTable {
   private static final String TABLE_NAME = "_categorystructure";
-
-  private final SqlBuilder sqlBuilder;
 
   private final List<Category> categories;
 
   private final List<CategoryOptionGroupSet> groupSets;
 
-  private final Logged logged;
+  public CategoryResourceTable(
+      SqlBuilder sqlBuilder,
+      Logged logged,
+      List<Category> categories,
+      List<CategoryOptionGroupSet> groupSets) {
+    super(sqlBuilder, logged);
+    this.categories = categories;
+    this.groupSets = groupSets;
+  }
 
   @Override
   public Table getTable() {

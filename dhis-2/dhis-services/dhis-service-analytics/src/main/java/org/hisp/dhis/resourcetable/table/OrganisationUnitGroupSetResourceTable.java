@@ -34,7 +34,6 @@ import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
 import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
@@ -44,23 +43,27 @@ import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.model.constraint.Unique;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
-import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
 /**
  * @author Lars Helge Overland
  */
-@RequiredArgsConstructor
-public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
+public class OrganisationUnitGroupSetResourceTable extends AbstractResourceTable {
   private static final String TABLE_NAME = "_organisationunitgroupsetstructure";
-
-  private final SqlBuilder sqlBuilder;
 
   private final List<OrganisationUnitGroupSet> groupSets;
 
   private final int organisationUnitLevels;
 
-  private final Logged logged;
+  public OrganisationUnitGroupSetResourceTable(
+      SqlBuilder sqlBuilder,
+      Logged logged,
+      List<OrganisationUnitGroupSet> groupSets,
+      int organisationUnitLevels) {
+    super(sqlBuilder, logged);
+    this.groupSets = groupSets;
+    this.organisationUnitLevels = organisationUnitLevels;
+  }
 
   @Override
   public Table getTable() {

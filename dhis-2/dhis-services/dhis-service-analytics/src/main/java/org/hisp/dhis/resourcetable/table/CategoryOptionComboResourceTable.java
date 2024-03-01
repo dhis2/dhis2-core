@@ -32,24 +32,24 @@ import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
 
 import java.util.List;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
-import org.hisp.dhis.resourcetable.ResourceTable;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
 /**
  * @author Lars Helge Overland
  */
-@RequiredArgsConstructor
-public class CategoryOptionComboResourceTable implements ResourceTable {
+public class CategoryOptionComboResourceTable extends AbstractResourceTable {
   private static final String TABLE_NAME = "_dataelementcategoryoptioncombo";
 
-  private final Logged logged;
+  public CategoryOptionComboResourceTable(SqlBuilder sqlBuilder, Logged logged) {
+    super(sqlBuilder, logged);
+  }
 
   @Override
   public Table getTable() {

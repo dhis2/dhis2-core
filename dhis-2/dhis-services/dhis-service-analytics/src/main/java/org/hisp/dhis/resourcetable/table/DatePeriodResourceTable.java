@@ -35,7 +35,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.db.model.Column;
@@ -43,23 +42,25 @@ import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.period.Cal;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
 /**
  * @author Lars Helge Overland
  */
-@RequiredArgsConstructor
-public class DatePeriodResourceTable implements ResourceTable {
+public class DatePeriodResourceTable extends AbstractResourceTable {
   private static final String TABLE_NAME = "_dateperiodstructure";
 
   private final List<Integer> years;
 
-  private final Logged logged;
+  public DatePeriodResourceTable(SqlBuilder sqlBuilder, Logged logged, List<Integer> years) {
+    super(sqlBuilder, logged);
+    this.years = years;
+  }
 
   @Override
   public Table getTable() {
