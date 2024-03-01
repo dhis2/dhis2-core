@@ -288,7 +288,7 @@ class EventChangeLogServiceTest extends TrackerTest {
         expected,
         changeLogs.size(),
         String.format(
-            "Expected to find %s elements in the change log list, found %s instead: %s",
+            "Expected to find %s elements in the event change log list, found %s instead: %s",
             expected, changeLogs.size(), changeLogs));
   }
 
