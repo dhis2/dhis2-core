@@ -191,15 +191,15 @@ public class IconController {
         String.format("CustomIcon created with key %s", customIcon.getKey()));
   }
 
-  @PutMapping(value = "/{uid}")
-  public WebMessage updateCustomIcon(@PathVariable String uid, HttpServletRequest request)
+  @PutMapping(value = "/{key}")
+  public WebMessage updateCustomIcon(@PathVariable String key, HttpServletRequest request)
       throws IOException, NotFoundException, WebMessageException, BadRequestException {
 
-    CustomIcon persisted = iconService.getCustomIconByUid(uid);
+    CustomIcon persisted = iconService.getCustomIcon(key);
 
     if (persisted == null) {
       throw new WebMessageException(
-          WebMessageUtils.notFound(String.format("CustomIcon with uid %s not found", uid)));
+          WebMessageUtils.notFound(String.format("CustomIcon with key %s not found", key)));
     }
 
     CustomIconRequest customIconRequest =
@@ -209,7 +209,7 @@ public class IconController {
 
     iconService.updateCustomIcon(persisted);
 
-    return WebMessageUtils.ok(String.format("CustomIcon with uid %s updated", uid));
+    return WebMessageUtils.ok(String.format("CustomIcon with key %s updated", key));
   }
 
   @DeleteMapping(value = "/{key}")

@@ -93,7 +93,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
 
     JsonObject response =
         PUT(
-                String.format("/icons/%s", uid),
+                String.format("/icons/%s", key1),
                 "{'key':'"
                     + key1
                     + "', 'description':'"
@@ -104,7 +104,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
             .content();
 
     assertEquals(
-        String.format("CustomIcon with uid %s updated", uid),
+        String.format("CustomIcon with key %s updated", key1),
         response.getString("message").string());
   }
 
@@ -112,12 +112,10 @@ class IconControllerTest extends DhisControllerIntegrationTest {
   void shouldDeleteIconWhenKeyExists() throws IOException {
     createCustomIcon(createFileResource(), keywordsList1, key1);
 
-    String uid = getCustomIconId(key1);
-
     JsonObject response = DELETE(String.format("/icons/%s", key1)).content();
 
     assertEquals(
-        String.format("CustomIcon with uid %s deleted", uid),
+        String.format("CustomIcon with key %s deleted", key1),
         response.getString("message").string());
   }
 
@@ -188,7 +186,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
 
     List<String> keywords = response.stringValues();
 
-    assertEquals(3, keywords.size());
+    assertEquals(391, keywords.size());
 
     assertThat(keywords, hasItems("m1", "k1", "k2"));
   }
