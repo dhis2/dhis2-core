@@ -32,6 +32,7 @@ import static org.hisp.dhis.db.model.Table.toStaging;
 import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.db.model.Column;
@@ -95,14 +96,15 @@ public class CategoryOptionComboResourceTable implements ResourceTable {
         inner join ${categorycombos_optioncombos} cc on de.categorycomboid = cc.categorycomboid \
         inner join ${categoryoptioncombo} coc on cc.categoryoptioncomboid = coc.categoryoptioncomboid;
         """,
-            "tableName",
-            toStaging(TABLE_NAME),
-            "dataelement",
-            sqlBuilder.qualifyTable("dataelement"),
-            "categorycombos_optioncombos",
-            sqlBuilder.qualifyTable("categorycombos_optioncombos"),
-            "categoryoptioncombo",
-            sqlBuilder.qualifyTable("categoryoptioncombo"));
+            Map.of(
+                "tableName",
+                toStaging(TABLE_NAME),
+                "dataelement",
+                sqlBuilder.qualifyTable("dataelement"),
+                "categorycombos_optioncombos",
+                sqlBuilder.qualifyTable("categorycombos_optioncombos"),
+                "categoryoptioncombo",
+                sqlBuilder.qualifyTable("categoryoptioncombo")));
 
     return Optional.of(sql);
   }
