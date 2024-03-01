@@ -91,6 +91,10 @@ public class JdbcTrackedEntityChangeLogStore {
                   where audit.audittype in ('CREATE', 'UPDATE', 'DELETE')
                   and t.uid = :trackedEntity
        """;
+    MapSqlParameterSource parameters =
+        new MapSqlParameterSource("trackedEntity", trackedEntity.getValue())
+            .addValue("limit", pageParams.getPageSize() + 1)
+            .addValue("offset", (pageParams.getPage() - 1) * pageParams.getPageSize());
 
     List<TrackedEntityChangeLog> changeLogs;
     if (attributes.isEmpty()) {
@@ -99,13 +103,6 @@ public class JdbcTrackedEntityChangeLogStore {
               order by audit.created desc) cl
               limit :limit offset :offset
           """;
-      SqlParameterSource parameters =
-          new MapSqlParameterSource("trackedEntity", trackedEntity.getValue())
-              .addValue("limit", pageParams.getPageSize() + 1)
-              .addValue("offset", (pageParams.getPage() - 1) * pageParams.getPageSize());
-
-      changeLogs =
-          namedParameterJdbcTemplate.query(sql, parameters, customTrackedEntityChangeLogRowMapper);
     } else {
       sql +=
           """
@@ -113,14 +110,10 @@ public class JdbcTrackedEntityChangeLogStore {
               order by audit.created desc) cl
               limit :limit offset :offset
           """;
-      SqlParameterSource parameters =
-          new MapSqlParameterSource("attributes", attributes)
-              .addValue("trackedEntity", trackedEntity.getValue())
-              .addValue("limit", pageParams.getPageSize() + 1)
-              .addValue("offset", (pageParams.getPage() - 1) * pageParams.getPageSize());
-      changeLogs =
-          namedParameterJdbcTemplate.query(sql, parameters, customTrackedEntityChangeLogRowMapper);
+      parameters.addValue("attributes", attributes);
     }
+    changeLogs =
+        namedParameterJdbcTemplate.query(sql, parameters, customTrackedEntityChangeLogRowMapper);
 
     Integer prevPage = pageParams.getPage() > 1 ? pageParams.getPage() - 1 : null;
     if (changeLogs.size() > pageParams.getPageSize()) {

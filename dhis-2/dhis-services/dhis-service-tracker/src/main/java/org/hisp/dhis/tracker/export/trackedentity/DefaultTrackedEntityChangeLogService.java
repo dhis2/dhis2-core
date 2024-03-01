@@ -84,7 +84,7 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
       Program program = validateProgram(programUid.getValue());
       validateOwnership(currentUser, trackedEntity, program);
     } else {
-      validateTrackedEntity(trackedEntityUid, currentUser, trackedEntity);
+      validateTrackedEntity(currentUser, trackedEntity);
       trackedEntityAttributes = validateTrackedEntityAttributes(trackedEntity);
     }
 
@@ -110,11 +110,10 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
     }
   }
 
-  private void validateTrackedEntity(
-      UID trackedEntityUid, User currentUser, TrackedEntity trackedEntity)
+  private void validateTrackedEntity(User currentUser, TrackedEntity trackedEntity)
       throws NotFoundException {
     if (!trackerAccessManager.canRead(currentUser, trackedEntity).isEmpty()) {
-      throw new NotFoundException(TrackedEntity.class, trackedEntityUid.getValue());
+      throw new NotFoundException(TrackedEntity.class, trackedEntity.getUid());
     }
   }
 
