@@ -214,7 +214,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String qualifyTable(String name) {
-    return String.format("%s.%s.%s", catalog, SCHEMA, name);
+    return String.format("%s.%s.%s", catalog, SCHEMA, quote(name));
   }
 
   @Override

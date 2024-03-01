@@ -115,22 +115,27 @@ public class CategoryResourceTable implements ResourceTable {
           replace(
               """
             (
-              select co.name from categoryoptioncombos_categoryoptions cocco \
-              inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid \
-              inner join categories_categoryoptions cco on co.categoryoptionid = cco.categoryoptionid \
+              select co.name from ${categoryoptioncombos_categoryoptions} cocco \
+              inner join ${categoryoption} co on cocco.categoryoptionid = co.categoryoptionid \
+              inner join ${categories_categoryoptions} cco on co.categoryoptionid = cco.categoryoptionid \
               where coc.categoryoptioncomboid = cocco.categoryoptioncomboid \
               and cco.categoryid = ${categoryId} limit 1) as ${categoryName}, \
               (
-              select co.uid from categoryoptioncombos_categoryoptions cocco \
-              inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid \
-              inner join categories_categoryoptions cco on co.categoryoptionid = cco.categoryoptionid \
+              select co.uid from ${categoryoptioncombos_categoryoptions} cocco \
+              inner join ${categoryoption} co on cocco.categoryoptionid = co.categoryoptionid \
+              inner join ${categories_categoryoptions} cco on co.categoryoptionid = cco.categoryoptionid \
               where coc.categoryoptioncomboid = cocco.categoryoptioncomboid
               and cco.categoryid = ${categoryId} limit 1) as ${categoryUid}, \
               """,
               Map.of(
                   "categoryId", String.valueOf(category.getId()),
                   "categoryName", sqlBuilder.quote(category.getName()),
-                  "categoryUid", sqlBuilder.quote(category.getUid())));
+                  "categoryUid", sqlBuilder.quote(category.getUid()),
+                  "categoryoptioncombos_categoryoptions",
+                      sqlBuilder.qualifyTable("categoryoptioncombos_categoryoptions"),
+                  "categoryoption", sqlBuilder.qualifyTable("categoryoption"),
+                  "categories_categoryoptions",
+                      sqlBuilder.qualifyTable("categories_categoryoptions")));
     }
 
     for (CategoryOptionGroupSet groupSet : groupSets) {
@@ -138,10 +143,10 @@ public class CategoryResourceTable implements ResourceTable {
           replace(
               """
             (
-              select cog.name from categoryoptioncombos_categoryoptions cocco \
-              inner join categoryoptiongroupmembers cogm on cocco.categoryoptionid = cogm.categoryoptionid \
-              inner join categoryoptiongroup cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid \
-              inner join categoryoptiongroupsetmembers cogsm on cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid \
+              select cog.name from ${categoryoptioncombos_categoryoptions} cocco \
+              inner join ${categoryoptiongroupmembers} cogm on cocco.categoryoptionid = cogm.categoryoptionid \
+              inner join ${categoryoptiongroup} cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid \
+              inner join ${categoryoptiongroupsetmembers} cogsm on cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid \
               where coc.categoryoptioncomboid = cocco.categoryoptioncomboid \
               and cogsm.categoryoptiongroupsetid = ${groupSetId} limit 1) as ${groupSetName}, \
               (
@@ -155,7 +160,14 @@ public class CategoryResourceTable implements ResourceTable {
               Map.of(
                   "groupSetId", String.valueOf(groupSet.getId()),
                   "groupSetName", sqlBuilder.quote(groupSet.getName()),
-                  "groupSetUid", sqlBuilder.quote(groupSet.getUid())));
+                  "groupSetUid", sqlBuilder.quote(groupSet.getUid()),
+                  "categoryoptioncombos_categoryoptions",
+                      sqlBuilder.qualifyTable("categoryoptioncombos_categoryoptions"),
+                  "categoryoptiongroupmembers",
+                      sqlBuilder.qualifyTable("categoryoptiongroupmembers"),
+                  "categoryoptiongroup", sqlBuilder.qualifyTable("categoryoptiongroup"),
+                  "categoryoptiongroupsetmembers",
+                      sqlBuilder.qualifyTable("categoryoptiongroupsetmembers")));
     }
 
     sql = TextUtils.removeLastComma(sql) + " ";
