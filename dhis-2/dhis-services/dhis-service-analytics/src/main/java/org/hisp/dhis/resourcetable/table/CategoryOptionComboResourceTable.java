@@ -97,11 +97,11 @@ public class CategoryOptionComboResourceTable extends AbstractResourceTable {
                 "tableName",
                 toStaging(TABLE_NAME),
                 "dataelement",
-                sqlBuilder.qualifyTable("dataelement"),
+                qualify("dataelement"),
                 "categorycombos_optioncombos",
-                sqlBuilder.qualifyTable("categorycombos_optioncombos"),
+                qualify("categorycombos_optioncombos"),
                 "categoryoptioncombo",
-                sqlBuilder.qualifyTable("categoryoptioncombo")));
+                qualify("categoryoptioncombo")));
 
     return Optional.of(sql);
   }

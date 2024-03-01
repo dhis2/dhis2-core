@@ -141,7 +141,7 @@ public class CategoryResourceTable extends AbstractResourceTable {
                   "categoryoptioncombos_categoryoptions",
                   qualify("categoryoptioncombos_categoryoptions"),
                   "categoryoption",
-                  sqlBuilder.qualifyTable("categoryoption"),
+                  qualify("categoryoption"),
                   "categories_categoryoptions",
                   qualify("categories_categoryoptions")));
     }
