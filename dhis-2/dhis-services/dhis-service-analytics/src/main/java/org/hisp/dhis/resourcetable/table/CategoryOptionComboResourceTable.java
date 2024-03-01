@@ -27,29 +27,30 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
+import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
 import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
 
 import java.util.List;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
-import org.hisp.dhis.resourcetable.ResourceTable;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
 /**
  * @author Lars Helge Overland
  */
-@RequiredArgsConstructor
-public class CategoryOptionComboResourceTable implements ResourceTable {
-  private static final String TABLE_NAME = "_dataelementcategoryoptioncombo";
+public class CategoryOptionComboResourceTable extends AbstractResourceTable {
+  public static final String TABLE_NAME = "analytics_rs_dataelementcategoryoptioncombo";
 
-  private final Logged logged;
+  public CategoryOptionComboResourceTable(SqlBuilder sqlBuilder, Logged logged) {
+    super(sqlBuilder, logged);
+  }
 
   @Override
   public Table getTable() {
@@ -81,14 +82,18 @@ public class CategoryOptionComboResourceTable implements ResourceTable {
   @Override
   public Optional<String> getPopulateTempTableStatement() {
     String sql =
-        "insert into "
-            + toStaging(TABLE_NAME)
-            + " (dataelementid, dataelementuid, categoryoptioncomboid, categoryoptioncombouid) "
-            + "select de.dataelementid as dataelementid, de.uid as dataelementuid, "
-            + "coc.categoryoptioncomboid as categoryoptioncomboid, coc.uid as categoryoptioncombouid "
-            + "from dataelement de "
-            + "join categorycombos_optioncombos cc on de.categorycomboid = cc.categorycomboid "
-            + "join categoryoptioncombo coc on cc.categoryoptioncomboid = coc.categoryoptioncomboid";
+        replace(
+            """
+        insert into ${tableName} \
+        (dataelementid, dataelementuid, categoryoptioncomboid, categoryoptioncombouid) \
+        select de.dataelementid as dataelementid, de.uid as dataelementuid, \
+        coc.categoryoptioncomboid as categoryoptioncomboid, coc.uid as categoryoptioncombouid \
+        from dataelement de \
+        inner join categorycombos_optioncombos cc on de.categorycomboid = cc.categorycomboid \
+        inner join categoryoptioncombo coc on cc.categoryoptioncomboid = coc.categoryoptioncomboid;
+        """,
+            "tableName",
+            toStaging(TABLE_NAME));
 
     return Optional.of(sql);
   }

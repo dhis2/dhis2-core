@@ -213,10 +213,10 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
             + "and tei.deleted is false "
             + "left join organisationunit registrationou on tei.organisationunitid=registrationou.organisationunitid "
             + "inner join organisationunit ou on pi.organisationunitid=ou.organisationunitid "
-            + "left join _orgunitstructure ous on pi.organisationunitid=ous.organisationunitid "
-            + "left join _organisationunitgroupsetstructure ougs on pi.organisationunitid=ougs.organisationunitid "
+            + "left join analytics_rs_orgunitstructure ous on pi.organisationunitid=ous.organisationunitid "
+            + "left join analytics_rs_organisationunitgroupsetstructure ougs on pi.organisationunitid=ougs.organisationunitid "
             + "and (cast(date_trunc('month', pi.enrollmentdate) as date)=ougs.startdate or ougs.startdate is null) "
-            + "left join _dateperiodstructure dps on cast(pi.enrollmentdate as date)=dps.dateperiod "
+            + "left join analytics_rs_dateperiodstructure dps on cast(pi.enrollmentdate as date)=dps.dateperiod "
             + "where pr.programid="
             + program.getId()
             + " "

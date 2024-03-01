@@ -93,6 +93,8 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
 
   private DataElement dataElementE;
 
+  private DataElement dataElementF;
+
   private ProgramStage programStageA;
 
   private ProgramStage programStageB;
@@ -137,6 +139,11 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
     dataElementE.setDomainType(DataElementDomain.TRACKER);
     dataElementE.setUid("DataElmentE");
     dataElementE.setValueType(ValueType.BOOLEAN);
+
+    dataElementF = createDataElement('F');
+    dataElementF.setDomainType(DataElementDomain.TRACKER);
+    dataElementF.setUid("DataElmentF");
+    dataElementF.setValueType(ValueType.TEXT);
 
     attributeA = createTrackedEntityAttribute('A', ValueType.NUMBER);
     attributeA.setUid("Attribute0A");
@@ -220,6 +227,66 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
         is(
             "case when (coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentE\" else null end::numeric,0) "
                 + "> 0) then 10 + 5 else 3 * 2 end"));
+  }
+
+  @Test
+  void testContains() {
+    when(programStageService.getProgramStage(programStageA.getUid())).thenReturn(programStageA);
+    when(idObjectManager.get(DataElement.class, dataElementF.getUid())).thenReturn(dataElementF);
+
+    String sql1 = test("if(contains(#{ProgrmStagA.DataElmentF},'abc'),1,2)");
+    assertThat(
+        sql1,
+        is(
+            " case when (position('abc' in coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentF\" else null end::text,''))>0"
+                + ") then 1 else 2 end"));
+
+    String sql2 = test("if(contains(#{ProgrmStagA.DataElmentF},'abc','def'),1,2)");
+    assertThat(
+        sql2,
+        is(
+            " case when (position('abc' in coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentF\" else null end::text,''))>0"
+                + " and position('def' in coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentF\" else null end::text,''))>0"
+                + ") then 1 else 2 end"));
+
+    String sql3 = test("if(contains(#{ProgrmStagA.DataElmentF},'abc','def','ghi'),1,2)");
+    assertThat(
+        sql3,
+        is(
+            " case when (position('abc' in coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentF\" else null end::text,''))>0"
+                + " and position('def' in coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentF\" else null end::text,''))>0"
+                + " and position('ghi' in coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentF\" else null end::text,''))>0"
+                + ") then 1 else 2 end"));
+  }
+
+  @Test
+  void testContainsItems() {
+    when(programStageService.getProgramStage(programStageA.getUid())).thenReturn(programStageA);
+    when(idObjectManager.get(DataElement.class, dataElementF.getUid())).thenReturn(dataElementF);
+
+    String sql1 = test("if(containsItems(#{ProgrmStagA.DataElmentF},'abc'),1,2)");
+    assertThat(
+        sql1,
+        is(
+            " case when (regexp_split_to_array(coalesce(case when ax.\"ps\" = 'ProgrmStagA' "
+                + "then \"DataElmentF\" else null end::text,''),',') "
+                + "@> ARRAY['abc']) then 1 else 2 end"));
+
+    String sql2 = test("if(containsItems(#{ProgrmStagA.DataElmentF},'abc','def'),1,2)");
+    assertThat(
+        sql2,
+        is(
+            " case when (regexp_split_to_array(coalesce(case when ax.\"ps\" = 'ProgrmStagA' "
+                + "then \"DataElmentF\" else null end::text,''),',') "
+                + "@> ARRAY['abc','def']) then 1 else 2 end"));
+
+    String sql3 = test("if(containsItems(#{ProgrmStagA.DataElmentF},'abc','def','ghi'),1,2)");
+    assertThat(
+        sql3,
+        is(
+            " case when (regexp_split_to_array(coalesce(case when ax.\"ps\" = 'ProgrmStagA' "
+                + "then \"DataElmentF\" else null end::text,''),',') "
+                + "@> ARRAY['abc','def','ghi']) then 1 else 2 end"));
   }
 
   @Test

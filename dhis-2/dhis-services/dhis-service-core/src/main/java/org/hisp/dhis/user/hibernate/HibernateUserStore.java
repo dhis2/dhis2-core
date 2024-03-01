@@ -59,6 +59,7 @@ import javax.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.QueryHints;
+import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 import org.hisp.dhis.cache.QueryCacheManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
@@ -478,6 +479,23 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
             toMap(
                 (Object[] columns) -> (String) columns[0],
                 (Object[] columns) -> Optional.ofNullable((Locale) columns[1])));
+  }
+
+  @Override
+  public Map<String, String> getUserGroupUserEmailsByUsername(String userGroupId) {
+    String sql =
+        """
+      select u.username, u.email from userinfo u
+      where u.email is not null
+        and u.userinfoid in (select m.userid from usergroup g inner join usergroupmembers m on m.usergroupid = g.usergroupid where g.uid = :group);
+      """;
+    NativeQuery<?> emailsByUsername =
+        getSession().createNativeQuery(sql).setParameter("group", userGroupId);
+    return emailsByUsername.stream()
+        .collect(
+            toMap(
+                columns -> (String) ((Object[]) columns)[0],
+                columns -> (String) ((Object[]) columns)[1]));
   }
 
   @Override

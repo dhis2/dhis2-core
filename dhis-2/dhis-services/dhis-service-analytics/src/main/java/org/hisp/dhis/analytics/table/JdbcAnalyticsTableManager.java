@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static java.lang.String.format;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getLatestTablePartition;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
@@ -165,24 +166,9 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   }
 
   @Override
-  public String validState() {
-    boolean hasData =
-        jdbcTemplate
-            .queryForRowSet(
-                "select dataelementid from datavalue dv where dv.deleted is false limit 1")
-            .next();
-
-    if (!hasData) {
-      return "No data values exist, not updating aggregate analytics tables";
-    }
-
-    int orgUnitLevels = organisationUnitService.getNumberOfOrganisationalLevels();
-
-    if (orgUnitLevels == 0) {
-      return "No organisation unit levels exist, not updating aggregate analytics tables";
-    }
-
-    return null;
+  public boolean validState() {
+    return tableIsNotEmpty("datavalue")
+        && organisationUnitService.getNumberOfOrganisationalLevels() > 0;
   }
 
   @Override
@@ -220,7 +206,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             + "select concat(de.uid,'-',ps.iso,'-',ou.uid,'-',co.uid,'-',ao.uid) as id "
             + "from datavalue dv "
             + "inner join dataelement de on dv.dataelementid=de.dataelementid "
-            + "inner join _periodstructure ps on dv.periodid=ps.periodid "
+            + "inner join analytics_rs_periodstructure ps on dv.periodid=ps.periodid "
             + "inner join organisationunit ou on dv.sourceid=ou.organisationunitid "
             + "inner join categoryoptioncombo co on dv.categoryoptioncomboid=co.categoryoptioncomboid "
             + "inner join categoryoptioncombo ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid "
@@ -311,10 +297,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             SettingKey.RESPECT_META_DATA_START_END_DATES_IN_ANALYTICS_TABLE_EXPORT);
     String approvalSelectExpression = getApprovalSelectExpression(partition.getYear());
     String approvalClause = getApprovalJoinClause(partition.getYear());
-    String partitionClause =
-        partition.isLatestPartition()
-            ? "and dv.lastupdated >= '" + toLongDate(partition.getStartDate()) + "' "
-            : "and ps.year = " + partition.getYear() + " ";
+    String partitionClause = getPartitionClause(partition);
 
     String sql = "insert into " + tableName + " (";
 
@@ -343,21 +326,21 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             + " as textvalue "
             + "from datavalue dv "
             + "inner join period pe on dv.periodid=pe.periodid "
-            + "inner join _periodstructure ps on dv.periodid=ps.periodid "
+            + "inner join analytics_rs_periodstructure ps on dv.periodid=ps.periodid "
             + "left join periodtype pt on pe.periodtypeid = pt.periodtypeid "
             + "inner join dataelement de on dv.dataelementid=de.dataelementid "
-            + "inner join _dataelementstructure des on dv.dataelementid = des.dataelementid "
-            + "inner join _dataelementgroupsetstructure degs on dv.dataelementid=degs.dataelementid "
+            + "inner join analytics_rs_dataelementstructure des on dv.dataelementid = des.dataelementid "
+            + "inner join analytics_rs_dataelementgroupsetstructure degs on dv.dataelementid=degs.dataelementid "
             + "inner join organisationunit ou on dv.sourceid=ou.organisationunitid "
-            + "left join _orgunitstructure ous on dv.sourceid=ous.organisationunitid "
-            + "inner join _organisationunitgroupsetstructure ougs on dv.sourceid=ougs.organisationunitid "
+            + "left join analytics_rs_orgunitstructure ous on dv.sourceid=ous.organisationunitid "
+            + "inner join analytics_rs_organisationunitgroupsetstructure ougs on dv.sourceid=ougs.organisationunitid "
             + "and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null) "
             + "inner join categoryoptioncombo co on dv.categoryoptioncomboid=co.categoryoptioncomboid "
             + "inner join categoryoptioncombo ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid "
-            + "inner join _categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid "
-            + "inner join _categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid "
-            + "inner join _categoryoptioncomboname aon on dv.attributeoptioncomboid=aon.categoryoptioncomboid "
-            + "inner join _categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid ";
+            + "inner join analytics_rs_categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid "
+            + "inner join analytics_rs_categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid "
+            + "inner join analytics_rs_categoryoptioncomboname aon on dv.attributeoptioncomboid=aon.categoryoptioncomboid "
+            + "inner join analytics_rs_categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid ";
 
     if (!params.isSkipOutliers()) {
       sql += getOutliersJoinStatement();
@@ -421,7 +404,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   private String getApprovalJoinClause(Integer year) {
     if (isApprovalEnabled(year)) {
       String sql =
-          "left join _dataapprovalminlevel da "
+          "left join analytics_rs_dataapprovalminlevel da "
               + "on des.workflowid=da.workflowid and da.periodid=dv.periodid "
               + "and da.attributeoptioncomboid=dv.attributeoptioncomboid "
               + "and (";
@@ -437,6 +420,20 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     }
 
     return StringUtils.EMPTY;
+  }
+
+  /**
+   * Returns a partition SQL clause.
+   *
+   * @param partition the {@link AnalyticsTablePartition}.
+   * @return a partition SQL clause.
+   */
+  private String getPartitionClause(AnalyticsTablePartition partition) {
+    String latestFilter =
+        format("and dv.lastupdated >= '%s' ", toLongDate(partition.getStartDate()));
+    String partitionFilter = format("and ps.year = %d ", partition.getYear());
+
+    return partition.isLatestPartition() ? latestFilter : partitionFilter;
   }
 
   private List<AnalyticsTableColumn> getColumns(AnalyticsTableUpdateParams params) {
@@ -649,7 +646,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         // standard deviation of the normal distribution
         + "stddev_pop(t3.value::double precision) as std_dev "
         // Table "t3" is the composition of the tables "t2" (median of xi) and "t3" (values xi).
-        // For Z-Score  the mean (avg_middle_value) and standard deviation (std_dev) is used ((xi -
+        // For Z-Score the mean (avg_middle_value) and standard deviation (std_dev) is used ((xi -
         // mean(x))/std_dev).
         // For modified Z-Score the median (percentile_middle_value) and the median of absolute
         // deviations (mad) is used (0.6745*(xi - median(x)/mad)).
@@ -682,7 +679,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         // Table "t2" is the complement of the t1 table. It contains all values belong to the
         // specific median (see t1).
         // To "group by" criteria is added the time dimension (periodid). This part of the query has
-        // to be verified (maybe add tei to aggregation criteria).
+        // to be verified (maybe add TEI to aggregation criteria).
         + "(select dv1.dataelementid as dataelementid, "
         + "dv1.sourceid as sourceid, "
         + "dv1.categoryoptioncomboid  as categoryoptioncomboid, "

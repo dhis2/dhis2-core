@@ -72,7 +72,8 @@ public enum Authorities {
   F_TRACKED_ENTITY_MERGE,
   F_DATAVALUE_ADD,
   F_IMPERSONATE_USER,
-  F_SYSTEM_SETTING;
+  F_SYSTEM_SETTING,
+  F_MAP_EXTERNAL_LAYER_ADD;
 
   public static Set<String> getAllAuthorities() {
     return Arrays.stream(Authorities.values()).map(Authorities::name).collect(Collectors.toSet());

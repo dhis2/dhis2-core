@@ -34,12 +34,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringSubstitutor;
 import org.slf4j.helpers.MessageFormatter;
 
 /**
@@ -62,9 +62,6 @@ public class TextUtils {
 
   public static final String COMMA = ",";
 
-  private static final Pattern LINK_PATTERN =
-      Pattern.compile("((http://|https://|www\\.).+?)($|\\n|\\r|\\r\\n| )");
-
   private static final String DELIMITER = ", ";
 
   private static final String OPTION_SEP = ";";
@@ -79,63 +76,6 @@ public class TextUtils {
    */
   public static String removeNonEssentialChars(String str) {
     return str.replaceAll("[^a-zA-Z0-9 ;:,'=._@-]", "");
-  }
-
-  /**
-   * Performs the htmlNewline(String) and htmlLinks(String) methods against the given text.
-   *
-   * @param text the text to substitute.
-   * @return the substituted text.
-   */
-  public static String htmlify(String text) {
-    text = htmlLinks(text);
-    text = htmlNewline(text);
-    return text;
-  }
-
-  /**
-   * Substitutes links in the given text with valid HTML mark-up. For instance, http://dhis2.org is
-   * replaced with <a href="http://dhis2.org">http://dhis2.org</a>, and www.dhis2.org is replaced
-   * with <a href="http://dhis2.org">www.dhis2.org</a>.
-   *
-   * @param text the text to substitute links for.
-   * @return the substituted text.
-   */
-  public static String htmlLinks(String text) {
-    if (text == null || text.trim().isEmpty()) {
-      return null;
-    }
-
-    Matcher matcher = LINK_PATTERN.matcher(text);
-
-    StringBuffer buffer = new StringBuffer();
-
-    while (matcher.find()) {
-      String url = matcher.group(1);
-      String suffix = matcher.group(3);
-
-      String ref = url.startsWith("www.") ? "http://" + url : url;
-
-      url = "<a href=\"" + ref + "\">" + url + "</a>" + suffix;
-
-      matcher.appendReplacement(buffer, url);
-    }
-
-    return matcher.appendTail(buffer).toString();
-  }
-
-  /**
-   * Replaces common newline characters like \n, \r, \r\n to the HTML line break tag br.
-   *
-   * @param text the text to substitute.
-   * @return the substituted text.
-   */
-  public static String htmlNewline(String text) {
-    if (text == null || text.trim().isEmpty()) {
-      return null;
-    }
-
-    return text.replaceAll("(\n|\r|\r\n)", "<br>");
   }
 
   /**
@@ -259,22 +199,6 @@ public class TextUtils {
    */
   public static String removeNewlines(String string) {
     return string.replaceAll("\r", EMPTY).replaceAll("\n", EMPTY);
-  }
-
-  /**
-   * Trims the given string from the end.
-   *
-   * @param value the value to trim.
-   * @param length the number of characters to trim.
-   * @return the trimmed value, empty if given value is null or length is higher than the value
-   *     length.
-   */
-  public static String trimEnd(String value, int length) {
-    if (value == null || length > value.length()) {
-      return EMPTY;
-    }
-
-    return value.substring(0, value.length() - length);
   }
 
   /**
@@ -477,6 +401,17 @@ public class TextUtils {
   }
 
   /**
+   * Returns the empty string if the given test is true, the string if not.
+   *
+   * @param string the string.
+   * @param test the test to check.
+   * @return a string.
+   */
+  public static String emptyIfTrue(String string, boolean test) {
+    return test ? EMPTY : string;
+  }
+
+  /**
    * Invokes append tail on matcher with the given string buffer, and returns the string buffer as a
    * string.
    *
@@ -604,26 +539,26 @@ public class TextUtils {
   }
 
   /**
-   * Replaces all occurrences of the given symbols with the given replacements in the given string.
-   * Note that the replacement will match the symbol as is, i.e. no regular expression matching.
+   * Replaces variables in the given template string with the given variable values.
    *
-   * @param string the string to replace.
-   * @param symbolReplacementPairs the pairs of symbols and replacements.
-   * @return the replaced string.
+   * @param template the template string.
+   * @param variables the map of variables and values.
+   * @return a resolved string.
    */
-  public static String replace(String string, String... symbolReplacementPairs) {
-    List<String> pairs = Arrays.asList(symbolReplacementPairs);
+  public static String replace(String template, Map<String, String> variables) {
+    return new StringSubstitutor(variables).replace(template);
+  }
 
-    String replaced = string;
-
-    for (int i = 0; i < pairs.size(); i += 2) {
-      String symbol = Pattern.quote(pairs.get(i));
-      String replacement = pairs.get(i + 1);
-
-      replaced = replaced.replaceAll(symbol, replacement);
-    }
-
-    return replaced;
+  /**
+   * Replaces variables in the given template string with the given variable key and value.
+   *
+   * @param template the template string.
+   * @param k1 the variable key.
+   * @param v1 the variable value.
+   * @return a resolved string.
+   */
+  public static String replace(String template, String k1, String v1) {
+    return replace(template, Map.of(k1, v1));
   }
 
   /**
@@ -689,7 +624,7 @@ public class TextUtils {
    * @param string
    * @return string with no trailing '/' or the string unchanged
    */
-  public static String removeAnyTrailingSlash(@Nonnull String string) {
+  public static String removeAnyTrailingSlash(String string) {
     return string.endsWith("/") ? StringUtils.chop(string) : string;
   }
 

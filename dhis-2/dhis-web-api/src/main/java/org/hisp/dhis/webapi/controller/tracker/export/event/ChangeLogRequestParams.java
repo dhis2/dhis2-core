@@ -27,12 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
+import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 
 @OpenApi.Shared(name = "ChangeLogRequestParams")
 @OpenApi.Property
@@ -40,11 +42,13 @@ import org.hisp.dhis.fieldfiltering.FieldPath;
 @NoArgsConstructor
 public class ChangeLogRequestParams {
 
-  private static final String DEFAULT_FIELDS_PARAM = "change,createdAt,createdBy";
+  private static final String DEFAULT_FIELDS_PARAM = "change,createdAt,createdBy,type";
 
   private int page = 1;
 
   private int pageSize = 50;
 
   private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
+
+  private List<OrderCriteria> order = new ArrayList<>();
 }
