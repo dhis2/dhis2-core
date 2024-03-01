@@ -127,7 +127,7 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
   }
 
   @Test
-  void shouldGetTrackedEntityAttributeChangeLogWhenValueUpdatedAndThenDeleted() {
+  void shouldGetTrackedEntityAttributeChangeLogWhenValueCreatedAndThenUpdated() {
     JsonList<JsonTrackedEntityChangeLog> changeLogs =
         GET(
                 "/tracker/trackedEntities/{id}/changeLogs?program={programUid}",
