@@ -150,6 +150,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
     // Assert rows.
     validateRow(
         response,
+        0,
         List.of(
             "tU7GixyHhsv",
             "Vitamin A given to < 5y",
@@ -171,6 +172,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "21.12"));
     validateRow(
         response,
+        1,
         List.of(
             "lVsbKXoF0zX",
             "Weight for height below 70 percent",
@@ -192,6 +194,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "52.95"));
     validateRow(
         response,
+        2,
         List.of(
             "bTcRDVjC66S",
             "Weight for age below lower line (red)",
@@ -213,6 +216,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "18.41"));
     validateRow(
         response,
+        3,
         List.of(
             "O05mAByOgAv",
             "OPV2 doses given",
@@ -234,6 +238,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "24.12"));
     validateRow(
         response,
+        4,
         List.of(
             "lVsbKXoF0zX",
             "Weight for height below 70 percent",
@@ -255,6 +260,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "22.12"));
     validateRow(
         response,
+        5,
         List.of(
             "Y53Jcc9LBYh",
             "Children supplied with food supplemements",
@@ -276,6 +282,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "14.71"));
     validateRow(
         response,
+        6,
         List.of(
             "vI2csg55S9C",
             "OPV3 doses given",
@@ -297,6 +304,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "27.83"));
     validateRow(
         response,
+        7,
         List.of(
             "n6aMJNLdvep",
             "Penta3 doses given",
@@ -318,6 +326,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "28.83"));
     validateRow(
         response,
+        8,
         List.of(
             "DUSpd8Jq3M7",
             "Newborn protected at birth against tetanus (TT2+)",
@@ -339,6 +348,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "13.71"));
     validateRow(
         response,
+        9,
         List.of(
             "Y53Jcc9LBYh",
             "Children supplied with food supplemements",
@@ -360,6 +370,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "17.71"));
     validateRow(
         response,
+        10,
         List.of(
             "Y53Jcc9LBYh",
             "Children supplied with food supplemements",
@@ -381,6 +392,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "17.71"));
     validateRow(
         response,
+        11,
         List.of(
             "UOlfIjgN8X6",
             "Fully Immunized child",
@@ -402,6 +414,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "30.53"));
     validateRow(
         response,
+        12,
         List.of(
             "I78gJm4KBo7",
             "Penta2 doses given",
@@ -423,6 +436,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "32.53"));
     validateRow(
         response,
+        13,
         List.of(
             "l6byfWFUGaP",
             "Yellow Fever doses given",
@@ -444,6 +458,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "31.89"));
     validateRow(
         response,
+        14,
         List.of(
             "fClA2Erf6IO",
             "Penta1 doses given",
@@ -465,6 +480,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "42.24"));
     validateRow(
         response,
+        15,
         List.of(
             "l6byfWFUGaP",
             "Yellow Fever doses given",
@@ -486,6 +502,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "36.24"));
     validateRow(
         response,
+        16,
         List.of(
             "YtbsuPPo010",
             "Measles doses given",
@@ -507,6 +524,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "36.24"));
     validateRow(
         response,
+        17,
         List.of(
             "YtbsuPPo010",
             "Measles doses given",
@@ -528,6 +546,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "34.74"));
     validateRow(
         response,
+        18,
         List.of(
             "Rmixc9wJl0G",
             "Q_LLITN given at time of 2nd Vit A dose",
@@ -549,6 +568,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "7.35"));
     validateRow(
         response,
+        19,
         List.of(
             "Y53Jcc9LBYh",
             "Children supplied with food supplemements",
@@ -673,6 +693,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
     // Assert rows.
     validateRow(
         response,
+        0,
         List.of(
             "tU7GixyHhsv",
             "Vitamin A given to < 5y",
@@ -694,6 +715,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "21.12"));
     validateRow(
         response,
+        1,
         List.of(
             "lVsbKXoF0zX",
             "Weight for height below 70 percent",
@@ -715,6 +737,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "52.95"));
     validateRow(
         response,
+        2,
         List.of(
             "l6byfWFUGaP",
             "Yellow Fever doses given",
@@ -736,6 +759,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "23.12"));
     validateRow(
         response,
+        3,
         List.of(
             "O05mAByOgAv",
             "OPV2 doses given",
@@ -757,6 +781,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "24.12"));
     validateRow(
         response,
+        4,
         List.of(
             "bTcRDVjC66S",
             "Weight for age below lower line (red)",
@@ -778,6 +803,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "18.41"));
     validateRow(
         response,
+        5,
         List.of(
             "YtbsuPPo010",
             "Measles doses given",
@@ -799,6 +825,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "27.83"));
     validateRow(
         response,
+        6,
         List.of(
             "vI2csg55S9C",
             "OPV3 doses given",
@@ -820,6 +847,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "27.83"));
     validateRow(
         response,
+        7,
         List.of(
             "n6aMJNLdvep",
             "Penta3 doses given",
@@ -841,6 +869,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "28.83"));
     validateRow(
         response,
+        8,
         List.of(
             "O05mAByOgAv",
             "OPV2 doses given",
@@ -862,6 +891,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "24.12"));
     validateRow(
         response,
+        9,
         List.of(
             "I78gJm4KBo7",
             "Penta2 doses given",
@@ -883,6 +913,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "33.83"));
     validateRow(
         response,
+        10,
         List.of(
             "UOlfIjgN8X6",
             "Fully Immunized child",
@@ -904,6 +935,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "26.83"));
     validateRow(
         response,
+        11,
         List.of(
             "lVsbKXoF0zX",
             "Weight for height below 70 percent",
@@ -925,6 +957,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "22.12"));
     validateRow(
         response,
+        12,
         List.of(
             "vI2csg55S9C",
             "OPV3 doses given",
@@ -946,6 +979,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "26.83"));
     validateRow(
         response,
+        13,
         List.of(
             "n6aMJNLdvep",
             "Penta3 doses given",
@@ -967,6 +1001,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "27.83"));
     validateRow(
         response,
+        14,
         List.of(
             "x3Do5e7g4Qo",
             "OPV0 doses given",
@@ -988,6 +1023,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "34.83"));
     validateRow(
         response,
+        15,
         List.of(
             "Y53Jcc9LBYh",
             "Children supplied with food supplemements",
@@ -1009,6 +1045,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "14.71"));
     validateRow(
         response,
+        16,
         List.of(
             "I78gJm4KBo7",
             "Penta2 doses given",
@@ -1030,6 +1067,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "32.53"));
     validateRow(
         response,
+        17,
         List.of(
             "UOlfIjgN8X6",
             "Fully Immunized child",
@@ -1051,6 +1089,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "30.53"));
     validateRow(
         response,
+        18,
         List.of(
             "l6byfWFUGaP",
             "Yellow Fever doses given",
@@ -1072,6 +1111,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "31.89"));
     validateRow(
         response,
+        19,
         List.of(
             "vI2csg55S9C",
             "OPV3 doses given",
@@ -1182,6 +1222,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
     // Assert rows.
     validateRow(
         response,
+        0,
         List.of(
             "dU0GquGkGQr",
             "Q_Early breastfeeding (within 1 hr after delivery) at BCG",
@@ -1203,6 +1244,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "104.38"));
     validateRow(
         response,
+        1,
         List.of(
             "s46m5MS0hxu",
             "BCG doses given",
@@ -1224,6 +1266,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "213.99"));
     validateRow(
         response,
+        2,
         List.of(
             "l6byfWFUGaP",
             "Yellow Fever doses given",
@@ -1334,6 +1377,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
     // Assert rows.
     validateRow(
         response,
+        0,
         List.of(
             "dU0GquGkGQr",
             "Q_Early breastfeeding (within 1 hr after delivery) at BCG",
@@ -1355,6 +1399,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "104.38"));
     validateRow(
         response,
+        1,
         List.of(
             "s46m5MS0hxu",
             "BCG doses given",
@@ -1376,6 +1421,7 @@ public class OutliersDetection3AutoTest extends AnalyticsApiTest {
             "213.99"));
     validateRow(
         response,
+        2,
         List.of(
             "l6byfWFUGaP",
             "Yellow Fever doses given",

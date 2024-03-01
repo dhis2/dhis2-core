@@ -136,6 +136,7 @@ public class OutliersDetection1AutoTest extends AnalyticsApiTest {
     // Assert rows.
     validateRow(
         response,
+        0,
         List.of(
             "n6aMJNLdvep",
             "Penta3 doses given",
@@ -157,6 +158,7 @@ public class OutliersDetection1AutoTest extends AnalyticsApiTest {
             "22.99"));
     validateRow(
         response,
+        1,
         List.of(
             "s46m5MS0hxu",
             "BCG doses given",
@@ -178,6 +180,7 @@ public class OutliersDetection1AutoTest extends AnalyticsApiTest {
             "213.99"));
     validateRow(
         response,
+        2,
         List.of(
             "x3Do5e7g4Qo",
             "OPV0 doses given",
@@ -199,6 +202,7 @@ public class OutliersDetection1AutoTest extends AnalyticsApiTest {
             "236.88"));
     validateRow(
         response,
+        3,
         List.of(
             "pnL2VG8Bn7N",
             "Weight for height 70-79 percent",
@@ -220,6 +224,7 @@ public class OutliersDetection1AutoTest extends AnalyticsApiTest {
             "115.57"));
     validateRow(
         response,
+        4,
         List.of(
             "l6byfWFUGaP",
             "Yellow Fever doses given",

@@ -179,6 +179,7 @@ public class OutliersDetection2AutoTest extends AnalyticsApiTest {
     // Assert rows.
     validateRow(
         response,
+        0,
         List.of(
             "l6byfWFUGaP",
             "Yellow Fever doses given",
@@ -200,6 +201,7 @@ public class OutliersDetection2AutoTest extends AnalyticsApiTest {
             "391.03"));
     validateRow(
         response,
+        1,
         List.of(
             "s46m5MS0hxu",
             "BCG doses given",
@@ -221,6 +223,7 @@ public class OutliersDetection2AutoTest extends AnalyticsApiTest {
             "213.99"));
     validateRow(
         response,
+        2,
         List.of(
             "dU0GquGkGQr",
             "Q_Early breastfeeding (within 1 hr after delivery) at BCG",
@@ -290,11 +293,11 @@ public class OutliersDetection2AutoTest extends AnalyticsApiTest {
         false);
 
     // Assert rows.
-    validateRow(response, List.of("O05mAByOgAv", "OPV2 doses given", "98.48"));
-    validateRow(response, List.of("vI2csg55S9C", "OPV3 doses given", "70.32"));
-    validateRow(response, List.of("n6aMJNLdvep", "Penta3 doses given", "70.15"));
-    validateRow(response, List.of("UOlfIjgN8X6", "Fully Immunized child", "59.76"));
-    validateRow(response, List.of("I78gJm4KBo7", "Penta2 doses given", "58.95"));
+    validateRow(response, 0, List.of("O05mAByOgAv", "OPV2 doses given", "98.48"));
+    validateRow(response, 1, List.of("vI2csg55S9C", "OPV3 doses given", "70.32"));
+    validateRow(response, 2, List.of("n6aMJNLdvep", "Penta3 doses given", "70.15"));
+    validateRow(response, 3, List.of("UOlfIjgN8X6", "Fully Immunized child", "59.76"));
+    validateRow(response, 4, List.of("I78gJm4KBo7", "Penta2 doses given", "58.95"));
   }
 
   @Test
@@ -337,8 +340,8 @@ public class OutliersDetection2AutoTest extends AnalyticsApiTest {
     validateHeader(response, 2, "zscore", "Z-score", "NUMBER", "java.lang.Double", false, false);
 
     // Assert rows.
-    validateRow(response, List.of("l6byfWFUGaP", "Yellow Fever doses given", "3.66"));
-    validateRow(response, List.of("s46m5MS0hxu", "BCG doses given", "3.1"));
+    validateRow(response, 0, List.of("l6byfWFUGaP", "Yellow Fever doses given", "3.66"));
+    validateRow(response, 1, List.of("s46m5MS0hxu", "BCG doses given", "3.1"));
     validateRow(
         response,
         List.of(

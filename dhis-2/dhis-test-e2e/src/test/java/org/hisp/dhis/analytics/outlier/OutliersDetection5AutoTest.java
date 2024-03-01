@@ -137,6 +137,7 @@ public class OutliersDetection5AutoTest extends AnalyticsApiTest {
     // Assert rows.
     validateRow(
         response,
+        0,
         List.of(
             "dU0GquGkGQr",
             "Q_Early breastfeeding (within 1 hr after delivery) at BCG",
@@ -158,6 +159,7 @@ public class OutliersDetection5AutoTest extends AnalyticsApiTest {
             "104.3801872349"));
     validateRow(
         response,
+        1,
         List.of(
             "s46m5MS0hxu",
             "BCG doses given",
@@ -179,6 +181,7 @@ public class OutliersDetection5AutoTest extends AnalyticsApiTest {
             "213.992686158"));
     validateRow(
         response,
+        2,
         List.of(
             "l6byfWFUGaP",
             "Yellow Fever doses given",
@@ -263,6 +266,7 @@ public class OutliersDetection5AutoTest extends AnalyticsApiTest {
     // Assert rows.
     validateRow(
         response,
+        0,
         List.of(
             "ANC 3rd visit",
             "Outreach",
@@ -276,6 +280,7 @@ public class OutliersDetection5AutoTest extends AnalyticsApiTest {
             "1758.89"));
     validateRow(
         response,
+        1,
         List.of(
             "ANC 3rd visit",
             "Outreach",
@@ -289,6 +294,7 @@ public class OutliersDetection5AutoTest extends AnalyticsApiTest {
             "1758.89"));
     validateRow(
         response,
+        2,
         List.of(
             "ANC 1st visit",
             "Outreach",
@@ -302,6 +308,7 @@ public class OutliersDetection5AutoTest extends AnalyticsApiTest {
             "506.85"));
     validateRow(
         response,
+        3,
         List.of(
             "ANC 3rd visit",
             "Outreach",
@@ -315,6 +322,7 @@ public class OutliersDetection5AutoTest extends AnalyticsApiTest {
             "190.79"));
     validateRow(
         response,
+        4,
         List.of(
             "ANC 1st visit",
             "Fixed",
@@ -391,6 +399,7 @@ public class OutliersDetection5AutoTest extends AnalyticsApiTest {
     // Assert rows.
     validateRow(
         response,
+        0,
         List.of(
             "ANC 3rd visit",
             "Fixed",
@@ -404,6 +413,7 @@ public class OutliersDetection5AutoTest extends AnalyticsApiTest {
             "143.63"));
     validateRow(
         response,
+        1,
         List.of(
             "ANC 1st visit",
             "Fixed",
@@ -417,6 +427,7 @@ public class OutliersDetection5AutoTest extends AnalyticsApiTest {
             "88.61"));
     validateRow(
         response,
+        2,
         List.of(
             "ANC 3rd visit",
             "Fixed",
@@ -430,6 +441,7 @@ public class OutliersDetection5AutoTest extends AnalyticsApiTest {
             "61.39"));
     validateRow(
         response,
+        3,
         List.of(
             "ANC 1st visit",
             "Outreach",
@@ -443,6 +455,7 @@ public class OutliersDetection5AutoTest extends AnalyticsApiTest {
             "54.84"));
     validateRow(
         response,
+        4,
         List.of(
             "ANC 1st visit",
             "Outreach",
@@ -519,6 +532,7 @@ public class OutliersDetection5AutoTest extends AnalyticsApiTest {
     // Assert rows.
     validateRow(
         response,
+        0,
         List.of(
             "ANC 1st visit",
             "Fixed",
@@ -532,6 +546,7 @@ public class OutliersDetection5AutoTest extends AnalyticsApiTest {
             "184.44"));
     validateRow(
         response,
+        1,
         List.of(
             "ANC 1st visit",
             "Fixed",
@@ -545,6 +560,7 @@ public class OutliersDetection5AutoTest extends AnalyticsApiTest {
             "116.95"));
     validateRow(
         response,
+        2,
         List.of(
             "ANC 3rd visit",
             "Outreach",
@@ -558,6 +574,7 @@ public class OutliersDetection5AutoTest extends AnalyticsApiTest {
             "86.83"));
     validateRow(
         response,
+        3,
         List.of(
             "ANC 1st visit",
             "Fixed",
@@ -571,6 +588,7 @@ public class OutliersDetection5AutoTest extends AnalyticsApiTest {
             "79.52"));
     validateRow(
         response,
+        4,
         List.of(
             "ANC 1st visit",
             "Fixed",
