@@ -208,7 +208,7 @@ public class DefaultResourceTableService implements ResourceTableService {
   @Transactional
   public void generateCategoryOptionComboTable() {
     resourceTableStore.generateResourceTable(
-        new CategoryOptionComboResourceTable(analyticsTableSettings.getTableLogged()));
+        new CategoryOptionComboResourceTable(sqlBuilder, analyticsTableSettings.getTableLogged()));
   }
 
   @Override

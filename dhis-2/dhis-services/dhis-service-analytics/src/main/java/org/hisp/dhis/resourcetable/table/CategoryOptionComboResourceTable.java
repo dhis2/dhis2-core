@@ -40,6 +40,7 @@ import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
@@ -49,6 +50,8 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 @RequiredArgsConstructor
 public class CategoryOptionComboResourceTable implements ResourceTable {
   public static final String TABLE_NAME = "analytics_rs_dataelementcategoryoptioncombo";
+
+  private final SqlBuilder sqlBuilder;
 
   private final Logged logged;
 
@@ -88,12 +91,18 @@ public class CategoryOptionComboResourceTable implements ResourceTable {
         (dataelementid, dataelementuid, categoryoptioncomboid, categoryoptioncombouid) \
         select de.dataelementid as dataelementid, de.uid as dataelementuid, \
         coc.categoryoptioncomboid as categoryoptioncomboid, coc.uid as categoryoptioncombouid \
-        from dataelement de \
-        inner join categorycombos_optioncombos cc on de.categorycomboid = cc.categorycomboid \
-        inner join categoryoptioncombo coc on cc.categoryoptioncomboid = coc.categoryoptioncomboid;
+        from ${dataelement} de \
+        inner join ${categorycombos_optioncombos} cc on de.categorycomboid = cc.categorycomboid \
+        inner join ${categoryoptioncombo} coc on cc.categoryoptioncomboid = coc.categoryoptioncomboid;
         """,
             "tableName",
-            toStaging(TABLE_NAME));
+            toStaging(TABLE_NAME),
+            "dataelement",
+            sqlBuilder.qualifyTable("dataelement"),
+            "categorycombos_optioncombos",
+            sqlBuilder.qualifyTable("categorycombos_optioncombos"),
+            "categoryoptioncombo",
+            sqlBuilder.qualifyTable("categoryoptioncombo"));
 
     return Optional.of(sql);
   }
