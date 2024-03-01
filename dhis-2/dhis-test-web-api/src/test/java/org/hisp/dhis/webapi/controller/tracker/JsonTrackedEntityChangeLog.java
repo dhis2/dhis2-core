@@ -25,27 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentityattributevalue;
+package org.hisp.dhis.webapi.controller.tracker;
 
-import java.util.List;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.jsontree.JsonObject;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public interface TrackedEntityAttributeValueChangeLogService {
-  void addTrackedEntityAttributeValueChangLog(
-      TrackedEntityAttributeValueChangeLog trackedEntityAttributeValueChangeLog);
+/** Representation of {@link org.hisp.dhis.tracker.export.event.EventChangeLog}. */
+public interface JsonTrackedEntityChangeLog extends JsonObject {
+  default JsonUser getCreatedBy() {
+    return get("createdBy").as(JsonUser.class);
+  }
 
-  /**
-   * @deprecated use TrackedEntityChangeLogService.getEventChangeLog(UID) instead
-   */
-  @Deprecated(since = "2.41")
-  List<TrackedEntityAttributeValueChangeLog> getTrackedEntityAttributeValueChangeLogs(
-      TrackedEntityAttributeValueChangeLogQueryParams params);
+  default String getType() {
+    return getString("type").string();
+  }
 
-  int countTrackedEntityAttributeValueChangeLogs(
-      TrackedEntityAttributeValueChangeLogQueryParams params);
+  default JsonChange getChange() {
+    return get("change").as(JsonChange.class);
+  }
 
-  void deleteTrackedEntityAttributeValueChangeLogs(TrackedEntity trackedEntity);
+  interface JsonChange extends JsonObject {
+    default JsonAttributeValue getAttributeValue() {
+      return get("attributeValue").as(JsonAttributeValue.class);
+    }
+  }
+
+  interface JsonAttributeValue extends JsonObject {
+    default String getAttribute() {
+      return getString("attribute").string();
+    }
+
+    default String getPreviousValue() {
+      return getString("previousValue").string();
+    }
+
+    default String getCurrentValue() {
+      return getString("currentValue").string();
+    }
+  }
 }
