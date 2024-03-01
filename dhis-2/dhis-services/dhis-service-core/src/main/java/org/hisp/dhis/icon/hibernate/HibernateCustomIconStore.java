@@ -29,6 +29,7 @@ package org.hisp.dhis.icon.hibernate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -106,30 +107,7 @@ public class HibernateCustomIconStore extends HibernateIdentifiableObjectStore<C
 
     entityManager.createQuery(criteriaQuery).getResultList().forEach(keys::addAll);
 
-    return keys;
-  }
-
-  @Override
-  public Set<CustomIcon> getCustomIconsByKeywords(Set<String> keywords) {
-
-    String keywordsJsonArray;
-    try {
-      keywordsJsonArray = objectMapper.writeValueAsString(keywords);
-
-    } catch (JsonProcessingException e) {
-      e.printStackTrace();
-      return Set.of();
-    }
-
-    String sql =
-        """
-         SELECT * FROM customicon WHERE keywords @> cast(:param as jsonb);
-        """;
-    return getSession()
-        .createNativeQuery(sql, CustomIcon.class)
-        .setParameter("param", keywordsJsonArray)
-        .getResultStream()
-        .collect(Collectors.toSet());
+    return Collections.unmodifiableSet(keys);
   }
 
   @Override

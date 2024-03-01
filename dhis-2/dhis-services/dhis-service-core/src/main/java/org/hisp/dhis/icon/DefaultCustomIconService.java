@@ -79,17 +79,6 @@ public class DefaultCustomIconService implements CustomIconService {
 
   @Override
   @Transactional(readOnly = true)
-  public Set<CustomIcon> getCustomIconsByKeywords(Set<String> keywords) {
-
-    if (keywords == null || keywords.isEmpty()) {
-      return Set.of();
-    }
-
-    return customIconStore.getCustomIconsByKeywords(keywords);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public CustomIcon getCustomIconByUid(String uid) throws NotFoundException {
     CustomIcon customIcon = customIconStore.getByUid(uid);
     if (customIcon == null) {
