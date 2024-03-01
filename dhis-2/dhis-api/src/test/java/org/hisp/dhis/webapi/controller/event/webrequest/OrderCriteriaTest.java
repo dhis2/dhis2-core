@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.event.webrequest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
@@ -42,23 +41,20 @@ class OrderCriteriaTest {
 
   @Test
   void fromOrderString() {
-
     List<OrderCriteria> orderCriteria =
         OrderCriteria.fromOrderString("one:desc,, two:asc  ,three  ");
 
     assertNotNull(orderCriteria);
     assertEquals(
-        4, orderCriteria.size(), String.format("Expected 4 item, instead got %s", orderCriteria));
+        3, orderCriteria.size(), String.format("Expected 3 item, instead got %s", orderCriteria));
     assertEquals(OrderCriteria.of("one", SortDirection.DESC), orderCriteria.get(0));
-    assertEquals(OrderCriteria.of("", SortDirection.ASC), orderCriteria.get(1));
-    assertEquals(OrderCriteria.of(" two", SortDirection.ASC), orderCriteria.get(2));
-    assertEquals(OrderCriteria.of("three", SortDirection.ASC), orderCriteria.get(3));
+    assertEquals(OrderCriteria.of("two", SortDirection.ASC), orderCriteria.get(1));
+    assertEquals(OrderCriteria.of("three", SortDirection.ASC), orderCriteria.get(2));
   }
 
   @ValueSource(strings = {"one:desc", "one:Desc", "one:DESC"})
   @ParameterizedTest
   void fromOrderStringSortDirectionParsingIsCaseInsensitive(String source) {
-
     List<OrderCriteria> orderCriteria = OrderCriteria.fromOrderString(source);
 
     assertNotNull(orderCriteria);
@@ -69,7 +65,6 @@ class OrderCriteriaTest {
 
   @Test
   void fromOrderStringDefaultsToAscGivenFieldAndColon() {
-
     List<OrderCriteria> orderCriteria = OrderCriteria.fromOrderString("one:");
 
     assertNotNull(orderCriteria);
@@ -79,13 +74,12 @@ class OrderCriteriaTest {
   }
 
   @Test
-  void fromOrderStringDefaultsSortDirectionToAscGivenAnUnknownSortDirection() {
+  void failGivenAnUnknownSortDirection() {
     assertThrows(IllegalArgumentException.class, () -> OrderCriteria.fromOrderString("one:wrong"));
   }
 
   @Test
   void fromOrderStringReturnsEmptyListGivenEmptyOrder() {
-
     List<OrderCriteria> orderCriteria = OrderCriteria.fromOrderString(" ");
 
     assertNotNull(orderCriteria);
@@ -94,13 +88,8 @@ class OrderCriteriaTest {
   }
 
   @Test
-  void fromOrderStringReturnsNullGivenOrderWithMoreThanTwoProperties() {
-
-    List<OrderCriteria> orderCriteria = OrderCriteria.fromOrderString("one:desc:wrong");
-
-    assertNotNull(orderCriteria);
-    assertEquals(
-        1, orderCriteria.size(), String.format("Expected 1 item, instead got %s", orderCriteria));
-    assertNull(orderCriteria.get(0));
+  void failGivenMoreThanTwoColons() {
+    assertThrows(
+        IllegalArgumentException.class, () -> OrderCriteria.fromOrderString("one:desc:wrong"));
   }
 }

@@ -46,9 +46,9 @@ import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 @Value
 @AllArgsConstructor(staticName = "of")
 public class OrderCriteria {
-  private final String field;
+  String field;
 
-  private final SortDirection direction;
+  SortDirection direction;
 
   public OrderParam toOrderParam() {
     return new OrderParam(field, direction);
@@ -64,18 +64,29 @@ public class OrderCriteria {
 
   private static List<OrderCriteria> toOrderCriterias(String s) {
     return Arrays.stream(s.split(","))
-        .map(OrderCriteria::toOrderCriteria)
+        .filter(StringUtils::isNotBlank)
+        .map(OrderCriteria::valueOf)
         .collect(Collectors.toList());
   }
 
-  public static OrderCriteria toOrderCriteria(String s1) {
-    String[] props = s1.split(":");
+  /**
+   * Create an {@link OrderCriteria} from a string in the format of "field:direction". Valid
+   * directions are defined by {@link SortDirection}.
+   *
+   * @throws IllegalArgumentException if the input is not in the correct format.
+   */
+  public static OrderCriteria valueOf(String input) {
+    String[] props = input.split(":");
     if (props.length == 2) {
-      return OrderCriteria.of(props[0], SortDirection.of(props[1].trim()));
+      return OrderCriteria.of(props[0].trim(), SortDirection.of(props[1].trim()));
     }
     if (props.length == 1) {
-      return OrderCriteria.of(props[0], SortDirection.ASC);
+      return OrderCriteria.of(props[0].trim(), SortDirection.ASC);
     }
-    return null;
+
+    throw new IllegalArgumentException(
+        "Invalid order property: '"
+            + input
+            + "'. Valid formats are 'field:direction' or 'field'. Valid directions are 'asc' or 'desc'. Direction defaults to 'asc'.");
   }
 }
