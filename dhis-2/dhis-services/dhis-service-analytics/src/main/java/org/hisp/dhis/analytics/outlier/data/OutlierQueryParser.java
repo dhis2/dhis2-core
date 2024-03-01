@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.outlier.data;
 import static org.hisp.dhis.analytics.outlier.Order.getOrderBy;
 import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
 import static org.hisp.dhis.feedback.ErrorCode.E7617;
+import static org.hisp.dhis.feedback.ErrorCode.E7622;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -175,24 +176,22 @@ public class OutlierQueryParser {
     String currentUsername = CurrentUserUtil.getCurrentUsername();
     User currentUser = userService.getUserByUsername(currentUsername);
 
-    Set<OrganisationUnit> organisationUnitsSecurityConstrain =
-        currentUser == null || !currentUser.hasDataViewOrganisationUnit()
-            ? Set.of()
-            : currentUser.getDataViewOrganisationUnits();
+    if (currentUser == null || !currentUser.hasDataViewOrganisationUnit()) {
+      throw new IllegalQueryException(
+          E7622, currentUser == null ? EMPTY : currentUser.getUsername());
+    }
 
     if (queryParams.getOu().isEmpty()) {
-      return organisationUnitsSecurityConstrain.stream().toList();
+      return currentUser.getDataViewOrganisationUnits().stream().toList();
     }
 
     List<OrganisationUnit> validOrganisationUnits =
         applySecurityConstrain(
-            organisationUnitsSecurityConstrain, queryParams.getOu(), currentUser);
+            currentUser.getDataViewOrganisationUnits(), queryParams.getOu(), currentUser);
 
     if (validOrganisationUnits.isEmpty()) {
       throw new IllegalQueryException(
-          E7617,
-          String.join(",", queryParams.getOu()),
-          currentUser == null ? EMPTY : currentUser.getUsername());
+          E7617, String.join(",", queryParams.getOu()), currentUser.getUsername());
     }
 
     return validOrganisationUnits;
@@ -222,7 +221,7 @@ public class OutlierQueryParser {
             bdo ->
                 organisationUnitsSecurityConstrain.isEmpty()
                     || organisationUnitsSecurityConstrain.stream()
-                        .anyMatch(ou -> bdo.getUid().equals(ou.getUid())))
+                        .anyMatch(ou -> ((OrganisationUnit) bdo).isDescendant(ou)))
         .map(ou -> (OrganisationUnit) ou)
         .toList();
   }
