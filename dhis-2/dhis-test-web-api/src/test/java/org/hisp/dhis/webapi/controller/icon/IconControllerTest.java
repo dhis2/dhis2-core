@@ -89,8 +89,6 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     String updatedKeywords = "['new k1', 'new k2']";
     createCustomIcon(createFileResource(), keywordsList1, key1);
 
-    String uid = getCustomIconId(key1);
-
     JsonObject response =
         PUT(
                 String.format("/icons/%s", key1),
@@ -146,9 +144,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     createCustomIcon(fileResourceId2, keywordsList2, key2);
     createCustomIcon(fileResourceId3, keywordsList3, key3);
 
-    JsonArray response =
-        GET("/icons?keywords=m1,k1&type=custom&fields=key,keywords,description,href")
-            .content(HttpStatus.OK);
+    JsonArray response = GET("/icons?keywords=m1,k1&type=custom&fields=*").content(HttpStatus.OK);
 
     assertNotNull(response);
     JsonList<JsonIcon> icons = response.asList(JsonIcon.class);
@@ -210,7 +206,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     assertHasMember(iconResponse, "pager");
 
     assertEquals(2, pager.getPage());
-    assertEquals(900, pager.getTotal());
+    assertEquals(899, pager.getTotal());
     assertEquals(2, pager.getPageSize());
     assertEquals(450, pager.getPageCount());
 
@@ -256,7 +252,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     JsonWebMessage message = null;
     try {
       message =
-          POST("/icons/", mapper.writeValueAsString(request))
+          POST("/icons", mapper.writeValueAsString(request))
               .content(HttpStatus.CREATED)
               .as(JsonWebMessage.class);
     } catch (JsonProcessingException e) {

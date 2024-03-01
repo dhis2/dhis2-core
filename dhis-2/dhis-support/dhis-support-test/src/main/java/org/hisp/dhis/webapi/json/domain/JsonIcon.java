@@ -62,7 +62,7 @@ public interface JsonIcon extends JsonObject {
     return getObject("createdBy");
   }
 
-  default JsonObject getFileResourceUid() {
+  default JsonObject getFileResource() {
     return getObject("fileResource");
   }
 
