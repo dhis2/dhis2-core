@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
+import static java.lang.String.valueOf;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
 
@@ -34,7 +35,6 @@ import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -44,24 +44,28 @@ import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.sql.SqlBuilder;
-import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.hisp.dhis.resourcetable.util.UniqueNameContext;
 
 /**
  * @author Lars Helge Overland
  */
-@RequiredArgsConstructor
-public class CategoryResourceTable implements ResourceTable {
+public class CategoryResourceTable extends AbstractResourceTable {
   private static final String TABLE_NAME = "analytics_rs_categorystructure";
-
-  private final SqlBuilder sqlBuilder;
 
   private final List<Category> categories;
 
   private final List<CategoryOptionGroupSet> groupSets;
 
-  private final Logged logged;
+  public CategoryResourceTable(
+      SqlBuilder sqlBuilder,
+      Logged logged,
+      List<Category> categories,
+      List<CategoryOptionGroupSet> groupSets) {
+    super(sqlBuilder, logged);
+    this.categories = categories;
+    this.groupSets = groupSets;
+  }
 
   @Override
   public Table getTable() {
@@ -128,14 +132,18 @@ public class CategoryResourceTable implements ResourceTable {
               and cco.categoryid = ${categoryId} limit 1) as ${categoryUid}, \
               """,
               Map.of(
-                  "categoryId", String.valueOf(category.getId()),
-                  "categoryName", sqlBuilder.quote(category.getName()),
-                  "categoryUid", sqlBuilder.quote(category.getUid()),
+                  "categoryId",
+                  valueOf(category.getId()),
+                  "categoryName",
+                  quote(category.getName()),
+                  "categoryUid",
+                  quote(category.getUid()),
                   "categoryoptioncombos_categoryoptions",
-                      sqlBuilder.qualifyTable("categoryoptioncombos_categoryoptions"),
-                  "categoryoption", sqlBuilder.qualifyTable("categoryoption"),
+                  qualify("categoryoptioncombos_categoryoptions"),
+                  "categoryoption",
+                  sqlBuilder.qualifyTable("categoryoption"),
                   "categories_categoryoptions",
-                      sqlBuilder.qualifyTable("categories_categoryoptions")));
+                  qualify("categories_categoryoptions")));
     }
 
     for (CategoryOptionGroupSet groupSet : groupSets) {
@@ -158,16 +166,14 @@ public class CategoryResourceTable implements ResourceTable {
               and cogsm.categoryoptiongroupsetid = ${groupSetId} limit 1) as ${groupSetUid}, \
               """,
               Map.of(
-                  "groupSetId", String.valueOf(groupSet.getId()),
-                  "groupSetName", sqlBuilder.quote(groupSet.getName()),
-                  "groupSetUid", sqlBuilder.quote(groupSet.getUid()),
+                  "groupSetId", valueOf(groupSet.getId()),
+                  "groupSetName", quote(groupSet.getName()),
+                  "groupSetUid", quote(groupSet.getUid()),
                   "categoryoptioncombos_categoryoptions",
-                      sqlBuilder.qualifyTable("categoryoptioncombos_categoryoptions"),
-                  "categoryoptiongroupmembers",
-                      sqlBuilder.qualifyTable("categoryoptiongroupmembers"),
+                      qualify("categoryoptioncombos_categoryoptions"),
+                  "categoryoptiongroupmembers", qualify("categoryoptiongroupmembers"),
                   "categoryoptiongroup", sqlBuilder.qualifyTable("categoryoptiongroup"),
-                  "categoryoptiongroupsetmembers",
-                      sqlBuilder.qualifyTable("categoryoptiongroupsetmembers")));
+                  "categoryoptiongroupsetmembers", qualify("categoryoptiongroupsetmembers")));
     }
 
     sql = TextUtils.removeLastComma(sql) + " ";
