@@ -221,7 +221,7 @@ public class OutlierQueryParser {
             bdo ->
                 organisationUnitsSecurityConstrain.isEmpty()
                     || organisationUnitsSecurityConstrain.stream()
-                        .anyMatch(ou -> ((OrganisationUnit) bdo).isDescendant(ou)))
+                        .anyMatch(((OrganisationUnit) bdo)::isDescendant))
         .map(ou -> (OrganisationUnit) ou)
         .toList();
   }
