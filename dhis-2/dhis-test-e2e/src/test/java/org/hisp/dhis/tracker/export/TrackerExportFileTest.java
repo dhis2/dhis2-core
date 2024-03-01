@@ -67,6 +67,7 @@ public class TrackerExportFileTest extends TrackerApiTest {
   private static final String ATTRIBUTE = "dIVt4l5vIOa";
   private static final String ATTRIBUTE_VALUE = "attribute_value";
   private static final String TRACKED_ENTITY_TYPE = "Q9GufDoplCL";
+  private static final String RELATIONSHIP_TYPE = "gdc6uOvgoji";
   private static final String ORG_UNIT = "O6uvpzGd5pu";
   private static final String POLYGON =
       "POLYGON ((-12.305267 8.777237, -11.770837 8.98885, -11.55937 8.311341, -12.495765 8.368669, -12.305267 8.777237))";
@@ -205,7 +206,7 @@ public class TrackerExportFileTest extends TrackerApiTest {
                 .body()
                 .asByteArray());
 
-    assertCsvRecordSize(csvRecords);
+    assertCsvOneRecordSize(csvRecords);
 
     try (CSVReader reader = new CSVReader(new StringReader(csvRecords))) {
       reader.readNext(); // header
@@ -230,7 +231,7 @@ public class TrackerExportFileTest extends TrackerApiTest {
             .body()
             .asByteArray();
 
-    assertCsvRecordSize(new String(csvRecords));
+    assertCsvOneRecordSize(new String(csvRecords));
 
     try (CSVReader reader = new CSVReader(new StringReader(new String(csvRecords)))) {
       reader.readNext(); // header
@@ -311,7 +312,7 @@ public class TrackerExportFileTest extends TrackerApiTest {
 
     JsonArray eventsJson = JsonParser.parseString(s).getAsJsonObject().getAsJsonArray("events");
 
-    assertEventSize(eventsJson);
+    assertJsonOneEventSize(eventsJson);
     assertEventJson(eventsJson);
   }
 
@@ -333,15 +334,15 @@ public class TrackerExportFileTest extends TrackerApiTest {
     JsonArray eventsJson =
         JsonParser.parseString(s.get("events.json")).getAsJsonObject().getAsJsonArray("events");
 
-    assertEventSize(eventsJson);
+    assertJsonOneEventSize(eventsJson);
     assertEventJson(eventsJson);
   }
 
-  private void assertEventSize(JsonArray eventsJson) {
-    assertEventsSize(eventsJson, 1);
+  private void assertJsonOneEventSize(JsonArray eventsJson) {
+    assertJsonEventsSize(eventsJson, 1);
   }
 
-  private void assertEventsSize(JsonArray eventsJson, int expected) {
+  private void assertJsonEventsSize(JsonArray eventsJson, int expected) {
     assertEquals(
         expected,
         eventsJson.size(),
@@ -403,6 +404,14 @@ public class TrackerExportFileTest extends TrackerApiTest {
           JsonArray relationships = eventJson.get("relationships").getAsJsonArray();
 
           JsonObject relationship = relationships.get(0).getAsJsonObject();
+
+          assertEquals(
+              RELATIONSHIP_TYPE,
+              relationship.get("relationshipType").getAsString(),
+              String.format(
+                  "Excpected from event to te relationship type %s but found %s",
+                  RELATIONSHIP_TYPE, relationship.get("relationshipType")));
+
           assertEquals(
               event,
               relationship
@@ -459,7 +468,7 @@ public class TrackerExportFileTest extends TrackerApiTest {
                 .body()
                 .asByteArray());
 
-    assertCsvRecordSize(s);
+    assertCsvOneRecordSize(s);
 
     try (CSVReader reader = new CSVReader(new StringReader(s))) {
       reader.readNext(); // header
@@ -481,7 +490,7 @@ public class TrackerExportFileTest extends TrackerApiTest {
                 .body()
                 .asByteArray());
 
-    assertCsvRecordSize(s.get("events.csv"));
+    assertCsvOneRecordSize(s.get("events.csv"));
 
     try (CSVReader reader = new CSVReader(new StringReader(s.get("events.csv")))) {
       reader.readNext(); // header
@@ -512,7 +521,7 @@ public class TrackerExportFileTest extends TrackerApiTest {
                 record[3],
                 String.format(
                     "Expected programStage %s but got %s",
-                    PROGRAM_STAGE, record[2])), // programStage
+                    PROGRAM_STAGE, record[3])), // programStage
         () ->
             assertEquals(
                 ENROLLMENT,
@@ -560,7 +569,7 @@ public class TrackerExportFileTest extends TrackerApiTest {
         );
   }
 
-  private void assertCsvRecordSize(String records) throws IOException, CsvValidationException {
+  private void assertCsvOneRecordSize(String records) throws IOException, CsvValidationException {
     assertCsvRecordsSize(records, 1);
   }
 
