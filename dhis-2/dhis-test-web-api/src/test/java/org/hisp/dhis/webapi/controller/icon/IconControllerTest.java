@@ -147,7 +147,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     createCustomIcon(fileResourceId3, keywordsList3, key3);
 
     JsonArray response =
-        GET("/icons?keywords=m1,k1&type=custom&fields=key,keywords,description,fileResource")
+        GET("/icons?keywords=m1,k1&type=custom&fields=key,keywords,description,href")
             .content(HttpStatus.OK);
 
     assertNotNull(response);

@@ -124,13 +124,12 @@ public class IconController {
 
     Set<CustomIcon> icons = iconService.getCustomIcons(iconOperationParams);
 
-    icons.stream()
-        .forEach(
-            i ->
-                i.setHref(
-                    i.getCustom()
-                        ? getCustomIconReference(i.getKey())
-                        : getDefaultIconReference(i.getKey())));
+    icons.forEach(
+        i ->
+            i.setHref(
+                i.getCustom()
+                    ? getCustomIconReference(i.getKey())
+                    : getDefaultIconReference(i.getKey())));
 
     List<ObjectNode> objectNodes =
         fieldFilterService.toObjectNodes(icons.stream().toList(), iconRequestParams.getFields());
