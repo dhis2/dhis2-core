@@ -33,9 +33,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
@@ -47,8 +49,10 @@ import org.hisp.dhis.icon.CustomIcon;
 import org.hisp.dhis.icon.CustomIconOperationParams;
 import org.hisp.dhis.icon.CustomIconStore;
 import org.hisp.dhis.security.acl.AclService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -59,6 +63,8 @@ public class HibernateCustomIconStore extends HibernateIdentifiableObjectStore<C
     implements CustomIconStore {
 
   private static final ObjectMapper objectMapper = new ObjectMapper();
+
+  @Autowired private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
   public HibernateCustomIconStore(
       EntityManager entityManager,
@@ -72,16 +78,14 @@ public class HibernateCustomIconStore extends HibernateIdentifiableObjectStore<C
   public long count(CustomIconOperationParams iconOperationParams) {
 
     String sql = """
-            select count(*) from customicon
+            select count(*) as count from customicon c
             """;
     Map<String, Object> parameterSource = new HashMap<>();
     sql = buildIconQuery(iconOperationParams, sql, parameterSource);
 
-    NativeQuery<Long> query = getSession().createNativeQuery(sql, Long.class);
-
-    setParameters(query, parameterSource);
-
-    return query.getSingleResult();
+    return Optional.ofNullable(
+            namedParameterJdbcTemplate.queryForObject(sql, parameterSource, Long.class))
+        .orElse(0L);
   }
 
   @Override
@@ -123,11 +127,16 @@ public class HibernateCustomIconStore extends HibernateIdentifiableObjectStore<C
 
     setParameters(query, parameterSource);
 
+    if (iconOperationParams.isPaging()) {
+      query.setFirstResult(iconOperationParams.getPager().getPage());
+      query.setMaxResults(iconOperationParams.getPager().getPageSize());
+    }
+
     return query.list().stream().collect(Collectors.toUnmodifiableSet());
   }
 
-  private void setParameters(NativeQuery<?> query, Map<String, Object> parameterSource) {
-    parameterSource.entrySet().stream().forEach(p -> query.setParameter(p.getKey(), p.getValue()));
+  private void setParameters(Query query, Map<String, Object> parameterSource) {
+    parameterSource.entrySet().forEach(p -> query.setParameter(p.getKey(), p.getValue()));
   }
 
   private String buildIconQuery(
