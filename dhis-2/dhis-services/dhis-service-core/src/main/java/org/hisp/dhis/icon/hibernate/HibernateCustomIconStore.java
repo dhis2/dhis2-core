@@ -136,7 +136,7 @@ public class HibernateCustomIconStore extends HibernateIdentifiableObjectStore<C
   }
 
   private void setParameters(Query query, Map<String, Object> parameterSource) {
-    parameterSource.entrySet().forEach(p -> query.setParameter(p.getKey(), p.getValue()));
+    parameterSource.forEach(query::setParameter);
   }
 
   private String buildIconQuery(

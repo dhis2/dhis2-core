@@ -153,8 +153,7 @@ public class IconController {
   }
 
   @GetMapping(value = "/{key}")
-  public ResponseEntity<CustomIcon> getIconByKey(
-      @PathVariable String key, HttpServletResponse response)
+  public ResponseEntity<CustomIcon> getIconByKey(@PathVariable String key)
       throws NotFoundException, WebMessageException {
 
     CustomIcon customIcon = iconService.getCustomIcon(key);
