@@ -65,7 +65,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 @RequiredArgsConstructor
 public class DataSourceConfig {
 
-  private final DhisConfigurationProvider dhisConfig;
+  private final DhisConfigurationProvider config;
 
   @Bean("namedParameterJdbcTemplate")
   @Primary
@@ -87,7 +87,7 @@ public class DataSourceConfig {
   @Bean("readOnlyJdbcTemplate")
   @DependsOn("dataSource")
   public JdbcTemplate readOnlyJdbcTemplate(@Qualifier("dataSource") DataSource dataSource) {
-    ReadOnlyDataSourceManager manager = new ReadOnlyDataSourceManager(dhisConfig);
+    ReadOnlyDataSourceManager manager = new ReadOnlyDataSourceManager(config);
 
     JdbcTemplate jdbcTemplate =
         new JdbcTemplate(MoreObjects.firstNonNull(manager.getReadOnlyDataSource(), dataSource));
@@ -109,7 +109,7 @@ public class DataSourceConfig {
     } catch (SQLException | PropertyVetoException e) {
       String message =
           String.format(
-              "Connection test failed for main database pool, " + "jdbcUrl: '%s', user: '%s'",
+              "Connection test failed for main database pool, jdbcUrl: '%s', user: '%s'",
               jdbcUrl, username);
 
       log.error(message);
@@ -172,12 +172,12 @@ public class DataSourceConfig {
   @DependsOn("actualDataSource")
   @Primary
   public DataSource dataSource(@Qualifier("actualDataSource") DataSource actualDataSource) {
-    return createLoggingDataSource(dhisConfig, actualDataSource);
+    return createLoggingDataSource(config, actualDataSource);
   }
 
   @Bean("actualDataSource")
   public DataSource actualDataSource() {
-    return createActualDataSource(dhisConfig);
+    return createActualDataSource(config);
   }
 
   private static void executeAfterMethod(MethodExecutionContext executionContext) {

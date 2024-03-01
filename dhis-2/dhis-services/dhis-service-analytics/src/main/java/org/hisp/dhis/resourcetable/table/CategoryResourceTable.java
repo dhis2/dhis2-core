@@ -27,10 +27,12 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
+import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
 
 import com.google.common.collect.Lists;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.Category;
@@ -51,7 +53,7 @@ import org.hisp.dhis.resourcetable.util.UniqueNameContext;
  */
 @RequiredArgsConstructor
 public class CategoryResourceTable implements ResourceTable {
-  private static final String TABLE_NAME = "_categorystructure";
+  private static final String TABLE_NAME = "analytics_rs_categorystructure";
 
   private final SqlBuilder sqlBuilder;
 
@@ -110,62 +112,50 @@ public class CategoryResourceTable implements ResourceTable {
 
     for (Category category : categories) {
       sql +=
-          "("
-              + "select co.name from categoryoptioncombos_categoryoptions cocco "
-              + "inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid "
-              + "inner join categories_categoryoptions cco on co.categoryoptionid = cco.categoryoptionid "
-              + "where coc.categoryoptioncomboid = cocco.categoryoptioncomboid "
-              + "and cco.categoryid = "
-              + category.getId()
-              + " "
-              + "limit 1) as "
-              + sqlBuilder.quote(category.getName())
-              + ", ";
-
-      sql +=
-          "("
-              + "select co.uid from categoryoptioncombos_categoryoptions cocco "
-              + "inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid "
-              + "inner join categories_categoryoptions cco on co.categoryoptionid = cco.categoryoptionid "
-              + "where coc.categoryoptioncomboid = cocco.categoryoptioncomboid "
-              + "and cco.categoryid = "
-              + category.getId()
-              + " "
-              + "limit 1) as "
-              + sqlBuilder.quote(category.getUid())
-              + ", ";
+          replace(
+              """
+            (
+              select co.name from categoryoptioncombos_categoryoptions cocco \
+              inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid \
+              inner join categories_categoryoptions cco on co.categoryoptionid = cco.categoryoptionid \
+              where coc.categoryoptioncomboid = cocco.categoryoptioncomboid \
+              and cco.categoryid = ${categoryId} limit 1) as ${categoryName}, \
+              (
+              select co.uid from categoryoptioncombos_categoryoptions cocco \
+              inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid \
+              inner join categories_categoryoptions cco on co.categoryoptionid = cco.categoryoptionid \
+              where coc.categoryoptioncomboid = cocco.categoryoptioncomboid
+              and cco.categoryid = ${categoryId} limit 1) as ${categoryUid}, \
+              """,
+              Map.of(
+                  "categoryId", String.valueOf(category.getId()),
+                  "categoryName", sqlBuilder.quote(category.getName()),
+                  "categoryUid", sqlBuilder.quote(category.getUid())));
     }
 
     for (CategoryOptionGroupSet groupSet : groupSets) {
       sql +=
-          "("
-              + "select cog.name from categoryoptioncombos_categoryoptions cocco "
-              + "inner join categoryoptiongroupmembers cogm on cocco.categoryoptionid = cogm.categoryoptionid "
-              + "inner join categoryoptiongroup cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid "
-              + "inner join categoryoptiongroupsetmembers cogsm on "
-              + "cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid "
-              + "where coc.categoryoptioncomboid = cocco.categoryoptioncomboid "
-              + "and cogsm.categoryoptiongroupsetid = "
-              + groupSet.getId()
-              + " "
-              + "limit 1) as "
-              + sqlBuilder.quote(groupSet.getName())
-              + ", ";
-
-      sql +=
-          "("
-              + "select cog.uid from categoryoptioncombos_categoryoptions cocco "
-              + "inner join categoryoptiongroupmembers cogm on cocco.categoryoptionid = cogm.categoryoptionid "
-              + "inner join categoryoptiongroup cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid "
-              + "inner join categoryoptiongroupsetmembers cogsm on "
-              + "cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid "
-              + "where coc.categoryoptioncomboid = cocco.categoryoptioncomboid "
-              + "and cogsm.categoryoptiongroupsetid = "
-              + groupSet.getId()
-              + " "
-              + "limit 1) as "
-              + sqlBuilder.quote(groupSet.getUid())
-              + ", ";
+          replace(
+              """
+            (
+              select cog.name from categoryoptioncombos_categoryoptions cocco \
+              inner join categoryoptiongroupmembers cogm on cocco.categoryoptionid = cogm.categoryoptionid \
+              inner join categoryoptiongroup cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid \
+              inner join categoryoptiongroupsetmembers cogsm on cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid \
+              where coc.categoryoptioncomboid = cocco.categoryoptioncomboid \
+              and cogsm.categoryoptiongroupsetid = ${groupSetId} limit 1) as ${groupSetName}, \
+              (
+              select cog.uid from categoryoptioncombos_categoryoptions cocco \
+              inner join categoryoptiongroupmembers cogm on cocco.categoryoptionid = cogm.categoryoptionid \
+              inner join categoryoptiongroup cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid \
+              inner join categoryoptiongroupsetmembers cogsm on cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid \
+              where coc.categoryoptioncomboid = cocco.categoryoptioncomboid \
+              and cogsm.categoryoptiongroupsetid = ${groupSetId} limit 1) as ${groupSetUid}, \
+              """,
+              Map.of(
+                  "groupSetId", String.valueOf(groupSet.getId()),
+                  "groupSetName", sqlBuilder.quote(groupSet.getName()),
+                  "groupSetUid", sqlBuilder.quote(groupSet.getUid())));
     }
 
     sql = TextUtils.removeLastComma(sql) + " ";

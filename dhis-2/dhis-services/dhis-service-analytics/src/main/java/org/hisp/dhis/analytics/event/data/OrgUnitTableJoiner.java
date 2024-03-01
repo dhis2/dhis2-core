@@ -113,13 +113,16 @@ public final class OrgUnitTableJoiner {
         + " ";
   }
 
-  /** Joins the orgunitstructure table and, if needed, the orgunitgroupsetstructure table. */
+  /**
+   * Joins the analytics_rs_orgunitstructure table and, if needed, the
+   * analytics_rs_orgunitgroupsetstructure table.
+   */
   private static String joinOrgUnitStructureTables(
       EventQueryParams params, AnalyticsType analyticsType) {
     String orgUnitJoinCol = params.getOrgUnitField().getOrgUnitJoinCol(analyticsType);
 
     String sql =
-        "left join _orgunitstructure as "
+        "left join analytics_rs_orgunitstructure as "
             + ORG_UNIT_STRUCT_ALIAS
             + " on "
             + orgUnitJoinCol
@@ -129,7 +132,7 @@ public final class OrgUnitTableJoiner {
 
     if (params.hasOrganisationUnitGroupSets()) {
       sql +=
-          "left join _organisationunitgroupsetstructure as "
+          "left join analytics_rs_organisationunitgroupsetstructure as "
               + ORG_UNIT_GROUPSET_STRUCT_ALIAS
               + " on "
               + quote(ORG_UNIT_STRUCT_ALIAS, "organisationunitid")

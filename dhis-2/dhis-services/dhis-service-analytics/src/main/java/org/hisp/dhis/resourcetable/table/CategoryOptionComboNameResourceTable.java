@@ -51,7 +51,7 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 @Slf4j
 @RequiredArgsConstructor
 public class CategoryOptionComboNameResourceTable implements ResourceTable {
-  private static final String TABLE_NAME = "_categoryoptioncomboname";
+  public static final String TABLE_NAME = "analytics_rs_categoryoptioncomboname";
 
   private final List<CategoryCombo> categoryCombos;
 

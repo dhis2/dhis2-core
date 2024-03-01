@@ -71,8 +71,8 @@ public interface ReportService {
    * organisation unit ids (String) "period_name" Name of the selected period (String)
    * "organisationunit_name" Name of the selected organisation unit (String)
    * "organisationunit_level" Level of the selected organisation unit (int)
-   * "organisationunit_level_column" Name of the relevant level column in table _orgunitstructure
-   * (String)
+   * "organisationunit_level_column" Name of the relevant level column in table
+   * analytics_rs_orgunitstructure (String)
    *
    * @param out the OutputStream to write the report to.
    * @param reportUid the uid of the report to render.
