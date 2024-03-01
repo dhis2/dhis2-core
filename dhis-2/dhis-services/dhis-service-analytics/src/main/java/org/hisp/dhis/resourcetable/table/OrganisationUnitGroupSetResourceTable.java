@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
+import static java.lang.String.valueOf;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
@@ -36,7 +37,6 @@ import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
@@ -46,23 +46,27 @@ import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.model.constraint.Unique;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
-import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
 /**
  * @author Lars Helge Overland
  */
-@RequiredArgsConstructor
-public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
+public class OrganisationUnitGroupSetResourceTable extends AbstractResourceTable {
   public static final String TABLE_NAME = "analytics_rs_organisationunitgroupsetstructure";
-
-  private final SqlBuilder sqlBuilder;
 
   private final List<OrganisationUnitGroupSet> groupSets;
 
   private final int organisationUnitLevels;
 
-  private final Logged logged;
+  public OrganisationUnitGroupSetResourceTable(
+      SqlBuilder sqlBuilder,
+      Logged logged,
+      List<OrganisationUnitGroupSet> groupSets,
+      int organisationUnitLevels) {
+    super(sqlBuilder, logged);
+    this.groupSets = groupSets;
+    this.organisationUnitLevels = organisationUnitLevels;
+  }
 
   @Override
   public Table getTable() {
@@ -139,9 +143,9 @@ public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
             where ougm.organisationunitid = ou.organisationunitid limit 1) as ${groupSetUid}, \
             """,
                 Map.of(
-                    "groupSetId", String.valueOf(groupSet.getId()),
-                    "groupSetName", sqlBuilder.quote(groupSet.getName()),
-                    "groupSetUid", sqlBuilder.quote(groupSet.getUid())));
+                    "groupSetId", valueOf(groupSet.getId()),
+                    "groupSetName", quote(groupSet.getName()),
+                    "groupSetUid", quote(groupSet.getUid())));
       } else {
         sql += "coalesce(";
 
@@ -157,8 +161,8 @@ public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
               and ougsm.orgunitgroupsetid = ${groupSetId} limit 1), \
               """,
                   Map.of(
-                      "level", String.valueOf(i),
-                      "groupSetId", String.valueOf(groupSet.getId())));
+                      "level", valueOf(i),
+                      "groupSetId", valueOf(groupSet.getId())));
         }
 
         if (organisationUnitLevels == 0) {
@@ -181,15 +185,15 @@ public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
               and ougsm.orgunitgroupsetid = ${groupSetId} limit 1), \
               """,
                   Map.of(
-                      "level", String.valueOf(i),
-                      "groupSetId", String.valueOf(groupSet.getId())));
+                      "level", valueOf(i),
+                      "groupSetId", valueOf(groupSet.getId())));
         }
 
         if (organisationUnitLevels == 0) {
           sql += "null";
         }
 
-        sql = removeLastComma(sql) + ") as " + sqlBuilder.quote(groupSet.getUid()) + ", ";
+        sql = removeLastComma(sql) + ") as " + quote(groupSet.getUid()) + ", ";
       }
     }
 
