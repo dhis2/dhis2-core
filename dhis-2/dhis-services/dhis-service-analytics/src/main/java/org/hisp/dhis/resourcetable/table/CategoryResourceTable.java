@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
+import static java.lang.String.valueOf;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
 
@@ -131,9 +132,9 @@ public class CategoryResourceTable extends AbstractResourceTable {
               and cco.categoryid = ${categoryId} limit 1) as ${categoryUid}, \
               """,
               Map.of(
-                  "categoryId", String.valueOf(category.getId()),
-                  "categoryName", sqlBuilder.quote(category.getName()),
-                  "categoryUid", sqlBuilder.quote(category.getUid())));
+                  "categoryId", valueOf(category.getId()),
+                  "categoryName", quote(category.getName()),
+                  "categoryUid", quote(category.getUid())));
     }
 
     for (CategoryOptionGroupSet groupSet : groupSets) {
@@ -156,9 +157,9 @@ public class CategoryResourceTable extends AbstractResourceTable {
               and cogsm.categoryoptiongroupsetid = ${groupSetId} limit 1) as ${groupSetUid}, \
               """,
               Map.of(
-                  "groupSetId", String.valueOf(groupSet.getId()),
-                  "groupSetName", sqlBuilder.quote(groupSet.getName()),
-                  "groupSetUid", sqlBuilder.quote(groupSet.getUid())));
+                  "groupSetId", valueOf(groupSet.getId()),
+                  "groupSetName", quote(groupSet.getName()),
+                  "groupSetUid", quote(groupSet.getUid())));
     }
 
     sql = TextUtils.removeLastComma(sql) + " ";

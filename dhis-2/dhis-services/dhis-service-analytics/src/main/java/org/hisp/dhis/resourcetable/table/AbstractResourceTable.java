@@ -40,4 +40,21 @@ public abstract class AbstractResourceTable implements ResourceTable {
   protected final SqlBuilder sqlBuilder;
 
   protected final Logged logged;
+
+  /**
+   * @param relation the relation to quote, e.g. a table or column name.
+   * @return a double quoted relation.
+   */
+  protected String quote(String relation) {
+    return sqlBuilder.quote(relation);
+  }
+
+  /**
+   * @param name the table name.
+   * @return a fully qualified and quoted table reference which specifies the catalog, database and
+   *     table.
+   */
+  protected String qualify(String name) {
+    return sqlBuilder.qualifyTable(name);
+  }
 }

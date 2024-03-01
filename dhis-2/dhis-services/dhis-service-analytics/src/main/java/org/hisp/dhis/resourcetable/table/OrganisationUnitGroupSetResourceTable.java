@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
+import static java.lang.String.valueOf;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
@@ -142,9 +143,9 @@ public class OrganisationUnitGroupSetResourceTable extends AbstractResourceTable
             where ougm.organisationunitid = ou.organisationunitid limit 1) as ${groupSetUid}, \
             """,
                 Map.of(
-                    "groupSetId", String.valueOf(groupSet.getId()),
-                    "groupSetName", sqlBuilder.quote(groupSet.getName()),
-                    "groupSetUid", sqlBuilder.quote(groupSet.getUid())));
+                    "groupSetId", valueOf(groupSet.getId()),
+                    "groupSetName", quote(groupSet.getName()),
+                    "groupSetUid", quote(groupSet.getUid())));
       } else {
         sql += "coalesce(";
 
@@ -160,8 +161,8 @@ public class OrganisationUnitGroupSetResourceTable extends AbstractResourceTable
               and ougsm.orgunitgroupsetid = ${groupSetId} limit 1), \
               """,
                   Map.of(
-                      "level", String.valueOf(i),
-                      "groupSetId", String.valueOf(groupSet.getId())));
+                      "level", valueOf(i),
+                      "groupSetId", valueOf(groupSet.getId())));
         }
 
         if (organisationUnitLevels == 0) {
@@ -184,15 +185,15 @@ public class OrganisationUnitGroupSetResourceTable extends AbstractResourceTable
               and ougsm.orgunitgroupsetid = ${groupSetId} limit 1), \
               """,
                   Map.of(
-                      "level", String.valueOf(i),
-                      "groupSetId", String.valueOf(groupSet.getId())));
+                      "level", valueOf(i),
+                      "groupSetId", valueOf(groupSet.getId())));
         }
 
         if (organisationUnitLevels == 0) {
           sql += "null";
         }
 
-        sql = removeLastComma(sql) + ") as " + sqlBuilder.quote(groupSet.getUid()) + ", ";
+        sql = removeLastComma(sql) + ") as " + quote(groupSet.getUid()) + ", ";
       }
     }
 

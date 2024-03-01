@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
+import static java.lang.String.valueOf;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
 
@@ -114,9 +115,9 @@ public class DataElementGroupSetResourceTable extends AbstractResourceTable {
           where degm.dataelementid = d.dataelementid limit 1) as ${groupSetUid}, \
           """,
               Map.of(
-                  "groupSetId", String.valueOf(groupSet.getId()),
-                  "groupSetName", sqlBuilder.quote(groupSet.getName()),
-                  "groupSetUid", sqlBuilder.quote(groupSet.getUid())));
+                  "groupSetId", valueOf(groupSet.getId()),
+                  "groupSetName", quote(groupSet.getName()),
+                  "groupSetUid", quote(groupSet.getUid())));
     }
 
     sql = TextUtils.removeLastComma(sql) + " ";
