@@ -136,7 +136,6 @@ public class OutliersDetection1AutoTest extends AnalyticsApiTest {
     // Assert rows.
     validateRow(
         response,
-        0,
         List.of(
             "n6aMJNLdvep",
             "Penta3 doses given",
@@ -150,15 +149,14 @@ public class OutliersDetection1AutoTest extends AnalyticsApiTest {
             "HllvX50cXC0",
             "default",
             "23.0",
-            "7.5",
-            "5.1",
-            "15.5",
+            "7.55",
+            "5.15",
+            "15.45",
             "3.0",
             "-7.9",
-            "23.0"));
+            "22.99"));
     validateRow(
         response,
-        1,
         List.of(
             "s46m5MS0hxu",
             "BCG doses given",
@@ -172,15 +170,14 @@ public class OutliersDetection1AutoTest extends AnalyticsApiTest {
             "HllvX50cXC0",
             "default",
             "220.0",
-            "41.6",
-            "57.4",
-            "178.4",
+            "41.64",
+            "57.45",
+            "178.36",
             "3.1",
             "-130.7",
-            "214.0"));
+            "213.99"));
     validateRow(
         response,
-        2,
         List.of(
             "x3Do5e7g4Qo",
             "OPV0 doses given",
@@ -194,15 +191,14 @@ public class OutliersDetection1AutoTest extends AnalyticsApiTest {
             "HllvX50cXC0",
             "default",
             "245.0",
-            "43.0",
-            "64.6",
-            "202.0",
-            "3.1",
-            "-150.8",
-            "236.9"));
+            "43.02",
+            "64.62",
+            "201.98",
+            "3.13",
+            "-150.84",
+            "236.88"));
     validateRow(
         response,
-        3,
         List.of(
             "pnL2VG8Bn7N",
             "Weight for height 70-79 percent",
@@ -216,15 +212,14 @@ public class OutliersDetection1AutoTest extends AnalyticsApiTest {
             "HllvX50cXC0",
             "default",
             "120.0",
-            "29.0",
-            "28.9",
-            "91.0",
-            "3.2",
-            "-57.6",
-            "115.6"));
+            "28.96",
+            "28.87",
+            "91.04",
+            "3.15",
+            "-57.64",
+            "115.57"));
     validateRow(
         response,
-        4,
         List.of(
             "l6byfWFUGaP",
             "Yellow Fever doses given",
@@ -238,12 +233,12 @@ public class OutliersDetection1AutoTest extends AnalyticsApiTest {
             "HllvX50cXC0",
             "default",
             "466.0",
-            "48.2",
-            "114.3",
-            "417.8",
-            "3.7",
-            "-294.7",
-            "391.0"));
+            "48.19",
+            "114.28",
+            "417.81",
+            "3.66",
+            "-294.65",
+            "391.03"));
   }
 
   @Test
