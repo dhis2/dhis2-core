@@ -32,6 +32,9 @@ import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.resourcetable.ResourceTable;
 
+/**
+ * @author Lars Helge Overland
+ */
 @RequiredArgsConstructor
 public abstract class AbstractResourceTable implements ResourceTable {
   protected final SqlBuilder sqlBuilder;
