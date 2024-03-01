@@ -234,16 +234,16 @@ pipeline {
             }
         }
 
-        failure {
-            script {
-                slack.sendFailureMessage()
-            }
-        }
-
-        aborted {
-            script {
-                slack.sendTimedoutMessage()
-            }
-        }
+//        failure {
+//            script {
+//                slack.sendFailureMessage()
+//            }
+//        }
+//
+//        aborted {
+//            script {
+//                slack.sendTimedoutMessage()
+//            }
+//        }
     }
 }
