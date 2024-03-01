@@ -87,7 +87,7 @@ public class OrderCriteria {
     String field = props[0].trim();
     if (StringUtils.isEmpty(field)) {
       throw new IllegalArgumentException(
-          "Invalid order property: '"
+          "Missing field name in order property: '"
               + input
               + "'. Valid formats are 'field:direction' or 'field'. Valid directions are 'asc' or 'desc'. Direction defaults to 'asc'.");
     }
