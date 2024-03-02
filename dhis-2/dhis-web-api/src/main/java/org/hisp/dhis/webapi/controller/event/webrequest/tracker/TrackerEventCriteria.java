@@ -91,8 +91,6 @@ public class TrackerEventCriteria extends PagingAndSortingCriteriaAdapter {
 
   private boolean skipMeta;
 
-  private String attachment;
-
   private boolean includeDeleted;
 
   private String event;
