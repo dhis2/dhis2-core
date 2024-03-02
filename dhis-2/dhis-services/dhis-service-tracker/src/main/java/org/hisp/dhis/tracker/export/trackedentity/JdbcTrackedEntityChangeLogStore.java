@@ -85,7 +85,17 @@ public class JdbcTrackedEntityChangeLogStore {
       };
 
   public Page<TrackedEntityChangeLog> getTrackedEntityChangeLog(
-      UID trackedEntity, Set<String> attributes, List<Order> order, PageParams pageParams) {
+      UID trackedEntity,
+      Set<String> attributes,
+      UID program,
+      List<Order> order,
+      PageParams pageParams) {
+
+    MapSqlParameterSource parameters =
+        new MapSqlParameterSource("trackedEntity", trackedEntity.getValue())
+            .addValue("limit", pageParams.getPageSize() + 1)
+            .addValue("offset", (pageParams.getPage() - 1) * pageParams.getPageSize());
+
     String sql =
         """
           select cl.type,
@@ -106,28 +116,42 @@ public class JdbcTrackedEntityChangeLogStore {
                   join trackedentity t using(trackedentityid)
                   join trackedentityattribute tea using(trackedentityattributeid)
                   join userinfo u on u.username = audit.modifiedby
-                  where audit.audittype in ('CREATE', 'UPDATE', 'DELETE')
-                  and t.uid = :trackedEntity
        """;
-    MapSqlParameterSource parameters =
-        new MapSqlParameterSource("trackedEntity", trackedEntity.getValue())
-            .addValue("limit", pageParams.getPageSize() + 1)
-            .addValue("offset", (pageParams.getPage() - 1) * pageParams.getPageSize());
+
+    if (program != null) {
+      sql +=
+          """
+              join program_attributes pa using (trackedentityattributeid)
+              join program p using (programid)
+              where audit.audittype in ('CREATE', 'UPDATE', 'DELETE')
+              and t.uid = :trackedEntity
+              and p.uid = :programUid
+          """;
+      parameters.addValue("programUid", program.getValue());
+    } else {
+      sql +=
+          """
+              where audit.audittype in ('CREATE', 'UPDATE', 'DELETE')
+              and t.uid = :trackedEntity
+          """;
+    }
 
     List<TrackedEntityChangeLog> changeLogs;
     if (attributes.isEmpty()) {
       sql +=
           """
-              order by %s) cl
-              limit :limit offset :offset
-          """.formatted(sortExpressions(order));
+              order by %s
+              limit :limit offset :offset) cl
+          """
+              .formatted(sortExpressions(order));
     } else {
       sql +=
           """
               and tea.uid in (:attributes)
-              order by %s) cl
-              limit :limit offset :offset
-          """.formatted(sortExpressions(order));
+              order by %s
+              limit :limit offset :offset) cl
+          """
+              .formatted(sortExpressions(order));
       parameters.addValue("attributes", attributes);
     }
     changeLogs =

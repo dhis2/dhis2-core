@@ -93,7 +93,11 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
     }
 
     return jdbcTrackedEntityChangeLogStore.getTrackedEntityChangeLog(
-        trackedEntityUid, trackedEntityAttributes, operationParams.getOrder(), pageParams);
+        trackedEntityUid,
+        trackedEntityAttributes,
+        programUid,
+        operationParams.getOrder(),
+        pageParams);
   }
 
   @Override

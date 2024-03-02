@@ -44,6 +44,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -218,6 +219,8 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
     programOwnerService.createOrUpdateTrackedEntityProgramOwner(
         trackedEntity.getUid(), program.getUid(), orgUnitA.getUid());
 
+    createAndPersistProgramAttribute(program);
+
     Page<TrackedEntityChangeLog> changeLogs =
         trackedEntityChangeLogService.getTrackedEntityChangeLog(
             UID.of(trackedEntity.getUid()),
@@ -240,6 +243,8 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
     programOwnerService.createOrUpdateTrackedEntityProgramOwner(
         trackedEntity.getUid(), program.getUid(), orgUnitA.getUid());
 
+    createAndPersistProgramAttribute(program);
+
     Page<TrackedEntityChangeLog> changeLogs =
         trackedEntityChangeLogService.getTrackedEntityChangeLog(
             UID.of(trackedEntity.getUid()),
@@ -261,6 +266,8 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
 
     programOwnerService.createOrUpdateTrackedEntityProgramOwner(
         trackedEntity.getUid(), program.getUid(), orgUnitA.getUid());
+
+    createAndPersistProgramAttribute(program);
 
     Page<TrackedEntityChangeLog> changeLogs =
         trackedEntityChangeLogService.getTrackedEntityChangeLog(
@@ -287,6 +294,8 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
     Program program = createAndAddProgram('F');
     programOwnerService.createOrUpdateTrackedEntityProgramOwner(
         trackedEntity.getUid(), program.getUid(), orgUnitA.getUid());
+
+    createAndPersistProgramAttribute(program);
 
     Page<TrackedEntityChangeLog> changeLogs =
         trackedEntityChangeLogService.getTrackedEntityChangeLog(
@@ -320,6 +329,8 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
     Program program = createAndAddProgram('G');
     programOwnerService.createOrUpdateTrackedEntityProgramOwner(
         trackedEntity.getUid(), program.getUid(), orgUnitA.getUid());
+
+    createAndPersistProgramAttribute(program);
 
     Page<TrackedEntityChangeLog> changeLogs =
         trackedEntityChangeLogService.getTrackedEntityChangeLog(
@@ -374,6 +385,12 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
     // wait the specified time to make sure attributes are not updated at the same time, so when
     // ordering by date, it works as expected
     Awaitility.await().pollDelay(2, TimeUnit.MILLISECONDS).untilAsserted(() -> assertTrue(true));
+  }
+
+  private void createAndPersistProgramAttribute(Program program) {
+    ProgramTrackedEntityAttribute programAttribute =
+        createProgramTrackedEntityAttribute(program, trackedEntityAttribute);
+    manager.save(programAttribute);
   }
 
   private static void assertNumberOfChanges(int expected, List<TrackedEntityChangeLog> changeLogs) {

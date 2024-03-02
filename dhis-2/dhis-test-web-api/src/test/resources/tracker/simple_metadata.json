@@ -37,7 +37,31 @@
       "sharing": {
         "external": false,
         "public": "rwrw----"
-      }
+      },
+      "trackedEntityTypeAttributes": [
+        {
+          "attributeValues": [],
+          "displayInList": true,
+          "displayName": "Person Given name",
+          "displayShortName": "null Given name",
+          "externalAccess": false,
+          "favorite": false,
+          "favorites": [],
+          "id": "hKZ9AJpnVcG",
+          "name": "Person Given name",
+          "searchable": true,
+          "trackedEntityAttribute": {
+            "id": "numericAttr"
+          },
+          "trackedEntityType": {
+            "id": "ja8NY4PW7Xm"
+          },
+          "translations": [],
+          "userAccesses": [],
+          "userGroupAccesses": [],
+          "valueType": "TEXT"
+        }
+      ]
     },
     {
       "name": "Inaccessible person",
