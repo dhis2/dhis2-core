@@ -164,7 +164,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
    */
   protected void forceFiltering(final WebOptions webOptions, final List<String> filters) {}
 
-  /** Override the process of default fields selection/ */
+  /** Override the process of default fields selection */
   protected List<String> getSelectionFields() {
     return Preset.defaultPreset().getFields();
   }
