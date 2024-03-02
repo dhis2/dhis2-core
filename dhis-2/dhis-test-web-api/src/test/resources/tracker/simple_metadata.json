@@ -40,7 +40,6 @@
       },
       "trackedEntityTypeAttributes": [
         {
-          "attributeValues": [],
           "displayInList": true,
           "displayName": "Person Given name",
           "displayShortName": "null Given name",
@@ -56,9 +55,6 @@
           "trackedEntityType": {
             "id": "ja8NY4PW7Xm"
           },
-          "translations": [],
-          "userAccesses": [],
-          "userGroupAccesses": [],
           "valueType": "TEXT"
         }
       ]

@@ -49,7 +49,6 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -87,8 +86,6 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
   @Autowired private TrackerImportService trackerImportService;
 
   @Autowired private TrackedEntityService trackedEntityService;
-
-  @Autowired private ProgramService programService;
 
   @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
 
