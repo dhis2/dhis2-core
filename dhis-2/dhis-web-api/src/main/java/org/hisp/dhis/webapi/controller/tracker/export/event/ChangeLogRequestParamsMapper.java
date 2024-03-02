@@ -36,6 +36,7 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.tracker.export.event.EventChangeLogOperationParams;
 import org.hisp.dhis.tracker.export.event.EventChangeLogOperationParams.EventChangeLogOperationParamsBuilder;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.controller.tracker.export.ChangeLogRequestParams;
 
 class ChangeLogRequestParamsMapper {
   private ChangeLogRequestParamsMapper() {
