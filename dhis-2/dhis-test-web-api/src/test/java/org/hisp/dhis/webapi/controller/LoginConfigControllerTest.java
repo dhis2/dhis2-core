@@ -60,6 +60,11 @@ class LoginConfigControllerTest extends DhisControllerIntegrationTest {
     systemSettingManager.saveSystemSettingTranslation(
         SettingKey.APPLICATION_FOOTER, "no", "Søknadsbunntekst");
 
+    systemSettingManager.saveSystemSetting(
+        SettingKey.APPLICATION_RIGHT_FOOTER, "APPLICATION_RIGHT_FOOTER");
+    systemSettingManager.saveSystemSettingTranslation(
+        SettingKey.APPLICATION_RIGHT_FOOTER, "no", "Høyre søknadsbunntekst");
+
     systemSettingManager.saveSystemSetting(SettingKey.APPLICATION_INTRO, "APPLICATION_INTRO");
     systemSettingManager.saveSystemSettingTranslation(
         SettingKey.APPLICATION_INTRO, "no", "Søknadsintroduksjon");
@@ -69,8 +74,8 @@ class LoginConfigControllerTest extends DhisControllerIntegrationTest {
     systemSettingManager.saveSystemSettingTranslation(
         SettingKey.APPLICATION_NOTIFICATION, "no", "Søknadsmelding");
 
-    systemSettingManager.saveSystemSetting(SettingKey.FLAG_IMAGE, "FLAG_IMAGE");
-    systemSettingManager.saveSystemSetting(SettingKey.CUSTOM_LOGIN_PAGE_LOGO, true);
+    systemSettingManager.saveSystemSetting(SettingKey.FLAG, "FLAG_IMAGE");
+    systemSettingManager.saveSystemSetting(SettingKey.USE_CUSTOM_LOGO_FRONT, true);
     systemSettingManager.saveSystemSetting(SettingKey.CUSTOM_TOP_MENU_LOGO, true);
 
     JsonObject responseDefaultLocale = GET("/loginConfig").content();
@@ -99,6 +104,13 @@ class LoginConfigControllerTest extends DhisControllerIntegrationTest {
     assertEquals(
         "Søknadsbunntekst",
         responseNorwegianLocale.getString("applicationLeftSideFooter").string());
+
+    assertEquals(
+        "APPLICATION_RIGHT_FOOTER",
+        responseDefaultLocale.getString("applicationRightSideFooter").string());
+    assertEquals(
+        "Høyre søknadsbunntekst",
+        responseNorwegianLocale.getString("applicationRightSideFooter").string());
 
     assertEquals("FLAG_IMAGE", responseDefaultLocale.getString("countryFlag").string());
     assertEquals("en", responseDefaultLocale.getString("uiLocale").string());
