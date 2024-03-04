@@ -167,10 +167,11 @@ public class DefaultCustomIconService implements CustomIconService {
   }
 
   private void validateCustomIconKey(String key) throws BadRequestException {
-    Pattern pattern = Pattern.compile(CUSTOM_ICON_KEY_PATTERN);
-    Matcher matcher = pattern.matcher(key);
 
-    if (matcher.matches()) {
+    Pattern pattern = Pattern.compile(CUSTOM_ICON_KEY_PATTERN);
+    Matcher matcher = pattern.matcher(key.trim());
+
+    if (!matcher.matches()) {
       throw new BadRequestException(
           String.format(
               "CustomIcon key %s is not valid. Alphanumeric and special characters are allowed",

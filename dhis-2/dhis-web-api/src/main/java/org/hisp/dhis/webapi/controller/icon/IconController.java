@@ -173,11 +173,11 @@ public class IconController {
   @Deprecated
   public void getIconData(
       HttpServletResponse response, HttpServletRequest request, @PathVariable String key)
-      throws IOException {
+      throws IOException, WebMessageException {
 
     if (!iconService.customIconExists(key)) {
-      log.warn(String.format("CustomIcon with key %s not found", key));
-      return;
+      throw new WebMessageException(
+          WebMessageUtils.notFound(String.format("CustomIcon with key %s not found", key)));
     }
 
     String location = response.encodeRedirectURL("/icons/" + key + "/icon");
