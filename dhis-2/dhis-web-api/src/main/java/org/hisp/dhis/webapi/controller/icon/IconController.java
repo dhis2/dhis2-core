@@ -174,6 +174,12 @@ public class IconController {
   public void getIconData(
       HttpServletResponse response, HttpServletRequest request, @PathVariable String key)
       throws IOException {
+
+    if (!iconService.customIconExists(key)) {
+      log.warn(String.format("CustomIcon with key %s not found", key));
+      return;
+    }
+
     String location = response.encodeRedirectURL("/icons/" + key + "/icon");
     response.sendRedirect(ContextUtils.getRootPath(request) + location);
   }
