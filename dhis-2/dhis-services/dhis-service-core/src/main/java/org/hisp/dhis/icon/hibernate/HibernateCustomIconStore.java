@@ -75,13 +75,13 @@ public class HibernateCustomIconStore extends HibernateIdentifiableObjectStore<C
   }
 
   @Override
-  public long count(CustomIconOperationParams iconOperationParams) {
+  public long count(CustomIconOperationParams params) {
 
     String sql = """
             select count(*) as count from customicon c
             """;
     Map<String, Object> parameterSource = new HashMap<>();
-    sql = buildIconQuery(iconOperationParams, sql, parameterSource);
+    sql = buildIconQuery(params, sql, parameterSource);
 
     return Optional.ofNullable(
             namedParameterJdbcTemplate.queryForObject(sql, parameterSource, Long.class))
@@ -115,21 +115,21 @@ public class HibernateCustomIconStore extends HibernateIdentifiableObjectStore<C
   }
 
   @Override
-  public Set<CustomIcon> getCustomIcons(CustomIconOperationParams iconOperationParams) {
+  public Set<CustomIcon> getCustomIcons(CustomIconOperationParams params) {
 
     String sql = """
             select * from customicon c
             """;
     Map<String, Object> parameterSource = new HashMap<>();
-    sql = buildIconQuery(iconOperationParams, sql, parameterSource);
+    sql = buildIconQuery(params, sql, parameterSource);
 
     NativeQuery<CustomIcon> query = getSession().createNativeQuery(sql, CustomIcon.class);
 
     setParameters(query, parameterSource);
 
-    if (iconOperationParams.isPaging()) {
-      query.setFirstResult(iconOperationParams.getPager().getPage());
-      query.setMaxResults(iconOperationParams.getPager().getPageSize());
+    if (params.isPaging()) {
+      query.setFirstResult(params.getPager().getPage());
+      query.setMaxResults(params.getPager().getPageSize());
     }
 
     return query.list().stream().collect(Collectors.toUnmodifiableSet());

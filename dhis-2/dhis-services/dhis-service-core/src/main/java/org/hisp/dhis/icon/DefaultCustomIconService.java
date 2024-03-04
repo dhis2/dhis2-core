@@ -63,14 +63,14 @@ public class DefaultCustomIconService implements CustomIconService {
 
   @Override
   @Transactional(readOnly = true)
-  public Set<CustomIcon> getCustomIcons(CustomIconOperationParams iconOperationParams) {
-    return customIconStore.getCustomIcons(iconOperationParams);
+  public Set<CustomIcon> getCustomIcons(CustomIconOperationParams params) {
+    return customIconStore.getCustomIcons(params);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public long count(CustomIconOperationParams iconOperationParams) {
-    return customIconStore.count(iconOperationParams);
+  public long count(CustomIconOperationParams params) {
+    return customIconStore.count(params);
   }
 
   @Override

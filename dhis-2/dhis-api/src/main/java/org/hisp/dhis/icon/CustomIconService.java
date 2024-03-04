@@ -40,18 +40,18 @@ public interface CustomIconService {
   /**
    * Get the count of CustomIcons based on filters provided in {@link CustomIconOperationParams}
    *
-   * @param operationParams filters
+   * @param params filters
    * @return total count
    */
-  long count(CustomIconOperationParams operationParams);
+  long count(CustomIconOperationParams params);
 
   /**
    * Get list of CustomIcons based on filters provided in {@link CustomIconOperationParams}
    *
-   * @param operationParams filters to build query
+   * @param params filters to build query
    * @return list of CustomIcons
    */
-  Set<CustomIcon> getCustomIcons(CustomIconOperationParams operationParams);
+  Set<CustomIcon> getCustomIcons(CustomIconOperationParams params);
 
   /**
    * Gets the custom icon associated to a key, if it exists
