@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 class LoginConfigControllerTest extends DhisControllerIntegrationTest {
 
   @Autowired SystemSettingManager systemSettingManager;
+  @Autowired SystemService systemService;
 
   @Test
   void shouldGetLoginConfig() {
@@ -108,5 +110,8 @@ class LoginConfigControllerTest extends DhisControllerIntegrationTest {
     assertFalse(responseDefaultLocale.getBoolean("selfRegistrationNoRecaptcha").booleanValue());
     assertFalse(responseDefaultLocale.getBoolean("selfRegistrationEnabled").booleanValue());
     assertFalse(responseDefaultLocale.getBoolean("emailConfigured").booleanValue());
+    assertEquals(
+        systemService.getSystemInfo().getVersion(),
+        responseDefaultLocale.getString("apiVersion").string());
   }
 }
