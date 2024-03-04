@@ -35,7 +35,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.auth.SelfRegistrationForm;
+import org.hisp.dhis.common.auth.SelfRegistrationParams;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -48,6 +48,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author david mackessy
@@ -67,8 +68,9 @@ public class DefaultUserAccountService implements UserAccountService {
   private static final int MAX_PHONE_NO_LENGTH = 30;
 
   @Override
+  @Transactional
   public void createAndAddSelfRegisteredUser(
-      SelfRegistrationForm selfRegForm, HttpServletRequest request) {
+      SelfRegistrationParams selfRegForm, HttpServletRequest request) {
     UserRole userRole = configService.getConfiguration().getSelfRegistrationRole();
     OrganisationUnit orgUnit = configService.getConfiguration().getSelfRegistrationOrgUnit();
 
@@ -92,7 +94,7 @@ public class DefaultUserAccountService implements UserAccountService {
   }
 
   @Override
-  public void validateUserFormInfo(SelfRegistrationForm selfRegForm, HttpServletRequest request)
+  public void validateUserFormInfo(SelfRegistrationParams selfRegForm, HttpServletRequest request)
       throws BadRequestException, IOException {
     log.info("Validating user info");
     validateCaptcha(selfRegForm.getRecaptchaResponse(), request);
@@ -103,7 +105,7 @@ public class DefaultUserAccountService implements UserAccountService {
     }
   }
 
-  private void validateUserForm(SelfRegistrationForm selfRegForm) throws BadRequestException {
+  private void validateUserForm(SelfRegistrationParams selfRegForm) throws BadRequestException {
     if (validateUserName(selfRegForm.getUsername()).get("response").equals("error")) {
       log.warn("Username validation failed");
       throw new BadRequestException("Username is not specified or invalid");

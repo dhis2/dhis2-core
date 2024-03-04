@@ -38,7 +38,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.auth.SelfRegistrationForm;
+import org.hisp.dhis.common.auth.SelfRegistrationParams;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -174,7 +174,7 @@ public class UserAccountController {
 
   @PostMapping("/register")
   public WebMessageResponse register(
-      @RequestBody SelfRegistrationForm selfRegForm, HttpServletRequest request)
+      @RequestBody SelfRegistrationParams selfRegForm, HttpServletRequest request)
       throws BadRequestException, IOException {
     log.info("Self registration received");
     userAccountService.validateUserFormInfo(selfRegForm, request);

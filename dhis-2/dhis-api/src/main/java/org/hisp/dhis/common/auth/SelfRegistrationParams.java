@@ -37,7 +37,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class SelfRegistrationForm {
+public class SelfRegistrationParams {
   @JsonProperty String username;
   @JsonProperty String firstName;
   @JsonProperty String surname;

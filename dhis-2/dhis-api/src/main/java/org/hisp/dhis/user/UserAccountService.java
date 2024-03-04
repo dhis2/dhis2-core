@@ -30,7 +30,7 @@ package org.hisp.dhis.user;
 import java.io.IOException;
 import java.util.Collection;
 import javax.servlet.http.HttpServletRequest;
-import org.hisp.dhis.common.auth.SelfRegistrationForm;
+import org.hisp.dhis.common.auth.SelfRegistrationParams;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.springframework.security.core.GrantedAuthority;
 
@@ -39,9 +39,10 @@ import org.springframework.security.core.GrantedAuthority;
  */
 public interface UserAccountService {
 
-  void createAndAddSelfRegisteredUser(SelfRegistrationForm selfRegForm, HttpServletRequest request);
+  void createAndAddSelfRegisteredUser(
+      SelfRegistrationParams selfRegForm, HttpServletRequest request);
 
-  void validateUserFormInfo(SelfRegistrationForm selfRegForm, HttpServletRequest request)
+  void validateUserFormInfo(SelfRegistrationParams selfRegForm, HttpServletRequest request)
       throws BadRequestException, IOException;
 
   void validateCaptcha(String recapResponse, HttpServletRequest request)

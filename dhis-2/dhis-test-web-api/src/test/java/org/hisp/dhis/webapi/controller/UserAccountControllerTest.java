@@ -37,7 +37,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.auth.SelfRegistrationForm;
+import org.hisp.dhis.common.auth.SelfRegistrationParams;
 import org.hisp.dhis.message.FakeMessageSender;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -434,8 +434,8 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
     return messagesByEmail.get(0);
   }
 
-  private SelfRegistrationForm getSelfRegistrationForm() {
-    return SelfRegistrationForm.builder()
+  private SelfRegistrationParams getSelfRegistrationForm() {
+    return SelfRegistrationParams.builder()
         .username("samewisegamgee")
         .firstName("samewise")
         .surname("gamgee")
@@ -446,45 +446,45 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
         .build();
   }
 
-  private SelfRegistrationForm getSelfRegistrationFormWithUsername(String username) {
-    SelfRegistrationForm selfRegistrationFormBuilder = getSelfRegistrationForm();
-    selfRegistrationFormBuilder.setUsername(username);
-    return selfRegistrationFormBuilder;
+  private SelfRegistrationParams getSelfRegistrationFormWithUsername(String username) {
+    SelfRegistrationParams selfRegistrationParams = getSelfRegistrationForm();
+    selfRegistrationParams.setUsername(username);
+    return selfRegistrationParams;
   }
 
-  private SelfRegistrationForm getSelfRegistrationFormWithFirstName(String firstName) {
-    SelfRegistrationForm selfRegistrationFormBuilder = getSelfRegistrationForm();
-    selfRegistrationFormBuilder.setFirstName(firstName);
-    return selfRegistrationFormBuilder;
+  private SelfRegistrationParams getSelfRegistrationFormWithFirstName(String firstName) {
+    SelfRegistrationParams selfRegistrationParams = getSelfRegistrationForm();
+    selfRegistrationParams.setFirstName(firstName);
+    return selfRegistrationParams;
   }
 
-  private SelfRegistrationForm getSelfRegistrationFormWithSurname(String surname) {
-    SelfRegistrationForm selfRegistrationFormBuilder = getSelfRegistrationForm();
-    selfRegistrationFormBuilder.setSurname(surname);
-    return selfRegistrationFormBuilder;
+  private SelfRegistrationParams getSelfRegistrationFormWithSurname(String surname) {
+    SelfRegistrationParams selfRegistrationParams = getSelfRegistrationForm();
+    selfRegistrationParams.setSurname(surname);
+    return selfRegistrationParams;
   }
 
-  private SelfRegistrationForm getSelfRegistrationFormWithPassword(String password) {
-    SelfRegistrationForm selfRegistrationFormBuilder = getSelfRegistrationForm();
-    selfRegistrationFormBuilder.setPassword(password);
-    return selfRegistrationFormBuilder;
+  private SelfRegistrationParams getSelfRegistrationFormWithPassword(String password) {
+    SelfRegistrationParams selfRegistrationParams = getSelfRegistrationForm();
+    selfRegistrationParams.setPassword(password);
+    return selfRegistrationParams;
   }
 
-  private SelfRegistrationForm getSelfRegistrationFormWithEmail(String email) {
-    SelfRegistrationForm selfRegistrationFormBuilder = getSelfRegistrationForm();
-    selfRegistrationFormBuilder.setEmail(email);
-    return selfRegistrationFormBuilder;
+  private SelfRegistrationParams getSelfRegistrationFormWithEmail(String email) {
+    SelfRegistrationParams selfRegistrationParams = getSelfRegistrationForm();
+    selfRegistrationParams.setEmail(email);
+    return selfRegistrationParams;
   }
 
-  private SelfRegistrationForm getSelfRegistrationFormWithPhone(String phone) {
-    SelfRegistrationForm selfRegistrationFormBuilder = getSelfRegistrationForm();
-    selfRegistrationFormBuilder.setPhoneNumber(phone);
-    return selfRegistrationFormBuilder;
+  private SelfRegistrationParams getSelfRegistrationFormWithPhone(String phone) {
+    SelfRegistrationParams selfRegistrationParams = getSelfRegistrationForm();
+    selfRegistrationParams.setPhoneNumber(phone);
+    return selfRegistrationParams;
   }
 
-  private SelfRegistrationForm getSelfRegistrationFormWithRecaptcha(String recaptcha) {
-    SelfRegistrationForm selfRegistrationFormBuilder = getSelfRegistrationForm();
-    selfRegistrationFormBuilder.setRecaptchaResponse(recaptcha);
-    return selfRegistrationFormBuilder;
+  private SelfRegistrationParams getSelfRegistrationFormWithRecaptcha(String recaptcha) {
+    SelfRegistrationParams selfRegistrationParams = getSelfRegistrationForm();
+    selfRegistrationParams.setRecaptchaResponse(recaptcha);
+    return selfRegistrationParams;
   }
 }
