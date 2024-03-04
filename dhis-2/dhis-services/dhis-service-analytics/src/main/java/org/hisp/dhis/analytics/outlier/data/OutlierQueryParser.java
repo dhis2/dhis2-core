@@ -176,18 +176,23 @@ public class OutlierQueryParser {
     String currentUsername = CurrentUserUtil.getCurrentUsername();
     User currentUser = userService.getUserByUsername(currentUsername);
 
-    if (currentUser == null || !currentUser.hasDataViewOrganisationUnit()) {
+    Set<OrganisationUnit> userOrganisationUnits;
+
+    if (currentUser != null && currentUser.hasOrganisationUnit()) {
+      userOrganisationUnits = currentUser.getOrganisationUnits();
+    } else if (currentUser != null && currentUser.hasDataViewOrganisationUnit()) {
+      userOrganisationUnits = currentUser.getDataViewOrganisationUnits();
+    } else {
       throw new IllegalQueryException(
           E7622, currentUser == null ? EMPTY : currentUser.getUsername());
     }
 
     if (queryParams.getOu().isEmpty()) {
-      return currentUser.getDataViewOrganisationUnits().stream().toList();
+      return userOrganisationUnits.stream().toList();
     }
 
     List<OrganisationUnit> validOrganisationUnits =
-        applySecurityConstrain(
-            currentUser.getDataViewOrganisationUnits(), queryParams.getOu(), currentUser);
+        applySecurityConstrain(userOrganisationUnits, queryParams.getOu(), currentUser);
 
     if (validOrganisationUnits.isEmpty()) {
       throw new IllegalQueryException(
