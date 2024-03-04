@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -94,15 +94,16 @@ public class DefaultUserAccountService implements UserAccountService {
   @Override
   public void validateUserFormInfo(SelfRegistrationForm selfRegForm, HttpServletRequest request)
       throws BadRequestException, IOException {
+    log.info("Validating user info");
     validateCaptcha(selfRegForm.getRecaptchaResponse(), request);
-    validateInput(selfRegForm);
+    validateUserForm(selfRegForm);
 
     if (!configService.getConfiguration().selfRegistrationAllowed()) {
       throw new BadRequestException("User self registration is not allowed");
     }
   }
 
-  private void validateInput(SelfRegistrationForm selfRegForm) throws BadRequestException {
+  private void validateUserForm(SelfRegistrationForm selfRegForm) throws BadRequestException {
     if (validateUserName(selfRegForm.getUsername()).get("response").equals("error")) {
       log.warn("Username validation failed");
       throw new BadRequestException("Username is not specified or invalid");
