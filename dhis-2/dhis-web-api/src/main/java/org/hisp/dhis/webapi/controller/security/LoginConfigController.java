@@ -36,6 +36,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.security.LoginConfigResponse;
 import org.hisp.dhis.security.LoginConfigResponse.LoginConfigResponseBuilder;
+import org.hisp.dhis.security.LoginPageLayout;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.SystemService;
@@ -61,30 +62,35 @@ public class LoginConfigController {
 
   @Getter
   private enum KEYS {
-    APPLICATION_TITLE("applicationTitle"),
-    APPLICATION_INTRO("applicationDescription"),
-    APPLICATION_NOTIFICATION("applicationNotification"),
-    APPLICATION_FOOTER("applicationLeftSideFooter"),
-    FLAG_IMAGE("countryFlag"),
-    CUSTOM_LOGIN_PAGE_LOGO("loginPageLogo", "/api/staticContent/logo_front.png"),
-    UI_LOCALE("uiLocale"),
-    LOGIN_POPUP("loginPopup"),
-    SELF_REGISTRATION_NO_RECAPTCHA("selfRegistrationNoRecaptcha"),
-    USE_CUSTOM_LOGO_FRONT("useCustomLogoFront"),
-    ACCOUNT_RECOVERY("allowAccountRecovery"),
-    LOGIN_PAGE_HTML_TEMPLATE("loginPageHtmlTemplate"),
-    LOGIN_PAGE_LAYOUT("loginPageLayout");
+    APPLICATION_TITLE(),
+    APPLICATION_INTRO(),
+    APPLICATION_NOTIFICATION(),
+    APPLICATION_FOOTER(),
+    APPLICATION_RIGHT_FOOTER(),
+    FLAG(),
+    CUSTOM_LOGIN_PAGE_LOGO("/api/staticContent/logo_front.png"),
+    UI_LOCALE(),
+    LOGIN_POPUP(),
+    SELF_REGISTRATION_NO_RECAPTCHA(),
+    USE_CUSTOM_LOGO_FRONT(),
+    ACCOUNT_RECOVERY(),
 
-    private final String keyName;
+    /** The layout to be used for displaying LoginPage. Value is the enum {@link LoginPageLayout} */
+    LOGIN_PAGE_LAYOUT(LoginPageLayout.DEFAULT.name()),
+
+    /**
+     * The HTML string which is used for displaying LoginPage if selected {@link LoginPageLayout} is
+     * CUSTOM.
+     */
+    LOGIN_PAGE_TEMPLATE();
+
     private final String defaultValue;
 
-    KEYS(String keyName) {
-      this.keyName = keyName;
+    KEYS() {
       this.defaultValue = null;
     }
 
-    KEYS(String keyName, String defaultValue) {
-      this.keyName = keyName;
+    KEYS(String defaultValue) {
       this.defaultValue = defaultValue;
     }
   }
@@ -105,9 +111,11 @@ public class LoginConfigController {
     builder.applicationDescription(getTranslatableString(KEYS.APPLICATION_INTRO, locale));
     builder.applicationNotification(getTranslatableString(KEYS.APPLICATION_NOTIFICATION, locale));
     builder.applicationLeftSideFooter(getTranslatableString(KEYS.APPLICATION_FOOTER, locale));
+    builder.applicationRightSideFooter(
+        getTranslatableString(KEYS.APPLICATION_RIGHT_FOOTER, locale));
     builder.loginPopup(getTranslatableString(KEYS.LOGIN_POPUP, locale));
 
-    builder.countryFlag(manager.getStringSetting(SettingKey.valueOf(KEYS.FLAG_IMAGE.name())));
+    builder.countryFlag(manager.getStringSetting(SettingKey.valueOf(KEYS.FLAG.name())));
 
     builder.uiLocale(
         manager
@@ -115,7 +123,7 @@ public class LoginConfigController {
             .getLanguage());
 
     builder.loginPageLogo(
-        manager.getBoolSetting(SettingKey.valueOf(KEYS.CUSTOM_LOGIN_PAGE_LOGO.name()))
+        manager.getBoolSetting(SettingKey.valueOf(KEYS.USE_CUSTOM_LOGO_FRONT.name()))
             ? KEYS.CUSTOM_LOGIN_PAGE_LOGO.defaultValue
             : null);
 
@@ -132,6 +140,12 @@ public class LoginConfigController {
         configurationService.getConfiguration().selfRegistrationAllowed());
 
     builder.apiVersion(systemService.getSystemInfo().getVersion());
+
+    builder.loginPageLayout(
+        manager.getStringSetting(SettingKey.valueOf(KEYS.LOGIN_PAGE_LAYOUT.name())));
+
+    builder.loginPageTemplate(
+        manager.getStringSetting(SettingKey.valueOf(KEYS.LOGIN_PAGE_TEMPLATE.name())));
 
     return builder.build();
   }

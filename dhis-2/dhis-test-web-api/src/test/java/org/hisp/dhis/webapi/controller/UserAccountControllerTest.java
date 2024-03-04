@@ -42,7 +42,7 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -50,7 +50,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
-class UserAccountControllerTest extends DhisControllerIntegrationTest {
+class UserAccountControllerTest extends DhisControllerConvenienceTest {
 
   @Autowired private MessageSender messageSender;
   @Autowired private SystemSettingManager systemSettingManager;
