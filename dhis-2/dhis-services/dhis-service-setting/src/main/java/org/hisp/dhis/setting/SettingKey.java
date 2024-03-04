@@ -51,7 +51,6 @@ import org.hisp.dhis.fileresource.FileResourceRetentionStrategy;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.security.LoginPageLayout;
 import org.hisp.dhis.sms.config.SmsConfiguration;
 
 /**
@@ -287,7 +286,7 @@ public enum SettingKey {
   LOGIN_POPUP("loginPopup", "", String.class, false, false),
 
   /** The layout of the LoginPage, value is the enum LoginPageLayout */
-  LOGIN_PAGE_LAYOUT("loginPageLayout", LoginPageLayout.DEFAULT.name(), String.class, false, false),
+  LOGIN_PAGE_LAYOUT("loginPageLayout", "default", String.class, false, false),
 
   /** The HTML string which is used for displaying LoginPage when LOGIN_PAGE_LAYOUT is CUSTOM. */
   LOGIN_PAGE_TEMPLATE("loginPageTemplate", null, String.class, false, false),
