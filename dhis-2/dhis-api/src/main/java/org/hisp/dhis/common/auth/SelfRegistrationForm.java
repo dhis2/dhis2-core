@@ -17,5 +17,7 @@ public class SelfRegistrationForm {
   @JsonProperty String password;
   @JsonProperty String email;
   @JsonProperty String phoneNumber;
-  @JsonProperty String recaptchaResponse;
+
+  @JsonProperty("g-recaptcha-response")
+  String recaptchaResponse;
 }

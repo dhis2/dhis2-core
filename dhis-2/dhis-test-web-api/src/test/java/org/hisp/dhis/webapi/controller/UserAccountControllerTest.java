@@ -27,12 +27,15 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.auth.SelfRegistrationForm;
 import org.hisp.dhis.jsontree.JsonMixed;
@@ -45,30 +48,28 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
-import org.junit.jupiter.api.Disabled;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
-class UserAccountControllerTest extends DhisControllerIntegrationTest {
+class UserAccountControllerTest extends DhisControllerConvenienceTest {
 
   @Autowired private MessageSender messageSender;
   @Autowired private SystemSettingManager systemSettingManager;
   @Autowired private PasswordManager passwordEncoder;
 
-  private OrganisationUnit selfRegOrgUnit;
-
-  //  @BeforeAll
-  //  public static void before() {}
+  private String superUserRoleUid;
 
   @Test
-  @Disabled(
-      "This test is only failing in Jenkins, temp disable in master while debugging on separate Jenkins only branch")
   void testResetPasswordOk() {
     systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
 
@@ -100,6 +101,7 @@ class UserAccountControllerTest extends DhisControllerIntegrationTest {
   @Test
   @DisplayName("Self registration is allowed when no errors")
   void selfRegIsAllowed() {
+    disableRecaptcha();
     enableSelfRegistration();
 
     assertWebMessage(
@@ -112,8 +114,29 @@ class UserAccountControllerTest extends DhisControllerIntegrationTest {
   }
 
   @Test
+  @DisplayName("Self registration completes and user org unit is correct")
+  void regCompleteAndUserConfigOk() {
+    disableRecaptcha();
+    OrganisationUnit organisationUnit = enableSelfRegistration();
+
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Account created",
+        POST("/auth/register", renderService.toJsonAsString(getSelfRegistrationForm()))
+            .content(HttpStatus.OK));
+
+    JsonUser user = GET("/me").content(HttpStatus.OK).as(JsonUser.class);
+    assertEquals(organisationUnit.getUid(), user.getOrganisationUnits().get(0).getId());
+    assertEquals(
+        superUserRoleUid, user.getArray("userRoles").getObject(0).getString("id").string());
+  }
+
+  @Test
   @DisplayName("Self registration error when username is null")
   void selfRegUsernameNull() {
+    disableRecaptcha();
     enableSelfRegistration();
 
     assertWebMessage(
@@ -121,13 +144,16 @@ class UserAccountControllerTest extends DhisControllerIntegrationTest {
         400,
         "ERROR",
         "Username is not specified or invalid",
-        POST("/auth/register", renderService.toJsonAsString(getSelfRegistrationFormNullUsername()))
+        POST(
+                "/auth/register",
+                renderService.toJsonAsString(getSelfRegistrationFormWithUsername(null)))
             .content(HttpStatus.BAD_REQUEST));
   }
 
   @Test
   @DisplayName("Self registration error when username exists")
   void selfRegUsernameExists() {
+    disableRecaptcha();
     enableSelfRegistration();
 
     assertWebMessage(
@@ -145,6 +171,7 @@ class UserAccountControllerTest extends DhisControllerIntegrationTest {
   @Test
   @DisplayName("Self registration error when username invalid")
   void selfRegUsernameInvalid() {
+    disableRecaptcha();
     enableSelfRegistration();
 
     assertWebMessage(
@@ -162,6 +189,7 @@ class UserAccountControllerTest extends DhisControllerIntegrationTest {
   @Test
   @DisplayName("Self registration error when first name null")
   void selfRegFirstNameNull() {
+    disableRecaptcha();
     enableSelfRegistration();
 
     assertWebMessage(
@@ -178,6 +206,7 @@ class UserAccountControllerTest extends DhisControllerIntegrationTest {
   @Test
   @DisplayName("Self registration error when first name too long")
   void selfRegFirstNameTooLong() {
+    disableRecaptcha();
     enableSelfRegistration();
 
     assertWebMessage(
@@ -196,13 +225,14 @@ class UserAccountControllerTest extends DhisControllerIntegrationTest {
   @Test
   @DisplayName("Self registration error when surname null")
   void selfRegSurnameNull() {
+    disableRecaptcha();
     enableSelfRegistration();
 
     assertWebMessage(
         "Bad Request",
         400,
         "ERROR",
-        "Last name is not specified or invalid",
+        "Surname is not specified or invalid",
         POST(
                 "/auth/register",
                 renderService.toJsonAsString(getSelfRegistrationFormWithSurname(null)))
@@ -210,15 +240,16 @@ class UserAccountControllerTest extends DhisControllerIntegrationTest {
   }
 
   @Test
-  @DisplayName("Self registration error when first name too long")
+  @DisplayName("Self registration error when surname name too long")
   void selfRegSurnameTooLong() {
+    disableRecaptcha();
     enableSelfRegistration();
 
     assertWebMessage(
         "Bad Request",
         400,
         "ERROR",
-        "Last name is not specified or invalid",
+        "Surname is not specified or invalid",
         POST(
                 "/auth/register",
                 renderService.toJsonAsString(
@@ -227,141 +258,28 @@ class UserAccountControllerTest extends DhisControllerIntegrationTest {
             .content(HttpStatus.BAD_REQUEST));
   }
 
-  @Test
-  @DisplayName("Self registration error when password null")
-  void selfRegPasswordNull() {
+  @ParameterizedTest
+  @MethodSource("passwordData")
+  @DisplayName("Self registration error when invalid password data")
+  void selfRegPasswordNull(String input, String expectedError) {
+    disableRecaptcha();
     enableSelfRegistration();
 
     assertWebMessage(
         "Bad Request",
         400,
         "ERROR",
-        "Password is not specified",
+        expectedError,
         POST(
                 "/auth/register",
-                renderService.toJsonAsString(getSelfRegistrationFormWithPassword(null)))
-            .content(HttpStatus.BAD_REQUEST));
-  }
-
-  @Test
-  @DisplayName("Self registration error when password must have 1 digit")
-  void selfRegPasswordNoDigit() {
-    enableSelfRegistration();
-
-    assertWebMessage(
-        "Bad Request",
-        400,
-        "ERROR",
-        "Password must have at least one digit",
-        POST(
-                "/auth/register",
-                renderService.toJsonAsString(getSelfRegistrationFormWithPassword("tester-dhis")))
-            .content(HttpStatus.BAD_REQUEST));
-  }
-
-  @Test
-  @DisplayName("Self registration error when password has no uppercase")
-  void selfRegPasswordNoUppercase() {
-    enableSelfRegistration();
-
-    assertWebMessage(
-        "Bad Request",
-        400,
-        "ERROR",
-        "Password must have at least one upper case",
-        POST(
-                "/auth/register",
-                renderService.toJsonAsString(
-                    getSelfRegistrationFormWithPassword("samewisegamgee1")))
-            .content(HttpStatus.BAD_REQUEST));
-  }
-
-  @Test
-  @DisplayName("Self registration error when password has no special char")
-  void selfRegPasswordCNoSpecialChar() {
-    enableSelfRegistration();
-
-    assertWebMessage(
-        "Bad Request",
-        400,
-        "ERROR",
-        "Password must have at least one special character",
-        POST(
-                "/auth/register",
-                renderService.toJsonAsString(
-                    getSelfRegistrationFormWithPassword("samewisegamgeE1")))
-            .content(HttpStatus.BAD_REQUEST));
-  }
-
-  @Test
-  @DisplayName("Self registration error when password contains username")
-  void selfRegPasswordContainsUsername() {
-    enableSelfRegistration();
-
-    assertWebMessage(
-        "Bad Request",
-        400,
-        "ERROR",
-        "Username/Email must not be a part of password",
-        POST(
-                "/auth/register",
-                renderService.toJsonAsString(
-                    getSelfRegistrationFormWithPassword("samewisegamgeE1@")))
-            .content(HttpStatus.BAD_REQUEST));
-  }
-
-  @Test
-  @DisplayName("Self registration error when password contains email")
-  void selfRegPasswordContainsEmail() {
-    enableSelfRegistration();
-
-    assertWebMessage(
-        "Bad Request",
-        400,
-        "ERROR",
-        "Username/Email must not be a part of password",
-        POST(
-                "/auth/register",
-                renderService.toJsonAsString(
-                    getSelfRegistrationFormWithPassword("samewise@dhis2.orG1@")))
-            .content(HttpStatus.BAD_REQUEST));
-  }
-
-  @Test
-  @DisplayName("Self registration error when password too short")
-  void selfRegPasswordTooShort() {
-    enableSelfRegistration();
-
-    assertWebMessage(
-        "Bad Request",
-        400,
-        "ERROR",
-        "Password must have at least 8, and at most 72 characters",
-        POST(
-                "/auth/register",
-                renderService.toJsonAsString(getSelfRegistrationFormWithPassword("sA1@")))
-            .content(HttpStatus.BAD_REQUEST));
-  }
-
-  @Test
-  @DisplayName("Self registration error when password contains key word")
-  void selfRegPasswordKeyWord() {
-    enableSelfRegistration();
-
-    assertWebMessage(
-        "Bad Request",
-        400,
-        "ERROR",
-        "Password must not have any generic word",
-        POST(
-                "/auth/register",
-                renderService.toJsonAsString(getSelfRegistrationFormWithPassword("sAdmin1@")))
+                renderService.toJsonAsString(getSelfRegistrationFormWithPassword(input)))
             .content(HttpStatus.BAD_REQUEST));
   }
 
   @Test
   @DisplayName("Self registration error when null email")
   void selfRegNullEmail() {
+    disableRecaptcha();
     enableSelfRegistration();
 
     assertWebMessage(
@@ -376,6 +294,7 @@ class UserAccountControllerTest extends DhisControllerIntegrationTest {
   @Test
   @DisplayName("Self registration error when invalid email")
   void selfRegInvalidEmail() {
+    disableRecaptcha();
     enableSelfRegistration();
 
     assertWebMessage(
@@ -392,6 +311,7 @@ class UserAccountControllerTest extends DhisControllerIntegrationTest {
   @Test
   @DisplayName("Self registration error when null phone number")
   void selfRegInvalidPhoneNumber() {
+    disableRecaptcha();
     enableSelfRegistration();
 
     assertWebMessage(
@@ -406,6 +326,7 @@ class UserAccountControllerTest extends DhisControllerIntegrationTest {
   @Test
   @DisplayName("Self registration error when phone number too long")
   void selfRegPhoneNumberTooLong() {
+    disableRecaptcha();
     enableSelfRegistration();
 
     assertWebMessage(
@@ -423,7 +344,7 @@ class UserAccountControllerTest extends DhisControllerIntegrationTest {
   @Test
   @DisplayName("Self registration error when not enabled")
   void selfRegNotEnabled() {
-    systemSettingManager.saveSystemSetting(SettingKey.SELF_REGISTRATION_NO_RECAPTCHA, Boolean.TRUE);
+    disableRecaptcha();
 
     assertWebMessage(
         "Bad Request",
@@ -434,18 +355,66 @@ class UserAccountControllerTest extends DhisControllerIntegrationTest {
             .content(HttpStatus.BAD_REQUEST));
   }
 
-  // TODO add test to login as new user and check default self reg org unit
+  @Test
+  @DisplayName("Self registration error when invalid recaptcha input")
+  void selfRegInvalidRecaptchaInput() {
+    systemSettingManager.saveSystemSetting(
+        SettingKey.SELF_REGISTRATION_NO_RECAPTCHA, Boolean.FALSE);
 
-  private void enableSelfRegistration() {
+    assertWebMessage(
+        "Bad Request",
+        400,
+        "ERROR",
+        "Recaptcha validation failed: [invalid-input-secret]",
+        POST(
+                "/auth/register",
+                renderService.toJsonAsString(getSelfRegistrationFormWithRecaptcha("secret")))
+            .content(HttpStatus.BAD_REQUEST));
+  }
+
+  @Test
+  @DisplayName("Self registration error when recaptcha enabled and null input")
+  void selfRegRecaptcha() {
+    systemSettingManager.saveSystemSetting(
+        SettingKey.SELF_REGISTRATION_NO_RECAPTCHA, Boolean.FALSE);
+
+    assertWebMessage(
+        "Bad Request",
+        400,
+        "ERROR",
+        "Recaptcha validation failed.",
+        POST(
+                "/auth/register",
+                renderService.toJsonAsString(getSelfRegistrationFormWithRecaptcha(null)))
+            .content(HttpStatus.BAD_REQUEST));
+  }
+
+  private OrganisationUnit enableSelfRegistration() {
     OrganisationUnit selfRegOrgUnit = createOrganisationUnit("test org 123");
     manager.save(selfRegOrgUnit);
     superUser.addOrganisationUnit(selfRegOrgUnit);
 
-    String superUserRoleUid = superUser.getUserRoles().iterator().next().getUid();
-    systemSettingManager.saveSystemSetting(SettingKey.SELF_REGISTRATION_NO_RECAPTCHA, Boolean.TRUE);
+    superUserRoleUid = superUser.getUserRoles().iterator().next().getUid();
     POST("/configuration/selfRegistrationRole", superUserRoleUid).content(HttpStatus.NO_CONTENT);
     POST("/configuration/selfRegistrationOrgUnit", selfRegOrgUnit.getUid())
         .content(HttpStatus.NO_CONTENT);
+    return selfRegOrgUnit;
+  }
+
+  private void disableRecaptcha() {
+    systemSettingManager.saveSystemSetting(SettingKey.SELF_REGISTRATION_NO_RECAPTCHA, Boolean.TRUE);
+  }
+
+  private static Stream<Arguments> passwordData() {
+    return Stream.of(
+        arguments(null, "Password is not specified"),
+        arguments("tester-dhis", "Password must have at least one digit"),
+        arguments("samewisegamgee1", "Password must have at least one upper case"),
+        arguments("samewisegamgeE1", "Password must have at least one special character"),
+        arguments("samewisegamgeE1@", "Username/Email must not be a part of password"),
+        arguments("samewise@dhis2.orG1@", "Username/Email must not be a part of password"),
+        arguments("sA1@", "Password must have at least 8, and at most 72 characters"),
+        arguments("sAdmin1@", "Password must not have any generic word"));
   }
 
   private String sendForgotPasswordRequest(User test) {
@@ -484,12 +453,6 @@ class UserAccountControllerTest extends DhisControllerIntegrationTest {
         .build();
   }
 
-  private SelfRegistrationForm getSelfRegistrationFormNullUsername() {
-    SelfRegistrationForm selfRegistrationFormBuilder = getSelfRegistrationForm();
-    selfRegistrationFormBuilder.setUsername(null);
-    return selfRegistrationFormBuilder;
-  }
-
   private SelfRegistrationForm getSelfRegistrationFormWithUsername(String username) {
     SelfRegistrationForm selfRegistrationFormBuilder = getSelfRegistrationForm();
     selfRegistrationFormBuilder.setUsername(username);
@@ -523,6 +486,12 @@ class UserAccountControllerTest extends DhisControllerIntegrationTest {
   private SelfRegistrationForm getSelfRegistrationFormWithPhone(String phone) {
     SelfRegistrationForm selfRegistrationFormBuilder = getSelfRegistrationForm();
     selfRegistrationFormBuilder.setPhoneNumber(phone);
+    return selfRegistrationFormBuilder;
+  }
+
+  private SelfRegistrationForm getSelfRegistrationFormWithRecaptcha(String recaptcha) {
+    SelfRegistrationForm selfRegistrationFormBuilder = getSelfRegistrationForm();
+    selfRegistrationFormBuilder.setRecaptchaResponse(recaptcha);
     return selfRegistrationFormBuilder;
   }
 }

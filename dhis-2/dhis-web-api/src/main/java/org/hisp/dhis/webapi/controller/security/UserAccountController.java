@@ -31,6 +31,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.user.UserService.RECOVERY_LOCKOUT_MINS;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -60,6 +61,7 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
 import org.hisp.dhis.user.PasswordValidationResult;
 import org.hisp.dhis.user.PasswordValidationService;
+import org.hisp.dhis.user.RecaptchaResponse;
 import org.hisp.dhis.user.RestoreOptions;
 import org.hisp.dhis.user.RestoreType;
 import org.hisp.dhis.user.SystemUser;
@@ -196,10 +198,15 @@ public class UserAccountController {
   @PostMapping("/register")
   public WebMessage register(
       @RequestBody SelfRegistrationForm registrationForm, HttpServletRequest request)
-      throws BadRequestException {
-    log.info("Self registration form received: " + registrationForm);
-    // TODO recaptcha logic here
-    WebMessage validateInput = validateInput(registrationForm, true);
+      throws BadRequestException, IOException {
+    log.info("Self registration received");
+
+    WebMessage validateCaptcha = validateCaptcha(registrationForm.getRecaptchaResponse(), request);
+    if (validateCaptcha != null) {
+      return validateCaptcha;
+    }
+
+    WebMessage validateInput = validateInput(registrationForm);
     if (validateInput != null) {
       return validateInput;
     }
@@ -207,60 +214,80 @@ public class UserAccountController {
     if (!configurationService.getConfiguration().selfRegistrationAllowed()) {
       return badRequest("User self registration is not allowed");
     }
-
     createAndAddSelfRegisteredUser(registrationForm, request);
 
+    log.info("Self registration successful");
     return ok("Account created");
   }
 
-  private WebMessage validateInput(
-      SelfRegistrationForm userRegistration, boolean validateUsernameExists)
-      throws BadRequestException {
-    if (validateUserName(userRegistration.getUsername(), validateUsernameExists)
-        .get("response")
-        .equals("error")) {
+  public WebMessage validateCaptcha(String recapResponse, HttpServletRequest request)
+      throws IOException {
+    if (!systemSettingManager.selfRegistrationNoRecaptcha()) {
+      if (recapResponse == null) {
+        log.warn("Recaptcha validation failed, null response received");
+        return badRequest("Recaptcha validation failed.");
+      }
+
+      RecaptchaResponse recaptchaResponse =
+          userService.verifyRecaptcha(recapResponse, request.getRemoteAddr());
+      if (!recaptchaResponse.success()) {
+        log.warn("Recaptcha validation failed: " + recaptchaResponse.getErrorCodes());
+        return badRequest("Recaptcha validation failed: " + recaptchaResponse.getErrorCodes());
+      }
+    }
+
+    return null;
+  }
+
+  private WebMessage validateInput(SelfRegistrationForm selfRegForm) throws BadRequestException {
+    if (validateUserName(selfRegForm.getUsername()).get("response").equals("error")) {
+      log.warn("Username validation failed");
       throw new BadRequestException("Username is not specified or invalid");
     }
 
-    if (userRegistration.getFirstName() == null
-        || userRegistration.getFirstName().trim().length() > MAX_LENGTH) {
+    if (selfRegForm.getFirstName() == null
+        || selfRegForm.getFirstName().trim().length() > MAX_LENGTH) {
+      log.warn("First name validation failed");
       throw new BadRequestException("First name is not specified or invalid");
     }
 
-    if (userRegistration.getSurname() == null
-        || userRegistration.getSurname().trim().length() > MAX_LENGTH) {
-      throw new BadRequestException("Last name is not specified or invalid");
+    if (selfRegForm.getSurname() == null || selfRegForm.getSurname().trim().length() > MAX_LENGTH) {
+      log.warn("Surname validation failed");
+      throw new BadRequestException("Surname is not specified or invalid");
     }
 
-    if (userRegistration.getPassword() == null) {
+    if (selfRegForm.getPassword() == null) {
+      log.warn("Password validation failed");
       throw new BadRequestException("Password is not specified");
     }
 
     PasswordValidationResult passwordValidationResult =
         passwordValidationService.validate(
             new CredentialsInfo(
-                userRegistration.getUsername(),
-                userRegistration.getPassword(),
-                userRegistration.getEmail(),
+                selfRegForm.getUsername(),
+                selfRegForm.getPassword(),
+                selfRegForm.getEmail(),
                 true));
     if (!passwordValidationResult.isValid()) {
+      log.warn("Password validation failed");
       throw new BadRequestException(passwordValidationResult.getErrorMessage());
     }
 
-    if (userRegistration.getEmail() == null
-        || !ValidationUtils.emailIsValid(userRegistration.getEmail())) {
+    if (selfRegForm.getEmail() == null || !ValidationUtils.emailIsValid(selfRegForm.getEmail())) {
+      log.warn("Email validation failed");
       throw new BadRequestException("Email is not specified or invalid");
     }
 
-    if (userRegistration.getPhoneNumber() == null
-        || userRegistration.getPhoneNumber().trim().length() > MAX_PHONE_NO_LENGTH) {
+    if (selfRegForm.getPhoneNumber() == null
+        || selfRegForm.getPhoneNumber().trim().length() > MAX_PHONE_NO_LENGTH) {
+      log.warn("Phone number validation failed");
       throw new BadRequestException("Phone number is not specified or invalid");
     }
 
     return null;
   }
 
-  private Map<String, String> validateUserName(String username, boolean validateIfExists) {
+  private Map<String, String> validateUserName(String username) {
     boolean isNull = username == null;
     boolean usernameExists = userService.getUserByUsernameIgnoreCase(username) != null;
     boolean isValidSyntax = ValidationUtils.usernameIsValid(username, false);
@@ -271,7 +298,7 @@ public class UserAccountController {
       result.put("message", "Username is null");
     } else if (!isValidSyntax) {
       result.put("message", "Username is not valid");
-    } else if (validateIfExists && usernameExists) {
+    } else if (usernameExists) {
       result.put("message", "Username is already taken");
     }
 

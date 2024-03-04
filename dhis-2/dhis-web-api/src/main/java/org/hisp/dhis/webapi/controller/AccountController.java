@@ -210,6 +210,7 @@ public class AccountController {
 
   @PostMapping
   @ResponseBody
+  @Deprecated(forRemoval = true, since = "2.41")
   public WebMessage createAccount(
       @RequestParam String username,
       @RequestParam String firstName,
