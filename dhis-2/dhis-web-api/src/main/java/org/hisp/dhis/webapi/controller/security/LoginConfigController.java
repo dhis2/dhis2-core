@@ -69,7 +69,9 @@ public class LoginConfigController {
     LOGIN_POPUP("loginPopup"),
     SELF_REGISTRATION_NO_RECAPTCHA("selfRegistrationNoRecaptcha"),
     USE_CUSTOM_LOGO_FRONT("useCustomLogoFront"),
-    ACCOUNT_RECOVERY("allowAccountRecovery");
+    ACCOUNT_RECOVERY("allowAccountRecovery"),
+    LOGIN_PAGE_HTML_TEMPLATE("loginPageHtmlTemplate"),
+    LOGIN_PAGE_LAYOUT("loginPageLayout");
 
     private final String keyName;
     private final String defaultValue;
