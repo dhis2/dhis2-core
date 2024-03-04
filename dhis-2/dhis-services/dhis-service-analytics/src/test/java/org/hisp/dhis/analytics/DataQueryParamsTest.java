@@ -837,7 +837,7 @@ class DataQueryParamsTest extends DhisConvenienceTest {
   }
 
   @Test
-  void latestEndDateWhenStart() {
+  void latestEndDateWhenEndDate() {
     EventQueryParams params =
         EventQueryParams.fromDataQueryParams(
             DataQueryParams.newBuilder()
@@ -851,7 +851,7 @@ class DataQueryParamsTest extends DhisConvenienceTest {
             TimeField.LAST_UPDATED,
             List.of(new DateRange(getDate(2001, 1, 1), getDate(2001, 3, 1))));
 
-    assertEquals(getDate(2020, 1, 31), params.getLatestEndDate());
+    assertEquals(getDate(2020, 1, 1), params.getLatestEndDate());
   }
 
   @Test
@@ -867,7 +867,7 @@ class DataQueryParamsTest extends DhisConvenienceTest {
         .getTimeDateRanges()
         .put(
             TimeField.LAST_UPDATED,
-            List.of(new DateRange(getDate(2001, 1, 1), getDate(2001, 3, 1))));
+            List.of(new DateRange(getDate(2001, 1, 1), getDate(2010, 3, 1))));
 
     assertEquals(getDate(2020, 1, 31), params.getLatestEndDate());
   }
@@ -885,8 +885,8 @@ class DataQueryParamsTest extends DhisConvenienceTest {
         .getTimeDateRanges()
         .put(
             TimeField.LAST_UPDATED,
-            List.of(new DateRange(getDate(2020, 1, 1), getDate(2001, 3, 1))));
+            List.of(new DateRange(getDate(2020, 1, 1), getDate(2020, 3, 1))));
 
-    assertEquals(getDate(2020, 1, 31), params.getLatestEndDate());
+    assertEquals(getDate(2020, 3, 1), params.getLatestEndDate());
   }
 }
