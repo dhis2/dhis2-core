@@ -125,7 +125,7 @@ public class JdbcTrackedEntityChangeLogStore {
               join program p using (programid)
               where audit.audittype in ('CREATE', 'UPDATE', 'DELETE')
               and t.uid = :trackedEntity
-              and p.uid = :programUid
+              and p.uid = :program
           """;
       parameters.addValue("programUid", program.getValue());
     } else {
