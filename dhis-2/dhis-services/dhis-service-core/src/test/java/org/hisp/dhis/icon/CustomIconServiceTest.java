@@ -102,7 +102,7 @@ class CustomIconServiceTest extends DhisConvenienceTest {
 
   @Test
   void shouldFailWhenSavingCustomIconWithNonExistentFileResourceId() {
-    String iconKey = "default key";
+    String iconKey = "default-key";
     String fileResourceUid = "12345";
     FileResource fileResource = createFileResource('B', "123".getBytes());
     fileResource.setUid(fileResourceUid);
@@ -126,7 +126,7 @@ class CustomIconServiceTest extends DhisConvenienceTest {
   void shouldFailWhenSavingCustomIconAndIconWithSameKeyExists() {
     FileResource fileResource = createFileResource('B', "123".getBytes());
 
-    String duplicatedKey = "custom key";
+    String duplicatedKey = "customkey";
     when(customIconStore.getCustomIconByKey(duplicatedKey))
         .thenReturn(new CustomIcon("key", "description", Set.of(), true, fileResource));
 

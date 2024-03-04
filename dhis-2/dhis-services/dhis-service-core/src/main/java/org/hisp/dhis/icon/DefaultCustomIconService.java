@@ -53,6 +53,8 @@ public class DefaultCustomIconService implements CustomIconService {
 
   private static final String CUSTOM_ICON_KEY_PATTERN = "^[a-zA-Z0-9*-_+]+$";
 
+  private static final Pattern pattern = Pattern.compile(CUSTOM_ICON_KEY_PATTERN);
+
   private static final String ICON_PATH = "SVGs";
 
   private final CustomIconStore customIconStore;
@@ -167,8 +169,6 @@ public class DefaultCustomIconService implements CustomIconService {
   }
 
   private void validateCustomIconKey(String key) throws BadRequestException {
-
-    Pattern pattern = Pattern.compile(CUSTOM_ICON_KEY_PATTERN);
     Matcher matcher = pattern.matcher(key.trim());
 
     if (!matcher.matches()) {
