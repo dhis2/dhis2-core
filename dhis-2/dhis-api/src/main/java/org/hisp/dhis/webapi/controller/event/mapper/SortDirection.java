@@ -46,14 +46,17 @@ public enum SortDirection {
   private final boolean ignoreCase;
 
   public static SortDirection of(String value) {
-    return of(value, DEFAULT_SORTING_DIRECTION);
-  }
-
-  public static SortDirection of(String value, SortDirection defaultSortingDirection) {
     return Arrays.stream(values())
         .filter(sortDirection -> sortDirection.getValue().equalsIgnoreCase(value))
         .findFirst()
-        .orElse(defaultSortingDirection);
+        .orElseThrow(
+            () ->
+                new IllegalArgumentException(
+                    "'"
+                        + value
+                        + "' is not a valid sort direction. Valid values are: "
+                        + Arrays.toString(SortDirection.values())
+                        + "."));
   }
 
   public boolean isAscending() {

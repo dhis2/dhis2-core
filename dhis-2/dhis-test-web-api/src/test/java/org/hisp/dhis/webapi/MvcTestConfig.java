@@ -60,7 +60,6 @@ import org.hisp.dhis.webapi.mvc.messageconverter.MetadataExportParamsMessageConv
 import org.hisp.dhis.webapi.mvc.messageconverter.StreamingJsonRootMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlPathMappingJackson2XmlHttpMessageConverter;
-import org.hisp.dhis.webapi.security.config.StringToOrderCriteriaListConverter;
 import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -273,7 +272,6 @@ public class MvcTestConfig implements WebMvcConfigurer {
 
   @Override
   public void addFormatters(FormatterRegistry registry) {
-    registry.addConverter(new StringToOrderCriteriaListConverter());
     registry.addConverter(new FieldPathConverter());
   }
 

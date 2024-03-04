@@ -213,7 +213,6 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
 
   @Override
   protected void addFormatters(FormatterRegistry registry) {
-    registry.addConverter(new StringToOrderCriteriaListConverter());
     registry.addConverter(new FieldPathConverter());
   }
 
