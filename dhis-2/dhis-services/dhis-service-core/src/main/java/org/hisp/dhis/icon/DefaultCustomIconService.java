@@ -51,7 +51,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service("org.hisp.dhis.icon.CustomIconService")
 public class DefaultCustomIconService implements CustomIconService {
 
-  private static final String CUSTOM_ICON_KEY_PATTERN = "^[a-zA-Z0-9@#$%&*-_+]+$";
+  private static final String CUSTOM_ICON_KEY_PATTERN = "^[a-zA-Z0-9*-_+]+$";
 
   private static final String ICON_PATH = "SVGs";
 
