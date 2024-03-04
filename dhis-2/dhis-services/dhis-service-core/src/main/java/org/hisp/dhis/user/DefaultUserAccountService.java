@@ -148,6 +148,7 @@ public class DefaultUserAccountService implements UserAccountService {
     }
   }
 
+  @Override
   public void validateCaptcha(String recapResponse, HttpServletRequest request)
       throws BadRequestException, IOException {
     if (!systemSettingManager.selfRegistrationNoRecaptcha()) {
@@ -166,6 +167,7 @@ public class DefaultUserAccountService implements UserAccountService {
     }
   }
 
+  @Override
   public void authenticate(
       String username,
       String rawPassword,
