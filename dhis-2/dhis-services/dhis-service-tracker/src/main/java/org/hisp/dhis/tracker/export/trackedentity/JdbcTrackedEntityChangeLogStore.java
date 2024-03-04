@@ -127,7 +127,7 @@ public class JdbcTrackedEntityChangeLogStore {
               and t.uid = :trackedEntity
               and p.uid = :program
           """;
-      parameters.addValue("programUid", program.getValue());
+      parameters.addValue("program", program.getValue());
     } else {
       sql +=
           """
