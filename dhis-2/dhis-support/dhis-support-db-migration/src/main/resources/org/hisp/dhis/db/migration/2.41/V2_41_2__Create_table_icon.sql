@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS icon
     code                character      varying(50),
     iconkey             varchar(100)   NOT NULL,
     fileresourceid      bigint         NULL,
-    description         text           NOT NULL,
+    description         text           NULL,
     keywords            jsonb          NULL,
     created             TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     lastupdated         TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP,

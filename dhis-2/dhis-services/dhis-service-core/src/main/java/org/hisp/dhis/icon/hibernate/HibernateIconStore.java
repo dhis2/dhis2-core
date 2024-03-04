@@ -78,7 +78,7 @@ public class HibernateIconStore extends HibernateIdentifiableObjectStore<Icon>
   public long count(IconOperationParams params) {
 
     String sql = """
-            select count(*) as count from customicon c
+            select count(*) as count from icon c
             """;
     Map<String, Object> parameterSource = new HashMap<>();
     sql = buildIconQuery(params, sql, parameterSource);
@@ -118,7 +118,7 @@ public class HibernateIconStore extends HibernateIdentifiableObjectStore<Icon>
   public Set<Icon> getIcons(IconOperationParams params) {
 
     String sql = """
-            select * from customicon c
+            select * from icon c
             """;
     Map<String, Object> parameterSource = new HashMap<>();
     sql = buildIconQuery(params, sql, parameterSource);
