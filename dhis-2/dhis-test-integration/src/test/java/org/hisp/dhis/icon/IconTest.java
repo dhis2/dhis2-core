@@ -90,7 +90,7 @@ class IconTest extends TrackerTest {
       icon.setUid(uid);
       iconService.addIcon(icon);
     } catch (NotFoundException | BadRequestException e) {
-      log.error("CustomIcon creation failed");
+      log.error("Icon creation failed");
     }
   }
 
