@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.security;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.user.UserService.RECOVERY_LOCKOUT_MINS;
 
+import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +38,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.auth.SelfRegistrationParams;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -48,9 +51,11 @@ import org.hisp.dhis.user.PasswordValidationService;
 import org.hisp.dhis.user.RestoreOptions;
 import org.hisp.dhis.user.RestoreType;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAccountService;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webmessage.WebMessageResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -79,6 +84,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserAccountController {
 
   private final UserService userService;
+  private final UserAccountService userAccountService;
   private final SystemSettingManager systemSettingManager;
   private final PasswordValidationService passwordValidationService;
 
@@ -164,5 +170,16 @@ public class UserAccountController {
     }
 
     log.info("Account restored for user: {}", user.getUsername());
+  }
+
+  @PostMapping("/register")
+  public WebMessageResponse register(
+      @RequestBody SelfRegistrationParams selfRegForm, HttpServletRequest request)
+      throws BadRequestException, IOException {
+    log.info("Self registration received");
+    userAccountService.validateUserFormInfo(selfRegForm, request);
+    userAccountService.createAndAddSelfRegisteredUser(selfRegForm, request);
+    log.info("Self registration successful");
+    return ok("Account created");
   }
 }
