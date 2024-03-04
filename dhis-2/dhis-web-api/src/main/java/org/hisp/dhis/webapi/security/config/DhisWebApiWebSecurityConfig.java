@@ -268,7 +268,7 @@ public class DhisWebApiWebSecurityConfig {
           .permitAll()
           .antMatchers("/oauth2/**")
           .permitAll()
-          .antMatchers(apiContextPath + "/loginConfig")
+          .antMatchers(apiContextPath + "/**/loginConfig")
           .permitAll()
           .antMatchers(apiContextPath + "/auth/login")
           .permitAll()
