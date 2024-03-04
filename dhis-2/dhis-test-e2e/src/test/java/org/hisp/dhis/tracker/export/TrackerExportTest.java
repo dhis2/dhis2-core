@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports;
+package org.hisp.dhis.tracker.export;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
@@ -72,7 +72,7 @@ import org.skyscreamer.jsonassert.JSONAssert;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TrackerExportTests extends TrackerApiTest {
+public class TrackerExportTest extends TrackerApiTest {
   private static final String TE = "Kj6vYde4LHh";
 
   private static final String TE_POTENTIAL_DUPLICATE = "Nav6inZRw1u";
