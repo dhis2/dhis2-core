@@ -61,29 +61,26 @@ public class LoginConfigController {
 
   @Getter
   private enum KEYS {
-    APPLICATION_TITLE("applicationTitle"),
-    APPLICATION_INTRO("applicationDescription"),
-    APPLICATION_NOTIFICATION("applicationNotification"),
-    APPLICATION_FOOTER("applicationLeftSideFooter"),
-    APPLICATION_RIGHT_FOOTER("applicationRightFooter"),
-    FLAG("countryFlag"),
-    CUSTOM_LOGIN_PAGE_LOGO("loginPageLogo", "/api/staticContent/logo_front.png"),
-    UI_LOCALE("uiLocale"),
-    LOGIN_POPUP("loginPopup"),
-    SELF_REGISTRATION_NO_RECAPTCHA("selfRegistrationNoRecaptcha"),
-    USE_CUSTOM_LOGO_FRONT("useCustomLogoFront"),
-    ACCOUNT_RECOVERY("allowAccountRecovery");
+    APPLICATION_TITLE(),
+    APPLICATION_INTRO(),
+    APPLICATION_NOTIFICATION(),
+    APPLICATION_FOOTER(),
+    APPLICATION_RIGHT_FOOTER(),
+    FLAG(),
+    CUSTOM_LOGIN_PAGE_LOGO("/api/staticContent/logo_front.png"),
+    UI_LOCALE(),
+    LOGIN_POPUP(),
+    SELF_REGISTRATION_NO_RECAPTCHA(),
+    USE_CUSTOM_LOGO_FRONT(),
+    ACCOUNT_RECOVERY();
 
-    private final String keyName;
     private final String defaultValue;
 
-    KEYS(String keyName) {
-      this.keyName = keyName;
+    KEYS() {
       this.defaultValue = null;
     }
 
-    KEYS(String keyName, String defaultValue) {
-      this.keyName = keyName;
+    KEYS(String defaultValue) {
       this.defaultValue = defaultValue;
     }
   }
