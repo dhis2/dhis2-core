@@ -31,12 +31,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.security.LoginPageLayout;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.SystemService;
+import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.util.HtmlUtils;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -125,5 +128,31 @@ class LoginConfigControllerTest extends DhisControllerIntegrationTest {
     assertEquals(
         systemService.getSystemInfo().getVersion(),
         responseDefaultLocale.getString("apiVersion").string());
+
+    assertEquals(
+        LoginPageLayout.DEFAULT.name(),
+        responseDefaultLocale.getString("loginPageLayout").string());
+  }
+
+  @Test
+  void testLoginPageLayout() {
+    String template =
+        """
+                <!DOCTYPE HTML>
+                <html class="loginPage" dir="ltr">
+                <head>
+                <title>DHIS 2 Demo</title>
+                <meta name="description" content="DHIS 2">
+                <meta name="keywords" content="DHIS 2">
+                <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+                </head>
+                <body>test</body>
+                </html>""";
+    POST("/systemSettings/loginPageTemplate", template).content(HttpStatus.OK);
+    POST("/systemSettings/loginPageLayout", "CUSTOM").content(HttpStatus.OK);
+    JsonObject response = GET("/loginConfig").content();
+    String savedTemplate = response.getString("loginPageTemplate").string();
+    assertFalse(savedTemplate.isEmpty());
+    assertEquals(template, HtmlUtils.htmlUnescape(savedTemplate));
   }
 }
