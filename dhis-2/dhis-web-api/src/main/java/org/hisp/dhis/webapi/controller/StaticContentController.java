@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.hisp.dhis.common.DhisApiVersion.ALL;
 import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
@@ -174,28 +175,30 @@ public class StaticContentController {
       @PathVariable("key") String key, HttpServletRequest request, HttpServletResponse response)
       throws WebMessageException {
     if (!KEY_WHITELIST_MAP.containsKey(key)) {
+      response.setContentType(APPLICATION_JSON);
       throw new WebMessageException(notFound("Key does not exist."));
     }
 
     boolean useCustomFile = systemSettingManager.getBoolSetting(KEY_WHITELIST_MAP.get(key));
-
     if (!useCustomFile) // Serve default
     {
       try {
         response.sendRedirect(getDefaultLogoUrl(request, key));
       } catch (IOException e) {
+        response.setContentType(APPLICATION_JSON);
         throw new WebMessageException(error("Can't read the file."));
       }
     } else // Serve custom
     {
       try {
         response.setContentType(IMAGE_PNG_VALUE);
-
         contentStore.copyContent(
             makeKey(DEFAULT_RESOURCE_DOMAIN, Optional.of(key)), response.getOutputStream());
       } catch (NoSuchElementException e) {
+        response.setContentType(APPLICATION_JSON);
         throw new WebMessageException(notFound(e.getMessage()));
       } catch (IOException e) {
+        response.setContentType(APPLICATION_JSON);
         throw new WebMessageException(error("Failed to retrieve image", e.getMessage()));
       }
     }
