@@ -129,7 +129,7 @@ public class DefaultIconService implements IconService {
     validateIconDoesNotExists(icon);
     validateIconKey(icon.getKey());
 
-    if (icon.getCustom()) {
+    if (Boolean.TRUE.equals(icon.getCustom())) {
       FileResource fileResource = getFileResource(icon.getFileResource().getUid());
       fileResource.setAssigned(true);
       fileResourceService.updateFileResource(fileResource);
@@ -158,7 +158,7 @@ public class DefaultIconService implements IconService {
 
     Icon persistedIcon = validateIconExists(icon);
 
-    if (persistedIcon.getCustom()) {
+    if (Boolean.TRUE.equals(persistedIcon.getCustom())) {
       FileResource fileResource = getFileResource(persistedIcon.getFileResource().getUid());
       fileResource.setAssigned(false);
       fileResourceService.updateFileResource(fileResource);

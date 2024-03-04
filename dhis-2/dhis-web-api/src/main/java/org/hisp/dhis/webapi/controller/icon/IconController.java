@@ -163,7 +163,10 @@ public class IconController {
           WebMessageUtils.notFound(String.format("Icon with key %s not found", key)));
     }
 
-    icon.setHref(icon.getCustom() ? getCustomIconReference(key) : getDefaultIconReference(key));
+    icon.setHref(
+        Boolean.TRUE.equals(icon.getCustom())
+            ? getCustomIconReference(key)
+            : getDefaultIconReference(key));
 
     return new ResponseEntity<>(icon, HttpStatus.OK);
   }
