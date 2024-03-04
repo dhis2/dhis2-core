@@ -48,6 +48,7 @@ public class LoginConfigResponse {
   @JsonProperty private String applicationDescription;
   @JsonProperty private String applicationNotification;
   @JsonProperty private String applicationLeftSideFooter;
+  @JsonProperty private String applicationRightSideFooter;
   @JsonProperty private String countryFlag;
   @JsonProperty private String uiLocale;
   @JsonProperty private String loginPageLogo;

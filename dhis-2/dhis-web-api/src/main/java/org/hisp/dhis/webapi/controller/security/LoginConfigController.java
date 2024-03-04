@@ -65,7 +65,8 @@ public class LoginConfigController {
     APPLICATION_INTRO("applicationDescription"),
     APPLICATION_NOTIFICATION("applicationNotification"),
     APPLICATION_FOOTER("applicationLeftSideFooter"),
-    FLAG_IMAGE("countryFlag"),
+    APPLICATION_RIGHT_FOOTER("applicationRightFooter"),
+    FLAG("countryFlag"),
     CUSTOM_LOGIN_PAGE_LOGO("loginPageLogo", "/api/staticContent/logo_front.png"),
     UI_LOCALE("uiLocale"),
     LOGIN_POPUP("loginPopup"),
@@ -103,9 +104,11 @@ public class LoginConfigController {
     builder.applicationDescription(getTranslatableString(KEYS.APPLICATION_INTRO, locale));
     builder.applicationNotification(getTranslatableString(KEYS.APPLICATION_NOTIFICATION, locale));
     builder.applicationLeftSideFooter(getTranslatableString(KEYS.APPLICATION_FOOTER, locale));
+    builder.applicationRightSideFooter(
+        getTranslatableString(KEYS.APPLICATION_RIGHT_FOOTER, locale));
     builder.loginPopup(getTranslatableString(KEYS.LOGIN_POPUP, locale));
 
-    builder.countryFlag(manager.getStringSetting(SettingKey.valueOf(KEYS.FLAG_IMAGE.name())));
+    builder.countryFlag(manager.getStringSetting(SettingKey.valueOf(KEYS.FLAG.name())));
 
     builder.uiLocale(
         manager
@@ -113,7 +116,7 @@ public class LoginConfigController {
             .getLanguage());
 
     builder.loginPageLogo(
-        manager.getBoolSetting(SettingKey.valueOf(KEYS.CUSTOM_LOGIN_PAGE_LOGO.name()))
+        manager.getBoolSetting(SettingKey.valueOf(KEYS.USE_CUSTOM_LOGO_FRONT.name()))
             ? KEYS.CUSTOM_LOGIN_PAGE_LOGO.defaultValue
             : null);
 
