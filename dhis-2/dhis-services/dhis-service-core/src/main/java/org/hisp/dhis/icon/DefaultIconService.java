@@ -173,7 +173,8 @@ public class DefaultIconService implements IconService {
     if (!matcher.matches()) {
       throw new BadRequestException(
           String.format(
-              "Icon key %s is not valid. Alphanumeric and special characters are allowed", key));
+              "Icon key %s is not valid. Alphanumeric and special characters '-' and '_' are allowed",
+              key));
     }
   }
 

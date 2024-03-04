@@ -166,7 +166,7 @@ class IconTest extends TrackerTest {
 
     assertEquals(
         String.format(
-            "Icon key %s is not valid. Alphanumeric and special characters are allowed",
+            "Icon key %s is not valid. Alphanumeric and special characters '-' and '_' are allowed",
             invalidKey),
         exception.getMessage());
   }
@@ -192,7 +192,7 @@ class IconTest extends TrackerTest {
 
     assertEquals(
         String.format(
-            "Icon key %s is not valid. Alphanumeric and special characters are allowed",
+            "Icon key %s is not valid. Alphanumeric and special characters '-' and '_' are allowed",
             invalidKey),
         exception.getMessage());
   }
