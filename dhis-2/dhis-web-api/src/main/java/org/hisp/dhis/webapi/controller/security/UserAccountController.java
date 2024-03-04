@@ -312,20 +312,20 @@ public class UserAccountController {
   }
 
   private void createAndAddSelfRegisteredUser(
-      SelfRegistrationForm userRegistration, HttpServletRequest request) {
+      SelfRegistrationForm selfRegForm, HttpServletRequest request) {
     UserRole userRole = configurationService.getConfiguration().getSelfRegistrationRole();
     OrganisationUnit orgUnit = configurationService.getConfiguration().getSelfRegistrationOrgUnit();
 
     User user = new User();
-    user.setUsername(userRegistration.getUsername());
-    user.setFirstName(userRegistration.getFirstName());
-    user.setSurname(userRegistration.getSurname());
-    user.setEmail(userRegistration.getEmail());
-    user.setPhoneNumber(userRegistration.getPhoneNumber());
+    user.setUsername(selfRegForm.getUsername());
+    user.setFirstName(selfRegForm.getFirstName());
+    user.setSurname(selfRegForm.getSurname());
+    user.setEmail(selfRegForm.getEmail());
+    user.setPhoneNumber(selfRegForm.getPhoneNumber());
     user.getOrganisationUnits().add(orgUnit);
     user.getDataViewOrganisationUnits().add(orgUnit);
 
-    userService.encodeAndSetPassword(user, userRegistration.getPassword());
+    userService.encodeAndSetPassword(user, selfRegForm.getPassword());
 
     user.setSelfRegistered(true);
     user.getUserRoles().add(userRole);
@@ -334,7 +334,7 @@ public class UserAccountController {
 
     log.info("Created new user");
 
-    authenticateUser(user, user.getUsername(), userRegistration.getPassword(), request);
+    authenticateUser(user, user.getUsername(), selfRegForm.getPassword(), request);
   }
 
   private void authenticateUser(
