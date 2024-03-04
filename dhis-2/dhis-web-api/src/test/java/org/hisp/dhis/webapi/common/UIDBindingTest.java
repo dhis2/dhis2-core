@@ -34,7 +34,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.jsontree.JsonMixed;
@@ -146,9 +145,6 @@ class UIDBindingTest {
 
   @Test
   void shouldHandleMultipleOrderComponentsGivenViaOneParameter() throws Exception {
-    System.out.println(CodeGenerator.generateUid());
-    System.out.println(CodeGenerator.generateUid());
-    System.out.println(CodeGenerator.generateUid());
     mockMvc
         .perform(get(ENDPOINT + "/collection").param("uids", "PHB3x6n374I,Sq3QLSHij67"))
         .andExpect(status().isOk());
