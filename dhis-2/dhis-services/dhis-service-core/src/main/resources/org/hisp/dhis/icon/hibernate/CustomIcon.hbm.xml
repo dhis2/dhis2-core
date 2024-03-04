@@ -8,7 +8,7 @@
 <hibernate-mapping>
     <class name="org.hisp.dhis.icon.CustomIcon" table="customicon">
 
-        <id name="id" column="id">
+        <id name="id" column="customiconid">
             <generator class="native" />
         </id>
         &identifiableProperties;

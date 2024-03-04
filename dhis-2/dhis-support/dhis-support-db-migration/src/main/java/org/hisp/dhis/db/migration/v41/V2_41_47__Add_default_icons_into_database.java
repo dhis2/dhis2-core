@@ -59,7 +59,7 @@ public class V2_41_47__Add_default_icons_into_database extends BaseJavaMigration
   public static final String INSERT_DEFAULT_ICONS =
       """
       INSERT INTO public.customicon(
-      id, uid, code, iconkey, fileresourceid, description, keywords, created, lastupdated, createdby, lastupdatedby, custom)
+      customiconid, uid, code, iconkey, fileresourceid, description, keywords, created, lastupdated, createdby, lastupdatedby, custom)
       VALUES (nextval('hibernate_sequence'), generate_uid(), ?, ?, null, ?, ?, now(), now(), null, null, false );
       """;
 

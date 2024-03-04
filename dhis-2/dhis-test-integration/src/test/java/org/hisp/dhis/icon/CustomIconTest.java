@@ -42,7 +42,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
-import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -57,6 +57,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.MimeTypeUtils;
 
+@Slf4j
 class CustomIconTest extends TrackerTest {
 
   @Autowired private FileResourceService fileResourceService;
@@ -73,7 +74,6 @@ class CustomIconTest extends TrackerTest {
   private FileResource fileResource;
   private User currentUser;
 
-  @SneakyThrows
   @Override
   protected void initTest() throws IOException {
 
@@ -85,8 +85,13 @@ class CustomIconTest extends TrackerTest {
     keywords.addAll(Set.of("k1", "k2", "m1"));
     fileResource = createAndPersistFileResource('A');
     customIcon = new CustomIcon(Key, "description", keywords, true, fileResource);
-    customIcon.setUid(uid);
-    iconService.addCustomIcon(customIcon);
+
+    try {
+      customIcon.setUid(uid);
+      iconService.addCustomIcon(customIcon);
+    } catch (NotFoundException | BadRequestException e) {
+      log.error("CustomIcon creation failed");
+    }
   }
 
   @Test

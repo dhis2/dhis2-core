@@ -96,7 +96,7 @@ public class DefaultCustomIconService implements CustomIconService {
   }
 
   @Override
-  @Transactional
+  @Transactional(readOnly = true)
   public Resource getCustomIconResource(String key) throws NotFoundException {
 
     if (customIconExists(key)) {

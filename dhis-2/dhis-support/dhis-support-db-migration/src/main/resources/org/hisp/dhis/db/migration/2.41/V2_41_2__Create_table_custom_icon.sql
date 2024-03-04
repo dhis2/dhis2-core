@@ -4,7 +4,7 @@
 
 CREATE TABLE IF NOT EXISTS customicon
 (
-    id                  bigint         NOT NULL,
+    customiconid                  bigint         NOT NULL,
     uid                 character      varying(11) NOT NULL,
     code                character      varying(50),
     iconkey             varchar(100)   NOT NULL,
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS customicon
     createdby           bigint         NULL,
     lastupdatedby       bigint         NULL,
     custom              Boolean        NOT NULL,
-    CONSTRAINT customicon_pkey PRIMARY KEY (id),
+    CONSTRAINT customicon_pkey PRIMARY KEY (customiconid),
     CONSTRAINT customicon_ukey UNIQUE (iconkey),
     CONSTRAINT customicon_fileresource_ukey UNIQUE (fileresourceid)
 );
