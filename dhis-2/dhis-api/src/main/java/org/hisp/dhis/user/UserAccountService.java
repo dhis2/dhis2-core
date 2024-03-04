@@ -41,8 +41,7 @@ public interface UserAccountService {
 
   void createAndAddSelfRegisteredUser(SelfRegistrationForm selfRegForm, HttpServletRequest request);
 
-  void validateUserFormInfo(
-      SelfRegistrationForm selfRegForm, HttpServletRequest request)
+  void validateUserFormInfo(SelfRegistrationForm selfRegForm, HttpServletRequest request)
       throws BadRequestException, IOException;
 
   void validateCaptcha(String recapResponse, HttpServletRequest request)
