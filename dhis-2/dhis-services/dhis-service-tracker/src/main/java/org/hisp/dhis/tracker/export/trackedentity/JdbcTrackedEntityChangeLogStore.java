@@ -27,11 +27,16 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
+import static java.util.Map.entry;
+
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog.Change;
@@ -43,6 +48,20 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.tracker.export.trackedentity.JdbcTrackedEntityChangeLogStore")
 @RequiredArgsConstructor
 public class JdbcTrackedEntityChangeLogStore {
+  private static final String COLUMN_CHANGELOG_CREATED = "created";
+  private static final String DEFAULT_ORDER =
+      COLUMN_CHANGELOG_CREATED + " " + SortDirection.DESC.getValue();
+
+  /**
+   * Tracked entities change logs can be ordered by given fields which correspond to fields on
+   * {@link org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog}. Maps fields to DB
+   * columns. The order implementation for change logs is different from other tracker exporters
+   * {@link org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog} is the view which is
+   * already returned from the service/store. Tracker exporter services return a representation we
+   * have to map to a view model. This mapping is not necessary for change logs.
+   */
+  private static final Map<String, String> ORDERABLE_FIELDS =
+      Map.ofEntries(entry("createdAt", COLUMN_CHANGELOG_CREATED));
 
   private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
@@ -56,7 +75,7 @@ public class JdbcTrackedEntityChangeLogStore {
 
         return new TrackedEntityChangeLog(
             createdBy,
-            rs.getTimestamp("createdat"),
+            rs.getTimestamp(COLUMN_CHANGELOG_CREATED),
             rs.getString("type"),
             new Change(
                 new TrackedEntityChangeLog.TrackedEntityAttributeChange(
@@ -66,7 +85,17 @@ public class JdbcTrackedEntityChangeLogStore {
       };
 
   public Page<TrackedEntityChangeLog> getTrackedEntityChangeLog(
-      UID trackedEntity, Set<String> attributes, PageParams pageParams) {
+      UID trackedEntity,
+      Set<String> attributes,
+      UID program,
+      List<Order> order,
+      PageParams pageParams) {
+
+    MapSqlParameterSource parameters =
+        new MapSqlParameterSource("trackedEntity", trackedEntity.getValue())
+            .addValue("limit", pageParams.getPageSize() + 1)
+            .addValue("offset", (pageParams.getPage() - 1) * pageParams.getPageSize());
+
     String sql =
         """
           select cl.type,
@@ -77,40 +106,50 @@ public class JdbcTrackedEntityChangeLogStore {
               case
           when cl.type = 'DELETE' then cl.currentchangelogvalue
           when cl.type = 'UPDATE' then cl.previouschangelogvalue
-          end as previousvalue, cl.createdat , cl.trackedentityattributeuid, cl.firstname, cl.surname, cl.username, cl.useruid, cl.type
+          end as previousvalue, cl.created, cl.trackedentityattributeuid, cl.firstname, cl.surname, cl.username, cl.useruid, cl.type
           from
               (
-                  select audit.created as createdat, tea.uid as trackedentityattributeuid, audit.audittype as type, u.firstname, u.surname, u.username, u.uid as useruid,
+                  select audit.created, tea.uid as trackedentityattributeuid, audit.audittype as type, u.firstname, u.surname, u.username, u.uid as useruid,
                   lead (audit.value) over (partition by audit.trackedentityid, audit.trackedentityattributeid order by audit.created DESC) as previouschangelogvalue,
                   audit.value as currentchangelogvalue
                   from trackedEntityAttributeValueAudit audit
                   join trackedentity t using(trackedentityid)
                   join trackedentityattribute tea using(trackedentityattributeid)
                   join userinfo u on u.username = audit.modifiedby
-                  where audit.audittype in ('CREATE', 'UPDATE', 'DELETE')
-                  and t.uid = :trackedEntity
        """;
-    MapSqlParameterSource parameters =
-        new MapSqlParameterSource("trackedEntity", trackedEntity.getValue())
-            .addValue("limit", pageParams.getPageSize() + 1)
-            .addValue("offset", (pageParams.getPage() - 1) * pageParams.getPageSize());
 
-    List<TrackedEntityChangeLog> changeLogs;
-    if (attributes.isEmpty()) {
+    if (program != null) {
       sql +=
           """
-              order by audit.created desc) cl
-              limit :limit offset :offset
+              join program_attributes pa using (trackedentityattributeid)
+              join program p using (programid)
+              where audit.audittype in ('CREATE', 'UPDATE', 'DELETE')
+              and t.uid = :trackedEntity
+              and p.uid = :program
           """;
+      parameters.addValue("program", program.getValue());
     } else {
       sql +=
           """
+              where audit.audittype in ('CREATE', 'UPDATE', 'DELETE')
+              and t.uid = :trackedEntity
+          """;
+    }
+
+    List<TrackedEntityChangeLog> changeLogs;
+    if (!attributes.isEmpty()) {
+      sql += """
               and tea.uid in (:attributes)
-              order by audit.created desc) cl
-              limit :limit offset :offset
           """;
       parameters.addValue("attributes", attributes);
     }
+
+    sql +=
+        """
+              order by %s
+              limit :limit offset :offset) cl
+          """
+            .formatted(sortExpressions(order));
     changeLogs =
         namedParameterJdbcTemplate.query(sql, parameters, customTrackedEntityChangeLogRowMapper);
 
@@ -126,5 +165,19 @@ public class JdbcTrackedEntityChangeLogStore {
 
     return Page.withPrevAndNext(
         changeLogs, pageParams.getPage(), pageParams.getPageSize(), prevPage, null);
+  }
+
+  private static String sortExpressions(List<Order> order) {
+    if (order.isEmpty()) {
+      return DEFAULT_ORDER;
+    }
+
+    return ORDERABLE_FIELDS.get(order.get(0).getField())
+        + " "
+        + order.get(0).getDirection().getValue();
+  }
+
+  public Set<String> getOrderableFields() {
+    return ORDERABLE_FIELDS.keySet();
   }
 }
