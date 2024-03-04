@@ -44,6 +44,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -90,7 +91,12 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
 
   private TrackedEntityAttributeValue trackedEntityAttributeValue;
 
+  private TrackedEntityAttributeValue outOfScopeTrackedEntityAttributeValue;
+
   private User user;
+
+  private final TrackedEntityChangeLogOperationParams defaultOperationParams =
+      TrackedEntityChangeLogOperationParams.builder().build();
 
   private final PageParams defaultPageParams = new PageParams(null, null, false);
 
@@ -114,7 +120,13 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
         new TrackedEntityAttributeValue(trackedEntityAttribute, trackedEntity, "value");
     trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttribute);
 
-    trackedEntity.setTrackedEntityAttributeValues(Set.of(trackedEntityAttributeValue));
+    TrackedEntityAttribute outOfScopeTrackedEntityAttribute = createTrackedEntityAttribute('B');
+    outOfScopeTrackedEntityAttributeValue =
+        new TrackedEntityAttributeValue(outOfScopeTrackedEntityAttribute, trackedEntity, "value");
+    trackedEntityAttributeService.addTrackedEntityAttribute(outOfScopeTrackedEntityAttribute);
+
+    trackedEntity.setTrackedEntityAttributeValues(
+        Set.of(trackedEntityAttributeValue, outOfScopeTrackedEntityAttributeValue));
     manager.update(trackedEntity);
 
     user = createAndAddUser(false, "user", Set.of(orgUnitA), Set.of(orgUnitA), "F_EXPORT_DATA");
@@ -127,7 +139,7 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
             NotFoundException.class,
             () ->
                 trackedEntityChangeLogService.getTrackedEntityChangeLog(
-                    UID.of(MADE_UP_UID), UID.of(MADE_UP_UID), null));
+                    UID.of(MADE_UP_UID), UID.of(MADE_UP_UID), null, null));
     assertEquals(
         String.format("TrackedEntity with id %s could not be found.", MADE_UP_UID),
         exception.getMessage());
@@ -140,7 +152,7 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
             NotFoundException.class,
             () ->
                 trackedEntityChangeLogService.getTrackedEntityChangeLog(
-                    UID.of(trackedEntity.getUid()), UID.of(MADE_UP_UID), null));
+                    UID.of(trackedEntity.getUid()), UID.of(MADE_UP_UID), null, null));
     assertEquals(
         String.format("Program with id %s could not be found.", MADE_UP_UID),
         exception.getMessage());
@@ -153,7 +165,7 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
             NotFoundException.class,
             () ->
                 trackedEntityChangeLogService.getTrackedEntityChangeLog(
-                    UID.of(trackedEntity.getUid()), null, null));
+                    UID.of(trackedEntity.getUid()), null, null, null));
 
     assertEquals(
         String.format("TrackedEntity with id %s could not be found.", trackedEntity.getUid()),
@@ -175,7 +187,10 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
             NotFoundException.class,
             () ->
                 trackedEntityChangeLogService.getTrackedEntityChangeLog(
-                    UID.of(trackedEntity.getUid()), null, null));
+                    UID.of(trackedEntity.getUid()),
+                    null,
+                    defaultOperationParams,
+                    defaultPageParams));
 
     assertEquals(
         String.format("TrackedEntity with id %s could not be found.", trackedEntity.getUid()),
@@ -195,7 +210,10 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
             NotFoundException.class,
             () ->
                 trackedEntityChangeLogService.getTrackedEntityChangeLog(
-                    UID.of(trackedEntity.getUid()), UID.of(program.getUid()), null));
+                    UID.of(trackedEntity.getUid()),
+                    UID.of(program.getUid()),
+                    defaultOperationParams,
+                    defaultPageParams));
     assertEquals(
         String.format("TrackedEntity with id %s could not be found.", trackedEntity.getUid()),
         exception.getMessage());
@@ -209,16 +227,20 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
     programOwnerService.createOrUpdateTrackedEntityProgramOwner(
         trackedEntity.getUid(), program.getUid(), orgUnitA.getUid());
 
+    createAndPersistProgramAttribute(program, trackedEntityAttribute);
+
     Page<TrackedEntityChangeLog> changeLogs =
         trackedEntityChangeLogService.getTrackedEntityChangeLog(
-            UID.of(trackedEntity.getUid()), UID.of(program.getUid()), defaultPageParams);
+            UID.of(trackedEntity.getUid()),
+            UID.of(program.getUid()),
+            defaultOperationParams,
+            defaultPageParams);
 
     assertNumberOfChanges(1, changeLogs.getItems());
     assertAll(
         () ->
-            assertChange(
-                trackedEntityAttribute.getUid(), null, "new value", changeLogs.getItems().get(0)),
-        () -> assertUser(user, changeLogs.getItems().get(0)));
+            assertCreate(
+                trackedEntityAttribute.getUid(), "new value", changeLogs.getItems().get(0)));
   }
 
   @Test
@@ -229,16 +251,18 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
     programOwnerService.createOrUpdateTrackedEntityProgramOwner(
         trackedEntity.getUid(), program.getUid(), orgUnitA.getUid());
 
+    createAndPersistProgramAttribute(program, trackedEntityAttribute);
+
     Page<TrackedEntityChangeLog> changeLogs =
         trackedEntityChangeLogService.getTrackedEntityChangeLog(
-            UID.of(trackedEntity.getUid()), UID.of(program.getUid()), defaultPageParams);
+            UID.of(trackedEntity.getUid()),
+            UID.of(program.getUid()),
+            defaultOperationParams,
+            defaultPageParams);
 
     assertNumberOfChanges(1, changeLogs.getItems());
     assertAll(
-        () ->
-            assertChange(
-                trackedEntityAttribute.getUid(), "value", null, changeLogs.getItems().get(0)),
-        () -> assertUser(user, changeLogs.getItems().get(0)));
+        () -> assertDelete(trackedEntityAttribute.getUid(), "value", changeLogs.getItems().get(0)));
   }
 
   @Test
@@ -249,19 +273,23 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
     programOwnerService.createOrUpdateTrackedEntityProgramOwner(
         trackedEntity.getUid(), program.getUid(), orgUnitA.getUid());
 
+    createAndPersistProgramAttribute(program, trackedEntityAttribute);
+
     Page<TrackedEntityChangeLog> changeLogs =
         trackedEntityChangeLogService.getTrackedEntityChangeLog(
-            UID.of(trackedEntity.getUid()), UID.of(program.getUid()), defaultPageParams);
+            UID.of(trackedEntity.getUid()),
+            UID.of(program.getUid()),
+            defaultOperationParams,
+            defaultPageParams);
 
     assertNumberOfChanges(1, changeLogs.getItems());
     assertAll(
         () ->
-            assertChange(
+            assertUpdate(
                 trackedEntityAttribute.getUid(),
                 null,
                 "updated value",
-                changeLogs.getItems().get(0)),
-        () -> assertUser(user, changeLogs.getItems().get(0)));
+                changeLogs.getItems().get(0)));
   }
 
   @Test
@@ -273,9 +301,14 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
     programOwnerService.createOrUpdateTrackedEntityProgramOwner(
         trackedEntity.getUid(), program.getUid(), orgUnitA.getUid());
 
+    createAndPersistProgramAttribute(program, trackedEntityAttribute);
+
     Page<TrackedEntityChangeLog> changeLogs =
         trackedEntityChangeLogService.getTrackedEntityChangeLog(
-            UID.of(trackedEntity.getUid()), UID.of(program.getUid()), defaultPageParams);
+            UID.of(trackedEntity.getUid()),
+            UID.of(program.getUid()),
+            defaultOperationParams,
+            defaultPageParams);
 
     assertNumberOfChanges(2, changeLogs.getItems());
     assertAll(
@@ -285,14 +318,12 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
                 "updated value",
                 "latest updated value",
                 changeLogs.getItems().get(0)),
-        () -> assertUser(user, changeLogs.getItems().get(0)),
         () ->
             assertUpdate(
                 trackedEntityAttribute.getUid(),
                 null,
                 "updated value",
-                changeLogs.getItems().get(1)),
-        () -> assertUser(user, changeLogs.getItems().get(1)));
+                changeLogs.getItems().get(1)));
   }
 
   @Test
@@ -305,27 +336,29 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
     programOwnerService.createOrUpdateTrackedEntityProgramOwner(
         trackedEntity.getUid(), program.getUid(), orgUnitA.getUid());
 
+    createAndPersistProgramAttribute(program, trackedEntityAttribute);
+
     Page<TrackedEntityChangeLog> changeLogs =
         trackedEntityChangeLogService.getTrackedEntityChangeLog(
-            UID.of(trackedEntity.getUid()), UID.of(program.getUid()), defaultPageParams);
+            UID.of(trackedEntity.getUid()),
+            UID.of(program.getUid()),
+            defaultOperationParams,
+            defaultPageParams);
 
     assertNumberOfChanges(3, changeLogs.getItems());
     assertAll(
         () ->
             assertDelete(
                 trackedEntityAttribute.getUid(), "updated value", changeLogs.getItems().get(0)),
-        () -> assertUser(user, changeLogs.getItems().get(0)),
         () ->
             assertUpdate(
                 trackedEntityAttribute.getUid(),
                 "new value",
                 "updated value",
                 changeLogs.getItems().get(1)),
-        () -> assertUser(user, changeLogs.getItems().get(1)),
         () ->
             assertCreate(
-                trackedEntityAttribute.getUid(), "new value", changeLogs.getItems().get(2)),
-        () -> assertUser(user, changeLogs.getItems().get(2)));
+                trackedEntityAttribute.getUid(), "new value", changeLogs.getItems().get(2)));
   }
 
   @Test
@@ -338,14 +371,39 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
 
     Page<TrackedEntityChangeLog> changeLogs =
         trackedEntityChangeLogService.getTrackedEntityChangeLog(
-            UID.of(trackedEntity.getUid()), null, defaultPageParams);
+            UID.of(trackedEntity.getUid()), null, defaultOperationParams, defaultPageParams);
 
     assertNumberOfChanges(1, changeLogs.getItems());
     assertAll(
         () ->
             assertCreate(
-                trackedEntityAttribute.getUid(), "new value", changeLogs.getItems().get(0)),
-        () -> assertUser(user, changeLogs.getItems().get(0)));
+                trackedEntityAttribute.getUid(), "new value", changeLogs.getItems().get(0)));
+  }
+
+  @Test
+  void shouldReturnChangeLogsFromSpecifiedProgramOnlyWhenMultipleLogsExist()
+      throws NotFoundException {
+    updateAttributeValue(trackedEntityAttributeValue, ChangeLogType.CREATE, "new value");
+    updateAttributeValue(outOfScopeTrackedEntityAttributeValue, ChangeLogType.CREATE, "new value");
+    Program program = createAndAddProgram('C');
+
+    programOwnerService.createOrUpdateTrackedEntityProgramOwner(
+        trackedEntity.getUid(), program.getUid(), orgUnitA.getUid());
+
+    createAndPersistProgramAttribute(program, trackedEntityAttribute);
+
+    Page<TrackedEntityChangeLog> changeLogs =
+        trackedEntityChangeLogService.getTrackedEntityChangeLog(
+            UID.of(trackedEntity.getUid()),
+            UID.of(program.getUid()),
+            defaultOperationParams,
+            defaultPageParams);
+
+    assertNumberOfChanges(1, changeLogs.getItems());
+    assertAll(
+        () ->
+            assertCreate(
+                trackedEntityAttribute.getUid(), "new value", changeLogs.getItems().get(0)));
   }
 
   private void updateAttributeValue(
@@ -361,6 +419,13 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
     Awaitility.await().pollDelay(2, TimeUnit.MILLISECONDS).untilAsserted(() -> assertTrue(true));
   }
 
+  private void createAndPersistProgramAttribute(
+      Program program, TrackedEntityAttribute trackedEntityAttribute) {
+    ProgramTrackedEntityAttribute programAttribute =
+        createProgramTrackedEntityAttribute(program, trackedEntityAttribute);
+    manager.save(programAttribute);
+  }
+
   private static void assertNumberOfChanges(int expected, List<TrackedEntityChangeLog> changeLogs) {
     assertNotNull(changeLogs);
     assertEquals(
@@ -371,31 +436,34 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
             expected, changeLogs.size(), changeLogs));
   }
 
-  private static void assertCreate(
+  private void assertCreate(
       String trackedEntityAttribute, String currentValue, TrackedEntityChangeLog changeLog) {
     assertAll(
+        () -> assertUser(user, changeLog),
         () -> assertEquals("CREATE", changeLog.type()),
         () -> assertChange(trackedEntityAttribute, null, currentValue, changeLog));
   }
 
-  private static void assertUpdate(
+  private void assertUpdate(
       String trackedEntityAttribute,
       String previousValue,
       String currentValue,
       TrackedEntityChangeLog changeLog) {
     assertAll(
+        () -> assertUser(user, changeLog),
         () -> assertEquals("UPDATE", changeLog.type()),
         () -> assertChange(trackedEntityAttribute, previousValue, currentValue, changeLog));
   }
 
-  private static void assertDelete(
+  private void assertDelete(
       String trackedEntityAttribute, String previousValue, TrackedEntityChangeLog changeLog) {
     assertAll(
+        () -> assertUser(user, changeLog),
         () -> assertEquals("DELETE", changeLog.type()),
         () -> assertChange(trackedEntityAttribute, previousValue, null, changeLog));
   }
 
-  private static void assertChange(
+  private void assertChange(
       String trackedEntityAttribute,
       String previousValue,
       String currentValue,
@@ -405,7 +473,7 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
     assertEquals(expected, changeLog.change().attributeValue());
   }
 
-  private static void assertUser(User user, TrackedEntityChangeLog changeLog) {
+  private void assertUser(User user, TrackedEntityChangeLog changeLog) {
     assertAll(
         () -> assertEquals(user.getUsername(), changeLog.createdBy().getUsername()),
         () -> assertEquals(user.getFirstName(), changeLog.createdBy().getFirstName()),

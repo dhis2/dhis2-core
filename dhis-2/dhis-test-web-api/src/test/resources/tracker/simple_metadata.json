@@ -37,7 +37,27 @@
       "sharing": {
         "external": false,
         "public": "rwrw----"
-      }
+      },
+      "trackedEntityTypeAttributes": [
+        {
+          "displayInList": true,
+          "displayName": "Person Given name",
+          "displayShortName": "null Given name",
+          "externalAccess": false,
+          "favorite": false,
+          "favorites": [],
+          "id": "hKZ9AJpnVcG",
+          "name": "Person Given name",
+          "searchable": true,
+          "trackedEntityAttribute": {
+            "id": "numericAttr"
+          },
+          "trackedEntityType": {
+            "id": "ja8NY4PW7Xm"
+          },
+          "valueType": "TEXT"
+        }
+      ]
     },
     {
       "name": "Inaccessible person",

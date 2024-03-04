@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,14 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.common;
+package org.hisp.dhis.tracker.export.trackedentity;
 
-import java.beans.PropertyEditorSupport;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import java.util.ArrayList;
+import java.util.List;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import org.hisp.dhis.common.SortDirection;
+import org.hisp.dhis.tracker.export.Order;
 
-public class OrderCriteriaParamEditor extends PropertyEditorSupport {
-  @Override
-  public void setAsText(String source) {
-    setValue(OrderCriteria.toOrderCriteria(source));
+@Getter
+@Builder
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public class TrackedEntityChangeLogOperationParams {
+  private List<Order> order;
+
+  public static class TrackedEntityChangeLogOperationParamsBuilder {
+
+    private final List<Order> order = new ArrayList<>();
+
+    // Do not remove this unused method. This hides the order field from the builder which Lombok
+    // does not support. The repeated order field and private order method prevent access to order
+    // via the builder.
+    // Order should be added via the orderBy builder methods.
+    private TrackedEntityChangeLogOperationParamsBuilder order(List<Order> order) {
+      return this;
+    }
+
+    public TrackedEntityChangeLogOperationParamsBuilder orderBy(
+        String field, SortDirection direction) {
+      this.order.add(new Order(field, direction));
+      return this;
+    }
   }
 }

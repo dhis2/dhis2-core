@@ -79,9 +79,6 @@ import org.hisp.dhis.schema.SchemaPathException;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationException;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.webapi.common.OrderCriteriaParamEditor;
-import org.hisp.dhis.webapi.common.UIDParamEditor;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.exception.MetadataImportConflictException;
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
 import org.hisp.dhis.webapi.controller.exception.MetadataVersionException;
@@ -90,6 +87,8 @@ import org.hisp.dhis.webapi.controller.tracker.imports.IdSchemeParamEditor;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthenticationException;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenError;
 import org.springframework.beans.TypeMismatchException;
+import org.springframework.core.convert.ConversionFailedException;
+import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -154,8 +153,6 @@ public class CrudControllerAdvice {
         IdentifiableProperty.class, new FromTextPropertyEditor(String::toUpperCase));
     this.enumClasses.forEach(c -> binder.registerCustomEditor(c, new ConvertEnum(c)));
     binder.registerCustomEditor(TrackerIdSchemeParam.class, new IdSchemeParamEditor());
-    binder.registerCustomEditor(OrderCriteria.class, new OrderCriteriaParamEditor());
-    binder.registerCustomEditor(UID.class, new UIDParamEditor());
   }
 
   @ExceptionHandler
@@ -220,8 +217,10 @@ public class CrudControllerAdvice {
     Class<?> requiredType = ex.getRequiredType();
     PathVariable pathVariableAnnotation =
         ex.getParameter().getParameterAnnotation(PathVariable.class);
-    String notValidValueMessage =
-        getNotValidValueMessage(ex.getValue(), ex.getName(), pathVariableAnnotation != null);
+    String field = ex.getName();
+    Object value = ex.getValue();
+    boolean isPathVariable = pathVariableAnnotation != null;
+    String notValidValueMessage = getNotValidValueMessage(value, field, isPathVariable);
 
     String customErrorMessage;
     if (requiredType == null) {
@@ -232,6 +231,10 @@ public class CrudControllerAdvice {
       customErrorMessage = getGenericFieldErrorMessage(requiredType.getSimpleName());
     } else if (ex.getCause() instanceof IllegalArgumentException) {
       customErrorMessage = ex.getCause().getMessage();
+    } else if (ex.getCause() instanceof ConversionFailedException conversionException) {
+      notValidValueMessage =
+          getConversionErrorMessage(value, field, conversionException, isPathVariable);
+      customErrorMessage = "";
     } else {
       customErrorMessage = getGenericFieldErrorMessage(requiredType.getSimpleName());
     }
@@ -243,7 +246,9 @@ public class CrudControllerAdvice {
   @ResponseBody
   public WebMessage handleTypeMismatchException(TypeMismatchException ex) {
     Class<?> requiredType = ex.getRequiredType();
-    String notValidValueMessage = getNotValidValueMessage(ex.getValue(), ex.getPropertyName());
+    String field = ex.getPropertyName();
+    Object value = ex.getValue();
+    String notValidValueMessage = getNotValidValueMessage(value, field);
 
     String customErrorMessage;
     if (requiredType == null) {
@@ -254,6 +259,9 @@ public class CrudControllerAdvice {
       customErrorMessage = getGenericFieldErrorMessage(requiredType.getSimpleName());
     } else if (ex.getCause() instanceof IllegalArgumentException) {
       customErrorMessage = ex.getCause().getMessage();
+    } else if (ex.getCause() instanceof ConversionFailedException conversionException) {
+      notValidValueMessage = getConversionErrorMessage(value, field, conversionException, false);
+      customErrorMessage = "";
     } else {
       customErrorMessage = getGenericFieldErrorMessage(requiredType.getSimpleName());
     }
@@ -275,11 +283,12 @@ public class CrudControllerAdvice {
     return MessageFormat.format("It should be of type {0}", fieldType);
   }
 
-  private String getNotValidValueMessage(Object value, String field) {
+  private static String getNotValidValueMessage(Object value, String field) {
     return getNotValidValueMessage(value, field, false);
   }
 
-  private String getNotValidValueMessage(Object value, String field, boolean isPathVariable) {
+  private static String getNotValidValueMessage(
+      Object value, String field, boolean isPathVariable) {
     if (value == null || (value instanceof String stringValue && stringValue.isEmpty())) {
       return MessageFormat.format("{0} cannot be empty.", field);
     }
@@ -294,7 +303,27 @@ public class CrudControllerAdvice {
   }
 
   private String getFormattedBadRequestMessage(String fieldErrorMessage, String customMessage) {
+    if (StringUtils.isEmpty(customMessage)) {
+      return fieldErrorMessage;
+    }
     return fieldErrorMessage + " " + customMessage;
+  }
+
+  private static String getConversionErrorMessage(
+      Object rootValue, String field, ConversionFailedException ex, boolean isPathVariable) {
+    Object invalidValue = ex.getValue();
+    if (TypeDescriptor.valueOf(String.class).equals(ex.getSourceType())
+        && (invalidValue != null && ((String) invalidValue).contains(","))
+        && (rootValue != null && rootValue.getClass().isArray())) {
+      return "You likely repeated request parameter '"
+          + field
+          + "' and used multiple comma-separated values within at least one of its values. Choose one of these approaches. "
+          + ex.getCause().getMessage();
+    }
+
+    return getNotValidValueMessage(invalidValue, field, isPathVariable)
+        + " "
+        + ex.getCause().getMessage();
   }
 
   /**
