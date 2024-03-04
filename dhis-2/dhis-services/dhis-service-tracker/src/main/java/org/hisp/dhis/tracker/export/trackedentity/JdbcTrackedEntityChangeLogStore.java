@@ -141,6 +141,7 @@ public class JdbcTrackedEntityChangeLogStore {
       sql += """
               and tea.uid in (:attributes)
           """;
+      parameters.addValue("attributes", attributes);
     }
 
     sql +=
@@ -149,7 +150,6 @@ public class JdbcTrackedEntityChangeLogStore {
               limit :limit offset :offset) cl
           """
             .formatted(sortExpressions(order));
-    parameters.addValue("attributes", attributes);
     changeLogs =
         namedParameterJdbcTemplate.query(sql, parameters, customTrackedEntityChangeLogRowMapper);
 
