@@ -89,7 +89,7 @@ public class DataValueSetImportJob implements Job {
                 progress.runStage(
                     () -> dataValueSetService.importDataValueSetXml(input, options, jobId));
             default -> {
-              progress.failedStage("Unknown format: " + contentType);
+              progress.failedStage("Unknown format: {}", contentType);
               yield null;
             }
           };
@@ -105,13 +105,12 @@ public class DataValueSetImportJob implements Job {
 
       ImportCount count = summary.getImportCount();
       progress.completedProcess(
-          "Import complete with status %s, %d created, %d updated, %d deleted, %d ignored"
-              .formatted(
-                  summary.getStatus(),
-                  count.getImported(),
-                  count.getUpdated(),
-                  count.getDeleted(),
-                  count.getIgnored()));
+          "Import complete with status {}, {} created, {} updated, {} deleted, {} ignored",
+          summary.getStatus(),
+          count.getImported(),
+          count.getUpdated(),
+          count.getDeleted(),
+          count.getIgnored());
     } catch (IOException ex) {
       progress.failedProcess(ex);
     }

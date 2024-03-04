@@ -33,7 +33,6 @@ import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.program.EnrollmentService;
@@ -120,13 +119,9 @@ public class ProgramNotificationInstanceController {
 
     if (isPaged) {
       long total = programNotificationInstanceService.countProgramNotificationInstances(params);
-
-      Pager pager = new Pager(page, total, pageSize);
-      pager.force(page, pageSize);
       return Page.withPager(
           ProgramNotificationInstanceSchemaDescriptor.PLURAL,
-          instances,
-          org.hisp.dhis.tracker.export.Page.of(instances, pager, true));
+          org.hisp.dhis.tracker.export.Page.withTotals(instances, page, pageSize, total));
     }
 
     return Page.withoutPager(ProgramNotificationInstanceSchemaDescriptor.PLURAL, instances);

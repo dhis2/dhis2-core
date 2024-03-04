@@ -30,9 +30,9 @@ package org.hisp.dhis.tracker.export.event;
 import static java.util.Map.entry;
 import static org.hisp.dhis.common.ValueType.NUMERIC_TYPES;
 import static org.hisp.dhis.system.util.SqlUtils.castToNumber;
-import static org.hisp.dhis.system.util.SqlUtils.encode;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
+import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -56,7 +56,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.IntSupplier;
+import java.util.function.LongSupplier;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -67,7 +67,6 @@ import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.commons.collection.CollectionUtils;
@@ -107,6 +106,7 @@ import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
 import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -243,7 +243,7 @@ class JdbcEventStore implements EventStore {
   @Override
   public Page<Event> getEvents(EventQueryParams queryParams, PageParams pageParams) {
     List<Event> events = fetchEvents(queryParams, pageParams);
-    IntSupplier eventCount = () -> getEventCount(queryParams);
+    LongSupplier eventCount = () -> getEventCount(queryParams);
     return getPage(pageParams, events, eventCount);
   }
 
@@ -432,16 +432,13 @@ class JdbcEventStore implements EventStore {
         });
   }
 
-  private Page<Event> getPage(PageParams pageParams, List<Event> events, IntSupplier eventCount) {
+  private Page<Event> getPage(PageParams pageParams, List<Event> events, LongSupplier eventCount) {
     if (pageParams.isPageTotal()) {
-      Pager pager =
-          new Pager(pageParams.getPage(), eventCount.getAsInt(), pageParams.getPageSize());
-      return Page.of(events, pager, pageParams.isPageTotal());
+      return Page.withTotals(
+          events, pageParams.getPage(), pageParams.getPageSize(), eventCount.getAsLong());
     }
 
-    Pager pager = new Pager(pageParams.getPage(), 0, pageParams.getPageSize());
-    pager.force(pageParams.getPage(), pageParams.getPageSize());
-    return Page.of(events, pager, pageParams.isPageTotal());
+    return Page.withoutTotals(events, pageParams.getPage(), pageParams.getPageSize());
   }
 
   @Override
@@ -532,7 +529,7 @@ class JdbcEventStore implements EventStore {
     return sqlBuilder.toString();
   }
 
-  private int getEventCount(EventQueryParams params) {
+  private long getEventCount(EventQueryParams params) {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     setAccessiblePrograms(currentUser, params);
 
@@ -542,13 +539,28 @@ class JdbcEventStore implements EventStore {
 
     sql = getEventSelectQuery(params, mapSqlParameterSource, currentUser);
 
-    sql = sql.replaceFirst("select .*? from", "select count(*) from");
+    sql = sql.replaceFirst("select .*? from", "select count(*) as ev_count from");
 
     sql = sql.replaceFirst("order .*? (desc|asc)", "");
 
     sql = sql.replaceFirst("limit \\d+ offset \\d+", "");
 
-    return jdbcTemplate.queryForObject(sql, mapSqlParameterSource, Integer.class);
+    RowCountHandler rowCountHandler = new RowCountHandler();
+    jdbcTemplate.query(sql, mapSqlParameterSource, rowCountHandler);
+    return rowCountHandler.getCount();
+  }
+
+  private static class RowCountHandler implements RowCallbackHandler {
+    private long count;
+
+    @Override
+    public void processRow(ResultSet rs) throws SQLException {
+      count = rs.getLong("ev_count");
+    }
+
+    public long getCount() {
+      return count;
+    }
   }
 
   /**
@@ -624,7 +636,7 @@ class JdbcEventStore implements EventStore {
           .append(AND)
           .append(teaCol + ".UID")
           .append(EQUALS)
-          .append(encode(teaUid, true));
+          .append(singleQuote(teaUid));
 
       sql.append(
           getAttributeFilterQuery(

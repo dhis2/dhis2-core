@@ -29,18 +29,13 @@ package org.hisp.dhis.dataanalysis;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.google.common.collect.Lists;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.minmax.MinMaxDataElement;
@@ -75,15 +70,9 @@ class MinMaxOutlierAnalysisServiceTest extends IntegrationTestBase {
 
   private DataElement dataElementD;
 
-  private DataValue dataValueA;
+  private List<DataElement> dataElementsA;
 
-  private DataValue dataValueB;
-
-  private Set<DataElement> dataElementsA = new HashSet<>();
-
-  private Set<DataElement> dataElementsB = new HashSet<>();
-
-  private Set<DataElement> dataElementsC = new HashSet<>();
+  private List<DataElement> dataElementsB;
 
   private CategoryCombo categoryCombo;
 
@@ -109,11 +98,11 @@ class MinMaxOutlierAnalysisServiceTest extends IntegrationTestBase {
 
   private Period periodJ;
 
+  private List<Period> periodsA;
+
   private Date from = getDate(1998, 1, 1);
 
   private OrganisationUnit organisationUnitA;
-
-  private MinMaxDataElement minMaxDataElement;
 
   // ----------------------------------------------------------------------
   // Fixture
@@ -130,11 +119,10 @@ class MinMaxOutlierAnalysisServiceTest extends IntegrationTestBase {
     dataElementService.addDataElement(dataElementB);
     dataElementService.addDataElement(dataElementC);
     dataElementService.addDataElement(dataElementD);
-    dataElementsA.add(dataElementA);
-    dataElementsA.add(dataElementB);
-    dataElementsB.add(dataElementC);
-    dataElementsB.add(dataElementD);
-    dataElementsC.add(dataElementB);
+
+    dataElementsA = List.of(dataElementA, dataElementB);
+    dataElementsB = List.of(dataElementC, dataElementD);
+
     periodA = createPeriod(new MonthlyPeriodType(), getDate(2000, 3, 1), getDate(2000, 3, 31));
     periodB = createPeriod(new MonthlyPeriodType(), getDate(2000, 4, 1), getDate(2000, 4, 30));
     periodC = createPeriod(new MonthlyPeriodType(), getDate(2000, 5, 1), getDate(2000, 5, 30));
@@ -145,23 +133,19 @@ class MinMaxOutlierAnalysisServiceTest extends IntegrationTestBase {
     periodH = createPeriod(new MonthlyPeriodType(), getDate(2000, 10, 1), getDate(2000, 10, 30));
     periodI = createPeriod(new MonthlyPeriodType(), getDate(2000, 11, 1), getDate(2000, 11, 30));
     periodJ = createPeriod(new MonthlyPeriodType(), getDate(2000, 12, 1), getDate(2000, 12, 30));
+
+    periodsA = List.of(periodA, periodB, periodE, periodI, periodJ);
+
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnitA);
   }
 
-  // ----------------------------------------------------------------------
-  // Business logic tests
-  // ----------------------------------------------------------------------
   @Test
   void testAnalyse() {
-    dataValueA =
-        createDataValue(dataElementA, periodI, organisationUnitA, "41", categoryOptionCombo);
-    dataValueB =
-        createDataValue(dataElementA, periodJ, organisationUnitA, "-41", categoryOptionCombo);
     dataValueService.addDataValue(
         createDataValue(dataElementA, periodA, organisationUnitA, "5", categoryOptionCombo));
     dataValueService.addDataValue(
-        createDataValue(dataElementA, periodB, organisationUnitA, "-5", categoryOptionCombo));
+        createDataValue(dataElementA, periodB, organisationUnitA, "-50", categoryOptionCombo));
     dataValueService.addDataValue(
         createDataValue(dataElementA, periodC, organisationUnitA, "5", categoryOptionCombo));
     dataValueService.addDataValue(
@@ -174,19 +158,35 @@ class MinMaxOutlierAnalysisServiceTest extends IntegrationTestBase {
         createDataValue(dataElementA, periodG, organisationUnitA, "13", categoryOptionCombo));
     dataValueService.addDataValue(
         createDataValue(dataElementA, periodH, organisationUnitA, "-13", categoryOptionCombo));
-    dataValueService.addDataValue(dataValueA);
-    dataValueService.addDataValue(dataValueB);
-    minMaxDataElement =
-        new MinMaxDataElement(dataElementA, organisationUnitA, categoryOptionCombo, -40, 40, false);
-    minMaxDataElementService.addMinMaxDataElement(minMaxDataElement);
-    List<Period> periods = new ArrayList<>();
-    periods.add(periodI);
-    periods.add(periodJ);
-    periods.add(periodA);
-    periods.add(periodE);
-    List<DeflatedDataValue> result =
+    dataValueService.addDataValue(
+        createDataValue(dataElementA, periodI, organisationUnitA, "41", categoryOptionCombo));
+    dataValueService.addDataValue(
+        createDataValue(dataElementA, periodJ, organisationUnitA, "-41", categoryOptionCombo));
+
+    dataValueService.addDataValue(
+        createDataValue(dataElementC, periodA, organisationUnitA, "7", categoryOptionCombo));
+    dataValueService.addDataValue(
+        createDataValue(dataElementC, periodE, organisationUnitA, "15", categoryOptionCombo));
+    dataValueService.addDataValue(
+        createDataValue(dataElementC, periodI, organisationUnitA, "17", categoryOptionCombo));
+    dataValueService.addDataValue(
+        createDataValue(dataElementC, periodJ, organisationUnitA, "23", categoryOptionCombo));
+
+    minMaxDataElementService.addMinMaxDataElement(
+        new MinMaxDataElement(
+            dataElementA, organisationUnitA, categoryOptionCombo, -40, 40, false));
+
+    minMaxDataElementService.addMinMaxDataElement(
+        new MinMaxDataElement(dataElementC, organisationUnitA, categoryOptionCombo, 10, 20, false));
+
+    List<DeflatedDataValue> resultA =
         minMaxOutlierAnalysisService.analyse(
-            Lists.newArrayList(organisationUnitA), dataElementsA, periods, null, from);
-    assertEquals(2, result.size());
+            organisationUnitA, dataElementsA, periodsA, null, from);
+    List<DeflatedDataValue> resultB =
+        minMaxOutlierAnalysisService.analyse(
+            organisationUnitA, dataElementsB, periodsA, null, from);
+
+    assertEquals(3, resultA.size());
+    assertEquals(2, resultB.size());
   }
 }

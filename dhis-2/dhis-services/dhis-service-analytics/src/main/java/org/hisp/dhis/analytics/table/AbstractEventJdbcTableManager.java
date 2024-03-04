@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParentheses;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 
@@ -40,13 +39,14 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.model.Skip;
-import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.DataType;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
@@ -71,8 +71,9 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
       PartitionManager partitionManager,
       DatabaseInfoProvider databaseInfoProvider,
       JdbcTemplate jdbcTemplate,
-      AnalyticsTableExportSettings analyticsExportSettings,
-      PeriodDataProvider periodDataProvider) {
+      AnalyticsTableSettings analyticsExportSettings,
+      PeriodDataProvider periodDataProvider,
+      SqlBuilder sqlBuilder) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -85,7 +86,8 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
         databaseInfoProvider,
         jdbcTemplate,
         analyticsExportSettings,
-        periodDataProvider);
+        periodDataProvider,
+        sqlBuilder);
   }
 
   protected final String getNumericClause() {
@@ -131,19 +133,8 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
   }
 
   @Override
-  public String validState() {
-    // Data values might be '{}' / empty object if data values existed
-    // and were removed later
-
-    String sql = "select eventid " + "from event " + "where eventdatavalues != '{}' limit 1;";
-
-    boolean hasData = jdbcTemplate.queryForRowSet(sql).next();
-
-    if (!hasData) {
-      return "No events exist, not updating event analytics tables";
-    }
-
-    return null;
+  public boolean validState() {
+    return tableIsNotEmpty("event");
   }
 
   @Override
@@ -158,14 +149,14 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    * @param fromClause the SQL from clause.
    */
   protected void populateTableInternal(AnalyticsTablePartition partition, String fromClause) {
-    String tableName = partition.getTempName();
+    String tableName = partition.getName();
 
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
-    String sql = "insert into " + partition.getTempName() + " (";
+    String sql = "insert into " + tableName + " (";
 
     for (AnalyticsTableColumn col : columns) {
-      sql += col.getName() + ",";
+      sql += quote(col.getName()) + ",";
     }
 
     sql = TextUtils.removeLastComma(sql) + ") select ";
@@ -181,7 +172,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     invokeTimeAndLog(sql, String.format("Populate %s", tableName));
   }
 
-  protected List<AnalyticsTableColumn> addTrackedEntityAttributes(Program program) {
+  protected List<AnalyticsTableColumn> getTrackedEntityAttributeColumns(Program program) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     for (TrackedEntityAttribute attribute : program.getNonConfidentialTrackedEntityAttributes()) {
@@ -206,7 +197,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
               + " as "
               + quote(attribute.getUid());
 
-      columns.add(new AnalyticsTableColumn(quote(attribute.getUid()), dataType, sql, skipIndex));
+      columns.add(new AnalyticsTableColumn(attribute.getUid(), dataType, sql, skipIndex));
     }
 
     return columns;

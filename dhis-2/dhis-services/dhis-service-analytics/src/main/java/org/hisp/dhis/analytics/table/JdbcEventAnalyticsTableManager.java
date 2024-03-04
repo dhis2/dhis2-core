@@ -28,11 +28,9 @@
 package org.hisp.dhis.analytics.table;
 
 import static java.lang.String.format;
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParentheses;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
@@ -47,7 +45,8 @@ import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
-import static org.hisp.dhis.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.util.DateUtils.toLongDate;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import java.time.Year;
 import java.util.ArrayList;
@@ -55,6 +54,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -65,7 +65,8 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.model.Skip;
-import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
+import org.hisp.dhis.analytics.table.util.PartitionUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryService;
@@ -77,6 +78,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.period.PeriodType;
@@ -107,85 +109,80 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
   protected static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
-          new AnalyticsTableColumn(quote("psi"), CHARACTER_11, NOT_NULL, "psi.uid"),
-          new AnalyticsTableColumn(quote("pi"), CHARACTER_11, NOT_NULL, "pi.uid"),
-          new AnalyticsTableColumn(quote("ps"), CHARACTER_11, NOT_NULL, "ps.uid"),
-          new AnalyticsTableColumn(quote("ao"), CHARACTER_11, NOT_NULL, "ao.uid"),
-          new AnalyticsTableColumn(quote("enrollmentdate"), TIMESTAMP, "pi.enrollmentdate"),
-          new AnalyticsTableColumn(quote("incidentdate"), TIMESTAMP, "pi.occurreddate"),
-          new AnalyticsTableColumn(quote("occurreddate"), TIMESTAMP, "psi.occurreddate"),
-          new AnalyticsTableColumn(quote("scheduleddate"), TIMESTAMP, "psi.scheduleddate"),
-          new AnalyticsTableColumn(quote("completeddate"), TIMESTAMP, "psi.completeddate"),
+          new AnalyticsTableColumn("psi", CHARACTER_11, NOT_NULL, "psi.uid"),
+          new AnalyticsTableColumn("pi", CHARACTER_11, NOT_NULL, "pi.uid"),
+          new AnalyticsTableColumn("ps", CHARACTER_11, NOT_NULL, "ps.uid"),
+          new AnalyticsTableColumn("ao", CHARACTER_11, NOT_NULL, "ao.uid"),
+          new AnalyticsTableColumn("enrollmentdate", TIMESTAMP, "pi.enrollmentdate"),
+          new AnalyticsTableColumn("incidentdate", TIMESTAMP, "pi.occurreddate"),
+          new AnalyticsTableColumn("occurreddate", TIMESTAMP, "psi.occurreddate"),
+          new AnalyticsTableColumn("scheduleddate", TIMESTAMP, "psi.scheduleddate"),
+          new AnalyticsTableColumn("completeddate", TIMESTAMP, "psi.completeddate"),
           /*
            * DHIS2-14981: Use the client-side timestamp if available, otherwise
            * the server-side timestamp. Applies to both created and lastupdated.
            */
           new AnalyticsTableColumn(
-              quote("created"),
-              TIMESTAMP,
-              firstIfNotNullOrElse("psi.createdatclient", "psi.created")),
+              "created", TIMESTAMP, firstIfNotNullOrElse("psi.createdatclient", "psi.created")),
           new AnalyticsTableColumn(
-              quote("lastupdated"),
+              "lastupdated",
               TIMESTAMP,
               firstIfNotNullOrElse("psi.lastupdatedatclient", "psi.lastupdated")),
-          new AnalyticsTableColumn(quote("storedby"), VARCHAR_255, "psi.storedby"),
+          new AnalyticsTableColumn("storedby", VARCHAR_255, "psi.storedby"),
           new AnalyticsTableColumn(
-              quote("createdbyusername"),
+              "createdbyusername",
               VARCHAR_255,
               "psi.createdbyuserinfo ->> 'username' as createdbyusername"),
           new AnalyticsTableColumn(
-              quote("createdbyname"),
+              "createdbyname",
               VARCHAR_255,
               "psi.createdbyuserinfo ->> 'firstName' as createdbyname"),
           new AnalyticsTableColumn(
-              quote("createdbylastname"),
+              "createdbylastname",
               VARCHAR_255,
               "psi.createdbyuserinfo ->> 'surname' as createdbylastname"),
           new AnalyticsTableColumn(
-              quote("createdbydisplayname"),
+              "createdbydisplayname",
               VARCHAR_255,
               getDisplayName("createdbyuserinfo", "psi", "createdbydisplayname")),
           new AnalyticsTableColumn(
-              quote("lastupdatedbyusername"),
+              "lastupdatedbyusername",
               VARCHAR_255,
               "psi.lastupdatedbyuserinfo ->> 'username' as lastupdatedbyusername"),
           new AnalyticsTableColumn(
-              quote("lastupdatedbyname"),
+              "lastupdatedbyname",
               VARCHAR_255,
               "psi.lastupdatedbyuserinfo ->> 'firstName' as lastupdatedbyname"),
           new AnalyticsTableColumn(
-              quote("lastupdatedbylastname"),
+              "lastupdatedbylastname",
               VARCHAR_255,
               "psi.lastupdatedbyuserinfo ->> 'surname' as lastupdatedbylastname"),
           new AnalyticsTableColumn(
-              quote("lastupdatedbydisplayname"),
+              "lastupdatedbydisplayname",
               VARCHAR_255,
               getDisplayName("lastupdatedbyuserinfo", "psi", "lastupdatedbydisplayname")),
-          new AnalyticsTableColumn(quote("pistatus"), VARCHAR_50, "pi.status"),
-          new AnalyticsTableColumn(quote("psistatus"), VARCHAR_50, "psi.status"),
-          new AnalyticsTableColumn(quote("psigeometry"), GEOMETRY, "psi.geometry", IndexType.GIST),
+          new AnalyticsTableColumn("pistatus", VARCHAR_50, "pi.status"),
+          new AnalyticsTableColumn("psistatus", VARCHAR_50, "psi.status"),
+          new AnalyticsTableColumn("psigeometry", GEOMETRY, "psi.geometry", IndexType.GIST),
           // TODO latitude and longitude deprecated in 2.30, remove in 2.33
           new AnalyticsTableColumn(
-              quote("longitude"),
+              "longitude",
               DOUBLE,
               "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_X(psi.geometry) ELSE null END"),
           new AnalyticsTableColumn(
-              quote("latitude"),
+              "latitude",
               DOUBLE,
               "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_Y(psi.geometry) ELSE null END"),
-          new AnalyticsTableColumn(quote("ou"), CHARACTER_11, NOT_NULL, "ou.uid"),
-          new AnalyticsTableColumn(quote("ouname"), TEXT, NOT_NULL, "ou.name"),
-          new AnalyticsTableColumn(quote("oucode"), TEXT, "ou.code"),
-          new AnalyticsTableColumn(quote("oulevel"), INTEGER, "ous.level"),
-          new AnalyticsTableColumn(quote("ougeometry"), GEOMETRY, "ou.geometry", IndexType.GIST),
-          new AnalyticsTableColumn(quote("pigeometry"), GEOMETRY, "pi.geometry", IndexType.GIST),
+          new AnalyticsTableColumn("ou", CHARACTER_11, NOT_NULL, "ou.uid"),
+          new AnalyticsTableColumn("ouname", TEXT, NOT_NULL, "ou.name"),
+          new AnalyticsTableColumn("oucode", TEXT, "ou.code"),
+          new AnalyticsTableColumn("oulevel", INTEGER, "ous.level"),
+          new AnalyticsTableColumn("ougeometry", GEOMETRY, "ou.geometry", IndexType.GIST),
+          new AnalyticsTableColumn("pigeometry", GEOMETRY, "pi.geometry", IndexType.GIST),
           new AnalyticsTableColumn(
-              quote("registrationou"),
-              CHARACTER_11,
-              NOT_NULL,
-              "coalesce(registrationou.uid,ou.uid)"),
+              "registrationou", CHARACTER_11, NOT_NULL, "coalesce(registrationou.uid,ou.uid)"),
           new AnalyticsTableColumn(
-              quote("enrollmentou"), CHARACTER_11, NOT_NULL, "coalesce(enrollmentou.uid,ou.uid)"));
+              "enrollmentou", CHARACTER_11, NOT_NULL, "coalesce(enrollmentou.uid,ou.uid)"));
 
   public JdbcEventAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -198,8 +195,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       PartitionManager partitionManager,
       DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
-      AnalyticsTableExportSettings analyticsExportSettings,
-      PeriodDataProvider periodDataProvider) {
+      AnalyticsTableSettings analyticsExportSettings,
+      PeriodDataProvider periodDataProvider,
+      SqlBuilder sqlBuilder) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -212,7 +210,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         databaseInfoProvider,
         jdbcTemplate,
         analyticsExportSettings,
-        periodDataProvider);
+        periodDataProvider,
+        sqlBuilder);
   }
 
   @Override
@@ -230,23 +229,11 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     List<Integer> availableDataYears =
         periodDataProvider.getAvailableYears(
-            analyticsExportSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
+            analyticsTableSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
 
     return params.isLatestUpdate()
         ? getLatestAnalyticsTables(params)
         : getRegularAnalyticsTables(params, availableDataYears);
-  }
-
-  /**
-   * This method encapsulates the SQL logic to get the correct date column based on the
-   * event(program stage instance) status. If new statuses need to be loaded into the analytics
-   * events tables, they have to be supported/added into this logic.
-   *
-   * @return a statement that returns the date column related to the event(program stage instance)
-   *     status
-   */
-  static String getDateLinkedToStatus() {
-    return "CASE WHEN 'SCHEDULE' = psi.status THEN psi.scheduleddate ELSE psi.occurreddate END";
   }
 
   /**
@@ -259,11 +246,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    */
   private List<AnalyticsTable> getRegularAnalyticsTables(
       AnalyticsTableUpdateParams params, List<Integer> availableDataYears) {
-    List<AnalyticsTable> tables = new ArrayList<>();
-
     Calendar calendar = PeriodType.getCalendar();
-
-    Logged logged = analyticsExportSettings.getTableLogged();
+    List<AnalyticsTable> tables = new ArrayList<>();
+    Logged logged = analyticsTableSettings.getTableLogged();
 
     List<Program> programs =
         params.isSkipPrograms()
@@ -276,7 +261,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     Integer latestDataYear = availableDataYears.get(availableDataYears.size() - 1);
 
     for (Program program : programs) {
-
       List<Integer> yearsForPartitionTables =
           getYearsForPartitionTable(getDataYears(params, program, firstDataYear, latestDataYear));
 
@@ -286,13 +270,15 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
           new AnalyticsTable(getAnalyticsTableType(), getColumns(program), logged, program);
 
       for (Integer year : yearsForPartitionTables) {
-        table.addPartitionTable(
+        List<String> checks = getPartitionChecks(year, PartitionUtils.getEndDate(calendar, year));
+        table.addTablePartition(
+            checks,
             year,
             PartitionUtils.getStartDate(calendar, year),
             PartitionUtils.getEndDate(calendar, year));
       }
 
-      if (table.hasPartitionTables()) {
+      if (table.hasTablePartitions()) {
         tables.add(table);
       }
     }
@@ -325,7 +311,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     List<AnalyticsTable> tables = new ArrayList<>();
 
-    Logged logged = analyticsExportSettings.getTableLogged();
+    Logged logged = analyticsTableSettings.getTableLogged();
 
     List<Program> programs =
         params.isSkipPrograms()
@@ -340,20 +326,21 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       if (hasUpdatedData) {
         AnalyticsTable table =
             new AnalyticsTable(getAnalyticsTableType(), getColumns(program), logged, program);
-        table.addPartitionTable(AnalyticsTablePartition.LATEST_PARTITION, startDate, endDate);
+        table.addTablePartition(
+            List.of(), AnalyticsTablePartition.LATEST_PARTITION, startDate, endDate);
         tables.add(table);
 
         log.info(
             "Added latest event analytics partition for program: '{}' with start: '{}' and end: '{}'",
             program.getUid(),
-            getLongDateString(startDate),
-            getLongDateString(endDate));
+            toLongDate(startDate),
+            toLongDate(endDate));
       } else {
         log.info(
             "No updated latest event data found for program: '{}' with start: '{}' and end: '{}",
             program.getUid(),
-            getLongDateString(lastAnyTableUpdate),
-            getLongDateString(endDate));
+            toLongDate(lastAnyTableUpdate),
+            toLongDate(endDate));
       }
     }
 
@@ -378,10 +365,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             + program.getId()
             + " "
             + "and psi.lastupdated >= '"
-            + getLongDateString(startDate)
+            + toLongDate(startDate)
             + "' "
             + "and psi.lastupdated < '"
-            + getLongDateString(endDate)
+            + toLongDate(endDate)
             + "' "
             + "limit 1";
 
@@ -391,7 +378,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   @Override
   public void removeUpdatedData(List<AnalyticsTable> tables) {
     for (AnalyticsTable table : tables) {
-      AnalyticsTablePartition partition = table.getLatestPartition();
+      AnalyticsTablePartition partition = table.getLatestTablePartition();
 
       String sql =
           "delete from "
@@ -405,10 +392,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               + table.getProgram().getId()
               + " "
               + "and psi.lastupdated >= '"
-              + getLongDateString(partition.getStartDate())
+              + toLongDate(partition.getStartDate())
               + "' "
               + "and psi.lastupdated < '"
-              + getLongDateString(partition.getEndDate())
+              + toLongDate(partition.getEndDate())
               + "')";
 
       invokeTimeAndLog(sql, format("Remove updated events for table: '%s'", table.getName()));
@@ -416,10 +403,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   }
 
   @Override
-  protected List<String> getPartitionChecks(AnalyticsTablePartition partition) {
-    return partition.isLatestPartition()
-        ? emptyList()
-        : List.of("yearly = '" + partition.getYear() + "'");
+  protected List<String> getPartitionChecks(Integer year, Date endDate) {
+    Objects.requireNonNull(year);
+    return List.of("yearly = '" + year + "'");
   }
 
   @Override
@@ -427,28 +413,11 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     List<Integer> availableDataYears =
         periodDataProvider.getAvailableYears(
-            analyticsExportSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
+            analyticsTableSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
     Integer firstDataYear = availableDataYears.get(0);
     Integer latestDataYear = availableDataYears.get(availableDataYears.size() - 1);
-
     Program program = partition.getMasterTable().getProgram();
-    String start = DateUtils.getLongDateString(partition.getStartDate());
-    String end = DateUtils.getLongDateString(partition.getEndDate());
-    String partitionClause =
-        partition.isLatestPartition()
-            ? "and psi.lastupdated >= '" + start + "' "
-            : "and "
-                + "("
-                + getDateLinkedToStatus()
-                + ") >= '"
-                + start
-                + "' "
-                + "and "
-                + "("
-                + getDateLinkedToStatus()
-                + ") < '"
-                + end
-                + "' ";
+    String partitionClause = getPartitionClause(partition);
 
     String fromClause =
         "from event psi "
@@ -460,19 +429,18 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             + "and tei.deleted is false "
             + "left join organisationunit registrationou on tei.organisationunitid=registrationou.organisationunitid "
             + "inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid "
-            + "left join _orgunitstructure ous on psi.organisationunitid=ous.organisationunitid "
-            + "left join _organisationunitgroupsetstructure ougs on psi.organisationunitid=ougs.organisationunitid "
+            + "left join analytics_rs_orgunitstructure ous on psi.organisationunitid=ous.organisationunitid "
+            + "left join analytics_rs_organisationunitgroupsetstructure ougs on psi.organisationunitid=ougs.organisationunitid "
             + "and (cast(date_trunc('month', "
-            + getDateLinkedToStatus()
-            + ") as date)"
-            + "=ougs.startdate or ougs.startdate is null) "
+            + eventDateExpression
+            + ") as date)=ougs.startdate or ougs.startdate is null) "
             + "left join organisationunit enrollmentou on pi.organisationunitid=enrollmentou.organisationunitid "
-            + "inner join _categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid "
-            + "left join _dateperiodstructure dps on cast("
-            + getDateLinkedToStatus()
+            + "inner join analytics_rs_categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid "
+            + "left join analytics_rs_dateperiodstructure dps on cast("
+            + eventDateExpression
             + " as date)=dps.dateperiod "
             + "where psi.lastupdated < '"
-            + getLongDateString(params.getStartTime())
+            + toLongDate(params.getStartTime())
             + "' "
             + partitionClause
             + "and pr.programid="
@@ -480,7 +448,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             + " "
             + "and psi.organisationunitid is not null "
             + "and ("
-            + getDateLinkedToStatus()
+            + eventDateExpression
             + ") is not null "
             + "and dps.year >= "
             + firstDataYear
@@ -494,6 +462,23 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             + "and psi.deleted is false ";
 
     populateTableInternal(partition, fromClause);
+  }
+
+  /**
+   * Returns a partition SQL clause.
+   *
+   * @param partition the {@link AnalyticsTablePartition}.
+   * @return a partition SQL clause.
+   */
+  private String getPartitionClause(AnalyticsTablePartition partition) {
+    String start = toLongDate(partition.getStartDate());
+    String end = toLongDate(partition.getEndDate());
+    String statusDate = eventDateExpression;
+    String latestFilter = format("and psi.lastupdated >= '%s' ", start);
+    String partitionFilter =
+        format("and (%s) >= '%s' and (%s) < '%s' ", statusDate, start, statusDate, end);
+
+    return partition.isLatestPartition() ? latestFilter : partitionFilter;
   }
 
   /**
@@ -512,7 +497,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         if (category.isDataDimension()) {
           columns.add(
               new AnalyticsTableColumn(
-                  quote(category.getUid()),
+                  category.getUid(),
                   CHARACTER_11,
                   "acs." + quote(category.getUid()),
                   category.getCreated()));
@@ -523,11 +508,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     columns.addAll(getOrganisationUnitLevelColumns());
     columns.add(getOrganisationUnitNameHierarchyColumn());
     columns.addAll(getOrganisationUnitGroupSetColumns());
-
-    columns.addAll(
-        categoryService.getAttributeCategoryOptionGroupSetsNoAcl().stream()
-            .map(l -> toCharColumn(quote(l.getUid()), "acs", l.getCreated()))
-            .collect(Collectors.toList()));
+    columns.addAll(getAttributeCategoryOptionGroupSetColumns());
     columns.addAll(getPeriodTypeColumns("dps"));
 
     columns.addAll(
@@ -541,6 +522,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             .map(de -> getColumnFromDataElement(de, true))
             .flatMap(Collection::stream)
             .collect(Collectors.toList()));
+    ;
 
     columns.addAll(
         program.getNonConfidentialTrackedEntityAttributes().stream()
@@ -558,13 +540,13 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                     getColumnFromTrackedEntityAttribute(
                         tea, getNumericClause(), getDateClause(), true))
             .flatMap(Collection::stream)
-            .collect(toList()));
+            .collect(Collectors.toList()));
 
     columns.addAll(FIXED_COLS);
 
     if (program.isRegistration()) {
-      columns.add(new AnalyticsTableColumn(quote("tei"), CHARACTER_11, "tei.uid"));
-      columns.add(new AnalyticsTableColumn(quote("teigeometry"), GEOMETRY, "tei.geometry"));
+      columns.add(new AnalyticsTableColumn("tei", CHARACTER_11, "tei.uid"));
+      columns.add(new AnalyticsTableColumn("teigeometry", GEOMETRY, "tei.geometry"));
     }
 
     return filterDimensionColumns(columns);
@@ -588,7 +570,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       columns.addAll(getColumnsFromOrgUnitTrackedEntityAttribute(attribute, dataClause));
     }
 
-    columns.add(new AnalyticsTableColumn(quote(attribute.getUid()), dataType, sql, skipIndex));
+    columns.add(new AnalyticsTableColumn(attribute.getUid(), dataType, sql, skipIndex));
 
     return withLegendSet
         ? getColumnFromTrackedEntityAttributeWithLegendSet(attribute, numericClause)
@@ -602,7 +584,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     return attribute.getLegendSets().stream()
         .map(
             ls -> {
-              String column = quote(attribute.getUid() + PartitionUtils.SEP + ls.getUid());
+              String column = attribute.getUid() + PartitionUtils.SEP + ls.getUid();
 
               String sql =
                   "(select l.uid from maplegend l "
@@ -642,7 +624,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       columns.addAll(getColumnFromOrgUnitDataElement(dataElement, dataClause));
     }
 
-    columns.add(new AnalyticsTableColumn(quote(dataElement.getUid()), dataType, sql, skipIndex));
+    columns.add(new AnalyticsTableColumn(dataElement.getUid(), dataType, sql, skipIndex));
 
     return withLegendSet
         ? getColumnFromDataElementWithLegendSet(dataElement, select, dataClause)
@@ -661,10 +643,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               dataClause);
       columns.add(
           new AnalyticsTableColumn(
-              quote(attribute.getUid() + OU_GEOMETRY_COL_SUFFIX),
-              GEOMETRY,
-              geoSql,
-              IndexType.GIST));
+              (attribute.getUid() + OU_GEOMETRY_COL_SUFFIX), GEOMETRY, geoSql, IndexType.GIST));
     }
 
     // Add org unit name column
@@ -672,8 +651,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String ouNameSql = selectForInsert(attribute, fromTypeSql, dataClause);
 
     columns.add(
-        new AnalyticsTableColumn(
-            quote(attribute.getUid() + OU_NAME_COL_SUFFIX), TEXT, ouNameSql, SKIP));
+        new AnalyticsTableColumn((attribute.getUid() + OU_NAME_COL_SUFFIX), TEXT, ouNameSql, SKIP));
 
     return columns;
   }
@@ -693,10 +671,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
       columns.add(
           new AnalyticsTableColumn(
-              quote(dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX),
-              GEOMETRY,
-              geoSql,
-              IndexType.GIST));
+              (dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX), GEOMETRY, geoSql, IndexType.GIST));
     }
 
     // Add org unit name column
@@ -705,7 +680,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     columns.add(
         new AnalyticsTableColumn(
-            quote(dataElement.getUid() + OU_NAME_COL_SUFFIX), TEXT, ouNameSql, SKIP));
+            (dataElement.getUid() + OU_NAME_COL_SUFFIX), TEXT, ouNameSql, SKIP));
 
     return columns;
   }
@@ -736,8 +711,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   private String selectForInsert(
       TrackedEntityAttribute attribute, String fromType, String dataClause) {
     return format(
-        "(select %s"
-            + " from trackedentityattributevalue where trackedentityid=pi.trackedentityid "
+        "(select %s from trackedentityattributevalue where trackedentityid=pi.trackedentityid "
             + "and trackedentityattributeid="
             + attribute.getId()
             + dataClause
@@ -753,7 +727,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     return dataElement.getLegendSets().stream()
         .map(
             ls -> {
-              String column = quote(dataElement.getUid() + PartitionUtils.SEP + ls.getUid());
+              String column = dataElement.getUid() + PartitionUtils.SEP + ls.getUid();
 
               String sql =
                   "(select l.uid from maplegend l "
@@ -793,31 +767,26 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String sql =
         "select temp.supportedyear from "
             + "(select distinct extract(year from "
-            + getDateLinkedToStatus()
+            + eventDateExpression
             + ") as supportedyear "
             + "from event psi "
             + "inner join enrollment pi on psi.enrollmentid = pi.enrollmentid "
             + "where psi.lastupdated <= '"
-            + getLongDateString(params.getStartTime())
+            + toLongDate(params.getStartTime())
             + "' "
             + "and pi.programid = "
             + program.getId()
             + " "
             + "and ("
-            + getDateLinkedToStatus()
+            + eventDateExpression
             + ") is not null "
             + "and ("
-            + getDateLinkedToStatus()
+            + eventDateExpression
             + ") > '1000-01-01' "
             + "and psi.deleted is false ";
 
     if (params.getFromDate() != null) {
-      sql +=
-          "and ("
-              + getDateLinkedToStatus()
-              + ") >= '"
-              + DateUtils.getMediumDateString(params.getFromDate())
-              + "'";
+      sql += "and (" + eventDateExpression + ") >= '" + toMediumDate(params.getFromDate()) + "'";
     }
 
     sql +=
@@ -827,10 +796,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             + latestDataYear;
 
     return jdbcTemplate.queryForList(sql, Integer.class);
-  }
-
-  private AnalyticsTableColumn toCharColumn(String name, String prefix, Date created) {
-    return new AnalyticsTableColumn(name, CHARACTER_11, prefix + "." + name, created);
   }
 
   /**

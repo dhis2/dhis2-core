@@ -27,9 +27,7 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static java.util.Collections.emptyList;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DATE;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
@@ -47,16 +45,13 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
-import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.Logged;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
-import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.resourcetable.ResourceTableService;
@@ -74,12 +69,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
-          new AnalyticsTableColumn(quote("ouopeningdate"), DATE, "ou.openingdate"),
-          new AnalyticsTableColumn(quote("oucloseddate"), DATE, "ou.closeddate"),
-          new AnalyticsTableColumn(quote("costartdate"), DATE, "doc.costartdate"),
-          new AnalyticsTableColumn(quote("coenddate"), DATE, "doc.coenddate"),
-          new AnalyticsTableColumn(quote("dx"), CHARACTER_11, NOT_NULL, "ds.uid"),
-          new AnalyticsTableColumn(quote("ao"), CHARACTER_11, NOT_NULL, "ao.uid"));
+          new AnalyticsTableColumn("ouopeningdate", DATE, "ou.openingdate"),
+          new AnalyticsTableColumn("oucloseddate", DATE, "ou.closeddate"),
+          new AnalyticsTableColumn("costartdate", DATE, "doc.costartdate"),
+          new AnalyticsTableColumn("coenddate", DATE, "doc.coenddate"),
+          new AnalyticsTableColumn("dx", CHARACTER_11, NOT_NULL, "ds.uid"),
+          new AnalyticsTableColumn("ao", CHARACTER_11, NOT_NULL, "ao.uid"));
 
   public JdbcCompletenessTargetTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -92,8 +87,9 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
       PartitionManager partitionManager,
       DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
-      AnalyticsTableExportSettings analyticsExportSettings,
-      PeriodDataProvider periodDataProvider) {
+      AnalyticsTableSettings analyticsTableSettings,
+      PeriodDataProvider periodDataProvider,
+      SqlBuilder sqlBuilder) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -105,8 +101,9 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
         partitionManager,
         databaseInfoProvider,
         jdbcTemplate,
-        analyticsExportSettings,
-        periodDataProvider);
+        analyticsTableSettings,
+        periodDataProvider,
+        sqlBuilder);
   }
 
   @Override
@@ -117,7 +114,7 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
   @Override
   @Transactional
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
-    Logged logged = analyticsExportSettings.getTableLogged();
+    Logged logged = analyticsTableSettings.getTableLogged();
     return params.isLatestUpdate()
         ? List.of()
         : List.of(new AnalyticsTable(getAnalyticsTableType(), getColumns(), logged));
@@ -129,31 +126,26 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
   }
 
   @Override
-  public String validState() {
-    return null;
-  }
-
-  @Override
   protected boolean hasUpdatedLatestData(Date startDate, Date endDate) {
     return false;
   }
 
   @Override
-  protected List<String> getPartitionChecks(AnalyticsTablePartition partition) {
-    return emptyList();
+  protected List<String> getPartitionChecks(Integer year, Date endDate) {
+    return List.of();
   }
 
   @Override
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
-    String tableName = partition.getTempName();
+    String tableName = partition.getName();
 
     String sql = "insert into " + tableName + " (";
 
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
     for (AnalyticsTableColumn col : columns) {
-      sql += col.getName() + ",";
+      sql += quote(col.getName()) + ",";
     }
 
     sql = TextUtils.removeLastComma(sql) + ") select ";
@@ -165,13 +157,13 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
     sql = TextUtils.removeLastComma(sql) + " ";
 
     sql +=
-        "from _datasetorganisationunitcategory doc "
+        "from analytics_rs_datasetorganisationunitcategory doc "
             + "inner join dataset ds on doc.datasetid=ds.datasetid "
             + "inner join organisationunit ou on doc.organisationunitid=ou.organisationunitid "
-            + "left join _orgunitstructure ous on doc.organisationunitid=ous.organisationunitid "
-            + "left join _organisationunitgroupsetstructure ougs on doc.organisationunitid=ougs.organisationunitid "
+            + "left join analytics_rs_orgunitstructure ous on doc.organisationunitid=ous.organisationunitid "
+            + "left join analytics_rs_organisationunitgroupsetstructure ougs on doc.organisationunitid=ougs.organisationunitid "
             + "left join categoryoptioncombo ao on doc.attributeoptioncomboid=ao.categoryoptioncomboid "
-            + "left join _categorystructure acs on doc.attributeoptioncomboid=acs.categoryoptioncomboid ";
+            + "left join analytics_rs_categorystructure acs on doc.attributeoptioncomboid=acs.categoryoptioncomboid ";
 
     invokeTimeAndLog(sql, String.format("Populate %s", tableName));
   }
@@ -179,51 +171,12 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
   private List<AnalyticsTableColumn> getColumns() {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-    List<OrganisationUnitGroupSet> orgUnitGroupSets =
-        idObjectManager.getDataDimensionsNoAcl(OrganisationUnitGroupSet.class);
-
-    List<OrganisationUnitLevel> levels = organisationUnitService.getFilledOrganisationUnitLevels();
-
-    List<CategoryOptionGroupSet> attributeCategoryOptionGroupSets =
-        categoryService.getAttributeCategoryOptionGroupSetsNoAcl();
-
-    List<Category> attributeCategories = categoryService.getAttributeDataDimensionCategoriesNoAcl();
-
-    for (OrganisationUnitGroupSet groupSet : orgUnitGroupSets) {
-      columns.add(
-          new AnalyticsTableColumn(
-              quote(groupSet.getUid()),
-              CHARACTER_11,
-              "ougs." + quote(groupSet.getUid()),
-              groupSet.getCreated()));
-    }
-
-    for (OrganisationUnitLevel level : levels) {
-      String column = quote(PREFIX_ORGUNITLEVEL + level.getLevel());
-      columns.add(
-          new AnalyticsTableColumn(column, CHARACTER_11, "ous." + column, level.getCreated()));
-    }
-
-    for (CategoryOptionGroupSet groupSet : attributeCategoryOptionGroupSets) {
-      columns.add(
-          new AnalyticsTableColumn(
-              quote(groupSet.getUid()),
-              CHARACTER_11,
-              "acs." + quote(groupSet.getUid()),
-              groupSet.getCreated()));
-    }
-
-    for (Category category : attributeCategories) {
-      columns.add(
-          new AnalyticsTableColumn(
-              quote(category.getUid()),
-              CHARACTER_11,
-              "acs." + quote(category.getUid()),
-              category.getCreated()));
-    }
-
+    columns.addAll(getOrganisationUnitGroupSetColumns());
+    columns.addAll(getOrganisationUnitLevelColumns());
+    columns.addAll(getAttributeCategoryOptionGroupSetColumns());
+    columns.addAll(getAttributeCategoryColumns());
     columns.addAll(FIXED_COLS);
-    columns.add(new AnalyticsTableColumn(quote("value"), DOUBLE, NULL, FACT, "1 as value"));
+    columns.add(new AnalyticsTableColumn("value", DOUBLE, NULL, FACT, "1 as value"));
 
     return filterDimensionColumns(columns);
   }

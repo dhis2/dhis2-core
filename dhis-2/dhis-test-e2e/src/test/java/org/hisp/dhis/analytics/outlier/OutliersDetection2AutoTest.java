@@ -170,7 +170,7 @@ public class OutliersDetection2AutoTest extends AnalyticsApiTest {
         response, 13, "stddev", "Standard deviation", "NUMBER", "java.lang.Double", false, false);
     validateHeader(
         response, 14, "absdev", "Absolute deviation", "NUMBER", "java.lang.Double", false, false);
-    validateHeader(response, 15, "zscore", "zScore", "NUMBER", "java.lang.Double", false, false);
+    validateHeader(response, 15, "zscore", "Z-score", "NUMBER", "java.lang.Double", false, false);
     validateHeader(
         response, 16, "lowerbound", "Lower boundary", "NUMBER", "java.lang.Double", false, false);
     validateHeader(
@@ -187,18 +187,18 @@ public class OutliersDetection2AutoTest extends AnalyticsApiTest {
             "September 2022",
             "RhJbg8UD75Q",
             "Yemoh Town CHC",
-            "/Sierra Leone/Bo/Kakua/Yemoh Town CHC",
+            "Sierra Leone / Bo / Kakua / Yemoh Town CHC",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
             "default",
             "466.0",
-            "48.18605",
-            "114.27966",
-            "417.81395",
-            "3.65607",
-            "-294.65294",
-            "391.02504"));
+            "48.19",
+            "114.28",
+            "417.81",
+            "3.66",
+            "-294.65",
+            "391.03"));
     validateRow(
         response,
         1,
@@ -209,18 +209,18 @@ public class OutliersDetection2AutoTest extends AnalyticsApiTest {
             "August 2022",
             "CvBAqD6RzLZ",
             "Ngalu CHC",
-            "/Sierra Leone/Bo/Bargbe/Ngalu CHC",
+            "Sierra Leone / Bo / Bargbe / Ngalu CHC",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
             "default",
             "220.0",
-            "41.64407",
-            "57.44954",
-            "178.35593",
-            "3.10457",
-            "-130.70455",
-            "213.99269"));
+            "41.64",
+            "57.45",
+            "178.36",
+            "3.1",
+            "-130.7",
+            "213.99"));
     validateRow(
         response,
         2,
@@ -231,18 +231,18 @@ public class OutliersDetection2AutoTest extends AnalyticsApiTest {
             "September 2022",
             "Mi4dWRtfIOC",
             "Sandaru CHC",
-            "/Sierra Leone/Kailahun/Penguia/Sandaru CHC",
+            "Sierra Leone / Kailahun / Penguia / Sandaru CHC",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
             "default",
             "105.0",
-            "18.26357",
-            "28.70554",
-            "86.73643",
-            "3.02159",
-            "-67.85306",
-            "104.38019"));
+            "18.26",
+            "28.71",
+            "86.74",
+            "3.02",
+            "-67.85",
+            "104.38"));
   }
 
   @Test
@@ -286,18 +286,18 @@ public class OutliersDetection2AutoTest extends AnalyticsApiTest {
         response,
         2,
         "modifiedzscore",
-        "Modified zScore",
+        "Modified Z-score",
         "NUMBER",
         "java.lang.Double",
         false,
         false);
 
     // Assert rows.
-    validateRow(response, 0, List.of("O05mAByOgAv", "OPV2 doses given", "98.477"));
-    validateRow(response, 1, List.of("vI2csg55S9C", "OPV3 doses given", "70.31663"));
-    validateRow(response, 2, List.of("n6aMJNLdvep", "Penta3 doses given", "70.148"));
-    validateRow(response, 3, List.of("UOlfIjgN8X6", "Fully Immunized child", "59.7607"));
-    validateRow(response, 4, List.of("I78gJm4KBo7", "Penta2 doses given", "58.9513"));
+    validateRow(response, 0, List.of("O05mAByOgAv", "OPV2 doses given", "98.48"));
+    validateRow(response, 1, List.of("vI2csg55S9C", "OPV3 doses given", "70.32"));
+    validateRow(response, 2, List.of("n6aMJNLdvep", "Penta3 doses given", "70.15"));
+    validateRow(response, 3, List.of("UOlfIjgN8X6", "Fully Immunized child", "59.76"));
+    validateRow(response, 4, List.of("I78gJm4KBo7", "Penta2 doses given", "58.95"));
   }
 
   @Test
@@ -337,15 +337,15 @@ public class OutliersDetection2AutoTest extends AnalyticsApiTest {
     // Assert headers.
     validateHeader(response, 0, "dx", "Data", "TEXT", "java.lang.String", false, false);
     validateHeader(response, 1, "dxname", "Data name", "TEXT", "java.lang.String", false, false);
-    validateHeader(response, 2, "zscore", "zScore", "NUMBER", "java.lang.Double", false, false);
+    validateHeader(response, 2, "zscore", "Z-score", "NUMBER", "java.lang.Double", false, false);
 
     // Assert rows.
-    validateRow(response, 0, List.of("l6byfWFUGaP", "Yellow Fever doses given", "3.65607"));
-    validateRow(response, 1, List.of("s46m5MS0hxu", "BCG doses given", "3.10457"));
+    validateRow(response, 0, List.of("l6byfWFUGaP", "Yellow Fever doses given", "3.66"));
+    validateRow(response, 1, List.of("s46m5MS0hxu", "BCG doses given", "3.1"));
     validateRow(
         response,
         2,
         List.of(
-            "dU0GquGkGQr", "Q_Early breastfeeding (within 1 hr after delivery) at BCG", "3.02159"));
+            "dU0GquGkGQr", "Q_Early breastfeeding (within 1 hr after delivery) at BCG", "3.02"));
   }
 }

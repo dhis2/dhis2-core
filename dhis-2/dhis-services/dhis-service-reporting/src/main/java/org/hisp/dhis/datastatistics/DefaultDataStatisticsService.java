@@ -138,8 +138,6 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
     progress.startingStage("Counting data values", SKIP_STAGE);
     Integer savedDataValues =
         progress.runStage(errorValue, () -> dataValueService.getDataValueCount(days));
-    progress.startingStage("Counting active users", SKIP_STAGE);
-    Integer activeUsers = progress.runStage(errorValue, () -> userService.getActiveUsersCount(1));
     progress.startingStage("Counting users", SKIP_STAGE);
     Integer users = progress.runStage(errorValue, () -> idObjectManager.getCount(User.class));
     progress.startingStage("Counting views", SKIP_STAGE);
@@ -165,7 +163,7 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
         asDouble(savedDashboards),
         asDouble(savedIndicators),
         asDouble(savedDataValues),
-        activeUsers,
+        eventCountMap.get(DataStatisticsEventType.ACTIVE_USERS).intValue(),
         users);
   }
 

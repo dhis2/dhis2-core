@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.table;
 import static java.util.Calendar.DECEMBER;
 import static java.util.Calendar.JANUARY;
 import static org.apache.commons.lang3.time.DateUtils.truncate;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.util.DateUtils.addDays;
 
 import java.util.Calendar;
@@ -44,7 +43,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.jdbc.batchhandler.MappingBatchHandler;
 
 /**
- * Writer of rows to the analytics_ownership temp tables.
+ * Writer of rows to the analytics_ownership staging tables.
  *
  * @author Jim Grace
  */
@@ -58,13 +57,13 @@ public class JdbcOwnershipWriter {
   /** Row of the current write, possibly modified. */
   private Map<String, Object> newRow;
 
-  public static final String TEIUID = quote("teiuid");
+  public static final String TEIUID = "teiuid";
 
-  public static final String STARTDATE = quote("startdate");
+  public static final String STARTDATE = "startdate";
 
-  public static final String ENDDATE = quote("enddate");
+  public static final String ENDDATE = "enddate";
 
-  public static final String OU = quote("ou");
+  public static final String OU = "ou";
 
   private static final Date FAR_PAST_DATE = new GregorianCalendar(1000, JANUARY, 1).getTime();
 
@@ -76,7 +75,7 @@ public class JdbcOwnershipWriter {
   }
 
   /**
-   * Write a row to an analytics_ownership temp table. Work on a copy of the row, so we do not
+   * Write a row to an analytics_ownership staging table. Work on a copy of the row, so we do not
    * change the original row. We cannot use immutable maps because the orgUnit levels contain nulls
    * when the orgUnit is not at the lowest level, and immutable maps do not allow null values. Also,
    * the end date is null in the last record for each TEI.
@@ -158,7 +157,7 @@ public class JdbcOwnershipWriter {
    * <p>After, there will be no previous row for this TEI.
    */
   private void writeRowIfLast(Map<String, Object> row) {
-    if (hasNullValue(row, ENDDATE)) // If the last row...
+    if (hasNullValue(row, ENDDATE)) // If the last row
     {
       row.put(ENDDATE, FAR_FUTURE_DATE);
 
@@ -176,8 +175,8 @@ public class JdbcOwnershipWriter {
   }
 
   /**
-   * Returns true if the column has the same value between the previous row and the new row. (Note
-   * that the new row may have a null value!)
+   * Returns true if the column has the same value between the previous row and the new row. Note
+   * that the new row may have a null value.
    */
   private boolean sameValue(String colName) {
     return Objects.equals(prevRow.get(colName), newRow.get(colName));

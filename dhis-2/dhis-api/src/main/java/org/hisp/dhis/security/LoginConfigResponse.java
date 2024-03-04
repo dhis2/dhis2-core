@@ -42,6 +42,8 @@ import lombok.NoArgsConstructor;
 @Builder
 public class LoginConfigResponse {
 
+  @JsonProperty private String apiVersion;
+
   @JsonProperty private String applicationTitle;
   @JsonProperty private String applicationDescription;
   @JsonProperty private String applicationNotification;
@@ -50,10 +52,11 @@ public class LoginConfigResponse {
   @JsonProperty private String countryFlag;
   @JsonProperty private String uiLocale;
   @JsonProperty private String loginPageLogo;
-  @JsonProperty private String topMenuLogo;
-  @JsonProperty private String style;
   @JsonProperty private String loginPopup;
+
   @JsonProperty private boolean emailConfigured;
   @JsonProperty private boolean selfRegistrationEnabled;
   @JsonProperty private boolean selfRegistrationNoRecaptcha;
+  @JsonProperty private boolean allowAccountRecovery;
+  @JsonProperty private boolean useCustomLogoFront;
 }

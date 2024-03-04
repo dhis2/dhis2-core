@@ -31,7 +31,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackedEntityDataValueChangeLogQueryParams;
@@ -65,9 +64,9 @@ public class DefaultTrackedEntityDataValueChangeLogService
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     aclFilter =
-        audit ->
+        changeLog ->
             trackerAccessManager
-                .canRead(currentUser, audit.getEvent(), audit.getDataElement(), false)
+                .canRead(currentUser, changeLog.getEvent(), changeLog.getDataElement(), false)
                 .isEmpty();
   }
 
@@ -87,9 +86,10 @@ public class DefaultTrackedEntityDataValueChangeLogService
   @Transactional(readOnly = true)
   public List<TrackedEntityDataValueChangeLog> getTrackedEntityDataValueChangeLogs(
       TrackedEntityDataValueChangeLogQueryParams params) {
+
     return trackedEntityDataValueChangeLogStore.getTrackedEntityDataValueChangeLogs(params).stream()
         .filter(aclFilter)
-        .collect(Collectors.toList());
+        .toList();
   }
 
   @Override

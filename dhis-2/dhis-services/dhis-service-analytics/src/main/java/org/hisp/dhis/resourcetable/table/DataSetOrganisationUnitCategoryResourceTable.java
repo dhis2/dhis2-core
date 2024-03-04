@@ -48,28 +48,29 @@ import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.model.constraint.Unique;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.hisp.dhis.util.DateUtils;
 
 /**
  * @author Lars Helge Overland
  */
-public class DataSetOrganisationUnitCategoryResourceTable implements ResourceTable {
-  private static final String TABLE_NAME = "_datasetorganisationunitcategory";
+public class DataSetOrganisationUnitCategoryResourceTable extends AbstractResourceTable {
+  public static final String TABLE_NAME = "analytics_rs_datasetorganisationunitcategory";
 
   private final List<DataSet> dataSets;
 
   private final CategoryOptionCombo defaultOptionCombo;
 
-  private final Logged logged;
-
   public DataSetOrganisationUnitCategoryResourceTable(
-      List<DataSet> dataSets, CategoryOptionCombo defaultOptionCombo, Logged logged) {
+      SqlBuilder sqlBuilder,
+      Logged logged,
+      List<DataSet> dataSets,
+      CategoryOptionCombo defaultOptionCombo) {
+    super(sqlBuilder, logged);
     this.dataSets = dataSets;
     this.defaultOptionCombo = defaultOptionCombo;
-    this.logged = logged;
   }
 
   @Override
@@ -90,7 +91,7 @@ public class DataSetOrganisationUnitCategoryResourceTable implements ResourceTab
   public List<Index> getIndexes() {
     return List.of(
         new Index(
-            appendRandom("_datasetorganisationunitcategory"),
+            appendRandom("in_datasetorganisationunitcategory"),
             toStaging(TABLE_NAME),
             Unique.UNIQUE,
             List.of("datasetid", "organisationunitid", "attributeoptioncomboid")));

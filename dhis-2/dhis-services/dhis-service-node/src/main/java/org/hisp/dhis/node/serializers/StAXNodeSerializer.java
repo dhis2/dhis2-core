@@ -140,7 +140,7 @@ public class StAXNodeSerializer extends AbstractNodeSerializer {
   private String getValue(SimpleNode simpleNode) {
     if (simpleNode.getValue() != null
         && Date.class.isAssignableFrom(simpleNode.getValue().getClass())) {
-      return DateUtils.getIso8601NoTz((Date) simpleNode.getValue());
+      return DateUtils.toIso8601NoTz((Date) simpleNode.getValue());
     } else {
       return String.valueOf(simpleNode.getValue());
     }

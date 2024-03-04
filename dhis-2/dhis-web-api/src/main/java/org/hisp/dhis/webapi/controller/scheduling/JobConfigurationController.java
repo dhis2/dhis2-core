@@ -78,7 +78,7 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
   private final JobConfigurationService jobConfigurationService;
   private final JobSchedulerService jobSchedulerService;
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_SCHEDULING_ANALYSE')")
+  @PreAuthorize("hasRole('ALL') or hasRole('F_JOB_LOG_READ')")
   @GetMapping("/errors")
   public List<JsonObject> getJobRunErrors(JobRunErrorsParams params) {
     return jobConfigurationService.findJobRunErrors(params);
@@ -227,7 +227,7 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
         currentUser != null
             && (currentUser.isSuper()
                 || (!read && currentUser.isAuthorized("F_PERFORM_MAINTENANCE"))
-                || (read && currentUser.isAuthorized("F_SCHEDULING_ANALYSE"))
+                || (read && currentUser.isAuthorized("F_JOB_LOG_READ"))
                 || currentUser.getUid().equals(obj.getExecutedBy()));
     if (!isAuthorized) throw new ForbiddenException(JobConfiguration.class, obj.getUid());
   }

@@ -141,7 +141,7 @@ class CommonQueryRequestMapperTest {
                 eventDataQueryService,
                 programService,
                 dimensionIdentifierConverter)
-            .map(aCommonQueryRequest);
+            .map(aCommonQueryRequest, aCommonQueryRequest);
 
     // Then
     assertEquals(2, params.getPrograms().size(), "Should contain 2 programs.");
@@ -240,7 +240,7 @@ class CommonQueryRequestMapperTest {
                 eventDataQueryService,
                 programService,
                 dimensionIdentifierConverter)
-            .map(aCommonQueryRequest);
+            .map(aCommonQueryRequest, aCommonQueryRequest);
 
     // Then
     assertEquals(2, params.getPrograms().size(), "Should contain 2 programs.");
@@ -363,7 +363,7 @@ class CommonQueryRequestMapperTest {
                 eventDataQueryService,
                 programService,
                 dimensionIdentifierConverter)
-            .map(aCommonQueryRequest);
+            .map(aCommonQueryRequest, aCommonQueryRequest);
 
     // Then
     assertEquals(2, params.getPrograms().size(), "Should contain 2 programs.");
@@ -434,7 +434,8 @@ class CommonQueryRequestMapperTest {
     // When
     IllegalQueryException thrown =
         assertThrows(
-            IllegalQueryException.class, () -> commonQueryRequestMapper.map(aCommonQueryRequest));
+            IllegalQueryException.class,
+            () -> commonQueryRequestMapper.map(aCommonQueryRequest, aCommonQueryRequest));
 
     // Then
     assertEquals(
@@ -499,7 +500,7 @@ class CommonQueryRequestMapperTest {
                 eventDataQueryService,
                 programService,
                 dimensionIdentifierConverter)
-            .map(aCommonQueryRequest);
+            .map(aCommonQueryRequest, aCommonQueryRequest);
 
     // Then
     assertEquals(2, params.getPrograms().size(), "Should contain 2 programs.");
@@ -573,7 +574,8 @@ class CommonQueryRequestMapperTest {
     // When
     IllegalQueryException thrown =
         assertThrows(
-            IllegalQueryException.class, () -> commonQueryRequestMapper.map(aCommonQueryRequest));
+            IllegalQueryException.class,
+            () -> commonQueryRequestMapper.map(aCommonQueryRequest, aCommonQueryRequest));
 
     // Then
     assertEquals(
@@ -655,14 +657,14 @@ class CommonQueryRequestMapperTest {
                 eventDataQueryService,
                 programService,
                 dimensionIdentifierConverter)
-            .map(aCommonQueryRequest);
+            .map(aCommonQueryRequest, aCommonQueryRequest);
 
     Set<String> groups =
         params.getDimensionIdentifiers().stream()
             .map(DimensionIdentifier::getGroupId)
             .collect(Collectors.toSet());
     // Then
-    assertThat(groups, hasSize(1));
+    assertThat(groups, hasSize(2));
     assertThat(params.getDimensionIdentifiers(), hasSize(2));
   }
 }

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics.table.scheduling;
 
-import static org.hisp.dhis.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import com.google.common.base.Preconditions;
 import java.util.Date;
@@ -91,21 +91,21 @@ public class ContinuousAnalyticsTableJob implements Job {
     Integer fullUpdateHourOfDay =
         ObjectUtils.firstNonNull(parameters.getFullUpdateHourOfDay(), DEFAULT_HOUR_OF_DAY);
 
-    Date now = new Date();
-    Date defaultNextFullUpdate = DateUtils.getNextDate(fullUpdateHourOfDay, now);
+    Date startTime = new Date();
+    Date defaultNextFullUpdate = DateUtils.getNextDate(fullUpdateHourOfDay, startTime);
     Date nextFullUpdate =
         systemSettingManager.getSystemSetting(
             SettingKey.NEXT_ANALYTICS_TABLE_UPDATE, defaultNextFullUpdate);
 
     log.info(
         "Starting continuous analytics table update, current time: '{}', default next full update: '{}', next full update: '{}'",
-        getLongDateString(now),
-        getLongDateString(defaultNextFullUpdate),
-        getLongDateString(nextFullUpdate));
+        toLongDate(startTime),
+        toLongDate(defaultNextFullUpdate),
+        toLongDate(nextFullUpdate));
 
     Preconditions.checkNotNull(nextFullUpdate);
 
-    if (now.after(nextFullUpdate)) {
+    if (startTime.after(nextFullUpdate)) {
       log.info("Performing full analytics table update");
 
       AnalyticsTableUpdateParams params =
@@ -115,15 +115,15 @@ public class ContinuousAnalyticsTableJob implements Job {
               .withSkipOutliers(parameters.getSkipOutliers())
               .withSkipTableTypes(parameters.getSkipTableTypes())
               .withJobId(jobConfiguration)
-              .withStartTime(now)
+              .withStartTime(startTime)
               .build();
 
       try {
         analyticsTableGenerator.generateTables(params, progress);
       } finally {
-        Date nextUpdate = DateUtils.getNextDate(fullUpdateHourOfDay, now);
+        Date nextUpdate = DateUtils.getNextDate(fullUpdateHourOfDay, startTime);
         systemSettingManager.saveSystemSetting(SettingKey.NEXT_ANALYTICS_TABLE_UPDATE, nextUpdate);
-        log.info("Next full analytics table update: '{}'", getLongDateString(nextUpdate));
+        log.info("Next full analytics table update: '{}'", toLongDate(nextUpdate));
       }
     } else {
       log.info("Performing latest analytics table partition update");
@@ -135,7 +135,7 @@ public class ContinuousAnalyticsTableJob implements Job {
               .withSkipOutliers(parameters.getSkipOutliers())
               .withSkipTableTypes(parameters.getSkipTableTypes())
               .withJobId(jobConfiguration)
-              .withStartTime(now)
+              .withStartTime(startTime)
               .build();
 
       analyticsTableGenerator.generateTables(params, progress);

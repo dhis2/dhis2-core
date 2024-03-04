@@ -29,19 +29,17 @@ package org.hisp.dhis.analytics.event.data;
 
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.encode;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getCoalesce;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import com.google.common.collect.Sets;
 import java.util.Arrays;
@@ -68,11 +66,10 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
-import org.hisp.dhis.system.util.SqlUtils;
-import org.hisp.dhis.util.DateUtils;
 import org.locationtech.jts.util.Assert;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.InvalidResultSetAccessException;
@@ -120,9 +117,14 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       ProgramIndicatorService programIndicatorService,
       ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
       EnrollmentTimeFieldSqlRenderer timeFieldSqlRenderer,
-      ExecutionPlanStore executionPlanStore) {
+      ExecutionPlanStore executionPlanStore,
+      SqlBuilder sqlBuilder) {
     super(
-        jdbcTemplate, programIndicatorService, programIndicatorSubqueryBuilder, executionPlanStore);
+        jdbcTemplate,
+        programIndicatorService,
+        programIndicatorSubqueryBuilder,
+        executionPlanStore,
+        sqlBuilder);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
   }
 
@@ -211,7 +213,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
         ValueStatus valueStatus = ValueStatus.of(isDefined, isSet);
 
-        if (valueStatus != ValueStatus.NOT_DEFINED) {
+        if (valueStatus == ValueStatus.SET) {
           return true;
         }
 
@@ -406,7 +408,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     if (params.hasProgramStatus()) {
       sql +=
           "and enrollmentstatus in ("
-              + params.getProgramStatus().stream().map(p -> encode(p.name())).collect(joining(","))
+              + params.getProgramStatus().stream()
+                  .map(p -> singleQuote(p.name()))
+                  .collect(joining(","))
               + ") ";
     }
 
@@ -636,26 +640,25 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     return getColumn(item, "");
   }
 
-  private static String getExecutionDateFilter(Date startDate, Date endDate) {
+  private String getExecutionDateFilter(Date startDate, Date endDate) {
     StringBuilder sb = new StringBuilder();
 
     if (startDate != null) {
       sb.append(" and occurreddate >= ");
 
-      sb.append(
-          String.format("%s ", SqlUtils.singleQuote(DateUtils.getMediumDateString(startDate))));
+      sb.append(String.format("%s ", sqlBuilder.singleQuote(toMediumDate(startDate))));
     }
 
     if (endDate != null) {
       sb.append(" and occurreddate <= ");
 
-      sb.append(String.format("%s ", SqlUtils.singleQuote(DateUtils.getMediumDateString(endDate))));
+      sb.append(String.format("%s ", sqlBuilder.singleQuote(toMediumDate(endDate))));
     }
 
     return sb.toString();
   }
 
-  private static String getLimit(int count) {
+  private String getLimit(int count) {
     if (count == Integer.MAX_VALUE) {
       return "";
     }

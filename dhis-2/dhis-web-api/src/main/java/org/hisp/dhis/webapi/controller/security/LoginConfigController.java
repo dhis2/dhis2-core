@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.security;
 
 import java.util.Locale;
+import java.util.Optional;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -37,17 +38,18 @@ import org.hisp.dhis.security.LoginConfigResponse;
 import org.hisp.dhis.security.LoginConfigResponse.LoginConfigResponseBuilder;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @OpenApi.Tags({"login"})
-@Controller
+@RestController
 @RequestMapping("/loginConfig")
 @RequiredArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
@@ -55,55 +57,55 @@ public class LoginConfigController {
 
   private final SystemSettingManager manager;
   private final ConfigurationService configurationService;
+  private final SystemService systemService;
 
   @Getter
   private enum KEYS {
-    APPLICATION_TITLE("applicationTitle"),
-    APPLICATION_INTRO("applicationDescription"),
-    APPLICATION_NOTIFICATION("applicationNotification"),
-    APPLICATION_FOOTER("applicationLeftSideFooter"),
-    APPLICATION_RIGHT_FOOTER("applicationRightSideFooter"),
-    FLAG_IMAGE("countryFlag"),
-    UI_LOCALE("uiLocale"),
-    CUSTOM_LOGIN_PAGE_LOGO("loginPageLogo", "/api/staticContent/logo_front.png"),
-    CUSTOM_TOP_MENU_LOGO("topMenuLogo", "/external-static/logo_banner.png"),
-    STYLE("style"),
-    LOGIN_POPUP("loginPopup"),
-    SELF_REGISTRATION_NO_RECAPTCHA("selfRegistrationNoRecaptcha");
+    APPLICATION_TITLE(),
+    APPLICATION_INTRO(),
+    APPLICATION_NOTIFICATION(),
+    APPLICATION_FOOTER(),
+    APPLICATION_RIGHT_FOOTER(),
+    FLAG(),
+    CUSTOM_LOGIN_PAGE_LOGO("/api/staticContent/logo_front.png"),
+    UI_LOCALE(),
+    LOGIN_POPUP(),
+    SELF_REGISTRATION_NO_RECAPTCHA(),
+    USE_CUSTOM_LOGO_FRONT(),
+    ACCOUNT_RECOVERY();
 
-    private final String keyName;
     private final String defaultValue;
 
-    KEYS(String keyName) {
-      this.keyName = keyName;
+    KEYS() {
       this.defaultValue = null;
     }
 
-    KEYS(String keyName, String defaultValue) {
-      this.keyName = keyName;
+    KEYS(String defaultValue) {
       this.defaultValue = defaultValue;
     }
   }
 
+  private String getTranslatableString(KEYS key, String locale) {
+    Optional<String> translated =
+        manager.getSystemSettingTranslation(SettingKey.valueOf(key.name()), locale);
+
+    return translated.orElseGet(() -> manager.getStringSetting(SettingKey.valueOf(key.name())));
+  }
+
   @GetMapping()
-  public @ResponseBody LoginConfigResponse getConfig() {
+  public LoginConfigResponse getConfig(
+      @RequestParam(required = false, defaultValue = "en") String locale) {
     LoginConfigResponseBuilder builder = LoginConfigResponse.builder();
-    builder.applicationTitle(
-        manager.getStringSetting(SettingKey.valueOf(KEYS.APPLICATION_TITLE.name())));
 
-    builder.applicationDescription(
-        manager.getStringSetting(SettingKey.valueOf(KEYS.APPLICATION_INTRO.name())));
-
-    builder.applicationNotification(
-        manager.getStringSetting(SettingKey.valueOf(KEYS.APPLICATION_NOTIFICATION.name())));
-
-    builder.applicationLeftSideFooter(
-        manager.getStringSetting(SettingKey.valueOf(KEYS.APPLICATION_FOOTER.name())));
-
+    builder.applicationTitle(getTranslatableString(KEYS.APPLICATION_TITLE, locale));
+    builder.applicationDescription(getTranslatableString(KEYS.APPLICATION_INTRO, locale));
+    builder.applicationNotification(getTranslatableString(KEYS.APPLICATION_NOTIFICATION, locale));
+    builder.applicationLeftSideFooter(getTranslatableString(KEYS.APPLICATION_FOOTER, locale));
     builder.applicationRightSideFooter(
-        manager.getStringSetting(SettingKey.valueOf(KEYS.APPLICATION_RIGHT_FOOTER.name())));
+        getTranslatableString(KEYS.APPLICATION_RIGHT_FOOTER, locale));
+    builder.loginPopup(getTranslatableString(KEYS.LOGIN_POPUP, locale));
 
-    builder.countryFlag(manager.getStringSetting(SettingKey.valueOf(KEYS.FLAG_IMAGE.name())));
+    builder.countryFlag(manager.getStringSetting(SettingKey.valueOf(KEYS.FLAG.name())));
 
     builder.uiLocale(
         manager
@@ -111,26 +113,23 @@ public class LoginConfigController {
             .getLanguage());
 
     builder.loginPageLogo(
-        manager.getBoolSetting(SettingKey.valueOf(KEYS.CUSTOM_LOGIN_PAGE_LOGO.name()))
+        manager.getBoolSetting(SettingKey.valueOf(KEYS.USE_CUSTOM_LOGO_FRONT.name()))
             ? KEYS.CUSTOM_LOGIN_PAGE_LOGO.defaultValue
             : null);
 
-    builder.topMenuLogo(
-        manager.getBoolSetting(SettingKey.valueOf(KEYS.CUSTOM_TOP_MENU_LOGO.name()))
-            ? KEYS.CUSTOM_TOP_MENU_LOGO.defaultValue
-            : null);
-
-    builder.style(manager.getStringSetting(SettingKey.valueOf(KEYS.STYLE.name())));
-
-    builder.loginPopup(manager.getStringSetting(SettingKey.valueOf(KEYS.LOGIN_POPUP.name())));
+    builder.selfRegistrationNoRecaptcha(
+        manager.getBoolSetting(SettingKey.valueOf(KEYS.SELF_REGISTRATION_NO_RECAPTCHA.name())));
+    builder.allowAccountRecovery(
+        manager.getBoolSetting(SettingKey.valueOf(KEYS.ACCOUNT_RECOVERY.name())));
+    builder.useCustomLogoFront(
+        manager.getBoolSetting(SettingKey.valueOf(KEYS.USE_CUSTOM_LOGO_FRONT.name())));
 
     builder.emailConfigured(manager.emailConfigured());
 
     builder.selfRegistrationEnabled(
         configurationService.getConfiguration().selfRegistrationAllowed());
 
-    builder.selfRegistrationNoRecaptcha(
-        manager.getBoolSetting(SettingKey.valueOf(KEYS.SELF_REGISTRATION_NO_RECAPTCHA.name())));
+    builder.apiVersion(systemService.getSystemInfo().getVersion());
 
     return builder.build();
   }

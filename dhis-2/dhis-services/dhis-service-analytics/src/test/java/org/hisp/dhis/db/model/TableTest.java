@@ -39,8 +39,21 @@ import org.junit.jupiter.api.Test;
 
 class TableTest {
   private final Column colA = new Column("dx", DataType.CHARACTER_11, Nullable.NOT_NULL);
-
   private final Column colB = new Column("value", DataType.DOUBLE, Nullable.NULL);
+
+  @Test
+  void testToStagingTable() {
+    assertEquals(
+        "analytics_rs_categorystructure_temp", Table.toStaging("analytics_rs_categorystructure"));
+    assertEquals("analytics_temp", Table.toStaging("analytics"));
+  }
+
+  @Test
+  void testFromStagingTable() {
+    assertEquals(
+        "analytics_rs_categorystructure", Table.fromStaging("analytics_rs_categorystructure_temp"));
+    assertEquals("analytics", Table.fromStaging("analytics_temp"));
+  }
 
   @Test
   void testIsUnlogged() {
@@ -54,15 +67,10 @@ class TableTest {
   }
 
   @Test
-  void testToStagingTable() {
-    assertEquals("_categorystructure_staging", Table.toStaging("_categorystructure"));
-    assertEquals("analytics_staging", Table.toStaging("analytics"));
-  }
+  void testHasColumns() {
+    Table table = new Table("analytics", List.of(colA, colB), List.of());
 
-  @Test
-  void testFromStagingTable() {
-    assertEquals("_categorystructure", Table.fromStaging("_categorystructure_staging"));
-    assertEquals("analytics", Table.fromStaging("analytics_staging"));
+    assertTrue(table.hasColumns());
   }
 
   @Test

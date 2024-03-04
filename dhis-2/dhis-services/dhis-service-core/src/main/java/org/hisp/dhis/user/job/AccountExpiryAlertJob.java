@@ -33,8 +33,6 @@ import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLI
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -72,17 +70,6 @@ public class AccountExpiryAlertJob implements Job {
   private final SystemSettingManager systemSettingManager;
 
   @Override
-  public ErrorReport validate() {
-    if (!emailMessageSender.isConfigured()) {
-      return new ErrorReport(
-          AccountExpiryAlertJob.class,
-          ErrorCode.E7010,
-          "EMAIL gateway configuration does not exist");
-    }
-    return null;
-  }
-
-  @Override
   public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
     if (!systemSettingManager.getBoolSetting(SettingKey.ACCOUNT_EXPIRY_ALERT)) {
       log.info(format("%s aborted. Expiry alerts are disabled", getJobType().name()));
@@ -90,6 +77,13 @@ public class AccountExpiryAlertJob implements Job {
     }
 
     progress.startingProcess("Notify expiring account users");
+    progress.startingStage("Validating environment setup");
+    if (!emailMessageSender.isConfigured()) {
+      progress.failedStage("EMAIL gateway configuration does not exist, job aborted");
+      return;
+    }
+    progress.completedStage(null);
+
     int inDays = systemSettingManager.getIntSetting(SettingKey.ACCOUNT_EXPIRES_IN_DAYS);
     List<UserAccountExpiryInfo> soonExpiring = userService.getExpiringUserAccounts(inDays);
 

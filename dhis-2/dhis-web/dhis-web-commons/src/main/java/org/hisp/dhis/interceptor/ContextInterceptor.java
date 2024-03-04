@@ -36,7 +36,6 @@ import java.util.Map;
 import lombok.AllArgsConstructor;
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.springframework.stereotype.Component;
 
 /**
@@ -45,15 +44,11 @@ import org.springframework.stereotype.Component;
 @Component
 @AllArgsConstructor
 public class ContextInterceptor implements Interceptor {
-  private static final String KEY_IN_MEMORY_DATABASE = "inMemoryDatabase";
-
   private static final String KEY_TEXT_UTILS = "dhisTextUtils";
 
   private static final String KEY_CURRENT_PAGE = "keyCurrentPage";
 
   private static final String KEY_CURRENT_KEY = "keyCurrentKey";
-
-  private final DatabaseInfoProvider databaseInfoProvider;
 
   @Override
   public void destroy() {}
@@ -65,7 +60,6 @@ public class ContextInterceptor implements Interceptor {
   public String intercept(ActionInvocation invocation) throws Exception {
     Map<String, Object> map = new HashMap<>();
 
-    map.put(KEY_IN_MEMORY_DATABASE, databaseInfoProvider.isInMemory());
     map.put(KEY_TEXT_UTILS, TextUtils.INSTANCE);
     map.put(KEY_CURRENT_PAGE, getCookieValue(ServletActionContext.getRequest(), "currentPage"));
     map.put(KEY_CURRENT_KEY, getCookieValue(ServletActionContext.getRequest(), "currentKey"));

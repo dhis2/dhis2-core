@@ -89,6 +89,8 @@ import org.springframework.security.web.authentication.switchuser.SwitchUserFilt
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.header.HeaderWriterFilter;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.util.UrlPathHelper;
 
@@ -117,6 +119,11 @@ public class DhisWebApiWebSecurityConfig {
   @Bean
   public SessionRegistry sessionRegistry() {
     return new SessionRegistryImpl();
+  }
+
+  @Bean
+  public RequestCache requestCache() {
+    return new HttpSessionRequestCache();
   }
 
   /** This class is configuring the OIDC login endpoints */
@@ -212,6 +219,8 @@ public class DhisWebApiWebSecurityConfig {
 
     @Autowired private ApiTokenAuthManager apiTokenAuthManager;
 
+    @Autowired private RequestCache requestCache;
+
     @Override
     public void configure(AuthenticationManagerBuilder auth) {
       auth.authenticationProvider(customLdapAuthenticationProvider);
@@ -259,7 +268,9 @@ public class DhisWebApiWebSecurityConfig {
           .permitAll()
           .antMatchers("/oauth2/**")
           .permitAll()
-          .antMatchers(apiContextPath + "/loginConfig")
+          .antMatchers(apiContextPath + "/**/loginConfig")
+          .permitAll()
+          .antMatchers(apiContextPath + "/auth/login")
           .permitAll()
           .antMatchers(apiContextPath + "/authentication/login")
           .permitAll()
@@ -288,6 +299,8 @@ public class DhisWebApiWebSecurityConfig {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
       http.csrf().disable();
+
+      http.requestCache().requestCache(requestCache);
 
       configureMatchers(http);
       configureCspFilter(http, dhisConfig, configurationService);

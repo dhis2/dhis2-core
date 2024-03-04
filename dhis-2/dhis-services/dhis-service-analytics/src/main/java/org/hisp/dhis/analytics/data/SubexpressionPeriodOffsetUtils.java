@@ -28,9 +28,9 @@
 package org.hisp.dhis.analytics.data;
 
 import static java.lang.String.format;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.PeriodOffsetUtils.shiftPeriod;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import java.util.HashSet;
 import java.util.List;

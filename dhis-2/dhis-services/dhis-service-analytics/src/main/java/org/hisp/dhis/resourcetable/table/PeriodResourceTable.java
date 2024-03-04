@@ -46,10 +46,10 @@ import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.model.constraint.Unique;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.WeeklyAbstractPeriodType;
-import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.joda.time.DateTime;
 
@@ -57,16 +57,14 @@ import org.joda.time.DateTime;
  * @author Lars Helge Overland
  */
 @Slf4j
-public class PeriodResourceTable implements ResourceTable {
-  private static final String TABLE_NAME = "_periodstructure";
+public class PeriodResourceTable extends AbstractResourceTable {
+  public static final String TABLE_NAME = "analytics_rs_periodstructure";
 
   private final List<Period> periods;
 
-  private final Logged logged;
-
-  public PeriodResourceTable(List<Period> periods, Logged logged) {
+  public PeriodResourceTable(SqlBuilder sqlBuilder, Logged logged, List<Period> periods) {
+    super(sqlBuilder, logged);
     this.periods = periods;
-    this.logged = logged;
   }
 
   @Override

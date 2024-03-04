@@ -57,7 +57,7 @@ class JobConfigurationRunErrorsControllerTest extends DhisControllerIntegrationT
   @BeforeEach
   void setUp() throws InterruptedException {
     jobId = createAndRunImportWithErrors();
-    switchToNewUser("special-admin", "F_SCHEDULING_ANALYSE");
+    switchToNewUser("special-admin", "F_JOB_LOG_READ");
   }
 
   @Test

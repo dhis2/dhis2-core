@@ -34,9 +34,11 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.tracker.export.Order;
 
 @Getter
-@Builder
+@Builder(toBuilder = true)
 class RelationshipQueryParams {
   private final IdentifiableObject entity;
 
   private List<Order> order;
+
+  private boolean includeDeleted;
 }

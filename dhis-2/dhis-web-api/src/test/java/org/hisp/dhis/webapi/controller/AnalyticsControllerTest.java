@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -40,15 +41,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.List;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.data.DefaultDataQueryService;
 import org.hisp.dhis.analytics.data.DimensionalObjectProducer;
+import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
@@ -86,16 +91,34 @@ class AnalyticsControllerTest {
 
   @Mock private DimensionService dimensionService;
 
+  @Mock private DimensionalObjectProducer dimensionalObjectProducer;
+
   @Mock private DhisConfigurationProvider dhisConfigurationProvider;
 
   @BeforeEach
   public void setUp() {
+
     DataQueryService dataQueryService =
         new DefaultDataQueryService(
-            mock(DimensionalObjectProducer.class),
+            dimensionalObjectProducer,
             mock(IdentifiableObjectManager.class),
             mock(AnalyticsSecurityManager.class),
             mock(UserSettingService.class));
+
+    when(dimensionalObjectProducer.getPeriodDimension(Mockito.any(), Mockito.any()))
+        .thenAnswer(
+            (invocation) -> {
+              BaseDimensionalObject period = mock(BaseDimensionalObject.class);
+
+              when(period.getDimensionType()).thenReturn(DimensionType.PERIOD);
+
+              when(period.getItems())
+                  .thenReturn(
+                      ((List<String>) invocation.getArguments()[0])
+                          .stream().map(DhisConvenienceTest::createPeriod).collect(toList()));
+
+              return period;
+            });
 
     // Controller under test
     AnalyticsController controller =

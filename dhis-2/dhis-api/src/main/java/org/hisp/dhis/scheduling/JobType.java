@@ -48,6 +48,7 @@ import org.hisp.dhis.scheduling.parameters.DataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.DisableInactiveUsersJobParameters;
 import org.hisp.dhis.scheduling.parameters.EventProgramsDataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.GeoJsonImportJobParams;
+import org.hisp.dhis.scheduling.parameters.HtmlPushAnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.LockExceptionCleanupJobParameters;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
 import org.hisp.dhis.scheduling.parameters.MockJobParameters;
@@ -85,6 +86,7 @@ public enum JobType {
   PROGRAM_NOTIFICATIONS(),
   MONITORING(MonitoringJobParameters.class),
   PUSH_ANALYSIS(PushAnalysisJobParameters.class),
+  HTML_PUSH_ANALYTICS(HtmlPushAnalyticsJobParameters.class),
   TRACKER_SEARCH_OPTIMIZATION(TrackerTrigramIndexJobParameters.class),
   PREDICTOR(PredictorJobParameters.class),
   MATERIALIZED_SQL_VIEW_UPDATE(SqlViewUpdateParameters.class),
@@ -187,6 +189,14 @@ public enum JobType {
   }
 
   /**
+   * @return when true, the {@link JobConfiguration#getExecutedBy()} is set to the job creator on
+   *     creation unless it was set explicitly
+   */
+  public boolean isDefaultExecutedByCreator() {
+    return this == HTML_PUSH_ANALYTICS;
+  }
+
+  /**
    * @return true, if {@link JobProgress} events should be forwarded to the {@link
    *     org.eclipse.emf.common.notify.Notifier} API, otherwise false
    */
@@ -234,7 +244,10 @@ public enum JobType {
    *     the ready jobs per type is attempted to start in a single loop cycle
    */
   public boolean isUsingContinuousExecution() {
-    return this == METADATA_IMPORT || this == TRACKER_IMPORT_JOB || this == DATA_INTEGRITY_DETAILS;
+    return this == METADATA_IMPORT
+        || this == TRACKER_IMPORT_JOB
+        || this == DATA_INTEGRITY
+        || this == DATA_INTEGRITY_DETAILS;
   }
 
   public boolean hasJobParameters() {
@@ -268,6 +281,8 @@ public enum JobType {
           Map.of(
               "predictors", "/api/predictors",
               "predictorGroups", "/api/predictorGroups");
+      case HTML_PUSH_ANALYTICS ->
+          Map.of("dashboard", "/api/dashboards", "receivers", "/api/userGroups");
       default -> Map.of();
     };
   }

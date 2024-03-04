@@ -127,7 +127,7 @@ public class OutliersDetection1AutoTest extends AnalyticsApiTest {
         response, 13, "stddev", "Standard deviation", "NUMBER", "java.lang.Double", false, false);
     validateHeader(
         response, 14, "absdev", "Absolute deviation", "NUMBER", "java.lang.Double", false, false);
-    validateHeader(response, 15, "zscore", "zScore", "NUMBER", "java.lang.Double", false, false);
+    validateHeader(response, 15, "zscore", "Z-score", "NUMBER", "java.lang.Double", false, false);
     validateHeader(
         response, 16, "lowerbound", "Lower boundary", "NUMBER", "java.lang.Double", false, false);
     validateHeader(
@@ -144,18 +144,18 @@ public class OutliersDetection1AutoTest extends AnalyticsApiTest {
             "July 2022",
             "DiszpKrYNg8",
             "Ngelehun CHC",
-            "/Sierra Leone/Bo/Badjia/Ngelehun CHC",
+            "Sierra Leone / Bo / Badjia / Ngelehun CHC",
             "V6L425pT3A0",
             "Outreach, <1y",
             "HllvX50cXC0",
             "default",
             "23.0",
-            "7.54839",
-            "5.14837",
-            "15.45161",
-            "3.00126",
-            "-7.89673",
-            "22.9935"));
+            "7.55",
+            "5.15",
+            "15.45",
+            "3.0",
+            "-7.9",
+            "22.99"));
     validateRow(
         response,
         1,
@@ -166,18 +166,18 @@ public class OutliersDetection1AutoTest extends AnalyticsApiTest {
             "August 2022",
             "CvBAqD6RzLZ",
             "Ngalu CHC",
-            "/Sierra Leone/Bo/Bargbe/Ngalu CHC",
+            "Sierra Leone / Bo / Bargbe / Ngalu CHC",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
             "default",
             "220.0",
-            "41.64407",
-            "57.44954",
-            "178.35593",
-            "3.10457",
-            "-130.70455",
-            "213.99269"));
+            "41.64",
+            "57.45",
+            "178.36",
+            "3.1",
+            "-130.7",
+            "213.99"));
     validateRow(
         response,
         2,
@@ -188,18 +188,18 @@ public class OutliersDetection1AutoTest extends AnalyticsApiTest {
             "July 2022",
             "DiszpKrYNg8",
             "Ngelehun CHC",
-            "/Sierra Leone/Bo/Badjia/Ngelehun CHC",
+            "Sierra Leone / Bo / Badjia / Ngelehun CHC",
             "hEFKSsPV5et",
             "Outreach, >1y",
             "HllvX50cXC0",
             "default",
             "245.0",
-            "43.01818",
-            "64.62015",
-            "201.98182",
-            "3.12568",
-            "-150.84226",
-            "236.87862"));
+            "43.02",
+            "64.62",
+            "201.98",
+            "3.13",
+            "-150.84",
+            "236.88"));
     validateRow(
         response,
         3,
@@ -210,18 +210,18 @@ public class OutliersDetection1AutoTest extends AnalyticsApiTest {
             "July 2022",
             "mzsOsz0NwNY",
             "New Police Barracks CHC",
-            "/Sierra Leone/Bo/Kakua/New Police Barracks CHC",
+            "Sierra Leone / Bo / Kakua / New Police Barracks CHC",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
             "default",
             "120.0",
-            "28.96124",
-            "28.86816",
-            "91.03876",
-            "3.1536",
-            "-57.64324",
-            "115.56572"));
+            "28.96",
+            "28.87",
+            "91.04",
+            "3.15",
+            "-57.64",
+            "115.57"));
     validateRow(
         response,
         4,
@@ -232,18 +232,18 @@ public class OutliersDetection1AutoTest extends AnalyticsApiTest {
             "September 2022",
             "RhJbg8UD75Q",
             "Yemoh Town CHC",
-            "/Sierra Leone/Bo/Kakua/Yemoh Town CHC",
+            "Sierra Leone / Bo / Kakua / Yemoh Town CHC",
             "Prlt0C1RF0s",
             "Fixed, <1y",
             "HllvX50cXC0",
             "default",
             "466.0",
-            "48.18605",
-            "114.27966",
-            "417.81395",
-            "3.65607",
-            "-294.65294",
-            "391.02504"));
+            "48.19",
+            "114.28",
+            "417.81",
+            "3.66",
+            "-294.65",
+            "391.03"));
   }
 
   @Test
@@ -325,7 +325,7 @@ public class OutliersDetection1AutoTest extends AnalyticsApiTest {
         response, 13, "stddev", "Standard deviation", "NUMBER", "java.lang.Double", false, false);
     validateHeader(
         response, 14, "absdev", "Absolute deviation", "NUMBER", "java.lang.Double", false, false);
-    validateHeader(response, 15, "zscore", "zScore", "NUMBER", "java.lang.Double", false, false);
+    validateHeader(response, 15, "zscore", "Z-score", "NUMBER", "java.lang.Double", false, false);
     validateHeader(
         response, 16, "lowerbound", "Lower boundary", "NUMBER", "java.lang.Double", false, false);
     validateHeader(
@@ -424,7 +424,7 @@ public class OutliersDetection1AutoTest extends AnalyticsApiTest {
         response,
         15,
         "modifiedzscore",
-        "Modified zScore",
+        "Modified Z-score",
         "NUMBER",
         "java.lang.Double",
         false,
@@ -526,7 +526,7 @@ public class OutliersDetection1AutoTest extends AnalyticsApiTest {
         response,
         15,
         "modifiedzscore",
-        "Modified zScore",
+        "Modified Z-score",
         "NUMBER",
         "java.lang.Double",
         false,

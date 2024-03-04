@@ -27,14 +27,14 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
+import static org.hisp.dhis.analytics.AnalyticsConstants.ORG_UNIT_GROUPSET_STRUCT_ALIAS;
+import static org.hisp.dhis.analytics.AnalyticsConstants.ORG_UNIT_STRUCT_ALIAS;
+import static org.hisp.dhis.analytics.AnalyticsConstants.OWNERSHIP_TBL_ALIAS;
 import static org.hisp.dhis.analytics.OrgUnitFieldType.OWNER_AT_START;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ORG_UNIT_GROUPSET_STRUCT_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ORG_UNIT_STRUCT_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.OWNERSHIP_TBL_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.util.DateUtils.plusOneDay;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import java.util.Date;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -94,8 +94,7 @@ public final class OrgUnitTableJoiner {
             : plusOneDay(params.getLatestEndDate());
 
     String ownershipTable =
-        AnalyticsTable.getTableName(
-            AnalyticsTableType.OWNERSHIP.getTableName(), params.getProgram());
+        AnalyticsTable.getTableName(AnalyticsTableType.OWNERSHIP, params.getProgram());
 
     return "left join "
         + ownershipTable
@@ -106,7 +105,7 @@ public final class OrgUnitTableJoiner {
         + " = "
         + quote(OWNERSHIP_TBL_ALIAS, "teiuid")
         + " and '"
-        + getMediumDateString(compareDate)
+        + toMediumDate(compareDate)
         + "' between "
         + quote(OWNERSHIP_TBL_ALIAS, "startdate")
         + " and "
@@ -114,13 +113,16 @@ public final class OrgUnitTableJoiner {
         + " ";
   }
 
-  /** Joins the orgunitstructure table and, if needed, the orgunitgroupsetstructure table. */
+  /**
+   * Joins the analytics_rs_orgunitstructure table and, if needed, the
+   * analytics_rs_orgunitgroupsetstructure table.
+   */
   private static String joinOrgUnitStructureTables(
       EventQueryParams params, AnalyticsType analyticsType) {
     String orgUnitJoinCol = params.getOrgUnitField().getOrgUnitJoinCol(analyticsType);
 
     String sql =
-        "left join _orgunitstructure as "
+        "left join analytics_rs_orgunitstructure as "
             + ORG_UNIT_STRUCT_ALIAS
             + " on "
             + orgUnitJoinCol
@@ -130,7 +132,7 @@ public final class OrgUnitTableJoiner {
 
     if (params.hasOrganisationUnitGroupSets()) {
       sql +=
-          "left join _organisationunitgroupsetstructure as "
+          "left join analytics_rs_organisationunitgroupsetstructure as "
               + ORG_UNIT_GROUPSET_STRUCT_ALIAS
               + " on "
               + quote(ORG_UNIT_STRUCT_ALIAS, "organisationunitid")

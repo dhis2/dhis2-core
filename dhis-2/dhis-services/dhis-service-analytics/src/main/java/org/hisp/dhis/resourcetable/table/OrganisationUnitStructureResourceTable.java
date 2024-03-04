@@ -43,28 +43,30 @@ import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.model.constraint.Unique;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
 /**
  * @author Lars Helge Overland
  */
-public class OrganisationUnitStructureResourceTable implements ResourceTable {
-  private static final String TABLE_NAME = "_orgunitstructure";
-
-  private final OrganisationUnitService organisationUnitService;
+public class OrganisationUnitStructureResourceTable extends AbstractResourceTable {
+  public static final String TABLE_NAME = "analytics_rs_orgunitstructure";
 
   private final int organisationUnitLevels;
 
-  private final Logged logged;
+  /** A to do is removing this service and finding a way to retrieve with SQL. */
+  private final OrganisationUnitService organisationUnitService;
 
   public OrganisationUnitStructureResourceTable(
-      OrganisationUnitService organisationUnitService, int organisationUnitLevels, Logged logged) {
-    this.organisationUnitService = organisationUnitService;
+      SqlBuilder sqlBuilder,
+      Logged logged,
+      int organisationUnitLevels,
+      OrganisationUnitService organisationUnitService) {
+    super(sqlBuilder, logged);
     this.organisationUnitLevels = organisationUnitLevels;
-    this.logged = logged;
+    this.organisationUnitService = organisationUnitService;
   }
 
   @Override

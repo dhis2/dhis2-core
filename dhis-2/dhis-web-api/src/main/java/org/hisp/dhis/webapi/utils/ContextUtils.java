@@ -324,7 +324,7 @@ public class ContextUtils {
       return null;
     }
 
-    String value = String.format("%s-%s", DateUtils.getLongDateString(lastModified), user.getUid());
+    String value = String.format("%s-%s", DateUtils.toLongDate(lastModified), user.getUid());
 
     return CodecUtils.md5Hex(value);
   }

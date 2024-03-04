@@ -28,10 +28,8 @@
 package org.hisp.dhis.analytics.table;
 
 import static java.lang.String.join;
-import static java.util.Collections.emptyList;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_ENROLLMENTS;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_32;
@@ -43,7 +41,7 @@ import static org.hisp.dhis.db.model.DataType.VARCHAR_255;
 import static org.hisp.dhis.db.model.DataType.VARCHAR_50;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
-import static org.hisp.dhis.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -56,12 +54,13 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
-import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.resourcetable.ResourceTableService;
@@ -77,31 +76,30 @@ import org.springframework.transaction.annotation.Transactional;
 public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
+          new AnalyticsTableColumn("trackedentityinstanceuid", CHARACTER_11, NOT_NULL, "tei.uid"),
+          new AnalyticsTableColumn("programuid", CHARACTER_11, NULL, "p.uid"),
+          new AnalyticsTableColumn("programinstanceuid", CHARACTER_11, NULL, "pi.uid"),
+          new AnalyticsTableColumn("enrollmentdate", TIMESTAMP, "pi.enrollmentdate"),
+          new AnalyticsTableColumn("enddate", TIMESTAMP, "pi.completeddate"),
+          new AnalyticsTableColumn("incidentdate", TIMESTAMP, "pi.occurreddate"),
+          new AnalyticsTableColumn("enrollmentstatus", VARCHAR_50, "pi.status"),
+          new AnalyticsTableColumn("pigeometry", GEOMETRY, "pi.geometry", IndexType.GIST),
           new AnalyticsTableColumn(
-              quote("trackedentityinstanceuid"), CHARACTER_11, NOT_NULL, "tei.uid"),
-          new AnalyticsTableColumn(quote("programuid"), CHARACTER_11, NULL, "p.uid"),
-          new AnalyticsTableColumn(quote("programinstanceuid"), CHARACTER_11, NULL, "pi.uid"),
-          new AnalyticsTableColumn(quote("enrollmentdate"), TIMESTAMP, "pi.enrollmentdate"),
-          new AnalyticsTableColumn(quote("enddate"), TIMESTAMP, "pi.completeddate"),
-          new AnalyticsTableColumn(quote("incidentdate"), TIMESTAMP, "pi.occurreddate"),
-          new AnalyticsTableColumn(quote("enrollmentstatus"), VARCHAR_50, "pi.status"),
-          new AnalyticsTableColumn(quote("pigeometry"), GEOMETRY, "pi.geometry", IndexType.GIST),
-          new AnalyticsTableColumn(
-              quote("pilongitude"),
+              "pilongitude",
               DOUBLE,
               "case when 'POINT' = GeometryType(pi.geometry) then ST_X(pi.geometry) end"),
           new AnalyticsTableColumn(
-              quote("pilatitude"),
+              "pilatitude",
               DOUBLE,
               "case when 'POINT' = GeometryType(pi.geometry) then ST_Y(pi.geometry) end"),
-          new AnalyticsTableColumn(quote("uidlevel1"), CHARACTER_11, NULL, "ous.uidlevel1"),
-          new AnalyticsTableColumn(quote("uidlevel2"), CHARACTER_11, NULL, "ous.uidlevel2"),
-          new AnalyticsTableColumn(quote("uidlevel3"), CHARACTER_11, NULL, "ous.uidlevel3"),
-          new AnalyticsTableColumn(quote("uidlevel4"), CHARACTER_11, NULL, "ous.uidlevel4"),
-          new AnalyticsTableColumn(quote("ou"), CHARACTER_11, NULL, "ou.uid"),
-          new AnalyticsTableColumn(quote("ouname"), VARCHAR_255, NULL, "ou.name"),
-          new AnalyticsTableColumn(quote("oucode"), CHARACTER_32, NULL, "ou.code"),
-          new AnalyticsTableColumn(quote("oulevel"), INTEGER, NULL, "ous.level"));
+          new AnalyticsTableColumn("uidlevel1", CHARACTER_11, NULL, "ous.uidlevel1"),
+          new AnalyticsTableColumn("uidlevel2", CHARACTER_11, NULL, "ous.uidlevel2"),
+          new AnalyticsTableColumn("uidlevel3", CHARACTER_11, NULL, "ous.uidlevel3"),
+          new AnalyticsTableColumn("uidlevel4", CHARACTER_11, NULL, "ous.uidlevel4"),
+          new AnalyticsTableColumn("ou", CHARACTER_11, NULL, "ou.uid"),
+          new AnalyticsTableColumn("ouname", VARCHAR_255, NULL, "ou.name"),
+          new AnalyticsTableColumn("oucode", CHARACTER_32, NULL, "ou.code"),
+          new AnalyticsTableColumn("oulevel", INTEGER, NULL, "ous.level"));
 
   private final TrackedEntityTypeService trackedEntityTypeService;
 
@@ -117,8 +115,9 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
       DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       TrackedEntityTypeService trackedEntityTypeService,
-      AnalyticsTableExportSettings settings,
-      PeriodDataProvider periodDataProvider) {
+      AnalyticsTableSettings analyticsTableSettings,
+      PeriodDataProvider periodDataProvider,
+      SqlBuilder sqlBuilder) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -130,8 +129,9 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
         partitionManager,
         databaseInfoProvider,
         jdbcTemplate,
-        settings,
-        periodDataProvider);
+        analyticsTableSettings,
+        periodDataProvider,
+        sqlBuilder);
     this.trackedEntityTypeService = trackedEntityTypeService;
   }
 
@@ -154,7 +154,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
   @Override
   @Transactional
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
-    Logged logged = analyticsExportSettings.getTableLogged();
+    Logged logged = analyticsTableSettings.getTableLogged();
     return trackedEntityTypeService.getAllTrackedEntityType().stream()
         .map(tet -> new AnalyticsTable(getAnalyticsTableType(), getColumns(), logged, tet))
         .collect(Collectors.toList());
@@ -167,24 +167,9 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
     return analyticsTableColumnList;
   }
 
-  /**
-   * Checks if the database content is in valid state for analytics table generation.
-   *
-   * @return null if valid, a descriptive string if invalid.
-   */
   @Override
-  public String validState() {
-    return null;
-  }
-
-  /**
-   * Returns a list of table checks (constraints) for the given analytics table partition.
-   *
-   * @param partition the {@link AnalyticsTablePartition}.
-   */
-  @Override
-  protected List<String> getPartitionChecks(AnalyticsTablePartition partition) {
-    return emptyList();
+  protected List<String> getPartitionChecks(Integer year, Date endDate) {
+    return List.of();
   }
 
   /**
@@ -196,12 +181,14 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
   @Override
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+    String tableName = partition.getName();
+
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
-    StringBuilder sql = new StringBuilder("insert into " + partition.getTempName() + " (");
+    StringBuilder sql = new StringBuilder("insert into " + tableName + " (");
 
     for (AnalyticsTableColumn col : columns) {
-      sql.append(col.getName() + ",");
+      sql.append(quote(col.getName()) + ",");
     }
 
     removeLastComma(sql).append(") select ");
@@ -217,11 +204,11 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
         .append(
             " and tei.trackedentitytypeid = "
                 + partition.getMasterTable().getTrackedEntityType().getId())
-        .append(" and tei.lastupdated < '" + getLongDateString(params.getStartTime()) + "'")
+        .append(" and tei.lastupdated < '" + toLongDate(params.getStartTime()) + "'")
         .append(" left join program p on p.programid = pi.programid")
         .append(" left join organisationunit ou on pi.organisationunitid = ou.organisationunitid")
         .append(
-            " left join _orgunitstructure ous on ous.organisationunitid = ou.organisationunitid")
+            " left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid")
         .append(
             " where exists ( select 1 from event psi where psi.deleted is false"
                 + " and psi.enrollmentid = pi.enrollmentid"
@@ -231,7 +218,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
         .append(" and pi.occurreddate is not null ")
         .append(" and pi.deleted is false");
 
-    invokeTimeAndLog(sql.toString(), partition.getTempName());
+    invokeTimeAndLog(sql.toString(), tableName);
   }
 
   /**

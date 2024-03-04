@@ -29,7 +29,7 @@ package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.commons.collection.CollectionUtils.emptyIfNull;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
-import static org.hisp.dhis.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -89,11 +89,10 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
 
     log.info("Found {} analytics table types: {}", availableTypes.size(), availableTypes);
     log.info("Analytics table update: {}", params);
-    log.info(
-        "Last successful analytics table update: '{}'", getLongDateString(lastSuccessfulUpdate));
+    log.info("Last successful analytics table update: {}", toLongDate(lastSuccessfulUpdate));
 
     progress.startingProcess(
-        "Analytics table update process" + (params.isLatestUpdate() ? "(latest partition)" : ""));
+        "Analytics table update process{}", (params.isLatestUpdate() ? " (latest partition)" : ""));
 
     if (!params.isSkipResourceTables() && !params.isLatestUpdate()) {
       generateResourceTablesInternal(progress);
@@ -109,13 +108,13 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
       }
     }
 
-    progress.startingStage("Updating settings");
+    progress.startingStage("Updating system settings");
     progress.runStage(() -> updateLastSuccessfulSystemSettings(params, clock));
 
     progress.startingStage("Invalidate analytics caches", SKIP_STAGE);
     progress.runStage(analyticsCache::invalidateAll);
     progress.runStage(outliersCache::invalidateAll);
-    progress.completedProcess("Analytics tables updated: " + clock.time());
+    progress.completedProcess("Analytics tables updated: {}", clock.time());
   }
 
   private void updateLastSuccessfulSystemSettings(AnalyticsTableUpdateParams params, Clock clock) {
@@ -141,9 +140,9 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
     try {
       generateResourceTablesInternal(progress);
 
-      progress.completedProcess("Resource tables generated: " + clock.time());
+      progress.completedProcess("Resource tables generated: {}", clock.time());
     } catch (RuntimeException ex) {
-      progress.failedProcess("Resource tables generation: " + ex.getMessage());
+      progress.failedProcess("Resource tables generation: {}", ex.getMessage());
       throw ex;
     }
   }

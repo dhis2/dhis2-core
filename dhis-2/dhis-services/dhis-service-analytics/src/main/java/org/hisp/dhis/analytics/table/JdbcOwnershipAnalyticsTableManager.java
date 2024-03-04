@@ -27,10 +27,8 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.SPACE;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DATE;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
@@ -39,6 +37,7 @@ import static org.hisp.dhis.program.ProgramType.WITHOUT_REGISTRATION;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,13 +50,14 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
-import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.jdbc.batchhandler.MappingBatchHandler;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
@@ -89,10 +89,10 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
 
   protected static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
-          new AnalyticsTableColumn(quote("teiuid"), CHARACTER_11, "tei.uid"),
-          new AnalyticsTableColumn(quote("startdate"), DATE, "a.startdate"),
-          new AnalyticsTableColumn(quote("enddate"), DATE, "a.enddate"),
-          new AnalyticsTableColumn(quote("ou"), CHARACTER_11, NOT_NULL, "ou.uid"));
+          new AnalyticsTableColumn("teiuid", CHARACTER_11, "tei.uid"),
+          new AnalyticsTableColumn("startdate", DATE, "a.startdate"),
+          new AnalyticsTableColumn("enddate", DATE, "a.enddate"),
+          new AnalyticsTableColumn("ou", CHARACTER_11, NOT_NULL, "ou.uid"));
 
   public JdbcOwnershipAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -106,8 +106,9 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
       DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       JdbcConfiguration jdbcConfiguration,
-      AnalyticsTableExportSettings analyticsExportSettings,
-      PeriodDataProvider periodDataProvider) {
+      AnalyticsTableSettings analyticsExportSettings,
+      PeriodDataProvider periodDataProvider,
+      SqlBuilder sqlBuilder) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -120,7 +121,8 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
         databaseInfoProvider,
         jdbcTemplate,
         analyticsExportSettings,
-        periodDataProvider);
+        periodDataProvider,
+        sqlBuilder);
     this.jdbcConfiguration = jdbcConfiguration;
   }
 
@@ -132,7 +134,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
   @Override
   @Transactional
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
-    return params.isLatestUpdate() ? emptyList() : getRegularAnalyticsTables();
+    return params.isLatestUpdate() ? List.of() : getRegularAnalyticsTables();
   }
 
   /**
@@ -141,20 +143,22 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
    * @return a list of {@link AnalyticsTableUpdateParams}.
    */
   private List<AnalyticsTable> getRegularAnalyticsTables() {
-    Logged logged = analyticsExportSettings.getTableLogged();
+    Logged logged = analyticsTableSettings.getTableLogged();
     return idObjectManager.getAllNoAcl(Program.class).stream()
         .map(pr -> new AnalyticsTable(getAnalyticsTableType(), getColumns(), logged, pr))
         .collect(toList());
   }
 
   @Override
-  protected List<String> getPartitionChecks(AnalyticsTablePartition partition) {
-    return emptyList();
+  protected List<String> getPartitionChecks(Integer year, Date endDate) {
+    return List.of();
   }
 
   @Override
   protected void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+    String tableName = partition.getName();
+
     Program program = partition.getMasterTable().getProgram();
 
     if (program.getProgramType() == WITHOUT_REGISTRATION) {
@@ -163,23 +167,25 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
 
     String sql = getInputSql(program);
 
-    log.debug("Populate table '{}' with SQL: '{}'", partition.getTempName(), sql);
+    log.debug("Populate table '{}' with SQL: '{}'", tableName, sql);
 
     Timer timer = new SystemTimer().start();
 
     populateOwnershipTableInternal(partition, sql);
 
-    log.info("Populate table '{}' in: '{}'", partition.getTempName(), timer.stop().toString());
+    log.info("Populate table '{}' in: '{}'", tableName, timer.stop().toString());
   }
 
   private void populateOwnershipTableInternal(AnalyticsTablePartition partition, String sql) {
+    String tableName = partition.getName();
+
     List<String> columnNames =
         getColumns().stream().map(AnalyticsTableColumn::getName).collect(toList());
 
     try (MappingBatchHandler batchHandler =
         MappingBatchHandler.builder()
             .jdbcConfiguration(jdbcConfiguration)
-            .tableName(partition.getTempName())
+            .tableName(tableName)
             .columns(columnNames)
             .build()) {
       batchHandler.init();
@@ -195,9 +201,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
           });
 
       log.info(
-          "OwnershipAnalytics query row count was {} for table '{}'",
-          queryRowCount,
-          partition.getTempName());
+          "OwnershipAnalytics query row count was {} for table '{}'", queryRowCount, tableName);
       batchHandler.flush();
     } catch (Exception ex) {
       log.error("Failed to alter table ownership: ", ex);
@@ -258,8 +262,8 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
                 + ") a "
                 + "inner join trackedentity tei on a.trackedentityid = tei.trackedentityid "
                 + "inner join organisationunit ou on a.organisationunitid = ou.organisationunitid "
-                + "left join _orgunitstructure ous on a.organisationunitid = ous.organisationunitid "
-                + "left join _organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid "
+                + "left join analytics_rs_orgunitstructure ous on a.organisationunitid = ous.organisationunitid "
+                + "left join analytics_rs_organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid "
                 + "order by tei.uid, a.startdate, a.enddate")
         .toString();
   }
@@ -285,7 +289,6 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
 
     columns.addAll(getOrganisationUnitLevelColumns());
     columns.addAll(getOrganisationUnitGroupSetColumns());
-
     columns.addAll(FIXED_COLS);
 
     return filterDimensionColumns(columns);

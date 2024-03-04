@@ -28,11 +28,14 @@
 package org.hisp.dhis.db.model;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.db.model.Logged.UNLOGGED;
 import static org.hisp.dhis.util.ObjectUtils.notNull;
 
+import java.util.ArrayList;
 import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.Validate;
 
@@ -42,11 +45,12 @@ import org.apache.commons.lang3.Validate;
  * @author Lars Helge Overland
  */
 @Getter
+@ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Table {
-  private static final String STAGING_TABLE_SUFFIX = "_staging";
+  public static final String STAGING_TABLE_SUFFIX = "_temp";
 
-  private static final String STAGING_TABLE_SUFFIX_RGX = "\\_staging$";
+  private static final String STAGING_TABLE_SUFFIX_RGX = "\\_temp$";
 
   /** Table name. Required. */
   @EqualsAndHashCode.Include private final String name;
@@ -63,11 +67,11 @@ public class Table {
   /** Whether table is logged or unlogged. PostgreSQL-only feature. */
   private final Logged logged;
 
-  /**
-   * The parent table. This table will inherit from the parent table, if specified. Optional, may be
-   * null.
-   */
+  /** Parent table. This table inherits from the parent if specified. Optional. */
   private final Table parent;
+
+  /** Table partitions. */
+  private final List<TablePartition> partitions = new ArrayList<>();
 
   /**
    * Constructor.
@@ -81,7 +85,7 @@ public class Table {
     this.columns = columns;
     this.primaryKey = primaryKey;
     this.checks = List.of();
-    this.logged = Logged.LOGGED;
+    this.logged = Logged.UNLOGGED;
     this.parent = null;
     this.validate();
   }
@@ -110,6 +114,7 @@ public class Table {
    * @param name the table name.
    * @param columns the list of {@link Column}.
    * @param primaryKey the primary key.
+   * @param checks the list of checks.
    * @param logged the {@link Logged} parameter.
    */
   public Table(
@@ -133,6 +138,7 @@ public class Table {
    * @param name the table name.
    * @param columns the list of {@link Column}.
    * @param primaryKey the primary key.
+   * @param checks the list of checks.
    * @param logged the {@link Logged} parameter.
    * @param parent the parent {@link Table}.
    */
@@ -155,7 +161,16 @@ public class Table {
   /** Validates this object. */
   public void validate() {
     Validate.notBlank(name);
-    Validate.isTrue(isNotEmpty(columns) || notNull(parent));
+    Validate.isTrue(hasColumns() || hasParent());
+  }
+
+  /**
+   * Indicates whether the table has at least one column.
+   *
+   * @return true if the table has at least one column.
+   */
+  public boolean hasColumns() {
+    return isNotEmpty(columns);
   }
 
   /**
@@ -164,7 +179,16 @@ public class Table {
    * @return true if the table has a primary key.
    */
   public boolean hasPrimaryKey() {
-    return !primaryKey.isEmpty();
+    return isNotEmpty(primaryKey);
+  }
+
+  /**
+   * Returns the first primary key column name, or null if none exist.
+   *
+   * @return the first primary key column name, or null if none exist.
+   */
+  public String getFirstPrimaryKey() {
+    return hasPrimaryKey() ? primaryKey.get(0) : null;
   }
 
   /**
@@ -173,7 +197,7 @@ public class Table {
    * @return true if the table has at least one check.
    */
   public boolean hasChecks() {
-    return !checks.isEmpty();
+    return isNotEmpty(checks);
   }
 
   /**
@@ -182,7 +206,7 @@ public class Table {
    * @return true if the table is unlogged.
    */
   public boolean isUnlogged() {
-    return Logged.UNLOGGED == logged;
+    return UNLOGGED == logged;
   }
 
   /**
@@ -191,7 +215,25 @@ public class Table {
    * @return true if table has a parent table.
    */
   public boolean hasParent() {
-    return parent != null;
+    return notNull(parent);
+  }
+
+  /**
+   * Indicates whether the table has at least one partition.
+   *
+   * @return true if the table has at least one partition.
+   */
+  public boolean hasPartitions() {
+    return isNotEmpty(partitions);
+  }
+
+  /**
+   * Adds a partition to this table.
+   *
+   * @param partition the {@link TablePartition}.
+   */
+  public void addPartition(TablePartition partition) {
+    this.partitions.add(partition);
   }
 
   /**

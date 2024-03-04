@@ -28,23 +28,37 @@
 package org.hisp.dhis.analytics.tei.query;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
+import java.util.List;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.query.AndCondition;
 import org.hisp.dhis.analytics.common.query.BaseRenderable;
 import org.hisp.dhis.analytics.common.query.Field;
 
 @RequiredArgsConstructor(staticName = "of")
 public class RenderableDataValueIndicator extends BaseRenderable {
-  private final String alias;
-  private final String dataValue;
+  private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
 
   @Override
   @Nonnull
   public String render() {
-    return Field.of(alias, () -> "eventdatavalues", EMPTY).render()
+    return AndCondition.of(
+                List.of(
+                    IsNotNullCondition.of(
+                        () -> doubleQuote(dimensionIdentifier.getProgram().toString())),
+                    IsNotNullCondition.of(
+                        () -> doubleQuote(dimensionIdentifier.getPrefix()) + "::varchar"),
+                    Field.of(
+                        doubleQuote(dimensionIdentifier.getPrefix()),
+                        () -> "eventdatavalues",
+                        EMPTY)))
+            .render()
         + " ::jsonb ?? '"
-        + dataValue
+        + dimensionIdentifier.getDimension().getUid()
         + "'";
   }
 }

@@ -43,23 +43,22 @@ import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.model.constraint.Unique;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
 /**
  * @author Lars Helge Overland
  */
-public class DataElementResourceTable implements ResourceTable {
-  private static final String TABLE_NAME = "_dataelementstructure";
+public class DataElementResourceTable extends AbstractResourceTable {
+  public static final String TABLE_NAME = "analytics_rs_dataelementstructure";
 
   private final List<DataElement> dataElements;
 
-  private final Logged logged;
-
-  public DataElementResourceTable(List<DataElement> dataElements, Logged logged) {
+  public DataElementResourceTable(
+      SqlBuilder sqlBuilder, Logged logged, List<DataElement> dataElements) {
+    super(sqlBuilder, logged);
     this.dataElements = dataElements;
-    this.logged = logged;
   }
 
   @Override

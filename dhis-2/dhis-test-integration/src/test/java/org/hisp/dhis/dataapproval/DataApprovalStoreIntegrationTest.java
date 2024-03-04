@@ -39,7 +39,6 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataapproval.hibernate.HibernateDataApprovalStore;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
@@ -170,7 +169,7 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
 
     dataApprovalLevelService.addDataApprovalLevel(level1);
 
-    userApprovalLevels = ListUtils.newList(level1);
+    userApprovalLevels = List.of(level1);
 
     PeriodType periodType = PeriodType.getPeriodTypeByName("Monthly");
 

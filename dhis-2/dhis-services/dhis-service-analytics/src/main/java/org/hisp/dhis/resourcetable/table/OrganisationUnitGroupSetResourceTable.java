@@ -27,13 +27,15 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
+import static java.lang.String.valueOf;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
+import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
 import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
-import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import com.google.common.collect.Lists;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
@@ -42,27 +44,28 @@ import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.model.constraint.Unique;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
-import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
 /**
  * @author Lars Helge Overland
  */
-public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
-  private static final String TABLE_NAME = "_organisationunitgroupsetstructure";
+public class OrganisationUnitGroupSetResourceTable extends AbstractResourceTable {
+  public static final String TABLE_NAME = "analytics_rs_organisationunitgroupsetstructure";
 
   private final List<OrganisationUnitGroupSet> groupSets;
 
   private final int organisationUnitLevels;
 
-  private final Logged logged;
-
   public OrganisationUnitGroupSetResourceTable(
-      List<OrganisationUnitGroupSet> groupSets, int organisationUnitLevels, Logged logged) {
+      SqlBuilder sqlBuilder,
+      Logged logged,
+      List<OrganisationUnitGroupSet> groupSets,
+      int organisationUnitLevels) {
+    super(sqlBuilder, logged);
     this.groupSets = groupSets;
     this.organisationUnitLevels = organisationUnitLevels;
-    this.logged = logged;
   }
 
   @Override
@@ -124,67 +127,66 @@ public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
     for (OrganisationUnitGroupSet groupSet : groupSets) {
       if (!groupSet.isIncludeSubhierarchyInAnalytics()) {
         sql +=
-            "("
-                + "select oug.name from orgunitgroup oug "
-                + "inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid "
-                + "inner join orgunitgroupsetmembers ougsm on "
-                + "ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = "
-                + groupSet.getId()
-                + " "
-                + "where ougm.organisationunitid = ou.organisationunitid "
-                + "limit 1) as "
-                + quote(groupSet.getName())
-                + ", ";
-
-        sql +=
-            "("
-                + "select oug.uid from orgunitgroup oug "
-                + "inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid "
-                + "inner join orgunitgroupsetmembers ougsm on "
-                + "ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = "
-                + groupSet.getId()
-                + " "
-                + "where ougm.organisationunitid = ou.organisationunitid "
-                + "limit 1) as "
-                + quote(groupSet.getUid())
-                + ", ";
+            replace(
+                """
+            (
+            select oug.name from orgunitgroup oug \
+            inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid \
+            inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid \
+            and ougsm.orgunitgroupsetid = ${groupSetId} \
+            where ougm.organisationunitid = ou.organisationunitid limit 1) as ${groupSetName}, \
+            (
+            select oug.uid from orgunitgroup oug \
+            inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid \
+            inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid \
+            and ougsm.orgunitgroupsetid = ${groupSetId} \
+            where ougm.organisationunitid = ou.organisationunitid limit 1) as ${groupSetUid}, \
+            """,
+                Map.of(
+                    "groupSetId", valueOf(groupSet.getId()),
+                    "groupSetName", quote(groupSet.getName()),
+                    "groupSetUid", quote(groupSet.getUid())));
       } else {
         sql += "coalesce(";
 
         for (int i = organisationUnitLevels; i > 0; i--) {
           sql +=
-              "(select oug.name from orgunitgroup oug "
-                  + "inner join orgunitgroupmembers ougm on "
-                  + "ougm.orgunitgroupid = oug.orgunitgroupid and ougm.organisationunitid = ous.idlevel"
-                  + i
-                  + " "
-                  + "inner join orgunitgroupsetmembers ougsm on "
-                  + "ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = "
-                  + groupSet.getId()
-                  + " "
-                  + "limit 1),";
+              replace(
+                  """
+              (
+              select oug.name from orgunitgroup oug \
+              inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid \
+              and ougm.organisationunitid = ous.idlevel${level} \
+              inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid \
+              and ougsm.orgunitgroupsetid = ${groupSetId} limit 1), \
+              """,
+                  Map.of(
+                      "level", valueOf(i),
+                      "groupSetId", valueOf(groupSet.getId())));
         }
 
         if (organisationUnitLevels == 0) {
           sql += "null";
         }
 
-        sql = removeLastComma(sql) + ") as " + quote(groupSet.getName()) + ", ";
+        sql = removeLastComma(sql) + ") as " + sqlBuilder.quote(groupSet.getName()) + ", ";
 
         sql += "coalesce(";
 
         for (int i = organisationUnitLevels; i > 0; i--) {
           sql +=
-              "(select oug.uid from orgunitgroup oug "
-                  + "inner join orgunitgroupmembers ougm on "
-                  + "ougm.orgunitgroupid = oug.orgunitgroupid and ougm.organisationunitid = ous.idlevel"
-                  + i
-                  + " "
-                  + "inner join orgunitgroupsetmembers ougsm on "
-                  + "ougsm.orgunitgroupid = ougm.orgunitgroupid and ougsm.orgunitgroupsetid = "
-                  + groupSet.getId()
-                  + " "
-                  + "limit 1),";
+              replace(
+                  """
+                  (
+              select oug.uid from orgunitgroup oug \
+              inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid \
+              and ougm.organisationunitid = ous.idlevel${level} \
+              inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid \
+              and ougsm.orgunitgroupsetid = ${groupSetId} limit 1), \
+              """,
+                  Map.of(
+                      "level", valueOf(i),
+                      "groupSetId", valueOf(groupSet.getId())));
         }
 
         if (organisationUnitLevels == 0) {
@@ -198,7 +200,7 @@ public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
     sql = removeLastComma(sql) + " ";
     sql +=
         "from organisationunit ou "
-            + "inner join _orgunitstructure ous on ous.organisationunitid = ou.organisationunitid";
+            + "inner join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid";
 
     return Optional.of(sql);
   }

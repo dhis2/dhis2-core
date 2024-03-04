@@ -57,17 +57,22 @@ public interface RelationshipService {
   // -------------------------------------------------------------------------
 
   List<Relationship> getRelationshipsByTrackedEntityInstance(
-      TrackedEntity tei, PagingAndSortingCriteriaAdapter criteria, boolean skipAccessValidation);
+      TrackedEntity tei,
+      PagingAndSortingCriteriaAdapter criteria,
+      boolean skipAccessValidation,
+      boolean includeDeleted);
 
   List<Relationship> getRelationshipsByEnrollment(
       Enrollment enrollment,
       PagingAndSortingCriteriaAdapter criteria,
-      boolean skipAccessValidation);
+      boolean skipAccessValidation,
+      boolean includeDeleted);
 
   List<Relationship> getRelationshipsByEvent(
       Event psi,
       PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean skipAccessValidation);
+      boolean skipAccessValidation,
+      boolean includeDeleted);
 
   // -------------------------------------------------------------------------
   // CREATE

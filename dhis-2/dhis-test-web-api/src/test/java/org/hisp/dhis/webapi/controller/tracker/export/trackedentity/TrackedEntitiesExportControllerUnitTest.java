@@ -39,6 +39,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
@@ -59,6 +60,8 @@ class TrackedEntitiesExportControllerUnitTest {
   @Mock private FieldFilterService fieldFilterService;
 
   @Mock private TrackedEntityFieldsParamMapper fieldsParamMapper;
+
+  @Mock private TrackedEntityChangeLogService trackedEntityChangeLogService;
 
   @Test
   void shouldFailInstantiatingControllerIfAnyOrderableFieldIsUnsupported() {
@@ -82,7 +85,8 @@ class TrackedEntitiesExportControllerUnitTest {
                     requestParamsMapper,
                     csvService,
                     fieldFilterService,
-                    fieldsParamMapper));
+                    fieldsParamMapper,
+                    trackedEntityChangeLogService));
 
     assertAll(
         () ->

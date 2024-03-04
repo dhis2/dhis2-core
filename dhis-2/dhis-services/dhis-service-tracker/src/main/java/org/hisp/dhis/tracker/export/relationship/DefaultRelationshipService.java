@@ -114,7 +114,7 @@ public class DefaultRelationshipService implements RelationshipService {
         relationshipPage.getItems().stream()
             .filter(r -> trackerAccessManager.canRead(currentUser, r).isEmpty())
             .toList();
-    return Page.of(map(relationships), relationshipPage.getPager(), relationshipPage.isPageTotal());
+    return relationshipPage.withItems(map(relationships));
   }
 
   public List<Relationship> getRelationshipsByEnrollment(
@@ -136,7 +136,7 @@ public class DefaultRelationshipService implements RelationshipService {
         relationshipPage.getItems().stream()
             .filter(r -> trackerAccessManager.canRead(currentUser, r).isEmpty())
             .toList();
-    return Page.of(map(relationships), relationshipPage.getPager(), relationshipPage.isPageTotal());
+    return relationshipPage.withItems(map(relationships));
   }
 
   public List<Relationship> getRelationshipsByEvent(
@@ -158,7 +158,7 @@ public class DefaultRelationshipService implements RelationshipService {
         relationshipPage.getItems().stream()
             .filter(r -> trackerAccessManager.canRead(currentUser, r).isEmpty())
             .toList();
-    return Page.of(map(relationships), relationshipPage.getPager(), relationshipPage.isPageTotal());
+    return relationshipPage.withItems(map(relationships));
   }
 
   private List<Relationship> getRelationships(RelationshipQueryParams queryParams) {
@@ -210,6 +210,7 @@ public class DefaultRelationshipService implements RelationshipService {
     result.setCreatedBy(relationship.getCreatedBy());
     result.setLastUpdated(relationship.getLastUpdated());
     result.setLastUpdatedBy(relationship.getLastUpdatedBy());
+    result.setDeleted(relationship.isDeleted());
     RelationshipType type = new RelationshipType();
     type.setUid(relationship.getRelationshipType().getUid());
     result.setRelationshipType(relationship.getRelationshipType());
