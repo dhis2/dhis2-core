@@ -332,7 +332,7 @@ public class UserAccountController {
 
     userService.addUser(user, new SystemUser());
 
-    log.info("Created user with username: " + user.getUsername());
+    log.info("Created new user");
 
     authenticateUser(user, user.getUsername(), userRegistration.getPassword(), request);
   }

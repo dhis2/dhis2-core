@@ -33,7 +33,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class InviteRegistrationForm extends SelfRegistrationForm {
+public final class InviteRegistrationForm extends SelfRegistrationForm {
   @JsonProperty String inviteUsername;
   @JsonProperty String inviteToken;
 }
