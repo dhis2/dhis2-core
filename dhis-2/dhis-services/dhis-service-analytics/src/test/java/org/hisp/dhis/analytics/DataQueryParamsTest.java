@@ -52,12 +52,14 @@ import java.util.Set;
 import org.hamcrest.Matchers;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DataDimensionItemType;
+import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -778,5 +780,113 @@ class DataQueryParamsTest extends DhisConvenienceTest {
         IsIterableContainingInAnyOrder.containsInAnyOrder(
             hasProperty("isoDate", Matchers.is(peC.getIsoDate())),
             hasProperty("isoDate", Matchers.is(peC.getIsoDate()))));
+  }
+
+  @Test
+  void earliestStartDateWhenStart() {
+    EventQueryParams params =
+        EventQueryParams.fromDataQueryParams(
+            DataQueryParams.newBuilder()
+                .withStartDate(getDate(2000, 1, 1))
+                .withPeriods(List.of(createPeriod("201701"), createPeriod("201702")))
+                .build());
+
+    params
+        .getTimeDateRanges()
+        .put(
+            TimeField.LAST_UPDATED,
+            List.of(new DateRange(getDate(2001, 1, 1), getDate(2001, 3, 1))));
+
+    assertEquals(getDate(2000, 1, 1), params.getEarliestStartDate());
+  }
+
+  @Test
+  void earliestStartDateWhenPeriod() {
+    EventQueryParams params =
+        EventQueryParams.fromDataQueryParams(
+            DataQueryParams.newBuilder()
+                .withStartDate(getDate(2000, 1, 1))
+                .withPeriods(List.of(createPeriod("199901"), createPeriod("201702")))
+                .build());
+
+    params
+        .getTimeDateRanges()
+        .put(
+            TimeField.LAST_UPDATED,
+            List.of(new DateRange(getDate(2001, 1, 1), getDate(2001, 3, 1))));
+
+    assertEquals(getDate(1999, 1, 1), params.getEarliestStartDate());
+  }
+
+  @Test
+  void earliestStartDateWhenTimeRange() {
+    EventQueryParams params =
+        EventQueryParams.fromDataQueryParams(
+            DataQueryParams.newBuilder()
+                .withStartDate(getDate(2000, 1, 1))
+                .withPeriods(List.of(createPeriod("201701"), createPeriod("201702")))
+                .build());
+
+    params
+        .getTimeDateRanges()
+        .put(
+            TimeField.LAST_UPDATED,
+            List.of(new DateRange(getDate(1999, 1, 1), getDate(2001, 3, 1))));
+
+    assertEquals(getDate(1999, 1, 1), params.getEarliestStartDate());
+  }
+
+  @Test
+  void latestEndDateWhenStart() {
+    EventQueryParams params =
+        EventQueryParams.fromDataQueryParams(
+            DataQueryParams.newBuilder()
+                .withEndDate(getDate(2020, 1, 1))
+                .withPeriods(List.of(createPeriod("201701"), createPeriod("201702")))
+                .build());
+
+    params
+        .getTimeDateRanges()
+        .put(
+            TimeField.LAST_UPDATED,
+            List.of(new DateRange(getDate(2001, 1, 1), getDate(2001, 3, 1))));
+
+    assertEquals(getDate(2020, 1, 31), params.getLatestEndDate());
+  }
+
+  @Test
+  void latestEndDateWhenPeriod() {
+    EventQueryParams params =
+        EventQueryParams.fromDataQueryParams(
+            DataQueryParams.newBuilder()
+                .withEndDate(getDate(2000, 1, 1))
+                .withPeriods(List.of(createPeriod("202001"), createPeriod("201702")))
+                .build());
+
+    params
+        .getTimeDateRanges()
+        .put(
+            TimeField.LAST_UPDATED,
+            List.of(new DateRange(getDate(2001, 1, 1), getDate(2001, 3, 1))));
+
+    assertEquals(getDate(2020, 1, 31), params.getLatestEndDate());
+  }
+
+  @Test
+  void latestEndDateWhenTimeRange() {
+    EventQueryParams params =
+        EventQueryParams.fromDataQueryParams(
+            DataQueryParams.newBuilder()
+                .withEndDate(getDate(2000, 1, 1))
+                .withPeriods(List.of(createPeriod("201701"), createPeriod("201702")))
+                .build());
+
+    params
+        .getTimeDateRanges()
+        .put(
+            TimeField.LAST_UPDATED,
+            List.of(new DateRange(getDate(2020, 1, 1), getDate(2001, 3, 1))));
+
+    assertEquals(getDate(2020, 1, 31), params.getLatestEndDate());
   }
 }
