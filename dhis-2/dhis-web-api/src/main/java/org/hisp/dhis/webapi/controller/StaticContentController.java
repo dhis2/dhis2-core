@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.hisp.dhis.common.DhisApiVersion.ALL;
 import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
@@ -45,6 +44,7 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.getContextPath;
 import static org.hisp.dhis.webapi.utils.FileResourceUtils.build;
 import static org.springframework.http.HttpStatus.FOUND;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
+import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.UNSUPPORTED_MEDIA_TYPE;
 import static org.springframework.http.MediaType.IMAGE_PNG_VALUE;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
@@ -171,11 +171,11 @@ public class StaticContentController {
    * @param key key associated with the file.
    */
   @GetMapping("/{key}")
+  @ResponseStatus(OK)
   public void getStaticContent(
       @PathVariable("key") String key, HttpServletRequest request, HttpServletResponse response)
       throws WebMessageException {
     if (!KEY_WHITELIST_MAP.containsKey(key)) {
-      response.setContentType(APPLICATION_JSON);
       throw new WebMessageException(notFound("Key does not exist."));
     }
 
@@ -185,7 +185,6 @@ public class StaticContentController {
       try {
         response.sendRedirect(getDefaultLogoUrl(request, key));
       } catch (IOException e) {
-        response.setContentType(APPLICATION_JSON);
         throw new WebMessageException(error("Can't read the file."));
       }
     } else // Serve custom
@@ -195,10 +194,8 @@ public class StaticContentController {
         contentStore.copyContent(
             makeKey(DEFAULT_RESOURCE_DOMAIN, Optional.of(key)), response.getOutputStream());
       } catch (NoSuchElementException e) {
-        response.setContentType(APPLICATION_JSON);
         throw new WebMessageException(notFound(e.getMessage()));
       } catch (IOException e) {
-        response.setContentType(APPLICATION_JSON);
         throw new WebMessageException(error("Failed to retrieve image", e.getMessage()));
       }
     }

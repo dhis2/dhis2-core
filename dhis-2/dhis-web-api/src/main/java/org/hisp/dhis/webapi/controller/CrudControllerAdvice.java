@@ -91,7 +91,10 @@ import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthenticationException;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenError;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.security.access.AccessDeniedException;
@@ -400,8 +403,11 @@ public class CrudControllerAdvice {
 
   @ExceptionHandler(WebMessageException.class)
   @ResponseBody
-  public WebMessage webMessageExceptionHandler(WebMessageException ex) {
-    return ex.getWebMessage();
+  public ResponseEntity<WebMessage> webMessageExceptionHandler(WebMessageException ex) {
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    return new ResponseEntity<>(
+        ex.getWebMessage(), headers, ex.getWebMessage().getHttpStatusCode());
   }
 
   @ExceptionHandler(HttpStatusCodeException.class)
