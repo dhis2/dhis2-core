@@ -183,6 +183,7 @@ pipeline {
                 STARTUP_PROBE_FAILURE_THRESHOLD = "50"
                 LIVENESS_PROBE_TIMEOUT_SECONDS = "3"
                 READINESS_PROBE_TIMEOUT_SECONDS = "3"
+                MIN_READY_SECONDS = "240"
             }
 
             steps {
