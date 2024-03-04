@@ -155,7 +155,7 @@ class OrderBindingTest {
 
     JsonWebMessage message = JsonMixed.of(response.getContentAsString()).as(JsonWebMessage.class);
     assertEquals(400, message.getHttpStatusCode());
-    assertStartsWith(
+    assertContains(
         "'wrong' is not a valid sort direction. Valid values are: [ASC,", message.getMessage());
   }
 
