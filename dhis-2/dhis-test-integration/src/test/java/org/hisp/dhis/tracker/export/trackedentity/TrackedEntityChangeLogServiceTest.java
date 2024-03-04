@@ -227,7 +227,7 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
     programOwnerService.createOrUpdateTrackedEntityProgramOwner(
         trackedEntity.getUid(), program.getUid(), orgUnitA.getUid());
 
-    createAndPersistProgramAttribute(program);
+    createAndPersistProgramAttribute(program, trackedEntityAttribute);
 
     Page<TrackedEntityChangeLog> changeLogs =
         trackedEntityChangeLogService.getTrackedEntityChangeLog(
@@ -239,8 +239,8 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
     assertNumberOfChanges(1, changeLogs.getItems());
     assertAll(
         () ->
-            assertChange(
-                trackedEntityAttribute.getUid(), null, "new value", changeLogs.getItems().get(0)));
+            assertCreate(
+                trackedEntityAttribute.getUid(), "new value", changeLogs.getItems().get(0)));
   }
 
   @Test
@@ -251,7 +251,7 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
     programOwnerService.createOrUpdateTrackedEntityProgramOwner(
         trackedEntity.getUid(), program.getUid(), orgUnitA.getUid());
 
-    createAndPersistProgramAttribute(program);
+    createAndPersistProgramAttribute(program, trackedEntityAttribute);
 
     Page<TrackedEntityChangeLog> changeLogs =
         trackedEntityChangeLogService.getTrackedEntityChangeLog(
@@ -262,9 +262,7 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
 
     assertNumberOfChanges(1, changeLogs.getItems());
     assertAll(
-        () ->
-            assertChange(
-                trackedEntityAttribute.getUid(), "value", null, changeLogs.getItems().get(0)));
+        () -> assertDelete(trackedEntityAttribute.getUid(), "value", changeLogs.getItems().get(0)));
   }
 
   @Test
@@ -275,7 +273,7 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
     programOwnerService.createOrUpdateTrackedEntityProgramOwner(
         trackedEntity.getUid(), program.getUid(), orgUnitA.getUid());
 
-    createAndPersistProgramAttribute(program);
+    createAndPersistProgramAttribute(program, trackedEntityAttribute);
 
     Page<TrackedEntityChangeLog> changeLogs =
         trackedEntityChangeLogService.getTrackedEntityChangeLog(
@@ -287,7 +285,7 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
     assertNumberOfChanges(1, changeLogs.getItems());
     assertAll(
         () ->
-            assertChange(
+            assertUpdate(
                 trackedEntityAttribute.getUid(),
                 null,
                 "updated value",
@@ -303,7 +301,7 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
     programOwnerService.createOrUpdateTrackedEntityProgramOwner(
         trackedEntity.getUid(), program.getUid(), orgUnitA.getUid());
 
-    createAndPersistProgramAttribute(program);
+    createAndPersistProgramAttribute(program, trackedEntityAttribute);
 
     Page<TrackedEntityChangeLog> changeLogs =
         trackedEntityChangeLogService.getTrackedEntityChangeLog(
@@ -338,7 +336,7 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
     programOwnerService.createOrUpdateTrackedEntityProgramOwner(
         trackedEntity.getUid(), program.getUid(), orgUnitA.getUid());
 
-    createAndPersistProgramAttribute(program);
+    createAndPersistProgramAttribute(program, trackedEntityAttribute);
 
     Page<TrackedEntityChangeLog> changeLogs =
         trackedEntityChangeLogService.getTrackedEntityChangeLog(
@@ -392,7 +390,7 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
     programOwnerService.createOrUpdateTrackedEntityProgramOwner(
         trackedEntity.getUid(), program.getUid(), orgUnitA.getUid());
 
-    createAndPersistProgramAttribute(program);
+    createAndPersistProgramAttribute(program, trackedEntityAttribute);
 
     Page<TrackedEntityChangeLog> changeLogs =
         trackedEntityChangeLogService.getTrackedEntityChangeLog(
@@ -404,8 +402,8 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
     assertNumberOfChanges(1, changeLogs.getItems());
     assertAll(
         () ->
-            assertChange(
-                trackedEntityAttribute.getUid(), null, "new value", changeLogs.getItems().get(0)));
+            assertCreate(
+                trackedEntityAttribute.getUid(), "new value", changeLogs.getItems().get(0)));
   }
 
   private void updateAttributeValue(
@@ -421,7 +419,8 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
     Awaitility.await().pollDelay(2, TimeUnit.MILLISECONDS).untilAsserted(() -> assertTrue(true));
   }
 
-  private void createAndPersistProgramAttribute(Program program) {
+  private void createAndPersistProgramAttribute(
+      Program program, TrackedEntityAttribute trackedEntityAttribute) {
     ProgramTrackedEntityAttribute programAttribute =
         createProgramTrackedEntityAttribute(program, trackedEntityAttribute);
     manager.save(programAttribute);

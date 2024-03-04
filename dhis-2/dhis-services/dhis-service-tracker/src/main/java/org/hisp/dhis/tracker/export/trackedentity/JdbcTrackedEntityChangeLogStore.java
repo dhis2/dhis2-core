@@ -137,23 +137,19 @@ public class JdbcTrackedEntityChangeLogStore {
     }
 
     List<TrackedEntityChangeLog> changeLogs;
-    if (attributes.isEmpty()) {
-      sql +=
-          """
-              order by %s
-              limit :limit offset :offset) cl
-          """
-              .formatted(sortExpressions(order));
-    } else {
-      sql +=
-          """
+    if (!attributes.isEmpty()) {
+      sql += """
               and tea.uid in (:attributes)
+          """;
+    }
+
+    sql +=
+        """
               order by %s
               limit :limit offset :offset) cl
           """
-              .formatted(sortExpressions(order));
-      parameters.addValue("attributes", attributes);
-    }
+            .formatted(sortExpressions(order));
+    parameters.addValue("attributes", attributes);
     changeLogs =
         namedParameterJdbcTemplate.query(sql, parameters, customTrackedEntityChangeLogRowMapper);
 
