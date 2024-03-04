@@ -33,7 +33,6 @@ import static org.hisp.dhis.db.model.Table.toStaging;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
@@ -101,7 +100,13 @@ public class DataApprovalRemapLevelResourceTable extends AbstractResourceTable {
         from ${dataapprovalworkflowlevels} w \
         inner join ${dataapprovallevel} l on l.dataapprovallevelid=w.dataapprovallevelid
         """,
-            Map.of("tableName", toStaging(TABLE_NAME), "dataapprovalworkflowlevels", qualify("dataapprovalworkflowlevels"), "dataapprovallevel", qualify("dataapprovallevel")));
+            Map.of(
+                "tableName",
+                toStaging(TABLE_NAME),
+                "dataapprovalworkflowlevels",
+                qualify("dataapprovalworkflowlevels"),
+                "dataapprovallevel",
+                qualify("dataapprovallevel")));
 
     return Optional.of(sql);
   }

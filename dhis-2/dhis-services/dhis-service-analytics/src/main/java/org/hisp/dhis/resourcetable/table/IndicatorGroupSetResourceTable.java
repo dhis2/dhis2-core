@@ -102,22 +102,25 @@ public class IndicatorGroupSetResourceTable extends AbstractResourceTable {
           replace(
               """
           (
-          select ig.name from indicatorgroup ig \
-          inner join indicatorgroupmembers igm on igm.indicatorgroupid = ig.indicatorgroupid \
-          inner join indicatorgroupsetmembers igsm on igsm.indicatorgroupid = igm.indicatorgroupid \
+          select ig.name from ${indicatorgroup} ig \
+          inner join ${indicatorgroupmembers} igm on igm.indicatorgroupid = ig.indicatorgroupid \
+          inner join ${indicatorgroupsetmembers} igsm on igsm.indicatorgroupid = igm.indicatorgroupid \
           and igsm.indicatorgroupsetid = ${groupSetId} \
           where igm.indicatorid = i.indicatorid limit 1) as ${groupSetName}, \
           (
-          select ig.uid from indicatorgroup ig \
-          inner join indicatorgroupmembers igm on igm.indicatorgroupid = ig.indicatorgroupid \
-          inner join indicatorgroupsetmembers igsm on igsm.indicatorgroupid = igm.indicatorgroupid \
+          select ig.uid from ${indicatorgroup ig \
+          inner join ${indicatorgroupmembers} igm on igm.indicatorgroupid = ig.indicatorgroupid \
+          inner join ${indicatorgroupsetmembers} igsm on igsm.indicatorgroupid = igm.indicatorgroupid \
           and igsm.indicatorgroupsetid = ${groupSetId} \
           where igm.indicatorid = i.indicatorid limit 1) as ${groupSetUid}, \
           """,
               Map.of(
                   "groupSetId", valueOf(groupSet.getId()),
                   "groupSetName", quote(groupSet.getName()),
-                  "groupSetUid", quote(groupSet.getUid())));
+                  "groupSetUid", quote(groupSet.getUid()),
+                  "indicatorgroup", qualify("indicatorgroup"),
+                  "indicatorgroupmembers", qualify("indicatorgroupmembers"),
+                  "indicatorgroupsetmembers", qualify("indicatorgroupsetmembers")));
     }
 
     sql = TextUtils.removeLastComma(sql) + " ";

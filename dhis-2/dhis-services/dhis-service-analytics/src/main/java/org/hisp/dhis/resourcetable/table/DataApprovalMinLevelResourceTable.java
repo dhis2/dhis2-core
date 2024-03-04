@@ -32,7 +32,6 @@ import static org.hisp.dhis.db.model.Table.toStaging;
 
 import java.util.List;
 import java.util.Optional;
-
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
@@ -109,9 +108,8 @@ public class DataApprovalMinLevelResourceTable extends AbstractResourceTable {
 
     sql = TextUtils.removeLastOr(sql) + "))";
 
-    return Optional.of(replace(sql, 
-        "tableName", toStaging(TABLE_NAME), 
-        "dataapproval", qualify("dataapproval")));
+    return Optional.of(
+        replace(sql, "tableName", toStaging(TABLE_NAME), "dataapproval", qualify("dataapproval")));
   }
 
   @Override
