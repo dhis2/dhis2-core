@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
+import java.util.Set;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.tracker.export.Page;
@@ -40,5 +41,18 @@ public interface TrackedEntityChangeLogService {
    * @return the paged change logs of the supplied tracked entity, if any
    */
   Page<TrackedEntityChangeLog> getTrackedEntityChangeLog(
-      UID trackedEntityUid, UID programUid, PageParams pageParams) throws NotFoundException;
+      UID trackedEntityUid,
+      UID programUid,
+      TrackedEntityChangeLogOperationParams operationParams,
+      PageParams pageParams)
+      throws NotFoundException;
+
+  /**
+   * Fields the {@link #getTrackedEntityChangeLog(UID, UID, TrackedEntityChangeLogOperationParams,
+   * PageParams)} can order tracked entities change logs by. Ordering by fields other than these are
+   * considered a programmer error. Validation of user provided field names should occur before
+   * calling {@link #getTrackedEntityChangeLog(UID, UID, TrackedEntityChangeLogOperationParams,
+   * PageParams)}.
+   */
+  Set<String> getOrderableFields();
 }
