@@ -107,8 +107,8 @@ class DorisSqlBuilderTest {
 
   @Test
   void testQualifyTable() {
-    assertEquals("pg_dhis.public.category", sqlBuilder.qualifyTable("category"));
+    assertEquals("pg_dhis.public.`category`", sqlBuilder.qualifyTable("category"));
     assertEquals(
-        "pg_dhis.public.categories_options", sqlBuilder.qualifyTable("categories_options"));
+        "pg_dhis.public.`categories_options`", sqlBuilder.qualifyTable("categories_options"));
   }
 }
