@@ -54,11 +54,7 @@
 
     <property name="showColumnTotals" />
     
-    <property name="displayOptions" type="jbObject" column="displayoptions" />
-
-    <property name="textBeforeSection" column="textbeforesection" />
-
-    <property name="textAfterSection" column="textaftersection" />
+    <property name="displayOptions" type="jbPlainString" column="displayoptions" />
 
     <property name="disableDataElementAutoGroup" column="disabledataelementautogroup" />
 
