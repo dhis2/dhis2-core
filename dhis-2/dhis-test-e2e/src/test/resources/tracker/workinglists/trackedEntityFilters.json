@@ -47,7 +47,7 @@
       "a3kGcGDCuk7",
       "a3kGcGDCuk8"
     ],
-    "order": "createdAt:desc,orgUnit:asc",
+    "order": "createdAt:desc",
     "attributeValueFilters": [
       {
         "attribute": "dIVt4l5vIOa",
