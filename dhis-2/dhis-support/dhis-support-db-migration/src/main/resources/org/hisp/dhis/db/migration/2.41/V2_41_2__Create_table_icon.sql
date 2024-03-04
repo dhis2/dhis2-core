@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS icon
     createdby           bigint         NULL,
     lastupdatedby       bigint         NULL,
     custom              Boolean        NOT NULL,
-    CONSTRAINT icon_pkey PRIMARY KEY (customiconid),
+    CONSTRAINT icon_pkey PRIMARY KEY (iconid),
     CONSTRAINT icon_ukey UNIQUE (iconkey),
     CONSTRAINT icon_fileresource_ukey UNIQUE (fileresourceid)
 );

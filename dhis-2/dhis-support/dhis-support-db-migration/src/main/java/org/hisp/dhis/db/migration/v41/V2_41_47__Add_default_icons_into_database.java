@@ -68,7 +68,7 @@ public class V2_41_47__Add_default_icons_into_database extends BaseJavaMigration
 
     Map<String, Icon> customIconMap =
         Arrays.stream(DefaultIcon.values())
-            .map(this::createCustomIconWithVariants)
+            .map(this::createIconWithVariants)
             .flatMap(Collection::stream)
             .collect(Collectors.toMap(Icon::getKey, Function.identity()));
 
@@ -96,7 +96,7 @@ public class V2_41_47__Add_default_icons_into_database extends BaseJavaMigration
     }
   }
 
-  private List<Icon> createCustomIconWithVariants(DefaultIcon defaultIcon) {
+  private List<Icon> createIconWithVariants(DefaultIcon defaultIcon) {
 
     return DefaultIcon.VARIANTS.stream()
         .map(
