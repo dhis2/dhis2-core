@@ -149,7 +149,7 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
       return EMPTY;
     }
 
-    String ouPathClause = OutlierHelper.getOrgUnitPathClause(request.getOrgUnits(), "ax");
+    String ouPathClause = OutlierHelper.getOrgUnitPathClause(request.getOrgUnits(), "ax", "and");
 
     boolean modifiedZ = request.getAlgorithm() == MODIFIED_Z_SCORE;
 
@@ -162,6 +162,25 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
 
     String thresholdParam =
         withParams ? ":" + THRESHOLD.getKey() : Double.toString(request.getThreshold());
+
+    //  The constant 0.6745 in the formula for the modified z-score is derived from the standard
+    // normal distribution.
+    //  Specifically, it represents the approximate value of the standard deviation of the standard
+    // normal distribution
+    //  when calculated from the median absolute deviation (MAD).
+    //  In a standard normal distribution, approximately 75% of the data lies within one standard
+    // deviation of the mean.
+    //  Similarly, when using the median absolute deviation as a measure of dispersion,
+    // approximately 75% of the data points
+    //  lie within a certain range from the median. The constant 0.6745 is chosen to make the
+    // modified z-score calculation
+    //  consistent with this property.
+    //  It's important to note that 0.6745 is an approximation, and the exact value for the standard
+    // deviation of a standard
+    //  normal distribution is 1. However, in the context of the modified z-score calculation,
+    // 0.6745 is used to adjust
+    //  for the difference between the standard deviation and the median absolute deviation.
+    final double scoreScalingFactor = 0.6745;
 
     String sql =
         "select * from (select "
@@ -182,7 +201,9 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
     if (modifiedZ) {
       sql +=
           "(case when ax.mad = 0 then 0 "
-              + "      else 0.6745 * abs(ax.value::double precision - "
+              + "      else "
+              + scoreScalingFactor
+              + " * abs(ax.value::double precision - "
               + middleValue
               + " ) / ax.mad "
               + "       end) as z_score, ";
@@ -195,18 +216,31 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
               + "       end) as z_score, ";
     }
     sql +=
-        middleValue
-            + " - (ax.std_dev * "
-            + thresholdParam
-            + ") as lower_bound, "
-            + middleValue
-            + " + (ax.std_dev * "
-            + thresholdParam
-            + ") as upper_bound "
-            + "from analytics ax "
+        modifiedZ
+            ? middleValue
+                + " - (ax.mad * "
+                + thresholdParam
+                + "/"
+                + scoreScalingFactor
+                + ") as lower_bound, "
+                + middleValue
+                + " + (ax.mad * "
+                + thresholdParam
+                + "/"
+                + scoreScalingFactor
+                + ") as upper_bound "
+            : middleValue
+                + " - (ax.std_dev * "
+                + thresholdParam
+                + ") as lower_bound, "
+                + middleValue
+                + " + (ax.std_dev * "
+                + thresholdParam
+                + ") as upper_bound ";
+    sql +=
+        "from analytics ax "
             + "where "
             + getDataDimensionSql(withParams, request.getDataDimensions())
-            + "and "
             + ouPathClause
             + getPeriodSqlSnippet(request, withParams)
             + ") t1 "

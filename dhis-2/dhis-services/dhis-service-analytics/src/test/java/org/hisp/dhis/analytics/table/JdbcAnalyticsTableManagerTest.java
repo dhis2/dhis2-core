@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.db.model.Logged.LOGGED;
+import static org.hisp.dhis.db.model.Logged.UNLOGGED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -115,6 +116,7 @@ class JdbcAnalyticsTableManagerTest {
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder().withStartTime(startTime).build();
 
+    when(analyticsTableSettings.getTableLogged()).thenReturn(UNLOGGED);
     when(jdbcTemplate.queryForList(Mockito.anyString(), ArgumentMatchers.<Class<Integer>>any()))
         .thenReturn(dataYears);
 
@@ -206,6 +208,7 @@ class JdbcAnalyticsTableManagerTest {
     when(systemSettingManager.getDateSetting(
             SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE))
         .thenReturn(lastLatestPartitionUpdate);
+    when(analyticsTableSettings.getTableLogged()).thenReturn(UNLOGGED);
     when(jdbcTemplate.queryForList(Mockito.anyString())).thenReturn(queryResp);
 
     List<AnalyticsTable> tables = subject.getAnalyticsTables(params);

@@ -28,7 +28,6 @@
 package org.hisp.dhis.db.model;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 import static org.hisp.dhis.db.model.Logged.UNLOGGED;
 import static org.hisp.dhis.util.ObjectUtils.notNull;
 
@@ -82,7 +81,12 @@ public class Table {
    * @param primaryKey the primary key.
    */
   public Table(String name, List<Column> columns, List<String> primaryKey) {
-    this(name, columns, primaryKey, List.of(), Logged.UNLOGGED, null);
+    this.name = name;
+    this.columns = columns;
+    this.primaryKey = primaryKey;
+    this.checks = List.of();
+    this.logged = Logged.UNLOGGED;
+    this.parent = null;
     this.validate();
   }
 
@@ -95,7 +99,12 @@ public class Table {
    * @param logged the {@link Logged} parameter.
    */
   public Table(String name, List<Column> columns, List<String> primaryKey, Logged logged) {
-    this(name, columns, primaryKey, List.of(), logged, null);
+    this.name = name;
+    this.columns = columns;
+    this.primaryKey = primaryKey;
+    this.checks = List.of();
+    this.logged = logged;
+    this.parent = null;
     this.validate();
   }
 
@@ -114,7 +123,12 @@ public class Table {
       List<String> primaryKey,
       List<String> checks,
       Logged logged) {
-    this(name, columns, primaryKey, checks, logged, null);
+    this.name = name;
+    this.columns = columns;
+    this.primaryKey = primaryKey;
+    this.checks = checks;
+    this.logged = logged;
+    this.parent = null;
     this.validate();
   }
 
@@ -139,7 +153,7 @@ public class Table {
     this.columns = columns;
     this.primaryKey = primaryKey;
     this.checks = checks;
-    this.logged = firstNonNull(logged, UNLOGGED);
+    this.logged = logged;
     this.parent = parent;
     this.validate();
   }

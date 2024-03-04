@@ -136,7 +136,7 @@ class MessageFormatterTest {
     List<String> args = MessageFormatter.formatArguments(idSchemes, now);
 
     assertThat(args.size(), is(1));
-    assertThat(args.get(0), is(DateUtils.getIso8601NoTz(DateUtils.fromInstant(now))));
+    assertThat(args.get(0), is(DateUtils.toIso8601NoTz(DateUtils.fromInstant(now))));
   }
 
   @Test

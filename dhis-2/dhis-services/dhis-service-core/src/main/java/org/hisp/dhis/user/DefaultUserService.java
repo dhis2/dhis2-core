@@ -192,8 +192,7 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional
   public long addUser(User user, UserDetails actingUser) {
-    String currentUsername = CurrentUserUtil.getCurrentUsername();
-    AuditLogUtil.infoWrapper(log, currentUsername, user, AuditLogUtil.ACTION_CREATE);
+    AuditLogUtil.infoWrapper(log, actingUser.getUsername(), user, AuditLogUtil.ACTION_CREATE);
 
     userStore.save(user, actingUser, false);
 
@@ -778,9 +777,9 @@ public class DefaultUserService implements UserService {
 
   @Transactional
   @Override
-  public void resetTwoFactor(User user) {
+  public void resetTwoFactor(User user, UserDetails actingUser) {
     user.setSecret(null);
-    updateUser(user);
+    updateUser(user, actingUser);
   }
 
   @Transactional
@@ -800,7 +799,7 @@ public class DefaultUserService implements UserService {
       throw new IllegalStateException("Invalid code");
     }
 
-    approveTwoFactorSecret(user);
+    approveTwoFactorSecret(user, CurrentUserUtil.getCurrentUserDetails());
   }
 
   @Transactional
@@ -814,7 +813,7 @@ public class DefaultUserService implements UserService {
       throw new IllegalStateException("Invalid code");
     }
 
-    resetTwoFactor(user);
+    resetTwoFactor(user, CurrentUserUtil.getCurrentUserDetails());
   }
 
   @Override
@@ -831,7 +830,7 @@ public class DefaultUserService implements UserService {
       throw new UpdateAccessDeniedException(ErrorCode.E3021.getMessage());
     }
 
-    resetTwoFactor(user);
+    resetTwoFactor(user, UserDetails.fromUser(currentUser));
   }
 
   @Override
@@ -857,6 +856,12 @@ public class DefaultUserService implements UserService {
   public Map<String, Optional<Locale>> findNotifiableUsersWithPasswordLastUpdatedBetween(
       Date from, Date to) {
     return userStore.findNotifiableUsersWithPasswordLastUpdatedBetween(from, to);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Map<String, String> getUserGroupUserEmailsByUsername(String userGroupId) {
+    return userStore.getUserGroupUserEmailsByUsername(userGroupId);
   }
 
   @Override
@@ -943,10 +948,10 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional
-  public void approveTwoFactorSecret(User user) {
+  public void approveTwoFactorSecret(User user, UserDetails actingUser) {
     if (user.getSecret() != null && UserService.hasTwoFactorSecretForApproval(user)) {
       user.setSecret(user.getSecret().replace(TWO_FACTOR_CODE_APPROVAL_PREFIX, ""));
-      updateUser(user);
+      updateUser(user, actingUser);
     }
   }
 
@@ -1140,7 +1145,7 @@ public class DefaultUserService implements UserService {
     user.setRestoreToken(hashedRestoreToken);
     user.setRestoreExpiry(expiry);
 
-    updateUser(user);
+    updateUser(user, new SystemUser());
 
     return Base64.getUrlEncoder()
         .withoutPadding()

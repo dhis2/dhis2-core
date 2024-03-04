@@ -28,18 +28,21 @@
 package org.hisp.dhis.tracker.export.event;
 
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.tracker.export.Page;
+import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service("org.hisp.dhis.tracker.export.event.ChangeLogService")
+@Service("org.hisp.dhis.tracker.export.event.EventChangeLogService")
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class DefaultEventChangeLogService implements EventChangeLogService {
@@ -53,7 +56,9 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
   private final UserService userService;
 
   @Override
-  public List<EventChangeLog> getEventChangeLog(UID eventUid) throws NotFoundException {
+  public Page<EventChangeLog> getEventChangeLog(
+      UID eventUid, EventChangeLogOperationParams operationParams, PageParams pageParams)
+      throws NotFoundException {
     Event event = eventService.getEvent(eventUid.getValue());
     if (event == null) {
       throw new NotFoundException(Event.class, eventUid.getValue());
@@ -65,6 +70,12 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
       throw new NotFoundException(Event.class, eventUid.getValue());
     }
 
-    return jdbcEventChangeLogStore.getEventChangeLog(eventUid.getValue());
+    return jdbcEventChangeLogStore.getEventChangeLog(
+        eventUid, operationParams.getOrder(), pageParams);
+  }
+
+  @Override
+  public Set<String> getOrderableFields() {
+    return jdbcEventChangeLogStore.getOrderableFields();
   }
 }

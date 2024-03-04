@@ -226,9 +226,9 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     return new RuleEnrollment(
         enrollment.getUid(),
         enrollment.getProgram().getName(),
-        LocalDateTime.Companion.parse(DateUtils.getIso8601NoTz(enrollment.getOccurredDate()))
+        LocalDateTime.Companion.parse(DateUtils.toIso8601NoTz(enrollment.getOccurredDate()))
             .getDate(),
-        LocalDateTime.Companion.parse(DateUtils.getIso8601NoTz(enrollment.getEnrollmentDate()))
+        LocalDateTime.Companion.parse(DateUtils.toIso8601NoTz(enrollment.getEnrollmentDate()))
             .getDate(),
         RuleEnrollment.Status.valueOf(enrollment.getStatus().toString()),
         orgUnit,
@@ -266,12 +266,12 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
         eventToEvaluate.getScheduledDate() == null
             ? null
             : LocalDateTime.Companion.parse(
-                    DateUtils.getIso8601NoTz(eventToEvaluate.getScheduledDate()))
+                    DateUtils.toIso8601NoTz(eventToEvaluate.getScheduledDate()))
                 .getDate(),
         eventToEvaluate.getCompletedDate() == null
             ? null
             : LocalDateTime.Companion.parse(
-                    DateUtils.getIso8601NoTz(eventToEvaluate.getCompletedDate()))
+                    DateUtils.toIso8601NoTz(eventToEvaluate.getCompletedDate()))
                 .getDate(),
         orgUnit,
         orgUnitCode,

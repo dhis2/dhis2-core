@@ -46,7 +46,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.collection.CollectionUtils.concat;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_SILENT_FALLBACK;
 import static org.hisp.dhis.util.SqlExceptionUtils.relationDoesNotExist;
 
@@ -552,14 +552,14 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
               + "("
               + quoteAlias("ouopeningdate")
               + " <= '"
-              + getMediumDateString(params.getStartDateRestriction())
+              + toMediumDate(params.getStartDateRestriction())
               + "' or "
               + quoteAlias("ouopeningdate")
               + " is null) and "
               + "("
               + quoteAlias("oucloseddate")
               + " >= '"
-              + getMediumDateString(params.getEndDateRestriction())
+              + toMediumDate(params.getEndDateRestriction())
               + "' or "
               + quoteAlias("oucloseddate")
               + " is null)) ");
@@ -572,14 +572,14 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
               + "("
               + quoteAlias("costartdate")
               + " <= '"
-              + getMediumDateString(params.getStartDateRestriction())
+              + toMediumDate(params.getStartDateRestriction())
               + "' or "
               + quoteAlias("costartdate")
               + " is null) and "
               + "("
               + quoteAlias("coenddate")
               + " >= '"
-              + getMediumDateString(params.getEndDateRestriction())
+              + toMediumDate(params.getEndDateRestriction())
               + "' or "
               + quoteAlias("coenddate")
               + " is null)) ");
@@ -591,7 +591,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
               + " "
               + quoteAlias(PESTARTDATE)
               + "  >= '"
-              + getMediumDateString(params.getStartDate())
+              + toMediumDate(params.getStartDate())
               + "' ");
     }
 
@@ -601,7 +601,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
               + " "
               + quoteAlias(PEENDDATE)
               + " <= '"
-              + getMediumDateString(params.getEndDate())
+              + toMediumDate(params.getEndDate())
               + "' ");
     }
 
@@ -745,12 +745,12 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
         + "where "
         + quoteAlias(PESTARTDATE)
         + " >= '"
-        + getMediumDateString(earliestDate)
+        + toMediumDate(earliestDate)
         + "' "
         + "and "
         + quoteAlias(PEENDDATE)
         + " <= '"
-        + getMediumDateString(latestDate)
+        + toMediumDate(latestDate)
         + "' "
         + "and ("
         + quoteAlias(VALUE)

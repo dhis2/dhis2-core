@@ -83,4 +83,12 @@ public interface JsonProgram extends JsonObject, JsonNameableObject {
   default JsonString getTrackedEntityAttributeLabel() {
     return getString("trackedEntityAttributeLabel");
   }
+
+  default JsonString getProgramStageLabel() {
+    return getString("programStageLabel");
+  }
+
+  default JsonString getEventLabel() {
+    return getString("eventLabel");
+  }
 }

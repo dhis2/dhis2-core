@@ -33,7 +33,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.hisp.dhis.util.DateUtils.getMediumDate;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertThrowsErrorCode;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -1046,15 +1046,14 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase {
         containsInAnyOrder(
             "EVENT_DATE", "ENROLLMENT_DATE", "INCIDENT_DATE", "LAST_UPDATED", "SCHEDULED_DATE"));
 
-    assertEquals(getPeriod(dimension, "INCIDENT_DATE").getStartDate(), getMediumDate("2021-01-01"));
-    assertEquals(getPeriod(dimension, "INCIDENT_DATE").getEndDate(), getMediumDate("2021-01-01"));
+    assertEquals(getPeriod(dimension, "INCIDENT_DATE").getStartDate(), toMediumDate("2021-01-01"));
+    assertEquals(getPeriod(dimension, "INCIDENT_DATE").getEndDate(), toMediumDate("2021-01-01"));
 
-    assertEquals(getPeriod(dimension, "LAST_UPDATED").getStartDate(), getMediumDate("2021-01-01"));
-    assertEquals(getPeriod(dimension, "LAST_UPDATED").getEndDate(), getMediumDate("2021-02-01"));
+    assertEquals(getPeriod(dimension, "LAST_UPDATED").getStartDate(), toMediumDate("2021-01-01"));
+    assertEquals(getPeriod(dimension, "LAST_UPDATED").getEndDate(), toMediumDate("2021-02-01"));
 
-    assertEquals(
-        getPeriod(dimension, "SCHEDULED_DATE").getStartDate(), getMediumDate("2021-02-01"));
-    assertEquals(getPeriod(dimension, "SCHEDULED_DATE").getEndDate(), getMediumDate("2021-03-01"));
+    assertEquals(getPeriod(dimension, "SCHEDULED_DATE").getStartDate(), toMediumDate("2021-02-01"));
+    assertEquals(getPeriod(dimension, "SCHEDULED_DATE").getEndDate(), toMediumDate("2021-03-01"));
   }
 
   private Period getPeriod(DimensionalObject dimension, String dateField) {

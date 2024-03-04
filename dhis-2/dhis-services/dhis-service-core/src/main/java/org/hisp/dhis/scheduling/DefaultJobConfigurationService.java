@@ -51,6 +51,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -370,25 +371,30 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
               .filter(pd -> pd.getName().equals(field.getName()))
               .findFirst()
               .orElse(null);
-      if (isProperty(field, descriptor)) {
-        jobParameters.add(getProperty(jobType, paramsType, field));
+      JsonProperty property = getJsonProperty(field, descriptor);
+      if (property != null) {
+        jobParameters.add(getProperty(jobType, paramsType, field, property));
       }
     }
 
     return jobParameters;
   }
 
-  private boolean isProperty(Field field, PropertyDescriptor descriptor) {
-    return !(descriptor == null
-        || (descriptor.getReadMethod().getAnnotation(JsonProperty.class) == null
-            && field.getAnnotation(JsonProperty.class) == null));
+  @CheckForNull
+  private JsonProperty getJsonProperty(Field field, PropertyDescriptor descriptor) {
+    JsonProperty property = field.getAnnotation(JsonProperty.class);
+    if (property != null) return property;
+    if (descriptor == null) return null;
+    return descriptor.getReadMethod().getAnnotation(JsonProperty.class);
   }
 
-  private static Property getProperty(JobType jobType, Class<?> paramsType, Field field) {
+  private static Property getProperty(
+      JobType jobType, Class<?> paramsType, Field field, @Nonnull JsonProperty annotation) {
     Class<?> valueType = field.getType();
     Property property = new Property(Primitives.wrap(valueType), null, null);
     property.setName(field.getName());
     property.setFieldName(TextUtils.getPrettyPropertyName(field.getName()));
+    property.setRequired(annotation.required());
 
     try {
       field.setAccessible(true);

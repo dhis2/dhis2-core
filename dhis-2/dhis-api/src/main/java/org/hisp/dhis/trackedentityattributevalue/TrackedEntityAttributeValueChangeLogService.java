@@ -37,6 +37,10 @@ public interface TrackedEntityAttributeValueChangeLogService {
   void addTrackedEntityAttributeValueChangLog(
       TrackedEntityAttributeValueChangeLog trackedEntityAttributeValueChangeLog);
 
+  /**
+   * @deprecated use TrackedEntityChangeLogService.getEventChangeLog(UID) instead
+   */
+  @Deprecated(since = "2.41")
   List<TrackedEntityAttributeValueChangeLog> getTrackedEntityAttributeValueChangeLogs(
       TrackedEntityAttributeValueChangeLogQueryParams params);
 

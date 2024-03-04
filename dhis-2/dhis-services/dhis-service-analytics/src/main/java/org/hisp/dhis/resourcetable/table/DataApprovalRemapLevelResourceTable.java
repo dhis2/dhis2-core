@@ -27,17 +27,17 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
+import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
 
 import java.util.List;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
-import org.hisp.dhis.resourcetable.ResourceTable;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
 /**
@@ -56,11 +56,12 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
  *
  * @author Jim Grace
  */
-@RequiredArgsConstructor
-public class DataApprovalRemapLevelResourceTable implements ResourceTable {
-  private static final String TABLE_NAME = "_dataapprovalremaplevel";
+public class DataApprovalRemapLevelResourceTable extends AbstractResourceTable {
+  public static final String TABLE_NAME = "analytics_rs_dataapprovalremaplevel";
 
-  private final Logged logged;
+  public DataApprovalRemapLevelResourceTable(SqlBuilder sqlBuilder, Logged logged) {
+    super(sqlBuilder, logged);
+  }
 
   @Override
   public Table getTable() {
@@ -86,17 +87,20 @@ public class DataApprovalRemapLevelResourceTable implements ResourceTable {
   @Override
   public Optional<String> getPopulateTempTableStatement() {
     String sql =
-        "insert into "
-            + toStaging(TABLE_NAME)
-            + " (workflowid,dataapprovallevelid,level) "
-            + "select w.workflowid, w.dataapprovallevelid, "
-            + "1 + coalesce((select max(l2.level) "
-            + "from dataapprovalworkflowlevels w2 "
-            + "join dataapprovallevel l2 on l2.dataapprovallevelid = w2.dataapprovallevelid "
-            + "where w2.workflowid = w.workflowid "
-            + "and l2.level < l.level), 0) as level "
-            + "from dataapprovalworkflowlevels w "
-            + "join dataapprovallevel l on l.dataapprovallevelid = w.dataapprovallevelid";
+        replace(
+            """
+        insert into ${tableName} \
+        (workflowid,dataapprovallevelid,level) \
+        select w.workflowid, w.dataapprovallevelid, 1 + coalesce((select max(l2.level) \
+        from dataapprovalworkflowlevels w2 \
+        inner join dataapprovallevel l2 on l2.dataapprovallevelid=w2.dataapprovallevelid \
+        where w2.workflowid=w.workflowid \
+        and l2.level < l.level), 0) as level \
+        from dataapprovalworkflowlevels w \
+        inner join dataapprovallevel l on l.dataapprovallevelid=w.dataapprovallevelid
+        """,
+            "tableName",
+            toStaging(TABLE_NAME));
 
     return Optional.of(sql);
   }

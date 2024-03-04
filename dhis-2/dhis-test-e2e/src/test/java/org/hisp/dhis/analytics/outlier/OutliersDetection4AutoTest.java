@@ -153,6 +153,7 @@ public class OutliersDetection4AutoTest extends AnalyticsApiTest {
     // Assert rows.
     validateRow(
         response,
+        0,
         List.of(
             "Jtf34kNZhzP",
             "ANC 3rd visit",
@@ -169,11 +170,12 @@ public class OutliersDetection4AutoTest extends AnalyticsApiTest {
             "16.0",
             "6.0",
             "1910.0",
-            "214.7",
-            "-1568.6",
-            "1600.6"));
+            "214.72",
+            "-10.69",
+            "42.69"));
     validateRow(
         response,
+        1,
         List.of(
             "cYeuwXTCPkU",
             "ANC 2nd visit",
@@ -191,10 +193,11 @@ public class OutliersDetection4AutoTest extends AnalyticsApiTest {
             "159.0",
             "920.0",
             "3.9",
-            "-290.9",
-            "1788.9"));
+            "41.81",
+            "1456.19"));
     validateRow(
         response,
+        2,
         List.of(
             "cYeuwXTCPkU",
             "ANC 2nd visit",
@@ -211,11 +214,12 @@ public class OutliersDetection4AutoTest extends AnalyticsApiTest {
             "60.5",
             "21.5",
             "853.5",
-            "26.8",
-            "-651.3",
-            "772.3"));
+            "26.78",
+            "-35.13",
+            "156.13"));
     validateRow(
         response,
+        3,
         List.of(
             "fbfJHSPpUQD",
             "ANC 1st visit",
@@ -232,11 +236,12 @@ public class OutliersDetection4AutoTest extends AnalyticsApiTest {
             "3.0",
             "1.0",
             "697.0",
-            "470.1",
-            "-463.5",
-            "469.5"));
+            "470.13",
+            "-1.45",
+            "7.45"));
     validateRow(
         response,
+        4,
         List.of(
             "cYeuwXTCPkU",
             "ANC 2nd visit",
@@ -253,11 +258,12 @@ public class OutliersDetection4AutoTest extends AnalyticsApiTest {
             "4.0",
             "2.0",
             "653.0",
-            "220.2",
-            "-432.3",
-            "440.3"));
+            "220.22",
+            "-4.9",
+            "12.9"));
     validateRow(
         response,
+        5,
         List.of(
             "FHD3wiSM7Sn",
             "ARI treated with antibiotics (pneumonia) follow-up",
@@ -275,10 +281,11 @@ public class OutliersDetection4AutoTest extends AnalyticsApiTest {
             "47.0",
             "425.0",
             "6.1",
-            "-377.8",
-            "527.8"));
+            "-134.04",
+            "284.04"));
     validateRow(
         response,
+        6,
         List.of(
             "fbfJHSPpUQD",
             "ANC 1st visit",
@@ -295,11 +302,12 @@ public class OutliersDetection4AutoTest extends AnalyticsApiTest {
             "163.5",
             "29.0",
             "280.5",
-            "6.5",
-            "-120.8",
-            "447.8"));
+            "6.52",
+            "34.52",
+            "292.48"));
     validateRow(
         response,
+        7,
         List.of(
             "cYeuwXTCPkU",
             "ANC 2nd visit",
@@ -316,11 +324,12 @@ public class OutliersDetection4AutoTest extends AnalyticsApiTest {
             "90.5",
             "41.0",
             "260.5",
-            "4.3",
-            "-163.1",
-            "344.1"));
+            "4.29",
+            "-91.86",
+            "272.86"));
     validateRow(
         response,
+        8,
         List.of(
             "fbfJHSPpUQD",
             "ANC 1st visit",
@@ -337,11 +346,12 @@ public class OutliersDetection4AutoTest extends AnalyticsApiTest {
             "122.5",
             "29.5",
             "216.5",
-            "5.0",
-            "-81.6",
-            "326.6"));
+            "4.95",
+            "-8.71",
+            "253.71"));
     validateRow(
         response,
+        9,
         List.of(
             "FHD3wiSM7Sn",
             "ARI treated with antibiotics (pneumonia) follow-up",
@@ -358,9 +368,9 @@ public class OutliersDetection4AutoTest extends AnalyticsApiTest {
             "62.5",
             "13.0",
             "260.5",
-            "13.5",
-            "-285.0",
-            "410.0"));
+            "13.52",
+            "4.68",
+            "120.32"));
   }
 
   @Test
@@ -468,6 +478,7 @@ public class OutliersDetection4AutoTest extends AnalyticsApiTest {
     // Assert rows.
     validateRow(
         response,
+        0,
         List.of(
             "FHD3wiSM7Sn",
             "ARI treated with antibiotics (pneumonia) follow-up",
@@ -485,10 +496,11 @@ public class OutliersDetection4AutoTest extends AnalyticsApiTest {
             "47.0",
             "425.0",
             "6.1",
-            "-377.8",
-            "527.8"));
+            "-134.04",
+            "284.04"));
     validateRow(
         response,
+        1,
         List.of(
             "FHD3wiSM7Sn",
             "ARI treated with antibiotics (pneumonia) follow-up",
@@ -505,11 +517,12 @@ public class OutliersDetection4AutoTest extends AnalyticsApiTest {
             "62.5",
             "13.0",
             "260.5",
-            "13.5",
-            "-285.0",
-            "410.0"));
+            "13.52",
+            "4.68",
+            "120.32"));
     validateRow(
         response,
+        2,
         List.of(
             "FHD3wiSM7Sn",
             "ARI treated with antibiotics (pneumonia) follow-up",
@@ -526,11 +539,12 @@ public class OutliersDetection4AutoTest extends AnalyticsApiTest {
             "75.0",
             "47.0",
             "221.0",
-            "3.2",
-            "-377.8",
-            "527.8"));
+            "3.17",
+            "-134.04",
+            "284.04"));
     validateRow(
         response,
+        3,
         List.of(
             "FHD3wiSM7Sn",
             "ARI treated with antibiotics (pneumonia) follow-up",
@@ -547,11 +561,12 @@ public class OutliersDetection4AutoTest extends AnalyticsApiTest {
             "12.5",
             "11.0",
             "182.5",
-            "11.2",
-            "-149.6",
-            "174.6"));
+            "11.19",
+            "-36.43",
+            "61.43"));
     validateRow(
         response,
+        4,
         List.of(
             "FHD3wiSM7Sn",
             "ARI treated with antibiotics (pneumonia) follow-up",
@@ -568,9 +583,9 @@ public class OutliersDetection4AutoTest extends AnalyticsApiTest {
             "6.0",
             "4.0",
             "124.0",
-            "20.9",
-            "-123.7",
-            "135.7"));
+            "20.91",
+            "-11.79",
+            "23.79"));
   }
 
   @Test
@@ -678,6 +693,7 @@ public class OutliersDetection4AutoTest extends AnalyticsApiTest {
     // Assert rows.
     validateRow(
         response,
+        0,
         List.of(
             "Jtf34kNZhzP",
             "ANC 3rd visit",
@@ -694,11 +710,12 @@ public class OutliersDetection4AutoTest extends AnalyticsApiTest {
             "16.0",
             "6.0",
             "1910.0",
-            "214.7",
-            "-1568.6",
-            "1600.6"));
+            "214.72",
+            "-10.69",
+            "42.69"));
     validateRow(
         response,
+        1,
         List.of(
             "cYeuwXTCPkU",
             "ANC 2nd visit",
@@ -716,10 +733,11 @@ public class OutliersDetection4AutoTest extends AnalyticsApiTest {
             "159.0",
             "920.0",
             "3.9",
-            "-290.9",
-            "1788.9"));
+            "41.81",
+            "1456.19"));
     validateRow(
         response,
+        2,
         List.of(
             "cYeuwXTCPkU",
             "ANC 2nd visit",
@@ -736,11 +754,12 @@ public class OutliersDetection4AutoTest extends AnalyticsApiTest {
             "60.5",
             "21.5",
             "853.5",
-            "26.8",
-            "-651.3",
-            "772.3"));
+            "26.78",
+            "-35.13",
+            "156.13"));
     validateRow(
         response,
+        3,
         List.of(
             "fbfJHSPpUQD",
             "ANC 1st visit",
@@ -757,11 +776,12 @@ public class OutliersDetection4AutoTest extends AnalyticsApiTest {
             "3.0",
             "1.0",
             "697.0",
-            "470.1",
-            "-463.5",
-            "469.5"));
+            "470.13",
+            "-1.45",
+            "7.45"));
     validateRow(
         response,
+        4,
         List.of(
             "cYeuwXTCPkU",
             "ANC 2nd visit",
@@ -778,11 +798,12 @@ public class OutliersDetection4AutoTest extends AnalyticsApiTest {
             "4.0",
             "2.0",
             "653.0",
-            "220.2",
-            "-432.3",
-            "440.3"));
+            "220.22",
+            "-4.9",
+            "12.9"));
     validateRow(
         response,
+        5,
         List.of(
             "fbfJHSPpUQD",
             "ANC 1st visit",
@@ -799,11 +820,12 @@ public class OutliersDetection4AutoTest extends AnalyticsApiTest {
             "163.5",
             "29.0",
             "280.5",
-            "6.5",
-            "-120.8",
-            "447.8"));
+            "6.52",
+            "34.52",
+            "292.48"));
     validateRow(
         response,
+        6,
         List.of(
             "cYeuwXTCPkU",
             "ANC 2nd visit",
@@ -820,11 +842,12 @@ public class OutliersDetection4AutoTest extends AnalyticsApiTest {
             "90.5",
             "41.0",
             "260.5",
-            "4.3",
-            "-163.1",
-            "344.1"));
+            "4.29",
+            "-91.86",
+            "272.86"));
     validateRow(
         response,
+        7,
         List.of(
             "fbfJHSPpUQD",
             "ANC 1st visit",
@@ -841,11 +864,12 @@ public class OutliersDetection4AutoTest extends AnalyticsApiTest {
             "122.5",
             "29.5",
             "216.5",
-            "5.0",
-            "-81.6",
-            "326.6"));
+            "4.95",
+            "-8.71",
+            "253.71"));
     validateRow(
         response,
+        8,
         List.of(
             "fbfJHSPpUQD",
             "ANC 1st visit",
@@ -862,11 +886,12 @@ public class OutliersDetection4AutoTest extends AnalyticsApiTest {
             "170.0",
             "24.5",
             "148.0",
-            "4.1",
-            "16.6",
-            "323.4"));
+            "4.07",
+            "61.03",
+            "278.97"));
     validateRow(
         response,
+        9,
         List.of(
             "fbfJHSPpUQD",
             "ANC 1st visit",
@@ -883,9 +908,9 @@ public class OutliersDetection4AutoTest extends AnalyticsApiTest {
             "145.0",
             "20.0",
             "124.0",
-            "4.2",
-            "21.4",
-            "268.6"));
+            "4.18",
+            "56.05",
+            "233.95"));
   }
 
   @Test
@@ -936,6 +961,7 @@ public class OutliersDetection4AutoTest extends AnalyticsApiTest {
     // Assert rows.
     validateRow(
         response,
+        0,
         List.of(
             "dU0GquGkGQr",
             "Q_Early breastfeeding (within 1 hr after delivery) at BCG",
@@ -945,6 +971,7 @@ public class OutliersDetection4AutoTest extends AnalyticsApiTest {
             "-67.8530554519"));
     validateRow(
         response,
+        1,
         List.of(
             "s46m5MS0hxu",
             "BCG doses given",
@@ -954,6 +981,7 @@ public class OutliersDetection4AutoTest extends AnalyticsApiTest {
             "-130.7045505648"));
     validateRow(
         response,
+        2,
         List.of(
             "l6byfWFUGaP",
             "Yellow Fever doses given",

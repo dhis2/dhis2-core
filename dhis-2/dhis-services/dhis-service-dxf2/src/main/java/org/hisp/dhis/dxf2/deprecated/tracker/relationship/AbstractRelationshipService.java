@@ -465,8 +465,8 @@ public abstract class AbstractRelationshipService implements RelationshipService
 
     relationship.setBidirectional(dao.getRelationshipType().isBidirectional());
 
-    relationship.setCreated(DateUtils.getIso8601NoTz(dao.getCreated()));
-    relationship.setLastUpdated(DateUtils.getIso8601NoTz(dao.getLastUpdated()));
+    relationship.setCreated(DateUtils.toIso8601NoTz(dao.getCreated()));
+    relationship.setLastUpdated(DateUtils.toIso8601NoTz(dao.getLastUpdated()));
 
     return Optional.of(relationship);
   }

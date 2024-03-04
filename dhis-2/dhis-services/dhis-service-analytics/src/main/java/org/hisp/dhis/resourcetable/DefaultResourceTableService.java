@@ -110,9 +110,10 @@ public class DefaultResourceTableService implements ResourceTableService {
   public void generateOrganisationUnitStructureTable() {
     resourceTableStore.generateResourceTable(
         new OrganisationUnitStructureResourceTable(
-            organisationUnitService,
+            sqlBuilder,
+            analyticsTableSettings.getTableLogged(),
             organisationUnitService.getNumberOfOrganisationalLevels(),
-            analyticsTableSettings.getTableLogged()));
+            organisationUnitService));
   }
 
   @Override
@@ -120,9 +121,10 @@ public class DefaultResourceTableService implements ResourceTableService {
   public void generateDataSetOrganisationUnitCategoryTable() {
     resourceTableStore.generateResourceTable(
         new DataSetOrganisationUnitCategoryResourceTable(
+            sqlBuilder,
+            analyticsTableSettings.getTableLogged(),
             idObjectManager.getAllNoAcl(DataSet.class),
-            categoryService.getDefaultCategoryOptionCombo(),
-            analyticsTableSettings.getTableLogged()));
+            categoryService.getDefaultCategoryOptionCombo()));
   }
 
   @Override
@@ -130,8 +132,9 @@ public class DefaultResourceTableService implements ResourceTableService {
   public void generateCategoryOptionComboNameTable() {
     resourceTableStore.generateResourceTable(
         new CategoryOptionComboNameResourceTable(
-            idObjectManager.getAllNoAcl(CategoryCombo.class),
-            analyticsTableSettings.getTableLogged()));
+            sqlBuilder,
+            analyticsTableSettings.getTableLogged(),
+            idObjectManager.getAllNoAcl(CategoryCombo.class)));
   }
 
   @Override
@@ -140,8 +143,8 @@ public class DefaultResourceTableService implements ResourceTableService {
     resourceTableStore.generateResourceTable(
         new DataElementGroupSetResourceTable(
             sqlBuilder,
-            idObjectManager.getDataDimensionsNoAcl(DataElementGroupSet.class),
-            analyticsTableSettings.getTableLogged()));
+            analyticsTableSettings.getTableLogged(),
+            idObjectManager.getDataDimensionsNoAcl(DataElementGroupSet.class)));
   }
 
   @Override
@@ -150,8 +153,8 @@ public class DefaultResourceTableService implements ResourceTableService {
     resourceTableStore.generateResourceTable(
         new IndicatorGroupSetResourceTable(
             sqlBuilder,
-            idObjectManager.getAllNoAcl(IndicatorGroupSet.class),
-            analyticsTableSettings.getTableLogged()));
+            analyticsTableSettings.getTableLogged(),
+            idObjectManager.getAllNoAcl(IndicatorGroupSet.class)));
   }
 
   @Override
@@ -160,9 +163,9 @@ public class DefaultResourceTableService implements ResourceTableService {
     resourceTableStore.generateResourceTable(
         new OrganisationUnitGroupSetResourceTable(
             sqlBuilder,
+            analyticsTableSettings.getTableLogged(),
             idObjectManager.getDataDimensionsNoAcl(OrganisationUnitGroupSet.class),
-            organisationUnitService.getNumberOfOrganisationalLevels(),
-            analyticsTableSettings.getTableLogged()));
+            organisationUnitService.getNumberOfOrganisationalLevels()));
   }
 
   @Override
@@ -171,9 +174,9 @@ public class DefaultResourceTableService implements ResourceTableService {
     resourceTableStore.generateResourceTable(
         new CategoryResourceTable(
             sqlBuilder,
+            analyticsTableSettings.getTableLogged(),
             idObjectManager.getDataDimensionsNoAcl(Category.class),
-            idObjectManager.getDataDimensionsNoAcl(CategoryOptionGroupSet.class),
-            analyticsTableSettings.getTableLogged()));
+            idObjectManager.getDataDimensionsNoAcl(CategoryOptionGroupSet.class)));
   }
 
   @Override
@@ -181,8 +184,9 @@ public class DefaultResourceTableService implements ResourceTableService {
   public void generateDataElementTable() {
     resourceTableStore.generateResourceTable(
         new DataElementResourceTable(
-            idObjectManager.getAllNoAcl(DataElement.class),
-            analyticsTableSettings.getTableLogged()));
+            sqlBuilder,
+            analyticsTableSettings.getTableLogged(),
+            idObjectManager.getAllNoAcl(DataElement.class)));
   }
 
   @Override
@@ -192,29 +196,30 @@ public class DefaultResourceTableService implements ResourceTableService {
         periodDataProvider.getAvailableYears(
             analyticsTableSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
     checkYearsOffset(availableYears);
-
     resourceTableStore.generateResourceTable(
-        new DatePeriodResourceTable(availableYears, analyticsTableSettings.getTableLogged()));
+        new DatePeriodResourceTable(
+            sqlBuilder, analyticsTableSettings.getTableLogged(), availableYears));
   }
 
   @Override
   public void generatePeriodTable() {
     resourceTableStore.generateResourceTable(
         new PeriodResourceTable(
-            periodService.getAllPeriods(), analyticsTableSettings.getTableLogged()));
+            sqlBuilder, analyticsTableSettings.getTableLogged(), periodService.getAllPeriods()));
   }
 
   @Override
   @Transactional
   public void generateCategoryOptionComboTable() {
     resourceTableStore.generateResourceTable(
-        new CategoryOptionComboResourceTable(analyticsTableSettings.getTableLogged()));
+        new CategoryOptionComboResourceTable(sqlBuilder, analyticsTableSettings.getTableLogged()));
   }
 
   @Override
   public void generateDataApprovalRemapLevelTable() {
     resourceTableStore.generateResourceTable(
-        new DataApprovalRemapLevelResourceTable(analyticsTableSettings.getTableLogged()));
+        new DataApprovalRemapLevelResourceTable(
+            sqlBuilder, analyticsTableSettings.getTableLogged()));
   }
 
   @Override
@@ -225,7 +230,7 @@ public class DefaultResourceTableService implements ResourceTableService {
     if (!orgUnitLevels.isEmpty()) {
       resourceTableStore.generateResourceTable(
           new DataApprovalMinLevelResourceTable(
-              orgUnitLevels, analyticsTableSettings.getTableLogged()));
+              sqlBuilder, analyticsTableSettings.getTableLogged(), orgUnitLevels));
     }
   }
 

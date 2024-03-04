@@ -1013,7 +1013,7 @@ public class ListGrid implements Grid, Serializable {
 
     while (rs.next()) {
       addRow();
-      Map<String, Object> rowContextItem = new HashMap<>();
+      Map<String, Object> rowContextItems = new HashMap<>();
 
       for (int i = 0; i < cols.length; i++) {
         if (headerExists(cols[i])) {
@@ -1023,11 +1023,11 @@ public class ListGrid implements Grid, Serializable {
           addValue(value);
           headersSet.add(columnLabel);
 
-          rowContextItem = getRowContextItem(rs, cols[i], value, i);
+          rowContextItems.putAll(getRowContextItem(rs, cols[i], value, i));
         }
       }
-      if (!rowContextItem.isEmpty()) {
-        rowContext.put(currentRowWriteIndex, rowContextItem);
+      if (!rowContextItems.isEmpty()) {
+        rowContext.put(currentRowWriteIndex, rowContextItems);
       }
     }
 

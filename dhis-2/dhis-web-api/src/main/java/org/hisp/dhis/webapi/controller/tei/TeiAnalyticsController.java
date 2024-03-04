@@ -43,6 +43,7 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.ImmutableSet;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
@@ -217,6 +218,15 @@ class TeiAnalyticsController {
       TeiQueryRequest teiQueryRequest,
       CommonQueryRequest commonQueryRequest,
       Function<TeiQueryParams, Grid> executor) {
+    CommonQueryRequest originalRequest =
+        commonQueryRequest
+            .withDimension(ImmutableSet.copyOf(commonQueryRequest.getDimension()))
+            .withFilter(ImmutableSet.copyOf(commonQueryRequest.getFilter()))
+            .withHeaders(ImmutableSet.copyOf(commonQueryRequest.getHeaders()))
+            .withAsc(ImmutableSet.copyOf(commonQueryRequest.getAsc()))
+            .withDesc(ImmutableSet.copyOf(commonQueryRequest.getDesc()))
+            .withProgram(ImmutableSet.copyOf(commonQueryRequest.getProgram()));
+
     QueryRequest<TeiQueryRequest> queryRequest =
         QueryRequest.<TeiQueryRequest>builder()
             .request(teiQueryRequest.withTrackedEntityType(trackedEntityType))
@@ -225,7 +235,7 @@ class TeiAnalyticsController {
 
     teiQueryRequestValidator.validate(queryRequest);
 
-    return executor.apply(mapper.map(queryRequest));
+    return executor.apply(mapper.map(queryRequest, originalRequest));
   }
 
   /**

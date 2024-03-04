@@ -119,6 +119,7 @@ public class AccountController {
 
   @PostMapping("/recovery")
   @ResponseBody
+  @Deprecated(forRemoval = true, since = "2.41")
   public WebMessage recoverAccount(@RequestParam String username, HttpServletRequest request)
       throws WebMessageException {
     if (!systemSettingManager.accountRecoveryEnabled()) {
@@ -165,6 +166,7 @@ public class AccountController {
 
   @PostMapping("/restore")
   @ResponseBody
+  @Deprecated(forRemoval = true, since = "2.41")
   public WebMessage restoreAccount(@RequestParam String token, @RequestParam String password) {
     String[] idAndRestoreToken = userService.decodeEncodedTokens(token);
     String idToken = idAndRestoreToken[0];
@@ -395,7 +397,7 @@ public class AccountController {
     user.setSelfRegistered(true);
     user.getUserRoles().add(userRole);
 
-    userService.addUser(user);
+    userService.addUser(user, new SystemUser());
 
     log.info("Created user with username: " + user.getUsername());
 
