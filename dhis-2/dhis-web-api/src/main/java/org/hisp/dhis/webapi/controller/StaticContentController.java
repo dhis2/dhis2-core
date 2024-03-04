@@ -44,6 +44,7 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.getContextPath;
 import static org.hisp.dhis.webapi.utils.FileResourceUtils.build;
 import static org.springframework.http.HttpStatus.FOUND;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
+import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.UNSUPPORTED_MEDIA_TYPE;
 import static org.springframework.http.MediaType.IMAGE_PNG_VALUE;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
@@ -170,6 +171,7 @@ public class StaticContentController {
    * @param key key associated with the file.
    */
   @GetMapping("/{key}")
+  @ResponseStatus(OK)
   public void getStaticContent(
       @PathVariable("key") String key, HttpServletRequest request, HttpServletResponse response)
       throws WebMessageException {
@@ -178,7 +180,6 @@ public class StaticContentController {
     }
 
     boolean useCustomFile = systemSettingManager.getBoolSetting(KEY_WHITELIST_MAP.get(key));
-
     if (!useCustomFile) // Serve default
     {
       try {
@@ -190,7 +191,6 @@ public class StaticContentController {
     {
       try {
         response.setContentType(IMAGE_PNG_VALUE);
-
         contentStore.copyContent(
             makeKey(DEFAULT_RESOURCE_DOMAIN, Optional.of(key)), response.getOutputStream());
       } catch (NoSuchElementException e) {
