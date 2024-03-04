@@ -32,6 +32,7 @@ import static org.hisp.dhis.db.model.Table.toStaging;
 import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
@@ -88,12 +89,19 @@ public class CategoryOptionComboResourceTable extends AbstractResourceTable {
         (dataelementid, dataelementuid, categoryoptioncomboid, categoryoptioncombouid) \
         select de.dataelementid as dataelementid, de.uid as dataelementuid, \
         coc.categoryoptioncomboid as categoryoptioncomboid, coc.uid as categoryoptioncombouid \
-        from dataelement de \
-        inner join categorycombos_optioncombos cc on de.categorycomboid = cc.categorycomboid \
-        inner join categoryoptioncombo coc on cc.categoryoptioncomboid = coc.categoryoptioncomboid;
+        from ${dataelement} de \
+        inner join ${categorycombos_optioncombos} cc on de.categorycomboid = cc.categorycomboid \
+        inner join ${categoryoptioncombo} coc on cc.categoryoptioncomboid = coc.categoryoptioncomboid;
         """,
-            "tableName",
-            toStaging(TABLE_NAME));
+            Map.of(
+                "tableName",
+                toStaging(TABLE_NAME),
+                "dataelement",
+                qualify("dataelement"),
+                "categorycombos_optioncombos",
+                qualify("categorycombos_optioncombos"),
+                "categoryoptioncombo",
+                qualify("categoryoptioncombo")));
 
     return Optional.of(sql);
   }

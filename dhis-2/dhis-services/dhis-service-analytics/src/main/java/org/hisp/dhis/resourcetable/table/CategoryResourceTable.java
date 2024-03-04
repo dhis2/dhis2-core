@@ -119,22 +119,31 @@ public class CategoryResourceTable extends AbstractResourceTable {
           replace(
               """
             (
-              select co.name from categoryoptioncombos_categoryoptions cocco \
-              inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid \
-              inner join categories_categoryoptions cco on co.categoryoptionid = cco.categoryoptionid \
+              select co.name from ${categoryoptioncombos_categoryoptions} cocco \
+              inner join ${categoryoption} co on cocco.categoryoptionid = co.categoryoptionid \
+              inner join ${categories_categoryoptions} cco on co.categoryoptionid = cco.categoryoptionid \
               where coc.categoryoptioncomboid = cocco.categoryoptioncomboid \
               and cco.categoryid = ${categoryId} limit 1) as ${categoryName}, \
               (
-              select co.uid from categoryoptioncombos_categoryoptions cocco \
-              inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid \
-              inner join categories_categoryoptions cco on co.categoryoptionid = cco.categoryoptionid \
+              select co.uid from ${categoryoptioncombos_categoryoptions} cocco \
+              inner join ${categoryoption} co on cocco.categoryoptionid = co.categoryoptionid \
+              inner join ${categories_categoryoptions} cco on co.categoryoptionid = cco.categoryoptionid \
               where coc.categoryoptioncomboid = cocco.categoryoptioncomboid
               and cco.categoryid = ${categoryId} limit 1) as ${categoryUid}, \
               """,
               Map.of(
-                  "categoryId", valueOf(category.getId()),
-                  "categoryName", quote(category.getName()),
-                  "categoryUid", quote(category.getUid())));
+                  "categoryId",
+                  valueOf(category.getId()),
+                  "categoryName",
+                  quote(category.getName()),
+                  "categoryUid",
+                  quote(category.getUid()),
+                  "categoryoptioncombos_categoryoptions",
+                  qualify("categoryoptioncombos_categoryoptions"),
+                  "categoryoption",
+                  qualify("categoryoption"),
+                  "categories_categoryoptions",
+                  qualify("categories_categoryoptions")));
     }
 
     for (CategoryOptionGroupSet groupSet : groupSets) {
@@ -142,10 +151,10 @@ public class CategoryResourceTable extends AbstractResourceTable {
           replace(
               """
             (
-              select cog.name from categoryoptioncombos_categoryoptions cocco \
-              inner join categoryoptiongroupmembers cogm on cocco.categoryoptionid = cogm.categoryoptionid \
-              inner join categoryoptiongroup cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid \
-              inner join categoryoptiongroupsetmembers cogsm on cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid \
+              select cog.name from ${categoryoptioncombos_categoryoptions} cocco \
+              inner join ${categoryoptiongroupmembers} cogm on cocco.categoryoptionid = cogm.categoryoptionid \
+              inner join ${categoryoptiongroup} cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid \
+              inner join ${categoryoptiongroupsetmembers} cogsm on cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid \
               where coc.categoryoptioncomboid = cocco.categoryoptioncomboid \
               and cogsm.categoryoptiongroupsetid = ${groupSetId} limit 1) as ${groupSetName}, \
               (
@@ -159,7 +168,12 @@ public class CategoryResourceTable extends AbstractResourceTable {
               Map.of(
                   "groupSetId", valueOf(groupSet.getId()),
                   "groupSetName", quote(groupSet.getName()),
-                  "groupSetUid", quote(groupSet.getUid())));
+                  "groupSetUid", quote(groupSet.getUid()),
+                  "categoryoptioncombos_categoryoptions",
+                      qualify("categoryoptioncombos_categoryoptions"),
+                  "categoryoptiongroupmembers", qualify("categoryoptiongroupmembers"),
+                  "categoryoptiongroup", qualify("categoryoptiongroup"),
+                  "categoryoptiongroupsetmembers", qualify("categoryoptiongroupsetmembers")));
     }
 
     sql = TextUtils.removeLastComma(sql) + " ";
