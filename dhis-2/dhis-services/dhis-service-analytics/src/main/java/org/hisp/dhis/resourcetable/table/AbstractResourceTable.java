@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,27 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentityattributevalue;
+package org.hisp.dhis.resourcetable.table;
 
-import java.util.List;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.resourcetable.ResourceTable;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Lars Helge Overland
  */
-public interface TrackedEntityAttributeValueChangeLogService {
-  void addTrackedEntityAttributeValueChangLog(
-      TrackedEntityAttributeValueChangeLog trackedEntityAttributeValueChangeLog);
+@RequiredArgsConstructor
+public abstract class AbstractResourceTable implements ResourceTable {
+  protected final SqlBuilder sqlBuilder;
+
+  protected final Logged logged;
 
   /**
-   * @deprecated use TrackedEntityChangeLogService.getEventChangeLog(UID) instead
+   * @param relation the relation to quote, e.g. a table or column name.
+   * @return a double quoted relation.
    */
-  @Deprecated(since = "2.41")
-  List<TrackedEntityAttributeValueChangeLog> getTrackedEntityAttributeValueChangeLogs(
-      TrackedEntityAttributeValueChangeLogQueryParams params);
+  protected String quote(String relation) {
+    return sqlBuilder.quote(relation);
+  }
 
-  int countTrackedEntityAttributeValueChangeLogs(
-      TrackedEntityAttributeValueChangeLogQueryParams params);
-
-  void deleteTrackedEntityAttributeValueChangeLogs(TrackedEntity trackedEntity);
+  /**
+   * @param name the table name.
+   * @return a fully qualified and quoted table reference which specifies the catalog, database and
+   *     table.
+   */
+  protected String qualify(String name) {
+    return sqlBuilder.qualifyTable(name);
+  }
 }
