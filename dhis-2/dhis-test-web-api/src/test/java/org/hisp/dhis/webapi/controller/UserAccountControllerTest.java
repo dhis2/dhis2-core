@@ -38,7 +38,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.auth.SelfRegistrationForm;
-import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.message.FakeMessageSender;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -80,16 +79,10 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
 
     String newPassword = "Abxf123###...";
 
-    HttpResponse response =
-        POST(
+    POST(
             "/auth/passwordReset",
-            "{'newPassword':'%s', 'resetToken':'%s'}".formatted(newPassword, token));
-
-    JsonMixed jsonValues = response.contentUnchecked();
-
-    log.error("jsonValues: {}", jsonValues);
-
-    response.content(HttpStatus.OK);
+            "{'newPassword':'%s', 'resetToken':'%s'}".formatted(newPassword, token))
+        .content(HttpStatus.OK);
 
     User updatedUser = userService.getUserByUsername(test.getUsername());
 

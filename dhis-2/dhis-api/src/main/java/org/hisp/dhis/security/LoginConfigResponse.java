@@ -42,10 +42,13 @@ import lombok.NoArgsConstructor;
 @Builder
 public class LoginConfigResponse {
 
+  @JsonProperty private String apiVersion;
+
   @JsonProperty private String applicationTitle;
   @JsonProperty private String applicationDescription;
   @JsonProperty private String applicationNotification;
   @JsonProperty private String applicationLeftSideFooter;
+  @JsonProperty private String applicationRightSideFooter;
   @JsonProperty private String countryFlag;
   @JsonProperty private String uiLocale;
   @JsonProperty private String loginPageLogo;

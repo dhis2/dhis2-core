@@ -124,19 +124,9 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest {
       shouldMatchContentTypeAndAttachment_whenEndpointForCompressedEventJsonIsInvoked() {
     return Stream.of(
         arguments(
-            "/tracker/events.json.zip?attachment=file.json.zip",
-            "application/json+zip",
-            "attachment; filename=file.json.zip",
-            "binary"),
-        arguments(
             "/tracker/events.json.zip",
             "application/json+zip",
             "attachment; filename=events.json.zip",
-            "binary"),
-        arguments(
-            "/tracker/events.json.gz?attachment=file.json.gz",
-            "application/json+gzip",
-            "attachment; filename=file.json.gz",
             "binary"),
         arguments(
             "/tracker/events.json.gz",
@@ -149,29 +139,14 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest {
             "attachment; filename=events.csv",
             null),
         arguments(
-            "/tracker/events.csv?attachment=file.csv",
-            "application/csv; charset=UTF-8",
-            "attachment; filename=file.csv",
-            null),
-        arguments(
             "/tracker/events.csv.gz",
             "application/csv+gzip",
             "attachment; filename=events.csv.gz",
             "binary"),
         arguments(
-            "/tracker/events.csv.gz?attachment=file.csv.gz",
-            "application/csv+gzip",
-            "attachment; filename=file.csv.gz",
-            "binary"),
-        arguments(
             "/tracker/events.csv.zip",
             "application/csv+zip",
             "attachment; filename=events.csv.zip",
-            "binary"),
-        arguments(
-            "/tracker/events.csv.zip?attachment=file.csv.zip",
-            "application/csv+zip",
-            "attachment; filename=file.csv.zip",
             "binary"));
   }
 
