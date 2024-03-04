@@ -63,11 +63,10 @@ public class SqlBuilderProvider {
     String driverFilename = config.getAnalyticsDatabaseDriverFilename();
 
     Objects.requireNonNull(database);
-    switch (database) {
-      case DORIS:
-        return new DorisSqlBuilder(catalog, driverFilename);
-      default:
-        return new PostgreSqlBuilder();
-    }
+
+    return switch (database) {
+      case DORIS -> new DorisSqlBuilder(catalog, driverFilename);
+      case POSTGRESQL -> new PostgreSqlBuilder();
+    };
   }
 }
