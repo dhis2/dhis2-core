@@ -106,7 +106,7 @@ public class DataApprovalMinLevelResourceTable extends AbstractResourceTable {
       sql += "ous.idlevel" + level.getLevel() + " = da2.organisationunitid or ";
     }
 
-    sql = TextUtils.removeLastOr(sql) + "))";
+    sql = TextUtils.removeLastOr(sql) + "));";
 
     return Optional.of(
         replace(sql, "tableName", toStaging(TABLE_NAME), "dataapproval", qualify("dataapproval")));

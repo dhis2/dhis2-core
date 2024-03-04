@@ -28,6 +28,7 @@
 package org.hisp.dhis.resourcetable.table;
 
 import static java.lang.String.valueOf;
+import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
 
@@ -124,7 +125,7 @@ public class IndicatorGroupSetResourceTable extends AbstractResourceTable {
     }
 
     sql = TextUtils.removeLastComma(sql) + " ";
-    sql += "from indicator i";
+    sql += format("from {} i;", qualify("indicator"));
 
     return Optional.of(sql);
   }

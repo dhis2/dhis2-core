@@ -28,6 +28,7 @@
 package org.hisp.dhis.resourcetable.table;
 
 import static java.lang.String.valueOf;
+import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
 
@@ -124,7 +125,8 @@ public class DataElementGroupSetResourceTable extends AbstractResourceTable {
     }
 
     sql = TextUtils.removeLastComma(sql) + " ";
-    sql += "from dataelement d";
+    sql += format("from {} d;", qualify("dataelement"));
+    ;
 
     return Optional.of(sql);
   }

@@ -98,7 +98,7 @@ public class DataApprovalRemapLevelResourceTable extends AbstractResourceTable {
         where w2.workflowid=w.workflowid \
         and l2.level < l.level), 0) as level \
         from ${dataapprovalworkflowlevels} w \
-        inner join ${dataapprovallevel} l on l.dataapprovallevelid=w.dataapprovallevelid
+        inner join ${dataapprovallevel} l on l.dataapprovallevelid=w.dataapprovallevelid;
         """,
             Map.of(
                 "tableName",
