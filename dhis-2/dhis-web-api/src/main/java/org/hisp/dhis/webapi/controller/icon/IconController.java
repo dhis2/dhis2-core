@@ -189,7 +189,7 @@ public class IconController {
   }
 
   @PostMapping
-  public WebMessage addCustomIcon(HttpServletRequest request)
+  public WebMessage addIcon(HttpServletRequest request)
       throws IOException, BadRequestException, NotFoundException {
 
     IconRequest iconRequest = renderService.fromJson(request.getInputStream(), IconRequest.class);
@@ -201,7 +201,7 @@ public class IconController {
   }
 
   @PutMapping(value = "/{key}")
-  public WebMessage updateCustomIcon(@PathVariable String key, HttpServletRequest request)
+  public WebMessage updateIcon(@PathVariable String key, HttpServletRequest request)
       throws IOException, NotFoundException, WebMessageException, BadRequestException {
 
     Icon persisted = iconService.getIcon(key);
@@ -221,7 +221,7 @@ public class IconController {
   }
 
   @DeleteMapping(value = "/{key}")
-  public WebMessage deleteCustomIcon(@PathVariable String key)
+  public WebMessage deleteIcon(@PathVariable String key)
       throws NotFoundException, WebMessageException, BadRequestException {
 
     Icon icon = iconService.getIcon(key);

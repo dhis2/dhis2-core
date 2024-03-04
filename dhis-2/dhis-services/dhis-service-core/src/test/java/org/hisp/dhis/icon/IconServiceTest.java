@@ -62,7 +62,7 @@ class IconServiceTest extends DhisConvenienceTest {
   @Spy @InjectMocks private DefaultIconService iconService;
 
   @Test
-  void shouldSaveCustomIconWhenIconHasNoDuplicatedKeyAndFileResourceExists()
+  void shouldSaveIconWhenIconHasNoDuplicatedKeyAndFileResourceExists()
       throws BadRequestException, NotFoundException {
     String uniqueKey = "key";
     String fileResourceUid = "12345";
@@ -83,7 +83,7 @@ class IconServiceTest extends DhisConvenienceTest {
   }
 
   @Test
-  void shouldFailWhenSavingCustomIconWithEmptyKey() {
+  void shouldFailWhenSavingIconWithEmptyKey() {
     String emptyKey = "";
 
     FileResource fileResource = createFileResource('B', "123".getBytes());
@@ -94,12 +94,12 @@ class IconServiceTest extends DhisConvenienceTest {
                 iconService.addIcon(
                     new Icon(emptyKey, "description", Set.of("keyword1"), true, fileResource)));
 
-    String expectedMessage = "CustomIcon key not specified.";
+    String expectedMessage = "Icon key not specified.";
     assertEquals(expectedMessage, exception.getMessage());
   }
 
   @Test
-  void shouldFailWhenSavingCustomIconWithNonExistentFileResourceId() {
+  void shouldFailWhenSavingIconWithNonExistentFileResourceId() {
     String iconKey = "default-key";
     String fileResourceUid = "12345";
     FileResource fileResource = createFileResource('B', "123".getBytes());
@@ -120,7 +120,7 @@ class IconServiceTest extends DhisConvenienceTest {
   }
 
   @Test
-  void shouldFailWhenSavingCustomIconAndIconWithSameKeyExists() {
+  void shouldFailWhenSavingIconAndIconWithSameKeyExists() {
     FileResource fileResource = createFileResource('B', "123".getBytes());
 
     String duplicatedKey = "customkey";
@@ -135,12 +135,12 @@ class IconServiceTest extends DhisConvenienceTest {
                     new Icon(
                         duplicatedKey, "description", Set.of("keyword1"), true, fileResource)));
 
-    String expectedMessage = "CustomIcon with key " + duplicatedKey + " already exists.";
+    String expectedMessage = "Icon with key " + duplicatedKey + " already exists.";
     assertEquals(expectedMessage, exception.getMessage());
   }
 
   @Test
-  void shouldFailWhenSavingCustomIconWithNoFileResourceId() {
+  void shouldFailWhenSavingIconWithNoFileResourceId() {
     FileResource fileResource = createFileResource('c', "123".getBytes());
 
     String iconKey = "key";
@@ -152,43 +152,39 @@ class IconServiceTest extends DhisConvenienceTest {
   }
 
   @Test
-  void shouldUpdateCustomIcon() throws BadRequestException {
+  void shouldUpdateIcon() throws BadRequestException {
 
-    Icon icon =
-        createCustomIcon('I', Set.of("k1", "k2"), createFileResource('F', "123".getBytes()));
+    Icon icon = createIcon('I', Set.of("k1", "k2"), createFileResource('F', "123".getBytes()));
     iconService.updateIcon(icon);
 
     verify(iconStore, times(1)).update(any(Icon.class));
   }
 
   @Test
-  void shouldFailWhenUpdatingCustomIconWithoutKey() {
+  void shouldFailWhenUpdatingIconWithoutKey() {
 
-    Icon icon =
-        createCustomIcon('I', Set.of("k1", "k2"), createFileResource('F', "123".getBytes()));
+    Icon icon = createIcon('I', Set.of("k1", "k2"), createFileResource('F', "123".getBytes()));
     icon.setKey(null);
     Exception exception =
         assertThrows(BadRequestException.class, () -> iconService.updateIcon(icon));
 
-    String expectedMessage = "CustomIcon key not specified.";
+    String expectedMessage = "Icon key not specified.";
     assertEquals(expectedMessage, exception.getMessage());
   }
 
   @Test
-  void shouldFailWhenUpdatingNonExistingCustomIcon() {
+  void shouldFailWhenUpdatingNonExistingIcon() {
 
     Exception exception =
         assertThrows(BadRequestException.class, () -> iconService.updateIcon(null));
 
-    assertEquals("CustomIcon cannot be null.", exception.getMessage());
+    assertEquals("Icon cannot be null.", exception.getMessage());
   }
 
   @Test
-  void shouldDeleteIconWhenKeyPresentAndCustomIconExists()
-      throws BadRequestException, NotFoundException {
+  void shouldDeleteIconWhenKeyPresentAndIconExists() throws BadRequestException, NotFoundException {
 
-    Icon icon =
-        createCustomIcon('I', Set.of("k1", "k2"), createFileResource('F', "123".getBytes()));
+    Icon icon = createIcon('I', Set.of("k1", "k2"), createFileResource('F', "123".getBytes()));
 
     when(iconStore.getIconByKey(anyString())).thenReturn(icon);
     when(fileResourceService.getFileResource(anyString(), any(FileResourceDomain.class)))
@@ -200,24 +196,24 @@ class IconServiceTest extends DhisConvenienceTest {
   }
 
   @Test
-  void shouldFailWhenDeletingCustomIconWithoutKey() {
+  void shouldFailWhenDeletingIconWithoutKey() {
 
     Icon iconWithNullKey =
-        createCustomIcon('I', Set.of("k1", "k2"), createFileResource('F', "123".getBytes()));
+        createIcon('I', Set.of("k1", "k2"), createFileResource('F', "123".getBytes()));
     iconWithNullKey.setKey(null);
 
     Exception exception =
         assertThrows(BadRequestException.class, () -> iconService.deleteIcon(iconWithNullKey));
 
-    String expectedMessage = "CustomIcon key not specified.";
+    String expectedMessage = "Icon key not specified.";
     assertEquals(expectedMessage, exception.getMessage());
   }
 
   @Test
-  void shouldFailWhenDeletingNonExistingCustomIcon() {
+  void shouldFailWhenDeletingNonExistingIcon() {
     String key = "non-existent-icon";
     Icon nonExistentIcon =
-        createCustomIcon('I', Set.of("k1", "k2"), createFileResource('F', "123".getBytes()));
+        createIcon('I', Set.of("k1", "k2"), createFileResource('F', "123".getBytes()));
     nonExistentIcon.setKey(key);
 
     when(iconStore.getIconByKey(anyString())).thenReturn(null);
@@ -225,7 +221,7 @@ class IconServiceTest extends DhisConvenienceTest {
     Exception exception =
         assertThrows(NotFoundException.class, () -> iconService.deleteIcon(nonExistentIcon));
 
-    String expectedMessage = String.format("CustomIcon not found: %s", key);
+    String expectedMessage = String.format("Icon not found: %s", key);
     assertEquals(expectedMessage, exception.getMessage());
   }
 }

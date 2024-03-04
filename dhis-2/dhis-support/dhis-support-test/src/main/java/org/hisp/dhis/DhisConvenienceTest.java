@@ -2212,8 +2212,7 @@ public abstract class DhisConvenienceTest {
     return fileResource;
   }
 
-  public static Icon createCustomIcon(
-      char uniqueChar, Set<String> keywords, FileResource fileResource) {
+  public static Icon createIcon(char uniqueChar, Set<String> keywords, FileResource fileResource) {
 
     Icon icon = new Icon();
     icon.setAutoFields();

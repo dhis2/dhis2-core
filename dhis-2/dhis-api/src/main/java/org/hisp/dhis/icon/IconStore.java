@@ -33,7 +33,7 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 public interface IconStore extends IdentifiableObjectStore<Icon> {
 
   /**
-   * Get the count of CustomIcons based on filters provided in {@link IconOperationParams}
+   * Get the count of Icons based on filters provided in {@link IconOperationParams}
    *
    * @param params filters
    * @return total count
@@ -44,7 +44,7 @@ public interface IconStore extends IdentifiableObjectStore<Icon> {
    * Get list of Icons based on filters provided in {@link IconOperationParams}
    *
    * @param params filters to build query
-   * @return list of CustomIcons
+   * @return list of Icons
    */
   Set<Icon> getIcons(IconOperationParams params);
 

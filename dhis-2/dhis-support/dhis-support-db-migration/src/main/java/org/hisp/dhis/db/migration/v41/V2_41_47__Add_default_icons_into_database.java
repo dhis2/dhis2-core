@@ -66,7 +66,7 @@ public class V2_41_47__Add_default_icons_into_database extends BaseJavaMigration
   @Override
   public void migrate(Context context) throws Exception {
 
-    Map<String, Icon> customIconMap =
+    Map<String, Icon> defaultIconsMap =
         Arrays.stream(DefaultIcon.values())
             .map(this::createIconWithVariants)
             .flatMap(Collection::stream)
@@ -74,7 +74,7 @@ public class V2_41_47__Add_default_icons_into_database extends BaseJavaMigration
 
     try (PreparedStatement ps = context.getConnection().prepareStatement(INSERT_DEFAULT_ICONS)) {
 
-      for (Map.Entry<String, Icon> entry : customIconMap.entrySet()) {
+      for (Map.Entry<String, Icon> entry : defaultIconsMap.entrySet()) {
         ps.setString(1, "code_" + CodeGenerator.generateCode(5));
         ps.setString(2, entry.getValue().getKey());
         ps.setString(3, entry.getValue().getDescription());
