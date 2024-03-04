@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,41 +25,53 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.icon;
+package org.hisp.dhis.webapi.controller.icon;
 
-import java.util.Set;
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
+import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.icon.IconTypeFilter;
 
-public interface CustomIconStore extends IdentifiableObjectStore<CustomIcon> {
+/**
+ * @author Zubair Asghar
+ */
+@Data
+@NoArgsConstructor
+public class IconRequestParams {
 
-  /**
-   * Get the count of CustomIcons based on filters provided in {@link CustomIconOperationParams}
-   *
-   * @param params filters
-   * @return total count
-   */
-  long count(CustomIconOperationParams params);
+  static final String DEFAULT_FIELDS_PARAM = "key,keywords,description,fileResource,createdBy,href";
 
-  /**
-   * Get list of CustomIcons based on filters provided in {@link CustomIconOperationParams}
-   *
-   * @param params filters to build query
-   * @return list of CustomIcons
-   */
-  Set<CustomIcon> getCustomIcons(CustomIconOperationParams params);
+  private List<String> keys = new ArrayList<>();
+  private List<String> keywords = new ArrayList<>();
+  private Date createdStartDate;
+  private Date createdEndDate;
+  private Date lastUpdatedStartDate;
+  private Date lastUpdatedEndDate;
+  private IconTypeFilter type = IconTypeFilter.ALL;
+  private boolean paging = false;
+  private int pageSize = Pager.DEFAULT_PAGE_SIZE;
+  private int page = 1;
 
-  /**
-   * Returns a custom icon that contains a given key
-   *
-   * @param key of the icon
-   * @return the custom icon matching the key, or null instead
-   */
-  CustomIcon getCustomIconByKey(String key);
+  private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
 
-  /**
-   * Gets a set of all unique keywords assigned to icons
-   *
-   * @return set of unique keywords
-   */
-  Set<String> getKeywords();
+  public boolean hasCreatedStartDate() {
+    return createdStartDate != null;
+  }
+
+  public boolean hasCreatedEndDate() {
+    return createdEndDate != null;
+  }
+
+  public boolean hasLastUpdatedStartDate() {
+    return lastUpdatedStartDate != null;
+  }
+
+  public boolean hasLastUpdatedEndDate() {
+    return lastUpdatedEndDate != null;
+  }
 }

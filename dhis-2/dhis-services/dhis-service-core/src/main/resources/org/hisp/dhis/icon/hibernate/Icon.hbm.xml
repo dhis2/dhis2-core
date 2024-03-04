@@ -6,9 +6,9 @@
         >
 
 <hibernate-mapping>
-    <class name="org.hisp.dhis.icon.CustomIcon" table="customicon">
+    <class name="org.hisp.dhis.icon.Icon" table="icon">
 
-        <id name="id" column="customiconid">
+        <id name="id" column="icon">
             <generator class="native" />
         </id>
         &identifiableProperties;

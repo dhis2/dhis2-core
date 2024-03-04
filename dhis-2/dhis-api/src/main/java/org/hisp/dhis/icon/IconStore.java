@@ -25,30 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.icon;
+package org.hisp.dhis.icon;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Set;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
-@Builder
-@Getter
-@AllArgsConstructor
-@NoArgsConstructor
-class CustomIconRequest {
+public interface IconStore extends IdentifiableObjectStore<Icon> {
 
-  @JsonProperty private String key;
+  /**
+   * Get the count of CustomIcons based on filters provided in {@link IconOperationParams}
+   *
+   * @param params filters
+   * @return total count
+   */
+  long count(IconOperationParams params);
 
-  @JsonProperty private String code;
+  /**
+   * Get list of Icons based on filters provided in {@link IconOperationParams}
+   *
+   * @param params filters to build query
+   * @return list of CustomIcons
+   */
+  Set<Icon> getIcons(IconOperationParams params);
 
-  @JsonProperty private String description;
+  /**
+   * Returns an icon that contains a given key
+   *
+   * @param key of the icon
+   * @return the custom icon matching the key, or null instead
+   */
+  Icon getIconByKey(String key);
 
-  @JsonProperty private Set<String> keywords;
-
-  @JsonProperty private String fileResourceId;
-
-  @Builder.Default @JsonProperty private Boolean custom = true;
+  /**
+   * Gets a set of all unique keywords assigned to icons
+   *
+   * @return set of unique keywords
+   */
+  Set<String> getKeywords();
 }

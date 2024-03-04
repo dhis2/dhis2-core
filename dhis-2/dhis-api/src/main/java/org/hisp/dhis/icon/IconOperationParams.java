@@ -35,13 +35,13 @@ import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.Pager;
 
 /**
- * Represents query parameters sent to {@link org.hisp.dhis.icon.CustomIcon}.
+ * Represents query parameters sent to {@link Icon}.
  *
  * @author Zubair Asghar
  */
 @Data
 @NoArgsConstructor
-public class CustomIconOperationParams {
+public class IconOperationParams {
 
   private List<String> keys = new ArrayList<>();
   private List<String> keywords = new ArrayList<>();

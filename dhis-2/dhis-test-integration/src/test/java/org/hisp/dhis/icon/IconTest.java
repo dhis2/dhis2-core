@@ -58,11 +58,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.MimeTypeUtils;
 
 @Slf4j
-class CustomIconTest extends TrackerTest {
+class IconTest extends TrackerTest {
 
   @Autowired private FileResourceService fileResourceService;
 
-  @Autowired private CustomIconService iconService;
+  @Autowired private IconService iconService;
 
   @Autowired private UserService _userService;
 
@@ -70,7 +70,7 @@ class CustomIconTest extends TrackerTest {
   private final String Key = "iconKey";
   private final String uid = CodeGenerator.generateUid();
 
-  private CustomIcon customIcon;
+  private Icon icon;
   private FileResource fileResource;
   private User currentUser;
 
@@ -84,24 +84,24 @@ class CustomIconTest extends TrackerTest {
 
     keywords.addAll(Set.of("k1", "k2", "m1"));
     fileResource = createAndPersistFileResource('A');
-    customIcon = new CustomIcon(Key, "description", keywords, true, fileResource);
+    icon = new Icon(Key, "description", keywords, true, fileResource);
 
     try {
-      customIcon.setUid(uid);
-      iconService.addCustomIcon(customIcon);
+      icon.setUid(uid);
+      iconService.addIcon(icon);
     } catch (NotFoundException | BadRequestException e) {
       log.error("CustomIcon creation failed");
     }
   }
 
   @Test
-  void shouldGetCustomIconByKey() throws NotFoundException {
-    assertCustomIcon(iconService.getCustomIcon(Key));
+  void shouldGetIconByKey() throws NotFoundException {
+    assertIcon(iconService.getIcon(Key));
   }
 
   @Test
-  void shouldGetCustomIconByUid() throws NotFoundException {
-    assertCustomIcon(iconService.getCustomIconByUid(uid));
+  void shouldGetIconByUid() throws NotFoundException {
+    assertIcon(iconService.getIconByUid(uid));
   }
 
   @Test
@@ -111,9 +111,9 @@ class CustomIconTest extends TrackerTest {
 
     Set<String> words = Sets.newHashSet();
     words.addAll(Set.of("m1", "m2"));
-    CustomIcon customIcon2 = new CustomIcon("iconKey2", "description", words, true, fileResource);
+    Icon icon2 = new Icon("iconKey2", "description", words, true, fileResource);
 
-    iconService.addCustomIcon(customIcon2);
+    iconService.addIcon(icon2);
 
     Set<String> keywords = iconService.getKeywords();
 
@@ -121,121 +121,110 @@ class CustomIconTest extends TrackerTest {
   }
 
   @Test
-  void shouldGetIconDataWhenKeyBelongsToCustomIcon() throws NotFoundException {
+  void shouldGetIconDataWhenKeyBelongsToIcon() throws NotFoundException {
 
-    assertNotNull(iconService.getCustomIconResource(Key));
+    assertNotNull(iconService.getIconResource(Key));
   }
 
   @Test
-  void shouldSaveCustomIconWithNoKeywords() throws BadRequestException, NotFoundException {
+  void shouldSaveIconWithNoKeywords() throws BadRequestException, NotFoundException {
     FileResource fileResource = createAndPersistFileResource('D');
 
-    CustomIcon customIconWithNoKeywords =
-        new CustomIcon("iconKey2", "description", null, true, fileResource);
+    Icon iconWithNoKeywords = new Icon("iconKey2", "description", null, true, fileResource);
 
-    iconService.addCustomIcon(customIconWithNoKeywords);
+    iconService.addIcon(iconWithNoKeywords);
 
-    assertCustomIcon(iconService.getCustomIcon("iconKey"));
+    assertIcon(iconService.getIcon("iconKey"));
   }
 
   @Test
-  void shouldUpdateLastUpdatedWhenCustomIconIsUpdated()
-      throws BadRequestException, NotFoundException {
+  void shouldUpdateLastUpdatedWhenIconIsUpdated() throws BadRequestException, NotFoundException {
 
-    CustomIcon customIconUpdated = customIcon;
-    customIconUpdated.setKey("key-updated");
-    customIconUpdated.setDescription("description updated");
+    Icon iconUpdated = icon;
+    iconUpdated.setKey("key-updated");
+    iconUpdated.setDescription("description updated");
 
-    iconService.updateCustomIcon(customIconUpdated);
+    iconService.updateIcon(iconUpdated);
 
-    CustomIcon fetched = iconService.getCustomIcon("key-updated");
+    Icon fetched = iconService.getIcon("key-updated");
 
     assertEquals("key-updated", fetched.getKey());
     assertEquals("description updated", fetched.getDescription());
   }
 
   @Test
-  void shouldFailWhenUpdatingCustomIconWithNoKey() throws BadRequestException, NotFoundException {
+  void shouldFailWhenUpdatingIconWithNoKey() throws BadRequestException, NotFoundException {
 
     String invalidKey = "k1 m2";
 
-    CustomIcon customIconUpdated = customIcon;
-    customIconUpdated.setKey(invalidKey);
-    customIconUpdated.setDescription("description updated");
+    Icon iconUpdated = icon;
+    iconUpdated.setKey(invalidKey);
+    iconUpdated.setDescription("description updated");
 
     Exception exception =
-        assertThrows(
-            BadRequestException.class, () -> iconService.updateCustomIcon(customIconUpdated));
+        assertThrows(BadRequestException.class, () -> iconService.updateIcon(iconUpdated));
 
     assertEquals(
         String.format(
-            "CustomIcon key %s is not valid. Alphanumeric and special characters are allowed",
+            "Icon key %s is not valid. Alphanumeric and special characters are allowed",
             invalidKey),
         exception.getMessage());
   }
 
   @Test
-  void shouldFailWhenSavingCustomIconWithNoKey() {
+  void shouldFailWhenSavingIconWithNoKey() {
     FileResource fileResource = createAndPersistFileResource('B');
 
-    CustomIcon customIconWithNullKey =
-        new CustomIcon(null, "description", keywords, true, fileResource);
+    Icon iconWithNullKey = new Icon(null, "description", keywords, true, fileResource);
     Exception exception =
-        assertThrows(
-            BadRequestException.class, () -> iconService.addCustomIcon(customIconWithNullKey));
+        assertThrows(BadRequestException.class, () -> iconService.addIcon(iconWithNullKey));
 
-    assertEquals("CustomIcon key not specified.", exception.getMessage());
+    assertEquals("Icon key not specified.", exception.getMessage());
   }
 
   @Test
-  void shouldFailWhenSavingCustomIconWithInvalidKey() {
+  void shouldFailWhenSavingIconWithInvalidKey() {
     FileResource fileResource = createAndPersistFileResource('B');
     String invalidKey = "k1 m1";
-    CustomIcon customIconWithInvalidKey =
-        new CustomIcon(invalidKey, "description", keywords, true, fileResource);
+    Icon iconWithInvalidKey = new Icon(invalidKey, "description", keywords, true, fileResource);
     Exception exception =
-        assertThrows(
-            BadRequestException.class, () -> iconService.addCustomIcon(customIconWithInvalidKey));
+        assertThrows(BadRequestException.class, () -> iconService.addIcon(iconWithInvalidKey));
 
     assertEquals(
         String.format(
-            "CustomIcon key %s is not valid. Alphanumeric and special characters are allowed",
+            "Icon key %s is not valid. Alphanumeric and special characters are allowed",
             invalidKey),
         exception.getMessage());
   }
 
   @Test
-  void shouldFailWhenCustomIconKeyDoesNotExist() {
+  void shouldFailWhenIconKeyDoesNotExist() {
 
     String nonExistingKey = "non-existent-Key";
     Exception exception =
-        assertThrows(NotFoundException.class, () -> iconService.getCustomIcon(nonExistingKey));
+        assertThrows(NotFoundException.class, () -> iconService.getIcon(nonExistingKey));
 
-    assertEquals(String.format("CustomIcon not found: %s", nonExistingKey), exception.getMessage());
+    assertEquals(String.format("Icon not found: %s", nonExistingKey), exception.getMessage());
   }
 
   @Test
   void shouldFailWhenGettingIconDataOfNonDefaultIcon() {
     Exception exception =
-        assertThrows(
-            NotFoundException.class, () -> iconService.getCustomIconResource("madeUpIconKey"));
+        assertThrows(NotFoundException.class, () -> iconService.getIconResource("madeUpIconKey"));
 
-    assertEquals("No CustomIcon found with key madeUpIconKey.", exception.getMessage());
+    assertEquals("No Icon found with key madeUpIconKey.", exception.getMessage());
   }
 
   @Test
-  void shouldFailWhenSavingCustomIconWithExistingKey() {
+  void shouldFailWhenSavingIconWithExistingKey() {
 
     FileResource fileResource = createAndPersistFileResource('A');
     Exception exception =
         assertThrows(
             BadRequestException.class,
-            () ->
-                iconService.addCustomIcon(
-                    new CustomIcon(Key, "description", keywords, true, fileResource)));
+            () -> iconService.addIcon(new Icon(Key, "description", keywords, true, fileResource)));
 
-    assertEquals(
-        String.format("CustomIcon with key %s already exists.", Key), exception.getMessage());
+    assertEquals(String.format("Icon with key %s already exists.", Key), exception.getMessage());
   }
 
   @Test
@@ -244,11 +233,10 @@ class CustomIconTest extends TrackerTest {
     String nonExistingKey = "non-existent-Key";
 
     Exception exception =
-        assertThrows(
-            NotFoundException.class, () -> iconService.getCustomIconResource(nonExistingKey));
+        assertThrows(NotFoundException.class, () -> iconService.getIconResource(nonExistingKey));
 
     assertEquals(
-        String.format("No CustomIcon found with key %s.", nonExistingKey), exception.getMessage());
+        String.format("No Icon found with key %s.", nonExistingKey), exception.getMessage());
   }
 
   private FileResource createAndPersistFileResource(char uniqueChar) {
@@ -273,15 +261,15 @@ class CustomIconTest extends TrackerTest {
     return fileResourceService.getFileResource(fileResourceUid);
   }
 
-  private void assertCustomIcon(CustomIcon customIcon) {
-    assertEquals(uid, customIcon.getUid());
-    assertEquals(Key, customIcon.getKey());
-    assertEquals("description", customIcon.getDescription());
-    assertEquals(keywords, customIcon.getKeywords());
+  private void assertIcon(Icon icon) {
+    assertEquals(uid, icon.getUid());
+    assertEquals(Key, icon.getKey());
+    assertEquals("description", icon.getDescription());
+    assertEquals(keywords, icon.getKeywords());
 
-    assertThat(customIcon.getKeywords(), hasSize(3));
-    assertThat(fileResource, is(customIcon.getFileResource()));
-    assertThat(currentUser, is(customIcon.getCreatedBy()));
-    assertThat(currentUser, is(customIcon.getLastUpdatedBy()));
+    assertThat(icon.getKeywords(), hasSize(3));
+    assertThat(fileResource, is(icon.getFileResource()));
+    assertThat(currentUser, is(icon.getCreatedBy()));
+    assertThat(currentUser, is(icon.getLastUpdatedBy()));
   }
 }

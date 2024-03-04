@@ -126,7 +126,7 @@ import org.hisp.dhis.fileresource.ExternalFileResource;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.hibernate.HibernateService;
-import org.hisp.dhis.icon.CustomIcon;
+import org.hisp.dhis.icon.Icon;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
@@ -2212,18 +2212,18 @@ public abstract class DhisConvenienceTest {
     return fileResource;
   }
 
-  public static CustomIcon createCustomIcon(
+  public static Icon createCustomIcon(
       char uniqueChar, Set<String> keywords, FileResource fileResource) {
 
-    CustomIcon customIcon = new CustomIcon();
-    customIcon.setAutoFields();
-    customIcon.setKey("iconKey" + uniqueChar);
-    customIcon.setDescription("description");
-    customIcon.setKeywords(keywords);
-    customIcon.setFileResource(fileResource);
-    customIcon.setCustom(true);
+    Icon icon = new Icon();
+    icon.setAutoFields();
+    icon.setKey("iconKey" + uniqueChar);
+    icon.setDescription("description");
+    icon.setKeywords(keywords);
+    icon.setFileResource(fileResource);
+    icon.setCustom(true);
 
-    return customIcon;
+    return icon;
   }
 
   /**

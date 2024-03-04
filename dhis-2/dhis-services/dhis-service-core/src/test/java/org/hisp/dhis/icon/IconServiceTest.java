@@ -54,12 +54,12 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class CustomIconServiceTest extends DhisConvenienceTest {
-  @Mock private CustomIconStore customIconStore;
+class IconServiceTest extends DhisConvenienceTest {
+  @Mock private IconStore iconStore;
 
   @Mock private FileResourceService fileResourceService;
 
-  @Spy @InjectMocks private DefaultCustomIconService iconService;
+  @Spy @InjectMocks private DefaultIconService iconService;
 
   @Test
   void shouldSaveCustomIconWhenIconHasNoDuplicatedKeyAndFileResourceExists()
@@ -68,7 +68,7 @@ class CustomIconServiceTest extends DhisConvenienceTest {
     String fileResourceUid = "12345";
     FileResource fileResource = createFileResource('A', "file".getBytes());
     fileResource.setUid(fileResourceUid);
-    when(customIconStore.getCustomIconByKey(uniqueKey)).thenReturn(null);
+    when(iconStore.getIconByKey(uniqueKey)).thenReturn(null);
     when(fileResourceService.getFileResource(fileResourceUid, CUSTOM_ICON))
         .thenReturn(Optional.of(new FileResource()));
 
@@ -77,10 +77,9 @@ class CustomIconServiceTest extends DhisConvenienceTest {
     user.setUsername("user");
     injectSecurityContext(UserDetails.fromUser(user));
 
-    iconService.addCustomIcon(
-        new CustomIcon(uniqueKey, "description", Set.of("keyword1"), true, fileResource));
+    iconService.addIcon(new Icon(uniqueKey, "description", Set.of("keyword1"), true, fileResource));
 
-    verify(customIconStore, times(1)).save(any(CustomIcon.class));
+    verify(iconStore, times(1)).save(any(Icon.class));
   }
 
   @Test
@@ -92,9 +91,8 @@ class CustomIconServiceTest extends DhisConvenienceTest {
         assertThrows(
             BadRequestException.class,
             () ->
-                iconService.addCustomIcon(
-                    new CustomIcon(
-                        emptyKey, "description", Set.of("keyword1"), true, fileResource)));
+                iconService.addIcon(
+                    new Icon(emptyKey, "description", Set.of("keyword1"), true, fileResource)));
 
     String expectedMessage = "CustomIcon key not specified.";
     assertEquals(expectedMessage, exception.getMessage());
@@ -106,7 +104,7 @@ class CustomIconServiceTest extends DhisConvenienceTest {
     String fileResourceUid = "12345";
     FileResource fileResource = createFileResource('B', "123".getBytes());
     fileResource.setUid(fileResourceUid);
-    when(customIconStore.getCustomIconByKey(iconKey)).thenReturn(null);
+    when(iconStore.getIconByKey(iconKey)).thenReturn(null);
     when(fileResourceService.getFileResource(anyString(), any(FileResourceDomain.class)))
         .thenReturn(Optional.empty());
 
@@ -114,9 +112,8 @@ class CustomIconServiceTest extends DhisConvenienceTest {
         assertThrows(
             NotFoundException.class,
             () ->
-                iconService.addCustomIcon(
-                    new CustomIcon(
-                        iconKey, "description", Set.of("keyword1"), true, fileResource)));
+                iconService.addIcon(
+                    new Icon(iconKey, "description", Set.of("keyword1"), true, fileResource)));
 
     String expectedMessage = String.format("FileResource %s does not exist", fileResourceUid);
     assertEquals(expectedMessage, exception.getMessage());
@@ -127,15 +124,15 @@ class CustomIconServiceTest extends DhisConvenienceTest {
     FileResource fileResource = createFileResource('B', "123".getBytes());
 
     String duplicatedKey = "customkey";
-    when(customIconStore.getCustomIconByKey(duplicatedKey))
-        .thenReturn(new CustomIcon("key", "description", Set.of(), true, fileResource));
+    when(iconStore.getIconByKey(duplicatedKey))
+        .thenReturn(new Icon("key", "description", Set.of(), true, fileResource));
 
     Exception exception =
         assertThrows(
             BadRequestException.class,
             () ->
-                iconService.addCustomIcon(
-                    new CustomIcon(
+                iconService.addIcon(
+                    new Icon(
                         duplicatedKey, "description", Set.of("keyword1"), true, fileResource)));
 
     String expectedMessage = "CustomIcon with key " + duplicatedKey + " already exists.";
@@ -147,10 +144,8 @@ class CustomIconServiceTest extends DhisConvenienceTest {
     FileResource fileResource = createFileResource('c', "123".getBytes());
 
     String iconKey = "key";
-    CustomIcon customIcon =
-        new CustomIcon(iconKey, "description", Set.of("keyword1"), true, fileResource);
-    Exception exception =
-        assertThrows(NotFoundException.class, () -> iconService.addCustomIcon(customIcon));
+    Icon icon = new Icon(iconKey, "description", Set.of("keyword1"), true, fileResource);
+    Exception exception = assertThrows(NotFoundException.class, () -> iconService.addIcon(icon));
 
     String expectedMessage = String.format("FileResource %s does not exist", fileResource.getUid());
     assertEquals(expectedMessage, exception.getMessage());
@@ -159,21 +154,21 @@ class CustomIconServiceTest extends DhisConvenienceTest {
   @Test
   void shouldUpdateCustomIcon() throws BadRequestException {
 
-    CustomIcon customIcon =
+    Icon icon =
         createCustomIcon('I', Set.of("k1", "k2"), createFileResource('F', "123".getBytes()));
-    iconService.updateCustomIcon(customIcon);
+    iconService.updateIcon(icon);
 
-    verify(customIconStore, times(1)).update(any(CustomIcon.class));
+    verify(iconStore, times(1)).update(any(Icon.class));
   }
 
   @Test
   void shouldFailWhenUpdatingCustomIconWithoutKey() {
 
-    CustomIcon customIcon =
+    Icon icon =
         createCustomIcon('I', Set.of("k1", "k2"), createFileResource('F', "123".getBytes()));
-    customIcon.setKey(null);
+    icon.setKey(null);
     Exception exception =
-        assertThrows(BadRequestException.class, () -> iconService.updateCustomIcon(customIcon));
+        assertThrows(BadRequestException.class, () -> iconService.updateIcon(icon));
 
     String expectedMessage = "CustomIcon key not specified.";
     assertEquals(expectedMessage, exception.getMessage());
@@ -183,7 +178,7 @@ class CustomIconServiceTest extends DhisConvenienceTest {
   void shouldFailWhenUpdatingNonExistingCustomIcon() {
 
     Exception exception =
-        assertThrows(BadRequestException.class, () -> iconService.updateCustomIcon(null));
+        assertThrows(BadRequestException.class, () -> iconService.updateIcon(null));
 
     assertEquals("CustomIcon cannot be null.", exception.getMessage());
   }
@@ -192,28 +187,27 @@ class CustomIconServiceTest extends DhisConvenienceTest {
   void shouldDeleteIconWhenKeyPresentAndCustomIconExists()
       throws BadRequestException, NotFoundException {
 
-    CustomIcon customIcon =
+    Icon icon =
         createCustomIcon('I', Set.of("k1", "k2"), createFileResource('F', "123".getBytes()));
 
-    when(customIconStore.getCustomIconByKey(anyString())).thenReturn(customIcon);
+    when(iconStore.getIconByKey(anyString())).thenReturn(icon);
     when(fileResourceService.getFileResource(anyString(), any(FileResourceDomain.class)))
         .thenReturn(Optional.of(new FileResource()));
 
-    iconService.deleteCustomIcon(customIcon);
+    iconService.deleteIcon(icon);
 
-    verify(customIconStore, times(1)).delete(any(CustomIcon.class));
+    verify(iconStore, times(1)).delete(any(Icon.class));
   }
 
   @Test
   void shouldFailWhenDeletingCustomIconWithoutKey() {
 
-    CustomIcon customIconWithNullKey =
+    Icon iconWithNullKey =
         createCustomIcon('I', Set.of("k1", "k2"), createFileResource('F', "123".getBytes()));
-    customIconWithNullKey.setKey(null);
+    iconWithNullKey.setKey(null);
 
     Exception exception =
-        assertThrows(
-            BadRequestException.class, () -> iconService.deleteCustomIcon(customIconWithNullKey));
+        assertThrows(BadRequestException.class, () -> iconService.deleteIcon(iconWithNullKey));
 
     String expectedMessage = "CustomIcon key not specified.";
     assertEquals(expectedMessage, exception.getMessage());
@@ -222,15 +216,14 @@ class CustomIconServiceTest extends DhisConvenienceTest {
   @Test
   void shouldFailWhenDeletingNonExistingCustomIcon() {
     String key = "non-existent-icon";
-    CustomIcon nonExistentCustomIcon =
+    Icon nonExistentIcon =
         createCustomIcon('I', Set.of("k1", "k2"), createFileResource('F', "123".getBytes()));
-    nonExistentCustomIcon.setKey(key);
+    nonExistentIcon.setKey(key);
 
-    when(customIconStore.getCustomIconByKey(anyString())).thenReturn(null);
+    when(iconStore.getIconByKey(anyString())).thenReturn(null);
 
     Exception exception =
-        assertThrows(
-            NotFoundException.class, () -> iconService.deleteCustomIcon(nonExistentCustomIcon));
+        assertThrows(NotFoundException.class, () -> iconService.deleteIcon(nonExistentIcon));
 
     String expectedMessage = String.format("CustomIcon not found: %s", key);
     assertEquals(expectedMessage, exception.getMessage());

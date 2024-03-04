@@ -45,9 +45,9 @@ import org.hibernate.query.NativeQuery;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
-import org.hisp.dhis.icon.CustomIcon;
-import org.hisp.dhis.icon.CustomIconOperationParams;
-import org.hisp.dhis.icon.CustomIconStore;
+import org.hisp.dhis.icon.Icon;
+import org.hisp.dhis.icon.IconOperationParams;
+import org.hisp.dhis.icon.IconStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -58,24 +58,24 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Zubair Asghar
  */
-@Repository("org.hisp.dhis.icon.CustomIconStore")
-public class HibernateCustomIconStore extends HibernateIdentifiableObjectStore<CustomIcon>
-    implements CustomIconStore {
+@Repository("org.hisp.dhis.icon.IconStore")
+public class HibernateIconStore extends HibernateIdentifiableObjectStore<Icon>
+    implements IconStore {
 
   private static final ObjectMapper objectMapper = new ObjectMapper();
 
   @Autowired private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
-  public HibernateCustomIconStore(
+  public HibernateIconStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       AclService aclService) {
-    super(entityManager, jdbcTemplate, publisher, CustomIcon.class, aclService, true);
+    super(entityManager, jdbcTemplate, publisher, Icon.class, aclService, true);
   }
 
   @Override
-  public long count(CustomIconOperationParams params) {
+  public long count(IconOperationParams params) {
 
     String sql = """
             select count(*) as count from customicon c
@@ -89,10 +89,10 @@ public class HibernateCustomIconStore extends HibernateIdentifiableObjectStore<C
   }
 
   @Override
-  public CustomIcon getCustomIconByKey(String key) {
+  public Icon getIconByKey(String key) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
-    JpaQueryParameters<CustomIcon> parameters =
+    JpaQueryParameters<Icon> parameters =
         newJpaParameters().addPredicate(root -> builder.equal(root.get("key"), key));
 
     return getSingleResult(builder, parameters);
@@ -105,7 +105,7 @@ public class HibernateCustomIconStore extends HibernateIdentifiableObjectStore<C
     CriteriaBuilder builder = entityManager.getCriteriaBuilder();
     CriteriaQuery<HashSet> criteriaQuery = builder.createQuery(HashSet.class);
 
-    Root<CustomIcon> root = criteriaQuery.from(CustomIcon.class);
+    Root<Icon> root = criteriaQuery.from(Icon.class);
     criteriaQuery.where(builder.isNotNull(root.get("keywords")));
     criteriaQuery.select(root.get("keywords"));
 
@@ -115,7 +115,7 @@ public class HibernateCustomIconStore extends HibernateIdentifiableObjectStore<C
   }
 
   @Override
-  public Set<CustomIcon> getCustomIcons(CustomIconOperationParams params) {
+  public Set<Icon> getIcons(IconOperationParams params) {
 
     String sql = """
             select * from customicon c
@@ -123,7 +123,7 @@ public class HibernateCustomIconStore extends HibernateIdentifiableObjectStore<C
     Map<String, Object> parameterSource = new HashMap<>();
     sql = buildIconQuery(params, sql, parameterSource);
 
-    NativeQuery<CustomIcon> query = getSession().createNativeQuery(sql, CustomIcon.class);
+    NativeQuery<Icon> query = getSession().createNativeQuery(sql, Icon.class);
 
     setParameters(query, parameterSource);
 
@@ -140,9 +140,7 @@ public class HibernateCustomIconStore extends HibernateIdentifiableObjectStore<C
   }
 
   private String buildIconQuery(
-      CustomIconOperationParams iconOperationParams,
-      String sql,
-      Map<String, Object> parameterSource) {
+      IconOperationParams iconOperationParams, String sql, Map<String, Object> parameterSource) {
     SqlHelper hlp = new SqlHelper(true);
 
     if (iconOperationParams.hasLastUpdatedStartDate()) {

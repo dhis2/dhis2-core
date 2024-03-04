@@ -1,10 +1,10 @@
 
 
--- customicon table creation
+-- icon table creation
 
-CREATE TABLE IF NOT EXISTS customicon
+CREATE TABLE IF NOT EXISTS icon
 (
-    customiconid                  bigint         NOT NULL,
+    iconid              bigint         NOT NULL,
     uid                 character      varying(11) NOT NULL,
     code                character      varying(50),
     iconkey             varchar(100)   NOT NULL,
@@ -16,13 +16,13 @@ CREATE TABLE IF NOT EXISTS customicon
     createdby           bigint         NULL,
     lastupdatedby       bigint         NULL,
     custom              Boolean        NOT NULL,
-    CONSTRAINT customicon_pkey PRIMARY KEY (customiconid),
-    CONSTRAINT customicon_ukey UNIQUE (iconkey),
-    CONSTRAINT customicon_fileresource_ukey UNIQUE (fileresourceid)
+    CONSTRAINT icon_pkey PRIMARY KEY (customiconid),
+    CONSTRAINT icon_ukey UNIQUE (iconkey),
+    CONSTRAINT icon_fileresource_ukey UNIQUE (fileresourceid)
 );
 
 
--- customicon table constraints
+-- icon table constraints
 
-ALTER TABLE customicon DROP CONSTRAINT IF EXISTS fk_customicon_fileresource;
-ALTER TABLE customicon ADD CONSTRAINT fk_customicon_fileresource FOREIGN KEY (fileresourceid) REFERENCES fileresource (fileresourceid) ON DELETE CASCADE;
+ALTER TABLE icon DROP CONSTRAINT IF EXISTS fk_icon_fileresource;
+ALTER TABLE icon ADD CONSTRAINT fk_icon_fileresource FOREIGN KEY (fileresourceid) REFERENCES fileresource (fileresourceid) ON DELETE CASCADE;

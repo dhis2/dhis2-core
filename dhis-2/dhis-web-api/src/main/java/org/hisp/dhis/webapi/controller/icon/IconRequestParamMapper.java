@@ -31,7 +31,7 @@ import com.google.common.collect.ImmutableMap;
 import java.util.ArrayList;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.icon.CustomIconOperationParams;
+import org.hisp.dhis.icon.IconOperationParams;
 import org.hisp.dhis.icon.IconTypeFilter;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
@@ -41,7 +41,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class CustomIconRequestParamMapper {
+public class IconRequestParamMapper {
 
   private static final ImmutableMap<IconTypeFilter, Boolean> TYPE_MAPPER =
       ImmutableMap.<IconTypeFilter, Boolean>builder()
@@ -49,11 +49,10 @@ public class CustomIconRequestParamMapper {
           .put(IconTypeFilter.CUSTOM, Boolean.TRUE)
           .build();
 
-  public CustomIconOperationParams map(CustomIconRequestParams iconRequestParams)
-      throws BadRequestException {
+  public IconOperationParams map(IconRequestParams iconRequestParams) throws BadRequestException {
 
     validateRequestParams(iconRequestParams);
-    CustomIconOperationParams operationParams = new CustomIconOperationParams();
+    IconOperationParams operationParams = new IconOperationParams();
     operationParams.setKeywords(
         iconRequestParams.getKeywords() != null
             ? iconRequestParams.getKeywords()
@@ -70,7 +69,7 @@ public class CustomIconRequestParamMapper {
     return operationParams;
   }
 
-  private void validateRequestParams(CustomIconRequestParams iconRequestParams)
+  private void validateRequestParams(IconRequestParams iconRequestParams)
       throws BadRequestException {
 
     if (iconRequestParams.hasCreatedStartDate()

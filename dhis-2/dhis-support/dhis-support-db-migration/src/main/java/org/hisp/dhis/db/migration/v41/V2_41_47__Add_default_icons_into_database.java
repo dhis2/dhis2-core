@@ -40,7 +40,7 @@ import org.flywaydb.core.api.FlywayException;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.icon.CustomIcon;
+import org.hisp.dhis.icon.DefaultIcon;
 import org.hisp.dhis.icon.Icon;
 import org.postgresql.util.PGobject;
 import org.slf4j.Logger;
@@ -58,23 +58,23 @@ public class V2_41_47__Add_default_icons_into_database extends BaseJavaMigration
 
   public static final String INSERT_DEFAULT_ICONS =
       """
-      INSERT INTO public.customicon(
-      customiconid, uid, code, iconkey, fileresourceid, description, keywords, created, lastupdated, createdby, lastupdatedby, custom)
+      INSERT INTO public.icon(
+      iconid, uid, code, iconkey, fileresourceid, description, keywords, created, lastupdated, createdby, lastupdatedby, custom)
       VALUES (nextval('hibernate_sequence'), generate_uid(), ?, ?, null, ?, ?, now(), now(), null, null, false );
       """;
 
   @Override
   public void migrate(Context context) throws Exception {
 
-    Map<String, CustomIcon> customIconMap =
-        Arrays.stream(Icon.values())
+    Map<String, Icon> customIconMap =
+        Arrays.stream(DefaultIcon.values())
             .map(this::createCustomIconWithVariants)
             .flatMap(Collection::stream)
-            .collect(Collectors.toMap(CustomIcon::getKey, Function.identity()));
+            .collect(Collectors.toMap(Icon::getKey, Function.identity()));
 
     try (PreparedStatement ps = context.getConnection().prepareStatement(INSERT_DEFAULT_ICONS)) {
 
-      for (Map.Entry<String, CustomIcon> entry : customIconMap.entrySet()) {
+      for (Map.Entry<String, Icon> entry : customIconMap.entrySet()) {
         ps.setString(1, "code_" + CodeGenerator.generateCode(5));
         ps.setString(2, entry.getValue().getKey());
         ps.setString(3, entry.getValue().getDescription());
@@ -96,15 +96,15 @@ public class V2_41_47__Add_default_icons_into_database extends BaseJavaMigration
     }
   }
 
-  private List<CustomIcon> createCustomIconWithVariants(Icon icon) {
+  private List<Icon> createCustomIconWithVariants(DefaultIcon defaultIcon) {
 
-    return Icon.VARIANTS.stream()
+    return DefaultIcon.VARIANTS.stream()
         .map(
             variant ->
-                new CustomIcon(
-                    String.format("%s_%s", icon.getKey(), variant),
-                    icon.getDescription(),
-                    icon.getKeywords(),
+                new Icon(
+                    String.format("%s_%s", defaultIcon.getKey(), variant),
+                    defaultIcon.getDescription(),
+                    defaultIcon.getKeywords(),
                     false,
                     null))
         .toList();

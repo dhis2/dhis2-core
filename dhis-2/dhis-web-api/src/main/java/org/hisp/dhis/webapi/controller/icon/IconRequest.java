@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,51 +27,28 @@
  */
 package org.hisp.dhis.webapi.controller.icon;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.fieldfiltering.FieldFilterParser;
-import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.icon.IconTypeFilter;
 
-/**
- * @author Zubair Asghar
- */
-@Data
+@Builder
+@Getter
+@AllArgsConstructor
 @NoArgsConstructor
-public class CustomIconRequestParams {
+class IconRequest {
 
-  static final String DEFAULT_FIELDS_PARAM = "key,keywords,description,fileResource,createdBy,href";
+  @JsonProperty private String key;
 
-  private List<String> keys = new ArrayList<>();
-  private List<String> keywords = new ArrayList<>();
-  private Date createdStartDate;
-  private Date createdEndDate;
-  private Date lastUpdatedStartDate;
-  private Date lastUpdatedEndDate;
-  private IconTypeFilter type = IconTypeFilter.ALL;
-  private boolean paging = false;
-  private int pageSize = Pager.DEFAULT_PAGE_SIZE;
-  private int page = 1;
+  @JsonProperty private String code;
 
-  private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
+  @JsonProperty private String description;
 
-  public boolean hasCreatedStartDate() {
-    return createdStartDate != null;
-  }
+  @JsonProperty private Set<String> keywords;
 
-  public boolean hasCreatedEndDate() {
-    return createdEndDate != null;
-  }
+  @JsonProperty private String fileResourceId;
 
-  public boolean hasLastUpdatedStartDate() {
-    return lastUpdatedStartDate != null;
-  }
-
-  public boolean hasLastUpdatedEndDate() {
-    return lastUpdatedEndDate != null;
-  }
+  @Builder.Default @JsonProperty private Boolean custom = true;
 }

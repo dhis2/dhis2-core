@@ -53,10 +53,10 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.icon.CustomIcon;
-import org.hisp.dhis.icon.CustomIconOperationParams;
-import org.hisp.dhis.icon.CustomIconService;
+import org.hisp.dhis.icon.DefaultIcon;
 import org.hisp.dhis.icon.Icon;
+import org.hisp.dhis.icon.IconOperationParams;
+import org.hisp.dhis.icon.IconService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -90,7 +90,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class IconController {
   private static final int TTL = 365;
 
-  private final CustomIconService iconService;
+  private final IconService iconService;
 
   private final FileResourceService fileResourceService;
 
@@ -106,13 +106,13 @@ public class IconController {
 
   private final LinkService linkService;
 
-  private final CustomIconRequestParamMapper iconRequestParamMapper;
+  private final IconRequestParamMapper iconRequestParamMapper;
 
   @GetMapping
-  public @ResponseBody PaginatedIconResponse getAllIcons(CustomIconRequestParams iconRequestParams)
+  public @ResponseBody PaginatedIconResponse getAllIcons(IconRequestParams iconRequestParams)
       throws BadRequestException {
 
-    CustomIconOperationParams iconOperationParams = iconRequestParamMapper.map(iconRequestParams);
+    IconOperationParams iconOperationParams = iconRequestParamMapper.map(iconRequestParams);
 
     Pager pager = null;
 
@@ -122,7 +122,7 @@ public class IconController {
       iconOperationParams.setPager(pager);
     }
 
-    Set<CustomIcon> icons = iconService.getCustomIcons(iconOperationParams);
+    Set<Icon> icons = iconService.getIcons(iconOperationParams);
 
     icons.forEach(
         i ->
@@ -134,7 +134,7 @@ public class IconController {
     List<ObjectNode> objectNodes =
         fieldFilterService.toObjectNodes(icons.stream().toList(), iconRequestParams.getFields());
 
-    linkService.generatePagerLinks(pager, CustomIcon.class);
+    linkService.generatePagerLinks(pager, Icon.class);
 
     return new PaginatedIconResponse(pager, objectNodes);
   }
@@ -143,30 +143,29 @@ public class IconController {
   public void getIconData(@PathVariable String key, HttpServletResponse response)
       throws NotFoundException, WebMessageException, IOException {
 
-    CustomIcon customIcon = iconService.getCustomIcon(key);
+    Icon icon = iconService.getIcon(key);
 
-    if (!customIcon.getCustom()) {
-      downloadDefaultIcon(customIcon.getKey(), response);
+    if (!icon.getCustom()) {
+      downloadDefaultIcon(icon.getKey(), response);
     } else {
-      downloadCustomIcon(customIcon.getFileResource(), response);
+      downloadCustomIcon(icon.getFileResource(), response);
     }
   }
 
   @GetMapping(value = "/{key}")
-  public ResponseEntity<CustomIcon> getIconByKey(@PathVariable String key)
+  public ResponseEntity<Icon> getIconByKey(@PathVariable String key)
       throws NotFoundException, WebMessageException {
 
-    CustomIcon customIcon = iconService.getCustomIcon(key);
+    Icon icon = iconService.getIcon(key);
 
-    if (customIcon == null) {
+    if (icon == null) {
       throw new WebMessageException(
-          WebMessageUtils.notFound(String.format("CustomIcon with key %s not found", key)));
+          WebMessageUtils.notFound(String.format("Icon with key %s not found", key)));
     }
 
-    customIcon.setHref(
-        customIcon.getCustom() ? getCustomIconReference(key) : getDefaultIconReference(key));
+    icon.setHref(icon.getCustom() ? getCustomIconReference(key) : getDefaultIconReference(key));
 
-    return new ResponseEntity<>(customIcon, HttpStatus.OK);
+    return new ResponseEntity<>(icon, HttpStatus.OK);
   }
 
   @GetMapping("/{key}/icon.svg")
@@ -175,9 +174,9 @@ public class IconController {
       HttpServletResponse response, HttpServletRequest request, @PathVariable String key)
       throws IOException, WebMessageException {
 
-    if (!iconService.customIconExists(key)) {
+    if (!iconService.iconExists(key)) {
       throw new WebMessageException(
-          WebMessageUtils.notFound(String.format("CustomIcon with key %s not found", key)));
+          WebMessageUtils.notFound(String.format("Icon with key %s not found", key)));
     }
 
     String location = response.encodeRedirectURL("/icons/" + key + "/icon");
@@ -193,56 +192,53 @@ public class IconController {
   public WebMessage addCustomIcon(HttpServletRequest request)
       throws IOException, BadRequestException, NotFoundException {
 
-    CustomIconRequest customIconRequest =
-        renderService.fromJson(request.getInputStream(), CustomIconRequest.class);
-    CustomIcon customIcon = iconMapper.to(customIconRequest);
+    IconRequest iconRequest = renderService.fromJson(request.getInputStream(), IconRequest.class);
+    Icon icon = iconMapper.to(iconRequest);
 
-    iconService.addCustomIcon(customIcon);
+    iconService.addIcon(icon);
 
-    return WebMessageUtils.created(
-        String.format("CustomIcon created with key %s", customIcon.getKey()));
+    return WebMessageUtils.created(String.format("Icon created with key %s", icon.getKey()));
   }
 
   @PutMapping(value = "/{key}")
   public WebMessage updateCustomIcon(@PathVariable String key, HttpServletRequest request)
       throws IOException, NotFoundException, WebMessageException, BadRequestException {
 
-    CustomIcon persisted = iconService.getCustomIcon(key);
+    Icon persisted = iconService.getIcon(key);
 
     if (persisted == null) {
       throw new WebMessageException(
-          WebMessageUtils.notFound(String.format("CustomIcon with key %s not found", key)));
+          WebMessageUtils.notFound(String.format("Icon with key %s not found", key)));
     }
 
-    CustomIconRequest customIconRequest =
-        renderService.fromJson(request.getInputStream(), CustomIconRequest.class);
+    IconRequest iconRequest = renderService.fromJson(request.getInputStream(), IconRequest.class);
 
-    iconMapper.merge(persisted, customIconRequest);
+    iconMapper.merge(persisted, iconRequest);
 
-    iconService.updateCustomIcon(persisted);
+    iconService.updateIcon(persisted);
 
-    return WebMessageUtils.ok(String.format("CustomIcon with key %s updated", key));
+    return WebMessageUtils.ok(String.format("Icon with key %s updated", key));
   }
 
   @DeleteMapping(value = "/{key}")
   public WebMessage deleteCustomIcon(@PathVariable String key)
       throws NotFoundException, WebMessageException, BadRequestException {
 
-    CustomIcon customIcon = iconService.getCustomIcon(key);
+    Icon icon = iconService.getIcon(key);
 
-    if (customIcon == null) {
+    if (icon == null) {
       throw new WebMessageException(
-          WebMessageUtils.notFound(String.format("CustomIcon with key %s not found", key)));
+          WebMessageUtils.notFound(String.format("Icon with key %s not found", key)));
     }
 
-    iconService.deleteCustomIcon(customIcon);
+    iconService.deleteIcon(icon);
 
-    return WebMessageUtils.ok(String.format("CustomIcon with key %s deleted", key));
+    return WebMessageUtils.ok(String.format("Icon with key %s deleted", key));
   }
 
   private void downloadDefaultIcon(String key, HttpServletResponse response)
       throws IOException, NotFoundException {
-    Resource icon = iconService.getCustomIconResource(key);
+    Resource icon = iconService.getIconResource(key);
 
     response.setHeader("Cache-Control", CacheControl.maxAge(TTL, TimeUnit.DAYS).getHeaderValue());
     response.setContentType(MediaType.SVG_UTF_8.toString());
@@ -286,6 +282,6 @@ public class IconController {
   private String getDefaultIconReference(String key) {
     return String.format(
         "%s%s/%s/icon.%s",
-        contextService.getApiPath(), IconSchemaDescriptor.API_ENDPOINT, key, Icon.SUFFIX);
+        contextService.getApiPath(), IconSchemaDescriptor.API_ENDPOINT, key, DefaultIcon.SUFFIX);
   }
 }

@@ -34,7 +34,7 @@ import lombok.AllArgsConstructor;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.icon.CustomIcon;
+import org.hisp.dhis.icon.Icon;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -42,68 +42,67 @@ import org.springframework.stereotype.Component;
 public class IconMapper {
   private FileResourceService fileResourceService;
 
-  public CustomIcon to(CustomIconRequest customIconRequest) throws BadRequestException {
+  public Icon to(IconRequest iconRequest) throws BadRequestException {
 
     Optional<FileResource> fileResource = Optional.empty();
 
-    if (customIconRequest.getCustom()) {
+    if (iconRequest.getCustom()) {
 
-      if (customIconRequest.getFileResourceId() == null) {
-        throw new BadRequestException("FileResource must be provided with CustomIcon");
+      if (iconRequest.getFileResourceId() == null) {
+        throw new BadRequestException("FileResource must be provided with Icon");
       }
 
       fileResource =
-          fileResourceService.getFileResource(customIconRequest.getFileResourceId(), CUSTOM_ICON);
+          fileResourceService.getFileResource(iconRequest.getFileResourceId(), CUSTOM_ICON);
       if (fileResource.isEmpty()) {
         throw new BadRequestException(
             String.format(
-                "FileResource with uid %s does not exist", customIconRequest.getFileResourceId()));
+                "FileResource with uid %s does not exist", iconRequest.getFileResourceId()));
       }
     }
 
-    CustomIcon customIcon = new CustomIcon();
-    customIcon.setKey(customIconRequest.getKey());
-    customIcon.setDescription(customIconRequest.getDescription());
-    customIcon.setKeywords(customIconRequest.getKeywords());
-    customIcon.setCustom(customIconRequest.getCustom());
-    customIcon.setCode(customIconRequest.getCode());
-    customIcon.setFileResource(fileResource.orElse(null));
+    Icon icon = new Icon();
+    icon.setKey(iconRequest.getKey());
+    icon.setDescription(iconRequest.getDescription());
+    icon.setKeywords(iconRequest.getKeywords());
+    icon.setCustom(iconRequest.getCustom());
+    icon.setCode(iconRequest.getCode());
+    icon.setFileResource(fileResource.orElse(null));
 
-    return customIcon;
+    return icon;
   }
 
-  public void merge(CustomIcon persisted, CustomIconRequest customIconRequest)
-      throws BadRequestException {
+  public void merge(Icon persisted, IconRequest iconRequest) throws BadRequestException {
 
     Optional<FileResource> fileResource = Optional.empty();
 
-    if (customIconRequest.getFileResourceId() != null) {
+    if (iconRequest.getFileResourceId() != null) {
       fileResource =
-          fileResourceService.getFileResource(customIconRequest.getFileResourceId(), CUSTOM_ICON);
+          fileResourceService.getFileResource(iconRequest.getFileResourceId(), CUSTOM_ICON);
       if (fileResource.isEmpty()) {
         throw new BadRequestException(
             String.format(
-                "FileResource with uid %s does not exist", customIconRequest.getFileResourceId()));
+                "FileResource with uid %s does not exist", iconRequest.getFileResourceId()));
       }
     }
 
-    if (customIconRequest.getKey() != null) {
-      persisted.setKey(customIconRequest.getKey());
+    if (iconRequest.getKey() != null) {
+      persisted.setKey(iconRequest.getKey());
     }
 
-    if (customIconRequest.getCode() != null) {
-      persisted.setCode(customIconRequest.getCode());
+    if (iconRequest.getCode() != null) {
+      persisted.setCode(iconRequest.getCode());
     }
 
-    if (customIconRequest.getDescription() != null) {
-      persisted.setDescription(customIconRequest.getDescription());
+    if (iconRequest.getDescription() != null) {
+      persisted.setDescription(iconRequest.getDescription());
     }
 
-    if (customIconRequest.getKeywords() != null) {
-      persisted.setKeywords(customIconRequest.getKeywords());
+    if (iconRequest.getKeywords() != null) {
+      persisted.setKeywords(iconRequest.getKeywords());
     }
 
-    if (customIconRequest.getFileResourceId() != null) {
+    if (iconRequest.getFileResourceId() != null) {
       persisted.setFileResource(fileResource.orElse(null));
     }
 

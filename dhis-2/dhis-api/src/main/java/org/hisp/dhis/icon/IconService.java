@@ -35,41 +35,41 @@ import org.springframework.core.io.Resource;
 /**
  * @author Kristian Wærstad
  */
-public interface CustomIconService {
+public interface IconService {
 
   /**
-   * Get the count of CustomIcons based on filters provided in {@link CustomIconOperationParams}
+   * Get the count of Icons based on filters provided in {@link IconOperationParams}
    *
    * @param params filters
    * @return total count
    */
-  long count(CustomIconOperationParams params);
+  long count(IconOperationParams params);
 
   /**
-   * Get list of CustomIcons based on filters provided in {@link CustomIconOperationParams}
+   * Get list of Icons based on filters provided in {@link IconOperationParams}
    *
    * @param params filters to build query
-   * @return list of CustomIcons
+   * @return list of Icons
    */
-  Set<CustomIcon> getCustomIcons(CustomIconOperationParams params);
+  Set<Icon> getIcons(IconOperationParams params);
 
   /**
-   * Gets the custom icon associated to a key, if it exists
+   * Gets the icon associated to a key, if it exists
    *
    * @param key key of the icon to find
    * @return custom icon associated to the key, if found
    * @throws NotFoundException if no custom icon exists with the provided key
    */
-  CustomIcon getCustomIcon(String key) throws NotFoundException;
+  Icon getIcon(String key) throws NotFoundException;
 
   /**
-   * Gets the custom icon associated to a uid, if it exists
+   * Gets the icon associated to a uid, if it exists
    *
    * @param uid key of the icon to find
    * @return custom icon associated to the uid, if found
    * @throws NotFoundException if no custom icon exists with the provided uid
    */
-  CustomIcon getCustomIconByUid(String uid) throws NotFoundException;
+  Icon getIconByUid(String uid) throws NotFoundException;
 
   /**
    * Gets the icon with the correct key if one exists
@@ -78,7 +78,7 @@ public interface CustomIconService {
    * @return the icon resource
    * @throws NotFoundException if no default icon exists with the provided key
    */
-  Resource getCustomIconResource(String key) throws NotFoundException;
+  Resource getIconResource(String key) throws NotFoundException;
 
   /**
    * Gets a set of all unique keywords assigned to icons
@@ -93,31 +93,31 @@ public interface CustomIconService {
    * @param key key of the icon
    * @return true if the icon exists, false otherwise
    */
-  boolean customIconExists(String key);
+  boolean iconExists(String key);
 
   /**
-   * Persists the provided custom icon to the database
+   * Persists the provided icon to the database
    *
-   * @param customIcon the icon to be persisted
+   * @param icon the icon to be persisted
    * @throws BadRequestException when an icon already exists with the same key or the file resource
    *     id is not specified
    * @throws NotFoundException when no file resource with the provided id exists
    */
-  void addCustomIcon(CustomIcon customIcon) throws BadRequestException, NotFoundException;
+  void addIcon(Icon icon) throws BadRequestException, NotFoundException;
 
   /**
-   * Updated the provided custom icon
+   * Updated the provided icon
    *
-   * @param customIcon the icon to be updated
+   * @param icon the icon to be updated
    */
-  void updateCustomIcon(CustomIcon customIcon) throws BadRequestException, NotFoundException;
+  void updateIcon(Icon icon) throws BadRequestException, NotFoundException;
 
   /**
-   * Deletes a given CustomIcon
+   * Deletes a given Icon
    *
-   * @param customIcon the icon to delete
+   * @param icon the icon to delete
    * @throws BadRequestException when icon key is not specified
    * @throws NotFoundException when no icon with the provided key exists
    */
-  void deleteCustomIcon(CustomIcon customIcon) throws BadRequestException, NotFoundException;
+  void deleteIcon(Icon icon) throws BadRequestException, NotFoundException;
 }

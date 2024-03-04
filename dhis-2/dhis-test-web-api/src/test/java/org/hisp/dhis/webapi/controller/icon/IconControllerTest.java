@@ -76,18 +76,18 @@ class IconControllerTest extends DhisControllerIntegrationTest {
   @Autowired private ContextService contextService;
 
   @Test
-  void shouldCreateCustomIconWhenFileResourceExist() throws IOException {
+  void shouldCreateIconWhenFileResourceExist() throws IOException {
 
-    JsonWebMessage message = createCustomIcon(createFileResource(), keywordsList1, key1);
+    JsonWebMessage message = createIcon(createFileResource(), keywordsList1, key1);
 
-    assertEquals(String.format("CustomIcon created with key %s", key1), message.getMessage());
+    assertEquals(String.format("Icon created with key %s", key1), message.getMessage());
   }
 
   @Test
-  void shouldUpdateExistingCustomIcon() throws IOException {
+  void shouldUpdateExistingIcon() throws IOException {
     String updatedDescription = "updatedDescription";
     String updatedKeywords = "['new k1', 'new k2']";
-    createCustomIcon(createFileResource(), keywordsList1, key1);
+    createIcon(createFileResource(), keywordsList1, key1);
 
     JsonObject response =
         PUT(
@@ -102,25 +102,23 @@ class IconControllerTest extends DhisControllerIntegrationTest {
             .content();
 
     assertEquals(
-        String.format("CustomIcon with key %s updated", key1),
-        response.getString("message").string());
+        String.format("Icon with key %s updated", key1), response.getString("message").string());
   }
 
   @Test
-  void shouldDeleteCustomIconWhenKeyExists() throws IOException {
-    createCustomIcon(createFileResource(), keywordsList1, key1);
+  void shouldDeleteIconWhenKeyExists() throws IOException {
+    createIcon(createFileResource(), keywordsList1, key1);
 
     JsonObject response = DELETE(String.format("/icons/%s", key1)).content();
 
     assertEquals(
-        String.format("CustomIcon with key %s deleted", key1),
-        response.getString("message").string());
+        String.format("Icon with key %s deleted", key1), response.getString("message").string());
   }
 
   @Test
-  void shouldGetCustomIconWhenIconKeyExists() throws IOException {
+  void shouldGetIconWhenIconKeyExists() throws IOException {
     String fileResourceId = createFileResource();
-    createCustomIcon(fileResourceId, keywordsList1, key1);
+    createIcon(fileResourceId, keywordsList1, key1);
 
     JsonObject response = GET(String.format("/icons/%s", key1)).content();
 
@@ -136,13 +134,13 @@ class IconControllerTest extends DhisControllerIntegrationTest {
   }
 
   @Test
-  void shouldGetCustomIconsFilteredByKeywords() throws IOException {
+  void shouldGetIconsFilteredByKeywords() throws IOException {
     String fileResourceId1 = createFileResource();
     String fileResourceId2 = createFileResource();
     String fileResourceId3 = createFileResource();
-    createCustomIcon(fileResourceId1, keywordsList1, key1);
-    createCustomIcon(fileResourceId2, keywordsList2, key2);
-    createCustomIcon(fileResourceId3, keywordsList3, key3);
+    createIcon(fileResourceId1, keywordsList1, key1);
+    createIcon(fileResourceId2, keywordsList2, key2);
+    createIcon(fileResourceId3, keywordsList3, key3);
 
     JsonObject response =
         GET("/icons?keywords=m1,k1&type=custom&fields=id,key,description,keywords,href")
@@ -157,25 +155,25 @@ class IconControllerTest extends DhisControllerIntegrationTest {
   }
 
   @Test
-  void shouldGetCustomIconsFilteredByKeyWithPagingDisabled() throws IOException {
+  void shouldGetIconsFilteredByKeyWithPagingDisabled() throws IOException {
     String fileResourceId = createFileResource();
-    createCustomIcon(fileResourceId, keywordsList1, key1);
+    createIcon(fileResourceId, keywordsList1, key1);
 
     JsonObject content = GET("/icons?keys=" + key1 + "&fields=*").content(HttpStatus.OK);
 
     JsonList<JsonIcon> icons = content.getList("icons", JsonIcon.class);
 
-    assertCustomIcons(icons.get(0), keywordsList1, fileResourceId, key1);
+    assertIcons(icons.get(0), keywordsList1, fileResourceId, key1);
   }
 
   @Test
   void shouldGetAllKeywords() throws IOException {
 
     String fileResourceId1 = createFileResource();
-    createCustomIcon(fileResourceId1, keywordsList2, key1);
+    createIcon(fileResourceId1, keywordsList2, key1);
 
     String fileResourceId2 = createFileResource();
-    createCustomIcon(fileResourceId2, keywordsList1, key2);
+    createIcon(fileResourceId2, keywordsList1, key2);
 
     JsonArray response = GET("/icons/keywords").content(HttpStatus.OK);
 
@@ -189,16 +187,16 @@ class IconControllerTest extends DhisControllerIntegrationTest {
   }
 
   @Test
-  void shouldGetCustomIconsWithPager() throws IOException {
+  void shouldGetIconsWithPager() throws IOException {
 
     String fileResourceId1 = createFileResource();
-    createCustomIcon(fileResourceId1, keywordsList2, key1);
+    createIcon(fileResourceId1, keywordsList2, key1);
 
     String fileResourceId2 = createFileResource();
-    createCustomIcon(fileResourceId2, keywordsList2, key2);
+    createIcon(fileResourceId2, keywordsList2, key2);
 
     String fileResourceId3 = createFileResource();
-    createCustomIcon(fileResourceId3, keywordsList2, key3);
+    createIcon(fileResourceId3, keywordsList2, key3);
 
     JsonObject iconResponse = GET("/icons?paging=true&page=2&pageSize=2").content(HttpStatus.OK);
     JsonPager pager = iconResponse.get("pager", JsonPager.class);
@@ -219,16 +217,16 @@ class IconControllerTest extends DhisControllerIntegrationTest {
   }
 
   @Test
-  void shouldGetCustomIconsWithDefaultPager() throws IOException {
+  void shouldGetIconsWithDefaultPager() throws IOException {
 
     String fileResourceId1 = createFileResource();
-    createCustomIcon(fileResourceId1, keywordsList2, key1);
+    createIcon(fileResourceId1, keywordsList2, key1);
 
     String fileResourceId2 = createFileResource();
-    createCustomIcon(fileResourceId2, keywordsList2, key2);
+    createIcon(fileResourceId2, keywordsList2, key2);
 
     String fileResourceId3 = createFileResource();
-    createCustomIcon(fileResourceId3, keywordsList2, key3);
+    createIcon(fileResourceId3, keywordsList2, key3);
 
     JsonObject iconResponse = GET("/icons").content(HttpStatus.OK);
 
@@ -241,10 +239,10 @@ class IconControllerTest extends DhisControllerIntegrationTest {
         () -> String.format("mismatch in number of expected Icon(s), fetched %s", icons));
   }
 
-  private JsonWebMessage createCustomIcon(String fileResourceId, Set<String> keywords, String key) {
+  private JsonWebMessage createIcon(String fileResourceId, Set<String> keywords, String key) {
 
-    CustomIconRequest request =
-        CustomIconRequest.builder()
+    IconRequest request =
+        IconRequest.builder()
             .key(key)
             .fileResourceId(fileResourceId)
             .keywords(keywords)
@@ -275,8 +273,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     return savedObject.getString("id").string();
   }
 
-  private void assertCustomIcons(
-      JsonIcon icon, Set<String> keywords, String fileResourceId, String key) {
+  private void assertIcons(JsonIcon icon, Set<String> keywords, String fileResourceId, String key) {
 
     String actualKey = icon.getString("key").string();
     String actualDescription = icon.getString("description").string();
