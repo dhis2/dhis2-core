@@ -51,6 +51,7 @@ import org.hisp.dhis.fileresource.FileResourceRetentionStrategy;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.security.LoginPageLayout;
 import org.hisp.dhis.sms.config.SmsConfiguration;
 
 /**
@@ -279,7 +280,14 @@ public enum SettingKey {
   /** Max tracked entity records that can be retrieved from database. */
   TRACKED_ENTITY_MAX_LIMIT("KeyTrackedEntityMaxLimit", 50000, Integer.class),
 
-  LOGIN_POPUP("loginPopup", "", String.class, false, true);
+  LOGIN_POPUP("loginPopup", "", String.class, false, true),
+
+  /** The layout of the LoginPage, value is the enum LoginPageLayout */
+  LOGIN_PAGE_LAYOUT("loginPageLayout", LoginPageLayout.DEFAULT.name(), String.class, false, false),
+
+  /** The HTML string which is used for displaying LoginPage when LOGIN_PAGE_LAYOUT is CUSTOM. */
+  LOGIN_PAGE_TEMPLATE("loginPageTemplate", null, String.class, false, false),
+  ;
 
   private final String name;
 

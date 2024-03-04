@@ -36,6 +36,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.security.LoginConfigResponse;
 import org.hisp.dhis.security.LoginConfigResponse.LoginConfigResponseBuilder;
+import org.hisp.dhis.security.LoginPageLayout;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -64,23 +65,29 @@ public class LoginConfigController {
     APPLICATION_NOTIFICATION("applicationNotification"),
     APPLICATION_FOOTER("applicationLeftSideFooter"),
     FLAG_IMAGE("countryFlag"),
-    CUSTOM_LOGIN_PAGE_LOGO("loginPageLogo", "/api/staticContent/logo_front.png"),
+    CUSTOM_LOGIN_PAGE_LOGO("/api/staticContent/logo_front.png"),
     UI_LOCALE("uiLocale"),
     LOGIN_POPUP("loginPopup"),
     SELF_REGISTRATION_NO_RECAPTCHA("selfRegistrationNoRecaptcha"),
     USE_CUSTOM_LOGO_FRONT("useCustomLogoFront"),
-    ACCOUNT_RECOVERY("allowAccountRecovery");
+    ACCOUNT_RECOVERY("allowAccountRecovery"),
 
-    private final String keyName;
+    /** The layout to be used for displaying LoginPage. Value is the enum {@link LoginPageLayout} */
+    LOGIN_PAGE_LAYOUT(LoginPageLayout.DEFAULT.name()),
+
+    /**
+     * The HTML string which is used for displaying LoginPage if selected {@link LoginPageLayout} is
+     * CUSTOM.
+     */
+    LOGIN_PAGE_TEMPLATE();
+
     private final String defaultValue;
 
-    KEYS(String keyName) {
-      this.keyName = keyName;
+    KEYS() {
       this.defaultValue = null;
     }
 
-    KEYS(String keyName, String defaultValue) {
-      this.keyName = keyName;
+    KEYS(String defaultValue) {
       this.defaultValue = defaultValue;
     }
   }
