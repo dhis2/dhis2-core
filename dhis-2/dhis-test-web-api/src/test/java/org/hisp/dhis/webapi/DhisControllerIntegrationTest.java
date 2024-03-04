@@ -39,7 +39,6 @@ import org.hisp.dhis.config.TestContainerPostgresConfig;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
@@ -77,7 +76,6 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
   @Autowired private WebApplicationContext webApplicationContext;
 
   @Autowired private UserService _userService;
-  @Autowired private RenderService _renderService;
 
   @Autowired protected IdentifiableObjectManager manager;
 
@@ -90,7 +88,6 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
   @BeforeEach
   final void setup() {
     userService = _userService;
-    renderService = _renderService;
     clearSecurityContext();
 
     createAndPersistAdminUserAndRole();
