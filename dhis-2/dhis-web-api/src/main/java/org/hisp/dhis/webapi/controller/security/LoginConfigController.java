@@ -38,6 +38,7 @@ import org.hisp.dhis.security.LoginConfigResponse;
 import org.hisp.dhis.security.LoginConfigResponse.LoginConfigResponseBuilder;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -56,6 +57,7 @@ public class LoginConfigController {
 
   private final SystemSettingManager manager;
   private final ConfigurationService configurationService;
+  private final SystemService systemService;
 
   @Getter
   private enum KEYS {
@@ -126,6 +128,8 @@ public class LoginConfigController {
 
     builder.selfRegistrationEnabled(
         configurationService.getConfiguration().selfRegistrationAllowed());
+
+    builder.apiVersion(systemService.getSystemInfo().getVersion());
 
     return builder.build();
   }
