@@ -33,6 +33,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.jsontree.JsonMixed;
@@ -68,6 +70,7 @@ class UIDBindingTest {
   private static final String ENDPOINT = "/uid";
 
   private UID actual;
+  private List<UID> actualCollection;
 
   private MockMvc mockMvc;
 
@@ -141,7 +144,46 @@ class UIDBindingTest {
     assertStartsWith(BINDING_OBJECT_ERROR_MESSAGE, message.getMessage());
   }
 
-  // TODO test binding collection
+  @Test
+  void shouldHandleMultipleOrderComponentsGivenViaOneParameter() throws Exception {
+    System.out.println(CodeGenerator.generateUid());
+    System.out.println(CodeGenerator.generateUid());
+    System.out.println(CodeGenerator.generateUid());
+    mockMvc
+        .perform(get(ENDPOINT + "/collection").param("uids", "PHB3x6n374I,Sq3QLSHij67"))
+        .andExpect(status().isOk());
+
+    assertEquals(List.of(UID.of("PHB3x6n374I"), UID.of("Sq3QLSHij67")), actualCollection);
+  }
+
+  @Test
+  void shouldHandleMultipleOrderComponentsGivenViaMultipleParameters() throws Exception {
+    mockMvc
+        .perform(
+            get(ENDPOINT + "/collection").param("uids", "PHB3x6n374I").param("uids", "Sq3QLSHij67"))
+        .andExpect(status().isOk());
+
+    assertEquals(List.of(UID.of("PHB3x6n374I"), UID.of("Sq3QLSHij67")), actualCollection);
+  }
+
+  @Test
+  void shouldReturnABadRequestWhenMixingRepeatedParameterAndCommaSeparatedValues()
+      throws Exception {
+    MockHttpServletResponse response =
+        mockMvc
+            .perform(
+                get(ENDPOINT + "/collection")
+                    .accept("application/json")
+                    .param("uids", "PHB3x6n374I")
+                    .param("uids", "Sq3QLSHij67,jEVhr5j6EaA"))
+            .andReturn()
+            .getResponse();
+
+    JsonWebMessage message = JsonMixed.of(response.getContentAsString()).as(JsonWebMessage.class);
+    assertEquals(400, message.getHttpStatusCode());
+    assertStartsWith("You likely repeated request parameter 'uids' and used", message.getMessage());
+  }
+
   @Controller
   private class UIDController extends CrudControllerAdvice {
     @GetMapping(value = ENDPOINT + "/{uid}")
@@ -153,6 +195,13 @@ class UIDBindingTest {
     @GetMapping(value = ENDPOINT)
     public @ResponseBody WebMessage getUIDValueFromRequestParam(@RequestParam UID uid) {
       actual = uid;
+      return ok();
+    }
+
+    @GetMapping(value = ENDPOINT + "/collection")
+    public @ResponseBody WebMessage getUIDValueFromRequestParamCollection(
+        @RequestParam List<UID> uids) {
+      actualCollection = uids;
       return ok();
     }
 
