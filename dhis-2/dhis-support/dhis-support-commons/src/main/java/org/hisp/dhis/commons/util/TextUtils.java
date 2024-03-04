@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.commons.util;
 
-import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -38,9 +37,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.slf4j.helpers.MessageFormatter;
+
+import com.google.common.collect.Lists;
 
 /**
  * Utility class with methods for managing strings.
@@ -559,6 +561,20 @@ public class TextUtils {
    */
   public static String replace(String template, String k1, String v1) {
     return replace(template, Map.of(k1, v1));
+  }
+
+  /**
+   * Replaces variables in the given template string with the given variable key and value.
+   *
+   * @param template the template string.
+   * @param k1 the variable key.
+   * @param v1 the variable value.
+   * @param k2 the variable key.
+   * @param v2 the variable value.
+   * @return a resolved string.
+   */
+  public static String replace(String template, String k1, String v1, String k2, String v2) {
+    return replace(template, Map.of(k1, v1, k2, v2));
   }
 
   /**

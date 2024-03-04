@@ -31,7 +31,9 @@ import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
@@ -92,15 +94,14 @@ public class DataApprovalRemapLevelResourceTable extends AbstractResourceTable {
         insert into ${tableName} \
         (workflowid,dataapprovallevelid,level) \
         select w.workflowid, w.dataapprovallevelid, 1 + coalesce((select max(l2.level) \
-        from dataapprovalworkflowlevels w2 \
-        inner join dataapprovallevel l2 on l2.dataapprovallevelid=w2.dataapprovallevelid \
+        from ${dataapprovalworkflowlevels} w2 \
+        inner join ${dataapprovallevel} l2 on l2.dataapprovallevelid=w2.dataapprovallevelid \
         where w2.workflowid=w.workflowid \
         and l2.level < l.level), 0) as level \
-        from dataapprovalworkflowlevels w \
-        inner join dataapprovallevel l on l.dataapprovallevelid=w.dataapprovallevelid
+        from ${dataapprovalworkflowlevels} w \
+        inner join ${dataapprovallevel} l on l.dataapprovallevelid=w.dataapprovallevelid
         """,
-            "tableName",
-            toStaging(TABLE_NAME));
+            Map.of("tableName", toStaging(TABLE_NAME), "dataapprovalworkflowlevels", qualify("dataapprovalworkflowlevels"), "dataapprovallevel", qualify("dataapprovallevel")));
 
     return Optional.of(sql);
   }

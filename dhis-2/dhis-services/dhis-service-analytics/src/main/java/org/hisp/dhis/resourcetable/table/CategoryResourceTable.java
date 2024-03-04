@@ -31,10 +31,10 @@ import static java.lang.String.valueOf;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
 
-import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -46,6 +46,8 @@ import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.hisp.dhis.resourcetable.util.UniqueNameContext;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -158,10 +160,10 @@ public class CategoryResourceTable extends AbstractResourceTable {
               where coc.categoryoptioncomboid = cocco.categoryoptioncomboid \
               and cogsm.categoryoptiongroupsetid = ${groupSetId} limit 1) as ${groupSetName}, \
               (
-              select cog.uid from categoryoptioncombos_categoryoptions cocco \
-              inner join categoryoptiongroupmembers cogm on cocco.categoryoptionid = cogm.categoryoptionid \
-              inner join categoryoptiongroup cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid \
-              inner join categoryoptiongroupsetmembers cogsm on cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid \
+              select cog.uid from ${categoryoptioncombos_categoryoptions} cocco \
+              inner join ${categoryoptiongroupmembers} cogm on cocco.categoryoptionid = cogm.categoryoptionid \
+              inner join ${categoryoptiongroup} cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid \
+              inner join ${categoryoptiongroupsetmembers} cogsm on cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid \
               where coc.categoryoptioncomboid = cocco.categoryoptioncomboid \
               and cogsm.categoryoptiongroupsetid = ${groupSetId} limit 1) as ${groupSetUid}, \
               """,
