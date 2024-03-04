@@ -32,6 +32,8 @@ import static org.hisp.dhis.fileresource.FileResourceDomain.CUSTOM_ICON;
 import com.google.common.base.Strings;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -48,6 +50,9 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.icon.CustomIconService")
 public class DefaultCustomIconService implements CustomIconService {
+
+  private static final String CUSTOM_ICON_KEY_PATTERN = "^[a-zA-Z0-9!@#$%^&*()-_+=<>?]+$";
+
   private static final String ICON_PATH = "SVGs";
 
   private final CustomIconStore customIconStore;
@@ -114,7 +119,13 @@ public class DefaultCustomIconService implements CustomIconService {
   @Override
   @Transactional
   public void addCustomIcon(CustomIcon customIcon) throws BadRequestException, NotFoundException {
+
+    if (customIcon == null) {
+      throw new BadRequestException("CustomIcon cannot be null.");
+    }
+
     validateIconDoesNotExists(customIcon);
+    validateCustomIconKey(customIcon.getKey());
 
     if (customIcon.getCustom()) {
       FileResource fileResource = getFileResource(customIcon.getFileResource().getUid());
@@ -155,6 +166,18 @@ public class DefaultCustomIconService implements CustomIconService {
     customIconStore.delete(persistedCustomIcon);
   }
 
+  private void validateCustomIconKey(String key) throws BadRequestException {
+    Pattern pattern = Pattern.compile(CUSTOM_ICON_KEY_PATTERN);
+    Matcher matcher = pattern.matcher(key);
+
+    if (matcher.matches()) {
+      throw new BadRequestException(
+          String.format(
+              "CustomIcon key %s is not valid. Alphanumeric and special characters are allowed",
+              key));
+    }
+  }
+
   private void validateIconDoesNotExists(CustomIcon customIcon) throws BadRequestException {
 
     if (customIcon == null) {
@@ -176,6 +199,8 @@ public class DefaultCustomIconService implements CustomIconService {
     if (Strings.isNullOrEmpty(key)) {
       throw new BadRequestException("CustomIcon key not specified.");
     }
+
+    validateCustomIconKey(key);
   }
 
   private FileResource getFileResource(String fileResourceUid)

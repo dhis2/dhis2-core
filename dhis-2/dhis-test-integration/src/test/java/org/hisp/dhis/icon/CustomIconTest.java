@@ -150,6 +150,26 @@ class CustomIconTest extends TrackerTest {
   }
 
   @Test
+  void shouldFailWhenUpdatingCustomIconWithNoKey() throws BadRequestException, NotFoundException {
+
+    String invalidKey = "k1 m2";
+
+    CustomIcon customIconUpdated = customIcon;
+    customIconUpdated.setKey(invalidKey);
+    customIconUpdated.setDescription("description updated");
+
+    Exception exception =
+        assertThrows(
+            BadRequestException.class, () -> iconService.updateCustomIcon(customIconUpdated));
+
+    assertEquals(
+        String.format(
+            "CustomIcon key %s is not valid. Alphanumeric and special characters are allowed",
+            invalidKey),
+        exception.getMessage());
+  }
+
+  @Test
   void shouldFailWhenSavingCustomIconWithNoKey() {
     FileResource fileResource = createAndPersistFileResource('B');
 
@@ -160,6 +180,23 @@ class CustomIconTest extends TrackerTest {
             BadRequestException.class, () -> iconService.addCustomIcon(customIconWithNullKey));
 
     assertEquals("CustomIcon key not specified.", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenSavingCustomIconWithInvalidKey() {
+    FileResource fileResource = createAndPersistFileResource('B');
+    String invalidKey = "k1 m1";
+    CustomIcon customIconWithInvalidKey =
+        new CustomIcon(invalidKey, "description", keywords, true, fileResource);
+    Exception exception =
+        assertThrows(
+            BadRequestException.class, () -> iconService.addCustomIcon(customIconWithInvalidKey));
+
+    assertEquals(
+        String.format(
+            "CustomIcon key %s is not valid. Alphanumeric and special characters are allowed",
+            invalidKey),
+        exception.getMessage());
   }
 
   @Test
