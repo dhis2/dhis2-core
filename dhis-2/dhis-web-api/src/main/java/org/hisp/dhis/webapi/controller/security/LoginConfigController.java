@@ -36,6 +36,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.security.LoginConfigResponse;
 import org.hisp.dhis.security.LoginConfigResponse.LoginConfigResponseBuilder;
+import org.hisp.dhis.security.LoginPageLayout;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.SystemService;
@@ -72,7 +73,18 @@ public class LoginConfigController {
     LOGIN_POPUP(),
     SELF_REGISTRATION_NO_RECAPTCHA(),
     USE_CUSTOM_LOGO_FRONT(),
-    ACCOUNT_RECOVERY();
+    ACCOUNT_RECOVERY(),
+    RECAPTCHA_SITE(),
+
+    /** The layout to be used for displaying LoginPage. Value is the enum {@link LoginPageLayout} */
+    LOGIN_PAGE_LAYOUT(LoginPageLayout.DEFAULT.name()),
+
+    /**
+     * The HTML string which is used for displaying LoginPage if selected {@link LoginPageLayout} is
+     * CUSTOM.
+     */
+    LOGIN_PAGE_TEMPLATE();
+    ;
 
     private final String defaultValue;
 
@@ -130,6 +142,13 @@ public class LoginConfigController {
         configurationService.getConfiguration().selfRegistrationAllowed());
 
     builder.apiVersion(systemService.getSystemInfo().getVersion());
+    builder.recaptchaSite(manager.getStringSetting(SettingKey.valueOf(KEYS.RECAPTCHA_SITE.name())));
+
+    builder.loginPageLayout(
+        manager.getStringSetting(SettingKey.valueOf(KEYS.LOGIN_PAGE_LAYOUT.name())));
+
+    builder.loginPageTemplate(
+        manager.getStringSetting(SettingKey.valueOf(KEYS.LOGIN_PAGE_TEMPLATE.name())));
 
     return builder.build();
   }

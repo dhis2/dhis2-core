@@ -27,39 +27,15 @@
  */
 package org.hisp.dhis.security;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * Layout of the Login Page which user can select in SystemSettings App.
+ *
+ * <p>This is the value of SettingKey.LOGIN_PAGE_LAYOUT.
  */
-@NoArgsConstructor
-@AllArgsConstructor
-@Getter
-@Builder
-public class LoginConfigResponse {
+public enum LoginPageLayout {
+  DEFAULT,
+  SIDEBAR,
 
-  @JsonProperty private String apiVersion;
-
-  @JsonProperty private String applicationTitle;
-  @JsonProperty private String applicationDescription;
-  @JsonProperty private String applicationNotification;
-  @JsonProperty private String applicationLeftSideFooter;
-  @JsonProperty private String applicationRightSideFooter;
-  @JsonProperty private String countryFlag;
-  @JsonProperty private String uiLocale;
-  @JsonProperty private String loginPageLogo;
-  @JsonProperty private String loginPopup;
-  @JsonProperty private String loginPageLayout;
-  @JsonProperty private String loginPageTemplate;
-  @JsonProperty private String recaptchaSite;
-
-  @JsonProperty private boolean emailConfigured;
-  @JsonProperty private boolean selfRegistrationEnabled;
-  @JsonProperty private boolean selfRegistrationNoRecaptcha;
-  @JsonProperty private boolean allowAccountRecovery;
-  @JsonProperty private boolean useCustomLogoFront;
+  /** If this is selected then user needs to upload a custom HTML template. */
+  CUSTOM
 }
