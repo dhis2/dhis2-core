@@ -112,10 +112,12 @@ class DorisSqlBuilderTest {
         "pg_dhis.public.`categories_options`", sqlBuilder.qualifyTable("categories_options"));
   }
 
+  @Test
   void testCreateCatalog() {
     String expected =
         """
           create catalog `pg_dhis` \
+          properties (
           "type" = "jdbc", \
           "user" = "dhis", \
           "password" = "kH7g", \
@@ -130,5 +132,12 @@ class DorisSqlBuilderTest {
             "jdbc:mysql://127.18.0.1:9030/dev?useUnicode=true&characterEncoding=UTF-8&useSSL=false",
             "dhis",
             "kH7g"));
+  }
+
+  @Test
+  void testDropCatalogIfExists() {
+    String expected = """
+          drop catalog if exists `pg_dhis`;""";
+    assertEquals(expected, sqlBuilder.dropCatalogIfExists());
   }
 }
