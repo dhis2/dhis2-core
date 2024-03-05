@@ -36,7 +36,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import org.springframework.mock.web.MockHttpServletRequest;
 
 class PageTest {
 
@@ -46,7 +45,7 @@ class PageTest {
     org.hisp.dhis.tracker.export.Page<String> exportPage =
         org.hisp.dhis.tracker.export.Page.withoutTotals(fruits, 2, 3);
 
-    Page page = Page.withPager("fruits", exportPage);
+    Page<String> page = Page.withPager("fruits", exportPage);
 
     // deprecated fields
     assertEquals(2, page.getPage());
@@ -68,7 +67,7 @@ class PageTest {
     org.hisp.dhis.tracker.export.Page<String> exportPage =
         org.hisp.dhis.tracker.export.Page.withTotals(fruits, 2, 3, 17);
 
-    Page page = Page.withPager("fruits", exportPage);
+    Page<String> page = Page.withPager("fruits", exportPage);
 
     // deprecated fields
     assertEquals(2, page.getPage());
@@ -92,7 +91,7 @@ class PageTest {
     org.hisp.dhis.tracker.export.Page<String> exportPage =
         org.hisp.dhis.tracker.export.Page.withTotals(fruits, 10, 3, 17);
 
-    Page page = Page.withPager("fruits", exportPage);
+    Page<String> page = Page.withPager("fruits", exportPage);
 
     // deprecated fields
     assertEquals(10, page.getPage());
@@ -114,10 +113,11 @@ class PageTest {
     org.hisp.dhis.tracker.export.Page<String> exportPage =
         org.hisp.dhis.tracker.export.Page.withPrevAndNext(fruits, 1, 3, null, null);
 
-    MockHttpServletRequest request = new MockHttpServletRequest("GET", "/organisationUnits");
-    request.setQueryString("page=1&pageSize=3&fields=displayName");
-
-    Page<String> page = Page.withPager("fruits", exportPage, request);
+    Page<String> page =
+        Page.withPager(
+            "fruits",
+            exportPage,
+            "http://localhost/organisationUnits?page=1&pageSize=3&fields=displayName");
 
     // deprecated fields should not be returned with this new factory!
     assertNull(page.getTotal());
@@ -140,10 +140,11 @@ class PageTest {
     org.hisp.dhis.tracker.export.Page<String> exportPage =
         org.hisp.dhis.tracker.export.Page.withPrevAndNext(fruits, 2, 3, 1, null);
 
-    MockHttpServletRequest request = new MockHttpServletRequest("GET", "/organisationUnits");
-    request.setQueryString("page=2&pageSize=3&fields=displayName");
-
-    Page<String> page = Page.withPager("fruits", exportPage, request);
+    Page<String> page =
+        Page.withPager(
+            "fruits",
+            exportPage,
+            "http://localhost/organisationUnits?page=2&pageSize=3&fields=displayName");
 
     // deprecated fields should not be returned with this new factory!
     assertNull(page.getTotal());
@@ -171,10 +172,11 @@ class PageTest {
     org.hisp.dhis.tracker.export.Page<String> exportPage =
         org.hisp.dhis.tracker.export.Page.withPrevAndNext(fruits, 2, 3, null, 3);
 
-    MockHttpServletRequest request = new MockHttpServletRequest("GET", "/organisationUnits");
-    request.setQueryString("page=2&pageSize=3&fields=displayName");
-
-    Page<String> page = Page.withPager("fruits", exportPage, request);
+    Page<String> page =
+        Page.withPager(
+            "fruits",
+            exportPage,
+            "http://localhost/organisationUnits?page=2&pageSize=3&fields=displayName");
 
     // deprecated fields should not be returned with this new factory!
     assertNull(page.getTotal());

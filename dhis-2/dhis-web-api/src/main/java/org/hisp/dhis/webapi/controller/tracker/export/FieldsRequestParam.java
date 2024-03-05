@@ -27,28 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import java.util.ArrayList;
 import java.util.List;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 
-@OpenApi.Shared(name = "ChangeLogRequestParams")
-@OpenApi.Property
-@Data
-@NoArgsConstructor
-public class ChangeLogRequestParams implements FieldsRequestParam {
-
-  private static final String DEFAULT_FIELDS_PARAM = "change,createdAt,createdBy,type";
-
-  private int page = 1;
-
-  private int pageSize = 50;
-
-  private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
-
-  private List<OrderCriteria> order = new ArrayList<>();
+/**
+ * FieldsRequestParam represents the HTTP request parameter {@code fields}. This allows users to
+ * specify the exact fields they want in the JSON response.
+ */
+interface FieldsRequestParam {
+  List<FieldPath> getFields();
 }

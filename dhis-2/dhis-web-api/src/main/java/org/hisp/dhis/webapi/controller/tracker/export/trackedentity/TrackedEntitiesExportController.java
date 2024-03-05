@@ -69,6 +69,7 @@ import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.tracker.export.ChangeLogRequestParams;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
+import org.hisp.dhis.webapi.controller.tracker.export.JsonRequestHandler;
 import org.hisp.dhis.webapi.controller.tracker.export.ResponseHeader;
 import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
@@ -124,19 +125,23 @@ class TrackedEntitiesExportController {
 
   private final TrackedEntityChangeLogService trackedEntityChangeLogService;
 
+  private final JsonRequestHandler jsonRequestHandler;
+
   public TrackedEntitiesExportController(
       TrackedEntityService trackedEntityService,
       TrackedEntityRequestParamsMapper paramsMapper,
       CsvService<TrackedEntity> csvEventService,
       FieldFilterService fieldFilterService,
       TrackedEntityFieldsParamMapper fieldsMapper,
-      TrackedEntityChangeLogService trackedEntityChangeLogService) {
+      TrackedEntityChangeLogService trackedEntityChangeLogService,
+      JsonRequestHandler jsonRequestHandler) {
     this.trackedEntityService = trackedEntityService;
     this.paramsMapper = paramsMapper;
     this.entityCsvService = csvEventService;
     this.fieldFilterService = fieldFilterService;
     this.fieldsMapper = fieldsMapper;
     this.trackedEntityChangeLogService = trackedEntityChangeLogService;
+    this.jsonRequestHandler = jsonRequestHandler;
 
     assertUserOrderableFieldsAreSupported(
         "tracked entity",
@@ -329,8 +334,6 @@ class TrackedEntitiesExportController {
         trackedEntityChangeLogService.getTrackedEntityChangeLog(
             trackedEntity, program, operationParams, pageParams);
 
-    List<ObjectNode> objectNodes =
-        fieldFilterService.toObjectNodes(changeLogs.getItems(), requestParams.getFields());
-    return Page.withPager("changeLogs", changeLogs.withItems(objectNodes), request);
+    return jsonRequestHandler.handle(request, "changeLogs", changeLogs, requestParams);
   }
 }
