@@ -125,8 +125,8 @@ public class DataElementGroupSetResourceTable extends AbstractResourceTable {
     }
 
     sql = TextUtils.removeLastComma(sql) + " ";
+
     sql += format("from {} d;", qualify("dataelement"));
-    ;
 
     return Optional.of(sql);
   }
