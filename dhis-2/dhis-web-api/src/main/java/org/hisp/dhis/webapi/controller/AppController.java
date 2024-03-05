@@ -32,10 +32,14 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import com.nimbusds.jose.util.StandardCharset;
+
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -43,6 +47,9 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.LineIterator;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppMenuManager;
@@ -58,7 +65,6 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -262,7 +268,6 @@ public class AppController {
       log.debug(String.format("App filename: '%s'", filename));
 
       if (new ServletWebRequest(request, response).checkNotModified(resource.lastModified())) {
-        response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
         return;
       }
 
@@ -272,11 +277,25 @@ public class AppController {
         response.setContentType(mimeType);
       }
 
-      response.setContentLengthLong(resource.contentLength());
-      response.setHeader(
-          "Last-Modified", DateUtils.toHttpDateString(new Date(resource.lastModified())));
-
-      StreamUtils.copyThenCloseInputStream(resource.getInputStream(), response.getOutputStream());
+      if (filename.endsWith(".html")) {
+        LineIterator iterator = IOUtils.lineIterator(resource.getInputStream(), StandardCharsets.UTF_8);
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        PrintWriter output = new PrintWriter(bout, true, StandardCharset.UTF_8);
+        try {
+          while (iterator.hasNext()) {
+            String line = iterator.nextLine();
+            output.println(line.replace("__DHIS2_BASE_URL__", contextPath).replace("__DHIS2_APP_ROOT_URL__", application.getBaseUrl()));
+          }
+        } finally {
+          iterator.close();
+          response.setContentLength(bout.size());
+          response.setHeader("Content-Encoding", StandardCharsets.UTF_8.toString());
+          bout.writeTo(response.getOutputStream());
+        }
+      } else {
+        response.setContentLengthLong(resource.contentLength());
+        StreamUtils.copyThenCloseInputStream(resource.getInputStream(), response.getOutputStream());
+      }
     }
   }
 
