@@ -60,7 +60,7 @@ public class FieldFilterRequestHandler {
     return Page.withPager(jsonKey, page.withItems(objectNodes), requestURL);
   }
 
-  private String getRequestURL(HttpServletRequest request) {
+  private static String getRequestURL(HttpServletRequest request) {
     StringBuilder requestURL = new StringBuilder(getApiPath(request));
     requestURL.append(request.getPathInfo());
     String queryString = request.getQueryString();
