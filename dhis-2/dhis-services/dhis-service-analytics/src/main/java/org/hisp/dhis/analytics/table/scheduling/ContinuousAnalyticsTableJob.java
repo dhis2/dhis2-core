@@ -99,6 +99,8 @@ public class ContinuousAnalyticsTableJob implements Job {
         toLongDate(startTime),
         toLongDate(nextFullUpdate));
 
+    // Run full update if never previously run or if next full update time is in the past
+
     if (nextFullUpdate == null || startTime.after(nextFullUpdate)) {
       log.info("Performing full analytics table update");
 
