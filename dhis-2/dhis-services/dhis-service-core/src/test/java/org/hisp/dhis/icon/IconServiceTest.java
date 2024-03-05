@@ -47,6 +47,7 @@ import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -57,6 +58,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class IconServiceTest extends DhisConvenienceTest {
   @Mock private IconStore iconStore;
+
+  @Mock private UserService userService;
 
   @Mock private FileResourceService fileResourceService;
 
@@ -77,6 +80,8 @@ class IconServiceTest extends DhisConvenienceTest {
     user.setId(1234);
     user.setUsername("user");
     injectSecurityContext(UserDetails.fromUser(user));
+
+    when(userService.getUserByUsername(anyString())).thenReturn(user);
 
     iconService.addIcon(new Icon(uniqueKey, "description", Set.of("keyword1"), true, fileResource));
 
