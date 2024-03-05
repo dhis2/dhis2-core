@@ -319,7 +319,6 @@ class ObjectBundleServiceTest extends TransactionalIntegrationTest {
     defaultSetup();
     ObjectBundleParams params = new ObjectBundleParams();
     params.setObjectBundleMode(ObjectBundleMode.VALIDATE);
-    params.setMergeMode(MergeMode.REPLACE);
     params.setObjects(metadata);
     ObjectBundle bundle = objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
