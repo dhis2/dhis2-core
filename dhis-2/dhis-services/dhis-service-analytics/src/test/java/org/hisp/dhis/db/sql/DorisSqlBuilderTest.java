@@ -111,4 +111,24 @@ class DorisSqlBuilderTest {
     assertEquals(
         "pg_dhis.public.`categories_options`", sqlBuilder.qualifyTable("categories_options"));
   }
+
+  void testCreateCatalog() {
+    String expected =
+        """
+          create catalog `pg_dhis` \
+          "type" = "jdbc", \
+          "user" = "dhis", \
+          "password" = "kH7g", \
+          "jdbc_url" = "jdbc:mysql://127.18.0.1:9030/dev?useUnicode=true&characterEncoding=UTF-8&useSSL=false", \
+          "driver_url" = "postgresql.jar", \
+          "driver_class" = "org.postgresql.Driver"
+          );""";
+
+    assertEquals(
+        expected,
+        sqlBuilder.createCatalog(
+            "jdbc:mysql://127.18.0.1:9030/dev?useUnicode=true&characterEncoding=UTF-8&useSSL=false",
+            "dhis",
+            "kH7g"));
+  }
 }

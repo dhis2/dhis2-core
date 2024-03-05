@@ -217,36 +217,6 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     return String.format("%s.%s.%s", catalog, SCHEMA, quote(name));
   }
 
-  @Override
-  public String createCatalog(String connectionUrl, String username, String password) {
-    String sql =
-        """
-        create catalog ${catalog} \
-        properties (
-        "type" = "jdbc", \
-        "user" = "${username}", \
-        "password" = "${password}", \
-        "jdbc_url" = "${connection_url}", \
-        "driver_url" = "${driver_filename}", \
-        "driver_class" = "org.postgresql.Driver"
-        );
-        """;
-
-    return replace(
-        sql,
-        Map.of(
-            "catalog", quote(catalog),
-            "username", username,
-            "password", password,
-            "connection_url", connectionUrl,
-            "driver_filename", driverFilename));
-  }
-
-  @Override
-  public String dropCatalogIfExists() {
-    return String.format("drop catalog if exists %s;", quote(catalog));
-  }
-
   // Statements
 
   @Override
@@ -371,5 +341,34 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   @Override
   public String createIndex(Index index) {
     return notSupported();
+  }
+
+  @Override
+  public String createCatalog(String connectionUrl, String username, String password) {
+    String sql =
+        """
+        create catalog ${catalog} \
+        properties (
+        "type" = "jdbc", \
+        "user" = "${username}", \
+        "password" = "${password}", \
+        "jdbc_url" = "${connection_url}", \
+        "driver_url" = "${driver_filename}", \
+        "driver_class" = "org.postgresql.Driver"
+        );""";
+
+    return replace(
+        sql,
+        Map.of(
+            "catalog", quote(catalog),
+            "username", username,
+            "password", password,
+            "connection_url", connectionUrl,
+            "driver_filename", driverFilename));
+  }
+
+  @Override
+  public String dropCatalogIfExists() {
+    return String.format("drop catalog if exists %s;", quote(catalog));
   }
 }
