@@ -110,14 +110,7 @@ public class TeiQuery2AutoTest extends AnalyticsApiTest {
         false,
         true);
     validateHeader(
-            response,
-            3,
-            "created",
-            "Created",
-            "DATETIME",
-            "java.time.LocalDateTime",
-            false,
-            true);
+        response, 3, "created", "Created", "DATETIME", "java.time.LocalDateTime", false, true);
 
     // Assert row context
     validateRowContext(response, 0, 0, "ND");
