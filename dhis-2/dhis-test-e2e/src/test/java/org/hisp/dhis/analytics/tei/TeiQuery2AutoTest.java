@@ -54,7 +54,7 @@ public class TeiQuery2AutoTest extends AnalyticsApiTest {
     QueryParamsBuilder params =
         new QueryParamsBuilder()
             .add(
-                "headers=IpHINAT79UW.A03MvHHogjR[1].bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR[2].bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR[0].bx6fsa0t90x")
+                "headers=IpHINAT79UW.A03MvHHogjR[1].bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR[2].bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR[0].bx6fsa0t90x,created")
             .add("lastUpdated=LAST_5_YEARS")
             .add("pageSize=3")
             .add(
@@ -69,11 +69,11 @@ public class TeiQuery2AutoTest extends AnalyticsApiTest {
     response
         .validate()
         .statusCode(200)
-        .body("headers", hasSize(equalTo(3)))
+        .body("headers", hasSize(equalTo(4)))
         .body("rows", hasSize(equalTo(3)))
         .body("height", equalTo(3))
-        .body("width", equalTo(3))
-        .body("headerWidth", equalTo(3));
+        .body("width", equalTo(4))
+        .body("headerWidth", equalTo(4));
 
     // Assert metaData.
     String expectedMetaData =
@@ -109,6 +109,15 @@ public class TeiQuery2AutoTest extends AnalyticsApiTest {
         "java.lang.Boolean",
         false,
         true);
+    validateHeader(
+            response,
+            3,
+            "created",
+            "Created",
+            "DATETIME",
+            "java.time.LocalDateTime",
+            false,
+            true);
 
     // Assert row context
     validateRowContext(response, 0, 0, "ND");
@@ -118,8 +127,8 @@ public class TeiQuery2AutoTest extends AnalyticsApiTest {
     validateRowContext(response, 2, 1, "ND");
 
     // Assert rows.
-    validateRow(response, 0, List.of("", "", ""));
-    validateRow(response, 1, List.of("1", "", "1"));
-    validateRow(response, 2, List.of("0", "", "0"));
+    validateRow(response, 0, List.of("", "", "", "2015-10-14 14:18:23.02"));
+    validateRow(response, 1, List.of("1", "", "1", "2015-08-07 15:47:29.301"));
+    validateRow(response, 2, List.of("0", "", "0", "2015-08-07 15:47:29.3"));
   }
 }
