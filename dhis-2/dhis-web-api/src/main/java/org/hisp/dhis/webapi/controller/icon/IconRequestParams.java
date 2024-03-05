@@ -53,7 +53,7 @@ public class IconRequestParams {
   private Date lastUpdatedStartDate;
   private Date lastUpdatedEndDate;
   private IconTypeFilter type = IconTypeFilter.ALL;
-  private boolean paging = false;
+  private boolean paging = true;
   private int pageSize = Pager.DEFAULT_PAGE_SIZE;
   private int page = 1;
 

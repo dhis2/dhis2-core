@@ -32,10 +32,25 @@ import java.util.Set;
 
 public interface IconStore {
 
+  /**
+   * Persist {@link Icon}
+   *
+   * @param icon to persist
+   */
   void save(Icon icon) throws SQLException;
 
+  /**
+   * Remove {@link Icon}
+   *
+   * @param icon to remove
+   */
   void delete(Icon icon);
 
+  /**
+   * Update {@link Icon}
+   *
+   * @param icon to update
+   */
   void update(Icon icon) throws SQLException;
 
   /**
@@ -61,11 +76,4 @@ public interface IconStore {
    * @return the custom icon matching the key, or null instead
    */
   Icon getIconByKey(String key);
-
-  /**
-   * Gets a set of all unique keywords assigned to icons
-   *
-   * @return set of unique keywords
-   */
-  Set<String> getKeywords();
 }

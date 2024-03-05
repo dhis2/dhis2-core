@@ -27,12 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller.icon;
 
-import static org.hamcrest.CoreMatchers.hasItems;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContainsAll;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
-import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -44,7 +41,6 @@ import java.io.InputStream;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
@@ -167,26 +163,6 @@ class IconControllerTest extends DhisControllerIntegrationTest {
   }
 
   @Test
-  void shouldGetAllKeywords() throws IOException {
-
-    String fileResourceId1 = createFileResource();
-    createIcon(fileResourceId1, keywordsList2, key1);
-
-    String fileResourceId2 = createFileResource();
-    createIcon(fileResourceId2, keywordsList1, key2);
-
-    JsonArray response = GET("/icons/keywords").content(HttpStatus.OK);
-
-    assertNotNull(response);
-
-    List<String> keywords = response.stringValues();
-
-    assertEquals(238, keywords.size());
-
-    assertThat(keywords, hasItems("m1", "k1", "k2"));
-  }
-
-  @Test
   void shouldGetIconsWithPager() throws IOException {
 
     String fileResourceId1 = createFileResource();
@@ -232,9 +208,9 @@ class IconControllerTest extends DhisControllerIntegrationTest {
 
     JsonList<JsonIcon> icons = iconResponse.getList("icons", JsonIcon.class);
 
-    assertHasNoMember(iconResponse, "pager");
+    assertHasMember(iconResponse, "pager");
     assertEquals(
-        900,
+        50,
         icons.size(),
         () -> String.format("mismatch in number of expected Icon(s), fetched %s", icons));
   }

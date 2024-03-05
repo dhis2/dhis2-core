@@ -189,11 +189,6 @@ public class IconController {
     response.sendRedirect(ContextUtils.getRootPath(request) + location);
   }
 
-  @GetMapping("/keywords")
-  public ResponseEntity<Set<String>> getKeywords() {
-    return new ResponseEntity<>(iconService.getKeywords(), HttpStatus.OK);
-  }
-
   @PostMapping
   public WebMessage addIcon(HttpServletRequest request, @CurrentUser User user)
       throws IOException, BadRequestException, NotFoundException, SQLException {

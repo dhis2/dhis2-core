@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import java.io.IOException;
@@ -95,23 +94,6 @@ class IconTest extends TrackerTest {
   @Test
   void shouldGetIconByKey() throws NotFoundException {
     assertIcon(iconService.getIcon(Key));
-  }
-
-  @Test
-  void shouldGetAllKeywordsWhenRequested()
-      throws BadRequestException, NotFoundException, SQLException {
-
-    FileResource fileResource = createAndPersistFileResource('V');
-
-    Set<String> words = Sets.newHashSet();
-    words.addAll(Set.of("m1", "m2"));
-    Icon icon2 = new Icon("iconKey2", "description", words, true, fileResource);
-
-    iconService.addIcon(icon2);
-
-    Set<String> keywords = iconService.getKeywords();
-
-    assertThat(keywords, hasSize(238));
   }
 
   @Test

@@ -73,13 +73,6 @@ public interface IconService {
   Resource getIconResource(String key) throws NotFoundException;
 
   /**
-   * Gets a set of all unique keywords assigned to icons
-   *
-   * @return set of unique keywords
-   */
-  Set<String> getKeywords();
-
-  /**
    * Checks whether an icon with a given key exists, either default or custom
    *
    * @param key key of the icon

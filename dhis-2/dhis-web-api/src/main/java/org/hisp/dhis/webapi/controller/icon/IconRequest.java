@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.icon;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.HashSet;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -44,7 +45,7 @@ class IconRequest {
 
   @JsonProperty private String description;
 
-  @JsonProperty private Set<String> keywords;
+  @JsonProperty private Set<String> keywords = new HashSet<>();
 
   @JsonProperty private String fileResourceId;
 

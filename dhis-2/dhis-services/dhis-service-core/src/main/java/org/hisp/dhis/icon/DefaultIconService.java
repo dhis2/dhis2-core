@@ -102,12 +102,6 @@ public class DefaultIconService implements IconService {
 
   @Override
   @Transactional(readOnly = true)
-  public Set<String> getKeywords() {
-    return iconStore.getKeywords();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public boolean iconExists(String key) {
     return iconStore.getIconByKey(key) != null;
   }

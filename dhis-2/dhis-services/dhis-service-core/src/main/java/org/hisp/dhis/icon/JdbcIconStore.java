@@ -28,12 +28,10 @@
 package org.hisp.dhis.icon;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -43,7 +41,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.fileresource.FileResourceStore;
-import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType;
 import org.hisp.dhis.user.UserService;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -57,11 +54,7 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class JdbcIconStore implements IconStore {
 
-  private static final ObjectReader keywordsReader =
-      JsonBinaryType.MAPPER.readerFor(new TypeReference<Set<String>>() {});
-
-  private static final ObjectWriter keywordsWriter =
-      JsonBinaryType.MAPPER.writerFor(new TypeReference<Set<String>>() {});
+  private static final ObjectMapper keywordsMapper = new ObjectMapper();
 
   private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
@@ -115,14 +108,6 @@ public class JdbcIconStore implements IconStore {
             });
 
     return icons.isEmpty() ? null : icons.get(0);
-  }
-
-  @Override
-  public Set<String> getKeywords() {
-
-    return Set.copyOf(
-        namedParameterJdbcTemplate.queryForList(
-            "select json_agg(keywords) from icon", new HashMap<>(), String.class));
   }
 
   @Override
@@ -276,7 +261,7 @@ public class JdbcIconStore implements IconStore {
 
   private Set<String> convertKeywordsJsonIntoSet(String jsonString) {
     try {
-      return keywordsReader.readValue(jsonString);
+      return keywordsMapper.readValue(jsonString, new TypeReference<Set<String>>() {});
     } catch (IOException e) {
       log.error("Parsing keywords json failed, string value: '{}'", jsonString);
       throw new IllegalArgumentException(e);
@@ -285,7 +270,7 @@ public class JdbcIconStore implements IconStore {
 
   private String convertKeywordsSetToJsonString(List<String> keywords) {
     try {
-      return keywordsWriter.writeValueAsString(new HashSet<>(keywords));
+      return keywordsMapper.writeValueAsString(new HashSet<>(keywords));
     } catch (IOException e) {
       log.error("Parsing keywords into json string failed");
       throw new IllegalArgumentException(e);
