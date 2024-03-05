@@ -118,13 +118,13 @@ class DorisSqlBuilderTest {
         """
         create catalog `pg_dhis` \
         properties (
-          "type" = "jdbc", \
-          "user" = "dhis", \
-          "password" = "kH7g", \
-          "jdbc_url" = "jdbc:mysql://127.18.0.1:9030/dev?useUnicode=true&characterEncoding=UTF-8", \
-          "driver_url" = "postgresql.jar", \
-          "driver_class" = "org.postgresql.Driver"
-          );""";
+        "type" = "jdbc", \
+        "user" = "dhis", \
+        "password" = "kH7g", \
+        "jdbc_url" = "jdbc:mysql://127.18.0.1:9030/dev?useUnicode=true&characterEncoding=UTF-8", \
+        "driver_url" = "postgresql.jar", \
+        "driver_class" = "org.postgresql.Driver"
+        );""";
 
     assertEquals(
         expected,
@@ -137,7 +137,8 @@ class DorisSqlBuilderTest {
   @Test
   void testDropCatalogIfExists() {
     String expected = """
-          drop catalog if exists `pg_dhis`;""";
+        drop catalog if exists `pg_dhis`;""";
+
     assertEquals(expected, sqlBuilder.dropCatalogIfExists());
   }
 }
