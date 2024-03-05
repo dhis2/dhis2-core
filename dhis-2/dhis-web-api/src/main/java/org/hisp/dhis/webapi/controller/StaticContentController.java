@@ -40,7 +40,7 @@ import static org.hisp.dhis.fileresource.FileResourceKeyUtil.makeKey;
 import static org.hisp.dhis.setting.SettingKey.USE_CUSTOM_LOGO_BANNER;
 import static org.hisp.dhis.setting.SettingKey.USE_CUSTOM_LOGO_FRONT;
 import static org.hisp.dhis.webapi.controller.StaticContentController.RESOURCE_PATH;
-import static org.hisp.dhis.webapi.utils.ContextUtils.getContextPath;
+import static org.hisp.dhis.webapi.service.HttpServletRequestPathParser.getContextPath;
 import static org.hisp.dhis.webapi.utils.FileResourceUtils.build;
 import static org.springframework.http.HttpStatus.FOUND;
 import static org.springframework.http.HttpStatus.NO_CONTENT;

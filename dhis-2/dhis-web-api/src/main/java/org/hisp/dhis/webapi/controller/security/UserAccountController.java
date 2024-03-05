@@ -54,7 +54,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccountService;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.service.HttpServletRequestPathParser;
 import org.hisp.dhis.webmessage.WebMessageResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -120,7 +120,9 @@ public class UserAccountController {
     }
 
     if (!userService.sendRestoreOrInviteMessage(
-        user, ContextUtils.getContextPath(request), RestoreOptions.RECOVER_PASSWORD_OPTION)) {
+        user,
+        HttpServletRequestPathParser.getContextPath(request),
+        RestoreOptions.RECOVER_PASSWORD_OPTION)) {
       throw new ConflictException("Account could not be recovered");
     }
 

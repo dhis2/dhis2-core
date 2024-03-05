@@ -34,7 +34,7 @@ import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.service.HttpServletRequestPathParser;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -55,7 +55,8 @@ public class RedirectAction implements Action {
   public String execute() throws Exception {
     String startModule = systemSettingManager.getStringSetting(SettingKey.START_MODULE);
 
-    String contextPath = ContextUtils.getContextPath(ServletActionContext.getRequest());
+    String contextPath =
+        HttpServletRequestPathParser.getContextPath(ServletActionContext.getRequest());
 
     if (startModule != null && !startModule.trim().isEmpty()) {
       if (startModule.startsWith("app:")) {

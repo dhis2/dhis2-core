@@ -27,13 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import static org.hisp.dhis.webapi.service.HttpServletRequestPathParser.getApiPath;
+
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
-import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -41,7 +42,6 @@ import org.springframework.stereotype.Component;
 public class JsonRequestHandler {
 
   private final FieldFilterService fieldFilterService;
-  private final ContextService contextService;
 
   /**
    * Returns a page which will serialize the items under given {@code jsonKey} after applying the
@@ -61,7 +61,7 @@ public class JsonRequestHandler {
   }
 
   private String getRequestURL(HttpServletRequest request) {
-    StringBuilder requestURL = new StringBuilder(contextService.getApiPath());
+    StringBuilder requestURL = new StringBuilder(getApiPath(request));
     requestURL.append(request.getPathInfo());
     String queryString = request.getQueryString();
     if (queryString == null) {

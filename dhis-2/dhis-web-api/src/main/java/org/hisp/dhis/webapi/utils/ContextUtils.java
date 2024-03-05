@@ -44,6 +44,7 @@ import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
+import org.hisp.dhis.webapi.service.HttpServletRequestPathParser;
 import org.hisp.dhis.webapi.service.WebCache;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
@@ -217,40 +218,8 @@ public class ContextUtils {
     return attributes != null ? attributes.getRequest() : null;
   }
 
-  public static String getContextPath(HttpServletRequest request) {
-    StringBuilder builder = new StringBuilder();
-    String xForwardedProto = request.getHeader("X-Forwarded-Proto");
-    String xForwardedPort = request.getHeader("X-Forwarded-Port");
-
-    if (xForwardedProto != null
-        && (xForwardedProto.equalsIgnoreCase("http")
-            || xForwardedProto.equalsIgnoreCase("https"))) {
-      builder.append(xForwardedProto);
-    } else {
-      builder.append(request.getScheme());
-    }
-
-    builder.append("://").append(request.getServerName());
-
-    int port;
-
-    try {
-      port = Integer.parseInt(xForwardedPort);
-    } catch (NumberFormatException e) {
-      port = request.getServerPort();
-    }
-
-    if (port != 80 && port != 443) {
-      builder.append(":").append(port);
-    }
-
-    builder.append(request.getContextPath());
-
-    return builder.toString();
-  }
-
   public static String getRootPath(HttpServletRequest request) {
-    return getContextPath(request) + request.getServletPath();
+    return HttpServletRequestPathParser.getContextPath(request) + request.getServletPath();
   }
 
   /**
