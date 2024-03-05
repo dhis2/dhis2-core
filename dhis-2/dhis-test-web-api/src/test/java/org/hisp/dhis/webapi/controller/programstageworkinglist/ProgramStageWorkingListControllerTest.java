@@ -273,14 +273,15 @@ class ProgramStageWorkingListControllerTest extends DhisControllerConvenienceTes
             assertFalse(
                 json.has("followUp"),
                 "FollowUp check has not been requested and should not be in the response");
-    Consumer<JsonProgramStageQueryCriteria> followUpIsTrue = json -> assertTrue(json.getFollowUp());
+    Consumer<JsonProgramStageQueryCriteria> followUpIsTrue =
+        json -> assertTrue(json.getFollowUp(), "Expected followUp true but got false");
     Consumer<JsonProgramStageQueryCriteria> followUpIsFalse =
-        json -> assertFalse(json.getFollowUp());
+        json -> assertFalse(json.getFollowUp(), "Expected followUp false but got true");
 
     return Stream.of(
         arguments("", followUpIsNull),
-        arguments("'followUp': 'true',\n", followUpIsTrue),
-        arguments("'followUp': 'false',\n", followUpIsFalse));
+        arguments("'followUp': true,\n", followUpIsTrue),
+        arguments("'followUp': false,\n", followUpIsFalse));
   }
 
   @MethodSource
