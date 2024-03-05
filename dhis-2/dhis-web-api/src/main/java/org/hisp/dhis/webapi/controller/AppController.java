@@ -33,7 +33,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.nimbusds.jose.util.StandardCharset;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -47,7 +46,6 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 import org.hisp.dhis.appmanager.App;
@@ -278,13 +276,16 @@ public class AppController {
       }
 
       if (filename.endsWith(".html")) {
-        LineIterator iterator = IOUtils.lineIterator(resource.getInputStream(), StandardCharsets.UTF_8);
+        LineIterator iterator =
+            IOUtils.lineIterator(resource.getInputStream(), StandardCharsets.UTF_8);
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
         PrintWriter output = new PrintWriter(bout, true, StandardCharset.UTF_8);
         try {
           while (iterator.hasNext()) {
             String line = iterator.nextLine();
-            output.println(line.replace("__DHIS2_BASE_URL__", contextPath).replace("__DHIS2_APP_ROOT_URL__", application.getBaseUrl()));
+            output.println(
+                line.replace("__DHIS2_BASE_URL__", contextPath)
+                    .replace("__DHIS2_APP_ROOT_URL__", application.getBaseUrl()));
           }
         } finally {
           iterator.close();

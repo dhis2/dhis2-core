@@ -32,7 +32,6 @@ import static java.util.regex.Pattern.compile;
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.servlet.FilterChain;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -40,7 +39,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.appmanager.AppManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -53,14 +51,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @RequiredArgsConstructor
 @Component
 public class GlobalAppShellFilter extends OncePerRequestFilter {
-  @Autowired
-  AppManager appManager;
+  @Autowired AppManager appManager;
 
   public static final String GLOBAL_APP_SHELL_APP_NAME = "global-app-shell";
 
-  public static final String APP_PATH_PATTERN_STRING = "^/"
-      + "(?:" + AppManager.BUNDLED_APP_PREFIX + "|api/apps/)"
-      + "(\\S+)/(.*)";
+  public static final String APP_PATH_PATTERN_STRING =
+      "^/" + "(?:" + AppManager.BUNDLED_APP_PREFIX + "|api/apps/)" + "(\\S+)/(.*)";
 
   public static final Pattern APP_PATH_PATTERN = compile(APP_PATH_PATTERN_STRING);
 
@@ -80,8 +76,9 @@ public class GlobalAppShellFilter extends OncePerRequestFilter {
     String path = request.getRequestURI();
     String queryString = request.getQueryString();
     Matcher m = APP_PATH_PATTERN.matcher(path);
-    if (m.find() && (path.endsWith("/")
-        || path.endsWith("/index.html")) && (queryString == null || !queryString.contains("redirect=false"))) {
+    if (m.find()
+        && (path.endsWith("/") || path.endsWith("/index.html"))
+        && (queryString == null || !queryString.contains("redirect=false"))) {
       String appName = m.group(1);
       response.sendRedirect("/apps/" + appName);
       log.info(String.format("Redirecting to %s", appName));
@@ -94,14 +91,20 @@ public class GlobalAppShellFilter extends OncePerRequestFilter {
         }
         // Return index.html for all index.html or directory root requests
         log.info("Serving global shell");
-        RequestDispatcher dispatcher = getServletContext()
-            .getRequestDispatcher(String.format("/api/apps/%s/index.html", GLOBAL_APP_SHELL_APP_NAME));
+        RequestDispatcher dispatcher =
+            getServletContext()
+                .getRequestDispatcher(
+                    String.format("/api/apps/%s/index.html", GLOBAL_APP_SHELL_APP_NAME));
         dispatcher.forward(request, response);
         return;
       } else {
         // Serve global app shell resources
-        RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(
-            String.format("/api/apps/%s/%s", GLOBAL_APP_SHELL_APP_NAME, path.substring("/apps/".length())));
+        RequestDispatcher dispatcher =
+            getServletContext()
+                .getRequestDispatcher(
+                    String.format(
+                        "/api/apps/%s/%s",
+                        GLOBAL_APP_SHELL_APP_NAME, path.substring("/apps/".length())));
         dispatcher.forward(request, response);
         return;
       }
