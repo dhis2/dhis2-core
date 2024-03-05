@@ -174,8 +174,6 @@ public class DefaultMetadataImportService implements MetadataImportService {
             ImportStrategy.class, parameters, "importStrategy", ImportStrategy.CREATE_AND_UPDATE));
     params.setAtomicMode(
         getEnumWithDefault(AtomicMode.class, parameters, "atomicMode", AtomicMode.ALL));
-    params.setMergeMode(
-        getEnumWithDefault(MergeMode.class, parameters, "mergeMode", MergeMode.REPLACE));
     params.setFlushMode(
         getEnumWithDefault(FlushMode.class, parameters, "flushMode", FlushMode.AUTO));
     params.setImportReportMode(
@@ -183,11 +181,6 @@ public class DefaultMetadataImportService implements MetadataImportService {
             ImportReportMode.class, parameters, "importReportMode", ImportReportMode.ERRORS));
     params.setFirstRowIsHeader(getBooleanWithDefault(parameters, "firstRowIsHeader", true));
     params.setAsync(getBooleanWithDefault(parameters, "async", false));
-
-    if (params.getMergeMode() == MergeMode.MERGE) {
-      throw new MetadataImportException(
-          "Merge mode MERGE is no longer supported, only merge mode REPLACE is available.");
-    }
 
     if (params.getUserOverrideMode() == UserOverrideMode.SELECTED) {
       UID overrideUser = null;
@@ -225,7 +218,6 @@ public class DefaultMetadataImportService implements MetadataImportService {
     params.setPreheatIdentifier(importParams.getIdentifier());
     params.setPreheatMode(importParams.getPreheatMode());
     params.setObjectBundleMode(importParams.getImportMode());
-    params.setMergeMode(importParams.getMergeMode());
     params.setFlushMode(importParams.getFlushMode());
     params.setImportReportMode(importParams.getImportReportMode());
     params.setMetadataSyncImport(importParams.isMetadataSyncImport());

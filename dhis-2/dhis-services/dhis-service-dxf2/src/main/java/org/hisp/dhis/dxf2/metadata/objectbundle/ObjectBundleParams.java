@@ -71,7 +71,6 @@ public class ObjectBundleParams {
   private PreheatMode preheatMode = PreheatMode.REFERENCE;
   private ImportStrategy importStrategy = ImportStrategy.CREATE_AND_UPDATE;
   private AtomicMode atomicMode = AtomicMode.ALL;
-  private MergeMode mergeMode = MergeMode.REPLACE;
   private FlushMode flushMode = FlushMode.AUTO;
   private ImportReportMode importReportMode = ImportReportMode.ERRORS;
 
