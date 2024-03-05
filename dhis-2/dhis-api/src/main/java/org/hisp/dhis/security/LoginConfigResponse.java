@@ -53,6 +53,7 @@ public class LoginConfigResponse {
   @JsonProperty private String uiLocale;
   @JsonProperty private String loginPageLogo;
   @JsonProperty private String loginPopup;
+  @JsonProperty private String recaptchaSite;
 
   @JsonProperty private boolean emailConfigured;
   @JsonProperty private boolean selfRegistrationEnabled;

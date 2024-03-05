@@ -34,6 +34,7 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.SystemService;
+import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -125,5 +126,18 @@ class LoginConfigControllerTest extends DhisControllerIntegrationTest {
     assertEquals(
         systemService.getSystemInfo().getVersion(),
         responseDefaultLocale.getString("apiVersion").string());
+  }
+
+  @Test
+  void testRecaptchaSite() {
+    JsonObject response = GET("/loginConfig").content();
+    assertEquals(
+        SettingKey.RECAPTCHA_SITE.getDefaultValue(),
+        response.getString(SettingKey.RECAPTCHA_SITE.getName()).string());
+    POST("/systemSettings/" + SettingKey.RECAPTCHA_SITE.getName(), "test_recaptcha_stie")
+        .content(HttpStatus.OK);
+    response = GET("/loginConfig").content();
+    assertEquals(
+        "test_recaptcha_stie", response.getString(SettingKey.RECAPTCHA_SITE.getName()).string());
   }
 }

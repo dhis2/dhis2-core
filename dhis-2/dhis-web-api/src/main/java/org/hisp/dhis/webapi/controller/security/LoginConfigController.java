@@ -72,7 +72,8 @@ public class LoginConfigController {
     LOGIN_POPUP(),
     SELF_REGISTRATION_NO_RECAPTCHA(),
     USE_CUSTOM_LOGO_FRONT(),
-    ACCOUNT_RECOVERY();
+    ACCOUNT_RECOVERY(),
+    RECAPTCHA_SITE();
 
     private final String defaultValue;
 
@@ -130,6 +131,7 @@ public class LoginConfigController {
         configurationService.getConfiguration().selfRegistrationAllowed());
 
     builder.apiVersion(systemService.getSystemInfo().getVersion());
+    builder.recaptchaSite(manager.getStringSetting(SettingKey.valueOf(KEYS.RECAPTCHA_SITE.name())));
 
     return builder.build();
   }
