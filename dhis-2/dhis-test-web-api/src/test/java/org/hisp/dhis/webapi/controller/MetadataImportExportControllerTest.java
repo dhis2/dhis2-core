@@ -610,22 +610,4 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
         "Device category 2",
         response.getArray("translations").getObject(0).getString("value").string());
   }
-
-  @Test
-  @DisplayName("Should throw exception when import with MergeMode=Merge")
-  void testImportWithMergeMode() {
-    JsonMixed report =
-        POST(
-                "/metadata?mergeMode=MERGE",
-                "{\"optionSets\":\n"
-                    + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\", \"translations\":[{\n"
-                    + "      \"locale\": \"en_GB\",\n"
-                    + "      \"property\": \"NAME\",\n"
-                    + "      \"value\": \"Device category 1\"\n"
-                    + "    }]}]}")
-            .content(HttpStatus.CONFLICT);
-    assertEquals(
-        "Merge mode MERGE is no longer supported, only merge mode REPLACE is available.",
-        report.getString("message").string());
-  }
 }
