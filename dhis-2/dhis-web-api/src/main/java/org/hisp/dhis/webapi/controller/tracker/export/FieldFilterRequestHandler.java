@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import static org.hisp.dhis.webapi.service.HttpServletRequestPathParser.getApiPath;
+import static org.hisp.dhis.webapi.utils.HttpServletRequestPaths.getApiPath;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.List;
@@ -39,7 +39,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class JsonRequestHandler {
+public class FieldFilterRequestHandler {
 
   private final FieldFilterService fieldFilterService;
 

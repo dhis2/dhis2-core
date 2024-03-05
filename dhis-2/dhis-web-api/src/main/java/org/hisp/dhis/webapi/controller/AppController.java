@@ -61,8 +61,8 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.hisp.dhis.webapi.service.HttpServletRequestPathParser;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -114,7 +114,7 @@ public class AppController {
   public @ResponseBody Map<String, List<WebModule>> getWebModules(HttpServletRequest request) {
     checkForEmbeddedJettyRuntime(request);
 
-    String contextPath = HttpServletRequestPathParser.getContextPath(request);
+    String contextPath = HttpServletRequestPaths.getContextPath(request);
     return Map.of("modules", getAccessibleAppMenu(contextPath));
   }
 
@@ -206,7 +206,7 @@ public class AppController {
   public void renderApp(
       @PathVariable("app") String app, HttpServletRequest request, HttpServletResponse response)
       throws IOException, WebMessageException {
-    String contextPath = HttpServletRequestPathParser.getContextPath(request);
+    String contextPath = HttpServletRequestPaths.getContextPath(request);
     App application = appManager.getApp(app, contextPath);
 
     // Get page requested

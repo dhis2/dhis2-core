@@ -44,7 +44,7 @@ import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.system.util.CodecUtils;
-import org.hisp.dhis.webapi.service.HttpServletRequestPathParser;
+import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.ServletWebRequest;
@@ -75,7 +75,7 @@ public class AppOverrideFilter extends OncePerRequestFilter {
       HttpServletRequest request, HttpServletResponse response, FilterChain chain)
       throws IOException, ServletException {
     String requestPath = request.getServletPath();
-    String contextPath = HttpServletRequestPathParser.getContextPath(request);
+    String contextPath = HttpServletRequestPaths.getContextPath(request);
 
     Matcher m = APP_PATH_PATTERN.matcher(requestPath);
     if (m.find()) {
@@ -111,7 +111,7 @@ public class AppOverrideFilter extends OncePerRequestFilter {
       if (app.getActivities() != null
           && app.getActivities().getDhis() != null
           && "*".equals(app.getActivities().getDhis().getHref())) {
-        String contextPath = HttpServletRequestPathParser.getContextPath(request);
+        String contextPath = HttpServletRequestPaths.getContextPath(request);
         log.debug(String.format("Manifest context path: '%s'", contextPath));
         app.getActivities().getDhis().setHref(contextPath);
       }

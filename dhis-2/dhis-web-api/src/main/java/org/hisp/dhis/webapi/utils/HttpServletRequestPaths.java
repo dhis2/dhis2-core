@@ -25,16 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.service;
+package org.hisp.dhis.webapi.utils;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 
-public class HttpServletRequestPathParser {
+public class HttpServletRequestPaths {
   private static final Pattern API_VERSION = Pattern.compile("(/api/(\\d+)?/)");
 
-  private HttpServletRequestPathParser() {
+  private HttpServletRequestPaths() {
     throw new IllegalStateException("Utility class");
   }
 

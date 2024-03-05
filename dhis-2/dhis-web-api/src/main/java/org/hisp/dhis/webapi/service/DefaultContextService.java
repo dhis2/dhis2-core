@@ -36,6 +36,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.collections4.CollectionUtils;
+import org.hisp.dhis.common.NonTransactional;
+import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -46,24 +48,28 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 @Service
 public class DefaultContextService implements ContextService {
 
+  @NonTransactional
   @Override
   public String getServletPath() {
     HttpServletRequest request = getRequest();
-    return HttpServletRequestPathParser.getContextPath(request) + request.getServletPath();
+    return HttpServletRequestPaths.getContextPath(request) + request.getServletPath();
   }
 
+  @NonTransactional
   @Override
   public String getContextPath() {
     HttpServletRequest request = getRequest();
-    return HttpServletRequestPathParser.getContextPath(request);
+    return HttpServletRequestPaths.getContextPath(request);
   }
 
+  @NonTransactional
   @Override
   public String getApiPath() {
     HttpServletRequest request = getRequest();
-    return HttpServletRequestPathParser.getApiPath(request);
+    return HttpServletRequestPaths.getApiPath(request);
   }
 
+  @NonTransactional
   @Override
   public HttpServletRequest getRequest() {
     return ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();

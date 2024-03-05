@@ -68,8 +68,8 @@ import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.HttpServletRequestPathParser;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.hisp.dhis.webapi.webdomain.CodeList;
 import org.hisp.dhis.webapi.webdomain.ObjectCount;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -237,7 +237,7 @@ public class SystemController {
       @CurrentUser User currentUser) {
     SystemInfo info =
         systemService.getSystemInfo().toBuilder()
-            .contextPath(HttpServletRequestPathParser.getContextPath(request))
+            .contextPath(HttpServletRequestPaths.getContextPath(request))
             .userAgent(request.getHeader(ContextUtils.HEADER_USER_AGENT))
             .build();
 

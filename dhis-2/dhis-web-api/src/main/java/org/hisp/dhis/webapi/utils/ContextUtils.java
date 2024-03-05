@@ -44,7 +44,6 @@ import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.webapi.service.HttpServletRequestPathParser;
 import org.hisp.dhis.webapi.service.WebCache;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
@@ -219,7 +218,7 @@ public class ContextUtils {
   }
 
   public static String getRootPath(HttpServletRequest request) {
-    return HttpServletRequestPathParser.getContextPath(request) + request.getServletPath();
+    return HttpServletRequestPaths.getContextPath(request) + request.getServletPath();
   }
 
   /**
