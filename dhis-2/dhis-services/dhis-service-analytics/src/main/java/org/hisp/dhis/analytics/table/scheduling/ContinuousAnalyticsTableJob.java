@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.table.scheduling;
 
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 
-import com.google.common.base.Preconditions;
 import java.util.Date;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -88,24 +87,19 @@ public class ContinuousAnalyticsTableJob implements Job {
       return;
     }
 
-    Integer fullUpdateHourOfDay =
+    final int fullUpdateHourOfDay =
         ObjectUtils.firstNonNull(parameters.getFullUpdateHourOfDay(), DEFAULT_HOUR_OF_DAY);
 
-    Date startTime = new Date();
-    Date defaultNextFullUpdate = DateUtils.getNextDate(fullUpdateHourOfDay, startTime);
-    Date nextFullUpdate =
-        systemSettingManager.getSystemSetting(
-            SettingKey.NEXT_ANALYTICS_TABLE_UPDATE, defaultNextFullUpdate);
+    final Date startTime = new Date();
+    final Date nextFullUpdate =
+        systemSettingManager.getSystemSetting(SettingKey.NEXT_ANALYTICS_TABLE_UPDATE, Date.class);
 
     log.info(
-        "Starting continuous analytics table update, current time: '{}', default next full update: '{}', next full update: '{}'",
+        "Starting continuous analytics table update, current time: '{}', next full update: '{}'",
         toLongDate(startTime),
-        toLongDate(defaultNextFullUpdate),
         toLongDate(nextFullUpdate));
 
-    Preconditions.checkNotNull(nextFullUpdate);
-
-    if (startTime.after(nextFullUpdate)) {
+    if (nextFullUpdate == null || startTime.after(nextFullUpdate)) {
       log.info("Performing full analytics table update");
 
       AnalyticsTableUpdateParams params =
