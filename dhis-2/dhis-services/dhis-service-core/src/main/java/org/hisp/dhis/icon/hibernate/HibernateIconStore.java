@@ -27,60 +27,60 @@
  */
 package org.hisp.dhis.icon.hibernate;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.Collections;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.sql.Types;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
-import org.hibernate.query.NativeQuery;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.commons.util.SqlHelper;
-import org.hisp.dhis.hibernate.JpaQueryParameters;
+import org.hisp.dhis.fileresource.FileResourceStore;
+import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType;
 import org.hisp.dhis.icon.Icon;
 import org.hisp.dhis.icon.IconOperationParams;
 import org.hisp.dhis.icon.IconStore;
-import org.hisp.dhis.security.acl.AclService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.hisp.dhis.user.UserService;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 /**
  * @author Zubair Asghar
  */
+@Slf4j
 @Repository("org.hisp.dhis.icon.IconStore")
-public class HibernateIconStore extends HibernateIdentifiableObjectStore<Icon>
-    implements IconStore {
+@RequiredArgsConstructor
+public class HibernateIconStore implements IconStore {
 
-  private static final ObjectMapper objectMapper = new ObjectMapper();
+  private static final ObjectReader keywordsReader =
+      JsonBinaryType.MAPPER.readerFor(new TypeReference<Set<String>>() {});
 
-  @Autowired private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+  private static final ObjectWriter keywordsWriter =
+      JsonBinaryType.MAPPER.writerFor(new TypeReference<Set<String>>() {});
 
-  public HibernateIconStore(
-      EntityManager entityManager,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      AclService aclService) {
-    super(entityManager, jdbcTemplate, publisher, Icon.class, aclService, true);
-  }
+  private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
+  private final UserService userService;
+
+  private final FileResourceStore fileResourceStore;
 
   @Override
   public long count(IconOperationParams params) {
 
     String sql = """
-            select count(*) as count from icon c
-            """;
-    Map<String, Object> parameterSource = new HashMap<>();
+     select count(*) from icon c
+                      """;
+
+    MapSqlParameterSource parameterSource = new MapSqlParameterSource();
+
     sql = buildIconQuery(params, sql, parameterSource);
 
     return Optional.ofNullable(
@@ -90,110 +90,208 @@ public class HibernateIconStore extends HibernateIdentifiableObjectStore<Icon>
 
   @Override
   public Icon getIconByKey(String key) {
-    CriteriaBuilder builder = getCriteriaBuilder();
+    final String sql =
+        """
+                select c.iconkey as iconkey, c.description as icondescription, c.keywords as keywords, c.created as created, c.lastupdated as lastupdated,
+                c.fileresourceid as fileresourceid, c.createdby as createdby, c.custom as custom from icon c
+                where iconkey = :key
+                """;
 
-    JpaQueryParameters<Icon> parameters =
-        newJpaParameters().addPredicate(root -> builder.equal(root.get("key"), key));
+    MapSqlParameterSource params = new MapSqlParameterSource();
+    params.addValue("key", key);
 
-    return getSingleResult(builder, parameters);
+    List<Icon> icons =
+        namedParameterJdbcTemplate.query(
+            sql,
+            params,
+            (rs, rowNum) -> {
+              Icon icon = new Icon();
+              icon.setKey(rs.getString("iconkey"));
+              icon.setDescription(rs.getString("icondescription"));
+              icon.setCustom(rs.getBoolean("custom"));
+              icon.setKeywords(convertKeywordsJsonIntoSet(rs.getString("keywords")));
+              icon.setCreated(rs.getDate("created"));
+              icon.setLastUpdated(rs.getDate("lastupdated"));
+              icon.setCreatedBy(userService.getUser(rs.getLong("createdby")));
+              icon.setFileResource(fileResourceStore.get(rs.getLong("fileresourceid")));
+              return icon;
+            });
+
+    return icons.isEmpty() ? null : icons.get(0);
   }
 
   @Override
   public Set<String> getKeywords() {
 
-    Set<String> keys = new HashSet<>();
-    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
-    CriteriaQuery<HashSet> criteriaQuery = builder.createQuery(HashSet.class);
+    return Set.copyOf(
+        namedParameterJdbcTemplate.queryForList(
+            "select json_agg(keywords) from icon", new HashMap<>(), String.class));
+  }
 
-    Root<Icon> root = criteriaQuery.from(Icon.class);
-    criteriaQuery.where(builder.isNotNull(root.get("keywords")));
-    criteriaQuery.select(root.get("keywords"));
+  @Override
+  public void save(Icon icon) throws SQLException {
 
-    entityManager.createQuery(criteriaQuery).getResultList().forEach(keys::addAll);
+    String sql =
+        "INSERT INTO icon (iconkey,description,keywords,fileresourceid,createdby,created,lastupdated,custom) VALUES (:key,:description,cast(:keywords as jsonb),:fileresourceid,:createdby,now(),now(),:custom) ";
 
-    return Collections.unmodifiableSet(keys);
+    MapSqlParameterSource params = new MapSqlParameterSource();
+    params.addValue("key", icon.getKey());
+    params.addValue("description", icon.getDescription());
+    params.addValue(
+        "keywords", convertKeywordsSetToJsonString(icon.getKeywords().stream().toList()));
+    params.addValue(
+        "fileresourceid", icon.getFileResource() != null ? icon.getFileResource().getId() : null);
+    params.addValue("createdby", icon.getCreatedBy() != null ? icon.getCreatedBy().getId() : null);
+    params.addValue("custom", icon.getCustom());
+
+    namedParameterJdbcTemplate.update(sql, params);
+  }
+
+  @Override
+  public void delete(Icon icon) {
+    String sql = "DELETE FROM icon WHERE iconkey = :key";
+    MapSqlParameterSource params = new MapSqlParameterSource();
+    params.addValue("key", icon.getKey());
+    namedParameterJdbcTemplate.update(sql, params);
+  }
+
+  @Override
+  public void update(Icon icon) throws SQLException {
+
+    String sql =
+        """
+            update icon set description = :description, keywords = cast(:keywords as jsonb), lastupdated = now() , custom=:custom where iconkey = :key
+            """;
+
+    MapSqlParameterSource params = new MapSqlParameterSource();
+    params.addValue("description", icon.getDescription());
+    params.addValue(
+        "keywords", convertKeywordsSetToJsonString(icon.getKeywords().stream().toList()));
+    params.addValue("custom", icon.getCustom());
+    params.addValue("key", icon.getKey());
+
+    namedParameterJdbcTemplate.update(sql, params);
   }
 
   @Override
   public Set<Icon> getIcons(IconOperationParams params) {
 
-    String sql = """
-            select * from icon c
-            """;
-    Map<String, Object> parameterSource = new HashMap<>();
+    String sql =
+        """
+              select c.iconkey as iconkey, c.description as icondescription, c.keywords as keywords, c.created as created, c.lastupdated as lastupdated,
+              c.fileresourceid as fileresourceid, c.createdby as createdby, c.custom as custom from icon c
+              """;
+
+    MapSqlParameterSource parameterSource = new MapSqlParameterSource();
+
     sql = buildIconQuery(params, sql, parameterSource);
 
-    NativeQuery<Icon> query = getSession().createNativeQuery(sql, Icon.class);
-
-    setParameters(query, parameterSource);
-
     if (params.isPaging()) {
-      query.setFirstResult(params.getPager().getPage());
-      query.setMaxResults(params.getPager().getPageSize());
+      sql =
+          getPaginatedQuery(
+              params.getPager().getPage(), params.getPager().getPageSize(), sql, parameterSource);
     }
 
-    return query.list().stream().collect(Collectors.toUnmodifiableSet());
-  }
-
-  private void setParameters(Query query, Map<String, Object> parameterSource) {
-    parameterSource.forEach(query::setParameter);
+    return namedParameterJdbcTemplate
+        .query(
+            sql,
+            parameterSource,
+            (rs, rowNum) -> {
+              Icon icon = new Icon();
+              icon.setKey(rs.getString("iconkey"));
+              icon.setDescription(rs.getString("icondescription"));
+              icon.setCustom(rs.getBoolean("custom"));
+              icon.setKeywords(convertKeywordsJsonIntoSet(rs.getString("keywords")));
+              icon.setCreated(rs.getDate("created"));
+              icon.setLastUpdated(rs.getDate("lastupdated"));
+              icon.setCreatedBy(userService.getUser(rs.getLong("createdby")));
+              icon.setFileResource(fileResourceStore.get(rs.getLong("fileresourceid")));
+              return icon;
+            })
+        .stream()
+        .collect(Collectors.toUnmodifiableSet());
   }
 
   private String buildIconQuery(
-      IconOperationParams iconOperationParams, String sql, Map<String, Object> parameterSource) {
+      IconOperationParams params, String sql, MapSqlParameterSource parameterSource) {
     SqlHelper hlp = new SqlHelper(true);
 
-    if (iconOperationParams.hasLastUpdatedStartDate()) {
+    if (params.hasLastUpdatedStartDate()) {
       sql += hlp.whereAnd() + " c.lastupdated >= :lastUpdatedStartDate ";
 
-      parameterSource.put(":lastUpdatedStartDate", iconOperationParams.getLastUpdatedStartDate());
+      parameterSource.addValue(
+          ":lastUpdatedStartDate", params.getLastUpdatedStartDate(), Types.TIMESTAMP);
     }
 
-    if (iconOperationParams.hasLastUpdatedEndDate()) {
+    if (params.hasLastUpdatedEndDate()) {
       sql += hlp.whereAnd() + " c.lastupdated <= :lastUpdatedEndDate ";
 
-      parameterSource.put("lastUpdatedEndDate", iconOperationParams.getLastUpdatedEndDate());
+      parameterSource.addValue(
+          "lastUpdatedEndDate", params.getLastUpdatedEndDate(), Types.TIMESTAMP);
     }
 
-    if (iconOperationParams.hasCreatedStartDate()) {
+    if (params.hasCreatedStartDate()) {
       sql += hlp.whereAnd() + " c.created >= :createdStartDate";
 
-      parameterSource.put("createdStartDate", iconOperationParams.getCreatedStartDate());
+      parameterSource.addValue("createdStartDate", params.getCreatedStartDate(), Types.TIMESTAMP);
     }
 
-    if (iconOperationParams.hasCreatedEndDate()) {
+    if (params.hasCreatedEndDate()) {
       sql += hlp.whereAnd() + " c.created <= :createdEndDate ";
 
-      parameterSource.put("createdEndDate", iconOperationParams.getCreatedEndDate());
+      parameterSource.addValue("createdEndDate", params.getCreatedEndDate(), Types.TIMESTAMP);
     }
 
-    if (iconOperationParams.hasCustom()) {
+    if (params.hasCustom()) {
       sql += hlp.whereAnd() + " c.custom = :custom ";
 
-      parameterSource.put("custom", iconOperationParams.getCustom());
+      parameterSource.addValue("custom", params.getCustom(), Types.BOOLEAN);
     }
 
-    if (iconOperationParams.hasKeywords()) {
+    if (params.hasKeywords()) {
 
-      sql += hlp.whereAnd() + " keywords @> cast(:param as jsonb)";
+      sql += hlp.whereAnd() + " keywords @> cast(:keywords as jsonb) ";
 
-      String keywordsJsonArray = null;
-      try {
-        keywordsJsonArray = objectMapper.writeValueAsString(iconOperationParams.getKeywords());
-
-      } catch (JsonProcessingException e) {
-        e.printStackTrace();
-      }
-
-      parameterSource.put("param", keywordsJsonArray);
+      parameterSource.addValue("keywords", convertKeywordsSetToJsonString(params.getKeywords()));
     }
 
-    if (iconOperationParams.hasKeys()) {
+    if (params.hasKeys()) {
       sql += hlp.whereAnd() + " c.iconkey IN (:keys )";
 
-      parameterSource.put("keys", iconOperationParams.getKeys());
+      parameterSource.addValue("keys", params.getKeys());
     }
 
     return sql;
+  }
+
+  private String getPaginatedQuery(
+      int page, int pageSize, String sql, MapSqlParameterSource mapSqlParameterSource) {
+
+    sql = sql + " LIMIT :limit OFFSET :offset ";
+
+    int offset = (page - 1) * pageSize;
+
+    mapSqlParameterSource.addValue("limit", pageSize);
+    mapSqlParameterSource.addValue("offset", offset);
+
+    return sql;
+  }
+
+  private Set<String> convertKeywordsJsonIntoSet(String jsonString) {
+    try {
+      return keywordsReader.readValue(jsonString);
+    } catch (IOException e) {
+      log.error("Parsing keywords json failed, string value: '{}'", jsonString);
+      throw new IllegalArgumentException(e);
+    }
+  }
+
+  private String convertKeywordsSetToJsonString(List<String> keywords) {
+    try {
+      return keywordsWriter.writeValueAsString(new HashSet<>(keywords));
+    } catch (IOException e) {
+      log.error("Parsing keywords into json string failed");
+      throw new IllegalArgumentException(e);
+    }
   }
 }

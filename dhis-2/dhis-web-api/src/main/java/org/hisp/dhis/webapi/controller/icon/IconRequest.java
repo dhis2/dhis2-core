@@ -42,8 +42,6 @@ class IconRequest {
 
   @JsonProperty private String key;
 
-  @JsonProperty private String code;
-
   @JsonProperty private String description;
 
   @JsonProperty private Set<String> keywords;

@@ -27,10 +27,16 @@
  */
 package org.hisp.dhis.icon;
 
+import java.sql.SQLException;
 import java.util.Set;
-import org.hisp.dhis.common.IdentifiableObjectStore;
 
-public interface IconStore extends IdentifiableObjectStore<Icon> {
+public interface IconStore {
+
+  void save(Icon icon) throws SQLException;
+
+  void delete(Icon icon);
+
+  void update(Icon icon) throws SQLException;
 
   /**
    * Get the count of Icons based on filters provided in {@link IconOperationParams}

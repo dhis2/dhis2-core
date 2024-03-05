@@ -39,7 +39,6 @@ import java.util.stream.Collectors;
 import org.flywaydb.core.api.FlywayException;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.icon.DefaultIcon;
 import org.hisp.dhis.icon.Icon;
 import org.postgresql.util.PGobject;
@@ -59,8 +58,8 @@ public class V2_41_47__Add_default_icons_into_database extends BaseJavaMigration
   public static final String INSERT_DEFAULT_ICONS =
       """
       INSERT INTO public.icon(
-      iconid, uid, code, iconkey, fileresourceid, description, keywords, created, lastupdated, createdby, lastupdatedby, custom)
-      VALUES (nextval('hibernate_sequence'), generate_uid(), ?, ?, null, ?, ?, now(), now(), null, null, false );
+      iconkey, description, fileresourceid, keywords, created, lastupdated, createdby, custom)
+      VALUES ( ?, ?, null, ?, now(), now(), null, false );
       """;
 
   @Override
@@ -75,15 +74,14 @@ public class V2_41_47__Add_default_icons_into_database extends BaseJavaMigration
     try (PreparedStatement ps = context.getConnection().prepareStatement(INSERT_DEFAULT_ICONS)) {
 
       for (Map.Entry<String, Icon> entry : defaultIconsMap.entrySet()) {
-        ps.setString(1, "code_" + CodeGenerator.generateCode(5));
-        ps.setString(2, entry.getValue().getKey());
-        ps.setString(3, entry.getValue().getDescription());
+        ps.setString(1, entry.getValue().getKey());
+        ps.setString(2, entry.getValue().getDescription());
 
         PGobject jsonObject = new PGobject();
         jsonObject.setType("jsonb");
         jsonObject.setValue(o.writeValueAsString(entry.getValue().getKeywords()));
 
-        ps.setObject(4, jsonObject);
+        ps.setObject(3, jsonObject);
 
         ps.addBatch();
       }

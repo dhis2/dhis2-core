@@ -32,6 +32,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.net.MediaType;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -59,6 +60,8 @@ import org.hisp.dhis.icon.IconOperationParams;
 import org.hisp.dhis.icon.IconService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
+import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
@@ -192,12 +195,12 @@ public class IconController {
   }
 
   @PostMapping
-  public WebMessage addIcon(HttpServletRequest request)
-      throws IOException, BadRequestException, NotFoundException {
+  public WebMessage addIcon(HttpServletRequest request, @CurrentUser User user)
+      throws IOException, BadRequestException, NotFoundException, SQLException {
 
     IconRequest iconRequest = renderService.fromJson(request.getInputStream(), IconRequest.class);
     Icon icon = iconMapper.to(iconRequest);
-
+    icon.setCreatedBy(user);
     iconService.addIcon(icon);
 
     return WebMessageUtils.created(String.format("Icon created with key %s", icon.getKey()));
@@ -205,7 +208,11 @@ public class IconController {
 
   @PutMapping(value = "/{key}")
   public WebMessage updateIcon(@PathVariable String key, HttpServletRequest request)
-      throws IOException, NotFoundException, WebMessageException, BadRequestException {
+      throws IOException,
+          NotFoundException,
+          WebMessageException,
+          BadRequestException,
+          SQLException {
 
     Icon persisted = iconService.getIcon(key);
 

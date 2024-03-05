@@ -30,22 +30,25 @@ package org.hisp.dhis.icon;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import javax.persistence.Transient;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.user.User;
 
 /** Custom icons are uploaded by users and can be modified and deleted. */
 @Getter
 @Setter
 @NoArgsConstructor
 @JacksonXmlRootElement(localName = "Icon", namespace = DxfNamespaces.DXF_2_0)
-public class Icon extends BaseIdentifiableObject {
+public class Icon {
 
   public static final String DEFAULT_FIELDS_PARAM = "key,description,keywords,href";
 
@@ -57,9 +60,15 @@ public class Icon extends BaseIdentifiableObject {
 
   @JsonProperty private Boolean custom;
 
+  @JsonProperty private Date created;
+  @JsonProperty private Date lastUpdated;
+  @JsonProperty private User createdBy;
+
   @JsonProperty
   @JsonSerialize(as = BaseIdentifiableObject.class)
   private FileResource fileResource;
+
+  @Transient @JsonProperty private String href;
 
   public Icon(
       String key,
@@ -86,11 +95,22 @@ public class Icon extends BaseIdentifiableObject {
     }
 
     Icon other = (Icon) obj;
-    return Objects.equals(uid, other.uid) && Objects.equals(key, other.key);
+    return Objects.equals(key, other.key);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(uid, key);
+    return Objects.hash(key);
+  }
+
+  public void setAutoFields() {
+
+    Date date = new Date();
+
+    if (created == null) {
+      created = date;
+    }
+
+    setLastUpdated(date);
   }
 }

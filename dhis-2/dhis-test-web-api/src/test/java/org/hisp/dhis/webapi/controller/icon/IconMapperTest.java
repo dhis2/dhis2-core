@@ -78,7 +78,7 @@ class IconMapperTest {
   @Test
   void shouldReturnCustomIconFromIconDto() throws BadRequestException {
     IconRequest iconRequest =
-        new IconRequest(KEY, CODE, DESCRIPTION, KEYWORDS, fileResource.getUid(), true);
+        new IconRequest(KEY, DESCRIPTION, KEYWORDS, fileResource.getUid(), true);
     when(fileResourceService.getFileResource(fileResource.getUid(), CUSTOM_ICON))
         .thenReturn(Optional.of(fileResource));
 
@@ -93,7 +93,7 @@ class IconMapperTest {
   @Test
   void shouldReturnDefaultIconFromIconDto() throws BadRequestException {
     IconRequest iconRequest =
-        new IconRequest(KEY, CODE, DESCRIPTION, KEYWORDS, fileResource.getUid(), false);
+        new IconRequest(KEY, DESCRIPTION, KEYWORDS, fileResource.getUid(), false);
 
     Icon defaultIcon = iconMapper.to(iconRequest);
 
@@ -108,16 +108,15 @@ class IconMapperTest {
   @Test
   void shouldMergeIconRequestToPersistedIcon() throws BadRequestException {
     Icon persisted = new Icon(KEY, DESCRIPTION, KEYWORDS, true, fileResource);
-    String updatedKey = KEY + "1";
-    IconRequest iconRequest =
-        new IconRequest(updatedKey, CODE, DESCRIPTION, KEYWORDS, "file_uid2", true);
+    String updatedDescription = DESCRIPTION + "1";
+    IconRequest iconRequest = new IconRequest(KEY, updatedDescription, KEYWORDS, "file_uid2", true);
 
     when(fileResourceService.getFileResource(anyString(), any(FileResourceDomain.class)))
         .thenReturn(Optional.of(fileResourceUpdated));
 
     iconMapper.merge(persisted, iconRequest);
 
-    assertEquals(updatedKey, persisted.getKey());
+    assertEquals(updatedDescription, persisted.getDescription());
     assertSame(fileResourceUpdated, persisted.getFileResource());
   }
 
@@ -126,7 +125,7 @@ class IconMapperTest {
     Icon persisted = new Icon(KEY, DESCRIPTION, KEYWORDS, true, fileResource);
 
     IconRequest iconRequest =
-        new IconRequest(KEY, CODE, DESCRIPTION, KEYWORDS, fileResource.getUid(), true);
+        new IconRequest(KEY, DESCRIPTION, KEYWORDS, fileResource.getUid(), true);
 
     when(fileResourceService.getFileResource(anyString(), any(FileResourceDomain.class)))
         .thenReturn(Optional.empty());
@@ -141,7 +140,7 @@ class IconMapperTest {
   @Test
   void shouldFailWhenMappingToCustomIconWithNonExistentFileResource() {
     IconRequest iconRequest =
-        new IconRequest(KEY, CODE, DESCRIPTION, KEYWORDS, fileResource.getUid(), true);
+        new IconRequest(KEY, DESCRIPTION, KEYWORDS, fileResource.getUid(), true);
 
     Exception exception = assertThrows(BadRequestException.class, () -> iconMapper.to(iconRequest));
     assertEquals(

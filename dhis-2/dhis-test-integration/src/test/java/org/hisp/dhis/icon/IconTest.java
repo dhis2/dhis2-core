@@ -39,11 +39,11 @@ import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
@@ -68,7 +68,6 @@ class IconTest extends TrackerTest {
 
   private final Set<String> keywords = new HashSet<>();
   private final String Key = "iconKey";
-  private final String uid = CodeGenerator.generateUid();
 
   private Icon icon;
   private FileResource fileResource;
@@ -87,9 +86,8 @@ class IconTest extends TrackerTest {
     icon = new Icon(Key, "description", keywords, true, fileResource);
 
     try {
-      icon.setUid(uid);
       iconService.addIcon(icon);
-    } catch (NotFoundException | BadRequestException e) {
+    } catch (NotFoundException | BadRequestException | SQLException e) {
       log.error("Icon creation failed");
     }
   }
@@ -100,12 +98,8 @@ class IconTest extends TrackerTest {
   }
 
   @Test
-  void shouldGetIconByUid() throws NotFoundException {
-    assertIcon(iconService.getIconByUid(uid));
-  }
-
-  @Test
-  void shouldGetAllKeywordsWhenRequested() throws BadRequestException, NotFoundException {
+  void shouldGetAllKeywordsWhenRequested()
+      throws BadRequestException, NotFoundException, SQLException {
 
     FileResource fileResource = createAndPersistFileResource('V');
 
@@ -117,7 +111,7 @@ class IconTest extends TrackerTest {
 
     Set<String> keywords = iconService.getKeywords();
 
-    assertThat(keywords, hasSize(392));
+    assertThat(keywords, hasSize(238));
   }
 
   @Test
@@ -127,7 +121,7 @@ class IconTest extends TrackerTest {
   }
 
   @Test
-  void shouldSaveIconWithNoKeywords() throws BadRequestException, NotFoundException {
+  void shouldSaveIconWithNoKeywords() throws BadRequestException, NotFoundException, SQLException {
     FileResource fileResource = createAndPersistFileResource('D');
 
     Icon iconWithNoKeywords = new Icon("iconKey2", "description", null, true, fileResource);
@@ -138,17 +132,16 @@ class IconTest extends TrackerTest {
   }
 
   @Test
-  void shouldUpdateLastUpdatedWhenIconIsUpdated() throws BadRequestException, NotFoundException {
+  void shouldUpdateLastUpdatedWhenIconIsUpdated()
+      throws BadRequestException, NotFoundException, SQLException {
 
     Icon iconUpdated = icon;
-    iconUpdated.setKey("key-updated");
     iconUpdated.setDescription("description updated");
 
     iconService.updateIcon(iconUpdated);
 
-    Icon fetched = iconService.getIcon("key-updated");
+    Icon fetched = iconService.getIcon(icon.getKey());
 
-    assertEquals("key-updated", fetched.getKey());
     assertEquals("description updated", fetched.getDescription());
   }
 
@@ -262,7 +255,6 @@ class IconTest extends TrackerTest {
   }
 
   private void assertIcon(Icon icon) {
-    assertEquals(uid, icon.getUid());
     assertEquals(Key, icon.getKey());
     assertEquals("description", icon.getDescription());
     assertEquals(keywords, icon.getKeywords());
@@ -270,6 +262,5 @@ class IconTest extends TrackerTest {
     assertThat(icon.getKeywords(), hasSize(3));
     assertThat(fileResource, is(icon.getFileResource()));
     assertThat(currentUser, is(icon.getCreatedBy()));
-    assertThat(currentUser, is(icon.getLastUpdatedBy()));
   }
 }

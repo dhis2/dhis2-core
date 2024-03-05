@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.icon;
 
+import java.sql.SQLException;
 import java.util.Set;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -63,15 +64,6 @@ public interface IconService {
   Icon getIcon(String key) throws NotFoundException;
 
   /**
-   * Gets the icon associated to a uid, if it exists
-   *
-   * @param uid key of the icon to find
-   * @return custom icon associated to the uid, if found
-   * @throws NotFoundException if no custom icon exists with the provided uid
-   */
-  Icon getIconByUid(String uid) throws NotFoundException;
-
-  /**
    * Gets the icon with the correct key if one exists
    *
    * @param key key of the icon
@@ -103,14 +95,14 @@ public interface IconService {
    *     id is not specified
    * @throws NotFoundException when no file resource with the provided id exists
    */
-  void addIcon(Icon icon) throws BadRequestException, NotFoundException;
+  void addIcon(Icon icon) throws BadRequestException, NotFoundException, SQLException;
 
   /**
    * Updated the provided icon
    *
    * @param icon the icon to be updated
    */
-  void updateIcon(Icon icon) throws BadRequestException, NotFoundException;
+  void updateIcon(Icon icon) throws BadRequestException, NotFoundException, SQLException;
 
   /**
    * Deletes a given Icon

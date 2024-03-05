@@ -36,6 +36,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.sql.SQLException;
 import java.util.Optional;
 import java.util.Set;
 import org.hisp.dhis.DhisConvenienceTest;
@@ -63,7 +64,7 @@ class IconServiceTest extends DhisConvenienceTest {
 
   @Test
   void shouldSaveIconWhenIconHasNoDuplicatedKeyAndFileResourceExists()
-      throws BadRequestException, NotFoundException {
+      throws BadRequestException, NotFoundException, SQLException {
     String uniqueKey = "key";
     String fileResourceUid = "12345";
     FileResource fileResource = createFileResource('A', "file".getBytes());
@@ -152,7 +153,7 @@ class IconServiceTest extends DhisConvenienceTest {
   }
 
   @Test
-  void shouldUpdateIcon() throws BadRequestException {
+  void shouldUpdateIcon() throws BadRequestException, SQLException {
 
     Icon icon = createIcon('I', Set.of("k1", "k2"), createFileResource('F', "123".getBytes()));
     iconService.updateIcon(icon);

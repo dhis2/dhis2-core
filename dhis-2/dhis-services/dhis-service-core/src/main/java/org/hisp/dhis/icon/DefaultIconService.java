@@ -30,6 +30,7 @@ package org.hisp.dhis.icon;
 import static org.hisp.dhis.fileresource.FileResourceDomain.CUSTOM_ICON;
 
 import com.google.common.base.Strings;
+import java.sql.SQLException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -39,6 +40,8 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserService;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -61,6 +64,8 @@ public class DefaultIconService implements IconService {
 
   private final FileResourceService fileResourceService;
 
+  private final UserService userService;
+
   @Override
   @Transactional(readOnly = true)
   public Set<Icon> getIcons(IconOperationParams params) {
@@ -79,17 +84,6 @@ public class DefaultIconService implements IconService {
     Icon icon = iconStore.getIconByKey(key);
     if (icon == null) {
       throw new NotFoundException(String.format("Icon not found: %s", key));
-    }
-
-    return icon;
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Icon getIconByUid(String uid) throws NotFoundException {
-    Icon icon = iconStore.getByUid(uid);
-    if (icon == null) {
-      throw new NotFoundException(String.format("Icon not found: %s", uid));
     }
 
     return icon;
@@ -120,7 +114,7 @@ public class DefaultIconService implements IconService {
 
   @Override
   @Transactional
-  public void addIcon(Icon icon) throws BadRequestException, NotFoundException {
+  public void addIcon(Icon icon) throws BadRequestException, NotFoundException, SQLException {
 
     if (icon == null) {
       throw new BadRequestException("Icon cannot be null.");
@@ -135,18 +129,31 @@ public class DefaultIconService implements IconService {
       fileResourceService.updateFileResource(fileResource);
     }
 
+    if (icon.getCreatedBy() == null) {
+      icon.setCreatedBy(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername()));
+    }
+
+    if (icon.getKeywords() == null) {
+      icon.setKeywords(Set.of());
+    }
+
+    icon.setAutoFields();
     iconStore.save(icon);
   }
 
   @Override
   @Transactional
-  public void updateIcon(Icon icon) throws BadRequestException {
+  public void updateIcon(Icon icon) throws BadRequestException, SQLException {
 
     if (icon == null) {
       throw new BadRequestException("Icon cannot be null.");
     }
 
     validateIconKeyNotNullOrEmpty(icon.getKey());
+
+    if (icon.getKeywords() == null) {
+      icon.setKeywords(Set.of());
+    }
 
     icon.setAutoFields();
     iconStore.update(icon);

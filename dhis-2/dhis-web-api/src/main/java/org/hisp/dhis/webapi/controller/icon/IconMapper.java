@@ -46,7 +46,7 @@ public class IconMapper {
 
     Optional<FileResource> fileResource = Optional.empty();
 
-    if (iconRequest.getCustom()) {
+    if (Boolean.TRUE.equals(iconRequest.getCustom())) {
 
       if (iconRequest.getFileResourceId() == null) {
         throw new BadRequestException("FileResource must be provided with Icon");
@@ -66,7 +66,6 @@ public class IconMapper {
     icon.setDescription(iconRequest.getDescription());
     icon.setKeywords(iconRequest.getKeywords());
     icon.setCustom(iconRequest.getCustom());
-    icon.setCode(iconRequest.getCode());
     icon.setFileResource(fileResource.orElse(null));
 
     return icon;
@@ -86,14 +85,6 @@ public class IconMapper {
       }
     }
 
-    if (iconRequest.getKey() != null) {
-      persisted.setKey(iconRequest.getKey());
-    }
-
-    if (iconRequest.getCode() != null) {
-      persisted.setCode(iconRequest.getCode());
-    }
-
     if (iconRequest.getDescription() != null) {
       persisted.setDescription(iconRequest.getDescription());
     }
@@ -104,6 +95,10 @@ public class IconMapper {
 
     if (iconRequest.getFileResourceId() != null) {
       persisted.setFileResource(fileResource.orElse(null));
+    }
+
+    if (iconRequest.getCustom() != null) {
+      persisted.setCustom(iconRequest.getCustom());
     }
 
     persisted.setAutoFields();

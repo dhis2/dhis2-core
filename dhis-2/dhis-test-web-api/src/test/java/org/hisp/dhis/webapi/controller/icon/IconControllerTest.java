@@ -181,7 +181,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
 
     List<String> keywords = response.stringValues();
 
-    assertEquals(391, keywords.size());
+    assertEquals(238, keywords.size());
 
     assertThat(keywords, hasItems("m1", "k1", "k2"));
   }
@@ -206,7 +206,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     assertHasMember(iconResponse, "pager");
 
     assertEquals(2, pager.getPage());
-    assertEquals(899, pager.getTotal());
+    assertEquals(900, pager.getTotal());
     assertEquals(2, pager.getPageSize());
     assertEquals(450, pager.getPageCount());
 
