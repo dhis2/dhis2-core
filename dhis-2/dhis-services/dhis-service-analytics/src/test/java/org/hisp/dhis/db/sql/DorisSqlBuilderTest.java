@@ -121,7 +121,7 @@ class DorisSqlBuilderTest {
           "type" = "jdbc", \
           "user" = "dhis", \
           "password" = "kH7g", \
-          "jdbc_url" = "jdbc:mysql://127.18.0.1:9030/dev?useUnicode=true&characterEncoding=UTF-8&useSSL=false", \
+          "jdbc_url" = "jdbc:mysql://127.18.0.1:9030/dev?useUnicode=true&characterEncoding=UTF-8", \
           "driver_url" = "postgresql.jar", \
           "driver_class" = "org.postgresql.Driver"
           );""";
@@ -129,7 +129,7 @@ class DorisSqlBuilderTest {
     assertEquals(
         expected,
         sqlBuilder.createCatalog(
-            "jdbc:mysql://127.18.0.1:9030/dev?useUnicode=true&characterEncoding=UTF-8&useSSL=false",
+            "jdbc:mysql://127.18.0.1:9030/dev?useUnicode=true&characterEncoding=UTF-8",
             "dhis",
             "kH7g"));
   }
