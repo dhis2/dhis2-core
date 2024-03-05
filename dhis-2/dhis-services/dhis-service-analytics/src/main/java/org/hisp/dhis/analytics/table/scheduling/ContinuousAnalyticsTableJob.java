@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.analytics.table.scheduling;
 
+import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.Date;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.common.TableInfoReader;
@@ -88,8 +88,7 @@ public class ContinuousAnalyticsTableJob implements Job {
     }
 
     final int fullUpdateHourOfDay =
-        ObjectUtils.firstNonNull(parameters.getFullUpdateHourOfDay(), DEFAULT_HOUR_OF_DAY);
-
+        firstNonNull(parameters.getFullUpdateHourOfDay(), DEFAULT_HOUR_OF_DAY);
     final Date startTime = new Date();
     final Date nextFullUpdate =
         systemSettingManager.getSystemSetting(SettingKey.NEXT_ANALYTICS_TABLE_UPDATE, Date.class);
