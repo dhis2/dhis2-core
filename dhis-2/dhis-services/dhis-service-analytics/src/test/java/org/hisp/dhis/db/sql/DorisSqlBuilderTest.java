@@ -116,8 +116,8 @@ class DorisSqlBuilderTest {
   void testCreateCatalog() {
     String expected =
         """
-          create catalog `pg_dhis` \
-          properties (
+        create catalog `pg_dhis` \
+        properties (
           "type" = "jdbc", \
           "user" = "dhis", \
           "password" = "kH7g", \
