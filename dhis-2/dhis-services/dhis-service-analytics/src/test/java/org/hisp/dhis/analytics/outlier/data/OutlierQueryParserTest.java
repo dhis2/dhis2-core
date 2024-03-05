@@ -34,6 +34,7 @@ import static org.hisp.dhis.DhisConvenienceTest.injectSecurityContext;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
@@ -82,11 +83,13 @@ class OutlierQueryParserTest {
                 anyList(), eq(DisplayProperty.NAME), anyList(), eq(IdScheme.UID)))
         .thenReturn(baseDimensionalObject);
 
-    subject = new OutlierQueryParser(idObjectManager, dimensionalObjectProducer, userService);
-
     User user = new User();
     user.setUsername("test");
+    user.setDataViewOrganisationUnits(Set.of(organisationUnit));
     injectSecurityContext(UserDetails.fromUser(user));
+    when(userService.getUserByUsername(anyString())).thenReturn(user);
+
+    subject = new OutlierQueryParser(idObjectManager, dimensionalObjectProducer, userService);
   }
 
   @Test
@@ -120,6 +123,6 @@ class OutlierQueryParserTest {
     // when
     OutlierRequest request = subject.getFromQuery(params, false);
     // then
-    assertEquals(0, (long) request.getOrgUnits().size());
+    assertEquals(1, (long) request.getOrgUnits().size());
   }
 }

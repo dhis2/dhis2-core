@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,14 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.common;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import java.beans.PropertyEditorSupport;
+import java.util.ArrayList;
+import java.util.List;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 
-public class OrderCriteriaParamEditor extends PropertyEditorSupport {
-  @Override
-  public void setAsText(String source) {
-    setValue(OrderCriteria.toOrderCriteria(source));
-  }
+@OpenApi.Shared(name = "ChangeLogRequestParams")
+@OpenApi.Property
+@Data
+@NoArgsConstructor
+public class ChangeLogRequestParams {
+
+  private static final String DEFAULT_FIELDS_PARAM = "change,createdAt,createdBy,type";
+
+  private int page = 1;
+
+  private int pageSize = 50;
+
+  private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
+
+  private List<OrderCriteria> order = new ArrayList<>();
 }

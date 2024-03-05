@@ -25,34 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity;
+package org.hisp.dhis.user;
 
-import java.util.Set;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
+import java.io.IOException;
+import java.util.Collection;
+import javax.servlet.http.HttpServletRequest;
+import org.hisp.dhis.common.auth.SelfRegistrationParams;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.springframework.security.core.GrantedAuthority;
 
-public interface TrackedEntityChangeLogService {
+/**
+ * @author david mackessy
+ */
+public interface UserAccountService {
 
-  /**
-   * Retrieves the change log data for a particular tracked entity.
-   *
-   * @return the paged change logs of the supplied tracked entity, if any
-   */
-  Page<TrackedEntityChangeLog> getTrackedEntityChangeLog(
-      UID trackedEntityUid,
-      UID programUid,
-      TrackedEntityChangeLogOperationParams operationParams,
-      PageParams pageParams)
-      throws NotFoundException;
+  void createAndAddSelfRegisteredUser(
+      SelfRegistrationParams selfRegForm, HttpServletRequest request);
 
-  /**
-   * Fields the {@link #getTrackedEntityChangeLog(UID, UID, TrackedEntityChangeLogOperationParams,
-   * PageParams)} can order tracked entities change logs by. Ordering by fields other than these are
-   * considered a programmer error. Validation of user provided field names should occur before
-   * calling {@link #getTrackedEntityChangeLog(UID, UID, TrackedEntityChangeLogOperationParams,
-   * PageParams)}.
-   */
-  Set<String> getOrderableFields();
+  void validateUserFormInfo(SelfRegistrationParams selfRegForm, HttpServletRequest request)
+      throws BadRequestException, IOException;
+
+  void validateCaptcha(String recapResponse, HttpServletRequest request)
+      throws BadRequestException, IOException;
+
+  void authenticate(
+      String username,
+      String rawPassword,
+      Collection<GrantedAuthority> authorities,
+      HttpServletRequest request);
 }

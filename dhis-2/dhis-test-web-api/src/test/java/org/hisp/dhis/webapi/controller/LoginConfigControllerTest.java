@@ -31,11 +31,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.security.LoginPageLayout;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.SystemService;
+import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.util.HtmlUtils;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -43,6 +47,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 class LoginConfigControllerTest extends DhisControllerIntegrationTest {
 
   @Autowired SystemSettingManager systemSettingManager;
+  @Autowired SystemService systemService;
 
   @Test
   void shouldGetLoginConfig() {
@@ -58,6 +63,11 @@ class LoginConfigControllerTest extends DhisControllerIntegrationTest {
     systemSettingManager.saveSystemSettingTranslation(
         SettingKey.APPLICATION_FOOTER, "no", "Søknadsbunntekst");
 
+    systemSettingManager.saveSystemSetting(
+        SettingKey.APPLICATION_RIGHT_FOOTER, "APPLICATION_RIGHT_FOOTER");
+    systemSettingManager.saveSystemSettingTranslation(
+        SettingKey.APPLICATION_RIGHT_FOOTER, "no", "Høyre søknadsbunntekst");
+
     systemSettingManager.saveSystemSetting(SettingKey.APPLICATION_INTRO, "APPLICATION_INTRO");
     systemSettingManager.saveSystemSettingTranslation(
         SettingKey.APPLICATION_INTRO, "no", "Søknadsintroduksjon");
@@ -67,8 +77,8 @@ class LoginConfigControllerTest extends DhisControllerIntegrationTest {
     systemSettingManager.saveSystemSettingTranslation(
         SettingKey.APPLICATION_NOTIFICATION, "no", "Søknadsmelding");
 
-    systemSettingManager.saveSystemSetting(SettingKey.FLAG_IMAGE, "FLAG_IMAGE");
-    systemSettingManager.saveSystemSetting(SettingKey.CUSTOM_LOGIN_PAGE_LOGO, true);
+    systemSettingManager.saveSystemSetting(SettingKey.FLAG, "FLAG_IMAGE");
+    systemSettingManager.saveSystemSetting(SettingKey.USE_CUSTOM_LOGO_FRONT, true);
     systemSettingManager.saveSystemSetting(SettingKey.CUSTOM_TOP_MENU_LOGO, true);
 
     JsonObject responseDefaultLocale = GET("/loginConfig").content();
@@ -98,6 +108,13 @@ class LoginConfigControllerTest extends DhisControllerIntegrationTest {
         "Søknadsbunntekst",
         responseNorwegianLocale.getString("applicationLeftSideFooter").string());
 
+    assertEquals(
+        "APPLICATION_RIGHT_FOOTER",
+        responseDefaultLocale.getString("applicationRightSideFooter").string());
+    assertEquals(
+        "Høyre søknadsbunntekst",
+        responseNorwegianLocale.getString("applicationRightSideFooter").string());
+
     assertEquals("FLAG_IMAGE", responseDefaultLocale.getString("countryFlag").string());
     assertEquals("en", responseDefaultLocale.getString("uiLocale").string());
     assertEquals(
@@ -108,5 +125,34 @@ class LoginConfigControllerTest extends DhisControllerIntegrationTest {
     assertFalse(responseDefaultLocale.getBoolean("selfRegistrationNoRecaptcha").booleanValue());
     assertFalse(responseDefaultLocale.getBoolean("selfRegistrationEnabled").booleanValue());
     assertFalse(responseDefaultLocale.getBoolean("emailConfigured").booleanValue());
+    assertEquals(
+        systemService.getSystemInfo().getVersion(),
+        responseDefaultLocale.getString("apiVersion").string());
+
+    assertEquals(
+        LoginPageLayout.DEFAULT.name(),
+        responseDefaultLocale.getString("loginPageLayout").string());
+  }
+
+  @Test
+  void testLoginPageLayout() {
+    String template =
+        """
+                <!DOCTYPE HTML>
+                <html class="loginPage" dir="ltr">
+                <head>
+                <title>DHIS 2 Demo</title>
+                <meta name="description" content="DHIS 2">
+                <meta name="keywords" content="DHIS 2">
+                <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+                </head>
+                <body>test</body>
+                </html>""";
+    POST("/systemSettings/loginPageTemplate", template).content(HttpStatus.OK);
+    POST("/systemSettings/loginPageLayout", "CUSTOM").content(HttpStatus.OK);
+    JsonObject response = GET("/loginConfig").content();
+    String savedTemplate = response.getString("loginPageTemplate").string();
+    assertFalse(savedTemplate.isEmpty());
+    assertEquals(template, HtmlUtils.htmlUnescape(savedTemplate));
   }
 }

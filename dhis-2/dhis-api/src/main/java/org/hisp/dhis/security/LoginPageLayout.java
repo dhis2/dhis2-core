@@ -25,30 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.event;
+package org.hisp.dhis.security;
 
-import java.util.ArrayList;
-import java.util.List;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.fieldfiltering.FieldFilterParser;
-import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+/**
+ * Layout of the Login Page which user can select in SystemSettings App.
+ *
+ * <p>This is the value of SettingKey.LOGIN_PAGE_LAYOUT.
+ */
+public enum LoginPageLayout {
+  DEFAULT,
+  SIDEBAR,
 
-@OpenApi.Shared(name = "ChangeLogRequestParams")
-@OpenApi.Property
-@Data
-@NoArgsConstructor
-public class ChangeLogRequestParams {
-
-  private static final String DEFAULT_FIELDS_PARAM = "change,createdAt,createdBy,type";
-
-  private int page = 1;
-
-  private int pageSize = 50;
-
-  private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
-
-  private List<OrderCriteria> order = new ArrayList<>();
+  /** If this is selected then user needs to upload a custom HTML template. */
+  CUSTOM
 }

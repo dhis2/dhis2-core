@@ -71,7 +71,11 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
 
   @Override
   public Page<TrackedEntityChangeLog> getTrackedEntityChangeLog(
-      UID trackedEntityUid, UID programUid, PageParams pageParams) throws NotFoundException {
+      UID trackedEntityUid,
+      UID programUid,
+      TrackedEntityChangeLogOperationParams operationParams,
+      PageParams pageParams)
+      throws NotFoundException {
     TrackedEntity trackedEntity =
         trackedEntityService.getTrackedEntity(trackedEntityUid.getValue());
     if (trackedEntity == null) {
@@ -89,7 +93,16 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
     }
 
     return jdbcTrackedEntityChangeLogStore.getTrackedEntityChangeLog(
-        trackedEntityUid, trackedEntityAttributes, pageParams);
+        trackedEntityUid,
+        trackedEntityAttributes,
+        programUid,
+        operationParams.getOrder(),
+        pageParams);
+  }
+
+  @Override
+  public Set<String> getOrderableFields() {
+    return jdbcTrackedEntityChangeLogStore.getOrderableFields();
   }
 
   private Program validateProgram(String programUid) throws NotFoundException {
