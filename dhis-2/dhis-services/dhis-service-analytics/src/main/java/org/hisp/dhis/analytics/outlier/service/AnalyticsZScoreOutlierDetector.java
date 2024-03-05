@@ -147,7 +147,7 @@ public class AnalyticsZScoreOutlierDetector {
    */
   private void addZScoreBasedParamsToOutlier(
       Outlier outlier, ResultSet rs, boolean modifiedZ, boolean skipRounding) throws SQLException {
-    final int scale = skipRounding ? 10 : 1;
+    final int scale = skipRounding ? 10 : 2;
     if (modifiedZ) {
       outlier.setMedian(round(rs.getDouble("middle_value"), scale));
       outlier.setStdDev(round(rs.getDouble("mad"), scale));

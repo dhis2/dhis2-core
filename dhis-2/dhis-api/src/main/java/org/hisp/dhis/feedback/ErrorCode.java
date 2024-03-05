@@ -445,6 +445,7 @@ public enum ErrorCode {
   E7144(
       "Query failed because a referenced table does not exist. Please ensure analytics job was run"),
   E7145("Query failed because of a syntax error"),
+  E7146("A {0} date was not specified in periods, dimensions, filters"),
 
   /* Analytics outliers */
 
@@ -536,6 +537,7 @@ public enum ErrorCode {
   E7619("Value must match value type of data element `{0}`: `{1}`"),
   E7620("Invalid comment: {0}"),
   E7621("Data value is not a valid option of the data element option set: `{0}`"),
+  E7622("Current user `{0}` has no access to any organisation unit data"),
   // Data Value constraints
   E7630("Category option combo is required but is not specified"),
   E7631("Attribute option combo is required but is not specified"),

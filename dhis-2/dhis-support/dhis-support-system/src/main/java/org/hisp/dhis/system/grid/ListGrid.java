@@ -1129,21 +1129,23 @@ public class ListGrid implements Grid, Serializable {
 
     // reposition columns in the row context structure
     Map<Integer, Map<String, Object>> orderedRowContext = new HashMap<>();
-    Map<String, Object> orderedRowContextItems = new HashMap<>();
 
     for (Map.Entry<Integer, Map<String, Object>> rowContextEntry : rowContext.entrySet()) {
       Map<String, Object> ctxItem = rowContextEntry.getValue();
+      Integer rowIndex = rowContextEntry.getKey();
+      Map<String, Object> orderedRowContextItems = new HashMap<>();
       ctxItem
           .keySet()
           .forEach(
               key -> {
                 if (numberRegex.matcher(key).matches()) {
+                  // reindexing of columns
                   orderedRowContextItems.put(
                       columnIndexes.get(Integer.parseInt(key)).toString(), ctxItem.get(key));
                 }
               });
       if (!orderedRowContextItems.isEmpty()) {
-        orderedRowContext.put(rowContextEntry.getKey(), orderedRowContextItems);
+        orderedRowContext.put(rowIndex, orderedRowContextItems);
       }
     }
 

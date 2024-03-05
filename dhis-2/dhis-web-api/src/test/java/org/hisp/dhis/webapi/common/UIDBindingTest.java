@@ -27,15 +27,21 @@
  */
 package org.hisp.dhis.webapi.common;
 
-import static org.hamcrest.Matchers.containsString;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.hisp.dhis.utils.Assertions.assertStartsWith;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
+import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.stereotype.Controller;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -46,7 +52,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 class UIDBindingTest {
 
-  private static final String VALID_UID = "bRNvL6NMQXb";
+  private static final String VALID_UID_STRING = "bRNvL6NMQXb";
+  private static final UID VALID_UID = UID.of("bRNvL6NMQXb");
 
   private static final String INVALID_UID = "invalidUid";
 
@@ -57,9 +64,12 @@ class UIDBindingTest {
       "Value 'invalidUid' is not valid for path parameter uid. UID must be an alphanumeric string of 11 characters";
 
   private static final String BINDING_OBJECT_ERROR_MESSAGE =
-      "Value 'invalidUid' is not valid for parameter uidInRequestParams. UID must be an alphanumeric string of 11 characters";
+      "Value 'invalidUid' is not valid for parameter uid. UID must be an alphanumeric string of 11 characters";
 
   private static final String ENDPOINT = "/uid";
+
+  private UID actual;
+  private List<UID> actualCollection;
 
   private MockMvc mockMvc;
 
@@ -73,66 +83,130 @@ class UIDBindingTest {
 
   @Test
   void shouldReturnUIDValueWhenPassingValidUidAsPathVariable() throws Exception {
-    mockMvc
-        .perform(get(ENDPOINT + "/" + VALID_UID))
-        .andExpect(status().isOk())
-        .andExpect(content().string(VALID_UID));
+    mockMvc.perform(get(ENDPOINT + "/" + VALID_UID)).andExpect(status().isOk());
+
+    assertEquals(VALID_UID, actual);
   }
 
   @Test
   void shouldReturnUIDValueWhenPassingValidUidAsRequestParam() throws Exception {
-    mockMvc
-        .perform(get(ENDPOINT).param("uid", VALID_UID))
-        .andExpect(status().isOk())
-        .andExpect(content().string(VALID_UID));
+    mockMvc.perform(get(ENDPOINT).param("uid", VALID_UID_STRING)).andExpect(status().isOk());
+
+    assertEquals(VALID_UID, actual);
   }
 
   @Test
   void shouldReturnUIDValueWhenPassingValidUidAsRequestParamObject() throws Exception {
     mockMvc
-        .perform(get(ENDPOINT + "/params").param("uidInRequestParams", VALID_UID))
-        .andExpect(status().isOk())
-        .andExpect(content().string(VALID_UID));
+        .perform(get(ENDPOINT + "/params").param("uid", VALID_UID_STRING))
+        .andExpect(status().isOk());
+
+    assertEquals(VALID_UID, actual);
   }
 
   @Test
   void shouldReturnBadRequestResponseWhenPassingInvalidUidAsPathVariable() throws Exception {
-    mockMvc
-        .perform(get(ENDPOINT + "/" + INVALID_UID))
-        .andExpect(content().string(containsString(ERROR_MESSAGE_FOR_PATH_PARAM)));
+    MockHttpServletResponse response =
+        mockMvc
+            .perform(get(ENDPOINT + "/" + INVALID_UID).accept("application/json"))
+            .andReturn()
+            .getResponse();
+
+    JsonWebMessage message = JsonMixed.of(response.getContentAsString()).as(JsonWebMessage.class);
+    assertEquals(400, message.getHttpStatusCode());
+    assertStartsWith(ERROR_MESSAGE_FOR_PATH_PARAM, message.getMessage());
   }
 
   @Test
   void shouldReturnBadRequestResponseWhenPassingInvalidUidAsRequestParam() throws Exception {
-    mockMvc
-        .perform(get(ENDPOINT).param("uid", INVALID_UID))
-        .andExpect(content().string(containsString(ERROR_MESSAGE)));
+    MockHttpServletResponse response =
+        mockMvc
+            .perform(get(ENDPOINT).accept("application/json").param("uid", INVALID_UID))
+            .andReturn()
+            .getResponse();
+
+    JsonWebMessage message = JsonMixed.of(response.getContentAsString()).as(JsonWebMessage.class);
+    assertEquals(400, message.getHttpStatusCode());
+    assertStartsWith(ERROR_MESSAGE, message.getMessage());
   }
 
   @Test
   void shouldReturnBadRequestResponseWhenPassingInvalidUidAsRequestParamObject() throws Exception {
+    MockHttpServletResponse response =
+        mockMvc
+            .perform(get(ENDPOINT + "/params").accept("application/json").param("uid", INVALID_UID))
+            .andReturn()
+            .getResponse();
+
+    JsonWebMessage message = JsonMixed.of(response.getContentAsString()).as(JsonWebMessage.class);
+    assertEquals(400, message.getHttpStatusCode());
+    assertStartsWith(BINDING_OBJECT_ERROR_MESSAGE, message.getMessage());
+  }
+
+  @Test
+  void shouldHandleMultipleOrderComponentsGivenViaOneParameter() throws Exception {
     mockMvc
-        .perform(get(ENDPOINT + "/params").param("uidInRequestParams", INVALID_UID))
-        .andExpect(content().string(containsString(BINDING_OBJECT_ERROR_MESSAGE)));
+        .perform(get(ENDPOINT + "/collection").param("uids", "PHB3x6n374I,Sq3QLSHij67"))
+        .andExpect(status().isOk());
+
+    assertEquals(List.of(UID.of("PHB3x6n374I"), UID.of("Sq3QLSHij67")), actualCollection);
+  }
+
+  @Test
+  void shouldHandleMultipleOrderComponentsGivenViaMultipleParameters() throws Exception {
+    mockMvc
+        .perform(
+            get(ENDPOINT + "/collection").param("uids", "PHB3x6n374I").param("uids", "Sq3QLSHij67"))
+        .andExpect(status().isOk());
+
+    assertEquals(List.of(UID.of("PHB3x6n374I"), UID.of("Sq3QLSHij67")), actualCollection);
+  }
+
+  @Test
+  void shouldReturnABadRequestWhenMixingRepeatedParameterAndCommaSeparatedValues()
+      throws Exception {
+    MockHttpServletResponse response =
+        mockMvc
+            .perform(
+                get(ENDPOINT + "/collection")
+                    .accept("application/json")
+                    .param("uids", "PHB3x6n374I")
+                    .param("uids", "Sq3QLSHij67,jEVhr5j6EaA"))
+            .andReturn()
+            .getResponse();
+
+    JsonWebMessage message = JsonMixed.of(response.getContentAsString()).as(JsonWebMessage.class);
+    assertEquals(400, message.getHttpStatusCode());
+    assertStartsWith("You likely repeated request parameter 'uids' and used", message.getMessage());
   }
 
   @Controller
-  private static class UIDController extends CrudControllerAdvice {
+  private class UIDController extends CrudControllerAdvice {
     @GetMapping(value = ENDPOINT + "/{uid}")
-    public @ResponseBody String getUIDValueFromPath(@PathVariable UID uid) {
-      return uid.getValue();
+    public @ResponseBody WebMessage getUIDValueFromPath(@PathVariable UID uid) {
+      actual = uid;
+      return ok();
     }
 
     @GetMapping(value = ENDPOINT)
-    public @ResponseBody String getUIDValueFromRequestParam(@RequestParam UID uid) {
-      return uid.getValue();
+    public @ResponseBody WebMessage getUIDValueFromRequestParam(@RequestParam UID uid) {
+      actual = uid;
+      return ok();
+    }
+
+    @GetMapping(value = ENDPOINT + "/collection")
+    public @ResponseBody WebMessage getUIDValueFromRequestParamCollection(
+        @RequestParam List<UID> uids) {
+      actualCollection = uids;
+      return ok();
     }
 
     @GetMapping(value = ENDPOINT + "/params")
-    public @ResponseBody String getUIDValueFromRequestObject(UIDRequestParams uidRequestParams) {
-      return uidRequestParams.uidInRequestParams().getValue();
+    public @ResponseBody WebMessage getUIDValueFromRequestObject(UIDRequestParams requestParams) {
+      actual = requestParams.uid;
+      return ok();
     }
   }
 
-  private record UIDRequestParams(UID uidInRequestParams) {}
+  private record UIDRequestParams(UID uid) {}
 }
