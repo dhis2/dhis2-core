@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.icon.hibernate;
+package org.hisp.dhis.icon;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectReader;
@@ -44,9 +44,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.fileresource.FileResourceStore;
 import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType;
-import org.hisp.dhis.icon.Icon;
-import org.hisp.dhis.icon.IconOperationParams;
-import org.hisp.dhis.icon.IconStore;
 import org.hisp.dhis.user.UserService;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -58,7 +55,7 @@ import org.springframework.stereotype.Repository;
 @Slf4j
 @Repository("org.hisp.dhis.icon.IconStore")
 @RequiredArgsConstructor
-public class HibernateIconStore implements IconStore {
+public class JdbcIconStore implements IconStore {
 
   private static final ObjectReader keywordsReader =
       JsonBinaryType.MAPPER.readerFor(new TypeReference<Set<String>>() {});
