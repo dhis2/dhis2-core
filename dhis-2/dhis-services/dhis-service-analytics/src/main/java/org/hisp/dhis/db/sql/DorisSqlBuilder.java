@@ -345,7 +345,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String createCatalog(String connectionUrl, String username, String password) {
-    String sql =
+    return replace(
         """
         create catalog ${catalog} \
         properties (
@@ -355,10 +355,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
         "jdbc_url" = "${connection_url}", \
         "driver_url" = "${driver_filename}", \
         "driver_class" = "org.postgresql.Driver"
-        );""";
-
-    return replace(
-        sql,
+        );""",
         Map.of(
             "catalog", quote(catalog),
             "username", username,
