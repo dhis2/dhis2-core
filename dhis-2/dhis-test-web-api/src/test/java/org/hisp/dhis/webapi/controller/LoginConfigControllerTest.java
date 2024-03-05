@@ -155,4 +155,17 @@ class LoginConfigControllerTest extends DhisControllerIntegrationTest {
     assertFalse(savedTemplate.isEmpty());
     assertEquals(template, HtmlUtils.htmlUnescape(savedTemplate));
   }
+
+  @Test
+  void testRecaptchaSite() {
+    JsonObject response = GET("/loginConfig").content();
+    assertEquals(
+        SettingKey.RECAPTCHA_SITE.getDefaultValue(),
+        response.getString(SettingKey.RECAPTCHA_SITE.getName()).string());
+    POST("/systemSettings/" + SettingKey.RECAPTCHA_SITE.getName(), "test_recaptcha_stie")
+        .content(HttpStatus.OK);
+    response = GET("/loginConfig").content();
+    assertEquals(
+        "test_recaptcha_stie", response.getString(SettingKey.RECAPTCHA_SITE.getName()).string());
+  }
 }
