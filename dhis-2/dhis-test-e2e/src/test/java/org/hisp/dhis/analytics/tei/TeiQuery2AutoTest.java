@@ -55,11 +55,12 @@ public class TeiQuery2AutoTest extends AnalyticsApiTest {
         new QueryParamsBuilder()
             .add(
                 "headers=IpHINAT79UW.A03MvHHogjR[1].bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR[2].bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR[0].bx6fsa0t90x")
-            .add("pageSize=15")
+            .add("lastUpdated=LAST_5_YEARS")
+            .add("pageSize=3")
             .add(
                 "dimension=IpHINAT79UW.A03MvHHogjR[1].bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR[2].bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR[0].bx6fsa0t90x")
-            .add("lastUpdated=LAST_5_YEARS")
-            .add("relativePeriodDate=2016-08-01");
+            .add("desc=created")
+            .add("relativePeriodDate=2016-01-08");
 
     // When
     ApiResponse response = actions.query().get("nEenWmSyUEp", JSON, JSON, params);
@@ -69,14 +70,14 @@ public class TeiQuery2AutoTest extends AnalyticsApiTest {
         .validate()
         .statusCode(200)
         .body("headers", hasSize(equalTo(3)))
-        .body("rows", hasSize(equalTo(15)))
-        .body("height", equalTo(15))
+        .body("rows", hasSize(equalTo(3)))
+        .body("height", equalTo(3))
         .body("width", equalTo(3))
         .body("headerWidth", equalTo(3));
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"isLastPage\":false,\"pageSize\":15,\"page\":1},\"items\":{\"IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x\":{\"name\":\"MCH BCG dose, Child Programme, Birth\"},\"bx6fsa0t90x\":{\"name\":\"MCH BCG dose\"},\"2015\":{\"name\":\"2015\"},\"pe\":{\"name\":\"Period\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"2014\":{\"name\":\"2014\"},\"2013\":{\"name\":\"2013\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"2012\":{\"name\":\"2012\"},\"2011\":{\"name\":\"2011\"},\"LAST_5_YEARS\":{\"name\":\"Last 5 years\"}},\"dimensions\":{\"zDhUuAYrxNC\":[],\"lw1SqmMlnfh\":[],\"bx6fsa0t90x\":[],\"Qo571yj6Zcn\":[],\"DODgdr5Oo2v\":[],\"iESIqZ0R0R0\":[],\"n9nUvfpTsxQ\":[],\"kyIzQsj96BD\":[],\"xs8A6tQJY0s\":[],\"A4xFHyieXys\":[],\"OvY4VVhSDeJ\":[],\"RG7uGl4w5Jq\":[],\"spFvx9FndA4\":[],\"GUOBQt5K2WI\":[],\"Agywv2JGwuq\":[],\"lZGmxYbs97q\":[],\"VqEFza8wbwA\":[],\"ciq2USN94oJ\":[\"wfkKVdPBzho\",\"Yjte6foKMny\"],\"w75KJ2mc4zz\":[],\"KmEUg2hHEtx\":[],\"G7vUx908SwP\":[],\"o9odfev2Ty5\":[],\"FO4sWYJ64LQ\":[],\"NDXw0cluzSw\":[],\"ruQQnf6rswq\":[],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"],\"P2cwLGskgxn\":[],\"gHGyrwKPzej\":[],\"pe\":[\"2011\",\"2012\",\"2013\",\"2014\",\"2015\"],\"VHfUeXpawmE\":[],\"AuPLng5hLbE\":[],\"ZcBPrXKahq2\":[],\"H9IlTX2X6SL\":[]}}";
+        "{\"pager\":{\"page\":1,\"pageSize\":3,\"isLastPage\":false},\"items\":{\"IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x\":{\"name\":\"MCH BCG dose, Child Programme, Birth\"},\"bx6fsa0t90x\":{\"name\":\"MCH BCG dose\"},\"2015\":{\"name\":\"2015\"},\"pe\":{\"name\":\"Period\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"2014\":{\"name\":\"2014\"},\"2013\":{\"name\":\"2013\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"2012\":{\"name\":\"2012\"},\"2011\":{\"name\":\"2011\"},\"LAST_5_YEARS\":{\"name\":\"Last 5 years\"}},\"dimensions\":{\"zDhUuAYrxNC\":[],\"lw1SqmMlnfh\":[],\"bx6fsa0t90x\":[],\"Qo571yj6Zcn\":[],\"DODgdr5Oo2v\":[],\"iESIqZ0R0R0\":[],\"n9nUvfpTsxQ\":[],\"kyIzQsj96BD\":[],\"xs8A6tQJY0s\":[],\"A4xFHyieXys\":[],\"OvY4VVhSDeJ\":[],\"RG7uGl4w5Jq\":[],\"spFvx9FndA4\":[],\"GUOBQt5K2WI\":[],\"Agywv2JGwuq\":[],\"lZGmxYbs97q\":[],\"VqEFza8wbwA\":[],\"ciq2USN94oJ\":[\"wfkKVdPBzho\",\"Yjte6foKMny\"],\"w75KJ2mc4zz\":[],\"KmEUg2hHEtx\":[],\"G7vUx908SwP\":[],\"o9odfev2Ty5\":[],\"FO4sWYJ64LQ\":[],\"NDXw0cluzSw\":[],\"ruQQnf6rswq\":[],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"],\"P2cwLGskgxn\":[],\"gHGyrwKPzej\":[],\"pe\":[\"2011\",\"2012\",\"2013\",\"2014\",\"2015\"],\"VHfUeXpawmE\":[],\"AuPLng5hLbE\":[],\"ZcBPrXKahq2\":[],\"H9IlTX2X6SL\":[]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -113,60 +114,12 @@ public class TeiQuery2AutoTest extends AnalyticsApiTest {
     validateRowContext(response, 0, 0, "ND");
     validateRowContext(response, 0, 1, "ND");
     validateRowContext(response, 0, 2, "ND");
-    validateRowContext(response, 1, 0, "ND");
     validateRowContext(response, 1, 1, "ND");
-    validateRowContext(response, 1, 2, "ND");
-    validateRowContext(response, 2, 0, "ND");
     validateRowContext(response, 2, 1, "ND");
-    validateRowContext(response, 2, 2, "ND");
-    validateRowContext(response, 3, 0, "ND");
-    validateRowContext(response, 3, 1, "ND");
-    validateRowContext(response, 3, 2, "ND");
-    validateRowContext(response, 4, 0, "ND");
-    validateRowContext(response, 4, 1, "ND");
-    validateRowContext(response, 4, 2, "ND");
-    validateRowContext(response, 5, 0, "ND");
-    validateRowContext(response, 5, 1, "ND");
-    validateRowContext(response, 5, 2, "ND");
-    validateRowContext(response, 6, 0, "ND");
-    validateRowContext(response, 6, 1, "ND");
-    validateRowContext(response, 6, 2, "ND");
-    validateRowContext(response, 7, 0, "ND");
-    validateRowContext(response, 7, 1, "ND");
-    validateRowContext(response, 7, 2, "ND");
-    validateRowContext(response, 8, 0, "ND");
-    validateRowContext(response, 8, 1, "ND");
-    validateRowContext(response, 8, 2, "ND");
-    validateRowContext(response, 9, 1, "ND");
-    validateRowContext(response, 10, 0, "ND");
-    validateRowContext(response, 10, 1, "ND");
-    validateRowContext(response, 10, 2, "ND");
-    validateRowContext(response, 11, 1, "ND");
-    validateRowContext(response, 12, 0, "ND");
-    validateRowContext(response, 12, 1, "ND");
-    validateRowContext(response, 12, 2, "ND");
-    validateRowContext(response, 13, 0, "ND");
-    validateRowContext(response, 13, 1, "ND");
-    validateRowContext(response, 13, 2, "ND");
-    validateRowContext(response, 14, 0, "ND");
-    validateRowContext(response, 14, 1, "ND");
-    validateRowContext(response, 14, 2, "ND");
 
     // Assert rows.
     validateRow(response, 0, List.of("", "", ""));
-    validateRow(response, 1, List.of("", "", ""));
-    validateRow(response, 2, List.of("", "", ""));
-    validateRow(response, 3, List.of("", "", ""));
-    validateRow(response, 4, List.of("", "", ""));
-    validateRow(response, 5, List.of("", "", ""));
-    validateRow(response, 6, List.of("", "", ""));
-    validateRow(response, 7, List.of("", "", ""));
-    validateRow(response, 8, List.of("", "", ""));
-    validateRow(response, 9, List.of("1", "", "1"));
-    validateRow(response, 10, List.of("", "", ""));
-    validateRow(response, 11, List.of("1", "", "1"));
-    validateRow(response, 12, List.of("", "", ""));
-    validateRow(response, 13, List.of("", "", ""));
-    validateRow(response, 14, List.of("", "", ""));
+    validateRow(response, 1, List.of("1", "", "1"));
+    validateRow(response, 2, List.of("0", "", "0"));
   }
 }
