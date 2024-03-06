@@ -39,7 +39,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.auth.UserInviteRegistrationParams;
+import org.hisp.dhis.common.auth.UserInviteParams;
 import org.hisp.dhis.common.auth.UserRegistrationParams;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
@@ -193,7 +193,7 @@ public class UserAccountController {
   @PostMapping("/invite")
   @ResponseStatus(HttpStatus.OK)
   public WebMessageResponse completeRegistration(
-      @RequestBody UserInviteRegistrationParams params, HttpServletRequest request)
+      @RequestBody UserInviteParams params, HttpServletRequest request)
       throws BadRequestException, IOException {
     log.info("Invite registration received");
 

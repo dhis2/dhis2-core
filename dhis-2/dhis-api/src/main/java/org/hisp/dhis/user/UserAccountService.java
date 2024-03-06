@@ -30,7 +30,7 @@ package org.hisp.dhis.user;
 import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import org.hisp.dhis.common.auth.RegistrationParams;
-import org.hisp.dhis.common.auth.UserInviteRegistrationParams;
+import org.hisp.dhis.common.auth.UserInviteParams;
 import org.hisp.dhis.common.auth.UserRegistrationParams;
 import org.hisp.dhis.feedback.BadRequestException;
 
@@ -56,7 +56,7 @@ public interface UserAccountService {
    * @param params used to populate the updated User
    * @param request used in the authentication process
    */
-  void confirmUserInvite(UserInviteRegistrationParams params, HttpServletRequest request)
+  void confirmUserInvite(UserInviteParams params, HttpServletRequest request)
       throws BadRequestException;
 
   /**

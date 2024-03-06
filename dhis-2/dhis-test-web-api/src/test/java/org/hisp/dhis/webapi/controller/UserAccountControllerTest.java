@@ -39,7 +39,7 @@ import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.auth.RegistrationParams;
-import org.hisp.dhis.common.auth.UserInviteRegistrationParams;
+import org.hisp.dhis.common.auth.UserInviteParams;
 import org.hisp.dhis.common.auth.UserRegistrationParams;
 import org.hisp.dhis.message.FakeMessageSender;
 import org.hisp.dhis.message.MessageSender;
@@ -108,7 +108,7 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
         "Account created",
         POST(
                 "/auth/registration",
-                renderService.toJsonAsString(getUserRegParams(new UserInviteRegistrationParams())))
+                renderService.toJsonAsString(getUserRegParams(new UserInviteParams())))
             .content(HttpStatus.CREATED));
   }
 
@@ -125,7 +125,7 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
         "Account created",
         POST(
                 "/auth/registration",
-                renderService.toJsonAsString(getUserRegParams(new UserInviteRegistrationParams())))
+                renderService.toJsonAsString(getUserRegParams(new UserInviteParams())))
             .content(HttpStatus.CREATED));
 
     JsonUser user = GET("/me").content(HttpStatus.OK).as(JsonUser.class);
@@ -351,7 +351,7 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
         "User self registration is not allowed",
         POST(
                 "/auth/registration",
-                renderService.toJsonAsString(getUserRegParams(new UserInviteRegistrationParams())))
+                renderService.toJsonAsString(getUserRegParams(new UserInviteParams())))
             .content(HttpStatus.BAD_REQUEST));
   }
 
@@ -625,9 +625,8 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
     return userParams;
   }
 
-  private UserInviteRegistrationParams getInviteRegistrationForm() {
-    UserInviteRegistrationParams regParams =
-        (UserInviteRegistrationParams) getUserRegParams(new UserInviteRegistrationParams());
+  private UserInviteParams getInviteRegistrationForm() {
+    UserInviteParams regParams = (UserInviteParams) getUserRegParams(new UserInviteParams());
     // this Base64 encoded string needs to start with 'ID' for this invited user test
     // it's part of the recaptcha validation in RestoreOptions#getRestoreOptions
     // this unencoded string is 'idToken:IDrestoreToken'
@@ -698,7 +697,7 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
   private RegistrationParams getParamsFromType(RegType regParamsType) {
     return switch (regParamsType) {
       case SELF_REG -> new UserRegistrationParams();
-      case INVITE -> new UserInviteRegistrationParams();
+      case INVITE -> new UserInviteParams();
     };
   }
 

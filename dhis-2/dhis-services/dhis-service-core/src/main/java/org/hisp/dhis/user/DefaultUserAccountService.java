@@ -34,7 +34,7 @@ import javax.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.auth.RegistrationParams;
-import org.hisp.dhis.common.auth.UserInviteRegistrationParams;
+import org.hisp.dhis.common.auth.UserInviteParams;
 import org.hisp.dhis.common.auth.UserRegistrationParams;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -113,7 +113,7 @@ public class DefaultUserAccountService implements UserAccountService {
 
   @Override
   @Transactional
-  public void confirmUserInvite(UserInviteRegistrationParams params, HttpServletRequest request)
+  public void confirmUserInvite(UserInviteParams params, HttpServletRequest request)
       throws BadRequestException {
     validateInvitedUser(params);
 
@@ -130,8 +130,7 @@ public class DefaultUserAccountService implements UserAccountService {
     authenticate(user.getUsername(), params.getPassword(), user.getAuthorities(), request);
   }
 
-  private User validateRestoreLinkAndToken(UserInviteRegistrationParams params)
-      throws BadRequestException {
+  private User validateRestoreLinkAndToken(UserInviteParams params) throws BadRequestException {
     String[] idAndRestoreToken = userService.decodeEncodedTokens(params.getToken());
     String idToken = idAndRestoreToken[0];
     String restoreToken = idAndRestoreToken[1];

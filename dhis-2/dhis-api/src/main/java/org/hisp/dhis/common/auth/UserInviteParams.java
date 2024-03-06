@@ -39,6 +39,6 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserInviteRegistrationParams extends RegistrationParams {
+public class UserInviteParams extends RegistrationParams {
   @JsonProperty String token;
 }
