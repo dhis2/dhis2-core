@@ -38,8 +38,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.auth.CompleteRegistrationParams;
-import org.hisp.dhis.common.auth.SelfRegistrationParams;
+import org.hisp.dhis.common.auth.RegistrationParams;
+import org.hisp.dhis.common.auth.UserInviteRegistrationParams;
 import org.hisp.dhis.common.auth.UserRegistrationParams;
 import org.hisp.dhis.message.FakeMessageSender;
 import org.hisp.dhis.message.MessageSender;
@@ -107,8 +107,8 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
         "OK",
         "Account created",
         POST(
-                "/auth/register",
-                renderService.toJsonAsString(getUserRegParams(new CompleteRegistrationParams())))
+                "/auth/registration",
+                renderService.toJsonAsString(getUserRegParams(new UserInviteRegistrationParams())))
             .content(HttpStatus.CREATED));
   }
 
@@ -124,8 +124,8 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
         "OK",
         "Account created",
         POST(
-                "/auth/register",
-                renderService.toJsonAsString(getUserRegParams(new CompleteRegistrationParams())))
+                "/auth/registration",
+                renderService.toJsonAsString(getUserRegParams(new UserInviteRegistrationParams())))
             .content(HttpStatus.CREATED));
 
     JsonUser user = GET("/me").content(HttpStatus.OK).as(JsonUser.class);
@@ -145,7 +145,7 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
         400,
         "ERROR",
         "Username is not specified or invalid",
-        POST("/auth/register", renderService.toJsonAsString(getRegParamsWithUsername(null)))
+        POST("/auth/registration", renderService.toJsonAsString(getRegParamsWithUsername(null)))
             .content(HttpStatus.BAD_REQUEST));
   }
 
@@ -161,7 +161,7 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
         "ERROR",
         "Username is not specified or invalid",
         POST(
-                "/auth/register",
+                "/auth/registration",
                 renderService.toJsonAsString(getRegParamsWithUsername(superUser.getUsername())))
             .content(HttpStatus.BAD_REQUEST));
   }
@@ -178,7 +178,7 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
         "ERROR",
         "Username is not specified or invalid",
         POST(
-                "/auth/register",
+                "/auth/registration",
                 renderService.toJsonAsString(getRegParamsWithUsername("..invalid username ..")))
             .content(HttpStatus.BAD_REQUEST));
   }
@@ -195,7 +195,7 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
         "ERROR",
         "First name is not specified or invalid",
         POST(
-                "/auth/register",
+                "/auth/registration",
                 renderService.toJsonAsString(getRegParamsWithFirstName(null, RegType.SELF_REG)))
             .content(HttpStatus.BAD_REQUEST));
   }
@@ -212,7 +212,7 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
         "ERROR",
         "First name is not specified or invalid",
         POST(
-                "/auth/register",
+                "/auth/registration",
                 renderService.toJsonAsString(
                     getRegParamsWithFirstName(StringUtils.repeat('a', 81), RegType.SELF_REG)))
             .content(HttpStatus.BAD_REQUEST));
@@ -230,7 +230,7 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
         "ERROR",
         "Surname is not specified or invalid",
         POST(
-                "/auth/register",
+                "/auth/registration",
                 renderService.toJsonAsString(getRegParamsWithSurname(null, RegType.SELF_REG)))
             .content(HttpStatus.BAD_REQUEST));
   }
@@ -247,7 +247,7 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
         "ERROR",
         "Surname is not specified or invalid",
         POST(
-                "/auth/register",
+                "/auth/registration",
                 renderService.toJsonAsString(
                     getRegParamsWithSurname(StringUtils.repeat('a', 81), RegType.SELF_REG)))
             .content(HttpStatus.BAD_REQUEST));
@@ -266,7 +266,7 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
         "ERROR",
         expectedError,
         POST(
-                "/auth/register",
+                "/auth/registration",
                 renderService.toJsonAsString(getRegParamsWithPassword(input, RegType.SELF_REG)))
             .content(HttpStatus.BAD_REQUEST));
   }
@@ -282,7 +282,7 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
         400,
         "ERROR",
         "Email is not specified or invalid",
-        POST("/auth/register", renderService.toJsonAsString(getRegParamsWithEmail(null)))
+        POST("/auth/registration", renderService.toJsonAsString(getRegParamsWithEmail(null)))
             .content(HttpStatus.BAD_REQUEST));
   }
 
@@ -297,7 +297,9 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
         400,
         "ERROR",
         "Email is not specified or invalid",
-        POST("/auth/register", renderService.toJsonAsString(getRegParamsWithEmail("invalidEmail")))
+        POST(
+                "/auth/registration",
+                renderService.toJsonAsString(getRegParamsWithEmail("invalidEmail")))
             .content(HttpStatus.BAD_REQUEST));
   }
 
@@ -313,7 +315,7 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
         "ERROR",
         "Phone number is not specified or invalid",
         POST(
-                "/auth/register",
+                "/auth/registration",
                 renderService.toJsonAsString(getRegParamsWithPhone(null, RegType.SELF_REG)))
             .content(HttpStatus.BAD_REQUEST));
   }
@@ -330,7 +332,7 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
         "ERROR",
         "Phone number is not specified or invalid",
         POST(
-                "/auth/register",
+                "/auth/registration",
                 renderService.toJsonAsString(
                     getRegParamsWithPhone(
                         "12345678910, 12345678910, 12345678910", RegType.SELF_REG)))
@@ -348,8 +350,8 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
         "ERROR",
         "User self registration is not allowed",
         POST(
-                "/auth/register",
-                renderService.toJsonAsString(getUserRegParams(new CompleteRegistrationParams())))
+                "/auth/registration",
+                renderService.toJsonAsString(getUserRegParams(new UserInviteRegistrationParams())))
             .content(HttpStatus.BAD_REQUEST));
   }
 
@@ -365,7 +367,7 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
         "ERROR",
         "Recaptcha validation failed: [invalid-input-secret]",
         POST(
-                "/auth/register",
+                "/auth/registration",
                 renderService.toJsonAsString(getRegParamsWithRecaptcha("secret", RegType.SELF_REG)))
             .content(HttpStatus.BAD_REQUEST));
   }
@@ -382,7 +384,7 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
         "ERROR",
         "Recaptcha validation failed.",
         POST(
-                "/auth/register",
+                "/auth/registration",
                 renderService.toJsonAsString(getRegParamsWithRecaptcha(null, RegType.SELF_REG)))
             .content(HttpStatus.BAD_REQUEST));
   }
@@ -403,9 +405,7 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
         200,
         "OK",
         "Account updated",
-        POST(
-                "/auth/completeRegistration",
-                renderService.toJsonAsString(getInviteRegistrationForm()))
+        POST("/auth/invite", renderService.toJsonAsString(getInviteRegistrationForm()))
             .content(HttpStatus.OK));
 
     JsonUser user = GET("/me").content(HttpStatus.OK).as(JsonUser.class);
@@ -423,7 +423,7 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
         "ERROR",
         "First name is not specified or invalid",
         POST(
-                "/auth/completeRegistration",
+                "/auth/invite",
                 renderService.toJsonAsString(getRegParamsWithFirstName(null, RegType.INVITE)))
             .content(HttpStatus.BAD_REQUEST));
   }
@@ -439,7 +439,7 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
         "ERROR",
         "Surname is not specified or invalid",
         POST(
-                "/auth/completeRegistration",
+                "/auth/invite",
                 renderService.toJsonAsString(getRegParamsWithSurname(null, RegType.INVITE)))
             .content(HttpStatus.BAD_REQUEST));
   }
@@ -455,7 +455,7 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
         "ERROR",
         "First name is not specified or invalid",
         POST(
-                "/auth/completeRegistration",
+                "/auth/invite",
                 renderService.toJsonAsString(
                     getRegParamsWithFirstName(StringUtils.repeat('a', 81), RegType.INVITE)))
             .content(HttpStatus.BAD_REQUEST));
@@ -472,7 +472,7 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
         "ERROR",
         "Surname is not specified or invalid",
         POST(
-                "/auth/completeRegistration",
+                "/auth/invite",
                 renderService.toJsonAsString(
                     getRegParamsWithSurname(StringUtils.repeat('a', 81), RegType.INVITE)))
             .content(HttpStatus.BAD_REQUEST));
@@ -490,7 +490,7 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
         "ERROR",
         expectedError,
         POST(
-                "/auth/completeRegistration",
+                "/auth/invite",
                 renderService.toJsonAsString(getRegParamsWithPassword(password, RegType.INVITE)))
             .content(HttpStatus.BAD_REQUEST));
   }
@@ -506,7 +506,7 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
         "ERROR",
         "Phone number is not specified or invalid",
         POST(
-                "/auth/completeRegistration",
+                "/auth/invite",
                 renderService.toJsonAsString(getRegParamsWithPhone(null, RegType.INVITE)))
             .content(HttpStatus.BAD_REQUEST));
   }
@@ -522,7 +522,7 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
         "ERROR",
         "Phone number is not specified or invalid",
         POST(
-                "/auth/completeRegistration",
+                "/auth/invite",
                 renderService.toJsonAsString(
                     getRegParamsWithPhone("12345678910, 12345678910, 12345678910", RegType.INVITE)))
             .content(HttpStatus.BAD_REQUEST));
@@ -540,7 +540,7 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
         "ERROR",
         "Recaptcha validation failed: [invalid-input-secret]",
         POST(
-                "/auth/completeRegistration",
+                "/auth/invite",
                 renderService.toJsonAsString(getRegParamsWithRecaptcha("secret", RegType.INVITE)))
             .content(HttpStatus.BAD_REQUEST));
   }
@@ -557,7 +557,7 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
         "ERROR",
         "Recaptcha validation failed.",
         POST(
-                "/auth/completeRegistration",
+                "/auth/invite",
                 renderService.toJsonAsString(getRegParamsWithRecaptcha(null, RegType.INVITE)))
             .content(HttpStatus.BAD_REQUEST));
   }
@@ -614,7 +614,7 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
     return messagesByEmail.get(0);
   }
 
-  private UserRegistrationParams getUserRegParams(UserRegistrationParams userParams) {
+  private RegistrationParams getUserRegParams(RegistrationParams userParams) {
     userParams.setUsername("samewisegamgee");
     userParams.setFirstName("samewise");
     userParams.setSurname("gamgee");
@@ -625,9 +625,9 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
     return userParams;
   }
 
-  private CompleteRegistrationParams getInviteRegistrationForm() {
-    CompleteRegistrationParams regParams =
-        (CompleteRegistrationParams) getUserRegParams(new CompleteRegistrationParams());
+  private UserInviteRegistrationParams getInviteRegistrationForm() {
+    UserInviteRegistrationParams regParams =
+        (UserInviteRegistrationParams) getUserRegParams(new UserInviteRegistrationParams());
     // this Base64 encoded string needs to start with 'ID' for this invited user test
     // it's part of the recaptcha validation in RestoreOptions#getRestoreOptions
     // this unencoded string is 'idToken:IDrestoreToken'
@@ -635,44 +635,44 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
     return regParams;
   }
 
-  private UserRegistrationParams getRegParamsWithUsername(String username) {
-    UserRegistrationParams selfRegistrationParams = getUserRegParams(new SelfRegistrationParams());
+  private RegistrationParams getRegParamsWithUsername(String username) {
+    RegistrationParams selfRegistrationParams = getUserRegParams(new UserRegistrationParams());
     selfRegistrationParams.setUsername(username);
     return selfRegistrationParams;
   }
 
-  private UserRegistrationParams getRegParamsWithFirstName(String firstName, RegType regType) {
-    UserRegistrationParams regParams = getUserRegParams(getParamsFromType(regType));
+  private RegistrationParams getRegParamsWithFirstName(String firstName, RegType regType) {
+    RegistrationParams regParams = getUserRegParams(getParamsFromType(regType));
     regParams.setFirstName(firstName);
     return regParams;
   }
 
-  private UserRegistrationParams getRegParamsWithSurname(String surname, RegType regType) {
-    UserRegistrationParams regParams = getUserRegParams(getParamsFromType(regType));
+  private RegistrationParams getRegParamsWithSurname(String surname, RegType regType) {
+    RegistrationParams regParams = getUserRegParams(getParamsFromType(regType));
     regParams.setSurname(surname);
     return regParams;
   }
 
-  private UserRegistrationParams getRegParamsWithPassword(String password, RegType regType) {
-    UserRegistrationParams regParams = getUserRegParams(getParamsFromType(regType));
+  private RegistrationParams getRegParamsWithPassword(String password, RegType regType) {
+    RegistrationParams regParams = getUserRegParams(getParamsFromType(regType));
     regParams.setPassword(password);
     return regParams;
   }
 
-  private UserRegistrationParams getRegParamsWithEmail(String email) {
-    UserRegistrationParams regParams = getUserRegParams(new SelfRegistrationParams());
+  private RegistrationParams getRegParamsWithEmail(String email) {
+    RegistrationParams regParams = getUserRegParams(new UserRegistrationParams());
     regParams.setEmail(email);
     return regParams;
   }
 
-  private UserRegistrationParams getRegParamsWithPhone(String phone, RegType regType) {
-    UserRegistrationParams regParams = getUserRegParams(getParamsFromType(regType));
+  private RegistrationParams getRegParamsWithPhone(String phone, RegType regType) {
+    RegistrationParams regParams = getUserRegParams(getParamsFromType(regType));
     regParams.setPhoneNumber(phone);
     return regParams;
   }
 
-  private UserRegistrationParams getRegParamsWithRecaptcha(String recaptcha, RegType regType) {
-    UserRegistrationParams regParams = getUserRegParams(getParamsFromType(regType));
+  private RegistrationParams getRegParamsWithRecaptcha(String recaptcha, RegType regType) {
+    RegistrationParams regParams = getUserRegParams(getParamsFromType(regType));
     regParams.setRecaptchaResponse(recaptcha);
     return regParams;
   }
@@ -695,10 +695,10 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
     return user;
   }
 
-  private UserRegistrationParams getParamsFromType(RegType regParamsType) {
+  private RegistrationParams getParamsFromType(RegType regParamsType) {
     return switch (regParamsType) {
-      case SELF_REG -> new SelfRegistrationParams();
-      case INVITE -> new CompleteRegistrationParams();
+      case SELF_REG -> new UserRegistrationParams();
+      case INVITE -> new UserInviteRegistrationParams();
     };
   }
 

@@ -27,13 +27,24 @@
  */
 package org.hisp.dhis.common.auth;
 
-import lombok.Builder;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @Setter
-@Builder
+@ToString
 @NoArgsConstructor
-public class SelfRegistrationParams extends UserRegistrationParams {}
+public abstract class RegistrationParams {
+  @JsonProperty String username;
+  @JsonProperty String firstName;
+  @JsonProperty String surname;
+  @JsonProperty String password;
+  @JsonProperty String email;
+  @JsonProperty String phoneNumber;
+
+  @JsonProperty("g-recaptcha-response")
+  String recaptchaResponse;
+}

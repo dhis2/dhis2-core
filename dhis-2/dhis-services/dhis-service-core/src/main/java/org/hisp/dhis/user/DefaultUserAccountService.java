@@ -33,8 +33,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.auth.CompleteRegistrationParams;
-import org.hisp.dhis.common.auth.SelfRegistrationParams;
+import org.hisp.dhis.common.auth.RegistrationParams;
+import org.hisp.dhis.common.auth.UserInviteRegistrationParams;
 import org.hisp.dhis.common.auth.UserRegistrationParams;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -68,11 +68,11 @@ public class DefaultUserAccountService implements UserAccountService {
   private static final int MAX_PHONE_NO_LENGTH = 30;
 
   @Override
-  public void validateSelfRegUser(UserRegistrationParams userRegParams, String remoteAddress)
+  public void validateUserRegistration(RegistrationParams params, String remoteAddress)
       throws BadRequestException, IOException {
     log.info("Validating user info");
-    validateCaptcha(userRegParams.getRecaptchaResponse(), remoteAddress);
-    validateSelfRegUser(userRegParams);
+    validateCaptcha(params.getRecaptchaResponse(), remoteAddress);
+    validateUserRegistration(params);
 
     if (!configService.getConfiguration().selfRegistrationAllowed()) {
       throw new BadRequestException("User self registration is not allowed");
@@ -80,7 +80,7 @@ public class DefaultUserAccountService implements UserAccountService {
   }
 
   @Override
-  public void validateInvitedUser(UserRegistrationParams params, String remoteIpAddress)
+  public void validateInvitedUser(RegistrationParams params, String remoteIpAddress)
       throws BadRequestException, IOException {
     validateCaptcha(params.getRecaptchaResponse(), remoteIpAddress);
     validateInvitedUser(params);
@@ -88,7 +88,7 @@ public class DefaultUserAccountService implements UserAccountService {
 
   @Override
   @Transactional
-  public void createSelfRegisteredUser(SelfRegistrationParams params, HttpServletRequest request) {
+  public void registerUser(UserRegistrationParams params, HttpServletRequest request) {
     UserRole userRole = configService.getConfiguration().getSelfRegistrationRole();
     OrganisationUnit orgUnit = configService.getConfiguration().getSelfRegistrationOrgUnit();
 
@@ -113,8 +113,8 @@ public class DefaultUserAccountService implements UserAccountService {
 
   @Override
   @Transactional
-  public void updateInvitedRegisteredUser(
-      CompleteRegistrationParams params, HttpServletRequest request) throws BadRequestException {
+  public void confirmUserInvite(UserInviteRegistrationParams params, HttpServletRequest request)
+      throws BadRequestException {
     validateInvitedUser(params);
 
     User user = validateRestoreLinkAndToken(params);
@@ -130,7 +130,7 @@ public class DefaultUserAccountService implements UserAccountService {
     authenticate(user.getUsername(), params.getPassword(), user.getAuthorities(), request);
   }
 
-  private User validateRestoreLinkAndToken(CompleteRegistrationParams params)
+  private User validateRestoreLinkAndToken(UserInviteRegistrationParams params)
       throws BadRequestException {
     String[] idAndRestoreToken = userService.decodeEncodedTokens(params.getToken());
     String idToken = idAndRestoreToken[0];
@@ -152,7 +152,7 @@ public class DefaultUserAccountService implements UserAccountService {
     return user;
   }
 
-  private void validateSelfRegUser(UserRegistrationParams params) throws BadRequestException {
+  private void validateUserRegistration(RegistrationParams params) throws BadRequestException {
     validateUserName(params.getUsername());
     validateFirstName(params.getFirstName());
     validateSurname(params.getSurname());
@@ -168,7 +168,7 @@ public class DefaultUserAccountService implements UserAccountService {
    * @param params to validate
    * @throws BadRequestException validation error
    */
-  private void validateInvitedUser(UserRegistrationParams params) throws BadRequestException {
+  private void validateInvitedUser(RegistrationParams params) throws BadRequestException {
     validateFirstName(params.getFirstName());
     validateSurname(params.getSurname());
     validatePassword(params);
@@ -246,7 +246,7 @@ public class DefaultUserAccountService implements UserAccountService {
     }
   }
 
-  private void validatePassword(UserRegistrationParams params) throws BadRequestException {
+  private void validatePassword(RegistrationParams params) throws BadRequestException {
     if (params.getPassword() == null) {
       log.warn("Password validation failed");
       throw new BadRequestException("Password is not specified");

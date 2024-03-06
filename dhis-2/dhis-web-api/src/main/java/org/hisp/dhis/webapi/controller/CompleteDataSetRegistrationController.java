@@ -239,7 +239,7 @@ public class CompleteDataSetRegistrationController {
     }
 
     // ---------------------------------------------------------------------
-    // Un-register as completed data set
+    // Un-registerUser as completed data set
     // ---------------------------------------------------------------------
 
     Set<OrganisationUnit> orgUnits = new HashSet<>();

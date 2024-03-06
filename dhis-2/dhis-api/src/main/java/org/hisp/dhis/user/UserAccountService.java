@@ -29,8 +29,8 @@ package org.hisp.dhis.user;
 
 import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
-import org.hisp.dhis.common.auth.CompleteRegistrationParams;
-import org.hisp.dhis.common.auth.SelfRegistrationParams;
+import org.hisp.dhis.common.auth.RegistrationParams;
+import org.hisp.dhis.common.auth.UserInviteRegistrationParams;
 import org.hisp.dhis.common.auth.UserRegistrationParams;
 import org.hisp.dhis.feedback.BadRequestException;
 
@@ -48,7 +48,7 @@ public interface UserAccountService {
    * @param params used to populate the new User
    * @param request used in the authentication process
    */
-  void createSelfRegisteredUser(SelfRegistrationParams params, HttpServletRequest request);
+  void registerUser(UserRegistrationParams params, HttpServletRequest request);
 
   /**
    * Create an invited user using the restore flow
@@ -56,7 +56,7 @@ public interface UserAccountService {
    * @param params used to populate the updated User
    * @param request used in the authentication process
    */
-  void updateInvitedRegisteredUser(CompleteRegistrationParams params, HttpServletRequest request)
+  void confirmUserInvite(UserInviteRegistrationParams params, HttpServletRequest request)
       throws BadRequestException;
 
   /**
@@ -67,7 +67,7 @@ public interface UserAccountService {
    * @throws BadRequestException when validation error
    * @throws IOException possible when validating recaptcha
    */
-  void validateSelfRegUser(UserRegistrationParams params, String remoteIpAddress)
+  void validateUserRegistration(RegistrationParams params, String remoteIpAddress)
       throws BadRequestException, IOException;
 
   /**
@@ -79,6 +79,6 @@ public interface UserAccountService {
    * @throws BadRequestException when validation error
    * @throws IOException possible when validating recaptcha
    */
-  void validateInvitedUser(UserRegistrationParams params, String remoteIpAddress)
+  void validateInvitedUser(RegistrationParams params, String remoteIpAddress)
       throws BadRequestException, IOException;
 }

@@ -39,8 +39,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.auth.CompleteRegistrationParams;
-import org.hisp.dhis.common.auth.SelfRegistrationParams;
+import org.hisp.dhis.common.auth.UserInviteRegistrationParams;
+import org.hisp.dhis.common.auth.UserRegistrationParams;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -176,31 +176,31 @@ public class UserAccountController {
     log.info("Account restored for user: {}", user.getUsername());
   }
 
-  @PostMapping("/register")
+  @PostMapping("/registration")
   @ResponseStatus(HttpStatus.CREATED)
-  public WebMessageResponse register(
-      @RequestBody SelfRegistrationParams params, HttpServletRequest request)
+  public WebMessageResponse registerUser(
+      @RequestBody UserRegistrationParams params, HttpServletRequest request)
       throws BadRequestException, IOException {
     log.info("Self registration received");
 
-    userAccountService.validateSelfRegUser(params, request.getRemoteAddr());
-    userAccountService.createSelfRegisteredUser(params, request);
+    userAccountService.validateUserRegistration(params, request.getRemoteAddr());
+    userAccountService.registerUser(params, request);
 
-    log.info("Self registration successful");
+    log.info("User registration successful");
     return created("Account created");
   }
 
-  @PostMapping("/completeRegistration")
+  @PostMapping("/invite")
   @ResponseStatus(HttpStatus.OK)
   public WebMessageResponse completeRegistration(
-      @RequestBody CompleteRegistrationParams params, HttpServletRequest request)
+      @RequestBody UserInviteRegistrationParams params, HttpServletRequest request)
       throws BadRequestException, IOException {
     log.info("Invite registration received");
 
     userAccountService.validateInvitedUser(params, request.getRemoteAddr());
-    userAccountService.updateInvitedRegisteredUser(params, request);
+    userAccountService.confirmUserInvite(params, request);
 
-    log.info("Invite registration successful");
+    log.info("Invite confirmation successful");
     return ok("Account updated");
   }
 }
