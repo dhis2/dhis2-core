@@ -35,7 +35,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import lombok.NonNull;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -108,7 +108,7 @@ public class DefaultIconService implements IconService {
 
   @Override
   @Transactional
-  public void addIcon(@NonNull Icon icon)
+  public void addIcon(@Nonnull Icon icon)
       throws BadRequestException, NotFoundException, SQLException {
 
     if (!icon.isCustom()) {
@@ -138,7 +138,7 @@ public class DefaultIconService implements IconService {
 
   @Override
   @Transactional
-  public void updateIcon(@NonNull Icon icon) throws BadRequestException, SQLException {
+  public void updateIcon(@Nonnull Icon icon) throws BadRequestException, SQLException {
     if (!icon.isCustom()) {
       throw new BadRequestException("Not allowed to update default icon");
     }
@@ -155,7 +155,7 @@ public class DefaultIconService implements IconService {
 
   @Override
   @Transactional
-  public void deleteIcon(@NonNull Icon icon) throws BadRequestException, NotFoundException {
+  public void deleteIcon(@Nonnull Icon icon) throws BadRequestException, NotFoundException {
     Icon persistedIcon = validateIconExists(icon);
 
     if (!persistedIcon.isCustom()) {
