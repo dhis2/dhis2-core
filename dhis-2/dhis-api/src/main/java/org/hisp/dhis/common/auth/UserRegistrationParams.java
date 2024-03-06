@@ -36,7 +36,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 public abstract class UserRegistrationParams {
-  @JsonProperty public String username;
+  @JsonProperty String username;
   @JsonProperty String firstName;
   @JsonProperty String surname;
   @JsonProperty String password;

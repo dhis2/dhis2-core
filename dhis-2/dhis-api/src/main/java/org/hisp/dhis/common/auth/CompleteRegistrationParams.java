@@ -39,5 +39,4 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = true)
 public class CompleteRegistrationParams extends UserRegistrationParams {
   @JsonProperty String token;
-  @JsonProperty String employer;
 }
