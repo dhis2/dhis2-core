@@ -64,7 +64,6 @@ public class JdbcIconStore implements IconStore {
 
   @Override
   public long count(IconOperationParams params) {
-
     String sql = """
      select count(*) from icon c
                       """;
@@ -112,7 +111,6 @@ public class JdbcIconStore implements IconStore {
 
   @Override
   public void save(Icon icon) throws SQLException {
-
     String sql =
         "INSERT INTO icon (iconkey,description,keywords,fileresourceid,createdby,created,lastupdated,custom) VALUES (:key,:description,cast(:keywords as jsonb),:fileresourceid,:createdby,now(),now(),:custom) ";
 
@@ -139,7 +137,6 @@ public class JdbcIconStore implements IconStore {
 
   @Override
   public void update(Icon icon) throws SQLException {
-
     String sql =
         """
             update icon set description = :description, keywords = cast(:keywords as jsonb), lastupdated = now() , custom=:custom where iconkey = :key
@@ -157,7 +154,6 @@ public class JdbcIconStore implements IconStore {
 
   @Override
   public Set<Icon> getIcons(IconOperationParams params) {
-
     String sql =
         """
               select c.iconkey as iconkey, c.description as icondescription, c.keywords as keywords, c.created as created, c.lastupdated as lastupdated,

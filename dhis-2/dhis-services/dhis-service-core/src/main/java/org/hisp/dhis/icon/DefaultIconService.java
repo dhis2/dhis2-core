@@ -92,7 +92,6 @@ public class DefaultIconService implements IconService {
   @Override
   @Transactional(readOnly = true)
   public Resource getIconResource(String key) throws NotFoundException {
-
     if (iconExists(key)) {
       return new ClassPathResource(String.format("%s/%s.%s", ICON_PATH, key, DefaultIcon.SUFFIX));
     }
@@ -109,7 +108,6 @@ public class DefaultIconService implements IconService {
   @Override
   @Transactional
   public void addIcon(Icon icon) throws BadRequestException, NotFoundException, SQLException {
-
     if (icon == null) {
       throw new BadRequestException("Icon cannot be null.");
     }
@@ -138,7 +136,6 @@ public class DefaultIconService implements IconService {
   @Override
   @Transactional
   public void updateIcon(Icon icon) throws BadRequestException, SQLException {
-
     if (icon == null) {
       throw new BadRequestException("Icon cannot be null.");
     }
@@ -156,7 +153,6 @@ public class DefaultIconService implements IconService {
   @Override
   @Transactional
   public void deleteIcon(Icon icon) throws BadRequestException, NotFoundException {
-
     Icon persistedIcon = validateIconExists(icon);
 
     if (Boolean.TRUE.equals(persistedIcon.getCustom())) {
@@ -180,7 +176,6 @@ public class DefaultIconService implements IconService {
   }
 
   private void validateIconDoesNotExists(Icon icon) throws BadRequestException {
-
     if (icon == null) {
       throw new BadRequestException("Icon cannot be null.");
     }

@@ -102,6 +102,17 @@ class IconControllerTest extends DhisControllerIntegrationTest {
   }
 
   @Test
+  void shouldFailUpdateIconIfIconDoesNotExist() throws IOException {
+    createIcon(createFileResource(), keywordsList1, key1);
+
+    assertEquals(
+        String.format("Icon not found: %s", "key-not-existent"),
+        PUT(String.format("/icons/%s", "key-not-existent"))
+            .error(HttpStatus.NOT_FOUND)
+            .getMessage());
+  }
+
+  @Test
   void shouldDeleteIconWhenKeyExists() throws IOException {
     createIcon(createFileResource(), keywordsList1, key1);
 

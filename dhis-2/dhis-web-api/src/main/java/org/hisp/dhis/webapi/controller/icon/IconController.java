@@ -114,7 +114,6 @@ public class IconController {
   @GetMapping
   public @ResponseBody PaginatedIconResponse getAllIcons(IconRequestParams iconRequestParams)
       throws BadRequestException {
-
     IconOperationParams iconOperationParams = iconRequestParamMapper.map(iconRequestParams);
 
     Pager pager = null;
@@ -145,7 +144,6 @@ public class IconController {
   @GetMapping(value = "/{key}/icon")
   public void getIconData(@PathVariable String key, HttpServletResponse response)
       throws NotFoundException, WebMessageException, IOException {
-
     Icon icon = iconService.getIcon(key);
 
     if (!icon.getCustom()) {
@@ -157,7 +155,6 @@ public class IconController {
 
   @GetMapping(value = "/{key}")
   public ResponseEntity<Icon> getIconByKey(@PathVariable String key) throws NotFoundException {
-
     Icon icon = iconService.getIcon(key);
 
     if (icon == null) {
@@ -201,7 +198,6 @@ public class IconController {
   @PutMapping(value = "/{key}")
   public WebMessage updateIcon(@PathVariable String key, HttpServletRequest request)
       throws IOException, NotFoundException, BadRequestException, SQLException {
-
     Icon persisted = iconService.getIcon(key);
 
     if (persisted == null) {
@@ -220,7 +216,6 @@ public class IconController {
   @DeleteMapping(value = "/{key}")
   public WebMessage deleteIcon(@PathVariable String key)
       throws NotFoundException, BadRequestException {
-
     Icon icon = iconService.getIcon(key);
 
     if (icon == null) {
