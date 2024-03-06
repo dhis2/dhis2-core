@@ -37,6 +37,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.auth.CompleteRegistrationParams;
 import org.hisp.dhis.common.auth.SelfRegistrationParams;
 import org.hisp.dhis.message.FakeMessageSender;
 import org.hisp.dhis.message.MessageSender;
@@ -46,6 +47,7 @@ import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
@@ -98,12 +100,12 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
     enableSelfRegistration();
 
     assertWebMessage(
-        "OK",
-        200,
+        "Created",
+        201,
         "OK",
         "Account created",
         POST("/auth/register", renderService.toJsonAsString(getSelfRegistrationForm()))
-            .content(HttpStatus.OK));
+            .content(HttpStatus.CREATED));
   }
 
   @Test
@@ -113,12 +115,12 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
     OrganisationUnit organisationUnit = enableSelfRegistration();
 
     assertWebMessage(
-        "OK",
-        200,
+        "Created",
+        201,
         "OK",
         "Account created",
         POST("/auth/register", renderService.toJsonAsString(getSelfRegistrationForm()))
-            .content(HttpStatus.OK));
+            .content(HttpStatus.CREATED));
 
     JsonUser user = GET("/me").content(HttpStatus.OK).as(JsonUser.class);
     assertEquals(organisationUnit.getUid(), user.getOrganisationUnits().get(0).getId());
@@ -382,6 +384,32 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
             .content(HttpStatus.BAD_REQUEST));
   }
 
+  @Test
+  @DisplayName("Invited registration completes and user name is correct")
+  void inviteCompleteAndUsernameOk() {
+    disableRecaptcha();
+    enableSelfRegistration();
+    // setup user as admin
+    User adminCreatedUser = getAdminCreatedUser();
+    POST("/users", renderService.toJsonAsString(adminCreatedUser)).content(HttpStatus.CREATED);
+
+    switchContextToUser(adminCreatedUser);
+    GET("/me").content(HttpStatus.OK);
+
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Account created",
+        POST(
+                "/auth/completeRegistration",
+                renderService.toJsonAsString(getInviteRegistrationForm()))
+            .content(HttpStatus.OK));
+
+    JsonUser user = GET("/me").content(HttpStatus.OK).as(JsonUser.class);
+    assertEquals("samewisegamgee", user.getUsername());
+  }
+
   private OrganisationUnit enableSelfRegistration() {
     OrganisationUnit selfRegOrgUnit = createOrganisationUnit("test org 123");
     manager.save(selfRegOrgUnit);
@@ -435,6 +463,8 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
   }
 
   private SelfRegistrationParams getSelfRegistrationForm() {
+
+    SelfRegistrationParams.builder();
     return SelfRegistrationParams.builder()
         .username("samewisegamgee")
         .firstName("samewise")
@@ -443,6 +473,23 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
         .email("samewise@dhis2.org")
         .phoneNumber("1234566-99")
         .recaptchaResponse("recaptcha response")
+        .build();
+  }
+
+  private CompleteRegistrationParams getInviteRegistrationForm() {
+
+    CompleteRegistrationParams.builder();
+    return CompleteRegistrationParams.builder()
+        .username("samewisegamgee")
+        .firstName("samewise")
+        .surname("gamgee")
+        .password("Test123!")
+        .email("samewise@dhis2.org")
+        .phoneNumber("1234566-99")
+        .recaptchaResponse("recaptcha response")
+        // this Base64 encoded string needs to start with 'ID' for this invited user test
+        .token("aWRUb2tlbjpJRHJlc3RvcmVUb2tlbg==")
+        .employer("employer")
         .build();
   }
 
@@ -486,5 +533,23 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
     SelfRegistrationParams selfRegistrationParams = getSelfRegistrationForm();
     selfRegistrationParams.setRecaptchaResponse(recaptcha);
     return selfRegistrationParams;
+  }
+
+  private User getAdminCreatedUser() {
+    User user = new User();
+    user.setUid("Uid00000001");
+    user.setName("samewise gamgee");
+    user.setUsername("samewisegamgee");
+    user.setFirstName("samwise");
+    user.setSurname("gamgee");
+    user.setPassword("Test123!");
+    user.setUserRoles(superUser.getUserRoles());
+    user.setIdToken("idToken");
+    // this hashed string (when checked) needs to match the password that the invited user will pass
+    // when completing their invited registration.
+    // use passwordEncoder.encode("UserPassword123!") in debug to get the expected hash
+    user.setRestoreToken("$2a$10$fScYIKiJx6sBWBm/U0QgR.fPlLJeMXOu0CmuharO7v5XVOSZRZ.p.");
+    user.setRestoreExpiry(DateUtils.getDate(2040, 11, 22, 4, 20));
+    return user;
   }
 }

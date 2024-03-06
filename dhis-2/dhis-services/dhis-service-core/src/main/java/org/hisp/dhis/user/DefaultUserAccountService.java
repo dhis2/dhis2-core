@@ -29,13 +29,13 @@ package org.hisp.dhis.user;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.auth.CompleteRegistrationParams;
 import org.hisp.dhis.common.auth.SelfRegistrationParams;
+import org.hisp.dhis.common.auth.UserRegistrationParams;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -68,91 +68,114 @@ public class DefaultUserAccountService implements UserAccountService {
   private static final int MAX_PHONE_NO_LENGTH = 30;
 
   @Override
-  @Transactional
-  public void createAndAddSelfRegisteredUser(
-      SelfRegistrationParams selfRegForm, HttpServletRequest request) {
-    UserRole userRole = configService.getConfiguration().getSelfRegistrationRole();
-    OrganisationUnit orgUnit = configService.getConfiguration().getSelfRegistrationOrgUnit();
-
-    User user = new User();
-    user.setUsername(selfRegForm.getUsername());
-    user.setFirstName(selfRegForm.getFirstName());
-    user.setSurname(selfRegForm.getSurname());
-    user.setEmail(selfRegForm.getEmail());
-    user.setPhoneNumber(selfRegForm.getPhoneNumber());
-    user.getOrganisationUnits().add(orgUnit);
-    user.getDataViewOrganisationUnits().add(orgUnit);
-
-    userService.encodeAndSetPassword(user, selfRegForm.getPassword());
-    user.setSelfRegistered(true);
-    user.getUserRoles().add(userRole);
-
-    userService.addUser(user, new SystemUser());
-    log.info("Created new user");
-
-    authenticate(user.getUsername(), selfRegForm.getPassword(), user.getAuthorities(), request);
-  }
-
-  @Override
-  public void validateUserFormInfo(SelfRegistrationParams selfRegForm, HttpServletRequest request)
+  public void validateSelfRegUser(UserRegistrationParams userRegParams, String remoteAddress)
       throws BadRequestException, IOException {
     log.info("Validating user info");
-    validateCaptcha(selfRegForm.getRecaptchaResponse(), request);
-    validateUserForm(selfRegForm);
+    validateCaptcha(userRegParams.getRecaptchaResponse(), remoteAddress);
+    validateSelfRegUser(userRegParams);
 
     if (!configService.getConfiguration().selfRegistrationAllowed()) {
       throw new BadRequestException("User self registration is not allowed");
     }
   }
 
-  private void validateUserForm(SelfRegistrationParams selfRegForm) throws BadRequestException {
-    if (validateUserName(selfRegForm.getUsername()).get("response").equals("error")) {
-      log.warn("Username validation failed");
-      throw new BadRequestException("Username is not specified or invalid");
-    }
-
-    if (selfRegForm.getFirstName() == null
-        || selfRegForm.getFirstName().trim().length() > MAX_LENGTH) {
-      log.warn("First name validation failed");
-      throw new BadRequestException("First name is not specified or invalid");
-    }
-
-    if (selfRegForm.getSurname() == null || selfRegForm.getSurname().trim().length() > MAX_LENGTH) {
-      log.warn("Surname validation failed");
-      throw new BadRequestException("Surname is not specified or invalid");
-    }
-
-    if (selfRegForm.getPassword() == null) {
-      log.warn("Password validation failed");
-      throw new BadRequestException("Password is not specified");
-    }
-
-    PasswordValidationResult passwordValidationResult =
-        passwordValidationService.validate(
-            new CredentialsInfo(
-                selfRegForm.getUsername(),
-                selfRegForm.getPassword(),
-                selfRegForm.getEmail(),
-                true));
-    if (!passwordValidationResult.isValid()) {
-      log.warn("Password validation failed");
-      throw new BadRequestException(passwordValidationResult.getErrorMessage());
-    }
-
-    if (selfRegForm.getEmail() == null || !ValidationUtils.emailIsValid(selfRegForm.getEmail())) {
-      log.warn("Email validation failed");
-      throw new BadRequestException("Email is not specified or invalid");
-    }
-
-    if (selfRegForm.getPhoneNumber() == null
-        || selfRegForm.getPhoneNumber().trim().length() > MAX_PHONE_NO_LENGTH) {
-      log.warn("Phone number validation failed");
-      throw new BadRequestException("Phone number is not specified or invalid");
-    }
+  @Override
+  public void validateInvitedUser(UserRegistrationParams params, String remoteIpAddress)
+      throws BadRequestException, IOException {
+    validateCaptcha(params.getRecaptchaResponse(), remoteIpAddress);
+    validateInvitedUser(params);
   }
 
   @Override
-  public void validateCaptcha(String recapResponse, HttpServletRequest request)
+  @Transactional
+  public void createSelfRegisteredUser(SelfRegistrationParams params, HttpServletRequest request) {
+    UserRole userRole = configService.getConfiguration().getSelfRegistrationRole();
+    OrganisationUnit orgUnit = configService.getConfiguration().getSelfRegistrationOrgUnit();
+
+    User user = new User();
+    user.setUsername(params.getUsername());
+    user.setFirstName(params.getFirstName());
+    user.setSurname(params.getSurname());
+    user.setEmail(params.getEmail());
+    user.setPhoneNumber(params.getPhoneNumber());
+    user.getOrganisationUnits().add(orgUnit);
+    user.getDataViewOrganisationUnits().add(orgUnit);
+
+    userService.encodeAndSetPassword(user, params.getPassword());
+    user.setSelfRegistered(true);
+    user.getUserRoles().add(userRole);
+
+    userService.addUser(user, new SystemUser());
+    log.info("Created new user");
+
+    authenticate(user.getUsername(), params.getPassword(), user.getAuthorities(), request);
+  }
+
+  @Override
+  @Transactional
+  public void updateInvitedRegisteredUser(
+      CompleteRegistrationParams params, HttpServletRequest request) throws BadRequestException {
+    validateInvitedUser(params);
+
+    User user = validateRestoreLinkAndToken(params);
+    user.setUsername(params.getUsername());
+    user.setFirstName(params.getFirstName());
+    user.setSurname(params.getSurname());
+    user.setPhoneNumber(params.getPhoneNumber());
+
+    userService.encodeAndSetPassword(user, params.getPassword());
+    userService.updateUser(user, new SystemUser());
+    log.info("User invitation accepted");
+
+    authenticate(user.getUsername(), params.getPassword(), user.getAuthorities(), request);
+  }
+
+  private User validateRestoreLinkAndToken(CompleteRegistrationParams params)
+      throws BadRequestException {
+    String[] idAndRestoreToken = userService.decodeEncodedTokens(params.getToken());
+    String idToken = idAndRestoreToken[0];
+    String restoreToken = idAndRestoreToken[1];
+
+    User user = userService.getUserByIdToken(idToken);
+    if (user == null) {
+      throw new BadRequestException("Invitation link not valid");
+    }
+
+    if (!userService.canRestore(user, restoreToken, RestoreType.INVITE)) {
+      throw new BadRequestException("Invitation code not valid");
+    }
+
+    if (!userService.restore(user, restoreToken, params.getPassword(), RestoreType.INVITE)) {
+      log.warn("Invite restore failed");
+      throw new BadRequestException("Unable to update invited user account");
+    }
+    return user;
+  }
+
+  private void validateSelfRegUser(UserRegistrationParams params) throws BadRequestException {
+    validateUserName(params.getUsername());
+    validateFirstName(params.getFirstName());
+    validateSurname(params.getSurname());
+    validatePassword(params);
+    validateEmail(params.getEmail());
+    validatePhoneNumber(params.getPhoneNumber());
+  }
+
+  /**
+   * Validating an invited user does not currently include validating the username or email as we
+   * assume these are valid already when the admin initially sets the invited user up.
+   *
+   * @param params params
+   * @throws BadRequestException validation error
+   */
+  private void validateInvitedUser(UserRegistrationParams params) throws BadRequestException {
+    validateFirstName(params.getFirstName());
+    validateSurname(params.getSurname());
+    validatePassword(params);
+    validatePhoneNumber(params.getPhoneNumber());
+  }
+
+  private void validateCaptcha(String recapResponse, String remoteAddress)
       throws BadRequestException, IOException {
     if (!systemSettingManager.selfRegistrationNoRecaptcha()) {
       if (recapResponse == null) {
@@ -161,7 +184,7 @@ public class DefaultUserAccountService implements UserAccountService {
       }
 
       RecaptchaResponse recaptchaResponse =
-          userService.verifyRecaptcha(recapResponse, request.getRemoteAddr());
+          userService.verifyRecaptcha(recapResponse, remoteAddress);
       if (!recaptchaResponse.success()) {
         log.warn("Recaptcha validation failed: " + recaptchaResponse.getErrorCodes());
         throw new BadRequestException(
@@ -170,7 +193,6 @@ public class DefaultUserAccountService implements UserAccountService {
     }
   }
 
-  @Override
   public void authenticate(
       String username,
       String rawPassword,
@@ -185,27 +207,58 @@ public class DefaultUserAccountService implements UserAccountService {
     session.setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
   }
 
-  private Map<String, String> validateUserName(String username) {
+  private void validateUserName(String username) throws BadRequestException {
     boolean isNull = username == null;
     boolean usernameExists = userService.getUserByUsernameIgnoreCase(username) != null;
     boolean isValidSyntax = ValidationUtils.usernameIsValid(username, false);
 
-    // Custom code required because of our hacked jQuery validation
-    Map<String, String> result = new HashMap<>();
-    if (isNull) {
-      result.put("message", "Username is null");
-    } else if (!isValidSyntax) {
-      result.put("message", "Username is not valid");
-    } else if (usernameExists) {
-      result.put("message", "Username is already taken");
+    if (isNull || !isValidSyntax || usernameExists) {
+      log.warn("Username validation failed");
+      throw new BadRequestException("Username is not specified or invalid");
+    }
+  }
+
+  private void validateFirstName(String firstName) throws BadRequestException {
+    if (firstName == null || firstName.trim().length() > MAX_LENGTH) {
+      log.warn("First name validation failed");
+      throw new BadRequestException("First name is not specified or invalid");
+    }
+  }
+
+  private void validateSurname(String surname) throws BadRequestException {
+    if (surname == null || surname.trim().length() > MAX_LENGTH) {
+      log.warn("Surname validation failed");
+      throw new BadRequestException("Surname is not specified or invalid");
+    }
+  }
+
+  private void validateEmail(String email) throws BadRequestException {
+    if (email == null || !ValidationUtils.emailIsValid(email)) {
+      log.warn("Email validation failed");
+      throw new BadRequestException("Email is not specified or invalid");
+    }
+  }
+
+  private void validatePhoneNumber(String phoneNumber) throws BadRequestException {
+    if (phoneNumber == null || phoneNumber.trim().length() > MAX_PHONE_NO_LENGTH) {
+      log.warn("Phone number validation failed");
+      throw new BadRequestException("Phone number is not specified or invalid");
+    }
+  }
+
+  private void validatePassword(UserRegistrationParams params) throws BadRequestException {
+    if (params.getPassword() == null) {
+      log.warn("Password validation failed");
+      throw new BadRequestException("Password is not specified");
     }
 
-    result.put("response", result.isEmpty() ? "success" : "error");
-
-    if (result.get("response").equals("success")) {
-      result.put("message", "");
+    PasswordValidationResult passwordValidationResult =
+        passwordValidationService.validate(
+            new CredentialsInfo(
+                params.getUsername(), params.getPassword(), params.getEmail(), true));
+    if (!passwordValidationResult.isValid()) {
+      log.warn("Password validation failed");
+      throw new BadRequestException(passwordValidationResult.getErrorMessage());
     }
-
-    return result;
   }
 }

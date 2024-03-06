@@ -25,32 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
+package org.hisp.dhis.common.auth;
 
-import java.io.IOException;
-import javax.servlet.http.HttpServletRequest;
-import org.hisp.dhis.common.auth.CompleteRegistrationParams;
-import org.hisp.dhis.common.auth.SelfRegistrationParams;
-import org.hisp.dhis.common.auth.UserRegistrationParams;
-import org.hisp.dhis.feedback.BadRequestException;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
-/**
- * Service that handles user account activities, e.g. create/update account. The Validation can be
- * moved somewhere more appropriate when this is revisited.
- *
- * @author david mackessy
- */
-public interface UserAccountService {
-
-  void createSelfRegisteredUser(SelfRegistrationParams selfRegForm, HttpServletRequest request);
-
-  void updateInvitedRegisteredUser(
-      CompleteRegistrationParams completeRegParams, HttpServletRequest request)
-      throws BadRequestException;
-
-  void validateSelfRegUser(UserRegistrationParams userRegParams, String remoteIpAddress)
-      throws BadRequestException, IOException;
-
-  void validateInvitedUser(UserRegistrationParams userRegParams, String remoteIpAddress)
-      throws BadRequestException, IOException;
+@Data
+@SuperBuilder
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public class CompleteRegistrationParams extends UserRegistrationParams {
+  @JsonProperty String token;
+  @JsonProperty String employer;
 }
