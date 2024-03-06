@@ -28,15 +28,17 @@
 package org.hisp.dhis.common.auth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 
 @Data
-@SuperBuilder
+@Builder
 @NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
 public class CompleteRegistrationParams extends UserRegistrationParams {
   @JsonProperty String token;
 }
