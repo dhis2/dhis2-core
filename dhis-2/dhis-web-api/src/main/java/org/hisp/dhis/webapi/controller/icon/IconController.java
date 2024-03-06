@@ -156,14 +156,12 @@ public class IconController {
   }
 
   @GetMapping(value = "/{key}")
-  public ResponseEntity<Icon> getIconByKey(@PathVariable String key)
-      throws NotFoundException, WebMessageException {
+  public ResponseEntity<Icon> getIconByKey(@PathVariable String key) throws NotFoundException {
 
     Icon icon = iconService.getIcon(key);
 
     if (icon == null) {
-      throw new WebMessageException(
-          WebMessageUtils.notFound(String.format("Icon with key %s not found", key)));
+      throw new NotFoundException(String.format("Icon with key %s not found", key));
     }
 
     icon.setHref(
@@ -221,13 +219,12 @@ public class IconController {
 
   @DeleteMapping(value = "/{key}")
   public WebMessage deleteIcon(@PathVariable String key)
-      throws NotFoundException, WebMessageException, BadRequestException {
+      throws NotFoundException, BadRequestException {
 
     Icon icon = iconService.getIcon(key);
 
     if (icon == null) {
-      throw new WebMessageException(
-          WebMessageUtils.notFound(String.format("Icon with key %s not found", key)));
+      throw new NotFoundException(String.format("Icon with key %s not found", key));
     }
 
     iconService.deleteIcon(icon);
