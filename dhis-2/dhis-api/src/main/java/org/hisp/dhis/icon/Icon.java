@@ -59,7 +59,7 @@ public class Icon {
 
   @JsonProperty private Set<String> keywords = new HashSet<>();
 
-  @JsonProperty private Boolean custom;
+  @JsonProperty private boolean custom = true;
 
   @JsonProperty private Date created;
   @JsonProperty private Date lastUpdated;

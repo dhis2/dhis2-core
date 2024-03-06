@@ -35,6 +35,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -107,15 +108,17 @@ public class DefaultIconService implements IconService {
 
   @Override
   @Transactional
-  public void addIcon(Icon icon) throws BadRequestException, NotFoundException, SQLException {
-    if (icon == null) {
-      throw new BadRequestException("Icon cannot be null.");
+  public void addIcon(@NonNull Icon icon)
+      throws BadRequestException, NotFoundException, SQLException {
+
+    if (!icon.isCustom()) {
+      throw new BadRequestException("Not allowed to create default icon");
     }
 
     validateIconDoesNotExists(icon);
     validateIconKey(icon.getKey());
 
-    if (Boolean.TRUE.equals(icon.getCustom())) {
+    if (icon.getFileResource() != null) {
       FileResource fileResource = getFileResource(icon.getFileResource().getUid());
       fileResource.setAssigned(true);
       fileResourceService.updateFileResource(fileResource);
@@ -135,9 +138,9 @@ public class DefaultIconService implements IconService {
 
   @Override
   @Transactional
-  public void updateIcon(Icon icon) throws BadRequestException, SQLException {
-    if (icon == null) {
-      throw new BadRequestException("Icon cannot be null.");
+  public void updateIcon(@NonNull Icon icon) throws BadRequestException, SQLException {
+    if (!icon.isCustom()) {
+      throw new BadRequestException("Not allowed to update default icon");
     }
 
     validateIconKeyNotNullOrEmpty(icon.getKey());
@@ -152,14 +155,16 @@ public class DefaultIconService implements IconService {
 
   @Override
   @Transactional
-  public void deleteIcon(Icon icon) throws BadRequestException, NotFoundException {
+  public void deleteIcon(@NonNull Icon icon) throws BadRequestException, NotFoundException {
     Icon persistedIcon = validateIconExists(icon);
 
-    if (Boolean.TRUE.equals(persistedIcon.getCustom())) {
-      FileResource fileResource = getFileResource(persistedIcon.getFileResource().getUid());
-      fileResource.setAssigned(false);
-      fileResourceService.updateFileResource(fileResource);
+    if (!persistedIcon.isCustom()) {
+      throw new BadRequestException("Not allowed to delete default icon");
     }
+
+    FileResource fileResource = getFileResource(persistedIcon.getFileResource().getUid());
+    fileResource.setAssigned(false);
+    fileResourceService.updateFileResource(fileResource);
 
     iconStore.delete(persistedIcon);
   }

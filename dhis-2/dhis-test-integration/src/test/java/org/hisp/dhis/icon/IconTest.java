@@ -114,6 +114,17 @@ class IconTest extends TrackerTest {
   }
 
   @Test
+  void shouldFailWhenUpdatingDefaultIcon() {
+
+    Icon defaultIcon = new Icon("iconKey2", "description", null, false, null);
+
+    Exception exception =
+        assertThrows(BadRequestException.class, () -> iconService.updateIcon(defaultIcon));
+
+    assertEquals("Not allowed to update default icon", exception.getMessage());
+  }
+
+  @Test
   void shouldUpdateLastUpdatedWhenIconIsUpdated()
       throws BadRequestException, NotFoundException, SQLException {
 

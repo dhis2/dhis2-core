@@ -39,7 +39,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-class IconRequest {
+class CustomIconRequest {
 
   @JsonProperty private String key;
 
@@ -48,6 +48,4 @@ class IconRequest {
   @JsonProperty private Set<String> keywords = new HashSet<>();
 
   @JsonProperty private String fileResourceId;
-
-  @Builder.Default @JsonProperty private Boolean custom = true;
 }

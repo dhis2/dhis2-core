@@ -179,15 +179,6 @@ class IconServiceTest extends DhisConvenienceTest {
   }
 
   @Test
-  void shouldFailWhenUpdatingNonExistingIcon() {
-
-    Exception exception =
-        assertThrows(BadRequestException.class, () -> iconService.updateIcon(null));
-
-    assertEquals("Icon cannot be null.", exception.getMessage());
-  }
-
-  @Test
   void shouldDeleteIconWhenKeyPresentAndIconExists() throws BadRequestException, NotFoundException {
 
     Icon icon = createIcon('I', Set.of("k1", "k2"), createFileResource('F', "123".getBytes()));

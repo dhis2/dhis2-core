@@ -129,7 +129,7 @@ public class IconController {
     icons.forEach(
         i ->
             i.setHref(
-                i.getCustom()
+                i.isCustom()
                     ? getCustomIconReference(i.getKey())
                     : getDefaultIconReference(i.getKey())));
 
@@ -146,7 +146,7 @@ public class IconController {
       throws NotFoundException, WebMessageException, IOException {
     Icon icon = iconService.getIcon(key);
 
-    if (!icon.getCustom()) {
+    if (!icon.isCustom()) {
       downloadDefaultIcon(icon.getKey(), response);
     } else {
       downloadCustomIcon(icon.getFileResource(), response);
@@ -162,7 +162,7 @@ public class IconController {
     }
 
     icon.setHref(
-        Boolean.TRUE.equals(icon.getCustom())
+        Boolean.TRUE.equals(icon.isCustom())
             ? getCustomIconReference(key)
             : getDefaultIconReference(key));
 
@@ -187,8 +187,9 @@ public class IconController {
   public WebMessage addIcon(HttpServletRequest request, @CurrentUser User user)
       throws IOException, BadRequestException, NotFoundException, SQLException {
 
-    IconRequest iconRequest = renderService.fromJson(request.getInputStream(), IconRequest.class);
-    Icon icon = iconMapper.to(iconRequest);
+    CustomIconRequest customIconRequest =
+        renderService.fromJson(request.getInputStream(), CustomIconRequest.class);
+    Icon icon = iconMapper.to(customIconRequest);
     icon.setCreatedBy(user);
     iconService.addIcon(icon);
 
@@ -204,9 +205,14 @@ public class IconController {
       throw new NotFoundException(String.format("Icon with key %s not found", key));
     }
 
-    IconRequest iconRequest = renderService.fromJson(request.getInputStream(), IconRequest.class);
+    if (!persisted.isCustom()) {
+      throw new BadRequestException("Not allowed to update default icon");
+    }
 
-    iconMapper.merge(persisted, iconRequest);
+    CustomIconRequest customIconRequest =
+        renderService.fromJson(request.getInputStream(), CustomIconRequest.class);
+
+    iconMapper.merge(persisted, customIconRequest);
 
     iconService.updateIcon(persisted);
 
@@ -220,6 +226,10 @@ public class IconController {
 
     if (icon == null) {
       throw new NotFoundException(String.format("Icon with key %s not found", key));
+    }
+
+    if (!icon.isCustom()) {
+      throw new BadRequestException("Not allowed to delete default icon");
     }
 
     iconService.deleteIcon(icon);

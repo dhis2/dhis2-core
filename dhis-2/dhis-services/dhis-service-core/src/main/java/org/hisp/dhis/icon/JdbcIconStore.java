@@ -112,7 +112,7 @@ public class JdbcIconStore implements IconStore {
   @Override
   public void save(Icon icon) throws SQLException {
     String sql =
-        "INSERT INTO icon (iconkey,description,keywords,fileresourceid,createdby,created,lastupdated,custom) VALUES (:key,:description,cast(:keywords as jsonb),:fileresourceid,:createdby,now(),now(),:custom) ";
+        "INSERT INTO icon (iconkey,description,keywords,fileresourceid,createdby,created,lastupdated,custom) VALUES (:key,:description,cast(:keywords as jsonb),:fileresourceid,:createdby,now(),now(),true) ";
 
     MapSqlParameterSource params = new MapSqlParameterSource();
     params.addValue("key", icon.getKey());
@@ -122,7 +122,6 @@ public class JdbcIconStore implements IconStore {
     params.addValue(
         "fileresourceid", icon.getFileResource() != null ? icon.getFileResource().getId() : null);
     params.addValue("createdby", icon.getCreatedBy() != null ? icon.getCreatedBy().getId() : null);
-    params.addValue("custom", icon.getCustom());
 
     namedParameterJdbcTemplate.update(sql, params);
   }
@@ -139,14 +138,13 @@ public class JdbcIconStore implements IconStore {
   public void update(Icon icon) throws SQLException {
     String sql =
         """
-            update icon set description = :description, keywords = cast(:keywords as jsonb), lastupdated = now() , custom=:custom where iconkey = :key
+            update icon set description = :description, keywords = cast(:keywords as jsonb), lastupdated = now() where iconkey = :key
             """;
 
     MapSqlParameterSource params = new MapSqlParameterSource();
     params.addValue("description", icon.getDescription());
     params.addValue(
         "keywords", convertKeywordsSetToJsonString(icon.getKeywords().stream().toList()));
-    params.addValue("custom", icon.getCustom());
     params.addValue("key", icon.getKey());
 
     namedParameterJdbcTemplate.update(sql, params);

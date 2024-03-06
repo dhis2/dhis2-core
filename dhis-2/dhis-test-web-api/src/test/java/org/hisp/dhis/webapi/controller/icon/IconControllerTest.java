@@ -228,8 +228,8 @@ class IconControllerTest extends DhisControllerIntegrationTest {
 
   private JsonWebMessage createIcon(String fileResourceId, Set<String> keywords, String key) {
 
-    IconRequest request =
-        IconRequest.builder()
+    CustomIconRequest request =
+        CustomIconRequest.builder()
             .key(key)
             .fileResourceId(fileResourceId)
             .keywords(keywords)
