@@ -29,7 +29,6 @@ package org.hisp.dhis.icon;
 
 import java.sql.SQLException;
 import java.util.Set;
-import lombok.NonNull;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.springframework.core.io.Resource;
@@ -89,14 +88,14 @@ public interface IconService {
    *     id is not specified
    * @throws NotFoundException when no file resource with the provided id exists
    */
-  void addIcon(@NonNull Icon icon) throws BadRequestException, NotFoundException, SQLException;
+  void addIcon(Icon icon) throws BadRequestException, NotFoundException, SQLException;
 
   /**
    * Updated the provided icon
    *
    * @param icon the icon to be updated
    */
-  void updateIcon(@NonNull Icon icon) throws BadRequestException, NotFoundException, SQLException;
+  void updateIcon(Icon icon) throws BadRequestException, NotFoundException, SQLException;
 
   /**
    * Deletes a given Icon
@@ -105,5 +104,5 @@ public interface IconService {
    * @throws BadRequestException when icon key is not specified
    * @throws NotFoundException when no icon with the provided key exists
    */
-  void deleteIcon(@NonNull Icon icon) throws BadRequestException, NotFoundException;
+  void deleteIcon(Icon icon) throws BadRequestException, NotFoundException;
 }
