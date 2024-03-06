@@ -39,7 +39,6 @@ import org.hisp.dhis.config.TestContainerPostgresConfig;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
