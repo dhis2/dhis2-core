@@ -192,8 +192,7 @@ public class UserAccountController {
 
   @PostMapping("/invite")
   @ResponseStatus(HttpStatus.OK)
-  public WebMessageResponse completeRegistration(
-      @RequestBody UserInviteParams params, HttpServletRequest request)
+  public WebMessageResponse invite(@RequestBody UserInviteParams params, HttpServletRequest request)
       throws BadRequestException, IOException {
     log.info("Invite registration received");
 
