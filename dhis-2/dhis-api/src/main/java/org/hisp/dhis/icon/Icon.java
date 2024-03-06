@@ -32,9 +32,9 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 import javax.persistence.Transient;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -48,11 +48,12 @@ import org.hisp.dhis.user.User;
 @Setter
 @NoArgsConstructor
 @JacksonXmlRootElement(localName = "Icon", namespace = DxfNamespaces.DXF_2_0)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Icon {
 
   public static final String DEFAULT_FIELDS_PARAM = "key,description,keywords,href";
 
-  @JsonProperty private String key;
+  @EqualsAndHashCode.Include @JsonProperty private String key;
 
   @JsonProperty private String description;
 
@@ -82,25 +83,6 @@ public class Icon {
     this.custom = custom;
     this.fileResource = fileResource;
     this.setAutoFields();
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    Icon other = (Icon) obj;
-    return Objects.equals(key, other.key);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(key);
   }
 
   public void setAutoFields() {

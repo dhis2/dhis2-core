@@ -178,11 +178,10 @@ public class IconController {
   @Deprecated
   public void getIconData(
       HttpServletResponse response, HttpServletRequest request, @PathVariable String key)
-      throws IOException, WebMessageException {
+      throws IOException, NotFoundException {
 
     if (!iconService.iconExists(key)) {
-      throw new WebMessageException(
-          WebMessageUtils.notFound(String.format("Icon with key %s not found", key)));
+      throw new NotFoundException(String.format("Icon with key %s not found", key));
     }
 
     String location = response.encodeRedirectURL("/icons/" + key + "/icon");
@@ -203,17 +202,12 @@ public class IconController {
 
   @PutMapping(value = "/{key}")
   public WebMessage updateIcon(@PathVariable String key, HttpServletRequest request)
-      throws IOException,
-          NotFoundException,
-          WebMessageException,
-          BadRequestException,
-          SQLException {
+      throws IOException, NotFoundException, BadRequestException, SQLException {
 
     Icon persisted = iconService.getIcon(key);
 
     if (persisted == null) {
-      throw new WebMessageException(
-          WebMessageUtils.notFound(String.format("Icon with key %s not found", key)));
+      throw new NotFoundException(String.format("Icon with key %s not found", key));
     }
 
     IconRequest iconRequest = renderService.fromJson(request.getInputStream(), IconRequest.class);
