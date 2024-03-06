@@ -388,10 +388,9 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  @DisplayName("Invite registration completes and user name is correct")
+  @DisplayName("Invite registration completes and user can check 'me' endpoint")
   void inviteCompleteAndUsernameOk() {
     disableRecaptcha();
-    enableSelfRegistration();
     // setup user as admin
     User adminCreatedUser = getAdminCreatedUser();
     POST("/users", renderService.toJsonAsString(adminCreatedUser)).content(HttpStatus.CREATED);
@@ -403,7 +402,7 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
         "OK",
         200,
         "OK",
-        "Account created",
+        "Account updated",
         POST(
                 "/auth/completeRegistration",
                 renderService.toJsonAsString(getInviteRegistrationForm()))

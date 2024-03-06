@@ -78,8 +78,6 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
 
   @Autowired private UserService _userService;
 
-  @Autowired private RenderService _renderService;
-
   @Autowired protected IdentifiableObjectManager manager;
 
   @Autowired protected DbmsManager dbmsManager;
@@ -91,7 +89,7 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
   @BeforeEach
   final void setup() {
     userService = _userService;
-    renderService = _renderService;
+
     clearSecurityContext();
 
     createAndPersistAdminUserAndRole();

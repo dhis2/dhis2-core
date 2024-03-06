@@ -191,16 +191,16 @@ public class UserAccountController {
   }
 
   @PostMapping("/completeRegistration")
-  @ResponseStatus(HttpStatus.CREATED)
+  @ResponseStatus(HttpStatus.OK)
   public WebMessageResponse completeRegistration(
       @RequestBody CompleteRegistrationParams params, HttpServletRequest request)
       throws BadRequestException, IOException {
-    log.info("Complete registration received");
+    log.info("Invite registration received");
 
     userAccountService.validateInvitedUser(params, request.getRemoteAddr());
     userAccountService.updateInvitedRegisteredUser(params, request);
 
-    log.info("Self registration successful");
-    return ok("Account created");
+    log.info("Invite registration successful");
+    return ok("Account updated");
   }
 }

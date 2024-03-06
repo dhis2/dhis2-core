@@ -42,15 +42,43 @@ import org.hisp.dhis.feedback.BadRequestException;
  */
 public interface UserAccountService {
 
-  void createSelfRegisteredUser(SelfRegistrationParams selfRegForm, HttpServletRequest request);
+  /**
+   * Create a self registered user using some self reg defaults (org unit and user role)
+   *
+   * @param params used to populate the new User
+   * @param request used in the authentication process
+   */
+  void createSelfRegisteredUser(SelfRegistrationParams params, HttpServletRequest request);
 
-  void updateInvitedRegisteredUser(
-      CompleteRegistrationParams completeRegParams, HttpServletRequest request)
+  /**
+   * Create an invited user using the restore flow
+   *
+   * @param params used to populate the updated User
+   * @param request used in the authentication process
+   */
+  void updateInvitedRegisteredUser(CompleteRegistrationParams params, HttpServletRequest request)
       throws BadRequestException;
 
-  void validateSelfRegUser(UserRegistrationParams userRegParams, String remoteIpAddress)
+  /**
+   * Validates a self registered user. Uses specific validation for the self registration flow.
+   *
+   * @param params to validate
+   * @param remoteIpAddress address for recaptcha checking
+   * @throws BadRequestException when validation error
+   * @throws IOException possible when validating recaptcha
+   */
+  void validateSelfRegUser(UserRegistrationParams params, String remoteIpAddress)
       throws BadRequestException, IOException;
 
-  void validateInvitedUser(UserRegistrationParams userRegParams, String remoteIpAddress)
+  /**
+   * Validates an invited registered user. Uses specific validation for the invite registration
+   * flow.
+   *
+   * @param params to validate
+   * @param remoteIpAddress address for recaptcha checking
+   * @throws BadRequestException when validation error
+   * @throws IOException possible when validating recaptcha
+   */
+  void validateInvitedUser(UserRegistrationParams params, String remoteIpAddress)
       throws BadRequestException, IOException;
 }
