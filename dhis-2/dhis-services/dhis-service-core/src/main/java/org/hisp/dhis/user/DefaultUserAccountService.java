@@ -67,6 +67,7 @@ public class DefaultUserAccountService implements UserAccountService {
   private static final int MAX_LENGTH = 80;
   private static final int MAX_PHONE_NO_LENGTH = 30;
 
+  @Override
   public void validateSelfRegUser(UserRegistrationParams userRegParams, String remoteAddress)
       throws BadRequestException, IOException {
     log.info("Validating user info");
@@ -78,12 +79,14 @@ public class DefaultUserAccountService implements UserAccountService {
     }
   }
 
+  @Override
   public void validateInvitedUser(UserRegistrationParams params, String remoteIpAddress)
       throws BadRequestException, IOException {
     validateCaptcha(params.getRecaptchaResponse(), remoteIpAddress);
     validateInvitedUser(params);
   }
 
+  @Override
   @Transactional
   public void createSelfRegisteredUser(SelfRegistrationParams params, HttpServletRequest request) {
     UserRole userRole = configService.getConfiguration().getSelfRegistrationRole();
@@ -108,6 +111,7 @@ public class DefaultUserAccountService implements UserAccountService {
     authenticate(user.getUsername(), params.getPassword(), user.getAuthorities(), request);
   }
 
+  @Override
   @Transactional
   public void updateInvitedRegisteredUser(
       CompleteRegistrationParams params, HttpServletRequest request) throws BadRequestException {
