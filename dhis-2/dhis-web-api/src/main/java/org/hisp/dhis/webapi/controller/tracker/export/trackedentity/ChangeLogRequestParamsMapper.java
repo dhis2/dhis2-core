@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.event;
+package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationBounds;
@@ -33,8 +33,8 @@ import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValida
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.tracker.export.event.EventChangeLogOperationParams;
-import org.hisp.dhis.tracker.export.event.EventChangeLogOperationParams.EventChangeLogOperationParamsBuilder;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogOperationParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogOperationParams.TrackedEntityChangeLogOperationParamsBuilder;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.tracker.export.ChangeLogRequestParams;
 
@@ -45,24 +45,25 @@ class ChangeLogRequestParamsMapper {
 
   /**
    * This mapper is different from other tracker exporter mappers as it takes in the orderable
-   * fields. This difference comes from {@link org.hisp.dhis.tracker.export.event.EventChangeLog}
-   * being the view which is already returned from the service/store. Tracker exporter services
-   * return a representation we have to map to a view model. This mapping for example for events is
-   * done in {@link EventMapper} is not necessary for change logs.
+   * fields. This difference comes from {@link
+   * org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog} being the view which is
+   * already returned from the service/store. Tracker exporter services return a representation we
+   * have to map to a view model.
    */
-  static EventChangeLogOperationParams map(
+  static TrackedEntityChangeLogOperationParams map(
       Set<String> orderableFields, ChangeLogRequestParams requestParams)
       throws BadRequestException {
     validatePaginationBounds(requestParams.getPage(), requestParams.getPageSize());
     validateOrderParams(requestParams.getOrder(), orderableFields);
 
-    EventChangeLogOperationParamsBuilder builder = EventChangeLogOperationParams.builder();
+    TrackedEntityChangeLogOperationParamsBuilder builder =
+        TrackedEntityChangeLogOperationParams.builder();
     mapOrderParam(builder, requestParams.getOrder());
     return builder.build();
   }
 
   private static void mapOrderParam(
-      EventChangeLogOperationParamsBuilder builder, List<OrderCriteria> orders) {
+      TrackedEntityChangeLogOperationParamsBuilder builder, List<OrderCriteria> orders) {
     if (orders == null || orders.isEmpty()) {
       return;
     }

@@ -67,7 +67,9 @@ import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
+import org.hisp.dhis.webapi.controller.tracker.export.ChangeLogRequestParams;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
+import org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestHandler;
 import org.hisp.dhis.webapi.controller.tracker.export.ResponseHeader;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
@@ -113,6 +115,8 @@ class EventsExportController {
 
   private final EventChangeLogService eventChangeLogService;
 
+  private final FieldFilterRequestHandler fieldFilterRequestHandler;
+
   public EventsExportController(
       EventService eventService,
       EventRequestParamsMapper eventParamsMapper,
@@ -120,7 +124,8 @@ class EventsExportController {
       FieldFilterService fieldFilterService,
       EventFieldsParamMapper eventsMapper,
       ObjectMapper objectMapper,
-      EventChangeLogService eventChangeLogService) {
+      EventChangeLogService eventChangeLogService,
+      FieldFilterRequestHandler fieldFilterRequestHandler) {
     this.eventService = eventService;
     this.eventParamsMapper = eventParamsMapper;
     this.csvEventService = csvEventService;
@@ -128,6 +133,7 @@ class EventsExportController {
     this.eventsMapper = eventsMapper;
     this.objectMapper = objectMapper;
     this.eventChangeLogService = eventChangeLogService;
+    this.fieldFilterRequestHandler = fieldFilterRequestHandler;
 
     assertUserOrderableFieldsAreSupported(
         "event", EventMapper.ORDERABLE_FIELDS, eventService.getOrderableFields());
@@ -315,8 +321,6 @@ class EventsExportController {
     org.hisp.dhis.tracker.export.Page<EventChangeLog> changeLogs =
         eventChangeLogService.getEventChangeLog(event, operationParams, pageParams);
 
-    List<ObjectNode> objectNodes =
-        fieldFilterService.toObjectNodes(changeLogs.getItems(), requestParams.getFields());
-    return Page.withPager("changeLogs", changeLogs.withItems(objectNodes), request);
+    return fieldFilterRequestHandler.handle(request, "changeLogs", changeLogs, requestParams);
   }
 }

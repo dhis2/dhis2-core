@@ -49,6 +49,17 @@ The program to be used for evaluating the users access to the image. A program i
 requesting a program-specific tracked entity attribute. When no program is specified, access to the
 image is evaluated based on the users access to the relevant tracked entity type.
 
+### `getTrackedEntityAttributeChangeLog`
+
+Get the change logs of all tracked entity attributes related to that particular tracked entity UID. 
+It will return change logs of tracked entity attributes within the tracked entity type.
+
+### `getTrackedEntityAttributeChangeLog.parameter.program`
+
+Get the change logs of all tracked entity attributes related to that particular tracked entity and 
+program UID. It will return change logs of tracked entity attributes within the tracked entity type
+and program attributes too.
+
 ## Common for all endpoints
 
 ### `*.parameter.TrackedEntityRequestParams.orgUnits`

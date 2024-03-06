@@ -31,7 +31,6 @@ import static org.hisp.dhis.common.OpenApi.Response.Status;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
 import static org.hisp.dhis.webapi.controller.tracker.export.FileResourceRequestHandler.handleFileRequest;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationBounds;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateUnsupportedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.trackedentity.TrackedEntityRequestParams.DEFAULT_FIELDS_PARAM;
@@ -61,15 +60,17 @@ import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.controller.tracker.export.ChangeLogRequestParams;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
+import org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestHandler;
 import org.hisp.dhis.webapi.controller.tracker.export.ResponseHeader;
-import org.hisp.dhis.webapi.controller.tracker.export.event.ChangeLogRequestParams;
 import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
@@ -124,19 +125,23 @@ class TrackedEntitiesExportController {
 
   private final TrackedEntityChangeLogService trackedEntityChangeLogService;
 
+  private final FieldFilterRequestHandler fieldFilterRequestHandler;
+
   public TrackedEntitiesExportController(
       TrackedEntityService trackedEntityService,
       TrackedEntityRequestParamsMapper paramsMapper,
       CsvService<TrackedEntity> csvEventService,
       FieldFilterService fieldFilterService,
       TrackedEntityFieldsParamMapper fieldsMapper,
-      TrackedEntityChangeLogService trackedEntityChangeLogService) {
+      TrackedEntityChangeLogService trackedEntityChangeLogService,
+      FieldFilterRequestHandler fieldFilterRequestHandler) {
     this.trackedEntityService = trackedEntityService;
     this.paramsMapper = paramsMapper;
     this.entityCsvService = csvEventService;
     this.fieldFilterService = fieldFilterService;
     this.fieldsMapper = fieldsMapper;
     this.trackedEntityChangeLogService = trackedEntityChangeLogService;
+    this.fieldFilterRequestHandler = fieldFilterRequestHandler;
 
     assertUserOrderableFieldsAreSupported(
         "tracked entity",
@@ -318,15 +323,17 @@ class TrackedEntitiesExportController {
       ChangeLogRequestParams requestParams,
       HttpServletRequest request)
       throws NotFoundException, BadRequestException {
-    validatePaginationBounds(requestParams.getPage(), requestParams.getPageSize());
+
+    TrackedEntityChangeLogOperationParams operationParams =
+        ChangeLogRequestParamsMapper.map(
+            trackedEntityChangeLogService.getOrderableFields(), requestParams);
     PageParams pageParams =
         new PageParams(requestParams.getPage(), requestParams.getPageSize(), false);
 
     org.hisp.dhis.tracker.export.Page<TrackedEntityChangeLog> changeLogs =
-        trackedEntityChangeLogService.getTrackedEntityChangeLog(trackedEntity, program, pageParams);
+        trackedEntityChangeLogService.getTrackedEntityChangeLog(
+            trackedEntity, program, operationParams, pageParams);
 
-    List<ObjectNode> objectNodes =
-        fieldFilterService.toObjectNodes(changeLogs.getItems(), requestParams.getFields());
-    return Page.withPager("changeLogs", changeLogs.withItems(objectNodes), request);
+    return fieldFilterRequestHandler.handle(request, "changeLogs", changeLogs, requestParams);
   }
 }

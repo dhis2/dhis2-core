@@ -25,34 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity;
+package org.hisp.dhis.common.auth;
 
-import java.util.Set;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public interface TrackedEntityChangeLogService {
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class SelfRegistrationParams {
+  @JsonProperty String username;
+  @JsonProperty String firstName;
+  @JsonProperty String surname;
+  @JsonProperty String password;
+  @JsonProperty String email;
+  @JsonProperty String phoneNumber;
 
-  /**
-   * Retrieves the change log data for a particular tracked entity.
-   *
-   * @return the paged change logs of the supplied tracked entity, if any
-   */
-  Page<TrackedEntityChangeLog> getTrackedEntityChangeLog(
-      UID trackedEntityUid,
-      UID programUid,
-      TrackedEntityChangeLogOperationParams operationParams,
-      PageParams pageParams)
-      throws NotFoundException;
-
-  /**
-   * Fields the {@link #getTrackedEntityChangeLog(UID, UID, TrackedEntityChangeLogOperationParams,
-   * PageParams)} can order tracked entities change logs by. Ordering by fields other than these are
-   * considered a programmer error. Validation of user provided field names should occur before
-   * calling {@link #getTrackedEntityChangeLog(UID, UID, TrackedEntityChangeLogOperationParams,
-   * PageParams)}.
-   */
-  Set<String> getOrderableFields();
+  @JsonProperty("g-recaptcha-response")
+  String recaptchaResponse;
 }

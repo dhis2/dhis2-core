@@ -27,32 +27,37 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
-import java.util.Set;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
+import java.util.ArrayList;
+import java.util.List;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import org.hisp.dhis.common.SortDirection;
+import org.hisp.dhis.tracker.export.Order;
 
-public interface TrackedEntityChangeLogService {
+@Getter
+@Builder
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public class TrackedEntityChangeLogOperationParams {
+  private List<Order> order;
 
-  /**
-   * Retrieves the change log data for a particular tracked entity.
-   *
-   * @return the paged change logs of the supplied tracked entity, if any
-   */
-  Page<TrackedEntityChangeLog> getTrackedEntityChangeLog(
-      UID trackedEntityUid,
-      UID programUid,
-      TrackedEntityChangeLogOperationParams operationParams,
-      PageParams pageParams)
-      throws NotFoundException;
+  public static class TrackedEntityChangeLogOperationParamsBuilder {
 
-  /**
-   * Fields the {@link #getTrackedEntityChangeLog(UID, UID, TrackedEntityChangeLogOperationParams,
-   * PageParams)} can order tracked entities change logs by. Ordering by fields other than these are
-   * considered a programmer error. Validation of user provided field names should occur before
-   * calling {@link #getTrackedEntityChangeLog(UID, UID, TrackedEntityChangeLogOperationParams,
-   * PageParams)}.
-   */
-  Set<String> getOrderableFields();
+    private final List<Order> order = new ArrayList<>();
+
+    // Do not remove this unused method. This hides the order field from the builder which Lombok
+    // does not support. The repeated order field and private order method prevent access to order
+    // via the builder.
+    // Order should be added via the orderBy builder methods.
+    private TrackedEntityChangeLogOperationParamsBuilder order(List<Order> order) {
+      return this;
+    }
+
+    public TrackedEntityChangeLogOperationParamsBuilder orderBy(
+        String field, SortDirection direction) {
+      this.order.add(new Order(field, direction));
+      return this;
+    }
+  }
 }

@@ -292,9 +292,9 @@ public class TeiFields {
       DimensionIdentifier<DimensionParam> dimId) {
     if (dimId.isEventDimension() || dimId.isEnrollmentDimension()) {
       return getGridHeader(
-          dimensionId -> getCustomLabelOrHeaderColumnName(dimensionId, true), dimId);
+          dimensionId -> getCustomLabelOrHeaderColumnName(dimensionId, true, false), dimId);
     }
-    return getGridHeader(dimensionId -> getCustomLabelOrFullName(dimensionId, false), dimId);
+    return getGridHeader(dimensionId -> getCustomLabelOrFullName(dimensionId, false, false), dimId);
   }
 
   private static GridHeader getGridHeader(

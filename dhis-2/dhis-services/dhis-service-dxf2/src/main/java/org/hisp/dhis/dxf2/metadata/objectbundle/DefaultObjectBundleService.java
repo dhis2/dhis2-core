@@ -305,13 +305,11 @@ public class DefaultObjectBundleService implements ObjectBundleService {
           preheatService.connectReferences(
               object, bundle.getPreheat(), bundle.getPreheatIdentifier());
 
-          if (bundle.getMergeMode() != MergeMode.NONE) {
-            metadataMergeService.merge(
-                new MetadataMergeParams<>(object, persistedObject)
-                    .setMergeMode(bundle.getMergeMode())
-                    .setSkipSharing(bundle.isSkipSharing())
-                    .setSkipTranslation(bundle.isSkipTranslation()));
-          }
+          metadataMergeService.merge(
+              new MetadataMergeParams<>(object, persistedObject)
+                  .setMergeMode(MergeMode.REPLACE)
+                  .setSkipSharing(bundle.isSkipSharing())
+                  .setSkipTranslation(bundle.isSkipTranslation()));
 
           if (bundle.getOverrideUser() != null) {
             persistedObject.setCreatedBy(bundle.getOverrideUser());

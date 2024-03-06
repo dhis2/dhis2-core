@@ -32,7 +32,7 @@ import com.opensymphony.xwork2.interceptor.Interceptor;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.struts2.ServletActionContext;
-import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.hisp.dhis.webportal.module.ModuleManager;
 
 /**
@@ -66,7 +66,7 @@ public class XWorkPortalModuleInterceptor implements Interceptor {
 
   @Override
   public String intercept(ActionInvocation actionInvocation) throws Exception {
-    String contextPath = ContextUtils.getContextPath(ServletActionContext.getRequest());
+    String contextPath = HttpServletRequestPaths.getContextPath(ServletActionContext.getRequest());
 
     Map<String, Object> handle = new HashMap<>(2);
 

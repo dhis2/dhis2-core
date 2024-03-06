@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,14 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.common;
+package org.hisp.dhis.security;
 
-import java.beans.PropertyEditorSupport;
-import org.hisp.dhis.common.UID;
+/**
+ * Layout of the Login Page which user can select in SystemSettings App.
+ *
+ * <p>This is the value of SettingKey.LOGIN_PAGE_LAYOUT.
+ */
+public enum LoginPageLayout {
+  DEFAULT,
+  SIDEBAR,
 
-public class UIDParamEditor extends PropertyEditorSupport {
-  @Override
-  public void setAsText(String source) {
-    setValue(UID.of(source));
-  }
+  /** If this is selected then user needs to upload a custom HTML template. */
+  CUSTOM
 }

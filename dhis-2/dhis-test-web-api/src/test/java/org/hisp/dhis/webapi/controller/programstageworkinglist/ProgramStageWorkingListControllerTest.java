@@ -32,13 +32,19 @@ import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.controller.ProgramStageWorkingListController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /** Tests the {@link ProgramStageWorkingListController} using (mocked) REST requests. */
 class ProgramStageWorkingListControllerTest extends DhisControllerConvenienceTest {
@@ -261,8 +267,27 @@ class ProgramStageWorkingListControllerTest extends DhisControllerConvenienceTes
     assertEquals(HttpStatus.OK, response.status());
   }
 
-  @Test
-  void shouldCreateWorkingListWithProgramStageQueryCriteria() {
+  static Stream<Arguments> shouldCreateWorkingListWithProgramStageQueryCriteria() {
+    Consumer<JsonProgramStageQueryCriteria> followUpIsNull =
+        json ->
+            assertFalse(
+                json.has("followUp"),
+                "FollowUp check has not been requested and should not be in the response");
+    Consumer<JsonProgramStageQueryCriteria> followUpIsTrue =
+        json -> assertTrue(json.getFollowUp(), "Expected followUp true but got false");
+    Consumer<JsonProgramStageQueryCriteria> followUpIsFalse =
+        json -> assertFalse(json.getFollowUp(), "Expected followUp false but got true");
+
+    return Stream.of(
+        arguments("", followUpIsNull),
+        arguments("'followUp': true,\n", followUpIsTrue),
+        arguments("'followUp': false,\n", followUpIsFalse));
+  }
+
+  @MethodSource
+  @ParameterizedTest
+  void shouldCreateWorkingListWithProgramStageQueryCriteria(
+      String followUp, Consumer<JsonProgramStageQueryCriteria> followUpAssertion) {
     String workingListJson =
         assertStatus(
             HttpStatus.CREATED,
@@ -281,7 +306,7 @@ class ProgramStageWorkingListControllerTest extends DhisControllerConvenienceTes
                    ],
                    'order': 'createdAt:desc',
                    'enrollmentStatus': 'ACTIVE',
-                   'followUp': 'true',
+                    %s
                    'eventOccurredAt': {
                      'type': 'RELATIVE',
                      'period': 'TODAY'
@@ -289,7 +314,7 @@ class ProgramStageWorkingListControllerTest extends DhisControllerConvenienceTes
                   }
                 }
               """
-                    .formatted(programId, programStageId)));
+                    .formatted(programId, programStageId, followUp)));
 
     JsonWorkingList workingList =
         GET("/programStageWorkingLists/{id}", workingListJson).content().as(JsonWorkingList.class);
@@ -316,7 +341,7 @@ class ProgramStageWorkingListControllerTest extends DhisControllerConvenienceTes
     assertEquals("zDhUuAYrxNC", displayColumnOrder.getString(1).string());
     assertEquals("APtutTb0nOY", displayColumnOrder.getString(2).string());
 
-    assertTrue(programStageQueryCriteria.getFollowUp());
+    followUpAssertion.accept(programStageQueryCriteria);
   }
 
   private String createWorkingList(String workingListName) {
