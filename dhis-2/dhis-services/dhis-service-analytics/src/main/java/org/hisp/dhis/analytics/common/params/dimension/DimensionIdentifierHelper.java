@@ -198,29 +198,40 @@ public class DimensionIdentifierHelper {
   }
 
   public static String getCustomLabelOrHeaderColumnName(
-      DimensionIdentifier<DimensionParam> dimensionIdentifier, boolean useOffset) {
-    return getCustomLabel(dimensionIdentifier, StaticDimension::getHeaderColumnName, useOffset);
+      DimensionIdentifier<DimensionParam> dimensionIdentifier,
+      boolean useOffset,
+      boolean skipSuffixes) {
+    return getCustomLabel(
+        dimensionIdentifier, StaticDimension::getHeaderColumnName, useOffset, skipSuffixes);
   }
 
   public static String getCustomLabelOrFullName(
-      DimensionIdentifier<DimensionParam> dimensionIdentifier, boolean useOffset) {
-    return getCustomLabel(dimensionIdentifier, StaticDimension::getFullName, useOffset);
+      DimensionIdentifier<DimensionParam> dimensionIdentifier,
+      boolean useOffset,
+      boolean skipSuffixes) {
+    return getCustomLabel(
+        dimensionIdentifier, StaticDimension::getFullName, useOffset, skipSuffixes);
   }
 
   private static String getCustomLabel(
       DimensionIdentifier<DimensionParam> dimensionIdentifier,
       Function<StaticDimension, String> defaultLabelMapper,
-      boolean useOffset) {
-    return joinedWithPrefixesIfNeeded(
-        dimensionIdentifier,
+      boolean useOffset,
+      boolean skipSuffixes) {
+    String label =
         Optional.of(dimensionIdentifier)
             .filter(DimensionIdentifierHelper::supportsCustomLabel)
             .map(DimensionIdentifierHelper::getStaticDimensionDisplayName)
             .orElseGet(
                 () ->
                     defaultLabelMapper.apply(
-                        dimensionIdentifier.getDimension().getStaticDimension())),
-        useOffset);
+                        dimensionIdentifier.getDimension().getStaticDimension()));
+
+    if (skipSuffixes) {
+      return label;
+    }
+
+    return joinedWithPrefixesIfNeeded(dimensionIdentifier, label, useOffset);
   }
 
   public static String joinedWithPrefixesIfNeeded(
