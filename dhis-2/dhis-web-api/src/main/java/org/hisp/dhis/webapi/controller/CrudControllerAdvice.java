@@ -84,6 +84,8 @@ import org.hisp.dhis.webapi.controller.tracker.imports.IdSchemeParamEditor;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthenticationException;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenError;
 import org.springframework.beans.TypeMismatchException;
+import org.springframework.core.convert.ConversionFailedException;
+import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.BadSqlGrammarException;
@@ -200,7 +202,9 @@ public class CrudControllerAdvice {
   @ResponseBody
   public WebMessage methodArgumentTypeMismatchException(MethodArgumentTypeMismatchException ex) {
     Class<?> requiredType = ex.getRequiredType();
-    String notValidValueMessage = getNotValidValueMessage(ex.getValue(), ex.getName());
+    String field = ex.getName();
+    Object value = ex.getValue();
+    String notValidValueMessage = getNotValidValueMessage(value, field);
 
     String customErrorMessage;
     if (requiredType == null) {
@@ -211,6 +215,10 @@ public class CrudControllerAdvice {
       customErrorMessage = getGenericFieldErrorMessage(requiredType.getSimpleName());
     } else if (ex.getCause() instanceof IllegalArgumentException) {
       customErrorMessage = ex.getCause().getMessage();
+    } else if (ex.getCause() instanceof ConversionFailedException) {
+      ConversionFailedException conversionException = (ConversionFailedException) ex.getCause();
+      notValidValueMessage = getConversionErrorMessage(value, field, conversionException);
+      customErrorMessage = "";
     } else {
       customErrorMessage = getGenericFieldErrorMessage(requiredType.getSimpleName());
     }
@@ -222,7 +230,9 @@ public class CrudControllerAdvice {
   @ResponseBody
   public WebMessage handleTypeMismatchException(TypeMismatchException ex) {
     Class<?> requiredType = ex.getRequiredType();
-    String notValidValueMessage = getNotValidValueMessage(ex.getValue(), ex.getPropertyName());
+    String field = ex.getPropertyName();
+    Object value = ex.getValue();
+    String notValidValueMessage = getNotValidValueMessage(value, field);
 
     String customErrorMessage;
     if (requiredType == null) {
@@ -233,6 +243,10 @@ public class CrudControllerAdvice {
       customErrorMessage = getGenericFieldErrorMessage(requiredType.getSimpleName());
     } else if (ex.getCause() instanceof IllegalArgumentException) {
       customErrorMessage = ex.getCause().getMessage();
+    } else if (ex.getCause() instanceof ConversionFailedException) {
+      ConversionFailedException conversionException = (ConversionFailedException) ex.getCause();
+      notValidValueMessage = getConversionErrorMessage(value, field, conversionException);
+      customErrorMessage = "";
     } else {
       customErrorMessage = getGenericFieldErrorMessage(requiredType.getSimpleName());
     }
@@ -254,11 +268,11 @@ public class CrudControllerAdvice {
     return MessageFormat.format("It should be of type {0}", fieldType);
   }
 
-  private String getNotValidValueMessage(Object value, String field) {
+  private static String getNotValidValueMessage(Object value, String field) {
     if (value == null || (value instanceof String && ((String) value).isEmpty())) {
       return MessageFormat.format("{0} cannot be empty.", field);
     }
-    return MessageFormat.format("Value {0} is not valid for parameter {1}.", value, field);
+    return String.format("Value '%s' is not valid for parameter %s.", value, field);
   }
 
   private String getFormattedBadRequestMessage(Object value, String field, String customMessage) {
@@ -266,7 +280,26 @@ public class CrudControllerAdvice {
   }
 
   private String getFormattedBadRequestMessage(String fieldErrorMessage, String customMessage) {
+    if (StringUtils.isEmpty(customMessage)) {
+      return fieldErrorMessage;
+    }
+
     return fieldErrorMessage + " " + customMessage;
+  }
+
+  private static String getConversionErrorMessage(
+      Object rootValue, String field, ConversionFailedException ex) {
+    Object invalidValue = ex.getValue();
+    if (TypeDescriptor.valueOf(String.class).equals(ex.getSourceType())
+        && (invalidValue != null && ((String) invalidValue).contains(","))
+        && (rootValue != null && rootValue.getClass().isArray())) {
+      return "You likely repeated request parameter '"
+          + field
+          + "' and used multiple comma-separated values within at least one of its values. Choose one of these approaches. "
+          + ex.getCause().getMessage();
+    }
+
+    return getNotValidValueMessage(invalidValue, field) + " " + ex.getCause().getMessage();
   }
 
   /**
