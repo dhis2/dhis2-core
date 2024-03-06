@@ -28,12 +28,12 @@
 package org.hisp.dhis.common.auth;
 
 import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
-@EqualsAndHashCode(callSuper = false)
 public class SelfRegistrationParams extends UserRegistrationParams {}

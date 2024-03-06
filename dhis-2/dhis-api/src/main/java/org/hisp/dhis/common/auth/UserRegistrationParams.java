@@ -28,10 +28,14 @@
 package org.hisp.dhis.common.auth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
-@Data
+@Getter
+@Setter
+@ToString
 @NoArgsConstructor
 public abstract class UserRegistrationParams {
   @JsonProperty String username;
