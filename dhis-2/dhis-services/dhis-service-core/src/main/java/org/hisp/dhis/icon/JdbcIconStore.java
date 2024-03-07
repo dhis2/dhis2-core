@@ -29,6 +29,11 @@ package org.hisp.dhis.icon;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import static org.apache.commons.lang3.StringUtils.wrap;
+import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
+import static org.hisp.dhis.dataitem.query.shared.StatementUtil.addIlikeReplacingCharacters;
+
 import java.io.IOException;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -208,6 +213,15 @@ public class JdbcIconStore implements IconStore {
       sql += hlp.whereAnd() + " c.iconkey IN (:keys )";
 
       parameterSource.addValue("keys", params.getKeys());
+    }
+
+    if (params.hasSearch()) {
+      String searchValue = params.getSearch();
+
+      sql += hlp.whereAnd() + " c.iconkey ilike :search";
+      sql += " OR jsonb_path_exists(keywords, '$[*] ? (@ like_regex " + doubleQuote(searchValue) + ")')";
+
+      parameterSource.addValue("search", wrap(addIlikeReplacingCharacters(searchValue), '%'));
     }
 
     return sql;
