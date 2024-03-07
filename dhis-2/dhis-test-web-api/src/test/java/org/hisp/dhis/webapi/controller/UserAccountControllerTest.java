@@ -49,7 +49,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -427,7 +426,6 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
         .content(HttpStatus.OK);
   }
 
-  @NotNull
   private String fetchTokenInSentEmail(User user) {
     OutboundMessage message = assertMessageSendTo(user.getEmail());
     Pattern pattern = Pattern.compile("\\?token=(.*?)\\n");
