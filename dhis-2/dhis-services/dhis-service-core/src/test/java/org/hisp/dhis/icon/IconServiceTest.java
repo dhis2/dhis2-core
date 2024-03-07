@@ -187,7 +187,7 @@ class IconServiceTest extends DhisConvenienceTest {
     when(fileResourceService.getFileResource(anyString(), any(FileResourceDomain.class)))
         .thenReturn(Optional.of(new FileResource()));
 
-    iconService.deleteIcon(icon);
+    iconService.deleteIcon(icon.getKey());
 
     verify(iconStore, times(1)).delete(any(Icon.class));
   }
@@ -200,7 +200,8 @@ class IconServiceTest extends DhisConvenienceTest {
     iconWithNullKey.setKey(null);
 
     Exception exception =
-        assertThrows(BadRequestException.class, () -> iconService.deleteIcon(iconWithNullKey));
+        assertThrows(
+            BadRequestException.class, () -> iconService.deleteIcon(iconWithNullKey.getKey()));
 
     String expectedMessage = "Icon key not specified.";
     assertEquals(expectedMessage, exception.getMessage());
@@ -216,7 +217,8 @@ class IconServiceTest extends DhisConvenienceTest {
     when(iconStore.getIconByKey(anyString())).thenReturn(null);
 
     Exception exception =
-        assertThrows(NotFoundException.class, () -> iconService.deleteIcon(nonExistentIcon));
+        assertThrows(
+            NotFoundException.class, () -> iconService.deleteIcon(nonExistentIcon.getKey()));
 
     String expectedMessage = String.format("Icon not found: %s", key);
     assertEquals(expectedMessage, exception.getMessage());

@@ -138,7 +138,7 @@ public class DefaultIconService implements IconService {
 
   @Override
   @Transactional
-  public void updateIcon(@Nonnull Icon icon) throws BadRequestException, SQLException {
+  public void updateIcon(Icon icon) throws BadRequestException, SQLException {
     if (!icon.isCustom()) {
       throw new BadRequestException("Not allowed to update default icon");
     }
@@ -155,18 +155,19 @@ public class DefaultIconService implements IconService {
 
   @Override
   @Transactional
-  public void deleteIcon(@Nonnull Icon icon) throws BadRequestException, NotFoundException {
-    Icon persistedIcon = validateIconExists(icon);
+  public void deleteIcon(String key) throws BadRequestException, NotFoundException {
 
-    if (!persistedIcon.isCustom()) {
+    Icon icon = validateIconExists(key);
+
+    if (!icon.isCustom()) {
       throw new BadRequestException("Not allowed to delete default icon");
     }
 
-    FileResource fileResource = getFileResource(persistedIcon.getFileResource().getUid());
+    FileResource fileResource = getFileResource(icon.getFileResource().getUid());
     fileResource.setAssigned(false);
     fileResourceService.updateFileResource(fileResource);
 
-    iconStore.delete(persistedIcon);
+    iconStore.delete(icon);
   }
 
   private void validateIconKey(String key) throws BadRequestException {
@@ -222,13 +223,5 @@ public class DefaultIconService implements IconService {
   private Icon validateIconExists(String key) throws NotFoundException, BadRequestException {
     validateIconKeyNotNullOrEmpty(key);
     return getIcon(key);
-  }
-
-  private Icon validateIconExists(Icon icon) throws NotFoundException, BadRequestException {
-    if (icon == null) {
-      throw new BadRequestException("Icon cannot be null.");
-    }
-
-    return validateIconExists(icon.getKey());
   }
 }

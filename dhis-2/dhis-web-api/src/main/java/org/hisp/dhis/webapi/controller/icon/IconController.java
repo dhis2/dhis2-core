@@ -222,17 +222,8 @@ public class IconController {
   @DeleteMapping(value = "/{key}")
   public WebMessage deleteIcon(@PathVariable String key)
       throws NotFoundException, BadRequestException {
-    Icon icon = iconService.getIcon(key);
 
-    if (icon == null) {
-      throw new NotFoundException(String.format("Icon with key %s not found", key));
-    }
-
-    if (!icon.isCustom()) {
-      throw new BadRequestException("Not allowed to delete default icon");
-    }
-
-    iconService.deleteIcon(icon);
+    iconService.deleteIcon(key);
 
     return WebMessageUtils.ok(String.format("Icon with key %s deleted", key));
   }

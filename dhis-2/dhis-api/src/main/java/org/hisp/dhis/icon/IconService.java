@@ -101,9 +101,9 @@ public interface IconService {
   /**
    * Deletes a given Icon
    *
-   * @param icon the icon to delete
+   * @param key of the icon to be deleted
    * @throws BadRequestException when icon key is not specified
    * @throws NotFoundException when no icon with the provided key exists
    */
-  void deleteIcon(@Nonnull Icon icon) throws BadRequestException, NotFoundException;
+  void deleteIcon(String key) throws BadRequestException, NotFoundException;
 }
