@@ -53,6 +53,7 @@ import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -71,6 +72,11 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
   @Autowired private PasswordManager passwordEncoder;
 
   private String superUserRoleUid;
+
+  @BeforeEach
+  final void setupHere() throws Exception {
+    ((FakeMessageSender) messageSender).clearMessages();
+  }
 
   @Test
   @DisplayName("Happy path for forgot password with username as input")
@@ -107,7 +113,8 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
     systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
     clearSecurityContext();
     sendForgotPasswordRequest("wrong");
-    assertTrue(((FakeMessageSender) messageSender).getAllMessages().isEmpty());
+    List<OutboundMessage> allMessages = ((FakeMessageSender) messageSender).getAllMessages();
+    assertTrue(allMessages.isEmpty());
   }
 
   private void doAndCheckPasswordResetWithUser(User user) {
