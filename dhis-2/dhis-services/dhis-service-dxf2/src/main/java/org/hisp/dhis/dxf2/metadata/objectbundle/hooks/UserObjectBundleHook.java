@@ -40,7 +40,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -112,8 +111,9 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
               .setErrorProperty(USERNAME));
     }
 
-    boolean openIdMappingExists = userService.getUserByOpenId(user.getOpenId()) != null;
-    if ((dhisConfig.isDisabled(ConfigurationKey.LINKED_ACCOUNTS_ENABLED) && openIdMappingExists)) {
+    User existingUserWithMatchingOpenID = userService.getUserByOpenId(user.getOpenId());
+    if (existingUserWithMatchingOpenID != null
+        && !existingUserWithMatchingOpenID.getUid().equals(user.getUid())) {
       addReports.accept(
           new ErrorReport(User.class, ErrorCode.E4054, "OIDC mapping value", user.getOpenId())
               .setErrorProperty(USERNAME));
