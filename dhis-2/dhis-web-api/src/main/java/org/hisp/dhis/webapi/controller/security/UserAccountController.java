@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.security;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.user.UserService.RECOVERY_LOCKOUT_MINS;
 
@@ -38,7 +39,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.auth.SelfRegistrationParams;
+import org.hisp.dhis.common.auth.UserInviteParams;
+import org.hisp.dhis.common.auth.UserRegistrationParams;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -165,15 +167,31 @@ public class UserAccountController {
     log.info("Password was reset for user: {}", user.getUsername());
   }
 
-  @PostMapping("/register")
-  public WebMessageResponse register(
-      @RequestBody SelfRegistrationParams selfRegForm, HttpServletRequest request)
+  @PostMapping("/registration")
+  @ResponseStatus(HttpStatus.CREATED)
+  public WebMessageResponse registerUser(
+      @RequestBody UserRegistrationParams params, HttpServletRequest request)
       throws BadRequestException, IOException {
     log.info("Self registration received");
-    userAccountService.validateUserFormInfo(selfRegForm, request);
-    userAccountService.createAndAddSelfRegisteredUser(selfRegForm, request);
-    log.info("Self registration successful");
-    return ok("Account created");
+
+    userAccountService.validateUserRegistration(params, request.getRemoteAddr());
+    userAccountService.registerUser(params, request);
+
+    log.info("User registration successful");
+    return created("Account created");
+  }
+
+  @PostMapping("/invite")
+  @ResponseStatus(HttpStatus.OK)
+  public WebMessageResponse invite(@RequestBody UserInviteParams params, HttpServletRequest request)
+      throws BadRequestException, IOException {
+    log.info("Invite registration received");
+
+    userAccountService.validateInvitedUser(params, request.getRemoteAddr());
+    userAccountService.confirmUserInvite(params, request);
+
+    log.info("Invite confirmation successful");
+    return ok("Account updated");
   }
 
   private void checkRecoveryLock(String username) throws ForbiddenException {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,47 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.common.auth;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.period.PeriodTypeEnum;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+@Getter
+@Setter
+@ToString
+@NoArgsConstructor
+public abstract class RegistrationParams {
+  @JsonProperty String username;
+  @JsonProperty String firstName;
+  @JsonProperty String surname;
+  @JsonProperty String password;
+  @JsonProperty String email;
+  @JsonProperty String phoneNumber;
 
-/**
- * Tests the {@link PdfFormController} using (mocked) REST requests.
- *
- * @author Jan Bernitt
- */
-class PdfFormControllerTest extends DhisControllerConvenienceTest {
-
-  @Test
-  void testSendFormPdfDataSet_Empty() {
-    assertWebMessage(
-        "Conflict",
-        409,
-        "ERROR",
-        "An error occurred, please check import summary.",
-        POST("/pdfForm/dataSet", "{}").content(HttpStatus.CONFLICT));
-  }
-
-  @Test
-  @DisplayName("Should not return Http Error 500 if the DB_Locale is null.")
-  void testGetDataSetPdfForm() {
-    HttpResponse setting = GET("/userSettings/keyDbLocale");
-    Assertions.assertTrue(setting.content().isNull());
-
-    PeriodType periodType = PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY);
-    DataSet dataSet = createDataSet('A');
-    dataSet.setPeriodType(periodType);
-    manager.save(dataSet);
-
-    assertFalse(GET("/pdfForm/dataSet/" + dataSet.getUid()).content("application/pdf").isEmpty());
-  }
+  @JsonProperty("g-recaptcha-response")
+  String recaptchaResponse;
 }
