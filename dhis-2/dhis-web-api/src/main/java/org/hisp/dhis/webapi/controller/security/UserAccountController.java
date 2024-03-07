@@ -43,7 +43,7 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.feedback.HiddenNotFoundException;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
@@ -93,7 +93,7 @@ public class UserAccountController {
   @ResponseStatus(HttpStatus.OK)
   public void forgotPassword(
       HttpServletRequest request, @RequestBody ForgotPasswordRequest forgotPasswordRequest)
-      throws NotFoundException, ConflictException, ForbiddenException {
+      throws HiddenNotFoundException, ConflictException, ForbiddenException {
 
     if (!systemSettingManager.accountRecoveryEnabled()) {
       throw new ConflictException("Account recovery is not enabled");
@@ -189,7 +189,7 @@ public class UserAccountController {
     }
   }
 
-  private User getUser(String emailOrUsername) throws NotFoundException {
+  private User getUser(String emailOrUsername) throws HiddenNotFoundException {
     User user;
 
     if (ValidationUtils.emailIsValid(emailOrUsername)) {
@@ -198,7 +198,7 @@ public class UserAccountController {
       user = userService.getUserByUsername(emailOrUsername);
     }
     if (user == null) {
-      throw new NotFoundException("User does not exist: " + emailOrUsername);
+      throw new HiddenNotFoundException("User does not exist: " + emailOrUsername);
     }
 
     return user;

@@ -88,6 +88,24 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
     doAndCheckPasswordResetWithUser(user);
   }
 
+  @Test
+  @DisplayName("Send wrong/non-existent email, should return OK to avoid email enumeration")
+  void testResetPasswordWrongEmail() {
+    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
+    clearSecurityContext();
+    sendForgotPasswordRequest("wrong@email.com");
+    assertTrue(((FakeMessageSender) messageSender).getAllMessages().isEmpty());
+  }
+
+  @Test
+  @DisplayName("Send wrong/non-existent username, should return OK to avoid username enumeration")
+  void testResetPasswordWrongUsername() {
+    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
+    clearSecurityContext();
+    sendForgotPasswordRequest("wrong");
+    assertTrue(((FakeMessageSender) messageSender).getAllMessages().isEmpty());
+  }
+
   private void doAndCheckPasswordResetWithUser(User user) {
     String token = fetchTokenInSentEmail(user);
     String newPassword = "Abxf123###...";
