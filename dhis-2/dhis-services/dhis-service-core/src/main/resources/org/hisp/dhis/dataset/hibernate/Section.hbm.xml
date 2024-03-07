@@ -54,7 +54,7 @@
 
     <property name="showColumnTotals" />
     
-    <property name="displayOptions" type="jbPlainString" column="displayoptions" />
+    <property name="displayOptions" type="jbPlainString" column="displayoptions" length="50000" />
 
     <property name="disableDataElementAutoGroup" column="disabledataelementautogroup" />
 

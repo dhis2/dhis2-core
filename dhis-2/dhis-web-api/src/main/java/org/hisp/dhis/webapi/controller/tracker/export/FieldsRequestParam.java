@@ -25,26 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common.auth;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.util.List;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 
-@Data
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
-public class SelfRegistrationParams {
-  @JsonProperty String username;
-  @JsonProperty String firstName;
-  @JsonProperty String surname;
-  @JsonProperty String password;
-  @JsonProperty String email;
-  @JsonProperty String phoneNumber;
-
-  @JsonProperty("g-recaptcha-response")
-  String recaptchaResponse;
+/**
+ * FieldsRequestParam represents the HTTP request parameter {@code fields}. This allows users to
+ * specify the exact fields they want in the JSON response.
+ */
+interface FieldsRequestParam {
+  List<FieldPath> getFields();
 }

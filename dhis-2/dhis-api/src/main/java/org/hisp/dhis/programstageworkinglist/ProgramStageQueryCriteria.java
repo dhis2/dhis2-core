@@ -102,5 +102,5 @@ public class ProgramStageQueryCriteria implements Serializable {
   private List<AttributeValueFilter> attributeValueFilters = Collections.emptyList();
 
   /** Property to filter events based on {@link org.hisp.dhis.program.Enrollment#followup property */
-  @JsonProperty private boolean followUp;
+  @JsonProperty private Boolean followUp;
 }

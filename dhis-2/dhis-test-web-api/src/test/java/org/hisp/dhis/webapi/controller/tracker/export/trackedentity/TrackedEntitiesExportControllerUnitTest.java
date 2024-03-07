@@ -38,11 +38,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.hisp.dhis.fieldfiltering.FieldFilterService;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
-import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
-import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -50,18 +46,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class TrackedEntitiesExportControllerUnitTest {
-
   @Mock private TrackedEntityService trackedEntityService;
-
-  @Mock private TrackedEntityRequestParamsMapper requestParamsMapper;
-
-  @Mock private CsvService<TrackedEntity> csvService;
-
-  @Mock private FieldFilterService fieldFilterService;
-
-  @Mock private TrackedEntityFieldsParamMapper fieldsParamMapper;
-
-  @Mock private TrackedEntityChangeLogService trackedEntityChangeLogService;
 
   @Test
   void shouldFailInstantiatingControllerIfAnyOrderableFieldIsUnsupported() {
@@ -81,12 +66,7 @@ class TrackedEntitiesExportControllerUnitTest {
             IllegalStateException.class,
             () ->
                 new TrackedEntitiesExportController(
-                    trackedEntityService,
-                    requestParamsMapper,
-                    csvService,
-                    fieldFilterService,
-                    fieldsParamMapper,
-                    trackedEntityChangeLogService));
+                    trackedEntityService, null, null, null, null, null, null));
 
     assertAll(
         () ->

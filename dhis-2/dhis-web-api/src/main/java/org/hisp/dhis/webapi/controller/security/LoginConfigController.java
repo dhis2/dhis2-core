@@ -74,6 +74,7 @@ public class LoginConfigController {
     SELF_REGISTRATION_NO_RECAPTCHA(),
     USE_CUSTOM_LOGO_FRONT(),
     ACCOUNT_RECOVERY(),
+    RECAPTCHA_SITE(),
 
     /** The layout to be used for displaying LoginPage. Value is the enum {@link LoginPageLayout} */
     LOGIN_PAGE_LAYOUT(LoginPageLayout.DEFAULT.name()),
@@ -141,6 +142,7 @@ public class LoginConfigController {
         configurationService.getConfiguration().selfRegistrationAllowed());
 
     builder.apiVersion(systemService.getSystemInfo().getVersion());
+    builder.recaptchaSite(manager.getStringSetting(SettingKey.valueOf(KEYS.RECAPTCHA_SITE.name())));
 
     builder.loginPageLayout(
         manager.getStringSetting(SettingKey.valueOf(KEYS.LOGIN_PAGE_LAYOUT.name())));

@@ -27,28 +27,47 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import java.util.ArrayList;
+import static org.hisp.dhis.webapi.utils.HttpServletRequestPaths.getApiPath;
+
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.List;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.fieldfiltering.FieldFilterParser;
-import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import javax.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
+import org.hisp.dhis.webapi.controller.tracker.view.Page;
+import org.springframework.stereotype.Component;
 
-@OpenApi.Shared(name = "ChangeLogRequestParams")
-@OpenApi.Property
-@Data
-@NoArgsConstructor
-public class ChangeLogRequestParams implements FieldsRequestParam {
+@Component
+@RequiredArgsConstructor
+public class FieldFilterRequestHandler {
 
-  private static final String DEFAULT_FIELDS_PARAM = "change,createdAt,createdBy,type";
+  private final FieldFilterService fieldFilterService;
 
-  private int page = 1;
+  /**
+   * Returns a page which will serialize the items under given {@code jsonKey} after applying the
+   * {@code fields} filter. Previous and next page links will be generated based on the request if
+   * {@link org.hisp.dhis.tracker.export.Page#getPrevPage()} or next are not null.
+   */
+  public <T> Page<ObjectNode> handle(
+      HttpServletRequest request,
+      String jsonKey,
+      org.hisp.dhis.tracker.export.Page<T> page,
+      FieldsRequestParam fieldsParam) {
+    List<ObjectNode> objectNodes =
+        fieldFilterService.toObjectNodes(page.getItems(), fieldsParam.getFields());
 
-  private int pageSize = 50;
+    String requestURL = getRequestURL(request);
+    return Page.withPager(jsonKey, page.withItems(objectNodes), requestURL);
+  }
 
-  private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
+  private static String getRequestURL(HttpServletRequest request) {
+    StringBuilder requestURL = new StringBuilder(getApiPath(request));
+    requestURL.append(request.getPathInfo());
+    String queryString = request.getQueryString();
+    if (queryString == null) {
+      return requestURL.toString();
+    }
 
-  private List<OrderCriteria> order = new ArrayList<>();
+    return requestURL.append('?').append(queryString).toString();
+  }
 }
