@@ -33,7 +33,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -167,14 +166,13 @@ public class Page<T> {
 
   /**
    * Returns a page which will serialize the items into {@link #items} under given {@code key}.
-   * Previous and next page links will be generated based on the request and only if {@link
+   * Previous and next page links will be generated based on the request if {@link
    * org.hisp.dhis.tracker.export.Page#getPrevPage()} or next are not null.
    */
   public static <T> Page<T> withPager(
-      String key, org.hisp.dhis.tracker.export.Page<T> pager, HttpServletRequest request) {
-    String url = getRequestURL(request);
-    String prevPage = getPageLink(url, pager.getPrevPage());
-    String nextPage = getPageLink(url, pager.getNextPage());
+      String key, org.hisp.dhis.tracker.export.Page<T> pager, String requestURL) {
+    String prevPage = getPageLink(requestURL, pager.getPrevPage());
+    String nextPage = getPageLink(requestURL, pager.getNextPage());
 
     return new Page<>(
         key, pager.getItems(), pager.getPage(), pager.getPageSize(), prevPage, nextPage);
@@ -200,16 +198,6 @@ public class Page<T> {
     @JsonProperty private Integer pageCount;
     @JsonProperty private String prevPage;
     @JsonProperty private String nextPage;
-  }
-
-  private static String getRequestURL(HttpServletRequest request) {
-    StringBuilder requestURL = new StringBuilder(request.getRequestURL().toString());
-    String queryString = request.getQueryString();
-    if (queryString == null) {
-      return requestURL.toString();
-    }
-
-    return requestURL.append('?').append(queryString).toString();
   }
 
   private static String getPageLink(String url, Integer page) {

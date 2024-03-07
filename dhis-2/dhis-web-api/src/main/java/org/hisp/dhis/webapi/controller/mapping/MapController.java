@@ -44,6 +44,7 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
@@ -143,7 +144,7 @@ public class MapController extends AbstractCrudController<Map> {
 
     metadataMergeService.merge(
         new MetadataMergeParams<>(newMap, map)
-            .setMergeMode(params.getMergeMode())
+            .setMergeMode(MergeMode.REPLACE)
             .setSkipSharing(params.isSkipSharing())
             .setSkipTranslation(params.isSkipTranslation()));
     mappingService.updateMap(map);

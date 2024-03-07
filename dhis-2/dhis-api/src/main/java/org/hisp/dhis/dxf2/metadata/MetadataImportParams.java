@@ -34,7 +34,6 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.csv.CsvImportClass;
@@ -87,9 +86,6 @@ public class MetadataImportParams implements JobParameters {
 
   /** Should import be treated as a atomic import (all or nothing). */
   @JsonProperty private AtomicMode atomicMode = AtomicMode.ALL;
-
-  /** Merge mode for object updates (default is REPLACE). */
-  @JsonProperty private MergeMode mergeMode = MergeMode.REPLACE;
 
   /** Flush for every object or per type. */
   @JsonProperty private FlushMode flushMode = FlushMode.AUTO;
