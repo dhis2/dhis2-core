@@ -41,5 +41,5 @@ import lombok.NoArgsConstructor;
 @Getter
 @Builder
 public class ForgotPasswordRequest {
-  @JsonProperty private String username;
+  @JsonProperty private String emailOrUsername;
 }

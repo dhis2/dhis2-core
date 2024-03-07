@@ -191,6 +191,14 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    */
   User getUserByUuid(UUID uuid);
 
+  /**
+   * Retrieves the User associated with the User with the given email.
+   *
+   * @param email email.
+   * @return the User.
+   */
+  User getUserByEmail(String email);
+
   List<User> getHasAuthority(String authority);
 
   List<User> getLinkedUserAccounts(User currentUser);
