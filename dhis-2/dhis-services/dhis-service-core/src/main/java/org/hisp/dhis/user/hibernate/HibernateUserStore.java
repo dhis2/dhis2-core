@@ -485,10 +485,10 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   public Map<String, String> getUserGroupUserEmailsByUsername(String userGroupId) {
     String sql =
         """
-      select u.username, u.email from userinfo u
-      where u.email is not null
-        and u.userinfoid in (select m.userid from usergroup g inner join usergroupmembers m on m.usergroupid = g.usergroupid where g.uid = :group);
-      """;
+            select u.username, u.email from userinfo u
+            where u.email is not null
+              and u.userinfoid in (select m.userid from usergroup g inner join usergroupmembers m on m.usergroupid = g.usergroupid where g.uid = :group);
+            """;
     NativeQuery<?> emailsByUsername =
         getSession().createNativeQuery(sql).setParameter("group", userGroupId);
     return emailsByUsername.stream()
@@ -535,6 +535,20 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
     Query<User> query = getQuery("from User u where u.uuid = :uuid");
     query.setParameter("uuid", uuid);
     return query.uniqueResult();
+  }
+
+  @Override
+  public User getUserByEmail(String email) {
+    Query<User> query = getQuery("from User u where u.email = :email");
+    query.setParameter("email", email);
+    List<User> list = query.getResultList();
+    if (list.size() > 1) {
+      // TODO: MAS: We need to handle this case more gracefully, now it's only used be reset
+      // password, but that should be changed when we have verified emails implemented.
+      log.warn("Multiple users found with email: {}", email);
+      throw new IllegalStateException("Multiple users found with email: " + email);
+    }
+    return list.isEmpty() ? null : list.get(0);
   }
 
   @Override

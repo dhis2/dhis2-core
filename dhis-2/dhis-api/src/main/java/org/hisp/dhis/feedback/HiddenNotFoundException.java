@@ -25,23 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
+package org.hisp.dhis.feedback;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import static org.hisp.dhis.common.OpenApi.Response.Status.OK;
+
+import java.text.MessageFormat;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.webmessage.WebMessageResponse;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-@NoArgsConstructor
-@AllArgsConstructor
 @Getter
-@Builder
-public class CredentialsInfo {
-  private String username;
-  private String password;
-  private String email;
-  private boolean newUser;
+@Accessors(chain = true)
+@OpenApi.Response(status = OK, value = WebMessageResponse.class)
+public final class HiddenNotFoundException extends Exception implements Error {
+  public static <E extends RuntimeException, V> V on(Class<E> type, Supplier<V> operation)
+      throws HiddenNotFoundException {
+    return Error.rethrow(type, HiddenNotFoundException::new, operation);
+  }
+
+  public static <E extends RuntimeException, V> V on(
+      Class<E> type, Function<E, HiddenNotFoundException> map, Supplier<V> operation)
+      throws HiddenNotFoundException {
+    return Error.rethrowMapped(type, map, operation);
+  }
+
+  private final ErrorCode code;
+
+  public HiddenNotFoundException(Class<?> type, String uid) {
+    this(type.getSimpleName() + " with id " + uid + " could not be found.");
+  }
+
+  public HiddenNotFoundException(String message) {
+    super(message);
+    this.code = ErrorCode.E1005;
+  }
+
+  public HiddenNotFoundException(ErrorCode code, Object... args) {
+    super(MessageFormat.format(code.getMessage(), args));
+    this.code = code;
+  }
 }
