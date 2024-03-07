@@ -98,7 +98,10 @@ public class JdbcIconStore implements IconStore {
   @Override
   public void save(Icon icon) throws SQLException {
     String sql =
-        "INSERT INTO icon (iconkey,description,keywords,fileresourceid,createdby,created,lastupdated,custom) VALUES (:key,:description,cast(:keywords as jsonb),:fileresourceid,:createdby,now(),now(),true) ";
+        """
+            INSERT INTO icon (iconkey,description,keywords,fileresourceid,createdby,created,lastupdated,custom)
+            VALUES (:key,:description,cast(:keywords as jsonb),:fileresourceid,:createdby,now(),now(),true)
+            """;
 
     MapSqlParameterSource params = new MapSqlParameterSource();
     params.addValue("key", icon.getKey());
