@@ -31,6 +31,7 @@ import static org.hisp.dhis.fileresource.FileResourceDomain.CUSTOM_ICON;
 
 import com.google.common.base.Strings;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -69,7 +70,7 @@ public class DefaultIconService implements IconService {
 
   @Override
   @Transactional(readOnly = true)
-  public Set<Icon> getIcons(IconOperationParams params) {
+  public List<Icon> getIcons(IconOperationParams params) {
     return iconStore.getIcons(params);
   }
 

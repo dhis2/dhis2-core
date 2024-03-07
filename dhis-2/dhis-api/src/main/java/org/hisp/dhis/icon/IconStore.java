@@ -28,7 +28,7 @@
 package org.hisp.dhis.icon;
 
 import java.sql.SQLException;
-import java.util.Set;
+import java.util.List;
 
 public interface IconStore {
 
@@ -67,7 +67,7 @@ public interface IconStore {
    * @param params filters to build query
    * @return list of Icons
    */
-  Set<Icon> getIcons(IconOperationParams params);
+  List<Icon> getIcons(IconOperationParams params);
 
   /**
    * Returns an icon that contains a given key

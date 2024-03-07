@@ -36,7 +36,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -140,7 +139,7 @@ public class JdbcIconStore implements IconStore {
   }
 
   @Override
-  public Set<Icon> getIcons(IconOperationParams params) {
+  public List<Icon> getIcons(IconOperationParams params) {
     String sql =
         """
               select c.iconkey as iconkey, c.description as icondescription, c.keywords as keywords, c.created as created, c.lastupdated as lastupdated,
@@ -158,7 +157,7 @@ public class JdbcIconStore implements IconStore {
     }
 
     return namedParameterJdbcTemplate.query(sql, parameterSource, getIconRowMapper()).stream()
-        .collect(Collectors.toUnmodifiableSet());
+        .toList();
   }
 
   private String buildIconQuery(

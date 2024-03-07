@@ -34,7 +34,6 @@ import com.google.common.net.MediaType;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -124,7 +123,7 @@ public class IconController {
       iconOperationParams.setPager(pager);
     }
 
-    Set<Icon> icons = iconService.getIcons(iconOperationParams);
+    List<Icon> icons = iconService.getIcons(iconOperationParams);
 
     icons.forEach(
         i ->

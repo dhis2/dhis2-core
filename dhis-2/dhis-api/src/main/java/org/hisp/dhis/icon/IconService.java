@@ -28,7 +28,7 @@
 package org.hisp.dhis.icon;
 
 import java.sql.SQLException;
-import java.util.Set;
+import java.util.List;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -53,7 +53,7 @@ public interface IconService {
    * @param params filters to build query
    * @return list of Icons
    */
-  Set<Icon> getIcons(IconOperationParams params);
+  List<Icon> getIcons(IconOperationParams params);
 
   /**
    * Gets the icon associated to a key, if it exists
