@@ -2877,16 +2877,22 @@ public abstract class DhisConvenienceTest {
   }
 
   protected User preCreateInjectAdminUser() {
-    User user = preCreateInjectAdminUserWithoutPersistence();
+    User adminTest = userService.getUserByUsername("admin_test");
 
-    userService.addUser(user);
+    if (adminTest == null) {
 
-    user.getUserRoles().forEach(userRole -> userService.addUserRole(userRole));
+      User user = preCreateInjectAdminUserWithoutPersistence();
 
-    userService.encodeAndSetPassword(user, user.getPassword());
-    userService.updateUser(user);
+      userService.addUser(user);
 
-    return user;
+      user.getUserRoles().forEach(userRole -> userService.addUserRole(userRole));
+
+      userService.encodeAndSetPassword(user, user.getPassword());
+      userService.updateUser(user);
+
+      return user;
+    }
+    return adminTest;
   }
 
   protected User preCreateInjectAdminUserWithoutPersistence() {
