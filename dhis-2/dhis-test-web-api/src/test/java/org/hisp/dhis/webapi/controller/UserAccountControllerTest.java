@@ -49,6 +49,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -69,23 +70,34 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
   private String superUserRoleUid;
 
   @Test
-  void testResetPasswordOk() {
+  @DisplayName("Happy path for forgot password with username as input")
+  void testResetPasswordOkUsername() {
     systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
-
-    User test = switchToNewUser("test");
-
+    User user = switchToNewUser("test");
     clearSecurityContext();
-    String token = sendForgotPasswordRequest(test);
+    sendForgotPasswordRequest(user.getUsername());
+    doAndCheckPasswordResetWithUser(user);
+  }
 
+  @Test
+  @DisplayName("Happy path for forgot password with email as input")
+  void testResetPasswordOkEmail() {
+    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
+    User user = switchToNewUser("test");
+    clearSecurityContext();
+    sendForgotPasswordRequest(user.getEmail());
+    doAndCheckPasswordResetWithUser(user);
+  }
+
+  private void doAndCheckPasswordResetWithUser(User user) {
+    String token = fetchTokenInSentEmail(user);
     String newPassword = "Abxf123###...";
-
     POST(
             "/auth/passwordReset",
             "{'newPassword':'%s', 'resetToken':'%s'}".formatted(newPassword, token))
         .content(HttpStatus.OK);
 
-    User updatedUser = userService.getUserByUsername(test.getUsername());
-
+    User updatedUser = userService.getUserByUsername(user.getUsername());
     boolean passwordMatch = passwordEncoder.matches(newPassword, updatedUser.getPassword());
 
     assertTrue(passwordMatch);
@@ -410,19 +422,20 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
         arguments("sAdmin1@", "Password must not have any generic word"));
   }
 
-  private String sendForgotPasswordRequest(User test) {
-    POST("/auth/forgotPassword", "{'username':'%s'}".formatted(test.getUsername()))
+  private void sendForgotPasswordRequest(String emailOrUsername) {
+    POST("/auth/forgotPassword", "{'emailOrUsername':'%s'}".formatted(emailOrUsername))
         .content(HttpStatus.OK);
+  }
 
-    OutboundMessage message = assertMessageSendTo(test.getEmail());
-
+  @NotNull
+  private String fetchTokenInSentEmail(User user) {
+    OutboundMessage message = assertMessageSendTo(user.getEmail());
     Pattern pattern = Pattern.compile("\\?token=(.*?)\\n");
     Matcher matcher = pattern.matcher(message.getText());
     String token = "";
     if (matcher.find()) {
       token = matcher.group(1);
     }
-
     assertFalse(token.isEmpty());
     return token;
   }
