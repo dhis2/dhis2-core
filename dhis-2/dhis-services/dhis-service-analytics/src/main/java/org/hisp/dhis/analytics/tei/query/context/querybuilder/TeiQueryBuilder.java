@@ -171,12 +171,12 @@ public class TeiQueryBuilder extends SqlQueryBuilderAdaptor {
    */
   private static boolean isTei(DimensionIdentifier<DimensionParam> dimensionIdentifier) {
     return
-        // Will match all dimensionIdentifiers like {dimensionUid}.
-        dimensionIdentifier.getDimensionIdentifierType() == TEI
-            ||
-            // Will match all dimensionIdentifiers whose type is PROGRAM_ATTRIBUTE.
-            // e.g. {attributeUid}
-            isOfType(dimensionIdentifier, PROGRAM_ATTRIBUTE);
+    // Will match all dimensionIdentifiers like {dimensionUid}.
+    dimensionIdentifier.getDimensionIdentifierType() == TEI
+        ||
+        // Will match all dimensionIdentifiers whose type is PROGRAM_ATTRIBUTE.
+        // e.g. {attributeUid}
+        isOfType(dimensionIdentifier, PROGRAM_ATTRIBUTE);
   }
 
   @Override

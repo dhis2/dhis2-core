@@ -32,6 +32,7 @@ import java.util.function.Function;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension;
 
 /**
  * This enum maps static dimensions to functions that extract the corresponding values from an
@@ -39,8 +40,7 @@ import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
  */
 @RequiredArgsConstructor
 enum EventExtractor {
-  EXECUTION_DATE(
-      DimensionParam.StaticDimension.EXECUTIONDATE, JsonEnrollment.JsonEvent::getExecutionDate),
+  EXECUTION_DATE(StaticDimension.OCCURREDDATE, JsonEnrollment.JsonEvent::getExecutionDate),
   OUNAME(DimensionParam.StaticDimension.OUNAME, JsonEnrollment.JsonEvent::getOrgUnitName),
   OUCODE(DimensionParam.StaticDimension.OUCODE, JsonEnrollment.JsonEvent::getOrgUnitCode),
   OUNAMEHIERARCHY(
