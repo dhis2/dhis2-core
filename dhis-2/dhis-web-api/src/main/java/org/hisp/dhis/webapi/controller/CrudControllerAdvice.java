@@ -199,6 +199,12 @@ public class CrudControllerAdvice {
     return createWebMessage(ex.getMessage(), Status.ERROR, HttpStatus.NOT_FOUND, ex.getCode());
   }
 
+  @ExceptionHandler(org.hisp.dhis.feedback.HiddenNotFoundException.class)
+  @ResponseBody
+  public WebMessage hiddenNotFoundException(org.hisp.dhis.feedback.HiddenNotFoundException ex) {
+    return createWebMessage(Status.OK, HttpStatus.OK);
+  }
+
   @ExceptionHandler(RestClientException.class)
   @ResponseBody
   public WebMessage restClientExceptionHandler(RestClientException ex) {

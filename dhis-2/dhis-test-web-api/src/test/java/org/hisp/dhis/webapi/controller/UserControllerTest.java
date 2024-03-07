@@ -81,6 +81,7 @@ import org.hisp.dhis.webapi.json.domain.JsonUserGroup;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.jboss.aerogear.security.otp.api.Base32;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.session.SessionRegistry;
@@ -217,6 +218,28 @@ class UserControllerTest extends DhisControllerConvenienceTest {
     User user = userService.getUser(peter.getUid());
     assertEquals("mapping value", user.getOpenId());
     assertEquals("mapping value", user.getUserCredentials().getOpenId());
+  }
+
+  @Test
+  @DisplayName(
+      "Make sure an update after first setting OpenID works, has special handling logic in UserObjectBundleHook.")
+  void testSetOpenIdThenUpdate() {
+    assertStatus(
+        HttpStatus.OK,
+        PATCH(
+            "/users/{id}",
+            peter.getUid() + "?importReportMode=ERRORS",
+            Body("[{'op': 'add', 'path': '/openId', 'value': 'mapping value'}]")));
+
+    User user = userService.getUser(peter.getUid());
+    assertEquals("mapping value", user.getOpenId());
+
+    assertStatus(
+        HttpStatus.OK,
+        PATCH(
+            "/users/{id}",
+            peter.getUid() + "?importReportMode=ERRORS",
+            Body("[{'op': 'add', 'path': '/openId', 'value': 'mapping value'}]")));
   }
 
   /**

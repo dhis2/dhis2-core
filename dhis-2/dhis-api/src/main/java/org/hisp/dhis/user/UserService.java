@@ -156,6 +156,14 @@ public interface UserService {
   User getUserByIdentifier(String id);
 
   /**
+   * Retrieves the User with the given email.
+   *
+   * @param email the email of the User to retrieve.
+   * @return the User.
+   */
+  User getUserByEmail(String email);
+
+  /**
    * Retrieves a collection of User with the given unique identifiers.
    *
    * @param uids the identifiers of the collection of Users to retrieve.
@@ -471,9 +479,9 @@ public interface UserService {
    * Use this method instead of {@link #createUserDetails(User)} if no {@link User} instance is
    * available or if the one available is not fully loaded or connected to a session.
    *
-   * @see #createUserDetails(User)
    * @param userUid UID of the {@link UserDetails} to create
    * @return the implementation object
+   * @see #createUserDetails(User)
    */
   UserDetails createUserDetails(String userUid) throws NotFoundException;
 
