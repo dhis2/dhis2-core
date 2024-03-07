@@ -2891,6 +2891,12 @@ public abstract class DhisConvenienceTest {
   }
 
   protected User preCreateInjectAdminUser() {
+    User admin = userService.getUserByUsername(DEFAULT_USERNAME + "_test");
+    if (admin != null) {
+      injectSecurityContextUser(admin);
+      return admin;
+    }
+
     User user = preCreateInjectAdminUserWithoutPersistence();
 
     userService.addUser(user);
