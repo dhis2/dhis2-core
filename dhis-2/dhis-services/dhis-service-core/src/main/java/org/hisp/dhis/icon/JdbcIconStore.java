@@ -230,7 +230,7 @@ public class JdbcIconStore implements IconStore {
     try {
       return keywordsMapper.readValue(jsonString, new TypeReference<Set<String>>() {});
     } catch (IOException e) {
-      log.error("Parsing keywords json failed, string value: '{}'", jsonString);
+      log.error("Parsing keywords json failed, string value: '{}'", jsonString, e);
       throw new IllegalArgumentException(e);
     }
   }
@@ -239,7 +239,7 @@ public class JdbcIconStore implements IconStore {
     try {
       return keywordsMapper.writeValueAsString(new HashSet<>(keywords));
     } catch (IOException e) {
-      log.error("Parsing keywords into json string failed");
+      log.error("Parsing keywords into json string failed", e);
       throw new IllegalArgumentException(e);
     }
   }
