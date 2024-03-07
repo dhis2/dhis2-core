@@ -42,6 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.fileresource.FileResourceStore;
 import org.hisp.dhis.user.UserService;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -89,22 +90,7 @@ public class JdbcIconStore implements IconStore {
     MapSqlParameterSource params = new MapSqlParameterSource();
     params.addValue("key", key);
 
-    List<Icon> icons =
-        namedParameterJdbcTemplate.query(
-            sql,
-            params,
-            (rs, rowNum) -> {
-              Icon icon = new Icon();
-              icon.setKey(rs.getString("iconkey"));
-              icon.setDescription(rs.getString("icondescription"));
-              icon.setCustom(rs.getBoolean("custom"));
-              icon.setKeywords(convertKeywordsJsonIntoSet(rs.getString("keywords")));
-              icon.setCreated(rs.getDate("created"));
-              icon.setLastUpdated(rs.getDate("lastupdated"));
-              icon.setCreatedBy(userService.getUser(rs.getLong("createdby")));
-              icon.setFileResource(fileResourceStore.get(rs.getLong("fileresourceid")));
-              return icon;
-            });
+    List<Icon> icons = namedParameterJdbcTemplate.query(sql, params, getIconRowMapper());
 
     return icons.isEmpty() ? null : icons.get(0);
   }
@@ -168,23 +154,7 @@ public class JdbcIconStore implements IconStore {
               params.getPager().getPage(), params.getPager().getPageSize(), sql, parameterSource);
     }
 
-    return namedParameterJdbcTemplate
-        .query(
-            sql,
-            parameterSource,
-            (rs, rowNum) -> {
-              Icon icon = new Icon();
-              icon.setKey(rs.getString("iconkey"));
-              icon.setDescription(rs.getString("icondescription"));
-              icon.setCustom(rs.getBoolean("custom"));
-              icon.setKeywords(convertKeywordsJsonIntoSet(rs.getString("keywords")));
-              icon.setCreated(rs.getDate("created"));
-              icon.setLastUpdated(rs.getDate("lastupdated"));
-              icon.setCreatedBy(userService.getUser(rs.getLong("createdby")));
-              icon.setFileResource(fileResourceStore.get(rs.getLong("fileresourceid")));
-              return icon;
-            })
-        .stream()
+    return namedParameterJdbcTemplate.query(sql, parameterSource, getIconRowMapper()).stream()
         .collect(Collectors.toUnmodifiableSet());
   }
 
@@ -269,5 +239,20 @@ public class JdbcIconStore implements IconStore {
       log.error("Parsing keywords into json string failed");
       throw new IllegalArgumentException(e);
     }
+  }
+
+  private RowMapper<Icon> getIconRowMapper() {
+    return (rs, rowNum) -> {
+      Icon icon = new Icon();
+      icon.setKey(rs.getString("iconkey"));
+      icon.setDescription(rs.getString("icondescription"));
+      icon.setCustom(rs.getBoolean("custom"));
+      icon.setKeywords(convertKeywordsJsonIntoSet(rs.getString("keywords")));
+      icon.setCreated(rs.getDate("created"));
+      icon.setLastUpdated(rs.getDate("lastupdated"));
+      icon.setCreatedBy(userService.getUser(rs.getLong("createdby")));
+      icon.setFileResource(fileResourceStore.get(rs.getLong("fileresourceid")));
+      return icon;
+    };
   }
 }
