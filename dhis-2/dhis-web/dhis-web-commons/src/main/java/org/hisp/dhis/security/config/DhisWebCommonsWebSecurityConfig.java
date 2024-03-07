@@ -145,6 +145,8 @@ public class DhisWebCommonsWebSecurityConfig {
     protected void configure(HttpSecurity http) throws Exception {
       http.authorizeRequests()
           .accessDecisionManager(accessDecisionManager())
+          .antMatchers("/dhis-web-login/**")
+          .permitAll()
           .requestMatchers(analyticsPluginResources())
           .permitAll()
           .antMatchers("/impersonate")
