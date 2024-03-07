@@ -50,7 +50,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import javax.sql.rowset.RowSetMetaDataImpl;
 import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.DhisConvenienceTest;
@@ -71,12 +70,9 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.support.rowset.ResultSetWrappingSqlRowSet;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -96,22 +92,13 @@ class GridAdaptorTest extends DhisConvenienceTest {
 
   private SchemeIdResponseMapper schemeIdResponseMapper;
 
-  private User user;
-
-  @Mock private CurrentUserService currentUserService;
-
   @BeforeEach
   void setUp() {
     headerParamsHandler = new HeaderParamsHandler();
     metadataDetailsHandler = new MetadataParamsHandler();
     schemeIdResponseMapper = new SchemeIdResponseMapper();
     gridAdaptor =
-        new GridAdaptor(
-            headerParamsHandler,
-            metadataDetailsHandler,
-            schemeIdResponseMapper,
-            currentUserService);
-    user = makeUser(ADMIN_USER_UID);
+        new GridAdaptor(headerParamsHandler, metadataDetailsHandler, schemeIdResponseMapper);
   }
 
   @Test
@@ -134,7 +121,6 @@ class GridAdaptorTest extends DhisConvenienceTest {
 
     when(resultSet.next()).thenReturn(true).thenReturn(true).thenReturn(true).thenReturn(false);
     when(resultSet.getMetaData()).thenReturn(metaData);
-    when(currentUserService.getCurrentUser()).thenReturn(user);
 
     SqlRowSet sqlRowSet = new ResultSetWrappingSqlRowSet(resultSet);
     SqlQueryResult mockSqlResult =
@@ -143,7 +129,7 @@ class GridAdaptorTest extends DhisConvenienceTest {
 
     // When
     Grid grid =
-        gridAdaptor.createGrid(Optional.of(mockSqlResult), anyCount, teiQueryParams, fields);
+        gridAdaptor.createGrid(Optional.of(mockSqlResult), anyCount, teiQueryParams, fields, null);
 
     // Then
     assertNotNull(grid, "Should not be null: grid");
@@ -173,7 +159,6 @@ class GridAdaptorTest extends DhisConvenienceTest {
 
     when(resultSet.next()).thenReturn(true).thenReturn(true).thenReturn(true).thenReturn(false);
     when(resultSet.getMetaData()).thenReturn(metaData);
-    when(currentUserService.getCurrentUser()).thenReturn(user);
 
     SqlRowSet sqlRowSet = new ResultSetWrappingSqlRowSet(resultSet);
     SqlQueryResult mockSqlResult =
@@ -182,7 +167,7 @@ class GridAdaptorTest extends DhisConvenienceTest {
 
     // When
     Grid grid =
-        gridAdaptor.createGrid(Optional.of(mockSqlResult), anyCount, teiQueryParams, fields);
+        gridAdaptor.createGrid(Optional.of(mockSqlResult), anyCount, teiQueryParams, fields, null);
 
     // Then
     assertNotNull(grid, "Should not be null: grid");
@@ -207,10 +192,8 @@ class GridAdaptorTest extends DhisConvenienceTest {
 
     long anyCount = 0;
 
-    when(currentUserService.getCurrentUser()).thenReturn(user);
-
     // When
-    Grid grid = gridAdaptor.createGrid(emptySqlResult, anyCount, teiQueryParams, fields);
+    Grid grid = gridAdaptor.createGrid(emptySqlResult, anyCount, teiQueryParams, fields, null);
 
     // Then
     assertTrue(isNotEmpty(grid.getHeaders()));
@@ -229,7 +212,7 @@ class GridAdaptorTest extends DhisConvenienceTest {
     IllegalArgumentException ex =
         assertThrows(
             IllegalArgumentException.class,
-            () -> gridAdaptor.createGrid(anySqlResult, anyCount, nullTeiQueryParams, null),
+            () -> gridAdaptor.createGrid(anySqlResult, anyCount, nullTeiQueryParams, null, null),
             "Expected exception not thrown: createGrid()");
 
     // Then
@@ -283,9 +266,7 @@ class GridAdaptorTest extends DhisConvenienceTest {
         new BaseDimensionalObject(
             dimensionUid,
             DATA_X,
-            ous.stream()
-                .map(item -> new BaseDimensionalItemObject(item))
-                .collect(Collectors.toList()),
+            ous.stream().map(item -> new BaseDimensionalItemObject(item)).toList(),
             TEXT);
 
     DimensionParam dimensionParam = DimensionParam.ofObject(tea, DIMENSIONS, ous);

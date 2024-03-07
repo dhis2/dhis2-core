@@ -92,7 +92,6 @@ class ObjectBundleServiceProgramTest extends TransactionalIntegrationTest {
     params.setObjects(metadata);
     ObjectBundle bundle = objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
-    validate.forEachErrorReport(System.out::println);
     assertFalse(validate.hasErrorReports());
     objectBundleService.commit(bundle);
     List<DataSet> dataSets = manager.getAll(DataSet.class);
@@ -169,7 +168,6 @@ class ObjectBundleServiceProgramTest extends TransactionalIntegrationTest {
     params.setObjects(metadata);
     ObjectBundle bundle = objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
-    validate.forEachErrorReport(System.out::println);
     assertFalse(validate.hasErrorReports());
     objectBundleService.commit(bundle);
     List<OrganisationUnit> organisationUnits = manager.getAll(OrganisationUnit.class);
@@ -239,7 +237,6 @@ class ObjectBundleServiceProgramTest extends TransactionalIntegrationTest {
     params.setObjects(metadata);
     ObjectBundle bundle = objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
-    validate.forEachErrorReport(System.out::println);
     assertTrue(validate.hasErrorReports());
     assertTrue(validate.hasErrorReport(report -> report.getErrorCode() == ErrorCode.E4047));
   }
@@ -258,7 +255,6 @@ class ObjectBundleServiceProgramTest extends TransactionalIntegrationTest {
     params.setObjects(metadata);
     ObjectBundle bundle = objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
-    validate.forEachErrorReport(System.out::println);
     assertFalse(validate.hasErrorReports());
   }
 
@@ -286,7 +282,6 @@ class ObjectBundleServiceProgramTest extends TransactionalIntegrationTest {
     params.setObjects(metadata);
     bundle = objectBundleService.create(params);
     validate = objectBundleValidationService.validate(bundle);
-    validate.forEachErrorReport(System.out::println);
     assertTrue(validate.hasErrorReports());
   }
 
@@ -322,7 +317,7 @@ class ObjectBundleServiceProgramTest extends TransactionalIntegrationTest {
     };
     User testUser = createUserWithAuth("A", testAuths);
 
-    injectSecurityContext(testUser);
+    injectSecurityContextUser(testUser);
 
     params = new ObjectBundleParams();
     params.setObjectBundleMode(ObjectBundleMode.COMMIT);
@@ -331,7 +326,6 @@ class ObjectBundleServiceProgramTest extends TransactionalIntegrationTest {
     params.setObjects(metadata);
     bundle = objectBundleService.create(params);
     validate = objectBundleValidationService.validate(bundle);
-    validate.forEachErrorReport(System.out::println);
     assertTrue(validate.hasErrorReports());
   }
 
@@ -347,7 +341,6 @@ class ObjectBundleServiceProgramTest extends TransactionalIntegrationTest {
     params.setObjects(metadata);
     ObjectBundle bundle = objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
-    validate.forEachErrorReport(System.out::println);
     assertFalse(validate.hasErrorReports());
     objectBundleService.commit(bundle);
     String[] testAuths = {
@@ -383,7 +376,6 @@ class ObjectBundleServiceProgramTest extends TransactionalIntegrationTest {
     params.setUser(testUser);
     bundle = objectBundleService.create(params);
     validate = objectBundleValidationService.validate(bundle);
-    validate.forEachErrorReport(System.out::println);
     assertFalse(validate.hasErrorReports());
   }
 
@@ -399,7 +391,6 @@ class ObjectBundleServiceProgramTest extends TransactionalIntegrationTest {
     params.setObjects(metadata);
     ObjectBundle bundle = objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
-    validate.forEachErrorReport(System.out::println);
     assertFalse(validate.hasErrorReports());
     objectBundleService.commit(bundle);
   }

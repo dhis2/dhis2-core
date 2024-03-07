@@ -34,6 +34,8 @@ import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.PAGER;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getCustomLabelOrHeaderColumnName;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.supportsCustomLabel;
 import static org.hisp.dhis.analytics.orgunit.OrgUnitHelper.getActiveOrganisationUnits;
 import static org.hisp.dhis.analytics.util.AnalyticsOrganisationUnitUtils.getUserOrganisationUnitItems;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
@@ -43,13 +45,18 @@ import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraph
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.analytics.common.MetadataInfo;
 import org.hisp.dhis.analytics.common.params.AnalyticsPagingParams;
 import org.hisp.dhis.analytics.common.params.CommonParams;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.User;
@@ -84,6 +91,13 @@ public class MetadataParamsHandler {
           getUserOrgUnitsMetadataKeys(commonParams);
       Map<String, Object> items =
           new HashMap<>(new MetadataItemsHandler().handle(grid, commonParams));
+
+      commonParams
+          .getAllDimensionIdentifiers()
+          .forEach(
+              dimensionIdentifier ->
+                  addDimensionIdentifierToItemsIfNeeded(dimensionIdentifier, items));
+
       getUserOrganisationUnitItems(user, userOrgUnitMetaDataKeys).forEach(items::putAll);
       MetadataInfo metadataInfo = new MetadataInfo();
       metadataInfo.put(ITEMS.getKey(), items);
@@ -119,6 +133,62 @@ public class MetadataParamsHandler {
 
       grid.setMetaData(metadataInfo.getMap());
     }
+  }
+
+  /**
+   * Adds an extra entry to metadata items if needed, i.e. if the dimension identifier is a date
+   * dimension which supports custom labels (enrollmentdate, incidentdate, executiondate) and for
+   * any specified dimension identifier that has a prefix.
+   *
+   * @param dimId the dimension identifier
+   * @param items the metadata items
+   */
+  private void addDimensionIdentifierToItemsIfNeeded(
+      DimensionIdentifier<DimensionParam> dimId, Map<String, Object> items) {
+
+    // for dates supporting custom labels, it will add the custom label to items using the full
+    // dimension uid as key
+    if (supportsCustomLabel(dimId)) {
+      items.put(dimId.getKeyNoOffset(), getMetadataWithCustomLabel(dimId));
+    }
+
+    // for entries like "abc", it will add a duplicate using dimensionuid (example
+    // "program.programstage.abc")
+    // from dimensionIdentifier as key
+    items.putAll(
+        items.entrySet().stream()
+            .filter(entry -> isSameDimension(dimId, entry))
+            .map(entry -> asEntryWithFullPrefix(dimId, entry))
+            .collect(Collectors.toMap(Entry::getKey, Entry::getValue)));
+  }
+
+  /**
+   * Returns the custom label for the given static dimension identifier. Dimension identifier is
+   * dimension which supports custom labels (enrollmentdate, incidentdate, executiondate, ouname)
+   *
+   * @param dimensionIdentifier the dimension identifier
+   * @return the custom label
+   */
+  private MetadataItem getMetadataWithCustomLabel(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+
+    String customLabel = getCustomLabelOrHeaderColumnName(dimensionIdentifier, false, true);
+
+    MetadataItem metadataItem = new MetadataItem(customLabel);
+    metadataItem.setDimensionType(
+        dimensionIdentifier.getDimension().getDimensionParamObjectType().getDimensionType());
+
+    return metadataItem;
+  }
+
+  private static Entry<String, Object> asEntryWithFullPrefix(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier, Entry<String, Object> entry) {
+    return Map.entry(dimensionIdentifier.getKeyNoOffset(), entry.getValue());
+  }
+
+  private static boolean isSameDimension(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier, Entry<String, Object> entry) {
+    return entry.getKey().equals(dimensionIdentifier.getDimension().getUid());
   }
 
   private Set<OrganisationUnit> getUserOrgUnits(User user) {

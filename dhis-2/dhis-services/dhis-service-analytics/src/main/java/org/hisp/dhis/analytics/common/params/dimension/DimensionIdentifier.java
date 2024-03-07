@@ -124,14 +124,36 @@ public class DimensionIdentifier<D extends UidObject> implements IdentifiableKey
     return DimensionIdentifierHelper.asText(program, programStage, dimension);
   }
 
+  /**
+   * Creates a new dimension identifier with the default groupId. Default groupId is the full
+   * dimension identifier.
+   *
+   * @return the new dimension identifier.
+   */
+  public DimensionIdentifier<D> withDefaultGroupId() {
+    return withGroupId(this.toString());
+  }
+
   public enum DimensionIdentifierType {
     TEI,
     ENROLLMENT,
     EVENT
   }
 
+  public DimensionIdentifier<D> withoutOffset() {
+    return DimensionIdentifier.of(
+        ElementWithOffset.of(this.getProgram().getElement()),
+        ElementWithOffset.of(this.getProgramStage().getElement()),
+        this.getDimension(),
+        this.getGroupId());
+  }
+
   @Override
   public String getKey() {
     return toString();
+  }
+
+  public String getKeyNoOffset() {
+    return withoutOffset().toString();
   }
 }

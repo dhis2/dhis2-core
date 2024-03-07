@@ -36,7 +36,6 @@ import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.ImpersonatingUserDetailsChecker;
-import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.security.apikey.DhisApiTokenAuthenticationEntryPoint;
 import org.hisp.dhis.security.basic.HttpBasicWebAuthenticationDetailsSource;
@@ -90,6 +89,8 @@ import org.springframework.security.web.authentication.switchuser.SwitchUserFilt
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.header.HeaderWriterFilter;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.util.UrlPathHelper;
 
@@ -118,6 +119,11 @@ public class DhisWebApiWebSecurityConfig {
   @Bean
   public SessionRegistry sessionRegistry() {
     return new SessionRegistryImpl();
+  }
+
+  @Bean
+  public RequestCache requestCache() {
+    return new HttpSessionRequestCache();
   }
 
   /** This class is configuring the OIDC login endpoints */
@@ -199,8 +205,6 @@ public class DhisWebApiWebSecurityConfig {
 
     @Autowired private CacheProvider cacheProvider;
 
-    @Autowired private SecurityService securityService;
-
     @Autowired private ExternalAccessVoter externalAccessVoter;
 
     @Autowired
@@ -214,6 +218,8 @@ public class DhisWebApiWebSecurityConfig {
     @Autowired private ConfigurationService configurationService;
 
     @Autowired private ApiTokenAuthManager apiTokenAuthManager;
+
+    @Autowired private RequestCache requestCache;
 
     @Override
     public void configure(AuthenticationManagerBuilder auth) {
@@ -262,23 +268,29 @@ public class DhisWebApiWebSecurityConfig {
           .permitAll()
           .antMatchers("/oauth2/**")
           .permitAll()
-          .antMatchers(apiContextPath + "/authentication/login")
+          .antMatchers(apiContextPath + "/**/locales/ui")
           .permitAll()
-          .antMatchers(apiContextPath + "/account/recovery")
+          .antMatchers(apiContextPath + "/**/loginConfig")
           .permitAll()
-          .antMatchers(apiContextPath + "/account/restore")
+          .antMatchers(apiContextPath + "/**/auth/login")
           .permitAll()
-          .antMatchers(apiContextPath + "/account")
+          .antMatchers(apiContextPath + "/**/authentication/login")
           .permitAll()
-          .antMatchers(apiContextPath + "/staticContent/**")
+          .antMatchers(apiContextPath + "/**/account/recovery")
           .permitAll()
-          .antMatchers(apiContextPath + "/externalFileResources/**")
+          .antMatchers(apiContextPath + "/**/account/restore")
           .permitAll()
-          .antMatchers(apiContextPath + "/icons/*/icon.svg")
+          .antMatchers(apiContextPath + "/**/account")
           .permitAll()
-          .antMatchers(apiContextPath + "/files/style/external")
+          .antMatchers(apiContextPath + "/**/staticContent/**")
           .permitAll()
-          .antMatchers(apiContextPath + "/publicKeys/**")
+          .antMatchers(apiContextPath + "/**/externalFileResources/**")
+          .permitAll()
+          .antMatchers(apiContextPath + "/**/icons/*/icon.svg")
+          .permitAll()
+          .antMatchers(apiContextPath + "/**/files/style/external")
+          .permitAll()
+          .antMatchers(apiContextPath + "/**/publicKeys/**")
           .permitAll()
           .anyRequest()
           .authenticated()
@@ -289,6 +301,8 @@ public class DhisWebApiWebSecurityConfig {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
       http.csrf().disable();
+
+      http.requestCache().requestCache(requestCache);
 
       configureMatchers(http);
       configureCspFilter(http, dhisConfig, configurationService);

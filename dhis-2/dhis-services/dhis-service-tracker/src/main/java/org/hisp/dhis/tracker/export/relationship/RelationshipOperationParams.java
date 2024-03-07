@@ -33,9 +33,9 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 
 @Getter
 @Builder(toBuilder = true)
@@ -64,4 +64,6 @@ public class RelationshipOperationParams {
       return this;
     }
   }
+
+  private boolean includeDeleted;
 }

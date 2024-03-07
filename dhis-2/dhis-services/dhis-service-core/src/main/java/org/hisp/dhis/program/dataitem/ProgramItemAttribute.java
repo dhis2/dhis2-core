@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.program.dataitem;
 
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
-
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 import org.hisp.dhis.program.ProgramExpressionItem;
+import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 /**
@@ -61,7 +61,7 @@ public class ProgramItemAttribute extends ProgramExpressionItem {
   public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
     String attributeId = getProgramAttributeId(ctx);
 
-    String column = visitor.getStatementBuilder().columnQuote(attributeId);
+    String column = SqlUtils.quote(attributeId);
 
     if (visitor.getState().isReplaceNulls()) {
       TrackedEntityAttribute attribute =

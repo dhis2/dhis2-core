@@ -76,8 +76,8 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.jdbc.StatementBuilder;
-import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -108,6 +108,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Mock private ExecutionPlanStore executionPlanStore;
 
+  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+
   private JdbcEventAnalyticsManager subject;
 
   @Captor private ArgumentCaptor<String> sql;
@@ -124,9 +126,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @BeforeEach
   public void setUp() {
-    StatementBuilder statementBuilder = new PostgreSQLStatementBuilder();
-    EventTimeFieldSqlRenderer timeCoordinateSelector =
-        new EventTimeFieldSqlRenderer(statementBuilder);
+    EventTimeFieldSqlRenderer timeCoordinateSelector = new EventTimeFieldSqlRenderer();
     ProgramIndicatorService programIndicatorService = mock(ProgramIndicatorService.class);
     DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
         new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService);
@@ -137,7 +137,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             programIndicatorService,
             programIndicatorSubqueryBuilder,
             timeCoordinateSelector,
-            executionPlanStore);
+            executionPlanStore,
+            sqlBuilder);
 
     when(jdbcTemplate.queryForRowSet(anyString())).thenReturn(this.rowSet);
   }
@@ -334,7 +335,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     String expected =
         "ps.\"quarterly\",ax.\"ou\"  from "
             + getTable(programA.getUid())
-            + " as ax left join _dateperiodstructure as ps on cast(ax.\"scheduleddate\" as date) = ps.\"dateperiod\" "
+            + " as ax left join analytics_rs_dateperiodstructure as ps on cast(ax.\"scheduleddate\" as date) = ps.\"dateperiod\" "
             + "where (ps.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" "
             + "in ('ouabcdefghA') and pistatus in ('ACTIVE','COMPLETED') limit 101";
 

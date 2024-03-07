@@ -27,46 +27,28 @@
  */
 package org.hisp.dhis.sms.config;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.stereotype.Component;
 
 /** Manages the {@link SmsConfiguration} for the instance. */
 @Component("org.hisp.dhis.sms.config.SmsConfigurationManager")
+@RequiredArgsConstructor
 public class DefaultSmsConfigurationManager implements SmsConfigurationManager {
-  private final SystemSettingManager systemSettingManager;
 
-  public DefaultSmsConfigurationManager(SystemSettingManager systemSettingManager) {
-    checkNotNull(systemSettingManager);
-
-    this.systemSettingManager = systemSettingManager;
-  }
+  private final SystemSettingManager settings;
 
   @Override
+  @IndirectTransactional
   public SmsConfiguration getSmsConfiguration() {
-    return systemSettingManager.getSystemSetting(SettingKey.SMS_CONFIG, SmsConfiguration.class);
+    return settings.getSystemSetting(SettingKey.SMS_CONFIG, SmsConfiguration.class);
   }
 
   @Override
+  @IndirectTransactional
   public void updateSmsConfiguration(SmsConfiguration config) {
-    systemSettingManager.saveSystemSetting(SettingKey.SMS_CONFIG, config);
-  }
-
-  @Override
-  public SmsGatewayConfig checkInstanceOfGateway(Class<?> clazz) {
-    if (getSmsConfiguration() == null) {
-      SmsConfiguration smsConfig = new SmsConfiguration(true);
-      updateSmsConfiguration(smsConfig);
-    }
-
-    for (SmsGatewayConfig gateway : getSmsConfiguration().getGateways()) {
-      if (gateway.getClass().equals(clazz)) {
-        return gateway;
-      }
-    }
-
-    return null;
+    settings.saveSystemSetting(SettingKey.SMS_CONFIG, config);
   }
 }

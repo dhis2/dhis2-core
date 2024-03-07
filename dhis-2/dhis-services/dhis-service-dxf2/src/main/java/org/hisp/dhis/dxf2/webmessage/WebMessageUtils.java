@@ -40,12 +40,14 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.scheduling.JobConfigurationWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.ErrorReportsWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.ImportReportWebMessageResponse;
+import org.hisp.dhis.dxf2.webmessage.responses.MergeWebResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.ObjectReportWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.TypeReportWebMessageResponse;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
@@ -56,6 +58,11 @@ import org.springframework.http.HttpStatus;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public final class WebMessageUtils {
+
+  public static WebMessage createWebMessage(Status status, HttpStatus httpStatus) {
+    return new WebMessage(status, httpStatus);
+  }
+
   public static WebMessage createWebMessage(String message, Status status, HttpStatus httpStatus) {
     return new WebMessage(status, httpStatus).setMessage(message);
   }
@@ -213,6 +220,15 @@ public final class WebMessageUtils {
     return new WebMessage(Status.WARNING, HttpStatus.CONFLICT)
         .setMessage("One or more errors occurred, please see full details in import report.")
         .setResponse(new ObjectReportWebMessageResponse(objectReport));
+  }
+
+  public static WebMessage mergeReport(MergeReport mergeReport) {
+    if (!mergeReport.hasErrorMessages()) {
+      return ok().setResponse(new MergeWebResponse(mergeReport));
+    }
+    return new WebMessage(Status.WARNING, HttpStatus.CONFLICT)
+        .setMessage("One or more errors occurred, please see full details in merge report.")
+        .setResponse(new MergeWebResponse(mergeReport));
   }
 
   public static WebMessage jobConfigurationReport(JobConfiguration config) {

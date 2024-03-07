@@ -139,6 +139,8 @@ class CsvEventDataValue {
     enrollment = dataValue.getEnrollment();
     orgUnit = dataValue.getOrgUnit();
     occurredAt = dataValue.getOccurredAt();
+    attributeOptionCombo = dataValue.getAttributeOptionCombo();
+    attributeCategoryOptions = dataValue.getAttributeCategoryOptions();
     scheduledAt = dataValue.getScheduledAt();
     followUp = dataValue.isFollowUp();
     deleted = dataValue.isDeleted();

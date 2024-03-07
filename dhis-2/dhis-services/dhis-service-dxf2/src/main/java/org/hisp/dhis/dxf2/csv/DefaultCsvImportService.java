@@ -28,7 +28,7 @@
 package org.hisp.dhis.dxf2.csv;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.hisp.dhis.util.DateUtils.getMediumDate;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import com.csvreader.CsvReader;
 import java.io.IOException;
@@ -430,6 +430,9 @@ public class DefaultCsvImportService implements CsvImportService {
         CategoryOptionGroup object = new CategoryOptionGroup();
         setIdentifiableObject(object, values);
         object.setShortName(getSafe(values, 3, object.getName(), 50));
+        object.setDataDimensionType(
+            DataDimensionType.fromValue(
+                getSafe(values, 4, DataDimensionType.DISAGGREGATION.getValue(), 50)));
         list.add(object);
       }
     }
@@ -502,8 +505,8 @@ public class DefaultCsvImportService implements CsvImportService {
         String parentUid = getSafe(values, 3, 230);
         object.setShortName(getSafe(values, 4, object.getName(), 50));
         object.setDescription(getSafe(values, 5));
-        object.setOpeningDate(getMediumDate(getSafe(values, 6, "1970-01-01", null)));
-        object.setClosedDate(getMediumDate(getSafe(values, 7)));
+        object.setOpeningDate(toMediumDate(getSafe(values, 6, "1970-01-01", null)));
+        object.setClosedDate(toMediumDate(getSafe(values, 7)));
         object.setComment(getSafe(values, 8));
         setGeometry(
             object, FeatureType.valueOf(getSafe(values, 9, "NONE", 50)), getSafe(values, 10));

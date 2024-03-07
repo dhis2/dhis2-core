@@ -41,7 +41,6 @@ import static org.hisp.dhis.DhisConvenienceTest.createProgramIndicator;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.NE;
 import static org.hisp.dhis.common.QueryOperator.NEQ;
@@ -54,6 +53,7 @@ import static org.hisp.dhis.common.ValueType.BOOLEAN;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.period.RelativePeriodEnum.THIS_YEAR;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -67,7 +67,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -77,6 +76,7 @@ import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.EventQueryParams.Builder;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -91,8 +91,8 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.jdbc.StatementBuilder;
-import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodTypeEnum;
@@ -122,6 +122,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Mock private ExecutionPlanStore executionPlanStore;
 
+  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+
   private JdbcEventAnalyticsManager eventSubject;
 
   private JdbcEnrollmentAnalyticsManager enrollmentSubject;
@@ -130,14 +132,16 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
   private DataElement dataElementA;
 
-  private Date from = getDate(2017, 10, 10);
+  private final Date from = getDate(2017, 10, 10);
 
-  private Date to = getDate(2018, 10, 10);
+  private final Date to = getDate(2018, 10, 10);
+
+  private final UUID uuidA = UUID.fromString("c0d3661b-c7f6-48a0-8cf3-b1380cd005dd");
+
+  private final UUID uuidB = UUID.fromString("1786142e-6d51-48e3-8bbe-9cc2a2836120");
 
   @BeforeEach
   public void setUp() {
-    StatementBuilder statementBuilder = new PostgreSQLStatementBuilder();
-
     DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
         new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService);
 
@@ -146,16 +150,18 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             jdbcTemplate,
             programIndicatorService,
             programIndicatorSubqueryBuilder,
-            new EventTimeFieldSqlRenderer(statementBuilder),
-            executionPlanStore);
+            new EventTimeFieldSqlRenderer(),
+            executionPlanStore,
+            sqlBuilder);
 
     enrollmentSubject =
         new JdbcEnrollmentAnalyticsManager(
             jdbcTemplate,
             programIndicatorService,
             programIndicatorSubqueryBuilder,
-            new EnrollmentTimeFieldSqlRenderer(statementBuilder),
-            executionPlanStore);
+            new EnrollmentTimeFieldSqlRenderer(),
+            executionPlanStore,
+            sqlBuilder);
 
     programA = createProgram('A');
 
@@ -296,7 +302,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             .withAggregationType(fromAggregationType(AggregationType.CUSTOM))
             .build();
 
-    assertThrows(IllegalArgumentException.class, () -> eventSubject.getAggregateClause(params));
+    assertThrows(NullPointerException.class, () -> eventSubject.getAggregateClause(params));
   }
 
   @Test
@@ -571,9 +577,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   void testGeItemNoFiltersSql() {
     EventQueryParams queryParams =
         new EventQueryParams.Builder()
-            .addItem(
-                buildQueryItemWithGroupAndFilters(
-                    "item", UUID.randomUUID(), Collections.emptyList()))
+            .addItem(buildQueryItemWithGroupAndFilters("item", uuidA, List.of()))
             .build();
     assertEquals("", eventSubject.getQueryItemsAndFiltersWhereClause(queryParams, new SqlHelper()));
   }
@@ -581,10 +585,10 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   @Test
   void testGetItemSimpleFilterSql() {
     EventQueryParams queryParams =
-        new EventQueryParams.Builder()
+        defaultEventQueryParamsBuilder()
             .addItem(
                 buildQueryItemWithGroupAndFilters(
-                    "item", UUID.randomUUID(), List.of(buildQueryFilter(EQ, "A"))))
+                    "item", uuidA, List.of(buildQueryFilter(EQ, "A"))))
             .build();
     String result = eventSubject.getQueryItemsAndFiltersWhereClause(queryParams, new SqlHelper());
     assertEquals("where ax.\"item\" = 'A' ", result);
@@ -593,10 +597,10 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   @Test
   void testGetItemNotLikeFilterSql() {
     EventQueryParams queryParams =
-        new EventQueryParams.Builder()
+        defaultEventQueryParamsBuilder()
             .addItem(
                 buildQueryItemWithGroupAndFilters(
-                    "item", UUID.randomUUID(), List.of(buildQueryFilter(NEQ, "12")), NUMBER))
+                    "item", uuidA, List.of(buildQueryFilter(NEQ, "12")), NUMBER))
             .build();
     String result = eventSubject.getQueryItemsAndFiltersWhereClause(queryParams, new SqlHelper());
     assertEquals("where (ax.\"item\" is null or ax.\"item\" != '12') ", result);
@@ -605,31 +609,36 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   @Test
   void testGetItemNotILikeFilterSqlNullValueType() {
     EventQueryParams queryParams =
-        new EventQueryParams.Builder()
+        defaultEventQueryParamsBuilder()
             .addItem(
                 buildQueryItemWithGroupAndFilters(
-                    "item", UUID.randomUUID(), List.of(buildQueryFilter(NILIKE, "A"))))
+                    "item", uuidA, List.of(buildQueryFilter(NILIKE, "A"))))
             .build();
     String result = eventSubject.getQueryItemsAndFiltersWhereClause(queryParams, new SqlHelper());
     assertEquals("where (ax.\"item\" is null or ax.\"item\" not ilike '%A%') ", result);
   }
 
+  private Builder defaultEventQueryParamsBuilder() {
+    return new EventQueryParams.Builder()
+        .withPeriods(List.of(createPeriod("201801")), PeriodTypeEnum.MONTHLY.getName());
+  }
+
   @Test
   void testGetItemNotEqualsFilterSql() {
     EventQueryParams queryParams =
-        new EventQueryParams.Builder()
+        defaultEventQueryParamsBuilder()
             .addItem(
                 buildQueryItemWithGroupAndFilters(
-                    "item", UUID.randomUUID(), List.of(buildQueryFilter(NEQ, "A")), TEXT))
+                    "item", uuidA, List.of(buildQueryFilter(NEQ, "A")), TEXT))
             .build();
     String result = eventSubject.getQueryItemsAndFiltersWhereClause(queryParams, new SqlHelper());
     assertEquals("where (coalesce(ax.\"item\", '') = '' or ax.\"item\" != 'A') ", result);
 
     queryParams =
-        new EventQueryParams.Builder()
+        defaultEventQueryParamsBuilder()
             .addItem(
                 buildQueryItemWithGroupAndFilters(
-                    "item", UUID.randomUUID(), List.of(buildQueryFilter(NE, "A")), TEXT))
+                    "item", uuidA, List.of(buildQueryFilter(NE, "A")), TEXT))
             .build();
     result = eventSubject.getQueryItemsAndFiltersWhereClause(queryParams, new SqlHelper());
     assertEquals("where (coalesce(ax.\"item\", '') = '' or ax.\"item\" != 'A') ", result);
@@ -638,10 +647,10 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   @Test
   void testGetItemNotIEqualsFilterSql() {
     EventQueryParams queryParams =
-        new EventQueryParams.Builder()
+        defaultEventQueryParamsBuilder()
             .addItem(
                 buildQueryItemWithGroupAndFilters(
-                    "item", UUID.randomUUID(), List.of(buildQueryFilter(NIEQ, "A")), TEXT))
+                    "item", uuidA, List.of(buildQueryFilter(NIEQ, "A")), TEXT))
             .build();
     String result = eventSubject.getQueryItemsAndFiltersWhereClause(queryParams, new SqlHelper());
     assertEquals(
@@ -651,12 +660,10 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   @Test
   void testGetItemTwoConditionsSameGroupSql() {
     EventQueryParams queryParams =
-        new EventQueryParams.Builder()
+        defaultEventQueryParamsBuilder()
             .addItem(
                 buildQueryItemWithGroupAndFilters(
-                    "item",
-                    UUID.randomUUID(),
-                    List.of(buildQueryFilter(EQ, "A"), buildQueryFilter(EQ, "B"))))
+                    "item", uuidA, List.of(buildQueryFilter(EQ, "A"), buildQueryFilter(EQ, "B"))))
             .build();
     String result = eventSubject.getQueryItemsAndFiltersWhereClause(queryParams, new SqlHelper());
     assertEquals("where ax.\"item\" = 'A'  and ax.\"item\" = 'B' ", result);
@@ -665,12 +672,10 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   @Test
   void testGetItemSameItemTwoConditionsSqlEnhancedConditions() {
     EventQueryParams queryParams =
-        new EventQueryParams.Builder()
+        defaultEventQueryParamsBuilder()
             .addItem(
                 buildQueryItemWithGroupAndFilters(
-                    "item",
-                    UUID.randomUUID(),
-                    List.of(buildQueryFilter(EQ, "A"), buildQueryFilter(EQ, "B"))))
+                    "item", uuidA, List.of(buildQueryFilter(EQ, "A"), buildQueryFilter(EQ, "B"))))
             .withEnhancedConditions(true)
             .build();
 
@@ -680,15 +685,14 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Test
   void testGetItemTwoConditionsSameGroupSqlEnhancedConditions() {
-    UUID groupUUID = UUID.randomUUID();
     EventQueryParams queryParams =
-        new EventQueryParams.Builder()
+        defaultEventQueryParamsBuilder()
             .addItem(
                 buildQueryItemWithGroupAndFilters(
-                    "item1", groupUUID, List.of(buildQueryFilter(EQ, "A"))))
+                    "item1", uuidA, List.of(buildQueryFilter(EQ, "A"))))
             .addItem(
                 buildQueryItemWithGroupAndFilters(
-                    "item2", groupUUID, List.of(buildQueryFilter(EQ, "B"))))
+                    "item2", uuidA, List.of(buildQueryFilter(EQ, "B"))))
             .withEnhancedConditions(true)
             .build();
 
@@ -698,22 +702,20 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Test
   void testGetItemTwoConditionsDifferentGroupsSqlEnhancedConditions() {
-    UUID groupUUID1 = UUID.randomUUID();
-    UUID groupUUID2 = UUID.randomUUID();
     EventQueryParams queryParams =
-        new EventQueryParams.Builder()
+        defaultEventQueryParamsBuilder()
             .addItem(
                 buildQueryItemWithGroupAndFilters(
-                    "item1", groupUUID1, List.of(buildQueryFilter(EQ, "A"))))
+                    "item1", uuidA, List.of(buildQueryFilter(EQ, "A"))))
             .addItem(
                 buildQueryItemWithGroupAndFilters(
-                    "item2", groupUUID1, List.of(buildQueryFilter(EQ, "B"))))
+                    "item2", uuidA, List.of(buildQueryFilter(EQ, "B"))))
             .addItem(
                 buildQueryItemWithGroupAndFilters(
-                    "item3", groupUUID2, List.of(buildQueryFilter(EQ, "C"))))
+                    "item3", uuidB, List.of(buildQueryFilter(EQ, "C"))))
             .addItem(
                 buildQueryItemWithGroupAndFilters(
-                    "item4", groupUUID2, List.of(buildQueryFilter(EQ, "D"))))
+                    "item4", uuidB, List.of(buildQueryFilter(EQ, "D"))))
             .withEnhancedConditions(true)
             .build();
 

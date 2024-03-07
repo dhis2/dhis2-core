@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 
 import java.util.HashSet;
@@ -35,15 +38,13 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.tracker.export.OperationsParamsValidator;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,27 +55,25 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 @RequiredArgsConstructor
 class EnrollmentOperationParamsMapper {
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
-  private final OrganisationUnitService organisationUnitService;
-
-  private final ProgramService programService;
-
-  private final TrackedEntityTypeService trackedEntityTypeService;
-
-  private final TrackedEntityService trackedEntityService;
+  private final OperationsParamsValidator paramsValidator;
 
   @Transactional(readOnly = true)
   public EnrollmentQueryParams map(EnrollmentOperationParams operationParams)
       throws BadRequestException, ForbiddenException {
-    Program program = validateProgram(operationParams.getProgramUid());
-    TrackedEntityType trackedEntityType =
-        validateTrackedEntityType(operationParams.getTrackedEntityTypeUid());
-    TrackedEntity trackedEntity = validateTrackedEntity(operationParams.getTrackedEntityUid());
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    User user = currentUserService.getCurrentUser();
-    Set<OrganisationUnit> orgUnits = validateOrgUnits(operationParams.getOrgUnitUids(), user);
-    validateOrgUnitMode(operationParams.getOrgUnitMode(), user, program);
+    Program program = paramsValidator.validateProgram(operationParams.getProgramUid(), currentUser);
+    TrackedEntityType trackedEntityType =
+        paramsValidator.validateTrackedEntityType(
+            operationParams.getTrackedEntityTypeUid(), currentUser);
+    TrackedEntity trackedEntity =
+        paramsValidator.validateTrackedEntity(operationParams.getTrackedEntityUid(), currentUser);
+
+    Set<OrganisationUnit> orgUnits =
+        paramsValidator.validateOrgUnits(operationParams.getOrgUnitUids(), currentUser);
+    validateOrgUnitMode(operationParams.getOrgUnitMode(), currentUser, program);
 
     EnrollmentQueryParams params = new EnrollmentQueryParams();
     params.setProgram(program);
@@ -89,75 +88,28 @@ class EnrollmentOperationParamsMapper {
     params.addOrganisationUnits(orgUnits);
     params.setOrganisationUnitMode(operationParams.getOrgUnitMode());
     params.setIncludeDeleted(operationParams.isIncludeDeleted());
-    params.setUser(user);
+    params.setUser(currentUser);
     params.setOrder(operationParams.getOrder());
     params.setEnrollmentUids(operationParams.getEnrollmentUids());
+
+    mergeOrgUnitModes(operationParams, currentUser, params);
 
     return params;
   }
 
-  private Program validateProgram(String uid) throws BadRequestException {
-    if (uid == null) {
-      return null;
+  /**
+   * Prepares the org unit modes to simplify the SQL query creation by merging similar behaviored
+   * org unit modes.
+   */
+  private void mergeOrgUnitModes(
+      EnrollmentOperationParams operationParams, User user, EnrollmentQueryParams queryParams) {
+    if (user != null && operationParams.getOrgUnitMode() == ACCESSIBLE) {
+      queryParams.addOrganisationUnits(
+          new HashSet<>(user.getTeiSearchOrganisationUnitsWithFallback()));
+      queryParams.setOrganisationUnitMode(DESCENDANTS);
+    } else if (user != null && operationParams.getOrgUnitMode() == CAPTURE) {
+      queryParams.addOrganisationUnits(new HashSet<>(user.getOrganisationUnits()));
+      queryParams.setOrganisationUnitMode(DESCENDANTS);
     }
-
-    Program program = programService.getProgram(uid);
-    if (program == null) {
-      throw new BadRequestException("Program is specified but does not exist: " + uid);
-    }
-
-    return program;
-  }
-
-  private TrackedEntityType validateTrackedEntityType(String uid) throws BadRequestException {
-    if (uid == null) {
-      return null;
-    }
-
-    TrackedEntityType trackedEntityType = trackedEntityTypeService.getTrackedEntityType(uid);
-    if (trackedEntityType == null) {
-      throw new BadRequestException("Tracked entity type is specified but does not exist: " + uid);
-    }
-
-    return trackedEntityType;
-  }
-
-  private TrackedEntity validateTrackedEntity(String uid) throws BadRequestException {
-    if (uid == null) {
-      return null;
-    }
-
-    TrackedEntity trackedEntity = trackedEntityService.getTrackedEntity(uid);
-    if (trackedEntity == null) {
-      throw new BadRequestException("Tracked entity is specified but does not exist: " + uid);
-    }
-
-    return trackedEntity;
-  }
-
-  private Set<OrganisationUnit> validateOrgUnits(Set<String> orgUnitUids, User user)
-      throws BadRequestException, ForbiddenException {
-
-    Set<OrganisationUnit> orgUnits = new HashSet<>();
-    if (orgUnitUids != null) {
-      for (String orgUnitUid : orgUnitUids) {
-        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(orgUnitUid);
-
-        if (orgUnit == null) {
-          throw new BadRequestException("Organisation unit does not exist: " + orgUnitUid);
-        }
-
-        if (user != null
-            && !user.isSuper()
-            && !organisationUnitService.isInUserHierarchy(
-                orgUnitUid, user.getTeiSearchOrganisationUnitsWithFallback())) {
-          throw new ForbiddenException(
-              "Organisation unit is not part of the search scope: " + orgUnitUid);
-        }
-        orgUnits.add(orgUnit);
-      }
-    }
-
-    return orgUnits;
   }
 }

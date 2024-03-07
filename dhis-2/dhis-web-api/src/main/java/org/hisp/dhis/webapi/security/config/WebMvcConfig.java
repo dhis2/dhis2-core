@@ -43,10 +43,8 @@ import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPathConverter;
 import org.hisp.dhis.node.DefaultNodeService;
 import org.hisp.dhis.node.NodeService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
-import org.hisp.dhis.webapi.mvc.CurrentUserInfoHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
@@ -70,6 +68,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.ResourceHttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConverter;
@@ -116,12 +115,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   @Autowired
   public CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;
 
-  @Autowired
-  public CurrentUserInfoHandlerMethodArgumentResolver currentUserInfoHandlerMethodArgumentResolver;
-
   @Autowired public DefaultRequestInfoService requestInfoService;
-
-  @Autowired private CurrentUserService currentUserService;
 
   @Autowired private UserSettingService userSettingService;
 
@@ -151,7 +145,6 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
     resolvers.add(dhisApiVersionHandlerMethodArgumentResolver());
     resolvers.add(currentUserHandlerMethodArgumentResolver);
-    resolvers.add(currentUserInfoHandlerMethodArgumentResolver);
   }
 
   @Bean
@@ -215,11 +208,11 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
 
     converters.add(mappingJackson2HttpMessageConverter());
     converters.add(mappingJackson2XmlHttpMessageConverter());
+    converters.add(new ResourceHttpMessageConverter());
   }
 
   @Override
   protected void addFormatters(FormatterRegistry registry) {
-    registry.addConverter(new StringToOrderCriteriaListConverter());
     registry.addConverter(new FieldPathConverter());
   }
 
@@ -248,7 +241,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
 
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
-    registry.addInterceptor(new UserContextInterceptor(currentUserService, userSettingService));
+    registry.addInterceptor(new UserContextInterceptor(userSettingService));
     registry.addInterceptor(new RequestInfoInterceptor(requestInfoService));
   }
 

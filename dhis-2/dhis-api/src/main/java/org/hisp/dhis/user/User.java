@@ -69,14 +69,13 @@ import org.springframework.core.ResolvableType;
 import org.springframework.lang.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.ClassUtils;
 
 /**
  * @author Nguyen Hong Duc
  */
 @JacksonXmlRootElement(localName = "user", namespace = DxfNamespaces.DXF_2_0)
-public class User extends BaseIdentifiableObject implements MetadataObject, UserDetails {
+public class User extends BaseIdentifiableObject implements MetadataObject {
   public static final int USERNAME_MAX_LENGTH = 255;
 
   /** Globally unique identifier for User. */
@@ -422,7 +421,6 @@ public class User extends BaseIdentifiableObject implements MetadataObject, User
     this.uuid = uuid;
   }
 
-  @Override
   @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @Property(value = PropertyType.PASSWORD, access = Property.Access.WRITE_ONLY)
@@ -518,7 +516,6 @@ public class User extends BaseIdentifiableObject implements MetadataObject, User
     this.previousPasswords = previousPasswords;
   }
 
-  @Override
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @Property(value = PropertyType.TEXT, required = Property.Value.FALSE)
@@ -635,7 +632,6 @@ public class User extends BaseIdentifiableObject implements MetadataObject, User
     this.settings = settings;
   }
 
-  @Override
   public Collection<GrantedAuthority> getAuthorities() {
     Collection<GrantedAuthority> grantedAuthorities = new ArrayList<>();
 
@@ -645,12 +641,10 @@ public class User extends BaseIdentifiableObject implements MetadataObject, User
     return grantedAuthorities;
   }
 
-  @Override
   public boolean isAccountNonExpired() {
     return accountExpiry == null || accountExpiry.after(new Date());
   }
 
-  @Override
   public boolean isAccountNonLocked() {
     return isAccountNonLocked;
   }
@@ -659,7 +653,6 @@ public class User extends BaseIdentifiableObject implements MetadataObject, User
     this.isAccountNonLocked = isAccountNonLocked;
   }
 
-  @Override
   public boolean isCredentialsNonExpired() {
     return isCredentialsNonExpired;
   }
@@ -668,7 +661,6 @@ public class User extends BaseIdentifiableObject implements MetadataObject, User
     this.isCredentialsNonExpired = isCredentialsNonExpired;
   }
 
-  @Override
   public boolean isEnabled() {
     return !isDisabled();
   }
@@ -1194,6 +1186,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject, User
   }
 
   public static String username(User user) {
+    // TODO: MAS get rid of this default value use of "system-process"
     return username(user, "system-process");
   }
 
@@ -1201,7 +1194,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject, User
     return user != null ? user.getUsername() : defaultValue;
   }
 
-  // TODO: To remove when we remove old UserCredentials compatibility layer
+  // TODO: MAS To remove when we remove old UserCredentials compatibility layer
   // This is a temporary fix to maintain backwards compatibility with the old
   // UserCredentials class. This method should not be used in new code!
   @JsonProperty

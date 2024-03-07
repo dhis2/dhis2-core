@@ -31,10 +31,11 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 
 public class CurrentUserUtil {
   private CurrentUserUtil() {
@@ -56,19 +57,11 @@ public class CurrentUserUtil {
 
     Object principal = authentication.getPrincipal();
 
-    // Principal being a string implies anonymous authentication
-    // This is the state before the user is authenticated.
-    if (principal instanceof String) {
-      if (!"anonymousUser".equals(principal)) {
-        return null;
-      }
-
-      return (String) principal;
-    }
-
-    if (principal instanceof UserDetails) {
-      UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+    if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
+      org.springframework.security.core.userdetails.UserDetails userDetails =
+          (org.springframework.security.core.userdetails.UserDetails) authentication.getPrincipal();
       return userDetails.getUsername();
+
     } else {
       throw new RuntimeException(
           "Authentication principal is not supported; principal:" + principal);
@@ -81,7 +74,7 @@ public class CurrentUserUtil {
    * @return CurrentUserDetails representing the authenticated user, or null if the user is
    *     unauthenticated
    */
-  public static CurrentUserDetails getCurrentUserDetails() {
+  public static UserDetails getCurrentUserDetails() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     if (authentication == null
         || !authentication.isAuthenticated()
@@ -91,14 +84,8 @@ public class CurrentUserUtil {
 
     Object principal = authentication.getPrincipal();
 
-    // Principal being a string implies anonymous authentication
-    // This is the state before the user is authenticated.
-    if (principal instanceof String) {
-      return null;
-    }
-
-    if (principal instanceof CurrentUserDetails) {
-      return (CurrentUserDetails) authentication.getPrincipal();
+    if (principal instanceof UserDetails) {
+      return (UserDetails) authentication.getPrincipal();
     } else {
       throw new RuntimeException(
           "Authentication principal is not supported; principal:" + principal);
@@ -112,7 +99,12 @@ public class CurrentUserUtil {
    * @return list of authority names
    */
   public static List<String> getCurrentUserAuthorities() {
-    CurrentUserDetails currentUserDetails = getCurrentUserDetails();
+
+    if (!CurrentUserUtil.hasCurrentUser()) {
+      return List.of();
+    }
+
+    UserDetails currentUserDetails = getCurrentUserDetails();
 
     if (currentUserDetails == null) {
       // Anonymous user has no authorities
@@ -120,8 +112,8 @@ public class CurrentUserUtil {
     }
 
     return currentUserDetails.getAuthorities().stream()
-        .map(auth -> auth.getAuthority())
-        .collect(Collectors.toList());
+        .map(GrantedAuthority::getAuthority)
+        .toList();
   }
 
   /**
@@ -136,34 +128,41 @@ public class CurrentUserUtil {
   }
 
   /**
-   * Check if the current user has the passed candidate authority
-   *
-   * @param candidateAuthority the authority to check for
-   * @return true if the user has the candidateAuthority
-   */
-  public static Boolean hasAuthority(String candidateAuthority) {
-    return hasAnyAuthority(List.of(candidateAuthority));
-  }
-
-  /**
    * Return the value of the user setting referred to by 'key'
    *
    * @param key the key of the user setting
    * @return the value of the user setting
    */
+  @Nullable
   @SuppressWarnings("unchecked")
   public static <T> T getUserSetting(UserSettingKey key) {
-    CurrentUserDetails currentUser = getCurrentUserDetails();
+    UserDetails currentUser = getCurrentUserDetails();
     if (currentUser == null) {
       return null;
     }
 
-    Map<String, Serializable> userSettings = currentUser.getUserSettings();
-    if (userSettings == null) {
-      return null;
+    return (T) currentUser.getUserSettings().get(key.getName());
+  }
+
+  /**
+   * Return the value of the user setting referred to by 'key'.
+   *
+   * @param defaultValue the default value to return if the setting value is null.
+   * @param key the key of the user setting
+   * @return the value of the user setting
+   */
+  @SuppressWarnings("unchecked")
+  public static <T> T getUserSetting(UserSettingKey key, @Nonnull T defaultValue) {
+    UserDetails currentUser = getCurrentUserDetails();
+    if (currentUser == null) {
+      return defaultValue;
     }
 
-    return (T) userSettings.get(key.getName());
+    Map<String, Serializable> userSettings = currentUser.getUserSettings();
+
+    Serializable setting = userSettings.get(key.getName());
+
+    return setting != null ? (T) setting : defaultValue;
   }
 
   /**
@@ -177,7 +176,7 @@ public class CurrentUserUtil {
   }
 
   private static void setUserSettingInternal(String key, Serializable value) {
-    CurrentUserDetails currentUser = getCurrentUserDetails();
+    UserDetails currentUser = getCurrentUserDetails();
     if (currentUser != null) {
       Map<String, Serializable> userSettings = currentUser.getUserSettings();
       if (userSettings != null) {
@@ -188,5 +187,13 @@ public class CurrentUserUtil {
         }
       }
     }
+  }
+
+  public static boolean hasCurrentUser() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    return authentication != null
+        && authentication.isAuthenticated()
+        && authentication.getPrincipal() != null
+        && !authentication.getPrincipal().equals("anonymousUser");
   }
 }

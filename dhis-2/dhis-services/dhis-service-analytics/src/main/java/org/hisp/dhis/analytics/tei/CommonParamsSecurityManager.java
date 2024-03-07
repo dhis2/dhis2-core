@@ -31,6 +31,10 @@ import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.DATA_ELEMENT;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.ORGANISATION_UNIT;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.ORGANISATION_UNIT_GROUP;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.ORGANISATION_UNIT_GROUP_SET;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.ORGANISATION_UNIT_LEVEL;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.PERIOD;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.PROGRAM_INDICATOR;
@@ -62,8 +66,9 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 
 /**
@@ -75,14 +80,22 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Slf4j
 public class CommonParamsSecurityManager {
-  private static final Collection<DimensionParamObjectType> SECURITY_CHECK_SKIP_TYPES =
-      List.of(PROGRAM_ATTRIBUTE, DATA_ELEMENT, PROGRAM_INDICATOR, PERIOD);
+  private static final List<DimensionParamObjectType> SECURITY_CHECK_SKIP_TYPES =
+      List.of(
+          PROGRAM_ATTRIBUTE,
+          DATA_ELEMENT,
+          PROGRAM_INDICATOR,
+          PERIOD,
+          ORGANISATION_UNIT,
+          ORGANISATION_UNIT_GROUP,
+          ORGANISATION_UNIT_GROUP_SET,
+          ORGANISATION_UNIT_LEVEL);
 
   private final AnalyticsSecurityManager securityManager;
 
-  private final CurrentUserService currentUserService;
-
   private final DimensionService dimensionService;
+
+  private final UserService userService;
 
   /**
    * Checks that the current user has access to the given {@link CommonParams}. It will check that
@@ -161,12 +174,13 @@ public class CommonParamsSecurityManager {
    * @param commonParams the {@link CommonParams}.
    */
   void applyOrganisationUnitConstraint(@Nonnull CommonParams commonParams) {
-    User user = currentUserService.getCurrentUser();
+
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     // ---------------------------------------------------------------------
     // Check if current user has data view organisation units
     // ---------------------------------------------------------------------
-    if (user == null || !user.hasDataViewOrganisationUnit()) {
+    if (currentUser == null || !currentUser.hasDataViewOrganisationUnit()) {
       return;
     }
 
@@ -188,7 +202,8 @@ public class CommonParamsSecurityManager {
             .filter(OrgUnitQueryBuilder::isOu)
             .collect(toList());
 
-    Set<OrganisationUnit> userDataViewOrganisationUnits = user.getDataViewOrganisationUnits();
+    Set<OrganisationUnit> userDataViewOrganisationUnits =
+        currentUser.getDataViewOrganisationUnits();
 
     for (DimensionIdentifier<DimensionParam> orgUnitDimension : orgUnitDimensions) {
       List<DimensionalItemObject> orgUnitItems =
@@ -204,9 +219,7 @@ public class CommonParamsSecurityManager {
       orgUnitItems.addAll(intersection);
     }
 
-    log.debug(
-        String.format(
-            "User: '%s' constrained by data view organisation units", user.getUsername()));
+    log.debug("User: '{}' constrained by data view organisation units", currentUser.getUsername());
   }
 
   /**
@@ -216,12 +229,12 @@ public class CommonParamsSecurityManager {
    * @param commonParams the {@link CommonParams}.
    */
   void applyDimensionConstraints(@Nonnull CommonParams commonParams) {
-    User user = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     // ---------------------------------------------------------------------
     // Check if current user has dimension constraints
     // ---------------------------------------------------------------------
-    if (user == null) {
+    if (currentUser == null) {
       return;
     }
 
@@ -233,15 +246,15 @@ public class CommonParamsSecurityManager {
             .collect(toList());
 
     // Categories the user is constrained to.
-    Collection<Category> categories =
-        currentUserService.currentUserIsSuper()
+    List<Category> categories =
+        currentUser.isSuper()
             ? List.of()
             : CategorySecurityUtils.getConstrainedCategories(
                 commonParams.getPrograms(), dimensionalObjects);
 
     // Union of user and category constraints.
     Set<DimensionalObject> dimensionConstraints =
-        Stream.concat(user.getDimensionConstraints().stream(), categories.stream())
+        Stream.concat(currentUser.getDimensionConstraints().stream(), categories.stream())
             .collect(toSet());
 
     if (dimensionConstraints.isEmpty()) // if no constraints
@@ -274,9 +287,9 @@ public class CommonParamsSecurityManager {
       dimension.getItems().addAll(canReadItems);
 
       log.debug(
-          String.format(
-              "User: '%s' constrained by dimension: '%s'",
-              user.getUsername(), dimension.getDimension()));
+          "User: '{}' constrained by dimension: '{}'",
+          currentUser.getUsername(),
+          dimension.getDimension());
     }
   }
 

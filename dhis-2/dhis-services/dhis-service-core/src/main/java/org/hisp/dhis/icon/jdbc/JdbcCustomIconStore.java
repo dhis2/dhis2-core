@@ -27,23 +27,30 @@
  */
 package org.hisp.dhis.icon.jdbc;
 
+import java.sql.Types;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.icon.CustomIcon;
 import org.hisp.dhis.icon.CustomIconStore;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.icon.IconOperationParams;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-@Slf4j
 @Repository("org.hisp.dhis.icon.CustomIconStore")
 @RequiredArgsConstructor
 public class JdbcCustomIconStore implements CustomIconStore {
   private final JdbcTemplate jdbcTemplate;
+  private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
   private static final RowMapper<CustomIcon> customIconRowMapper =
       (rs, rowNum) -> {
@@ -54,6 +61,8 @@ public class JdbcCustomIconStore implements CustomIconStore {
         customIcon.setKeywords((String[]) rs.getArray("keywords").getArray());
         customIcon.setFileResourceUid(rs.getString("fileresourceuid"));
         customIcon.setCreatedByUserUid(rs.getString("useruid"));
+        customIcon.setCreated(rs.getTimestamp("created"));
+        customIcon.setLastUpdated(rs.getTimestamp("lastupdated"));
 
         return customIcon;
       };
@@ -62,7 +71,8 @@ public class JdbcCustomIconStore implements CustomIconStore {
   public CustomIcon getIconByKey(String key) {
     final String sql =
         """
-            select c.key as iconkey, c.description as icondescription, c.keywords as keywords, f.uid as fileresourceuid, u.uid as useruid
+            select c.key as iconkey, c.description as icondescription, c.keywords as keywords, c.created as created, c.lastupdated as lastupdated,
+            f.uid as fileresourceuid, u.uid as useruid
             from customicon c join fileresource f on f.fileresourceid = c.fileresourceid
             join userinfo u on u.userinfoid = c.createdby
             where key = ?
@@ -74,28 +84,46 @@ public class JdbcCustomIconStore implements CustomIconStore {
   }
 
   @Override
-  public List<CustomIcon> getIconsByKeywords(String[] keywords) {
-    final String sql =
-        """
-            select c.key as iconkey, c.description as icondescription, c.keywords as keywords, f.uid as fileresourceuid, u.uid as useruid
-            from customicon c join fileresource f on f.fileresourceid = c.fileresourceid
-            join userinfo u on u.userinfoid = c.createdby
-            where keywords @> string_to_array(?,',')
-            """;
+  public Stream<CustomIcon> getIcons(IconOperationParams iconOperationParams) {
 
-    return jdbcTemplate.query(sql, customIconRowMapper, String.join(",", keywords));
+    String sql =
+        """
+                  select c.key as iconkey, c.description as icondescription, c.keywords as keywords, c.created as created, c.lastupdated as lastupdated,
+                  f.uid as fileresourceuid, u.uid as useruid
+                  from customicon c join fileresource f on f.fileresourceid = c.fileresourceid
+                  join userinfo u on u.userinfoid = c.createdby
+                  """;
+
+    MapSqlParameterSource parameterSource = new MapSqlParameterSource();
+
+    sql = buildIconQuery(iconOperationParams, sql, parameterSource);
+
+    if (iconOperationParams.isPaging()) {
+      sql =
+          getPaginatedQuery(
+              iconOperationParams.getPager().getPage(),
+              iconOperationParams.getPager().getPageSize(),
+              sql,
+              parameterSource);
+    }
+
+    return namedParameterJdbcTemplate.query(sql, parameterSource, customIconRowMapper).stream();
   }
 
   @Override
-  public List<CustomIcon> getAllIcons() {
-    final String sql =
-        """
-            select c.key as iconkey, c.description as icondescription, c.keywords as keywords, f.uid as fileresourceuid, u.uid as useruid
-            from customicon c join fileresource f on f.fileresourceid = c.fileresourceid
-            join userinfo u on u.userinfoid = c.createdby
-            """;
+  public long count(IconOperationParams iconOperationParams) {
 
-    return jdbcTemplate.query(sql, customIconRowMapper);
+    String sql = """
+     select count(*) from customicon c
+                      """;
+
+    MapSqlParameterSource parameterSource = new MapSqlParameterSource();
+
+    sql = buildIconQuery(iconOperationParams, sql, parameterSource);
+
+    return Optional.ofNullable(
+            namedParameterJdbcTemplate.queryForObject(sql, parameterSource, Long.class))
+        .orElse(0L);
   }
 
   @Override
@@ -106,14 +134,16 @@ public class JdbcCustomIconStore implements CustomIconStore {
   }
 
   @Override
-  public void save(CustomIcon customIcon, FileResource fileResource, User createdByUser) {
+  public void save(CustomIcon customIcon, FileResource fileResource, UserDetails createdByUser) {
     jdbcTemplate.update(
-        "INSERT INTO customicon (key, description, keywords, fileresourceid, createdby) VALUES (?, ?, ?, ?, ?)",
+        "INSERT INTO customicon (key, description, keywords, fileresourceid, createdby, created, lastupdated) VALUES (?, ?, ?, ?,?,?,?)",
         customIcon.getKey(),
         customIcon.getDescription(),
         customIcon.getKeywords(),
         fileResource.getId(),
-        createdByUser.getId());
+        createdByUser.getId(),
+        customIcon.getCreated(),
+        customIcon.getLastUpdated());
   }
 
   @Override
@@ -124,9 +154,73 @@ public class JdbcCustomIconStore implements CustomIconStore {
   @Override
   public void update(CustomIcon customIcon) {
     jdbcTemplate.update(
-        "update customicon set description = ?, keywords = ? where key = ?",
+        "update customicon set description = ?, keywords = ?, lastupdated = ? where key = ?",
         customIcon.getDescription(),
         customIcon.getKeywords(),
+        customIcon.getLastUpdated(),
         customIcon.getKey());
+  }
+
+  private String buildIconQuery(
+      IconOperationParams iconOperationParams, String sql, MapSqlParameterSource parameterSource) {
+    SqlHelper hlp = new SqlHelper(true);
+
+    if (iconOperationParams.hasLastUpdatedStartDate()) {
+      sql += hlp.whereAnd() + " c.lastupdated >= :lastUpdatedStartDate ";
+
+      parameterSource.addValue(
+          ":lastUpdatedStartDate", iconOperationParams.getLastUpdatedStartDate(), Types.TIMESTAMP);
+    }
+
+    if (iconOperationParams.hasLastUpdatedEndDate()) {
+      sql += hlp.whereAnd() + " c.lastupdated <= :lastUpdatedEndDate ";
+
+      parameterSource.addValue(
+          "lastUpdatedEndDate", iconOperationParams.getLastUpdatedEndDate(), Types.TIMESTAMP);
+    }
+
+    if (iconOperationParams.hasCreatedStartDate()) {
+      sql += hlp.whereAnd() + " c.created >= :createdStartDate";
+
+      parameterSource.addValue(
+          "createdStartDate", iconOperationParams.getCreatedStartDate(), Types.TIMESTAMP);
+    }
+
+    if (iconOperationParams.hasCreatedEndDate()) {
+      sql += hlp.whereAnd() + " c.created <= :createdEndDate ";
+
+      parameterSource.addValue(
+          "createdEndDate", iconOperationParams.getCreatedEndDate(), Types.TIMESTAMP);
+    }
+
+    if (iconOperationParams.hasKeywords()) {
+
+      sql += hlp.whereAnd() + " keywords @> string_to_array(:keywords,',') ";
+
+      parameterSource.addValue(
+          "keywords",
+          iconOperationParams.getKeywords().stream().collect(Collectors.joining(",", "", "")));
+    }
+
+    if (iconOperationParams.hasKeys()) {
+      sql += hlp.whereAnd() + " c.key IN (:keys )";
+
+      parameterSource.addValue("keys", iconOperationParams.getKeys());
+    }
+
+    return sql;
+  }
+
+  private String getPaginatedQuery(
+      int page, int pageSize, String sql, MapSqlParameterSource mapSqlParameterSource) {
+
+    sql = sql + " LIMIT :limit OFFSET :offset ";
+
+    int offset = (page - 1) * pageSize;
+
+    mapSqlParameterSource.addValue("limit", pageSize);
+    mapSqlParameterSource.addValue("offset", offset);
+
+    return sql;
   }
 }

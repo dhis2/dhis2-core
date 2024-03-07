@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dataset;
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.util.DateUtils.addDays;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -40,6 +41,7 @@ import com.google.common.collect.Sets;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.category.Category;
@@ -70,7 +72,7 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 
 /**
@@ -333,6 +335,10 @@ public class DataSet extends BaseDimensionalItemObject
     return indicator.getDataSets().remove(this);
   }
 
+  public void removeIndicators(List<Indicator> indicators) {
+    indicators.forEach(this::removeIndicator);
+  }
+
   public void addCompulsoryDataElementOperand(DataElementOperand dataElementOperand) {
     compulsoryDataElementOperands.add(dataElementOperand);
   }
@@ -351,7 +357,7 @@ public class DataSet extends BaseDimensionalItemObject
   }
 
   public boolean hasSections() {
-    return sections != null && sections.size() > 0;
+    return isNotEmpty(sections);
   }
 
   /**
@@ -443,7 +449,7 @@ public class DataSet extends BaseDimensionalItemObject
    * @param period the period to compare with.
    * @param now the date indicating now, uses current date if null.
    */
-  public boolean isLocked(User user, Period period, Date now) {
+  public boolean isLocked(UserDetails user, Period period, Date now) {
     if (expiryDays == DataSet.NO_EXPIRY
         || user != null && user.isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
       return false;

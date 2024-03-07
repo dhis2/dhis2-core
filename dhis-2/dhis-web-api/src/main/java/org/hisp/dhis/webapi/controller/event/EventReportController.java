@@ -49,6 +49,7 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.schema.descriptors.EventReportSchemaDescriptor;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -128,7 +129,7 @@ public class EventReportController extends AbstractCrudController<EventReport> {
       EventReport report, WebOptions options, Map<String, String> parameters) {
     report.populateAnalyticalProperties();
 
-    User currentUser = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     if (currentUser != null) {
       Set<OrganisationUnit> roots = currentUser.getDataViewOrganisationUnitsWithFallback();

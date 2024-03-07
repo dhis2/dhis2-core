@@ -48,7 +48,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.userdatastore.UserDatastoreEntry;
@@ -75,8 +75,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @AllArgsConstructor
 public class UserDatastoreController extends AbstractDatastoreController {
 
-  private final UserDatastoreService userDatastoreService;
-  private final CurrentUserService currentUserService;
+  private final UserDatastoreService service;
   private final UserService userService;
 
   /**
@@ -88,7 +87,7 @@ public class UserDatastoreController extends AbstractDatastoreController {
       @RequestParam(required = false) String username, HttpServletResponse response) {
     setNoStore(response);
 
-    return userDatastoreService.getNamespacesByUser(getUser(username));
+    return service.getNamespacesByUser(getUser(username));
   }
 
   /**
@@ -120,9 +119,9 @@ public class UserDatastoreController extends AbstractDatastoreController {
 
     setNoStore(response);
 
-    List<String> keys = userDatastoreService.getKeysByUserAndNamespace(user, namespace);
+    List<String> keys = service.getKeysByUserAndNamespace(user, namespace);
 
-    if (keys.isEmpty() && !userDatastoreService.isUsedNamespace(user, namespace)) {
+    if (keys.isEmpty() && !service.isUsedNamespace(user, namespace)) {
       throw new NotFoundException(String.format("Namespace not found: '%s'", namespace));
     }
 
@@ -140,7 +139,7 @@ public class UserDatastoreController extends AbstractDatastoreController {
       HttpServletResponse response)
       throws IOException, ConflictException {
     DatastoreQuery query =
-        userDatastoreService.plan(
+        service.plan(
             DatastoreQuery.builder()
                 .namespace(namespace)
                 .fields(parseFields(fields))
@@ -150,8 +149,7 @@ public class UserDatastoreController extends AbstractDatastoreController {
 
     User user = getUser(username);
 
-    writeEntries(
-        response, query, (q, entries) -> userDatastoreService.getEntries(user, q, entries::test));
+    writeEntries(response, query, (q, entries) -> service.getEntries(user, q, entries::test));
   }
 
   /** Deletes all keys with the given user and namespace. */
@@ -161,11 +159,11 @@ public class UserDatastoreController extends AbstractDatastoreController {
       @PathVariable String namespace, @RequestParam(required = false) String username)
       throws NotFoundException {
     User user = getUser(username);
-    if (!userDatastoreService.isUsedNamespace(user, namespace)) {
+    if (!service.isUsedNamespace(user, namespace)) {
       throw new NotFoundException(String.format("Namespace not found: '%s'", namespace));
     }
 
-    userDatastoreService.deleteNamespace(user, namespace);
+    service.deleteNamespace(user, namespace);
 
     return ok(String.format("Namespace deleted: '%s'", namespace));
   }
@@ -208,7 +206,7 @@ public class UserDatastoreController extends AbstractDatastoreController {
     entry.setValue(value);
     entry.setEncrypted(encrypt);
 
-    userDatastoreService.addEntry(entry);
+    service.addEntry(entry);
 
     return created("Key '" + key + "' in namespace '" + namespace + "' created.");
   }
@@ -233,16 +231,17 @@ public class UserDatastoreController extends AbstractDatastoreController {
       @PathVariable String namespace,
       @PathVariable String key,
       @RequestParam(required = false) String username,
-      @RequestBody String value,
+      @RequestBody(required = false) String value,
+      @RequestParam(required = false) String path,
+      @RequestParam(required = false) Integer roll,
       @RequestParam(defaultValue = "false") boolean encrypt)
       throws BadRequestException, ConflictException {
+    UserDatastoreEntry userEntry = service.getUserEntry(getUser(username), namespace, key);
 
-    UserDatastoreEntry userEntry =
-        userDatastoreService.getUserEntry(getUser(username), namespace, key);
+    if (userEntry == null) return addEntry(namespace, key, username, value, encrypt);
 
-    return userEntry != null
-        ? updateEntry(userEntry, key, value)
-        : addEntry(namespace, key, username, value, encrypt);
+    service.updateEntry(namespace, key, value, path, roll);
+    return ok(String.format("Key updated: '%s'", key));
   }
 
   /** Delete a key. */
@@ -254,14 +253,14 @@ public class UserDatastoreController extends AbstractDatastoreController {
       @RequestParam(required = false) String username)
       throws NotFoundException {
     UserDatastoreEntry entry = getExistingEntry(username, namespace, key);
-    userDatastoreService.deleteEntry(entry);
+    service.deleteEntry(entry);
 
     return ok("Key '" + key + "' deleted from the namespace '" + namespace + "'.");
   }
 
   private UserDatastoreEntry getExistingEntry(String username, String namespace, String key)
       throws NotFoundException {
-    UserDatastoreEntry entry = userDatastoreService.getUserEntry(getUser(username), namespace, key);
+    UserDatastoreEntry entry = service.getUserEntry(getUser(username), namespace, key);
     if (entry == null) {
       throw new NotFoundException(
           String.format("Key '%s' not found in namespace '%s'", key, namespace));
@@ -271,26 +270,21 @@ public class UserDatastoreController extends AbstractDatastoreController {
 
   @Nonnull
   private User getUser(String username) {
-    User currentUser = currentUserService.getCurrentUser();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
     if (username == null || username.isBlank()) {
       return currentUser;
     }
+
     if (!currentUser.isSuper()) {
       throw new IllegalQueryException(
           "Only superusers can read or write other users data using the `username` parameter.");
     }
+
     User user = userService.getUserByUsername(username);
     if (user == null) {
       throw new IllegalQueryException("No user with username " + username + " exists.");
     }
     return user;
-  }
-
-  private WebMessage updateEntry(UserDatastoreEntry entry, String key, String value)
-      throws BadRequestException {
-    entry.setValue(value);
-    userDatastoreService.updateEntry(entry);
-
-    return ok(String.format("Key updated: '%s'", key));
   }
 }

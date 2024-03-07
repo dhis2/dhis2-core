@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.analytics.common.processing;
 
+import static java.util.Arrays.stream;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.unmodifiableList;
 import static org.hisp.dhis.analytics.EventOutputType.TRACKED_ENTITY_INSTANCE;
-import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.isStaticDimensionIdentifier;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.DATE_FILTERS;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.DIMENSIONS;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.FILTERS;
@@ -43,12 +43,13 @@ import static org.hisp.dhis.common.EventDataQueryRequest.ExtendedEventDataQueryR
 import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.feedback.ErrorCode.E7129;
 import static org.hisp.dhis.feedback.ErrorCode.E7250;
+import static org.hisp.dhis.feedback.ErrorCode.E7251;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Streams;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -56,9 +57,12 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.analytics.common.params.AnalyticsPagingParams;
@@ -66,19 +70,22 @@ import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.CommonParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParamType;
 import org.hisp.dhis.analytics.common.params.dimension.StringUid;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
+import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.springframework.stereotype.Component;
 
 /**
@@ -103,7 +110,7 @@ public class CommonQueryRequestMapper {
    * @param request the input {@CommonQueryRequest}.
    * @return the {@link CommonParams}.
    */
-  public CommonParams map(CommonQueryRequest request) {
+  public CommonParams map(CommonQueryRequest request, CommonQueryRequest originalRequest) {
     List<OrganisationUnit> userOrgUnits =
         dataQueryService.getUserOrgUnits(null, request.getUserOrgUnit());
     List<Program> programs = getPrograms(request);
@@ -144,6 +151,7 @@ public class CommonQueryRequestMapper {
         .orderParams(getSortingParams(request, programs, userOrgUnits))
         .headers(getHeaders(request))
         .dimensionIdentifiers(retrieveDimensionParams(request, programs, userOrgUnits))
+        .parsedHeaders(parseHeaders(request, programs, userOrgUnits))
         .skipMeta(request.isSkipMeta())
         .includeMetadataDetails(request.isIncludeMetadataDetails())
         .hierarchyMeta(request.isHierarchyMeta())
@@ -151,7 +159,16 @@ public class CommonQueryRequestMapper {
         .userOrgUnit(userOrgUnits)
         .coordinatesOnly(request.isCoordinatesOnly())
         .geometryOnly(request.isGeometryOnly())
+        .originalRequest(originalRequest)
         .build();
+  }
+
+  private Set<DimensionIdentifier<DimensionParam>> parseHeaders(
+      CommonQueryRequest request, List<Program> programs, List<OrganisationUnit> userOrgUnits) {
+
+    return HEADERS.getUidsGetter().apply(request).stream()
+        .map(header -> toDimensionIdentifier(header, HEADERS, request, programs, userOrgUnits))
+        .collect(Collectors.toSet());
   }
 
   /**
@@ -272,7 +289,7 @@ public class CommonQueryRequestMapper {
 
   /**
    * Returns a {@link List} of {@link DimensionIdentifier} built from given arguments, params and
-   * filter, assigning the same (random) groupId to all dimensionIdentifier.
+   * filter, assigning a groupId to all dimensionIdentifier.
    *
    * @param dimensions the {@link List} of dimensions.
    * @param dimensionParamType the {@link DimensionParamType}.
@@ -288,15 +305,30 @@ public class CommonQueryRequestMapper {
       CommonQueryRequest queryRequest,
       List<Program> programs,
       List<OrganisationUnit> userOrgUnits) {
-    String groupId = UUID.randomUUID().toString();
-
     return dimensions.stream()
         .map(
             dimensionAsString ->
                 toDimensionIdentifier(
                     dimensionAsString, dimensionParamType, queryRequest, programs, userOrgUnits))
-        .map(dimensionIdentifier -> dimensionIdentifier.withGroupId(groupId))
+        .map(this::withGroupId)
         .toList();
+  }
+
+  /**
+   * Assigns a groupId to the given {@link DimensionIdentifier}. If the dimension is static or
+   * period, it will assign a default groupId (the full dimensionIdentifier). Otherwise, it will
+   * assign a random UUID as groupId.
+   *
+   * @param dimensionIdentifier the {@link DimensionIdentifier}.
+   * @return the {@link DimensionIdentifier} with a groupId.
+   */
+  private DimensionIdentifier<DimensionParam> withGroupId(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+    if (dimensionIdentifier.getDimension().isStaticDimension()
+        || dimensionIdentifier.getDimension().isPeriodDimension()) {
+      return dimensionIdentifier.withDefaultGroupId();
+    }
+    return dimensionIdentifier.withGroupId(UUID.randomUUID().toString());
   }
 
   /**
@@ -306,7 +338,7 @@ public class CommonQueryRequestMapper {
    * @return the {@link List} of String.
    */
   private static List<String> splitOnOrIfNecessary(String dimensionAsString) {
-    return Arrays.stream(DIMENSION_OR_SEPARATOR.split(dimensionAsString)).toList();
+    return stream(DIMENSION_OR_SEPARATOR.split(dimensionAsString)).toList();
   }
 
   /**
@@ -358,19 +390,22 @@ public class CommonQueryRequestMapper {
 
     // We first parse the dimensionId into <Program, ProgramStage, String>
     // to be able to operate on the string version (uid) of the dimension.
-    DimensionIdentifier<StringUid> dimensionIdentifier =
+    DimensionIdentifier<StringUid> stringDimensionIdentifier =
         dimensionIdentifierConverter.fromString(programs, dimensionId);
     List<String> items = getDimensionItemsFromParam(dimensionOrFilter);
 
+    Optional<StaticDimension> staticDimension =
+        StaticDimension.of(stringDimensionIdentifier.getDimension().getUid());
+
     // Then we check if it's a static dimension.
-    if (isStaticDimensionIdentifier(dimensionIdentifier.getDimension().getUid())) {
-      return parseAsStaticDimension(dimensionParamType, dimensionIdentifier, items);
+    if (staticDimension.isPresent()) {
+      return parseAsStaticDimension(dimensionParamType, stringDimensionIdentifier, items);
     }
 
     // Then we check if it's a DimensionalObject.
     DimensionalObject dimensionalObject =
         dataQueryService.getDimension(
-            dimensionIdentifier.getDimension().getUid(),
+            stringDimensionIdentifier.getDimension().getUid(),
             items,
             relativePeriodDate,
             userOrgUnits,
@@ -382,16 +417,18 @@ public class CommonQueryRequestMapper {
       DimensionParam dimensionParam =
           DimensionParam.ofObject(dimensionalObject, dimensionParamType, items);
       return DimensionIdentifier.of(
-          dimensionIdentifier.getProgram(), dimensionIdentifier.getProgramStage(), dimensionParam);
+          stringDimensionIdentifier.getProgram(),
+          stringDimensionIdentifier.getProgramStage(),
+          dimensionParam);
     }
 
     QueryItem queryItem;
 
-    if (!dimensionIdentifier.hasProgram() && !dimensionIdentifier.hasProgramStage()) {
+    if (!stringDimensionIdentifier.hasProgram() && !stringDimensionIdentifier.hasProgramStage()) {
       // If we reach here, it should be a trackedEntityAttribute.
       queryItem =
           eventDataQueryService.getQueryItem(
-              dimensionIdentifier.getDimension().getUid(), null, TRACKED_ENTITY_INSTANCE);
+              stringDimensionIdentifier.getDimension().getUid(), null, TRACKED_ENTITY_INSTANCE);
 
       if (Objects.isNull(queryItem)) {
         throw new IllegalQueryException(E7250, dimensionId);
@@ -403,8 +440,8 @@ public class CommonQueryRequestMapper {
       // (both program and program stage prefixes)
       queryItem =
           eventDataQueryService.getQueryItem(
-              dimensionIdentifier.getDimension().getUid(),
-              dimensionIdentifier.getProgram().getElement(),
+              stringDimensionIdentifier.getDimension().getUid(),
+              stringDimensionIdentifier.getProgram().getElement(),
               TRACKED_ENTITY_INSTANCE);
 
       // TEA should only be specified without program prefix
@@ -413,10 +450,80 @@ public class CommonQueryRequestMapper {
       }
     }
 
-    return DimensionIdentifier.of(
-        dimensionIdentifier.getProgram(),
-        dimensionIdentifier.getProgramStage(),
-        DimensionParam.ofObject(queryItem, dimensionParamType, items));
+    // for queryItems, dimension string is in the format:
+    // uid:OP:VAL1:OP2:VAL2:OPn:VALn
+    DimensionIdentifier<DimensionParam> dimensionIdentifier =
+        DimensionIdentifier.of(
+            stringDimensionIdentifier.getProgram(),
+            stringDimensionIdentifier.getProgramStage(),
+            DimensionParam.ofObject(
+                queryItem, dimensionParamType, parseDimensionItems(dimensionOrFilter)));
+
+    /* DHIS2-16732 missing support for ProgramIndicators*/
+    if (SqlQueryBuilders.isOfType(
+        dimensionIdentifier, DimensionParamObjectType.PROGRAM_INDICATOR)) {
+      throw new IllegalQueryException(E7251, stringDimensionIdentifier.toString());
+    }
+
+    return dimensionIdentifier;
+  }
+
+  /**
+   * Parses the dimension items from the given dimension or filter into a {@link List} of String.
+   * The format of the dimension or filter is: uid:OP:VAL1:OP2:VAL2:...:OPn:VALn The method will
+   * skip the first element (the uid) and then return a list of all the remaining pairs of operator
+   * and value. (example ["OP:VAL1", "OP2:VAL2", ..., "OPn:VALn"])
+   *
+   * @param dimensionOrFilter the dimension string.
+   * @return the {@link List} of parsed dimension items.
+   */
+  private List<String> parseDimensionItems(String dimensionOrFilter) {
+    if (Objects.isNull(dimensionOrFilter) || !dimensionOrFilter.contains(":")) {
+      return Collections.emptyList();
+    }
+    return toPairs(
+            stream(dimensionOrFilter.split(":"))
+                .skip(1) // Skip the dimensionId
+                .map(String::trim)
+                .filter(StringUtils::isNotBlank))
+        .map(CommonQueryRequestMapper::toItem)
+        .toList();
+  }
+
+  /**
+   * Returns a string representation of the given pair by joining the left and right elements with a
+   * colon.
+   *
+   * @param pair the pair.
+   * @return the string representation.
+   */
+  private static String toItem(Pair<String, String> pair) {
+    return Stream.of(pair.getLeft(), pair.getRight())
+        .filter(Objects::nonNull)
+        .collect(Collectors.joining(":"));
+  }
+
+  /**
+   * Returns a {@link Stream} of pairs of elements from the given stream, where each pair is
+   * composed of the current element and the next element. Example of input: [1, 2, 3, 4, 5] Example
+   * of output: [(1, 2), (3, 4), (5, null)]
+   *
+   * @param stream the input stream.
+   * @return the {@link Stream} of pairs.
+   * @param <T> the type of the elements in the stream.
+   */
+  private <T> Stream<Pair<T, T>> toPairs(final Stream<T> stream) {
+    final AtomicInteger counter = new AtomicInteger(0);
+    return stream
+        .collect(
+            Collectors.groupingBy(
+                item -> {
+                  final int i = counter.getAndIncrement();
+                  return (i % 2 == 0) ? i : i - 1;
+                }))
+        .values()
+        .stream()
+        .map(a -> Pair.of(a.get(0), (a.size() == 2 ? a.get(1) : null)));
   }
 
   private static DimensionIdentifier<DimensionParam> parseAsStaticDimension(

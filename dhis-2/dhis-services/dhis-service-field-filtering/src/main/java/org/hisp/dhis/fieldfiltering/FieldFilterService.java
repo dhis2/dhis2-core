@@ -63,8 +63,9 @@ import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -86,8 +87,6 @@ public class FieldFilterService {
 
   private final AclService aclService;
 
-  private final CurrentUserService currentUserService;
-
   private final UserGroupService userGroupService;
 
   private final UserService userService;
@@ -99,7 +98,6 @@ public class FieldFilterService {
       ObjectMapper jsonMapper,
       SchemaService schemaService,
       AclService aclService,
-      CurrentUserService currentUserService,
       UserGroupService userGroupService,
       UserService userService,
       AttributeService attributeService) {
@@ -107,7 +105,6 @@ public class FieldFilterService {
     this.jsonMapper = configureFieldFilterObjectMapper(jsonMapper);
     this.schemaService = schemaService;
     this.aclService = aclService;
-    this.currentUserService = currentUserService;
     this.userGroupService = userGroupService;
     this.userService = userService;
     this.attributeService = attributeService;
@@ -218,8 +215,12 @@ public class FieldFilterService {
       User user,
       boolean isSkipSharing,
       Consumer<ObjectNode> consumer) {
+
+    UserDetails currentUserDetails = null;
     if (user == null) {
-      user = currentUserService.getCurrentUser();
+      currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    } else {
+      currentUserDetails = UserDetails.fromUser(user);
     }
 
     // In case we get a proxied object in we can't just use o.getClass(), we
@@ -237,7 +238,7 @@ public class FieldFilterService {
     Map<String, List<FieldTransformer>> fieldTransformers = getTransformers(paths);
 
     for (Object object : objects) {
-      applyAccess(object, paths, isSkipSharing, user);
+      applyAccess(object, paths, isSkipSharing, currentUserDetails);
       applySharingDisplayNames(object, paths, isSkipSharing);
       applyAttributeValuesAttribute(object, paths, isSkipSharing);
 
@@ -471,7 +472,7 @@ public class FieldFilterService {
   }
 
   private void applyAccess(
-      Object object, List<FieldPath> fieldPaths, boolean isSkipSharing, User user) {
+      Object object, List<FieldPath> fieldPaths, boolean isSkipSharing, UserDetails userDetails) {
     applyFieldPathVisitor(
         object,
         fieldPaths,
@@ -479,7 +480,8 @@ public class FieldFilterService {
         s -> s.equals("access") || s.endsWith(".access"),
         o -> {
           if (o instanceof BaseIdentifiableObject identifiableObject) {
-            identifiableObject.setAccess(aclService.getAccess(((IdentifiableObject) o), user));
+            identifiableObject.setAccess(
+                aclService.getAccess(((IdentifiableObject) o), userDetails));
           }
         });
   }

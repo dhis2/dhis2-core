@@ -30,27 +30,22 @@ package org.hisp.dhis.analytics.event.data;
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.commons.lang3.time.DateUtils.addYears;
+import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
+import static org.hisp.dhis.analytics.AnalyticsConstants.DATE_PERIOD_STRUCT_ALIAS;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LONGITUDE;
+import static org.hisp.dhis.analytics.common.ColumnHeader.LATITUDE;
+import static org.hisp.dhis.analytics.common.ColumnHeader.LONGITUDE;
 import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_GEOMETRY_COL_SUFFIX;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.encode;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getCoalesce;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAliasCommaSeparate;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.hisp.dhis.feedback.ErrorCode.E7132;
 import static org.hisp.dhis.feedback.ErrorCode.E7133;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 import static org.postgresql.util.PSQLState.DIVISION_BY_ZERO;
 
 import com.google.common.collect.ImmutableList;
@@ -87,6 +82,7 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -118,9 +114,14 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       ProgramIndicatorService programIndicatorService,
       ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
       EventTimeFieldSqlRenderer timeFieldSqlRenderer,
-      ExecutionPlanStore executionPlanStore) {
+      ExecutionPlanStore executionPlanStore,
+      SqlBuilder sqlBuilder) {
     super(
-        jdbcTemplate, programIndicatorService, programIndicatorSubqueryBuilder, executionPlanStore);
+        jdbcTemplate,
+        programIndicatorService,
+        programIndicatorSubqueryBuilder,
+        executionPlanStore,
+        sqlBuilder);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
   }
 
@@ -169,7 +170,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       int index = 1;
 
       for (GridHeader header : grid.getHeaders()) {
-        if (ITEM_LONGITUDE.equals(header.getName()) || ITEM_LATITUDE.equals(header.getName())) {
+        if (LONGITUDE.getItem().equals(header.getName())
+            || LATITUDE.getItem().equals(header.getName())) {
           double val = rowSet.getDouble(index);
           grid.addValue(Precision.round(val, COORD_DEC));
         } else {
@@ -372,7 +374,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     if (params.hasTimeField()) {
       String joinCol = quoteAlias(params.getTimeFieldAsField());
       sql +=
-          "left join _dateperiodstructure as "
+          "left join analytics_rs_dateperiodstructure as "
               + DATE_PERIOD_STRUCT_ALIAS
               + " on cast("
               + joinCol
@@ -427,7 +429,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
               + " "
               + orgUnitCol
               + OPEN_IN
-              + getQuotedCommaDelimitedString(
+              + sqlBuilder.singleQuotedCommaDelimited(
                   getUids(params.getDimensionOrFilterItems(ORGUNIT_DIM_ID)))
               + ") ";
     } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CHILDREN)) {
@@ -438,7 +440,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
               + " "
               + orgUnitCol
               + OPEN_IN
-              + getQuotedCommaDelimitedString(getUids(params.getOrganisationUnitChildren()))
+              + sqlBuilder.singleQuotedCommaDelimited(getUids(params.getOrganisationUnitChildren()))
               + ") ";
     } else // Descendants
     {
@@ -467,7 +469,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
               + " "
               + col
               + OPEN_IN
-              + getQuotedCommaDelimitedString(getUids(dim.getItems()))
+              + sqlBuilder.singleQuotedCommaDelimited(getUids(dim.getItems()))
               + ") ";
     }
 
@@ -483,7 +485,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
                 + " "
                 + col
                 + OPEN_IN
-                + getQuotedCommaDelimitedString(getUids(dim.getItems()))
+                + sqlBuilder.singleQuotedCommaDelimited(getUids(dim.getItems()))
                 + ") ";
       }
     }
@@ -545,7 +547,9 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       sql +=
           hlp.whereAnd()
               + " pistatus in ("
-              + params.getProgramStatus().stream().map(p -> encode(p.name())).collect(joining(","))
+              + params.getProgramStatus().stream()
+                  .map(p -> singleQuote(p.name()))
+                  .collect(joining(","))
               + ") ";
     }
 
@@ -553,7 +557,9 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       sql +=
           hlp.whereAnd()
               + " psistatus in ("
-              + params.getEventStatus().stream().map(e -> encode(e.name())).collect(joining(","))
+              + params.getEventStatus().stream()
+                  .map(e -> singleQuote(e.name()))
+                  .collect(joining(","))
               + ") ";
     }
 
@@ -596,7 +602,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
               + " "
               + quoteAlias("yearly")
               + OPEN_IN
-              + TextUtils.getQuotedCommaDelimitedString(params.getPartitions().getPartitions())
+              + TextUtils.getQuotedCommaDelimitedString(
+                  params.getPartitions().getPartitionsAsString())
               + ") ";
     }
 
@@ -677,12 +684,12 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       timeTest =
           timeCol
               + " >= '"
-              + getMediumDateString(earliest)
+              + toMediumDate(earliest)
               + "' "
               + "and "
               + timeCol
               + " <= '"
-              + getMediumDateString(latest)
+              + toMediumDate(latest)
               + "'";
 
       nullTest = " and " + valueItem + " is not null";
@@ -732,7 +739,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     if (params.isAnyAggregationType(AggregationType.FIRST, AggregationType.LAST)) {
       return getFirstOrLastValuePartitionByColumns(params.getNonPeriodDimensions());
     } else {
-      return "partition by " + quoteAliasCommaSeparate(List.of("ou", "ao"));
+      return "partition by " + quoteAliasCommaDelimited(List.of("ou", "ao"));
     }
   }
 

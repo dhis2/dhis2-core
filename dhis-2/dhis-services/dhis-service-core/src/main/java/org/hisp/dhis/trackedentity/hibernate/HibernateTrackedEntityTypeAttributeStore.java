@@ -33,13 +33,11 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttributeStore;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -52,17 +50,9 @@ public class HibernateTrackedEntityTypeAttributeStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
-      AclService aclService,
-      StatementBuilder statementBuilder) {
+      AclService aclService) {
     super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        TrackedEntityTypeAttribute.class,
-        currentUserService,
-        aclService,
-        true);
+        entityManager, jdbcTemplate, publisher, TrackedEntityTypeAttribute.class, aclService, true);
   }
 
   @Override

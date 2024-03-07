@@ -27,12 +27,11 @@
  */
 package org.hisp.dhis.dxf2.synch;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.datavalue.DataValueService;
@@ -55,8 +54,8 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.CodecUtils;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RequestCallback;
@@ -67,52 +66,16 @@ import org.springframework.web.client.RestTemplate;
  */
 @Slf4j
 @Component("org.hisp.dhis.dxf2.synch.SynchronizationManager")
+@RequiredArgsConstructor
 public class DefaultSynchronizationManager implements SynchronizationManager {
   private static final String HEADER_AUTHORIZATION = "Authorization";
-
   private final DataValueSetService dataValueSetService;
-
   private final DataValueService dataValueService;
-
   private final MetadataImportService importService;
-
   private final SchemaService schemaService;
-
-  private final CurrentUserService currentUserService;
-
   private final SystemSettingManager systemSettingManager;
-
   private final RestTemplate restTemplate;
-
   private final ObjectMapper jsonMapper;
-
-  public DefaultSynchronizationManager(
-      DataValueSetService dataValueSetService,
-      DataValueService dataValueService,
-      MetadataImportService importService,
-      SchemaService schemaService,
-      CurrentUserService currentUserService,
-      SystemSettingManager systemSettingManager,
-      RestTemplate restTemplate,
-      ObjectMapper jsonMapper) {
-    checkNotNull(dataValueSetService);
-    checkNotNull(dataValueService);
-    checkNotNull(importService);
-    checkNotNull(schemaService);
-    checkNotNull(currentUserService);
-    checkNotNull(systemSettingManager);
-    checkNotNull(restTemplate);
-    checkNotNull(jsonMapper);
-
-    this.dataValueSetService = dataValueSetService;
-    this.dataValueService = dataValueService;
-    this.importService = importService;
-    this.schemaService = schemaService;
-    this.currentUserService = currentUserService;
-    this.systemSettingManager = systemSettingManager;
-    this.restTemplate = restTemplate;
-    this.jsonMapper = jsonMapper;
-  }
 
   // -------------------------------------------------------------------------
   // SynchronizationManager implementation
@@ -225,9 +188,8 @@ public class DefaultSynchronizationManager implements SynchronizationManager {
 
   @Override
   public ImportReport executeMetadataPull(String url) {
-    User user = currentUserService.getCurrentUser();
-
-    String userUid = user != null ? user.getUid() : null;
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    String userUid = currentUserDetails != null ? currentUserDetails.getUid() : null;
 
     log.info(String.format("Metadata pull, url: %s, user: %s", url, userUid));
 

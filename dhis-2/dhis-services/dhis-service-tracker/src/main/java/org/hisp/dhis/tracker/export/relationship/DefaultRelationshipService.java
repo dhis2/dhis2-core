@@ -42,8 +42,9 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,7 +53,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DefaultRelationshipService implements RelationshipService {
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   private final TrackerAccessManager trackerAccessManager;
 
@@ -85,8 +86,8 @@ public class DefaultRelationshipService implements RelationshipService {
       throw new NotFoundException(Relationship.class, uid);
     }
 
-    User user = currentUserService.getCurrentUser();
-    List<String> errors = trackerAccessManager.canRead(user, relationship);
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    List<String> errors = trackerAccessManager.canRead(currentUser, relationship);
     if (!errors.isEmpty()) {
       throw new ForbiddenException(errors.toString());
     }
@@ -96,68 +97,68 @@ public class DefaultRelationshipService implements RelationshipService {
 
   public List<Relationship> getRelationshipsByTrackedEntity(
       TrackedEntity trackedEntity, RelationshipQueryParams queryParams) {
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     List<Relationship> relationships =
         relationshipStore.getByTrackedEntity(trackedEntity, queryParams).stream()
-            .filter(
-                r -> trackerAccessManager.canRead(currentUserService.getCurrentUser(), r).isEmpty())
+            .filter(r -> trackerAccessManager.canRead(currentUser, r).isEmpty())
             .toList();
     return map(relationships);
   }
 
   public Page<Relationship> getRelationshipsByTrackedEntity(
       TrackedEntity trackedEntity, RelationshipQueryParams queryParams, PageParams pageParams) {
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     Page<Relationship> relationshipPage =
         relationshipStore.getByTrackedEntity(trackedEntity, queryParams, pageParams);
     List<Relationship> relationships =
         relationshipPage.getItems().stream()
-            .filter(
-                r -> trackerAccessManager.canRead(currentUserService.getCurrentUser(), r).isEmpty())
+            .filter(r -> trackerAccessManager.canRead(currentUser, r).isEmpty())
             .toList();
-    return Page.of(map(relationships), relationshipPage.getPager());
+    return relationshipPage.withItems(map(relationships));
   }
 
   public List<Relationship> getRelationshipsByEnrollment(
       Enrollment enrollment, RelationshipQueryParams queryParams) {
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     List<Relationship> relationships =
         relationshipStore.getByEnrollment(enrollment, queryParams).stream()
-            .filter(
-                r -> trackerAccessManager.canRead(currentUserService.getCurrentUser(), r).isEmpty())
+            .filter(r -> trackerAccessManager.canRead(currentUser, r).isEmpty())
             .toList();
     return map(relationships);
   }
 
   public Page<Relationship> getRelationshipsByEnrollment(
       Enrollment enrollment, RelationshipQueryParams queryParams, PageParams pageParams) {
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     Page<Relationship> relationshipPage =
         relationshipStore.getByEnrollment(enrollment, queryParams, pageParams);
     List<Relationship> relationships =
         relationshipPage.getItems().stream()
-            .filter(
-                r -> trackerAccessManager.canRead(currentUserService.getCurrentUser(), r).isEmpty())
+            .filter(r -> trackerAccessManager.canRead(currentUser, r).isEmpty())
             .toList();
-    return Page.of(map(relationships), relationshipPage.getPager());
+    return relationshipPage.withItems(map(relationships));
   }
 
   public List<Relationship> getRelationshipsByEvent(
       Event event, RelationshipQueryParams queryParams) {
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     List<Relationship> relationships =
         relationshipStore.getByEvent(event, queryParams).stream()
-            .filter(
-                r -> trackerAccessManager.canRead(currentUserService.getCurrentUser(), r).isEmpty())
+            .filter(r -> trackerAccessManager.canRead(currentUser, r).isEmpty())
             .toList();
     return map(relationships);
   }
 
   public Page<Relationship> getRelationshipsByEvent(
       Event event, RelationshipQueryParams queryParams, PageParams pageParams) {
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     Page<Relationship> relationshipPage =
         relationshipStore.getByEvent(event, queryParams, pageParams);
     List<Relationship> relationships =
         relationshipPage.getItems().stream()
-            .filter(
-                r -> trackerAccessManager.canRead(currentUserService.getCurrentUser(), r).isEmpty())
+            .filter(r -> trackerAccessManager.canRead(currentUser, r).isEmpty())
             .toList();
-    return Page.of(map(relationships), relationshipPage.getPager());
+    return relationshipPage.withItems(map(relationships));
   }
 
   private List<Relationship> getRelationships(RelationshipQueryParams queryParams) {
@@ -209,6 +210,7 @@ public class DefaultRelationshipService implements RelationshipService {
     result.setCreatedBy(relationship.getCreatedBy());
     result.setLastUpdated(relationship.getLastUpdated());
     result.setLastUpdatedBy(relationship.getLastUpdatedBy());
+    result.setDeleted(relationship.isDeleted());
     RelationshipType type = new RelationshipType();
     type.setUid(relationship.getRelationshipType().getUid());
     result.setRelationshipType(relationship.getRelationshipType());

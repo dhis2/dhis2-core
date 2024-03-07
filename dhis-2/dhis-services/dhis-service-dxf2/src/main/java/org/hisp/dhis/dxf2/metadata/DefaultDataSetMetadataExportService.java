@@ -31,7 +31,7 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.sortById;
 import static org.hisp.dhis.commons.collection.CollectionUtils.addIfNotNull;
 import static org.hisp.dhis.commons.collection.CollectionUtils.flatMapToSet;
 import static org.hisp.dhis.commons.collection.CollectionUtils.mapToSet;
-import static org.hisp.dhis.commons.collection.ListUtils.union;
+import static org.hisp.dhis.commons.collection.ListUtils.distinctUnion;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -57,6 +57,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
@@ -69,8 +70,9 @@ import org.hisp.dhis.schema.descriptors.DataElementSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.DataSetSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.IndicatorSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.OptionSetSchemaDescriptor;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
@@ -83,6 +85,7 @@ public class DefaultDataSetMetadataExportService implements DataSetMetadataExpor
   private static final List<Class<? extends IdentifiableObject>> METADATA_TYPES =
       List.of(
           DataSet.class,
+          Section.class,
           DataElement.class,
           Indicator.class,
           CategoryCombo.class,
@@ -99,7 +102,7 @@ public class DefaultDataSetMetadataExportService implements DataSetMetadataExpor
           + "dataInputPeriods[period,openingDate,closingDate],"
           + "indicators~pluck[id],"
           + "compulsoryDataElementOperands[dataElement[id],categoryOptionCombo[id]],"
-          + "sections[:simple,dataElements~pluck[id],indicators~pluck[id],"
+          + "sections[:simple,displayOptions,dataElements~pluck[id],indicators~pluck[id],"
           + "greyedFields[dataElement[id],categoryOptionCombo[id]]]";
 
   private static final String FIELDS_DATA_SET_ELEMENTS = "dataElement[id],categoryCombo[id]";
@@ -133,12 +136,11 @@ public class DefaultDataSetMetadataExportService implements DataSetMetadataExpor
 
   private final ExpressionService expressionService;
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   @Override
   public ObjectNode getDataSetMetadata() {
-    User user = currentUserService.getCurrentUser();
-    CategoryCombo defaultCategoryCombo = categoryService.getDefaultCategoryCombo();
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     SetValuedMap<String, String> dataSetOrgUnits =
         dataSetService.getDataSetOrganisationUnitsAssociations();
 
@@ -153,12 +155,13 @@ public class DefaultDataSetMetadataExportService implements DataSetMetadataExpor
         sortById(flatMapToSet(dataElementCategoryCombos, CategoryCombo::getCategories));
     List<Category> dataSetCategories =
         sortById(flatMapToSet(dataSetCategoryCombos, CategoryCombo::getCategories));
-    List<Category> categories = union(dataElementCategories, dataSetCategories);
+    List<Category> categories = distinctUnion(dataElementCategories, dataSetCategories);
     List<CategoryOption> categoryOptions =
-        sortById(getCategoryOptions(dataElementCategories, dataSetCategories, user));
+        sortById(getCategoryOptions(dataElementCategories, dataSetCategories, currentUserDetails));
     List<OptionSet> optionSets = sortById(getOptionSets(dataElements));
 
-    dataSetCategoryCombos.remove(defaultCategoryCombo);
+    dataSetCategoryCombos.removeAll(dataElementCategoryCombos);
+
     expressionService.substituteIndicatorExpressions(indicators);
 
     ObjectNode rootNode = fieldFilterService.createObjectNode();
@@ -214,10 +217,10 @@ public class DefaultDataSetMetadataExportService implements DataSetMetadataExpor
   private Set<CategoryOption> getCategoryOptions(
       Collection<Category> dataElementCategories,
       Collection<Category> dataSetCategories,
-      User user) {
+      UserDetails userDetails) {
     Set<CategoryOption> options = flatMapToSet(dataElementCategories, Category::getCategoryOptions);
     dataSetCategories.forEach(
-        c -> options.addAll(categoryService.getDataWriteCategoryOptions(c, user)));
+        c -> options.addAll(categoryService.getDataWriteCategoryOptions(c, userDetails)));
     return options;
   }
 

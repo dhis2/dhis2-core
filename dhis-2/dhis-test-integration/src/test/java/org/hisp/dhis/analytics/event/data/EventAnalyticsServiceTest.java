@@ -48,6 +48,7 @@ import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.hisp.dhis.common.ValueType.INTEGER;
+import static org.hisp.dhis.common.ValueType.MULTI_TEXT;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.period.PeriodType.getPeriodTypeByName;
@@ -91,10 +92,16 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.RequestTypeAware;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.EventStore;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionService;
+import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.option.OptionStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -142,6 +149,10 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
   @Autowired private DataElementService dataElementService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
+
+  @Autowired private OptionStore optionStore;
+
+  @Autowired private OptionService optionService;
 
   @Autowired private AnalyticsTableGenerator analyticsTableGenerator;
 
@@ -215,6 +226,8 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
   private DataElement deB;
 
+  private DataElement deM;
+
   private DataElement deU;
 
   private TrackedEntityAttribute atU;
@@ -232,7 +245,22 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
   // -------------------------------------------------------------------------
 
   @Override
-  public void setUpTest() throws IOException, InterruptedException {
+  public void tearDownTest() {
+    for (AnalyticsTableService service : analyticsTableServices) {
+      service.dropTables();
+    }
+  }
+
+  @BeforeEach
+  public void beforeEach() {
+    // Reset the security context for each test.
+    clearSecurityContext();
+
+    reLoginAdminUser();
+  }
+
+  @Override
+  public void setUpTest() throws IOException, InterruptedException, ConflictException {
     userService = _userService;
 
     // Organisation Units
@@ -276,8 +304,11 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
     // Organisation Unit Levels
     OrganisationUnitLevel ou1 = new OrganisationUnitLevel(1, "Ou Level 1");
+    ou1.getSharing().setPublicAccess("--------");
     OrganisationUnitLevel ou2 = new OrganisationUnitLevel(2, "Ou Level 2");
+    ou2.getSharing().setPublicAccess("--------");
     OrganisationUnitLevel ou3 = new OrganisationUnitLevel(3, "Ou Level 3");
+    ou3.getSharing().setPublicAccess("--------");
     idObjectManager.save(ou1);
     idObjectManager.save(ou2);
     idObjectManager.save(ou3);
@@ -327,6 +358,19 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     Date feb15Noon = new GregorianCalendar(2017, FEBRUARY, 15, 12, 0).getTime();
     Date mar15 = new GregorianCalendar(2017, MARCH, 15).getTime();
 
+    // Options and option Sets
+    Option oAbc = createOption("abc");
+    Option oDef = createOption("def");
+    Option oGhi = createOption("ghi");
+    Option oJkl = createOption("jkl");
+
+    OptionSet osA = createOptionSet('A', oAbc, oDef, oGhi, oJkl);
+    osA.setValueType(ValueType.MULTI_TEXT);
+
+    osA.getOptions().forEach(optionStore::save);
+
+    optionService.saveOptionSet(osA);
+
     // Data Elements
     deA = createDataElement('A', INTEGER, SUM);
     deA.setUid("deInteger0A");
@@ -335,6 +379,11 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     deB = createDataElement('B', TEXT, NONE);
     deB.setUid("deText0000B");
     dataElementService.addDataElement(deB);
+
+    deM = createDataElement('M', MULTI_TEXT, NONE);
+    deM.setUid("deMultTextM");
+    deM.setOptionSet(osA);
+    dataElementService.addDataElement(deM);
 
     deU = createDataElement('U', ORGANISATION_UNIT, NONE);
     deU.setUid("deOrgUnit0U");
@@ -351,6 +400,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     psB.setUid("progrStageB");
     psB.addDataElement(deA, 1);
     psB.addDataElement(deB, 2);
+    psB.addDataElement(deM, 3);
     idObjectManager.save(psB);
 
     // Programs
@@ -506,10 +556,17 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         Set.of(new EventDataValue(deA.getUid(), "80"), new EventDataValue(deB.getUid(), "H")));
     eventB8.setAttributeOptionCombo(cocDefault);
 
+    Event eventM1 = createEvent(psB, piB, ouI);
+    eventM1.setScheduledDate(jan15);
+    eventM1.setOccurredDate(jan15);
+    eventM1.setUid("event0000M1");
+    eventM1.setEventDataValues(Set.of(new EventDataValue(deM.getUid(), "abc,def,ghi,jkl")));
+    eventM1.setAttributeOptionCombo(cocDefault);
+
     saveEvents(
         List.of(
             eventA1, eventA2, eventA3, eventB1, eventB2, eventB3, eventB4, eventB5, eventB6,
-            eventB7, eventB8));
+            eventB7, eventB8, eventM1));
 
     // Users
     userA = createUserWithAuth("A", "F_VIEW_EVENT_ANALYTICS");
@@ -554,19 +611,6 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     programOwnershipHistoryService.addProgramOwnershipHistory(poh);
   }
 
-  @Override
-  public void tearDownTest() {
-    for (AnalyticsTableService service : analyticsTableServices) {
-      service.dropTables();
-    }
-  }
-
-  @BeforeEach
-  public void beforeEach() {
-    // Reset the security context for each test.
-    clearSecurityContext();
-  }
-
   // -------------------------------------------------------------------------
   // Test dimension restrictions
   // -------------------------------------------------------------------------
@@ -589,7 +633,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     categoryService.updateCategory(caB);
 
     // The user is active
-    injectSecurityContext(userA);
+    injectSecurityContextUser(userA);
 
     // All events in 2017
     EventQueryParams events_2017_params =
@@ -606,10 +650,14 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
   @Test
   void testDimensionRestrictionWhenUserCannotReadCategoryOptions() {
+    reLoginAdminUser();
+
     // Given
     // The category options are not readable by the user
     coA.getSharing().setOwner("cannotRead");
+    coA.getSharing().setPublicAccess("--------");
     coB.getSharing().setOwner("cannotRead");
+    coB.getSharing().setPublicAccess("--------");
     removeUserAccess(coA);
     removeUserAccess(coB);
     categoryService.updateCategoryOption(coA);
@@ -617,12 +665,14 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
     // The category is not readable by the user
     caA.getSharing().setOwner("cannotRead");
+    coA.getSharing().setPublicAccess("--------");
     caB.getSharing().setOwner("cannotRead");
+    caB.getSharing().setPublicAccess("--------");
     categoryService.updateCategory(caA);
     categoryService.updateCategory(caB);
 
     // The user is active
-    injectSecurityContext(userA);
+    injectSecurityContextUser(userA);
 
     // All events in 2017
     EventQueryParams events_2017_params =
@@ -638,6 +688,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         assertThrows(
             IllegalQueryException.class,
             () -> eventTarget.getAggregatedEventData(events_2017_params));
+
     assertThat(
         exception.getMessage(),
         containsString(
@@ -1246,6 +1297,76 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   // -------------------------------------------------------------------------
+  // Test program indicators with contains()
+  // -------------------------------------------------------------------------
+
+  @Test
+  void testProgramIndicatorContains() {
+    assertGridContains(
+        // Headers
+        List.of("pe", "ou", "value"),
+        // Grid
+        List.of(List.of("201701", "ouabcdefghA", "1.0"), List.of("201701", "ouabcdefghI", "1.0")),
+        getTestAggregatedGrid("if(contains(#{progrStageB.deMultTextM},'abc','ghi'),1,2)"));
+
+    assertGridContains(
+        // Headers
+        List.of("pe", "ou", "value"),
+        // Grid
+        List.of(List.of("201701", "ouabcdefghA", "2.0"), List.of("201701", "ouabcdefghI", "2.0")),
+        getTestAggregatedGrid("if(contains(#{progrStageB.deMultTextM},'xyz'),1,2)"));
+
+    assertGridContains(
+        // Headers
+        List.of("pe", "ou", "value"),
+        // Grid
+        List.of(List.of("201701", "ouabcdefghA", "1.0"), List.of("201701", "ouabcdefghI", "1.0")),
+        getTestAggregatedGrid("if(contains(#{progrStageB.deMultTextM},'ab'),1,2)"));
+
+    assertGridContains(
+        // Headers
+        List.of("pe", "ou", "value"),
+        // Grid
+        List.of(List.of("201701", "ouabcdefghA", "1.0"), List.of("201701", "ouabcdefghI", "1.0")),
+        getTestAggregatedGrid("if(contains(#{progrStageB.deMultTextM},'c,d'),1,2)"));
+  }
+
+  // -------------------------------------------------------------------------
+  // Test program indicators with containsItems()
+  // -------------------------------------------------------------------------
+
+  @Test
+  void testProgramIndicatorContainsItems() {
+    assertGridContains(
+        // Headers
+        List.of("pe", "ou", "value"),
+        // Grid
+        List.of(List.of("201701", "ouabcdefghA", "1.0"), List.of("201701", "ouabcdefghI", "1.0")),
+        getTestAggregatedGrid("if(containsItems(#{progrStageB.deMultTextM},'abc','ghi'),1,2)"));
+
+    assertGridContains(
+        // Headers
+        List.of("pe", "ou", "value"),
+        // Grid
+        List.of(List.of("201701", "ouabcdefghA", "2.0"), List.of("201701", "ouabcdefghI", "2.0")),
+        getTestAggregatedGrid("if(containsItems(#{progrStageB.deMultTextM},'xyz'),1,2)"));
+
+    assertGridContains(
+        // Headers
+        List.of("pe", "ou", "value"),
+        // Grid
+        List.of(List.of("201701", "ouabcdefghA", "2.0"), List.of("201701", "ouabcdefghI", "2.0")),
+        getTestAggregatedGrid("if(containsItems(#{progrStageB.deMultTextM},'ab'),1,2)"));
+
+    assertGridContains(
+        // Headers
+        List.of("pe", "ou", "value"),
+        // Grid
+        List.of(List.of("201701", "ouabcdefghA", "2.0"), List.of("201701", "ouabcdefghI", "2.0")),
+        getTestAggregatedGrid("if(containsItems(#{progrStageB.deMultTextM},'c,d'),1,2)"));
+  }
+
+  // -------------------------------------------------------------------------
   // Supportive test methods
   // -------------------------------------------------------------------------
 
@@ -1289,12 +1410,17 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         .addDimension(periodDimension);
   }
 
-  /** Gets a grid to test aggregation types */
+  /** Gets a grid for a PI specifying expression */
+  private Grid getTestAggregatedGrid(String expression) {
+    return getTestAggregatedGrid(expression, SUM);
+  }
+
+  /** Gets a grid for a PI specifying aggregation type */
   private Grid getTestAggregatedGrid(AggregationType aggregationType) {
     return getTestAggregatedGrid("#{progrStageB.deInteger0A}", aggregationType);
   }
 
-  /** Gets a grid to test aggregation types with a custom expression */
+  /** Gets a grid for a PI specifying expression and aggregation type */
   private Grid getTestAggregatedGrid(String expression, AggregationType aggregationType) {
     ProgramIndicator pi = createProgramIndicatorB(EVENT, expression, null, aggregationType);
 

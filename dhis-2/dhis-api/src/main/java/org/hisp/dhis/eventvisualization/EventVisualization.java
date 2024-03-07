@@ -28,8 +28,6 @@
 package org.hisp.dhis.eventvisualization;
 
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.StringUtils.containsAny;
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.hisp.dhis.common.AnalyticsType.EVENT;
 import static org.hisp.dhis.common.DimensionalObjectUtils.TITLE_ITEM_SEP;
@@ -56,6 +54,7 @@ import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.analytics.EventDataType;
 import org.hisp.dhis.analytics.EventOutputType;
+import org.hisp.dhis.analytics.Sorting;
 import org.hisp.dhis.common.AnalyticsType;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -120,6 +119,9 @@ public class EventVisualization extends BaseAnalyticalObject
 
   /** Dimensions to crosstabulate / use as columns. */
   private List<String> columnDimensions = new ArrayList<>();
+
+  /** Programs used in dimensions (columns, rows, filters) */
+  private List<Program> programDimensions = new ArrayList<>();
 
   /** Dimensions to use as rows. */
   private List<String> rowDimensions = new ArrayList<>();
@@ -410,22 +412,6 @@ public class EventVisualization extends BaseAnalyticalObject
     return object != null ? object.getItems() : null;
   }
 
-  /** Validates the state of the current list of {@link Sorting} objects (if one is defined). */
-  public void validateSortingState() {
-    List<String> columns = getColumnDimensions();
-    List<Sorting> sortingList = getSorting();
-
-    sortingList.forEach(
-        s -> {
-          if (isBlank(s.getDimension()) || s.getDirection() == null) {
-            throw new IllegalArgumentException("Sorting is not valid");
-          } else if (columns.stream()
-              .noneMatch(c -> containsAny(s.getDimension(), c.split("\\.")))) {
-            throw new IllegalStateException(s.getDimension());
-          }
-        });
-  }
-
   public boolean isMultiProgram() {
     return trackedEntityType != null;
   }
@@ -506,6 +492,17 @@ public class EventVisualization extends BaseAnalyticalObject
 
   public void setColumnDimensions(List<String> columnDimensions) {
     this.columnDimensions = columnDimensions;
+  }
+
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "programDimensions", namespace = DXF_2_0)
+  @JacksonXmlProperty(localName = "programDimension", namespace = DXF_2_0)
+  public List<Program> getProgramDimensions() {
+    return programDimensions;
+  }
+
+  public void setProgramDimensions(List<Program> programDimensions) {
+    this.programDimensions = programDimensions;
   }
 
   @JsonProperty

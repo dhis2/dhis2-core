@@ -36,7 +36,6 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -53,17 +52,9 @@ public class HibernatePredictorStore extends HibernateIdentifiableObjectStore<Pr
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService,
       PeriodService periodService) {
-    super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        Predictor.class,
-        currentUserService,
-        aclService,
-        false);
+    super(entityManager, jdbcTemplate, publisher, Predictor.class, aclService, false);
 
     checkNotNull(periodService);
 

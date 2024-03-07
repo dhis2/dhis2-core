@@ -43,9 +43,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.configuration.ConfigurationService;
@@ -79,16 +79,16 @@ import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.descriptors.MessageConversationSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.hisp.dhis.webapi.webdomain.MessageConversation;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -112,36 +112,27 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @OpenApi.Tags("messaging")
 @Controller
 @RequestMapping(value = MessageConversationSchemaDescriptor.API_ENDPOINT)
+@RequiredArgsConstructor
 public class MessageConversationController
     extends AbstractCrudController<org.hisp.dhis.message.MessageConversation> {
-  @Autowired private MessageService messageService;
-
-  @Autowired private OrganisationUnitService organisationUnitService;
-
-  @Autowired private UserService userService;
-
-  @Autowired private UserGroupService userGroupService;
-
-  @Autowired private ConfigurationService configurationService;
-
-  @Autowired private FileResourceUtils fileResourceUtils;
-
-  @Autowired private FileResourceService fileResourceService;
-
-  @Autowired private DhisConfigurationProvider dhisConfig;
+  private final MessageService messageService;
+  private final OrganisationUnitService organisationUnitService;
+  private final UserGroupService userGroupService;
+  private final ConfigurationService configurationService;
+  private final FileResourceUtils fileResourceUtils;
+  private final FileResourceService fileResourceService;
+  private final DhisConfigurationProvider dhisConfig;
 
   @Override
   protected void postProcessResponseEntity(
       org.hisp.dhis.message.MessageConversation entity,
       WebOptions options,
       Map<String, String> parameters) {
-    User currentUser = currentUserService.getCurrentUser();
 
-    if (!messageService.hasAccessToManageFeedbackMessages(currentUser)) {
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    if (!messageService.hasAccessToManageFeedbackMessages(UserDetails.fromUser(currentUser))) {
       entity.setMessages(
-          entity.getMessages().stream()
-              .filter(message -> !message.isInternal())
-              .collect(Collectors.toList()));
+          entity.getMessages().stream().filter(message -> !message.isInternal()).toList());
     }
 
     boolean markRead = Boolean.parseBoolean(parameters.get("markRead"));
@@ -156,7 +147,7 @@ public class MessageConversationController
   public ResponseEntity<?> getObject(
       @PathVariable String uid,
       Map<String, String> rpParameters,
-      @CurrentUser User currentUser,
+      @CurrentUser UserDetails currentUser,
       HttpServletRequest request,
       HttpServletResponse response)
       throws ForbiddenException, NotFoundException {
@@ -369,7 +360,7 @@ public class MessageConversationController
       @RequestBody String message,
       @RequestParam(value = "internal", defaultValue = "false") boolean internal,
       @RequestParam(value = "attachments", required = false) Set<String> attachments,
-      @CurrentUser User currentUser,
+      @CurrentUser UserDetails currentUser,
       HttpServletRequest request) {
     String metaData =
         MessageService.META_USER_AGENT + request.getHeader(ContextUtils.HEADER_USER_AGENT);
@@ -421,7 +412,7 @@ public class MessageConversationController
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void addRecipientsToMessageConversation(
       @PathVariable("uid") String uid, @RequestBody MessageConversation messageConversation)
-      throws Exception {
+      throws WebMessageException, ConflictException, NotFoundException {
     org.hisp.dhis.message.MessageConversation conversation =
         messageService.getMessageConversation(uid);
 
@@ -470,7 +461,7 @@ public class MessageConversationController
   public @ResponseBody RootNode setMessagePriority(
       @PathVariable String uid,
       @RequestParam MessageConversationPriority messageConversationPriority,
-      @CurrentUser User currentUser,
+      @CurrentUser UserDetails currentUser,
       HttpServletResponse response) {
     RootNode responseNode = new RootNode("response");
 
@@ -511,7 +502,7 @@ public class MessageConversationController
   public @ResponseBody RootNode setMessageStatus(
       @PathVariable String uid,
       @RequestParam MessageConversationStatus messageConversationStatus,
-      @CurrentUser User currentUser,
+      @CurrentUser UserDetails currentUser,
       HttpServletResponse response) {
     RootNode responseNode = new RootNode("response");
 
@@ -552,7 +543,7 @@ public class MessageConversationController
   public @ResponseBody RootNode setUserAssigned(
       @PathVariable String uid,
       @RequestParam(required = false) String userId,
-      @CurrentUser User currentUser,
+      @CurrentUser UserDetails currentUser,
       HttpServletResponse response) {
     RootNode responseNode = new RootNode("response");
 
@@ -580,7 +571,8 @@ public class MessageConversationController
     }
 
     if (messageConversation.getMessageType() == MessageType.TICKET
-        && !configurationService.isUserInFeedbackRecipientUserGroup(userToAssign)) {
+        && !configurationService.isUserInFeedbackRecipientUserGroup(
+            UserDetails.fromUser(userToAssign))) {
       response.setStatus(HttpServletResponse.SC_CONFLICT);
       responseNode.addChild(
           new SimpleNode(
@@ -605,7 +597,9 @@ public class MessageConversationController
       value = "/{uid}/assign",
       produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   public @ResponseBody RootNode removeUserAssigned(
-      @PathVariable String uid, @CurrentUser User currentUser, HttpServletResponse response) {
+      @PathVariable String uid,
+      @CurrentUser UserDetails currentUser,
+      HttpServletResponse response) {
     RootNode responseNode = new RootNode("response");
 
     if (!canModifyUserConversation(currentUser, currentUser)
@@ -642,7 +636,7 @@ public class MessageConversationController
       @PathVariable String uid,
       @RequestParam(required = false) String userUid,
       HttpServletResponse response,
-      @CurrentUser User currentUser) {
+      @CurrentUser UserDetails currentUser) {
     return modifyMessageConversationRead(
         userUid, Lists.newArrayList(uid), response, true, currentUser);
   }
@@ -654,7 +648,7 @@ public class MessageConversationController
       @RequestParam(value = "user", required = false) String userUid,
       @RequestBody List<String> uids,
       HttpServletResponse response,
-      @CurrentUser User currentUser) {
+      @CurrentUser UserDetails currentUser) {
     return modifyMessageConversationRead(userUid, uids, response, true, currentUser);
   }
 
@@ -669,7 +663,7 @@ public class MessageConversationController
       @PathVariable String uid,
       @RequestParam(required = false) String userUid,
       HttpServletResponse response,
-      @CurrentUser User currentUser) {
+      @CurrentUser UserDetails currentUser) {
     return modifyMessageConversationRead(
         userUid, Lists.newArrayList(uid), response, false, currentUser);
   }
@@ -681,7 +675,7 @@ public class MessageConversationController
       @RequestParam(value = "user", required = false) String userUid,
       @RequestBody List<String> uids,
       HttpServletResponse response,
-      @CurrentUser User currentUser) {
+      @CurrentUser UserDetails currentUser) {
     return modifyMessageConversationRead(userUid, uids, response, false, currentUser);
   }
 
@@ -696,10 +690,13 @@ public class MessageConversationController
       @RequestParam(value = "user", required = false) String userUid,
       @RequestBody List<String> uids,
       HttpServletResponse response,
-      @CurrentUser User currentUser) {
+      @CurrentUser UserDetails currentUser) {
     RootNode responseNode = new RootNode("response");
 
-    User user = userUid != null ? userService.getUser(userUid) : currentUser;
+    User user =
+        userUid != null
+            ? userService.getUser(userUid)
+            : userService.getUserByUsername(currentUser.getUsername());
 
     if (user == null) {
       response.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -707,7 +704,7 @@ public class MessageConversationController
       return responseNode;
     }
 
-    if (!canModifyUserConversation(currentUser, user)) {
+    if (!canModifyUserConversation(currentUser, UserDetails.fromUser(user))) {
       throw new UpdateAccessDeniedException("Not authorized to modify this object.");
     }
 
@@ -748,10 +745,13 @@ public class MessageConversationController
       @RequestParam(value = "user", required = false) String userUid,
       @RequestBody List<String> uids,
       HttpServletResponse response,
-      @CurrentUser User currentUser) {
+      @CurrentUser UserDetails currentUser) {
     RootNode responseNode = new RootNode("response");
 
-    User user = userUid != null ? userService.getUser(userUid) : currentUser;
+    User user =
+        userUid != null
+            ? userService.getUser(userUid)
+            : userService.getUserByUsername(currentUser.getUsername());
 
     if (user == null) {
       response.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -759,7 +759,7 @@ public class MessageConversationController
       return responseNode;
     }
 
-    if (!canModifyUserConversation(currentUser, user)) {
+    if (!canModifyUserConversation(currentUser, UserDetails.fromUser(user))) {
       throw new UpdateAccessDeniedException("Not authorized to modify this object.");
     }
 
@@ -803,7 +803,7 @@ public class MessageConversationController
   @PreAuthorize("hasRole('ALL') or hasRole('F_METADATA_IMPORT')")
   public WebMessage deleteObject(
       @PathVariable String uid,
-      @CurrentUser User currentUser,
+      @CurrentUser UserDetails currentUser,
       HttpServletRequest request,
       HttpServletResponse response)
       throws ForbiddenException,
@@ -824,7 +824,7 @@ public class MessageConversationController
   public @ResponseBody RootNode removeUserFromMessageConversation(
       @PathVariable(value = "mc-uid") String mcUid,
       @PathVariable(value = "user-uid") String userUid,
-      @CurrentUser User currentUser,
+      @CurrentUser UserDetails currentUser,
       HttpServletResponse response)
       throws DeleteAccessDeniedException {
     RootNode responseNode = new RootNode("reply");
@@ -837,7 +837,7 @@ public class MessageConversationController
       return responseNode;
     }
 
-    if (!canModifyUserConversation(currentUser, user)) {
+    if (!canModifyUserConversation(currentUser, UserDetails.fromUser(user))) {
 
       throw new DeleteAccessDeniedException("Not authorized to modify user: " + user.getUid());
     }
@@ -872,11 +872,14 @@ public class MessageConversationController
       @RequestParam("mc") List<String> mcUids,
       @RequestParam(value = "user", required = false) String userUid,
       HttpServletResponse response,
-      @CurrentUser User currentUser)
+      @CurrentUser UserDetails currentUser)
       throws DeleteAccessDeniedException {
     RootNode responseNode = new RootNode("response");
 
-    User user = userUid == null ? currentUser : userService.getUser(userUid);
+    User user =
+        userUid != null
+            ? userService.getUser(userUid)
+            : userService.getUserByUsername(currentUser.getUsername());
 
     if (user == null) {
       response.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -884,7 +887,7 @@ public class MessageConversationController
       return responseNode;
     }
 
-    if (!canModifyUserConversation(currentUser, user)) {
+    if (!canModifyUserConversation(currentUser, UserDetails.fromUser(user))) {
       throw new DeleteAccessDeniedException("Not authorized to modify user: " + user.getUid());
     }
 
@@ -917,9 +920,10 @@ public class MessageConversationController
       @PathVariable(value = "mcUid") String mcUid,
       @PathVariable(value = "msgUid") String msgUid,
       @PathVariable(value = "fileUid") String fileUid,
-      @CurrentUser User currentUser,
+      @CurrentUser UserDetails currentUser,
       HttpServletResponse response)
       throws WebMessageException {
+
     Message message = getMessage(mcUid, msgUid, currentUser);
 
     FileResource fr = fileResourceService.getFileResource(fileUid);
@@ -968,20 +972,22 @@ public class MessageConversationController
    * @return true if the current user is allowed to remove the user from a conversation, false
    *     otherwise.
    */
-  private boolean canModifyUserConversation(User currentUser, User user) {
+  private boolean canModifyUserConversation(UserDetails currentUser, UserDetails user) {
     return currentUser.equals(user) || currentUser.isSuper();
   }
 
   /**
    * Determines whether the given user has permission to read the MessageConversation.
    *
-   * @param user the user to check permission for.
+   * @param userDetails the user to check permission for.
    * @param messageConversation the MessageConversation to access.
    * @return true if the user can read the MessageConversation, false otherwise.
    */
   private boolean canReadMessageConversation(
-      User user, org.hisp.dhis.message.MessageConversation messageConversation) {
-    return messageConversation.getUsers().contains(user) || user.isSuper();
+      UserDetails userDetails, org.hisp.dhis.message.MessageConversation messageConversation) {
+    Set<User> users = messageConversation.getUsers();
+    List<String> list = users.stream().map(User::getUsername).toList();
+    return list.contains(userDetails.getUsername()) || userDetails.isSuper();
   }
 
   /**
@@ -994,10 +1000,13 @@ public class MessageConversationController
       List<String> uids,
       HttpServletResponse response,
       boolean readValue,
-      User currentUser) {
+      UserDetails currentUser) {
     RootNode responseNode = new RootNode("response");
 
-    User user = userUid != null ? userService.getUser(userUid) : currentUser;
+    User user =
+        userUid != null
+            ? userService.getUser(userUid)
+            : userService.getUserByUsername(currentUser.getUsername());
 
     if (user == null) {
       response.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -1005,7 +1014,7 @@ public class MessageConversationController
       return responseNode;
     }
 
-    if (!canModifyUserConversation(currentUser, user)) {
+    if (!canModifyUserConversation(currentUser, UserDetails.fromUser(user))) {
       throw new UpdateAccessDeniedException("Not authorized to modify this object.");
     }
 
@@ -1042,11 +1051,12 @@ public class MessageConversationController
    *
    * @param mcUid the message conversation UID.
    * @param msgUid the message UID.
-   * @param user the user.
+   * @param userDetails the user.
    * @return a {@link Message}.
-   * @throws WebMessageException
+   * @throws WebMessageException exception
    */
-  private Message getMessage(String mcUid, String msgUid, User user) throws WebMessageException {
+  private Message getMessage(String mcUid, String msgUid, UserDetails userDetails)
+      throws WebMessageException {
     org.hisp.dhis.message.MessageConversation conversation =
         messageService.getMessageConversation(mcUid);
 
@@ -1055,16 +1065,14 @@ public class MessageConversationController
           notFound(String.format("No message conversation with uid '%s'", mcUid)));
     }
 
-    if (!canReadMessageConversation(user, conversation)) {
+    if (!canReadMessageConversation(userDetails, conversation)) {
       throw new AccessDeniedException("Not authorized to access this conversation.");
     }
 
     List<Message> messages =
-        conversation.getMessages().stream()
-            .filter(msg -> msg.getUid().equals(msgUid))
-            .collect(Collectors.toList());
+        conversation.getMessages().stream().filter(msg -> msg.getUid().equals(msgUid)).toList();
 
-    if (messages.size() < 1) {
+    if (messages.isEmpty()) {
       throw new WebMessageException(
           notFound(
               String.format("No message with uid '%s' in messageConversation '%s", msgUid, mcUid)));
@@ -1072,7 +1080,8 @@ public class MessageConversationController
 
     Message message = messages.get(0);
 
-    if (message.isInternal() && !configurationService.isUserInFeedbackRecipientUserGroup(user)) {
+    if (message.isInternal()
+        && !configurationService.isUserInFeedbackRecipientUserGroup(userDetails)) {
       throw new WebMessageException(conflict("Not authorized to access this message"));
     }
 

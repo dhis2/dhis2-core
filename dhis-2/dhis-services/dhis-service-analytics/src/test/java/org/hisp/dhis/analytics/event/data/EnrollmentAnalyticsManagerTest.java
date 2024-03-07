@@ -35,14 +35,14 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramIndicator;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
+import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.QueryKey.NV;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
 import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.QueryOperator.NEQ;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -67,8 +67,8 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.jdbc.StatementBuilder;
-import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -107,6 +107,8 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Mock private ProgramIndicatorService programIndicatorService;
 
+  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+
   @Captor private ArgumentCaptor<String> sql;
 
   private String DEFAULT_COLUMNS =
@@ -122,7 +124,6 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
   public void setUp() {
     when(jdbcTemplate.queryForRowSet(anyString())).thenReturn(this.rowSet);
 
-    StatementBuilder statementBuilder = new PostgreSQLStatementBuilder();
     DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
         new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService);
 
@@ -131,8 +132,9 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             jdbcTemplate,
             programIndicatorService,
             programIndicatorSubqueryBuilder,
-            new EnrollmentTimeFieldSqlRenderer(statementBuilder),
-            executionPlanStore);
+            new EnrollmentTimeFieldSqlRenderer(),
+            executionPlanStore,
+            sqlBuilder);
   }
 
   @Test
@@ -449,9 +451,11 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + subSelect
             + " in ("
             + String.join(",", numericValues.split(OPTION_SEP))
-            + ") or "
+            + ") or ("
             + subSelect
-            + " is null )";
+            + " is null and exists("
+            + subSelect
+            + ")))";
     testIt(
         IN,
         numericValues + OPTION_SEP + NV,

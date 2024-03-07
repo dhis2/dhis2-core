@@ -29,7 +29,7 @@ package org.hisp.dhis.organisationunit.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toSet;
-import static org.hisp.dhis.system.util.SqlUtils.escapeSql;
+import static org.hisp.dhis.system.util.SqlUtils.escape;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -55,7 +55,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.SqlUtils;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -74,17 +73,9 @@ public class HibernateOrganisationUnitStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService,
       DbmsManager dbmsManager) {
-    super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        OrganisationUnit.class,
-        currentUserService,
-        aclService,
-        true);
+    super(entityManager, jdbcTemplate, publisher, OrganisationUnit.class, aclService, true);
 
     checkNotNull(dbmsManager);
 
@@ -385,7 +376,7 @@ public class HibernateOrganisationUnitStore
       sql += hlp.whereAnd() + " (";
 
       for (OrganisationUnit parent : params.getParents()) {
-        sql += "o.path like '" + escapeSql(parent.getPath()) + "%'" + " or ";
+        sql += "o.path like '" + escape(parent.getPath()) + "%'" + " or ";
       }
 
       sql = TextUtils.removeLastOr(sql) + ") ";

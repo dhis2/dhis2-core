@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.cache;
 
-import org.hisp.dhis.config.IntegrationTestConfig;
+import org.hisp.dhis.config.TestContainerPostgresConfig;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class HibernateCacheTestConfig extends IntegrationTestConfig {
+public class HibernateCacheTestConfig extends TestContainerPostgresConfig {
   @Override
   protected String getConfigurationFile() {
     return "hibernateCacheTest.conf";

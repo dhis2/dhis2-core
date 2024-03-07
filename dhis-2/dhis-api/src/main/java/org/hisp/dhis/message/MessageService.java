@@ -34,6 +34,7 @@ import javax.annotation.Nonnull;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Lars Helge Overland
@@ -57,6 +58,8 @@ public interface MessageService {
 
   long sendMessage(MessageConversationParams params);
 
+  long sendMessage(MessageConversationParams params, UserDetails actingUser);
+
   void asyncSendSystemErrorNotification(@Nonnull String subject, @Nonnull Throwable t);
 
   void sendReply(
@@ -67,6 +70,8 @@ public interface MessageService {
       Set<FileResource> attachments);
 
   long saveMessageConversation(MessageConversation conversation);
+
+  long saveMessageConversation(MessageConversation conversation, UserDetails actingUser);
 
   void updateMessageConversation(MessageConversation conversation);
 
@@ -100,10 +105,10 @@ public interface MessageService {
   /**
    * Returns true if user is part of the feedback recipients group.
    *
-   * @param user user to check
+   * @param userDetails user to check
    * @return true if user is part of the feedback recipients group.
    */
-  boolean hasAccessToManageFeedbackMessages(User user);
+  boolean hasAccessToManageFeedbackMessages(UserDetails userDetails);
 
   Set<User> getFeedbackRecipients();
 

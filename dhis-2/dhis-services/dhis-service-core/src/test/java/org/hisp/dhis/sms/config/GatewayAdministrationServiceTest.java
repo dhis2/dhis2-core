@@ -32,13 +32,12 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.function.Consumer;
+import org.hisp.dhis.feedback.ConflictException;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -141,17 +140,14 @@ class GatewayAdministrationServiceTest {
 
     assertGateways(2);
 
-    when(smsConfigurationManager.checkInstanceOfGateway(bulkConfig.getClass()))
-        .thenReturn(bulkConfig);
-
     subject.addGateway(bulkConfig);
 
     // bulksms gateway already exist so it will not be added.
-    assertGateways(2);
+    assertGateways(3);
   }
 
   @Test
-  void testUpdateDefaultGatewaySuccess() {
+  void testUpdateDefaultGatewaySuccess() throws Exception {
     assertTrue(subject.addGateway(bulkConfig));
     assertEquals(bulkConfig, subject.getDefaultGateway());
     assertEquals(BULKSMS, subject.getDefaultGateway().getName());
@@ -167,7 +163,7 @@ class GatewayAdministrationServiceTest {
   }
 
   @Test
-  void testUpdateGatewaySuccess() {
+  void testUpdateGatewaySuccess() throws Exception {
     assertTrue(subject.addGateway(bulkConfig));
     assertEquals(bulkConfig, subject.getDefaultGateway());
     assertEquals(BULKSMS, subject.getDefaultGateway().getName());
@@ -189,12 +185,11 @@ class GatewayAdministrationServiceTest {
   }
 
   @Test
-  void testNothingShouldBeUpdatedIfNullIsPassed() {
+  void testNothingShouldBeUpdatedIfNullIsPassed() throws Exception {
     bulkConfig.setName(BULKSMS);
     assertTrue(subject.addGateway(bulkConfig));
 
-    subject.updateGateway(bulkConfig, null);
-    verify(smsConfigurationManager, timeout(0)).updateSmsConfiguration(any());
+    assertThrowsExactly(ConflictException.class, () -> subject.updateGateway(bulkConfig, null));
   }
 
   @Test
@@ -271,7 +266,7 @@ class GatewayAdministrationServiceTest {
   }
 
   @Test
-  void testUpdateGateway() {
+  void testUpdateGateway() throws Exception {
     assertTrue(subject.addGateway(bulkConfig));
     assertEquals(bulkConfig, subject.getDefaultGateway());
     assertEquals(BULKSMS, subject.getDefaultGateway().getName());

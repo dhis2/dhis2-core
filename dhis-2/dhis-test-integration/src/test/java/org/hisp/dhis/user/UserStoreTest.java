@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.common.collect.Sets;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -156,6 +157,7 @@ class UserStoreTest extends SingleSetupIntegrationTestBase {
     userGroupService.addUserGroup(userGroupB);
     userA.getGroups().add(userGroupA);
     userA.getGroups().add(userGroupB);
+    // TODO: MAS - this should be refactored out
     CurrentUserGroupInfo currentUserGroupInfo = userStore.getCurrentUserGroupInfo(userA.getUid());
     assertNotNull(currentUserGroupInfo);
     assertEquals(2, currentUserGroupInfo.getUserGroupUIDs().size());
@@ -166,6 +168,7 @@ class UserStoreTest extends SingleSetupIntegrationTestBase {
   void testGetCurrentUserGroupInfoWithoutGroup() {
     User userA = makeUser("A");
     userStore.save(userA);
+    // TODO: MAS this should be refactored out
     CurrentUserGroupInfo currentUserGroupInfo = userStore.getCurrentUserGroupInfo(userA.getUid());
     assertNotNull(currentUserGroupInfo);
     assertEquals(0, currentUserGroupInfo.getUserGroupUIDs().size());
@@ -217,5 +220,19 @@ class UserStoreTest extends SingleSetupIntegrationTestBase {
     assertTrue(usersWithAuthorityA.contains(userA));
     List<User> usersWithAuthorityB = userService.getUsersWithAuthority(AUTH_D);
     assertFalse(usersWithAuthorityB.contains(userB));
+  }
+
+  @Test
+  void testGetUserGroupUserEmailsByUsername() {
+    User userA = makeUser("A");
+    User userB = makeUser("B");
+    userStore.save(userA);
+    userStore.save(userB);
+    UserGroup group = createUserGroup('A', Set.of(userA, userB));
+    userGroupService.addUserGroup(group);
+
+    Map<String, String> emailsByUsername =
+        userStore.getUserGroupUserEmailsByUsername(group.getUid());
+    assertEquals(Map.of("usernamea", "emaila", "usernameb", "emailb"), emailsByUsername);
   }
 }

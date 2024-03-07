@@ -35,7 +35,6 @@ import static org.hisp.dhis.common.PrefixedDimensions.ofItemsWithProgram;
 import static org.hisp.dhis.common.PrefixedDimensions.ofProgramStageDataElements;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -48,8 +47,8 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -60,12 +59,10 @@ public class DefaultEnrollmentAnalyticsDimensionsService
 
   private final AclService aclService;
 
-  private final CurrentUserService currentUserService;
-
   @Override
   public List<PrefixedDimension> getQueryDimensionsByProgramId(String programId) {
-    User user = currentUserService.getCurrentUser();
 
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     return Optional.of(programId)
         .map(programService::getProgram)
         .filter(Program::isRegistration)
@@ -76,14 +73,14 @@ public class DefaultEnrollmentAnalyticsDimensionsService
                         ofItemsWithProgram(
                             program,
                             program.getProgramIndicators().stream()
-                                .filter(pi -> aclService.canRead(user, pi))
+                                .filter(pi -> aclService.canRead(currentUserDetails, pi))
                                 .collect(Collectors.toSet())),
                         getProgramStageDataElements(QUERY, program),
                         filterByValueType(
                             QUERY,
                             ofItemsWithProgram(
                                 program, getTeasIfRegistrationAndNotConfidential(program))))))
-        .orElse(Collections.emptyList());
+        .orElse(List.of());
   }
 
   private Collection<PrefixedDimension> getProgramStageDataElements(
@@ -110,7 +107,7 @@ public class DefaultEnrollmentAnalyticsDimensionsService
                         filterByValueType(
                             AGGREGATE,
                             ofItemsWithProgram(program, program.getTrackedEntityAttributes())))))
-        .orElse(Collections.emptyList());
+        .orElse(List.of());
   }
 
   private Collection<TrackedEntityAttribute> getTeasIfRegistrationAndNotConfidential(
@@ -118,7 +115,7 @@ public class DefaultEnrollmentAnalyticsDimensionsService
     return Optional.of(program)
         .filter(Program::isRegistration)
         .map(Program::getTrackedEntityAttributes)
-        .orElse(Collections.emptyList())
+        .orElse(List.of())
         .stream()
         .filter(this::isNotConfidential)
         .collect(Collectors.toList());

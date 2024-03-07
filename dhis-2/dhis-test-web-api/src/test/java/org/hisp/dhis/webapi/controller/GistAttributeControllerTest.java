@@ -31,7 +31,6 @@ import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -259,10 +258,6 @@ class GistAttributeControllerTest extends AbstractGistControllerTest {
   }
 
   private static Map<String, String> toMap(JsonMap<JsonString> actual) {
-    Map<String, String> res = new HashMap<>();
-    for (String key : actual.keys()) {
-      res.put(key, actual.get(key).string());
-    }
-    return res;
+    return actual.toMap(JsonString::string);
   }
 }

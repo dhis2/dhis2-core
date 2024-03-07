@@ -334,7 +334,7 @@ public class ListUtils {
    * @return a list.
    */
   @SafeVarargs
-  public static <T> List<T> newList(T... items) {
+  public static <T> List<T> of(T... items) {
     List<T> list = new ArrayList<>();
 
     for (T item : items) {
@@ -342,5 +342,23 @@ public class ListUtils {
     }
 
     return list;
+  }
+
+  /**
+   * Checks whether the given list is sorted according to the given comparator.
+   *
+   * @param list the list to check
+   * @param comparator the comparator to use
+   * @return true if the list is sorted, false if not
+   */
+  public static <T> boolean isSorted(List<T> list, Comparator<T> comparator) {
+    T previous = null;
+    for (T entry : list) {
+      if (previous != null && comparator.compare(previous, entry) > 0) {
+        return false;
+      }
+      previous = entry;
+    }
+    return true;
   }
 }

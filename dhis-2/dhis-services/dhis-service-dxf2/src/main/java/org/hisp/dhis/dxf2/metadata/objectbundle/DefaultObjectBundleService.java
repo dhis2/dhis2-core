@@ -36,7 +36,6 @@ import static org.hisp.dhis.eventhook.EventUtils.metadataUpdate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
 import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,10 +47,14 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
 import org.hisp.dhis.eventhook.EventHookPublisher;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.preheat.Preheat;
@@ -59,11 +62,13 @@ import org.hisp.dhis.preheat.PreheatParams;
 import org.hisp.dhis.preheat.PreheatService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.NoopJobProgress;
-import org.hisp.dhis.schema.MergeParams;
-import org.hisp.dhis.schema.MergeService;
+import org.hisp.dhis.schema.MetadataMergeParams;
+import org.hisp.dhis.schema.MetadataMergeService;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.system.deletion.DeletionManager;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -75,24 +80,26 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DefaultObjectBundleService implements ObjectBundleService {
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
   private final PreheatService preheatService;
   private final SchemaService schemaService;
   private final EntityManager entityManager;
   private final IdentifiableObjectManager manager;
   private final DbmsManager dbmsManager;
   private final HibernateCacheManager cacheManager;
-  private final MergeService mergeService;
+  private final MetadataMergeService metadataMergeService;
   private final ObjectBundleHooks objectBundleHooks;
   private final EventHookPublisher eventHookPublisher;
+  private final DeletionManager deletionManager;
 
   @Override
   @Transactional(readOnly = true)
   public ObjectBundle create(ObjectBundleParams params) {
     PreheatParams preheatParams = params.getPreheatParams();
 
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     if (params.getUser() == null) {
-      params.setUser(currentUserService.getCurrentUser());
+      params.setUser(currentUser);
     }
 
     preheatParams.setUser(params.getUser());
@@ -298,13 +305,11 @@ public class DefaultObjectBundleService implements ObjectBundleService {
           preheatService.connectReferences(
               object, bundle.getPreheat(), bundle.getPreheatIdentifier());
 
-          if (bundle.getMergeMode() != MergeMode.NONE) {
-            mergeService.merge(
-                new MergeParams<>(object, persistedObject)
-                    .setMergeMode(bundle.getMergeMode())
-                    .setSkipSharing(bundle.isSkipSharing())
-                    .setSkipTranslation(bundle.isSkipTranslation()));
-          }
+          metadataMergeService.merge(
+              new MetadataMergeParams<>(object, persistedObject)
+                  .setMergeMode(MergeMode.REPLACE)
+                  .setSkipSharing(bundle.isSkipSharing())
+                  .setSkipTranslation(bundle.isSkipTranslation()));
 
           if (bundle.getOverrideUser() != null) {
             persistedObject.setCreatedBy(bundle.getOverrideUser());
@@ -363,7 +368,6 @@ public class DefaultObjectBundleService implements ObjectBundleService {
         "Deleting %d %s object(s) as %s"
             .formatted(objects.size(), klass.getSimpleName(), bundle.getUsername());
     progress.startingStage(message, persistedObjects.size());
-    AtomicReference<DeleteNotAllowedException> lastEx = new AtomicReference<>();
     progress.runStage(
         persistedObjects,
         IdentifiableObject::getName,
@@ -371,17 +375,8 @@ public class DefaultObjectBundleService implements ObjectBundleService {
           ObjectReport objectReport = new ObjectReport(object, bundle);
           objectReport.setDisplayName(IdentifiableObjectUtils.getDisplayName(object));
           typeReport.addObjectReport(objectReport);
-
           hooks.forEach(hook -> hook.preDelete(object, bundle));
-          try {
-            manager.delete(object, bundle.getUser());
-          } catch (DeleteNotAllowedException ex) {
-            lastEx.set(ex);
-            throw ex;
-          }
-
-          bundle.getPreheat().remove(bundle.getPreheatIdentifier(), object);
-
+          deleteObject(object, session, bundle, typeReport, objectReport, klass);
           if (log.isDebugEnabled()) {
             String msg =
                 "(%s) Deleted object '%s'"
@@ -395,7 +390,6 @@ public class DefaultObjectBundleService implements ObjectBundleService {
             session.flush();
           }
         });
-    if (lastEx.get() != null) throw lastEx.get();
 
     progress.startingStage("Publish deletion event for %s objects".formatted(objects.size()));
     progress.runStage(
@@ -412,5 +406,24 @@ public class DefaultObjectBundleService implements ObjectBundleService {
         .map(schema -> (Class<? extends IdentifiableObject>) schema.getKlass())
         .filter(bundle::hasObjects)
         .collect(toList());
+  }
+
+  private void deleteObject(
+      IdentifiableObject object,
+      Session session,
+      ObjectBundle bundle,
+      TypeReport typeReport,
+      ObjectReport objectReport,
+      Class<? extends IdentifiableObject> klass) {
+    try {
+      deletionManager.onDeletionWithoutRollBack(new ObjectDeletionRequestedEvent(object));
+      session.delete(object);
+      bundle.getPreheat().remove(bundle.getPreheatIdentifier(), object);
+    } catch (DeleteNotAllowedException ex) {
+      objectReport.addErrorReport(
+          new ErrorReport(klass, new ErrorMessage(ex.getMessage(), ErrorCode.E4030, null)));
+      typeReport.getStats().incIgnored();
+      typeReport.getStats().decDeleted();
+    }
   }
 }

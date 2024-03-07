@@ -30,7 +30,6 @@ package org.hisp.dhis.program.jdbc;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -46,7 +45,7 @@ import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationsStore;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.TestCache;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -72,6 +71,7 @@ class JdbcOrgUnitAssociationsStoreTest {
   @Mock private Array orgUnitArray;
 
   @Mock private ResultSet resultSet;
+  @Mock private UserService userService;
 
   @Captor private ArgumentCaptor<ResultSetExtractor<?>> resultSetExtractorArgumentCaptor;
 
@@ -87,7 +87,7 @@ class JdbcOrgUnitAssociationsStoreTest {
   void setUpTest() {
     jdbcOrgUnitAssociationsStore =
         new JdbcOrgUnitAssociationsStore(
-            mock(CurrentUserService.class), jdbcTemplate, queryBuilder, programToOrgUnitCache);
+            jdbcTemplate, queryBuilder, programToOrgUnitCache, userService);
   }
 
   @Test

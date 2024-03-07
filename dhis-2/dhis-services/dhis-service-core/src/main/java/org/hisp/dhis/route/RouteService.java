@@ -48,7 +48,7 @@ import org.hisp.dhis.common.auth.ApiTokenAuth;
 import org.hisp.dhis.common.auth.Auth;
 import org.hisp.dhis.common.auth.HttpBasicAuth;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
@@ -78,7 +78,7 @@ public class RouteService {
 
   private static final RestTemplate restTemplate = new RestTemplate();
 
-  private static List<String> allowedRequestHeaders =
+  private static final List<String> ALLOWED_REQUEST_HEADERS =
       List.of(
           "accept",
           "accept-encoding",
@@ -98,7 +98,7 @@ public class RouteService {
           "x-forwarded-prefix",
           "forwarded");
 
-  private static List<String> allowedResponseHeaders =
+  private static final List<String> ALLOWED_RESPONSE_HEADERS =
       List.of(
           "content-encoding",
           "content-language",
@@ -125,10 +125,10 @@ public class RouteService {
   }
 
   /**
-   * Get {@see Route} by uid/code, decrypts its password/token and returns it.
+   * Retrieves a {@link Route} by UID or code, decrypts its password/token and returns it.
    *
-   * @param id uid/code
-   * @return {@see Route}
+   * @param id the UID or code,
+   * @return {@link Route}.
    */
   public Route getDecryptedRoute(@Nonnull String id) {
     Route route = routeStore.getByUidNoAcl(id);
@@ -144,8 +144,7 @@ public class RouteService {
     try {
       route = objectMapper.readValue(objectMapper.writeValueAsString(route), Route.class);
     } catch (JsonProcessingException ex) {
-      log.error(
-          "Unable to create clone of Route with ID " + route.getUid() + ". Please check its data.");
+      log.error("Unable to create clone of route: '{}'", route.getUid());
       return null;
     }
 
@@ -155,7 +154,10 @@ public class RouteService {
   }
 
   public ResponseEntity<String> exec(
-      Route route, User user, Optional<String> subPath, HttpServletRequest request)
+      Route route,
+      UserDetails currentUserDetails,
+      Optional<String> subPath,
+      HttpServletRequest request)
       throws IOException, BadRequestException {
     HttpHeaders headers = filterRequestHeaders(request);
     headers.forEach(
@@ -164,9 +166,9 @@ public class RouteService {
 
     route.getHeaders().forEach(headers::add);
 
-    if (user != null && StringUtils.hasText(user.getUsername())) {
-      log.debug(String.format("Route accessed by user %s", user.getUsername()));
-      headers.add("X-Forwarded-User", user.getUsername());
+    if (currentUserDetails != null && StringUtils.hasText(currentUserDetails.getUsername())) {
+      log.debug("Route accessed by user: '{}'", currentUserDetails.getUsername());
+      headers.add("X-Forwarded-User", currentUserDetails.getUsername());
     }
 
     if (route.getAuth() != null) {
@@ -194,9 +196,7 @@ public class RouteService {
     String targetUri = uriComponentsBuilder.toUriString();
 
     log.info(
-        String.format(
-            "Sending %s %s via route %s (%s)",
-            httpMethod, targetUri, route.getName(), route.getUid()));
+        "Sending {} {} via route {} ({})", httpMethod, targetUri, route.getName(), route.getUid());
 
     ResponseEntity<String> response =
         restTemplate.exchange(targetUri, httpMethod, entity, String.class);
@@ -209,13 +209,12 @@ public class RouteService {
         (String name, List<String> values) ->
             log.debug(String.format("Response header %s=%s", name, values.toString())));
     log.info(
-        String.format(
-            "Request %s %s responded with HTTP status %s via route %s (%s)",
-            httpMethod,
-            targetUri,
-            response.getStatusCode().toString(),
-            route.getName(),
-            route.getUid()));
+        "Request {} {} responded with HTTP status {} via route {} ({})",
+        httpMethod,
+        targetUri,
+        response.getStatusCode().toString(),
+        route.getName(),
+        route.getUid());
 
     return new ResponseEntity<>(responseBody, responseHeaders, response.getStatusCode());
   }
@@ -229,7 +228,7 @@ public class RouteService {
         (String name) -> {
           String lowercaseName = name.toLowerCase();
           if (!allowedHeaders.contains(lowercaseName)) {
-            log.debug(String.format("Blocked header %s", name));
+            log.debug("Blocked header: '{}'", name);
             return;
           }
           List<String> values = valuesGetter.apply(name);
@@ -241,12 +240,12 @@ public class RouteService {
   private HttpHeaders filterRequestHeaders(HttpServletRequest request) {
     return filterHeaders(
         Collections.list(request.getHeaderNames()),
-        allowedRequestHeaders,
+        ALLOWED_REQUEST_HEADERS,
         (String name) -> Collections.list(request.getHeaders(name)));
   }
 
   private HttpHeaders filterResponseHeaders(HttpHeaders responseHeaders) {
-    return filterHeaders(responseHeaders.keySet(), allowedResponseHeaders, responseHeaders::get);
+    return filterHeaders(responseHeaders.keySet(), ALLOWED_RESPONSE_HEADERS, responseHeaders::get);
   }
 
   private void decrypt(Route route) {

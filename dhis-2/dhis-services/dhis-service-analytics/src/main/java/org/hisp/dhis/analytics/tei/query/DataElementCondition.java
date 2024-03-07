@@ -34,8 +34,10 @@ import org.hisp.dhis.analytics.common.ValueTypeMapping;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParamItem;
+import org.hisp.dhis.analytics.common.query.AndCondition;
 import org.hisp.dhis.analytics.common.query.BaseRenderable;
 import org.hisp.dhis.analytics.common.query.BinaryConditionRenderer;
+import org.hisp.dhis.analytics.common.query.Renderable;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 
 @RequiredArgsConstructor(staticName = "of")
@@ -46,19 +48,28 @@ public class DataElementCondition extends BaseRenderable {
 
   @Override
   public String render() {
-    ValueTypeMapping valueTypeMapping =
-        ValueTypeMapping.fromValueType(dimensionIdentifier.getDimension().getValueType());
-
-    DimensionParamItem item = dimensionIdentifier.getDimension().getItems().get(0);
-
-    RenderableDataValue dataValue =
-        RenderableDataValue.of(
-            doubleQuote(dimensionIdentifier.getPrefix()),
-            dimensionIdentifier.getDimension().getUid(),
-            valueTypeMapping);
-
-    return BinaryConditionRenderer.of(
-            dataValue, item.getOperator(), item.getValues(), valueTypeMapping, queryContext)
+    return AndCondition.of(
+            dimensionIdentifier.getDimension().getItems().stream().map(this::toCondition).toList())
         .render();
+  }
+
+  private ValueTypeMapping getValueTypeMapping() {
+    return ValueTypeMapping.fromValueType(dimensionIdentifier.getDimension().getValueType());
+  }
+
+  private RenderableDataValue getDataValueRenderable() {
+    return RenderableDataValue.of(
+        doubleQuote(dimensionIdentifier.getPrefix()),
+        dimensionIdentifier.getDimension().getUid(),
+        getValueTypeMapping());
+  }
+
+  private Renderable toCondition(DimensionParamItem item) {
+    return BinaryConditionRenderer.of(
+        getDataValueRenderable(),
+        item.getOperator(),
+        item.getValues(),
+        getValueTypeMapping(),
+        queryContext);
   }
 }

@@ -32,7 +32,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -101,10 +100,10 @@ public class TrackedEntityTrackerConverterService
       teTo = new TrackedEntity();
       teTo.setUid(teFrom.getTrackedEntity());
       teTo.setCreated(now);
-      teTo.setCreatedByUserInfo(UserInfoSnapshot.from(preheat.getUser()));
+      teTo.setCreatedByUserInfo(preheat.getUserInfo());
     }
 
-    teTo.setLastUpdatedByUserInfo(UserInfoSnapshot.from(preheat.getUser()));
+    teTo.setLastUpdatedByUserInfo(preheat.getUserInfo());
     teTo.setStoredBy(teFrom.getStoredBy());
     teTo.setLastUpdated(now);
     teTo.setDeleted(false);

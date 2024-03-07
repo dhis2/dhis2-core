@@ -50,6 +50,8 @@ import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.fileresource.FileResourceRetentionStrategy;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.period.RelativePeriodEnum;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.security.LoginPageLayout;
 import org.hisp.dhis.sms.config.SmsConfiguration;
 
 /**
@@ -102,8 +104,7 @@ public enum SettingKey {
   ACCOUNT_EXPIRES_IN_DAYS("accountExpiresInDays", 7, Integer.class),
   ACCOUNT_EXPIRY_ALERT("accountExpiryAlert", false, Boolean.class),
   SELF_REGISTRATION_NO_RECAPTCHA("keySelfRegistrationNoRecaptcha", Boolean.FALSE, Boolean.class),
-  RECAPTCHA_SECRET(
-      "recaptchaSecret", "6LcVwT0UAAAAAAtMWnPoerWwLx_DSwrcEncHCiWu", String.class, true, false),
+  RECAPTCHA_SECRET("recaptchaSecret", "", String.class, true, false),
   RECAPTCHA_SITE(
       "recaptchaSite", "6LcVwT0UAAAAAAkO_EGPiYOiymIszZUeHfqWIYX5", String.class, true, false),
   CAN_GRANT_OWN_USER_ROLES("keyCanGrantOwnUserAuthorityGroups", Boolean.FALSE, Boolean.class),
@@ -186,14 +187,8 @@ public enum SettingKey {
   REMOTE_INSTANCE_URL("keyRemoteInstanceUrl", "", String.class),
   REMOTE_INSTANCE_USERNAME("keyRemoteInstanceUsername", "", String.class),
   REMOTE_INSTANCE_PASSWORD("keyRemoteInstancePassword", "", String.class, true, false),
-  GOOGLE_MAPS_API_KEY(
-      "keyGoogleMapsApiKey", "AIzaSyBjlDmwuON9lJbPMDlh_LI3zGpGtpK9erc", String.class, false, false),
-  BING_MAPS_API_KEY(
-      "keyBingMapsApiKey",
-      "AoifMs0zqvpAEuI6OX5Kk93rEM-oLrvQIJe_xdCv1BF4J3yquFnUozze-M7gEf0b",
-      String.class,
-      false,
-      false),
+  GOOGLE_MAPS_API_KEY("keyGoogleMapsApiKey", "", String.class, false, false),
+  BING_MAPS_API_KEY("keyBingMapsApiKey", "", String.class, false, false),
   LAST_SUCCESSFUL_METADATA_SYNC("keyLastMetaDataSyncSuccess", Date.class),
   METADATAVERSION_ENABLED("keyVersionEnabled", Boolean.FALSE, Boolean.class),
   METADATA_FAILED_VERSION("keyMetadataFailedVersion", String.class),
@@ -253,7 +248,8 @@ public enum SettingKey {
    * its intended time of the day to trigger. If time has passed past this point the execution for
    * that day is skipped, and it will trigger on the intended time the day after.
    */
-  JOBS_MAX_CRON_DELAY_HOURS("jobsMaxCronDelayHours", 4, Integer.class),
+  JOBS_MAX_CRON_DELAY_HOURS(
+      "jobsMaxCronDelayHours", JobConfiguration.MAX_CRON_DELAY_HOURS, Integer.class),
 
   /**
    * A job running with a smaller delay than the given value is logged on debug level instead of
@@ -282,7 +278,18 @@ public enum SettingKey {
   DEPRECATED_TRACKED_ENTITY_MAX_LIMIT("KeyTrackedEntityInstanceMaxLimit", 50000, Integer.class),
 
   /** Max tracked entity records that can be retrieved from database. */
-  TRACKED_ENTITY_MAX_LIMIT("KeyTrackedEntityMaxLimit", 50000, Integer.class);
+  TRACKED_ENTITY_MAX_LIMIT("KeyTrackedEntityMaxLimit", 50000, Integer.class),
+
+  LOGIN_POPUP("loginPopup", "", String.class, false, true),
+
+  HTML_PUSH_ANALYTICS_URL("keyHtmlPushAnalyticsUrl", "", String.class, false, false),
+
+  /** The layout of the LoginPage, value is the enum LoginPageLayout */
+  LOGIN_PAGE_LAYOUT("loginPageLayout", LoginPageLayout.DEFAULT.name(), String.class, false, false),
+
+  /** The HTML string which is used for displaying LoginPage when LOGIN_PAGE_LAYOUT is CUSTOM. */
+  LOGIN_PAGE_TEMPLATE("loginPageTemplate", null, String.class, false, false),
+  ;
 
   private final String name;
 

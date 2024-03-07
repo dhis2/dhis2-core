@@ -55,8 +55,8 @@ import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
@@ -106,8 +106,6 @@ class DataSetServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private DataApprovalService approvalService;
 
-  @Autowired private CurrentUserService currentUserService;
-
   @Autowired private DataApprovalService dataApprovalService;
 
   @Autowired private DataApprovalLevelService levelService;
@@ -120,7 +118,7 @@ class DataSetServiceTest extends TransactionalIntegrationTest {
   @Override
   public void setUpTest() throws Exception {
     userService = _userService;
-    preCreateInjectAdminUser();
+    //    preCreateInjectAdminUser();
 
     periodType = new MonthlyPeriodType();
     period = createPeriod(periodType, getDate(2000, 3, 1), getDate(2000, 3, 31));
@@ -146,7 +144,7 @@ class DataSetServiceTest extends TransactionalIntegrationTest {
     superUser =
         createAndAddUser(
             true, "username", newHashSet(unitA), newHashSet(unitA), UserRole.AUTHORITY_ALL);
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
   }
 
   // -------------------------------------------------------------------------
@@ -324,7 +322,7 @@ class DataSetServiceTest extends TransactionalIntegrationTest {
     dataSetB.addDataSetElement(dataElementA);
     dataSetService.addDataSet(dataSetA);
     dataSetService.addDataSet(dataSetB);
-    User user = currentUserService.getCurrentUser();
+    User user = getCurrentUser();
     // ---------------------------------------------------------------------
     // Expiry days
     // ---------------------------------------------------------------------
@@ -402,7 +400,7 @@ class DataSetServiceTest extends TransactionalIntegrationTest {
   @Test
   @Disabled("TODO: fix this test 12098")
   void testIsLockedDataSet() {
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
 
     DataSet dataSetA = createDataSet('A', periodType);
     DataSet dataSetB = createDataSet('B', periodType);
@@ -415,31 +413,32 @@ class DataSetServiceTest extends TransactionalIntegrationTest {
     // ---------------------------------------------------------------------
     // Expiry days
     // ---------------------------------------------------------------------
+    UserDetails superUserDetails = UserDetails.fromUser(superUser);
     assertEquals(
         LockStatus.OPEN,
         dataSetService.getLockStatus(
-            dataSetA, period, unitA, attributeOptionCombo, superUser, getDate(2000, 4, 1)));
+            dataSetA, period, unitA, attributeOptionCombo, superUserDetails, getDate(2000, 4, 1)));
     assertEquals(
         LockStatus.OPEN,
         dataSetService.getLockStatus(
-            dataSetA, period, unitA, attributeOptionCombo, superUser, getDate(2000, 4, 5)));
+            dataSetA, period, unitA, attributeOptionCombo, superUserDetails, getDate(2000, 4, 5)));
     assertEquals(
         LockStatus.LOCKED,
         dataSetService.getLockStatus(
-            dataSetA, period, unitA, attributeOptionCombo, superUser, getDate(2000, 4, 15)));
+            dataSetA, period, unitA, attributeOptionCombo, superUserDetails, getDate(2000, 4, 15)));
     assertEquals(
         LockStatus.LOCKED,
         dataSetService.getLockStatus(
-            dataSetA, period, unitA, attributeOptionCombo, superUser, getDate(2000, 4, 25)));
+            dataSetA, period, unitA, attributeOptionCombo, superUserDetails, getDate(2000, 4, 25)));
     assertEquals(
         LockStatus.OPEN,
         dataSetService.getLockStatus(
-            dataSetB, period, unitA, attributeOptionCombo, superUser, getDate(2000, 4, 10)));
+            dataSetB, period, unitA, attributeOptionCombo, superUserDetails, getDate(2000, 4, 10)));
     // Test Expiry days with user has authority "ALL"
     assertEquals(
         LockStatus.OPEN,
         dataSetService.getLockStatus(
-            dataSetB, period, unitA, attributeOptionCombo, superUser, getDate(2000, 4, 25)));
+            dataSetB, period, unitA, attributeOptionCombo, superUserDetails, getDate(2000, 4, 25)));
     // ---------------------------------------------------------------------
     // Lock exception
     // ---------------------------------------------------------------------
@@ -448,27 +447,27 @@ class DataSetServiceTest extends TransactionalIntegrationTest {
     assertEquals(
         LockStatus.OPEN,
         dataSetService.getLockStatus(
-            dataSetA, period, unitA, attributeOptionCombo, superUser, getDate(2000, 4, 1)));
+            dataSetA, period, unitA, attributeOptionCombo, superUserDetails, getDate(2000, 4, 1)));
     assertEquals(
         LockStatus.OPEN,
         dataSetService.getLockStatus(
-            dataSetA, period, unitA, attributeOptionCombo, superUser, getDate(2000, 4, 5)));
+            dataSetA, period, unitA, attributeOptionCombo, superUserDetails, getDate(2000, 4, 5)));
     assertEquals(
         LockStatus.OPEN,
         dataSetService.getLockStatus(
-            dataSetA, period, unitA, attributeOptionCombo, superUser, getDate(2000, 4, 15)));
+            dataSetA, period, unitA, attributeOptionCombo, superUserDetails, getDate(2000, 4, 15)));
     assertEquals(
         LockStatus.OPEN,
         dataSetService.getLockStatus(
-            dataSetA, period, unitA, attributeOptionCombo, superUser, getDate(2000, 4, 25)));
+            dataSetA, period, unitA, attributeOptionCombo, superUserDetails, getDate(2000, 4, 25)));
     assertEquals(
         LockStatus.OPEN,
         dataSetService.getLockStatus(
-            dataSetB, period, unitA, attributeOptionCombo, superUser, getDate(2000, 4, 10)));
+            dataSetB, period, unitA, attributeOptionCombo, superUserDetails, getDate(2000, 4, 10)));
     assertEquals(
         LockStatus.LOCKED,
         dataSetService.getLockStatus(
-            dataSetB, period, unitA, attributeOptionCombo, superUser, getDate(2000, 4, 25)));
+            dataSetB, period, unitA, attributeOptionCombo, superUserDetails, getDate(2000, 4, 25)));
     // ---------------------------------------------------------------------
     // Approved
     // ---------------------------------------------------------------------
@@ -476,33 +475,33 @@ class DataSetServiceTest extends TransactionalIntegrationTest {
     assertEquals(
         LockStatus.APPROVED,
         dataSetService.getLockStatus(
-            dataSetA, period, unitA, attributeOptionCombo, superUser, getDate(2000, 4, 1)));
+            dataSetA, period, unitA, attributeOptionCombo, superUserDetails, getDate(2000, 4, 1)));
     assertEquals(
         LockStatus.APPROVED,
         dataSetService.getLockStatus(
-            dataSetA, period, unitA, attributeOptionCombo, superUser, getDate(2000, 4, 5)));
+            dataSetA, period, unitA, attributeOptionCombo, superUserDetails, getDate(2000, 4, 5)));
     assertEquals(
         LockStatus.APPROVED,
         dataSetService.getLockStatus(
-            dataSetA, period, unitA, attributeOptionCombo, superUser, getDate(2000, 4, 15)));
+            dataSetA, period, unitA, attributeOptionCombo, superUserDetails, getDate(2000, 4, 15)));
     assertEquals(
         LockStatus.APPROVED,
         dataSetService.getLockStatus(
-            dataSetA, period, unitA, attributeOptionCombo, superUser, getDate(2000, 4, 25)));
+            dataSetA, period, unitA, attributeOptionCombo, superUserDetails, getDate(2000, 4, 25)));
     assertEquals(
         LockStatus.OPEN,
         dataSetService.getLockStatus(
-            dataSetB, period, unitA, attributeOptionCombo, superUser, getDate(2000, 4, 10)));
+            dataSetB, period, unitA, attributeOptionCombo, superUserDetails, getDate(2000, 4, 10)));
     assertEquals(
         LockStatus.LOCKED,
         dataSetService.getLockStatus(
-            dataSetB, period, unitA, attributeOptionCombo, superUser, getDate(2000, 4, 25)));
+            dataSetB, period, unitA, attributeOptionCombo, superUserDetails, getDate(2000, 4, 25)));
   }
 
   @Test
   void testDataSharingDataSet() {
     User user = createAndAddUser(false, "usernameA", null);
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
     DataSet dataSet = createDataSet('A', new MonthlyPeriodType());
     UserAccess userAccess = new UserAccess();
     userAccess.setUser(user);

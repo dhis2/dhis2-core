@@ -40,7 +40,6 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 
@@ -48,6 +47,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Consumer;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -56,8 +56,8 @@ import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserRole;
@@ -69,6 +69,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * Unit tests for {@link UserController}.
@@ -80,8 +84,6 @@ class UserControllerTest {
   @Mock private UserService userService;
 
   @Mock private UserGroupService userGroupService;
-
-  @Mock private CurrentUserService currentUserService;
 
   @Mock private AclService aclService;
 
@@ -123,7 +125,6 @@ class UserControllerTest {
       userController.updateUserGroups("def2", parsedUser, currentUser);
     }
 
-    verifyNoInteractions(currentUserService);
     verify(userGroupService)
         .updateUserGroups(
             same(user),
@@ -137,7 +138,6 @@ class UserControllerTest {
       userController.updateUserGroups("def2", parsedUser, currentUser);
     }
 
-    verifyNoInteractions(currentUserService);
     verifyNoInteractions(userService);
     verifyNoInteractions(userGroupService);
   }
@@ -148,7 +148,6 @@ class UserControllerTest {
       userController.updateUserGroups("def2", parsedUser, currentUser);
     }
 
-    verifyNoInteractions(currentUserService);
     verifyNoInteractions(userService);
     verifyNoInteractions(userGroupService);
   }
@@ -163,19 +162,13 @@ class UserControllerTest {
     currentUser2.setUid("def2");
 
     when(userService.getUser("def2")).thenReturn(user);
-    when(currentUserService.getCurrentUser()).thenReturn(currentUser2);
+    when(userService.getUserByUsername(any())).thenReturn(currentUser);
 
     if (isInStatusUpdatedOK(createReportWith(Status.OK, Stats::incUpdated))) {
       userController.updateUserGroups("def2", parsedUser, currentUser);
     }
 
-    verify(currentUserService).getCurrentUser();
-    verifyNoMoreInteractions(currentUserService);
-    verify(userGroupService)
-        .updateUserGroups(
-            same(user),
-            (Collection<String>) argThat(containsInAnyOrder("abc1", "abc2")),
-            same(currentUser2));
+    verify(userGroupService).updateUserGroups(user, Set.of("abc1", "abc2"), currentUser2);
   }
 
   private ImportReport createReportWith(Status status, Consumer<Stats> operation) {
@@ -191,46 +184,59 @@ class UserControllerTest {
     return report.getStatus() == Status.OK && report.getStats().getUpdated() == 1;
   }
 
+  public static void injectSecurityContext(UserDetails currentUserDetails) {
+    Authentication authentication =
+        new UsernamePasswordAuthenticationToken(
+            currentUserDetails, "", currentUserDetails.getAuthorities());
+    SecurityContext context = SecurityContextHolder.createEmptyContext();
+    context.setAuthentication(authentication);
+    SecurityContextHolder.setContext(context);
+  }
+
   private void setUpUserExpireScenarios() {
     addUserTo(user);
     addUserTo(currentUser);
     // make current user have ALL authority
     setUpUserAuthority(currentUser, UserRole.AUTHORITY_ALL);
+
+    injectSecurityContext(UserDetails.fromUser(currentUser));
+
     // allow any change
-    when(aclService.canUpdate(any(), any())).thenReturn(true);
+    when(aclService.canUpdate(any(UserDetails.class), any())).thenReturn(true);
+
     lenient().when(userService.canAddOrUpdateUser(any(), any())).thenReturn(true);
     // link user and current user to service methods
     when(userService.getUser(user.getUid())).thenReturn(user);
-    when(currentUserService.getCurrentUser()).thenReturn(currentUser);
   }
 
   @Test
   void expireUserInTheFutureDoesNotExpireSession() throws Exception {
     setUpUserExpireScenarios();
+    when(userService.canAddOrUpdateUser(any())).thenReturn(true);
 
     Date inTheFuture = new Date(System.currentTimeMillis() + 1000);
     userController.expireUser(user.getUid(), inTheFuture);
 
     assertUserUpdatedWithAccountExpiry(inTheFuture);
-    verify(userService, never()).expireActiveSessions(any());
+    verify(userService, never()).invalidateUserSessions(any());
   }
 
   @Test
   void expireUserNowDoesExpireSession() throws Exception {
     setUpUserExpireScenarios();
-    when(userService.isAccountExpired(same(user))).thenReturn(true);
-
+    when(userService.canAddOrUpdateUser(any())).thenReturn(true);
     Date now = new Date();
     userController.expireUser(user.getUid(), now);
 
     assertUserUpdatedWithAccountExpiry(now);
-    verify(userService, atLeastOnce()).expireActiveSessions(same(user));
+    verify(userService, atLeastOnce()).invalidateUserSessions(same(user.getUid()));
   }
 
   @Test
   void unexpireUserDoesUpdateUser() throws Exception {
     setUpUserExpireScenarios();
 
+    when(userService.canAddOrUpdateUser(any())).thenReturn(true);
     userController.unexpireUser(user.getUid());
 
     assertUserUpdatedWithAccountExpiry(null);
@@ -255,7 +261,7 @@ class UserControllerTest {
   @Test
   void updateUserExpireRequiresGroupBasedAuthority() {
     setUpUserExpireScenarios();
-    when(userService.canAddOrUpdateUser(any(), any())).thenReturn(false);
+    when(userService.canAddOrUpdateUser(any())).thenReturn(false);
 
     WebMessageException ex =
         assertThrows(
@@ -267,8 +273,13 @@ class UserControllerTest {
 
   @Test
   void updateUserExpireRequiresShareBasedAuthority() {
-    setUpUserExpireScenarios();
-    when(aclService.canUpdate(currentUser, user)).thenReturn(false);
+    addUserTo(user);
+    addUserTo(currentUser);
+    setUpUserAuthority(currentUser, UserRole.AUTHORITY_ALL);
+    injectSecurityContext(UserDetails.fromUser(currentUser));
+    when(aclService.canUpdate(any(UserDetails.class), any())).thenReturn(false);
+    lenient().when(userService.canAddOrUpdateUser(any(), any())).thenReturn(true);
+    when(userService.getUser(user.getUid())).thenReturn(user);
 
     Exception ex =
         assertThrows(
@@ -289,7 +300,7 @@ class UserControllerTest {
     User actual = credentials.getValue();
     assertSame(actual, user, "no user credentials update occurred");
     assertEquals(accountExpiry, actual.getAccountExpiry(), "date was not updated");
-    verify(userService).isAccountExpired(same(actual));
+    assertEquals(user.isAccountNonExpired(), actual.isAccountNonExpired());
   }
 
   private static void addUserTo(User user) {

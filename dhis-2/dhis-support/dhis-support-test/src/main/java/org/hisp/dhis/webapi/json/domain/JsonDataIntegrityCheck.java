@@ -28,8 +28,8 @@
 package org.hisp.dhis.webapi.json.domain;
 
 import org.hisp.dhis.dataintegrity.DataIntegritySeverity;
-import org.hisp.dhis.jsontree.Expected;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.Required;
 
 /**
  * JSON API equivalent of the {@link org.hisp.dhis.dataintegrity.DataIntegrityCheck}.
@@ -37,12 +37,12 @@ import org.hisp.dhis.jsontree.JsonObject;
  * @author Jan Bernitt
  */
 public interface JsonDataIntegrityCheck extends JsonObject {
-  @Expected
+  @Required
   default String getName() {
     return getString("name").string();
   }
 
-  @Expected
+  @Required
   default String getDisplayName() {
     return getString("displayName").string();
   }

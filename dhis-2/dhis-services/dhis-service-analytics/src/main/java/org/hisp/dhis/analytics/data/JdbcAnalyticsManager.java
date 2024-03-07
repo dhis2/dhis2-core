@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.data;
 
 import static java.lang.String.join;
-import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.AggregationType.AVERAGE;
 import static org.hisp.dhis.analytics.AggregationType.COUNT;
@@ -37,23 +36,17 @@ import static org.hisp.dhis.analytics.AggregationType.MIN;
 import static org.hisp.dhis.analytics.AggregationType.STDDEV;
 import static org.hisp.dhis.analytics.AggregationType.SUM;
 import static org.hisp.dhis.analytics.AggregationType.VARIANCE;
+import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.analytics.DataType.TEXT;
 import static org.hisp.dhis.analytics.data.SubexpressionPeriodOffsetUtils.getParamsWithOffsetPeriods;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAliasCommaSeparate;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteWithFunction;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quotedListOf;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.collection.CollectionUtils.concat;
-import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_SILENT_FALLBACK;
 import static org.hisp.dhis.util.SqlExceptionUtils.relationDoesNotExist;
 
@@ -77,11 +70,10 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.MeasureFilter;
-import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
-import org.hisp.dhis.analytics.table.PartitionUtils;
-import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
+import org.hisp.dhis.analytics.table.model.Partitions;
+import org.hisp.dhis.analytics.table.util.PartitionUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -92,6 +84,7 @@ import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -162,6 +155,8 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
 
   private final ExecutionPlanStore executionPlanStore;
 
+  private final SqlBuilder sqlBuilder;
+
   // -------------------------------------------------------------------------
   // AnalyticsManager implementation
   // -------------------------------------------------------------------------
@@ -190,8 +185,6 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
       }
 
       String sql = getSql(params, tableType);
-
-      log.debug(sql);
 
       final DataQueryParams immutableParams = DataQueryParams.newBuilder(params).build();
 
@@ -323,7 +316,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
 
     builder.append(getFromClause(params, tableType));
 
-    // Skip the where clause here if it's already in the subquery
+    // Skip the where clause here if already in sub query
     if (!params.getAggregationType().isMinOrMaxInPeriodAggregationType()) {
       builder.append(getWhereClause(params, tableType));
     }
@@ -481,14 +474,9 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
     for (DimensionalObject dim : params.getDimensions()) {
       if (dim.hasItems() && !dim.isFixed()) {
         String col = quoteAlias(dim.getDimensionName());
+        String items = sqlBuilder.singleQuotedCommaDelimited(getUids(dim.getItems()));
 
-        sql.append(
-            sqlHelper.whereAnd()
-                + " "
-                + col
-                + " in ("
-                + getQuotedCommaDelimitedString(getUids(dim.getItems()))
-                + ") ");
+        sql.append(sqlHelper.whereAnd() + " " + col + " in (" + items + ") ");
       }
     }
   }
@@ -510,10 +498,10 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
                 .map(
                     filter -> {
                       String col = quoteAlias(filter.getDimensionName());
-                      return col
-                          + " in ("
-                          + getQuotedCommaDelimitedString(getUids(filter.getItems()))
-                          + ") ";
+                      String items =
+                          sqlBuilder.singleQuotedCommaDelimited(getUids(filter.getItems()));
+
+                      return col + " in (" + items + ") ";
                     })
                 .collect(Collectors.joining("or ")));
 
@@ -564,14 +552,14 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
               + "("
               + quoteAlias("ouopeningdate")
               + " <= '"
-              + getMediumDateString(params.getStartDateRestriction())
+              + toMediumDate(params.getStartDateRestriction())
               + "' or "
               + quoteAlias("ouopeningdate")
               + " is null) and "
               + "("
               + quoteAlias("oucloseddate")
               + " >= '"
-              + getMediumDateString(params.getEndDateRestriction())
+              + toMediumDate(params.getEndDateRestriction())
               + "' or "
               + quoteAlias("oucloseddate")
               + " is null)) ");
@@ -584,36 +572,36 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
               + "("
               + quoteAlias("costartdate")
               + " <= '"
-              + getMediumDateString(params.getStartDateRestriction())
+              + toMediumDate(params.getStartDateRestriction())
               + "' or "
               + quoteAlias("costartdate")
               + " is null) and "
               + "("
               + quoteAlias("coenddate")
               + " >= '"
-              + getMediumDateString(params.getEndDateRestriction())
+              + toMediumDate(params.getEndDateRestriction())
               + "' or "
               + quoteAlias("coenddate")
               + " is null)) ");
     }
 
-    if (tableType.hasPeriodDimension() && params.hasStartDate()) {
+    if (tableType.isPeriodDimension() && params.hasStartDate()) {
       sql.append(
           sqlHelper.whereAnd()
               + " "
               + quoteAlias(PESTARTDATE)
               + "  >= '"
-              + getMediumDateString(params.getStartDate())
+              + toMediumDate(params.getStartDate())
               + "' ");
     }
 
-    if (tableType.hasPeriodDimension() && params.hasEndDate()) {
+    if (tableType.isPeriodDimension() && params.hasEndDate()) {
       sql.append(
           sqlHelper.whereAnd()
               + " "
               + quoteAlias(PEENDDATE)
               + " <= '"
-              + getMediumDateString(params.getEndDate())
+              + toMediumDate(params.getEndDate())
               + "' ");
     }
 
@@ -720,7 +708,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
         "periodAggregationType must be MIN or MAX, not " + periodAggregationType);
 
     String function = periodAggregationType.name().toLowerCase();
-    return quoteWithFunction(function, DAYSXVALUE, DAYSNO, VALUE, TEXTVALUE);
+    return toQuotedFunctionString(function, List.of(DAYSXVALUE, DAYSNO, VALUE, TEXTVALUE));
   }
 
   /**
@@ -757,12 +745,12 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
         + "where "
         + quoteAlias(PESTARTDATE)
         + " >= '"
-        + getMediumDateString(earliestDate)
+        + toMediumDate(earliestDate)
         + "' "
         + "and "
         + quoteAlias(PEENDDATE)
         + " <= '"
-        + getMediumDateString(latestDate)
+        + toMediumDate(latestDate)
         + "' "
         + "and ("
         + quoteAlias(VALUE)
@@ -804,8 +792,9 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
     return join(
         ",",
         concat(
-            quotedListOf(
-                YEAR, PESTARTDATE, PEENDDATE, OULEVEL, DAYSXVALUE, DAYSNO, VALUE, TEXTVALUE),
+            toQuotedList(
+                List.of(
+                    YEAR, PESTARTDATE, PEENDDATE, OULEVEL, DAYSXVALUE, DAYSNO, VALUE, TEXTVALUE)),
             getSubqueryDataApprovalColumns(params),
             getFirstOrLastValueSubqueryDimensionAndFilterColumns(params)));
   }
@@ -836,6 +825,29 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
     }
 
     return cols;
+  }
+
+  /**
+   * Returns a list of quoted relations.
+   *
+   * @param relations the list of relations.
+   * @return a list of quoted relations.
+   */
+  protected List<String> toQuotedList(List<String> relations) {
+    return relations.stream().map(this::quote).collect(Collectors.toList());
+  }
+
+  /**
+   * Returns a list of quoted function relations.
+   *
+   * @param function the function.
+   * @param relations the list of relations.
+   * @return a list of quoted function relations.
+   */
+  protected String toQuotedFunctionString(String function, List<String> relations) {
+    return relations.stream()
+        .map(item -> String.format("%s(%s) as %s", function, quote(item), quote(item)))
+        .collect(Collectors.joining(","));
   }
 
   /**
@@ -922,7 +934,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
   private Map<String, Object> getKeyValueMap(DataQueryParams params, String sql, int maxLimit) {
     Map<String, Object> map = new HashMap<>();
 
-    log.debug(String.format("Analytics SQL: %s", sql));
+    log.debug("Analytics query SQL: '{}'", sql);
 
     SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
 
@@ -974,8 +986,8 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
     return dimensions.stream()
         .filter(d -> !d.isFixed())
         .map(DimensionalObject::getDimensionName)
-        .map(AnalyticsSqlUtils::quoteAlias)
-        .collect(toList());
+        .map(this::quoteAlias)
+        .collect(Collectors.toList());
   }
 
   /**
@@ -1002,5 +1014,29 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
         !(params.getAggregationType().isFirstOrLastPeriodAggregationType()
             && params.getPeriods().size() > 1),
         "Max one dimension period can be present per query for last period aggregation");
+  }
+
+  /**
+   * @param relation the relation to quote, e.g. a table or column name.
+   * @return a double quoted relation.
+   */
+  private String quote(String relation) {
+    return sqlBuilder.quote(relation);
+  }
+
+  /**
+   * @param relation the relation to quote.
+   * @return an "ax" aliased and double quoted relation.
+   */
+  private String quoteAlias(String relation) {
+    return sqlBuilder.quoteAx(relation);
+  }
+
+  /**
+   * @param items the items to quote.
+   * @return a string representing the "ax" aliased and double quoted items separated by comma.
+   */
+  private String quoteAliasCommaSeparate(Collection<String> items) {
+    return items.stream().map(this::quoteAlias).collect(Collectors.joining(","));
   }
 }

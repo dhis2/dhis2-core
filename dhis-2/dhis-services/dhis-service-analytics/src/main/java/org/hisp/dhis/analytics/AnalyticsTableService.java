@@ -43,16 +43,16 @@ public interface AnalyticsTableService {
   AnalyticsTableType getAnalyticsTableType();
 
   /**
-   * Rebuilds the analytics tables.
+   * Creates or updates the analytics tables.
    *
    * @param params the {@link AnalyticsTableUpdateParams}.
    * @param progress job progress tracking and control flow
    */
-  void update(AnalyticsTableUpdateParams params, JobProgress progress);
+  void create(AnalyticsTableUpdateParams params, JobProgress progress);
 
-  /** Drops main and temporary analytics tables. */
+  /** Drops main and staging analytics tables. */
   void dropTables();
 
-  /** Performs an SQL analyze operation on all analytics tables. */
+  /** Performs an analyze operation on analytics tables. */
   void analyzeAnalyticsTables();
 }

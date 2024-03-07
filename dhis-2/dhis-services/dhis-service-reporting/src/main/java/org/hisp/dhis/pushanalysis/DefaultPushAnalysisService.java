@@ -72,9 +72,10 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.util.ChartUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.visualization.ChartService;
 import org.hisp.dhis.visualization.PlotData;
 import org.hisp.dhis.visualization.Visualization;
@@ -103,7 +104,7 @@ public class DefaultPushAnalysisService implements PushAnalysisService {
 
   private final FileResourceService fileResourceService;
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   private final MapGenerationService mapGenerationService;
 
@@ -146,34 +147,29 @@ public class DefaultPushAnalysisService implements PushAnalysisService {
 
     if (pushAnalysis == null) {
       progress.failedStage(
-          "PushAnalysis with uid '" + uid + "' was not found. Terminating PushAnalysis");
+          "PushAnalysis with uid '{}' was not found. Terminating PushAnalysis.", uid);
       return;
     }
     if (pushAnalysis.getRecipientUserGroups().isEmpty()) {
       progress.failedStage(
-          "PushAnalysis with uid '"
-              + uid
-              + "' has no userGroups assigned. Terminating PushAnalysis.");
+          "PushAnalysis with uid '{}' has no userGroups assigned. Terminating PushAnalysis.", uid);
       return;
     }
 
     if (pushAnalysis.getDashboard() == null) {
       progress.failedStage(
-          "PushAnalysis with uid '"
-              + uid
-              + "' has no dashboard assigned. Terminating PushAnalysis.");
+          "PushAnalysis with uid '{}' has no dashboard assigned. Terminating PushAnalysis.", uid);
       return;
     }
 
     if (dhisConfigurationProvider.getServerBaseUrl() == null) {
       progress.failedStage(
-          "Missing configuration '"
-              + ConfigurationKey.SERVER_BASE_URL.getKey()
-              + "'. Terminating PushAnalysis.");
+          "Missing configuration '{}'. Terminating PushAnalysis.",
+          ConfigurationKey.SERVER_BASE_URL.getKey());
       return;
     }
 
-    progress.completedStage("pre-check completed successfully");
+    progress.completedStage("Pre-check completed successfully");
 
     // ----------------------------------------------------------------------
     // Compose list of users that can receive PushAnalysis
@@ -192,11 +188,9 @@ public class DefaultPushAnalysisService implements PushAnalysisService {
       }
     }
     progress.completedStage(
-        "List composed. "
-            + receivingUsers.size()
-            + " eligible users found."
-            + "Skipping users without valid email: "
-            + skippedUsers.stream().map(User::getUsername).collect(joining(",")));
+        "List composed. {} eligible users found. Skipping users without valid email: {}",
+        receivingUsers.size(),
+        skippedUsers.stream().map(User::getUsername).collect(joining(",")));
 
     // ----------------------------------------------------------------------
     // Generating reports
@@ -237,7 +231,8 @@ public class DefaultPushAnalysisService implements PushAnalysisService {
 
   @Override
   public String generateHtmlReport(PushAnalysis pushAnalysis, User user) throws IOException {
-    user = user == null ? currentUserService.getCurrentUser() : user;
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    user = user == null ? currentUser : user;
 
     // ----------------------------------------------------------------------
     // Pre-process the dashboardItem and store them as Strings
@@ -377,7 +372,11 @@ public class DefaultPushAnalysisService implements PushAnalysisService {
   private String generateChartHtml(Visualization visualization, User user) throws IOException {
     JFreeChart jFreechart =
         chartService.getJFreeChart(
-            new PlotData(visualization), new Date(), null, i18nManager.getI18nFormat(), user);
+            new PlotData(visualization),
+            new Date(),
+            null,
+            i18nManager.getI18nFormat(),
+            user.getUsername());
 
     return uploadImage(
         visualization.getUid(), ChartUtils.getChartAsPngByteArray(jFreechart, 578, 440));

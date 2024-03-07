@@ -43,6 +43,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
@@ -60,7 +61,6 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueServ
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
-import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -117,9 +117,9 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   @Override
   public void setUpTest() {
-    super.userService = _userService;
+    //    super.userService = _userService;
 
-    this.superUser = preCreateInjectAdminUser();
+    this.superUser = getAdminUser();
 
     trackedEntityType = createTrackedEntityType('A');
     TrackedEntityAttribute attrD = createTrackedEntityAttribute('D');
@@ -179,7 +179,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
     User user = createUserWithAuth("testUser");
     user.setTeiSearchOrganisationUnits(Set.of(organisationUnit));
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
   }
 
   @Test
@@ -264,14 +264,14 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   @Test
   void testTrackedEntityAttributeFilter() {
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
     trackedEntityAttribute.setDisplayInListNoProgram(true);
     attributeService.addTrackedEntityAttribute(trackedEntityAttribute);
 
     User user =
         createAndAddUser(
             false, "attributeFilterUser", Set.of(organisationUnit), Set.of(organisationUnit));
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     entityInstanceA1.setTrackedEntityType(trackedEntityType);
     entityInstanceService.addTrackedEntity(entityInstanceA1);
@@ -297,7 +297,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   @Test
   void testTrackedEntityGridWithNoFilterableAttributes() {
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
     params.setOrgUnits(Set.of(organisationUnit));
@@ -311,7 +311,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   @Test
   void testTrackedEntityGridWithNoDisplayAttributes() {
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
     trackedEntityAttribute.setDisplayInListNoProgram(false);
     attributeService.addTrackedEntityAttribute(trackedEntityAttribute);
 
@@ -327,7 +327,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   @Test
   void shouldOrderEntitiesByCreatedInAscOrder() {
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
 
     entityInstanceA1.setCreated(DateTime.now().plusDays(1).toDate());
     entityInstanceB1.setCreated(DateTime.now().toDate());
@@ -353,7 +353,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   @Test
   void shouldOrderEntitiesByCreatedInDescOrder() {
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
 
     entityInstanceA1.setCreated(DateTime.now().plusDays(1).toDate());
     entityInstanceB1.setCreated(DateTime.now().toDate());
@@ -379,14 +379,14 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   @Test
   void shouldOrderGridEntitiesByCreatedInAscOrder() {
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
     trackedEntityAttribute.setDisplayInListNoProgram(true);
     attributeService.addTrackedEntityAttribute(trackedEntityAttribute);
 
     User user =
         createAndAddUser(
             false, "attributeFilterUser", Set.of(organisationUnit), Set.of(organisationUnit));
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     entityInstanceA1.setCreated(DateTime.now().plusDays(1).toDate());
     entityInstanceB1.setCreated(DateTime.now().toDate());
@@ -407,14 +407,14 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   @Test
   void shouldOrderGridEntitiesByCreatedInDescOrder() {
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
     trackedEntityAttribute.setDisplayInListNoProgram(true);
     attributeService.addTrackedEntityAttribute(trackedEntityAttribute);
 
     User user =
         createAndAddUser(
             false, "attributeFilterUser", Set.of(organisationUnit), Set.of(organisationUnit));
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     entityInstanceA1.setCreated(DateTime.now().plusDays(1).toDate());
     entityInstanceB1.setCreated(DateTime.now().toDate());
@@ -435,7 +435,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   @Test
   void shouldOrderEntitiesByCreatedAtInAscOrder() {
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
 
     entityInstanceA1.setCreated(DateTime.now().plusDays(1).toDate());
     entityInstanceB1.setCreated(DateTime.now().toDate());
@@ -461,12 +461,15 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   @Test
   void shouldOrderEntitiesByCreatedAtInDescOrder() {
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
 
-    entityInstanceA1.setCreated(DateTime.now().plusDays(1).toDate());
-    entityInstanceB1.setCreated(DateTime.now().toDate());
-    entityInstanceC1.setCreated(DateTime.now().minusDays(1).toDate());
-    entityInstanceD1.setCreated(DateTime.now().plusDays(2).toDate());
+    DateTime now = DateTime.now();
+
+    entityInstanceD1.setCreated(now.plusDays(2).toDate());
+    entityInstanceA1.setCreated(now.plusDays(1).toDate());
+    entityInstanceB1.setCreated(now.toDate());
+    entityInstanceC1.setCreated(now.minusDays(1).toDate());
+
     addEntityInstances();
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
@@ -486,19 +489,22 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   }
 
   @Test
-  void shouldOrderEntitiesByUpdatedAtInAscOrder() {
-    injectSecurityContext(superUser);
+  void shouldOrderEntitiesByUpdatedAtInAscOrder() throws InterruptedException {
+    injectSecurityContextUser(superUser);
 
     addEntityInstances();
-    // lastupdated is automatically set by the store; update entities in a certain order and expect
+    // lastupdated is automatically set by the store; update entities in a certain order and
+    //   expect
     // that to be returned
     entityInstanceService.updateTrackedEntity(entityInstanceD1);
+    Thread.sleep(1000);
     entityInstanceService.updateTrackedEntity(entityInstanceB1);
+    Thread.sleep(1000);
     entityInstanceService.updateTrackedEntity(entityInstanceC1);
+    Thread.sleep(1000);
     entityInstanceService.updateTrackedEntity(entityInstanceA1);
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
-
     params.setOrgUnits(Set.of(organisationUnit));
     params.setOrders(List.of(new OrderParam("updatedAt", SortDirection.ASC)));
 
@@ -514,15 +520,19 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   }
 
   @Test
-  void shouldOrderEntitiesByUpdatedAtInDescOrder() {
-    injectSecurityContext(superUser);
+  void shouldOrderEntitiesByUpdatedAtInDescOrder() throws InterruptedException {
+    injectSecurityContextUser(superUser);
 
     addEntityInstances();
-    // lastupdated is automatically set by the store; update entities in a certain order and expect
+    // lastupdated is automatically set by the store; update entities in a certain order and
+    //   expect
     // that to be returned
     entityInstanceService.updateTrackedEntity(entityInstanceD1);
+    Thread.sleep(1000);
     entityInstanceService.updateTrackedEntity(entityInstanceB1);
+    Thread.sleep(1000);
     entityInstanceService.updateTrackedEntity(entityInstanceC1);
+    Thread.sleep(1000);
     entityInstanceService.updateTrackedEntity(entityInstanceA1);
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
@@ -543,7 +553,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   @Test
   void shouldOrderEntitiesByTrackedEntityUidInDescOrder() {
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
 
     addEntityInstances();
 
@@ -565,7 +575,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   @Test
   void shouldOrderEntitiesByUpdatedAtClientInDescOrder() {
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
 
     entityInstanceA1.setLastUpdatedAtClient(DateTime.now().plusDays(1).toDate());
     entityInstanceB1.setLastUpdatedAtClient(DateTime.now().toDate());
@@ -591,7 +601,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   @Test
   void shouldOrderEntitiesByEnrolledAtDateInDescOrder() {
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
 
     addEntityInstances();
     enrollmentService.addEnrollment(enrollment);
@@ -617,7 +627,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   @Test
   void shouldSortEntitiesAndKeepOrderOfParamsWhenMultipleStaticFieldsSupplied() {
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
     entityInstanceA1.setInactive(true);
     entityInstanceB1.setInactive(true);
     entityInstanceC1.setInactive(false);
@@ -650,7 +660,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   @Test
   void shouldOrderEntitiesByDefaultUsingTrackedEntityIdInAscOrderWhenNoOrderParamProvided() {
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
     addEntityInstances();
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
@@ -669,7 +679,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   @Test
   void shouldOrderByNonStaticFieldWhenNonStaticFieldProvided() {
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
     trackedEntityAttribute.setDisplayInListNoProgram(true);
     attributeService.addTrackedEntityAttribute(trackedEntityAttribute);
 
@@ -696,7 +706,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   @Test
   void shouldSortEntitiesAndKeepOrderOfParamsWhenStaticAndNonStaticFieldsSupplied() {
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
     trackedEntityAttribute.setDisplayInListNoProgram(true);
     attributeService.addTrackedEntityAttribute(trackedEntityAttribute);
 
@@ -732,7 +742,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   @Test
   void shouldSortEntitiesByAttributeDescendingWhenAttributeDescendingProvided() {
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
 
     TrackedEntityAttribute tea = createTrackedEntityAttribute();
 
@@ -761,7 +771,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   @Test
   void shouldSortEntitiesByAttributeAscendingWhenAttributeAscendingProvided() {
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
 
     TrackedEntityAttribute tea = createTrackedEntityAttribute();
 
@@ -819,7 +829,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
                 .minusHours(1)
                 .atZone(ZoneId.systemDefault())
                 .toInstant());
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
     entityInstanceA1.setTrackedEntityType(trackedEntityType);
     entityInstanceService.addTrackedEntity(entityInstanceA1);
 
@@ -846,7 +856,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
                 .plusHours(1)
                 .atZone(ZoneId.systemDefault())
                 .toInstant());
-    injectSecurityContext(superUser);
+    injectSecurityContextUser(superUser);
     entityInstanceA1.setTrackedEntityType(trackedEntityType);
     entityInstanceService.addTrackedEntity(entityInstanceA1);
 

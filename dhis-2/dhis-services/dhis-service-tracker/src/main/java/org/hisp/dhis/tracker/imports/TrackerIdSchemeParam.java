@@ -60,9 +60,9 @@ public class TrackerIdSchemeParam implements Serializable {
   public static final TrackerIdSchemeParam NAME =
       TrackerIdSchemeParam.of(TrackerIdScheme.NAME, null);
 
-  @JsonProperty private final TrackerIdScheme idScheme;
+  @JsonProperty TrackerIdScheme idScheme;
 
-  @JsonProperty private final String attributeUid;
+  @JsonProperty String attributeUid;
 
   /**
    * Creates a TrackerIdSchemeParam of idScheme ATTRIBUTE.
@@ -75,22 +75,17 @@ public class TrackerIdSchemeParam implements Serializable {
   }
 
   public <T extends IdentifiableObject> String getIdentifier(T object) {
-    switch (idScheme) {
-      case UID:
-        return object.getUid();
-      case CODE:
-        return object.getCode();
-      case NAME:
-        return object.getName();
-      case ATTRIBUTE:
-        return object.getAttributeValues().stream()
-            .filter(av -> av.getAttribute().getUid().equals(attributeUid))
-            .map(AttributeValue::getValue)
-            .findFirst()
-            .orElse(null);
-    }
-
-    throw new RuntimeException("Unhandled identifier type.");
+    return switch (idScheme) {
+      case UID -> object.getUid();
+      case CODE -> object.getCode();
+      case NAME -> object.getName();
+      case ATTRIBUTE ->
+          object.getAttributeValues().stream()
+              .filter(av -> av.getAttribute().getUid().equals(attributeUid))
+              .map(AttributeValue::getValue)
+              .findFirst()
+              .orElse(null);
+    };
   }
 
   /**

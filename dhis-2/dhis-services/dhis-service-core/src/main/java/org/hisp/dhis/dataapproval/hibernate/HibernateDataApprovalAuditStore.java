@@ -30,7 +30,7 @@ package org.hisp.dhis.dataapproval.hibernate;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import java.util.List;
 import java.util.Set;
@@ -43,7 +43,9 @@ import org.hisp.dhis.dataapproval.DataApprovalAuditQueryParams;
 import org.hisp.dhis.dataapproval.DataApprovalAuditStore;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -58,18 +60,18 @@ public class HibernateDataApprovalAuditStore extends HibernateGenericStore<DataA
   // Dependencies
   // -------------------------------------------------------------------------
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   public HibernateDataApprovalAuditStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService) {
+      UserService userService) {
     super(entityManager, jdbcTemplate, publisher, DataApprovalAudit.class, false);
 
-    checkNotNull(currentUserService);
+    checkNotNull(userService);
 
-    this.currentUserService = currentUserService;
+    this.userService = userService;
   }
 
   // -------------------------------------------------------------------------
@@ -123,21 +125,16 @@ public class HibernateDataApprovalAuditStore extends HibernateGenericStore<DataA
 
     if (params.hasStartDate()) {
       hql +=
-          hlp.whereAnd()
-              + " a.period.startDate >= '"
-              + getMediumDateString(params.getStartDate())
-              + "' ";
+          hlp.whereAnd() + " a.period.startDate >= '" + toMediumDate(params.getStartDate()) + "' ";
     }
 
     if (params.hasEndDate()) {
-      hql +=
-          hlp.whereAnd()
-              + " a.period.endDate <= '"
-              + getMediumDateString(params.getEndDate())
-              + "' ";
+      hql += hlp.whereAnd() + " a.period.endDate <= '" + toMediumDate(params.getEndDate()) + "' ";
     }
 
-    Set<OrganisationUnit> userOrgUnits = currentUserService.getCurrentUserOrganisationUnits();
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    Set<OrganisationUnit> userOrgUnits =
+        currentUser != null ? currentUser.getOrganisationUnits() : null;
 
     if (!CollectionUtils.isEmpty(userOrgUnits)) {
       hql += hlp.whereAnd() + " (";

@@ -35,7 +35,6 @@ import org.hisp.dhis.oust.manager.DefaultSelectionTreeManager;
 import org.hisp.dhis.ouwt.manager.DefaultOrganisationUnitSelectionManager;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.SpringSecurityActionAccessResolver;
 import org.hisp.dhis.security.SystemAuthoritiesProvider;
 import org.hisp.dhis.security.action.RestrictOrganisationUnitsAction;
@@ -51,7 +50,8 @@ import org.hisp.dhis.security.authority.SimpleSystemAuthoritiesProvider;
 import org.hisp.dhis.security.intercept.LoginInterceptor;
 import org.hisp.dhis.security.intercept.XWorkSecurityInterceptor;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.webapi.security.ExternalAccessVoter;
 import org.hisp.dhis.webportal.module.ModuleManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -68,27 +68,25 @@ import org.springframework.security.access.AccessDecisionManager;
 @Order(3200)
 public class AuthoritiesProviderConfig {
 
-  @Autowired private SecurityService securityService;
-
   @Autowired private ModuleManager moduleManager;
 
   @Autowired private SchemaService schemaService;
 
   @Autowired private AppManager appManager;
 
-  @Autowired
-  @Qualifier("org.hisp.dhis.user.CurrentUserService")
-  public CurrentUserService currentUserService;
-
-  @Autowired
-  @Qualifier("accessDecisionManager")
-  public AccessDecisionManager accessDecisionManager;
+  @Autowired private UserService userService;
 
   @Autowired public TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
 
   @Autowired
   @Qualifier("org.hisp.dhis.organisationunit.OrganisationUnitService")
   public OrganisationUnitService organisationUnitService;
+
+  @Autowired private ExternalAccessVoter externalAccessVoter;
+
+  @Autowired
+  @Qualifier("accessDecisionManager")
+  public AccessDecisionManager accessDecisionManager;
 
   @Primary
   @Bean("org.hisp.dhis.security.SystemAuthoritiesProvider")
@@ -169,7 +167,6 @@ public class AuthoritiesProviderConfig {
     interceptor.setValidateConfigAttributes(false);
     interceptor.setRequiredAuthoritiesProvider(provider);
     interceptor.setActionAccessResolver(resolver);
-    interceptor.setSecurityService(securityService);
 
     return interceptor;
   }
@@ -177,7 +174,8 @@ public class AuthoritiesProviderConfig {
   @Bean("org.hisp.dhis.security.intercept.LoginInterceptor")
   public LoginInterceptor loginInterceptor() {
     RestrictOrganisationUnitsAction unitsAction = new RestrictOrganisationUnitsAction();
-    unitsAction.setCurrentUserService(currentUserService);
+    unitsAction.setUserService(userService);
+
     DefaultOrganisationUnitSelectionManager selectionManager =
         new DefaultOrganisationUnitSelectionManager();
     selectionManager.setOrganisationUnitService(organisationUnitService);

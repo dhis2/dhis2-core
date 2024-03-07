@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.icon;
 
-import lombok.AllArgsConstructor;
+import java.util.Date;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -37,8 +37,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@EqualsAndHashCode
+@EqualsAndHashCode(of = {"key", "description", "keywords", "fileResourceUid", "createdByUserUid"})
 public class CustomIcon implements Icon {
   private String key;
 
@@ -49,4 +48,32 @@ public class CustomIcon implements Icon {
   private String fileResourceUid;
 
   private String createdByUserUid;
+
+  private Date created;
+
+  private Date lastUpdated;
+
+  public CustomIcon(
+      String key,
+      String description,
+      String[] keywords,
+      String fileResourceUid,
+      String createdByUserUid) {
+    this.key = key;
+    this.description = description;
+    this.keywords = keywords;
+    this.fileResourceUid = fileResourceUid;
+    this.createdByUserUid = createdByUserUid;
+    this.setAutoFields();
+  }
+
+  public void setAutoFields() {
+    Date date = new Date();
+
+    if (created == null) {
+      created = date;
+    }
+
+    lastUpdated = date;
+  }
 }

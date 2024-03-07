@@ -112,8 +112,9 @@ import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.ApplicationEventPublisher;
@@ -150,9 +151,6 @@ public abstract class AbstractEnrollmentService
   protected TrackedEntityAttributeService trackedEntityAttributeService;
 
   protected TrackedEntityAttributeValueService trackedEntityAttributeValueService;
-
-  protected CurrentUserService currentUserService;
-
   protected NoteService commentService;
 
   protected IdentifiableObjectManager manager;
@@ -257,13 +255,12 @@ public abstract class AbstractEnrollmentService
       Iterable<Enrollment> programInstances) {
     List<org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment> enrollments =
         new ArrayList<>();
-    User user = currentUserService.getCurrentUser();
-
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     for (Enrollment enrollment : programInstances) {
       if (enrollment != null
           && trackerOwnershipAccessManager.hasAccess(
-              user, enrollment.getTrackedEntity(), enrollment.getProgram())) {
-        enrollments.add(getEnrollment(user, enrollment, EnrollmentParams.FALSE, true));
+              currentUser, enrollment.getTrackedEntity(), enrollment.getProgram())) {
+        enrollments.add(getEnrollment(currentUser, enrollment, EnrollmentParams.FALSE, true));
       }
     }
 
@@ -280,7 +277,8 @@ public abstract class AbstractEnrollmentService
   @Override
   public org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment getEnrollment(
       Enrollment enrollment, EnrollmentParams params) {
-    return getEnrollment(currentUserService.getCurrentUser(), enrollment, params, false);
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    return getEnrollment(currentUser, enrollment, params, false);
   }
 
   @Override
@@ -310,11 +308,11 @@ public abstract class AbstractEnrollmentService
       enrollment.setGeometry(programInstance.getGeometry());
     }
 
-    enrollment.setCreated(DateUtils.getIso8601NoTz(programInstance.getCreated()));
-    enrollment.setCreatedAtClient(DateUtils.getIso8601NoTz(programInstance.getCreatedAtClient()));
-    enrollment.setLastUpdated(DateUtils.getIso8601NoTz(programInstance.getLastUpdated()));
+    enrollment.setCreated(DateUtils.toIso8601NoTz(programInstance.getCreated()));
+    enrollment.setCreatedAtClient(DateUtils.toIso8601NoTz(programInstance.getCreatedAtClient()));
+    enrollment.setLastUpdated(DateUtils.toIso8601NoTz(programInstance.getLastUpdated()));
     enrollment.setLastUpdatedAtClient(
-        DateUtils.getIso8601NoTz(programInstance.getLastUpdatedAtClient()));
+        DateUtils.toIso8601NoTz(programInstance.getLastUpdatedAtClient()));
     enrollment.setProgram(programInstance.getProgram().getUid());
     enrollment.setStatus(EnrollmentStatus.fromProgramStatus(programInstance.getStatus()));
     enrollment.setEnrollmentDate(programInstance.getEnrollmentDate());
@@ -362,15 +360,15 @@ public abstract class AbstractEnrollmentService
     if (params.isIncludeAttributes()) {
       Set<TrackedEntityAttribute> readableAttributes =
           trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes(
-              user, List.of(programInstance.getProgram()), null);
+              UserDetails.fromUser(user), List.of(programInstance.getProgram()), null);
 
       for (TrackedEntityAttributeValue trackedEntityAttributeValue :
           programInstance.getTrackedEntity().getTrackedEntityAttributeValues()) {
         if (readableAttributes.contains(trackedEntityAttributeValue.getAttribute())) {
           Attribute attribute = new Attribute();
-          attribute.setCreated(DateUtils.getIso8601NoTz(trackedEntityAttributeValue.getCreated()));
+          attribute.setCreated(DateUtils.toIso8601NoTz(trackedEntityAttributeValue.getCreated()));
           attribute.setLastUpdated(
-              DateUtils.getIso8601NoTz(trackedEntityAttributeValue.getLastUpdated()));
+              DateUtils.toIso8601NoTz(trackedEntityAttributeValue.getLastUpdated()));
           attribute.setDisplayName(trackedEntityAttributeValue.getAttribute().getDisplayName());
           attribute.setAttribute(trackedEntityAttributeValue.getAttribute().getUid());
           attribute.setValueType(trackedEntityAttributeValue.getAttribute().getValueType());
@@ -601,8 +599,10 @@ public abstract class AbstractEnrollmentService
       programInstance.setCompletedDate(date);
     }
 
-    programInstance.setCreatedByUserInfo(UserInfoSnapshot.from(importOptions.getUser()));
-    programInstance.setLastUpdatedByUserInfo(UserInfoSnapshot.from(importOptions.getUser()));
+    programInstance.setCreatedByUserInfo(
+        UserInfoSnapshot.from(UserDetails.fromUser(importOptions.getUser())));
+    programInstance.setLastUpdatedByUserInfo(
+        UserInfoSnapshot.from(UserDetails.fromUser(importOptions.getUser())));
 
     enrollmentService.addEnrollment(programInstance, importOptions.getUser());
 
@@ -677,8 +677,7 @@ public abstract class AbstractEnrollmentService
     }
 
     if (programInstance.getOccurredDate() != null
-        && !DateUtils.dateIsValid(
-            DateUtils.getMediumDateString(programInstance.getOccurredDate()))) {
+        && !DateUtils.dateIsValid(DateUtils.toMediumDate(programInstance.getOccurredDate()))) {
       importSummary.setStatus(ImportStatus.ERROR);
       importSummary.setDescription(
           "Invalid enollment incident date:  " + programInstance.getOccurredDate());
@@ -688,8 +687,7 @@ public abstract class AbstractEnrollmentService
     }
 
     if (programInstance.getEnrollmentDate() != null
-        && !DateUtils.dateIsValid(
-            DateUtils.getMediumDateString(programInstance.getEnrollmentDate()))) {
+        && !DateUtils.dateIsValid(DateUtils.toMediumDate(programInstance.getEnrollmentDate()))) {
       importSummary.setStatus(ImportStatus.ERROR);
       importSummary.setDescription(
           "Invalid enollment date:  " + programInstance.getEnrollmentDate());
@@ -995,7 +993,8 @@ public abstract class AbstractEnrollmentService
     updateAttributeValues(enrollment, importOptions);
     updateDateFields(enrollment, programInstance);
 
-    programInstance.setLastUpdatedByUserInfo(UserInfoSnapshot.from(importOptions.getUser()));
+    programInstance.setLastUpdatedByUserInfo(
+        UserInfoSnapshot.from(UserDetails.fromUser(importOptions.getUser())));
 
     enrollmentService.updateEnrollment(programInstance, importOptions.getUser());
     teiService.updateTrackedEntity(programInstance.getTrackedEntity(), importOptions.getUser());
@@ -1035,7 +1034,8 @@ public abstract class AbstractEnrollmentService
           .incrementIgnored();
     }
 
-    saveTrackedEntityComment(programInstance, enrollment, currentUserService.getCurrentUser());
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    saveTrackedEntityComment(programInstance, enrollment, currentUser);
 
     importSummary.setReference(enrollment.getEnrollment());
     importSummary.getImportCount().incrementUpdated();
@@ -1081,8 +1081,13 @@ public abstract class AbstractEnrollmentService
         }
       }
 
+      programInstance.setLastUpdatedByUserInfo(UserInfoSnapshot.from(importOptions.getUser()));
       enrollmentService.deleteEnrollment(programInstance);
-      teiService.updateTrackedEntity(programInstance.getTrackedEntity());
+
+      TrackedEntity entity = programInstance.getTrackedEntity();
+      entity.setLastUpdatedByUserInfo(UserInfoSnapshot.from(importOptions.getUser()));
+
+      teiService.updateTrackedEntity(entity);
 
       importSummary.setReference(uid);
       importSummary.setStatus(ImportStatus.SUCCESS);
@@ -1237,7 +1242,7 @@ public abstract class AbstractEnrollmentService
 
     if (!orgUnits.isEmpty()) {
       Query query = Query.from(schemaService.getDynamicSchema(OrganisationUnit.class));
-      query.setUser(user);
+      query.setCurrentUserDetails(UserDetails.fromUser(user));
       query.add(Restrictions.in("id", orgUnits));
       queryService
           .query(query)
@@ -1251,7 +1256,7 @@ public abstract class AbstractEnrollmentService
 
     if (!programs.isEmpty()) {
       Query query = Query.from(schemaService.getDynamicSchema(Program.class));
-      query.setUser(user);
+      query.setCurrentUserDetails(UserDetails.fromUser(user));
       query.add(Restrictions.in("id", programs));
       queryService.query(query).forEach(pr -> programCache.put(pr.getUid(), (Program) pr));
     }
@@ -1262,7 +1267,7 @@ public abstract class AbstractEnrollmentService
 
     if (!trackedEntityAttributes.isEmpty()) {
       Query query = Query.from(schemaService.getDynamicSchema(TrackedEntityAttribute.class));
-      query.setUser(user);
+      query.setCurrentUserDetails(UserDetails.fromUser(user));
       query.add(Restrictions.in("id", trackedEntityAttributes));
       queryService
           .query(query)
@@ -1279,7 +1284,7 @@ public abstract class AbstractEnrollmentService
 
     if (!trackedEntityInstances.isEmpty()) {
       Query query = Query.from(schemaService.getDynamicSchema(TrackedEntity.class));
-      query.setUser(user);
+      query.setCurrentUserDetails(UserDetails.fromUser(user));
       query.add(Restrictions.in("id", trackedEntityInstances));
       queryService
           .query(query)
@@ -1608,8 +1613,9 @@ public abstract class AbstractEnrollmentService
       importOptions = new ImportOptions();
     }
 
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     if (importOptions.getUser() == null) {
-      importOptions.setUser(currentUserService.getCurrentUser());
+      importOptions.setUser(currentUser);
     }
 
     return importOptions;

@@ -53,7 +53,7 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -173,7 +173,9 @@ public class DatastoreController extends AbstractDatastoreController {
   /** Retrieves the KeyJsonValue represented by the given key from the given namespace. */
   @GetMapping(value = "/{namespace}/{key}/metaData", produces = APPLICATION_JSON_VALUE)
   public @ResponseBody DatastoreEntry getEntryMetaData(
-      @PathVariable String namespace, @PathVariable String key, @CurrentUser User currentUser)
+      @PathVariable String namespace,
+      @PathVariable String key,
+      @CurrentUser UserDetails currentUser)
       throws NotFoundException, InvocationTargetException, IllegalAccessException {
     DatastoreEntry entry = getExistingEntry(namespace, key);
 
@@ -229,14 +231,17 @@ public class DatastoreController extends AbstractDatastoreController {
   public WebMessage putEntry(
       @PathVariable String namespace,
       @PathVariable String key,
-      @RequestBody String value,
+      @RequestBody(required = false) String value,
+      @RequestParam(required = false) String path,
+      @RequestParam(required = false) Integer roll,
       @RequestParam(defaultValue = "false") boolean encrypt)
       throws BadRequestException, ConflictException {
     DatastoreEntry dataEntry = service.getEntry(namespace, key);
 
-    return dataEntry != null
-        ? updateEntry(dataEntry, key, value)
-        : addEntry(namespace, key, value, encrypt);
+    if (dataEntry == null) return addEntry(namespace, key, value, encrypt);
+
+    service.updateEntry(namespace, key, value, path, roll);
+    return ok(String.format("Key updated: '%s'", key));
   }
 
   /** Delete a key from the given namespace. */
@@ -259,13 +264,5 @@ public class DatastoreController extends AbstractDatastoreController {
     }
 
     return entry;
-  }
-
-  private WebMessage updateEntry(DatastoreEntry entry, String key, String value)
-      throws BadRequestException {
-    entry.setValue(value);
-    service.updateEntry(entry);
-
-    return ok(String.format("Key updated: '%s'", key));
   }
 }

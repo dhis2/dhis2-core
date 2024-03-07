@@ -37,7 +37,7 @@ import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
@@ -48,9 +48,8 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.ValidationUtils;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,7 +62,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultEventService implements EventService {
   private final EventStore eventStore;
 
-  private final TrackedEntityDataValueAuditService dataValueAuditService;
+  private final TrackedEntityDataValueChangeLogService dataValueAuditService;
 
   private final FileResourceService fileResourceService;
 
@@ -78,14 +77,6 @@ public class DefaultEventService implements EventService {
   public long addEvent(Event event) {
     event.setAutoFields();
     eventStore.save(event);
-    return event.getId();
-  }
-
-  @Override
-  @Transactional
-  public long addEvent(Event event, User user) {
-    event.setAutoFields();
-    eventStore.save(event, user);
     return event.getId();
   }
 
@@ -112,13 +103,6 @@ public class DefaultEventService implements EventService {
   public void updateEvent(Event event) {
     event.setAutoFields();
     eventStore.update(event);
-  }
-
-  @Override
-  @Transactional
-  public void updateEvent(Event event, User user) {
-    event.setAutoFields();
-    eventStore.update(event, user);
   }
 
   @Override
@@ -206,7 +190,7 @@ public class DefaultEventService implements EventService {
 
     for (Map.Entry<DataElement, EventDataValue> entry : dataElementEventDataValueMap.entrySet()) {
       entry.getValue().setAutoFields();
-      createAndAddAudit(entry.getValue(), entry.getKey(), event, AuditType.CREATE);
+      createAndAddAudit(entry.getValue(), entry.getKey(), event, ChangeLogType.CREATE);
       handleFileDataValueSave(entry.getValue(), entry.getKey());
     }
   }
@@ -259,21 +243,21 @@ public class DefaultEventService implements EventService {
   // -------------------------------------------------------------------------
 
   private void createAndAddAudit(
-      EventDataValue dataValue, DataElement dataElement, Event event, AuditType auditType) {
+      EventDataValue dataValue, DataElement dataElement, Event event, ChangeLogType changeLogType) {
     if (!config.isEnabled(CHANGELOG_TRACKER) || dataElement == null) {
       return;
     }
 
-    TrackedEntityDataValueAudit dataValueAudit =
-        new TrackedEntityDataValueAudit(
+    TrackedEntityDataValueChangeLog dataValueAudit =
+        new TrackedEntityDataValueChangeLog(
             dataElement,
             event,
             dataValue.getValue(),
             dataValue.getStoredBy(),
             dataValue.getProvidedElsewhere(),
-            auditType);
+            changeLogType);
 
-    dataValueAuditService.addTrackedEntityDataValueAudit(dataValueAudit);
+    dataValueAuditService.addTrackedEntityDataValueChangeLog(dataValueAudit);
   }
 
   // -------------------------------------------------------------------------

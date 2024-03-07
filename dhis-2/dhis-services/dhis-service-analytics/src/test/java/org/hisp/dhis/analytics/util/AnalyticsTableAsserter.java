@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.util;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
@@ -40,17 +39,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import org.hisp.dhis.analytics.AnalyticsTable;
-import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableType;
-import org.hisp.dhis.analytics.ColumnDataType;
-import org.hisp.dhis.analytics.IndexType;
+import org.hisp.dhis.analytics.table.model.AnalyticsTable;
+import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.table.model.Skip;
+import org.hisp.dhis.db.model.DataType;
+import org.hisp.dhis.db.model.IndexType;
 
 /**
  * @author Luciano Fiandesio
  */
 public class AnalyticsTableAsserter {
+  /** The analytics table to verify. */
   private AnalyticsTable table;
 
   private int columnsSize;
@@ -65,35 +65,41 @@ public class AnalyticsTableAsserter {
 
   private String name;
 
+  private String mainName;
+
   private AnalyticsTableAsserter() {}
 
   public void verify() {
     // verify column size
     assertThat(table.getDimensionColumns(), hasSize(columnsSize));
     assertThat(table.getTableType(), is(tableType));
-    assertThat(table.getTableName(), is(name));
+    assertThat(table.getName(), is(name));
+    assertThat(table.getMainName(), is(mainName));
     // verify default columns
     Map<String, AnalyticsTableColumn> tableColumnMap =
-        Stream.concat(table.getDimensionColumns().stream(), table.getValueColumns().stream())
+        table.getAnalyticsTableColumns().stream()
             .collect(Collectors.toMap(AnalyticsTableColumn::getName, c -> c));
+
     for (AnalyticsTableColumn col : defaultColumns) {
       if (!tableColumnMap.containsKey(col.getName())) {
-        fail("Default column [" + col.getName() + "] is missing");
+        fail(
+            "Default column '" + col.getName() + "' is missing, found: " + tableColumnMap.keySet());
       } else {
         new AnalyticsColumnAsserter.Builder(col).build().verify(tableColumnMap.get(col.getName()));
       }
     }
-    // verify additional columns
+
     for (AnalyticsTableColumn col : columns) {
       if (!tableColumnMap.containsKey(col.getName())) {
-        fail("Column [" + col.getName() + "] is missing");
+        fail("Column '" + col.getName() + "' is missing, found: " + tableColumnMap.keySet());
       } else {
         new AnalyticsColumnAsserter.Builder(col).build().verify(tableColumnMap.get(col.getName()));
       }
     }
+
     for (String name : matchers.keySet()) {
       if (!tableColumnMap.containsKey(name)) {
-        fail("Column [" + name + "] is missing");
+        fail("Column '" + name + "' is missing, found: " + tableColumnMap.keySet());
       } else {
         matchers.get(name).accept(tableColumnMap.get(name));
       }
@@ -114,7 +120,9 @@ public class AnalyticsTableAsserter {
 
     private AnalyticsTableType _tableType;
 
-    private String _tableName;
+    private String _name;
+
+    private String _mainName;
 
     public Builder(AnalyticsTable analyticsTable) {
       _table = analyticsTable;
@@ -135,34 +143,48 @@ public class AnalyticsTableAsserter {
       return this;
     }
 
-    public Builder withTableName(String tableName) {
-      _tableName = tableName;
+    public Builder withName(String name) {
+      _name = name;
       return this;
     }
 
-    public Builder addColumn(String name, ColumnDataType dataType, String alias, Date created) {
+    public Builder withMainName(String mainName) {
+      _mainName = mainName;
+      return this;
+    }
+
+    public Builder addColumn(
+        String name, DataType dataType, String selectExpression, Date created) {
       AnalyticsTableColumn col =
-          new AnalyticsTableColumn(quote(name), dataType, alias + quote(name));
-      col.withCreated(created);
+          new AnalyticsTableColumn(name, dataType, selectExpression, created);
       this._columns.add(col);
       return this;
     }
 
-    public Builder addColumn(String name, ColumnDataType dataType, String alias) {
-      return addColumnUnquoted(quote(name), dataType, alias, null);
+    public Builder addColumn(String name, DataType dataType, String selectExpression) {
+      return addColumn(name, dataType, selectExpression, Skip.INCLUDE, IndexType.BTREE);
     }
 
     public Builder addColumn(
-        String name, ColumnDataType dataType, String alias, IndexType indexType) {
-      return addColumnUnquoted(quote(name), dataType, alias, indexType);
+        String name, DataType dataType, String selectExpression, IndexType indexType) {
+      return addColumn(name, dataType, selectExpression, Skip.INCLUDE, indexType);
     }
 
-    public Builder addColumnUnquoted(
-        String name, ColumnDataType dataType, String alias, IndexType indexType) {
-      AnalyticsTableColumn col = new AnalyticsTableColumn(name, dataType, alias);
-      if (indexType != null) {
-        col.withIndexType(indexType);
-      }
+    public Builder addColumn(
+        String name, DataType dataType, String selectExpression, Skip skipIndex) {
+      return addColumn(name, dataType, selectExpression, skipIndex, IndexType.BTREE);
+    }
+
+    public Builder addColumn(
+        String name,
+        DataType dataType,
+        String selectExpression,
+        Skip skipIndex,
+        IndexType indexType) {
+      AnalyticsTableColumn col =
+          Skip.SKIP == skipIndex
+              ? new AnalyticsTableColumn(name, dataType, selectExpression, skipIndex)
+              : new AnalyticsTableColumn(name, dataType, selectExpression, indexType);
       this._columns.add(col);
       return this;
     }
@@ -172,13 +194,12 @@ public class AnalyticsTableAsserter {
       return this;
     }
 
-    public Builder addColumn(String name, Consumer<AnalyticsTableColumn> consumer) {
-      this._matchers.put(name, consumer);
+    public Builder addColumn(String name, Consumer<AnalyticsTableColumn> matcher) {
+      this._matchers.put(name, matcher);
       return this;
     }
 
     public AnalyticsTableAsserter build() {
-      // verify
       if (_tableType == null) {
         fail("Missing table type");
       }
@@ -189,7 +210,8 @@ public class AnalyticsTableAsserter {
       asserter.tableType = _tableType;
       asserter.columns = _columns;
       asserter.matchers = _matchers;
-      asserter.name = _tableName;
+      asserter.name = _name;
+      asserter.mainName = _mainName;
       return asserter;
     }
   }

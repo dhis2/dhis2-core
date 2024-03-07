@@ -42,6 +42,7 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.service.WebCache;
 import org.springframework.http.CacheControl;
@@ -59,7 +60,8 @@ import org.springframework.web.servlet.HandlerMapping;
 public class ContextUtils {
   public static final String CONTENT_TYPE_PDF = "application/pdf";
 
-  public static final String CONTENT_TYPE_ZIP = "application/zip";
+  public static final String CONTENT_TYPE_JSON_ZIP = "application/json+zip";
+  public static final String CONTENT_TYPE_JSON_GZIP = "application/json+gzip";
 
   public static final String CONTENT_TYPE_GZIP = "application/gzip";
 
@@ -104,6 +106,8 @@ public class ContextUtils {
   public static final String HEADER_CONTENT_DISPOSITION = "Content-Disposition";
 
   public static final String HEADER_CONTENT_TRANSFER_ENCODING = "Content-Transfer-Encoding";
+
+  public static final String BINARY_HEADER_CONTENT_TRANSFER_ENCODING = "binary";
 
   public static final String HEADER_VALUE_NO_STORE =
       "no-cache, no-store, max-age=0, must-revalidate";
@@ -189,6 +193,12 @@ public class ContextUtils {
     }
   }
 
+  public static HttpHeaders noCacheNoStoreMustRevalidate() {
+    HttpHeaders headers = new HttpHeaders();
+    headers.setCacheControl("no-cache, no-store, must-revalidate");
+    return headers;
+  }
+
   public static HttpServletResponse setCacheControl(
       HttpServletResponse response, CacheControl value) {
     response.setHeader(HEADER_CACHE_CONTROL, value.getHeaderValue());
@@ -207,40 +217,8 @@ public class ContextUtils {
     return attributes != null ? attributes.getRequest() : null;
   }
 
-  public static String getContextPath(HttpServletRequest request) {
-    StringBuilder builder = new StringBuilder();
-    String xForwardedProto = request.getHeader("X-Forwarded-Proto");
-    String xForwardedPort = request.getHeader("X-Forwarded-Port");
-
-    if (xForwardedProto != null
-        && (xForwardedProto.equalsIgnoreCase("http")
-            || xForwardedProto.equalsIgnoreCase("https"))) {
-      builder.append(xForwardedProto);
-    } else {
-      builder.append(request.getScheme());
-    }
-
-    builder.append("://").append(request.getServerName());
-
-    int port;
-
-    try {
-      port = Integer.parseInt(xForwardedPort);
-    } catch (NumberFormatException e) {
-      port = request.getServerPort();
-    }
-
-    if (port != 80 && port != 443) {
-      builder.append(":").append(port);
-    }
-
-    builder.append(request.getContextPath());
-
-    return builder.toString();
-  }
-
   public static String getRootPath(HttpServletRequest request) {
-    return getContextPath(request) + request.getServletPath();
+    return HttpServletRequestPaths.getContextPath(request) + request.getServletPath();
   }
 
   /**
@@ -309,12 +287,12 @@ public class ContextUtils {
    * @param user the {@link User}.
    * @return an ETag string.
    */
-  public static String getEtag(Date lastModified, User user) {
+  public static String getEtag(Date lastModified, UserDetails user) {
     if (lastModified == null || user == null) {
       return null;
     }
 
-    String value = String.format("%s-%s", DateUtils.getLongDateString(lastModified), user.getUid());
+    String value = String.format("%s-%s", DateUtils.toLongDate(lastModified), user.getUid());
 
     return CodecUtils.md5Hex(value);
   }

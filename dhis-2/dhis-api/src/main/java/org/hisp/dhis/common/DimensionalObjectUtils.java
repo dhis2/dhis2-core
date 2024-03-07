@@ -147,6 +147,7 @@ public class DimensionalObjectUtils {
     if (isNotEmpty(repetitions)) {
       for (EventRepetition eventRepetition : repetitions) {
         String dimension = dimensionalObject.getDimension();
+        String qualifiedDim = getQualifiedDimension(dimensionalObject);
 
         if (isNotBlank(dimension)) {
           associateEventRepetitionDimensions(
@@ -156,7 +157,9 @@ public class DimensionalObjectUtils {
               parent,
               dimension);
 
-          boolean associationFound = dimension.equals(eventRepetition.getDimension());
+          boolean associationFound =
+              qualifiedDim.equals(eventRepetition.qualifiedDimension())
+                  || dimension.equals(eventRepetition.qualifiedDimension());
 
           if (associationFound) {
             ((BaseDimensionalObject) dimensionalObject).setEventRepetition(eventRepetition);
@@ -280,7 +283,7 @@ public class DimensionalObjectUtils {
    * @param dimensionalObject the {@link DimensionalObject}.
    * @return the qualified dimension.
    */
-  private static String getQualifiedDimension(DimensionalObject dimensionalObject) {
+  public static String getQualifiedDimension(DimensionalObject dimensionalObject) {
     String programUid =
         dimensionalObject.getProgram() != null ? dimensionalObject.getProgram().getUid() : null;
     String programStageUid = null;

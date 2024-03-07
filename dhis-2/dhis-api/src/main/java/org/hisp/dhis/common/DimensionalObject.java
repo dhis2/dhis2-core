@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.common;
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -164,7 +166,7 @@ public interface DimensionalObject extends NameableObject, GroupableItem {
 
   /** Indicates whether this dimension has any dimension items. */
   default boolean hasItems() {
-    return !getItems().isEmpty();
+    return isNotEmpty(getItems());
   }
 
   /** Gets the legend set. */

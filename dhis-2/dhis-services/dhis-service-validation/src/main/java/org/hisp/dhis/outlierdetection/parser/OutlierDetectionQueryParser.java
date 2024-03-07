@@ -67,7 +67,7 @@ public class OutlierDetectionQueryParser {
             .map(DataElement::getUid)
             .collect(Collectors.toList());
 
-    de.addAll(query.getDe());
+    de.addAll(query.getDx());
 
     List<DataElement> dataElements = idObjectManager.getByUid(DataElement.class, de);
     List<OrganisationUnit> orgUnits =

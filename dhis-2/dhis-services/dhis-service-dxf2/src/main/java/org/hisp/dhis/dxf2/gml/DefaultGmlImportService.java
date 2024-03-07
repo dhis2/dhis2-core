@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.dxf2.gml;
 
+import static javax.xml.XMLConstants.ACCESS_EXTERNAL_DTD;
+import static javax.xml.XMLConstants.ACCESS_EXTERNAL_STYLESHEET;
+
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
@@ -65,8 +68,8 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.schema.MergeParams;
-import org.hisp.dhis.schema.MergeService;
+import org.hisp.dhis.schema.MetadataMergeParams;
+import org.hisp.dhis.schema.MetadataMergeService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notifier;
 import org.locationtech.jts.geom.Geometry;
@@ -110,7 +113,7 @@ public class DefaultGmlImportService implements GmlImportService {
   private final IdentifiableObjectManager idObjectManager;
   private final SchemaService schemaService;
   private final MetadataImportService importService;
-  private final MergeService mergeService;
+  private final MetadataMergeService metadataMergeService;
 
   @Transactional
   @Override
@@ -244,7 +247,13 @@ public class DefaultGmlImportService implements GmlImportService {
 
     ByteArrayOutputStream output = new ByteArrayOutputStream();
 
-    TransformerFactory.newInstance().newTransformer(xsl).transform(gml, new StreamResult(output));
+    TransformerFactory tf = TransformerFactory.newInstance();
+    // prevent XXE attack
+    // sonar vulnerability:
+    // https://sonarcloud.io/organizations/dhis2/rules?open=java%3AS2755&rule_key=java%3AS2755
+    tf.setAttribute(ACCESS_EXTERNAL_DTD, "");
+    tf.setAttribute(ACCESS_EXTERNAL_STYLESHEET, "");
+    tf.newTransformer(xsl).transform(gml, new StreamResult(output));
 
     xsl.getInputStream().close();
     gml.getInputStream().close();
@@ -285,7 +294,8 @@ public class DefaultGmlImportService implements GmlImportService {
   private void mergeNonGeoData(OrganisationUnit source, OrganisationUnit target) {
     Geometry geometry = target.getGeometry();
 
-    mergeService.merge(new MergeParams<>(source, target).setMergeMode(MergeMode.MERGE));
+    metadataMergeService.merge(
+        new MetadataMergeParams<>(source, target).setMergeMode(MergeMode.MERGE));
 
     target.setGeometry(geometry);
 

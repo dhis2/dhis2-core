@@ -588,9 +588,10 @@ public class OpenApiGenerator extends JsonGenerator {
         case "integer" -> addNumberMember("default", parseInt(defaultValue));
         case "number" -> addNumberMember("default", parseDouble(defaultValue));
         case "boolean" -> addBooleanMember("default", parseBoolean(defaultValue));
-        default -> log.warn(
-            "Unsupported default value provided for type %s of %s: %s"
-                .formatted(type, simpleType.source.getSimpleName(), defaultValue));
+        default ->
+            log.warn(
+                "Unsupported default value provided for type %s of %s: %s"
+                    .formatted(type, simpleType.source.getSimpleName(), defaultValue));
       }
     }
     if (simpleType.getEnums() != null) {

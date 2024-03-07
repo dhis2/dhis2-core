@@ -28,6 +28,7 @@
 package org.hisp.dhis.indicator;
 
 import java.util.List;
+import org.hisp.dhis.common.UID;
 
 /**
  * @author Lars Helge Overland
@@ -55,6 +56,26 @@ public interface IndicatorService {
 
   List<Indicator> getIndicatorsWithDataSets();
 
+  List<Indicator> getAssociatedIndicators(List<IndicatorType> indicatorTypes);
+
+  List<Indicator> getIndicatorsByUid(List<String> uids);
+
+  /**
+   * Get all {@link Indicator}s that have the uid contained in its numerator
+   *
+   * @param uid to search
+   * @return matching {@link Indicator}s
+   */
+  List<Indicator> getIndicatorsWithNumeratorContaining(UID uid);
+
+  /**
+   * Get all {@link Indicator}s that have the uid contained in its denominator
+   *
+   * @param uid to search
+   * @return matching {@link Indicator}s
+   */
+  List<Indicator> getIndicatorsWithDenominatorContaining(UID uid);
+
   // -------------------------------------------------------------------------
   // IndicatorType
   // -------------------------------------------------------------------------
@@ -70,6 +91,8 @@ public interface IndicatorService {
   IndicatorType getIndicatorType(String uid);
 
   List<IndicatorType> getAllIndicatorTypes();
+
+  List<IndicatorType> getIndicatorTypesByUid(List<String> uids);
 
   // -------------------------------------------------------------------------
   // IndicatorGroup

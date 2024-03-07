@@ -39,10 +39,14 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.With;
+import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -63,6 +67,9 @@ import org.hisp.dhis.program.Program;
 @Setter
 @Builder(toBuilder = true)
 public class CommonParams {
+  /** The original incoming request. */
+  private final CommonQueryRequest originalRequest;
+
   /** The list of Program objects carried on by this object. */
   @Builder.Default private final List<Program> programs = new ArrayList<>();
 
@@ -78,6 +85,14 @@ public class CommonParams {
    * Cannot be repeated and should keep ordering, hence a {@link LinkedHashSet}.
    */
   @Builder.Default private final Set<String> headers = new LinkedHashSet<>();
+
+  /**
+   * Data structure containing parsed versions of the headers. If present, they will represent the
+   * columns to be retrieved. Cannot be repeated and should keep ordering, hence a {@link
+   * LinkedHashSet}.
+   */
+  @Builder.Default
+  private final Set<DimensionIdentifier<DimensionParam>> parsedHeaders = new LinkedHashSet<>();
 
   /** The object that groups the paging and sorting parameters. */
   @Builder.Default
@@ -200,5 +215,26 @@ public class CommonParams {
    */
   public CommonParamsDelegator delegate() {
     return new CommonParamsDelegator(getDimensionIdentifiers());
+  }
+
+  /**
+   * Gets all dimension identifiers, including parsed headers and order parameters, and removes
+   * duplicates (by getting the first element of each group). Shouldn't be used when the order of
+   * the dimension identifiers is important or when access to dimension identifiers restrictions is
+   * needed
+   *
+   * @return the list of dimension identifiers
+   */
+  public List<DimensionIdentifier<DimensionParam>> getAllDimensionIdentifiers() {
+    return Stream.of(
+            dimensionIdentifiers.stream(),
+            parsedHeaders.stream(),
+            orderParams.stream().map(AnalyticsSortingParams::getOrderBy))
+        .flatMap(Function.identity())
+        .collect(Collectors.groupingBy(DimensionIdentifier::getKeyNoOffset))
+        .values()
+        .stream()
+        .map(identifiers -> identifiers.get(0))
+        .toList();
   }
 }

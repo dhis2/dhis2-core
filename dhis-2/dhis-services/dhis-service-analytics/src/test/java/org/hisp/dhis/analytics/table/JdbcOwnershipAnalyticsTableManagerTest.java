@@ -31,15 +31,15 @@ import static java.util.Calendar.FEBRUARY;
 import static java.util.Calendar.JANUARY;
 import static java.util.Calendar.MARCH;
 import static java.util.Collections.emptyList;
-import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
-import static org.hisp.dhis.analytics.ColumnDataType.DATE;
-import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.ENDDATE;
 import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.OU;
 import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.STARTDATE;
 import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.TEIUID;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
+import static org.hisp.dhis.db.model.DataType.DATE;
+import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -59,18 +59,20 @@ import java.util.List;
 import java.util.Map;
 import javax.sql.DataSource;
 import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.analytics.AnalyticsExportSettings;
-import org.hisp.dhis.analytics.AnalyticsTable;
-import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
-import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.table.model.AnalyticsTable;
+import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
-import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
@@ -110,8 +112,6 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
 
   @Mock private AnalyticsTableHookService tableHookService;
 
-  @Mock private StatementBuilder statementBuilder;
-
   @Mock private PartitionManager partitionManager;
 
   @Mock private DatabaseInfoProvider databaseInfoProvider;
@@ -128,9 +128,11 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
 
   @Mock private JdbcOwnershipWriter writer;
 
-  @Mock private AnalyticsExportSettings analyticsExportSettings;
+  @Mock private AnalyticsTableSettings analyticsTableSettings;
 
   @Mock private PeriodDataProvider periodDataProvider;
+
+  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
   private static final Program programA = createProgram('A');
 
@@ -155,23 +157,29 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
             dataApprovalLevelService,
             resourceTableService,
             tableHookService,
-            statementBuilder,
             partitionManager,
             databaseInfoProvider,
             jdbcTemplate,
             jdbcConfiguration,
-            analyticsExportSettings,
-            periodDataProvider);
+            analyticsTableSettings,
+            periodDataProvider,
+            sqlBuilder);
 
     tableA =
         new AnalyticsTable(
-            AnalyticsTableType.OWNERSHIP, target.getFixedColumns(), emptyList(), programA);
+            AnalyticsTableType.OWNERSHIP,
+            JdbcOwnershipAnalyticsTableManager.FIXED_COLS,
+            Logged.UNLOGGED,
+            programA);
 
     tableB =
         new AnalyticsTable(
-            AnalyticsTableType.OWNERSHIP, target.getFixedColumns(), emptyList(), programB);
+            AnalyticsTableType.OWNERSHIP,
+            JdbcOwnershipAnalyticsTableManager.FIXED_COLS,
+            Logged.UNLOGGED,
+            programB);
 
-    partitionA = new AnalyticsTablePartition(tableA, 1, new Date(), new Date(), true);
+    partitionA = new AnalyticsTablePartition(tableA, List.of(), 1, new Date(), new Date());
   }
 
   @Test
@@ -197,7 +205,7 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
 
   @Test
   void testGetPartitionChecks() {
-    assertEquals(emptyList(), target.getPartitionChecks(partitionA));
+    assertTrue(target.getPartitionChecks(1, new Date()).isEmpty());
   }
 
   @Test
@@ -290,8 +298,8 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
             + ") a "
             + "inner join trackedentity tei on a.trackedentityid = tei.trackedentityid "
             + "inner join organisationunit ou on a.organisationunitid = ou.organisationunitid "
-            + "left join _orgunitstructure ous on a.organisationunitid = ous.organisationunitid "
-            + "left join _organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid "
+            + "left join analytics_rs_orgunitstructure ous on a.organisationunitid = ous.organisationunitid "
+            + "left join analytics_rs_organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid "
             + "order by tei.uid, a.startdate, a.enddate",
         sqlMasked);
 
@@ -315,12 +323,12 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
   void testGetFixedColumns() {
     List<AnalyticsTableColumn> expected =
         List.of(
-            new AnalyticsTableColumn(quote("teiuid"), CHARACTER_11, "tei.uid"),
-            new AnalyticsTableColumn(quote("startdate"), DATE, "a.startdate"),
-            new AnalyticsTableColumn(quote("enddate"), DATE, "a.enddate"),
-            new AnalyticsTableColumn(quote("ou"), CHARACTER_11, NOT_NULL, "ou.uid"));
+            new AnalyticsTableColumn("teiuid", CHARACTER_11, "tei.uid"),
+            new AnalyticsTableColumn("startdate", DATE, "a.startdate"),
+            new AnalyticsTableColumn("enddate", DATE, "a.enddate"),
+            new AnalyticsTableColumn("ou", CHARACTER_11, NOT_NULL, "ou.uid"));
 
-    assertEquals(expected, target.getFixedColumns());
+    assertEquals(expected, JdbcOwnershipAnalyticsTableManager.FIXED_COLS);
   }
 
   // -------------------------------------------------------------------------

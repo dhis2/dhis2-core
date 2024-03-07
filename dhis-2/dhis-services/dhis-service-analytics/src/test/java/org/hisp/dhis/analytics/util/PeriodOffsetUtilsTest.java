@@ -35,7 +35,6 @@ import static org.hamcrest.Matchers.notNullValue;
 import com.google.common.collect.Lists;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -140,10 +139,7 @@ class PeriodOffsetUtilsTest {
 
   private void assertIsoPeriodsInOrder(List<DimensionalItemObject> periods, String... isoPeriod) {
     List<String> isoPeriods =
-        periods.stream()
-            .map(dim -> (Period) dim)
-            .map(Period::getIsoDate)
-            .collect(Collectors.toList());
+        periods.stream().map(dim -> (Period) dim).map(Period::getIsoDate).toList();
     assertThat(isoPeriods, is(Arrays.asList(isoPeriod)));
   }
 

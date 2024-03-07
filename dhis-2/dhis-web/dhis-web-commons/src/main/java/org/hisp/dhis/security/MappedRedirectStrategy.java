@@ -32,6 +32,7 @@ import static org.hisp.dhis.webapi.filter.CustomAuthenticationFilter.PARAM_AUTH_
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -85,9 +86,9 @@ public class MappedRedirectStrategy extends DefaultRedirectStrategy {
     // Ignore certain ajax requests
     // ---------------------------------------------------------------------
 
-    for (String key : redirectMap.keySet()) {
-      if (url.contains(key)) {
-        url = url.replaceFirst(key, redirectMap.get(key));
+    for (Entry<String, String> e : redirectMap.entrySet()) {
+      if (url.contains(e.getKey())) {
+        url = url.replaceFirst(e.getKey(), e.getValue());
       }
     }
 

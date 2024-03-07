@@ -94,6 +94,8 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    * @param ignoreCase
    * @return User for given username or null
    */
+  User getUserByUsername(String username);
+
   User getUserByUsername(String username, boolean ignoreCase);
 
   /**
@@ -103,9 +105,6 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    * @return User with given userId
    */
   User getUser(long userId);
-
-  /** Return CurrentUserGroupInfo used for ACL check in {@link IdentifiableObjectStore} */
-  CurrentUserGroupInfo getCurrentUserGroupInfo(String userUID);
 
   /**
    * Sets {@link User#setDisabled(boolean)} to {@code true} for all users where the {@link
@@ -139,6 +138,15 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    */
   Map<String, Optional<Locale>> findNotifiableUsersWithPasswordLastUpdatedBetween(
       Date from, Date to);
+
+  /**
+   * Find users with email that are members of a user-group and return them by username.
+   *
+   * @param userGroupId a user group ID
+   * @return a map of user emails by username for all users in the group that have an email
+   *     configured
+   */
+  Map<String, String> getUserGroupUserEmailsByUsername(String userGroupId);
 
   String getDisplayName(String userUid);
 
@@ -183,7 +191,26 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    */
   User getUserByUuid(UUID uuid);
 
+  /**
+   * Retrieves the User associated with the User with the given email.
+   *
+   * @param email email.
+   * @return the User.
+   */
+  User getUserByEmail(String email);
+
   List<User> getHasAuthority(String authority);
 
   List<User> getLinkedUserAccounts(User currentUser);
+
+  /** Return CurrentUserGroupInfo used for ACL check in {@link IdentifiableObjectStore} */
+  CurrentUserGroupInfo getCurrentUserGroupInfo(String userUID);
+
+  /**
+   * Get active linked user accounts for the given user
+   *
+   * @param actingUser the acting/current user
+   * @param activeUsername the username of the user to set as active
+   */
+  void setActiveLinkedAccounts(@Nonnull String actingUser, @Nonnull String activeUsername);
 }

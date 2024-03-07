@@ -31,7 +31,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonNodeType;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -42,10 +45,18 @@ import org.junit.jupiter.api.Test;
 class GistPagerControllerTest extends AbstractGistControllerTest {
   @Test
   void testPager_Total_ResultBased() {
-    JsonObject gist =
-        GET("/users/{uid}/userGroups/gist?fields=name,users&total=true", getSuperuserUid())
-            .content();
+    String baseUrl = "/users/{uid}/userGroups/gist?fields=name,users";
+    JsonObject gist = GET(baseUrl + "&total=true", getSuperuserUid()).content();
     assertHasPager(gist, 1, 50, 1);
+    gist = GET(baseUrl + "&totalPages=true", getSuperuserUid()).content();
+    assertHasPager(gist, 1, 50, 1);
+
+    JsonWebMessage msg =
+        GET(baseUrl + "&totalPages=true&total=false", getSuperuserUid())
+            .content(HttpStatus.BAD_REQUEST)
+            .as(JsonWebMessage.class);
+    assertEquals(
+        "totalPages and total request parameters are contradicting each other", msg.getMessage());
   }
 
   @Test
@@ -91,5 +102,21 @@ class GistPagerControllerTest extends AbstractGistControllerTest {
     assertEquals("extra3", dataSets.getObject(0).getString("name").string());
     assertEquals("extra4", dataSets.getObject(1).getString("name").string());
     assertEquals("extra5", dataSets.getObject(2).getString("name").string());
+  }
+
+  @Test
+  void testHeadless() {
+    String baseUrl = "/users/{uid}/userGroups/gist";
+    assertEquals(
+        JsonNodeType.OBJECT,
+        GET(baseUrl, getSuperuserUid()).content().node().getType(),
+        "by default list should have a pager");
+
+    assertEquals(
+        JsonNodeType.ARRAY,
+        GET(baseUrl + "?headless=true", getSuperuserUid()).content().node().getType());
+    assertEquals(
+        JsonNodeType.OBJECT,
+        GET(baseUrl + "?headless=false", getSuperuserUid()).content().node().getType());
   }
 }

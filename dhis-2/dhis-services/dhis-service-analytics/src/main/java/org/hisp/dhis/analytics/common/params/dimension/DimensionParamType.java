@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.common.params.dimension;
 
+import static org.apache.commons.collections4.ListUtils.emptyIfNull;
 import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.analytics.SortOrder.DESC;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.fromFullDimensionId;
@@ -34,7 +35,6 @@ import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
@@ -77,14 +77,13 @@ public enum DimensionParamType {
 
   private static List<String> parseDate(
       CommonQueryRequest commonQueryRequest, AnalyticsDateFilter analyticsDateFilter) {
-    String dateFilter = analyticsDateFilter.getTeiExtractor().apply(commonQueryRequest);
-    if (StringUtils.isEmpty(dateFilter)) {
-      return Collections.emptyList();
-    }
-    String[] dateFilterItems = dateFilter.split(";");
-    return Stream.of(dateFilterItems)
+
+    return emptyIfNull(analyticsDateFilter.getTeiExtractor().apply(commonQueryRequest)).stream()
+        .filter(StringUtils::isNotEmpty)
+        .map(df -> df.split(";"))
+        .flatMap(Arrays::stream)
         .map(dateFilterItem -> toDimensionParam(dateFilterItem, analyticsDateFilter))
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /**

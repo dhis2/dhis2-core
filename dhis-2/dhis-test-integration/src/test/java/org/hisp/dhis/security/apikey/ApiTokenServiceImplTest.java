@@ -42,21 +42,20 @@ import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
-import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.test.web.servlet.MockMvc;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase {
+class ApiTokenServiceImplTest extends TransactionalIntegrationTest {
   @Autowired private ApiTokenStore apiTokenStore;
 
   @Autowired private ApiTokenService apiTokenService;
@@ -67,12 +66,14 @@ class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private UserService _userService;
 
-  protected MockMvc mvc;
-
   @BeforeEach
   final void setup() throws Exception {
-    userService = _userService;
-    preCreateInjectAdminUser();
+    //    userService = _userService;
+    //    preCreateInjectAdminUser();
+
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
+    User currentUser = userService.getUserByUsername(currentUsername);
+    injectSecurityContextUser(currentUser);
   }
 
   public ApiToken createAndSaveToken() {
@@ -111,7 +112,7 @@ class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase {
   void testGetAllByUser() {
     final ApiToken token = createAndSaveToken();
     createAndSaveToken();
-    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     User user = userService.getUserByUsername(currentUserDetails.getUsername());
     List<ApiToken> allOwning = apiTokenService.getAllOwning(user);
 
@@ -122,7 +123,7 @@ class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase {
   @Test
   void testSaveGetCurrentUser() {
     final ApiToken tokenA = createAndSaveToken();
-    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     User user = userService.getUserByUsername(currentUserDetails.getUsername());
     final ApiToken tokenB = apiTokenService.getByKey(tokenA.getKey(), user);
     assertEquals(tokenB.getKey(), tokenA.getKey());
@@ -131,14 +132,14 @@ class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase {
   @Test
   void testShouldDeleteTokensWhenUserIsDeleted() {
     User userB = createUserWithAuth("userB");
-    injectSecurityContext(userB);
+    injectSecurityContextUser(userB);
 
     String apiTokenCreator = CurrentUserUtil.getCurrentUsername();
     createAndSaveToken();
     createAndSaveToken();
 
     User adminUser = userService.getUserByUsername("admin_test");
-    injectSecurityContext(adminUser);
+    injectSecurityContextUser(adminUser);
 
     userService.deleteUser(userService.getUserByUsername(apiTokenCreator));
 
@@ -187,7 +188,7 @@ class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase {
 
   private void switchToOtherUser() {
     final User otherUser = createUserWithAuth("otherUser");
-    injectSecurityContext(otherUser);
+    injectSecurityContextUser(otherUser);
   }
 
   @Test

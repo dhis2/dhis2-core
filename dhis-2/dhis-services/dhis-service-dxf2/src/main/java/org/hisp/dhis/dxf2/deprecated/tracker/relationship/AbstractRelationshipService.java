@@ -71,8 +71,9 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
@@ -80,8 +81,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 public abstract class AbstractRelationshipService implements RelationshipService {
   protected DbmsManager dbmsManager;
-
-  protected CurrentUserService currentUserService;
 
   protected SchemaService schemaService;
 
@@ -118,14 +117,15 @@ public abstract class AbstractRelationshipService implements RelationshipService
   public List<Relationship> getRelationshipsByTrackedEntityInstance(
       TrackedEntity tei,
       PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean skipAccessValidation) {
-    User user = currentUserService.getCurrentUser();
-
+      boolean skipAccessValidation,
+      boolean includeDeleted) {
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     return relationshipService
-        .getRelationshipsByTrackedEntity(tei, pagingAndSortingCriteriaAdapter, skipAccessValidation)
+        .getRelationshipsByTrackedEntity(tei, pagingAndSortingCriteriaAdapter, includeDeleted)
         .stream()
-        .filter((r) -> !skipAccessValidation && trackerAccessManager.canRead(user, r).isEmpty())
-        .map(r -> getRelationship(r, user))
+        .filter(
+            r -> !skipAccessValidation && trackerAccessManager.canRead(currentUser, r).isEmpty())
+        .map(r -> getRelationship(r, currentUser))
         .filter(Optional::isPresent)
         .map(Optional::get)
         .collect(Collectors.toList());
@@ -136,15 +136,15 @@ public abstract class AbstractRelationshipService implements RelationshipService
   public List<Relationship> getRelationshipsByEnrollment(
       Enrollment enrollment,
       PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean skipAccessValidation) {
-    User user = currentUserService.getCurrentUser();
-
+      boolean skipAccessValidation,
+      boolean includeDeleted) {
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     return relationshipService
-        .getRelationshipsByEnrollment(
-            enrollment, pagingAndSortingCriteriaAdapter, skipAccessValidation)
+        .getRelationshipsByEnrollment(enrollment, pagingAndSortingCriteriaAdapter, includeDeleted)
         .stream()
-        .filter((r) -> !skipAccessValidation && trackerAccessManager.canRead(user, r).isEmpty())
-        .map(r -> getRelationship(r, user))
+        .filter(
+            r -> !skipAccessValidation && trackerAccessManager.canRead(currentUser, r).isEmpty())
+        .map(r -> getRelationship(r, currentUser))
         .filter(Optional::isPresent)
         .map(Optional::get)
         .collect(Collectors.toList());
@@ -155,14 +155,15 @@ public abstract class AbstractRelationshipService implements RelationshipService
   public List<Relationship> getRelationshipsByEvent(
       Event psi,
       PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean skipAccessValidation) {
-    User user = currentUserService.getCurrentUser();
-
+      boolean skipAccessValidation,
+      boolean includeDeleted) {
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     return relationshipService
-        .getRelationshipsByEvent(psi, pagingAndSortingCriteriaAdapter, skipAccessValidation)
+        .getRelationshipsByEvent(psi, pagingAndSortingCriteriaAdapter, includeDeleted)
         .stream()
-        .filter((r) -> !skipAccessValidation && trackerAccessManager.canRead(user, r).isEmpty())
-        .map(r -> getRelationship(r, user))
+        .filter(
+            r -> !skipAccessValidation && trackerAccessManager.canRead(currentUser, r).isEmpty())
+        .map(r -> getRelationship(r, currentUser))
         .filter(Optional::isPresent)
         .map(Optional::get)
         .collect(Collectors.toList());
@@ -438,7 +439,8 @@ public abstract class AbstractRelationshipService implements RelationshipService
       return Optional.empty();
     }
 
-    return getRelationship(relationship, currentUserService.getCurrentUser());
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    return getRelationship(relationship, currentUser);
   }
 
   @Override
@@ -463,8 +465,8 @@ public abstract class AbstractRelationshipService implements RelationshipService
 
     relationship.setBidirectional(dao.getRelationshipType().isBidirectional());
 
-    relationship.setCreated(DateUtils.getIso8601NoTz(dao.getCreated()));
-    relationship.setLastUpdated(DateUtils.getIso8601NoTz(dao.getLastUpdated()));
+    relationship.setCreated(DateUtils.toIso8601NoTz(dao.getCreated()));
+    relationship.setLastUpdated(DateUtils.toIso8601NoTz(dao.getLastUpdated()));
 
     return Optional.of(relationship);
   }
@@ -759,7 +761,7 @@ public abstract class AbstractRelationshipService implements RelationshipService
     // Find all the RelationshipTypes first, so we know what the uids refer
     // to
     Query query = Query.from(schemaService.getDynamicSchema(RelationshipType.class));
-    query.setUser(user);
+    query.setCurrentUserDetails(UserDetails.fromUser(user));
     query.add(Restrictions.in("id", relationshipTypeMap.keySet()));
     queryService
         .query(query)
@@ -802,7 +804,7 @@ public abstract class AbstractRelationshipService implements RelationshipService
 
     if (relationshipEntities.get(PROGRAM_INSTANCE) != null) {
       Query piQuery = Query.from(schemaService.getDynamicSchema(Enrollment.class));
-      piQuery.setUser(user);
+      piQuery.setCurrentUserDetails(UserDetails.fromUser(user));
       piQuery.add(Restrictions.in("id", relationshipEntities.get(PROGRAM_INSTANCE)));
       queryService
           .query(piQuery)
@@ -811,7 +813,7 @@ public abstract class AbstractRelationshipService implements RelationshipService
 
     if (relationshipEntities.get(PROGRAM_STAGE_INSTANCE) != null) {
       Query psiQuery = Query.from(schemaService.getDynamicSchema(Event.class));
-      psiQuery.setUser(user);
+      psiQuery.setCurrentUserDetails(UserDetails.fromUser(user));
       psiQuery.add(Restrictions.in("id", relationshipEntities.get(PROGRAM_STAGE_INSTANCE)));
       queryService
           .query(psiQuery)
@@ -834,7 +836,8 @@ public abstract class AbstractRelationshipService implements RelationshipService
     }
 
     if (importOptions.getUser() == null) {
-      importOptions.setUser(currentUserService.getCurrentUser());
+      User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+      importOptions.setUser(currentUser);
     }
 
     return importOptions;

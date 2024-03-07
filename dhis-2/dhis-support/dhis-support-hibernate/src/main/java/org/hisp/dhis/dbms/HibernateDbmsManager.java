@@ -199,6 +199,7 @@ public class HibernateDbmsManager implements DbmsManager {
 
     emptyTable("sectiongreyedfields");
     emptyTable("sectiondataelements");
+    emptyTable("sectionindicators");
     emptyTable("section");
 
     emptyTable("datasetsource");
@@ -285,6 +286,7 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("deletedobject");
     emptyTable("period");
 
+    emptyTable("configuration");
     emptyTable("indicatorgroupsetmembers");
     emptyTable("indicatorgroupset");
 
@@ -326,27 +328,31 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("previouspasswords");
     emptyTable("usersetting");
     emptyTable("fileresource");
+    emptyTable("jobconfiguration");
+    // userinfo should be last, since many tables has a foreign key to it
     emptyTable("userinfo");
     emptyTable("route");
 
-    dropTable("_orgunitstructure");
-    dropTable("_datasetorganisationunitcategory");
-    dropTable("_categoryoptioncomboname");
-    dropTable("_dataelementgroupsetstructure");
-    dropTable("_indicatorgroupsetstructure");
-    dropTable("_organisationunitgroupsetstructure");
-    dropTable("_categorystructure");
-    dropTable("_dataelementstructure");
-    dropTable("_dateperiodstructure");
-    dropTable("_periodstructure");
-    dropTable("_dataelementcategoryoptioncombo");
-    dropTable("_dataapprovalminlevel");
+    dropTable("analytics_rs_orgunitstructure");
+    dropTable("analytics_rs_datasetorganisationunitcategory");
+    dropTable("analytics_rs_categoryoptioncomboname");
+    dropTable("analytics_rs_dataelementgroupsetstructure");
+    dropTable("analytics_rs_indicatorgroupsetstructure");
+    dropTable("analytics_rs_organisationunitgroupsetstructure");
+    dropTable("analytics_rs_categorystructure");
+    dropTable("analytics_rs_dataelementstructure");
+    dropTable("analytics_rs_dateperiodstructure");
+    dropTable("analytics_rs_periodstructure");
+    dropTable("analytics_rs_dataelementcategoryoptioncombo");
+    dropTable("analytics_rs_dataapprovalremaplevel");
+    dropTable("analytics_rs_dataapprovalminlevel");
 
     emptyTable("reservedvalue");
     emptyTable("sequentialnumbercounter");
 
     emptyTable("audit");
     emptyTable("eventhook");
+    emptyTable("dataentryform");
 
     log.debug("Cleared database contents");
 
@@ -425,7 +431,8 @@ public class HibernateDbmsManager implements DbmsManager {
 
   private void dropTable(String table) {
     try {
-      jdbcTemplate.execute("drop table  if exists " + table);
+      String sql = String.format("drop table if exists %s;", table);
+      jdbcTemplate.execute(sql);
     } catch (BadSqlGrammarException ex) {
       log.debug("Table " + table + " does not exist");
     }
@@ -433,8 +440,16 @@ public class HibernateDbmsManager implements DbmsManager {
 
   private void emptyRelationships() {
     try {
-      jdbcTemplate.update(
-          "update relationshipitem set relationshipid = null; delete from relationship; delete from relationshipitem; update relationshiptype set from_relationshipconstraintid = null,to_relationshipconstraintid = null; delete from relationshipconstraint; delete from relationshiptype;");
+      String sql =
+          """
+          update relationshipitem set relationshipid = null;
+          delete from relationship;
+          delete from relationshipitem;
+          update relationshiptype set from_relationshipconstraintid = null,to_relationshipconstraintid = null;
+          delete from relationshipconstraint;
+          delete from relationshiptype;
+          """;
+      jdbcTemplate.update(sql);
     } catch (BadSqlGrammarException ex) {
       log.debug("Could not empty relationship tables");
     }

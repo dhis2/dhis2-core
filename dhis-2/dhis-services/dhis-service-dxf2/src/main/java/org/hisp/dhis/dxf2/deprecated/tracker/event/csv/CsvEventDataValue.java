@@ -66,6 +66,8 @@ public class CsvEventDataValue {
 
   private String orgUnit;
 
+  private String attributeOptionCombo;
+
   private String enrollment;
 
   private String eventDate;
@@ -101,6 +103,7 @@ public class CsvEventDataValue {
     programStage = dataValue.getProgramStage();
     enrollment = dataValue.getEnrollment();
     orgUnit = dataValue.getOrgUnit();
+    attributeOptionCombo = dataValue.getAttributeOptionCombo();
     eventDate = dataValue.getEventDate();
     dueDate = dataValue.getDueDate();
     latitude = dataValue.getLatitude();
@@ -166,6 +169,15 @@ public class CsvEventDataValue {
 
   public void setOrgUnit(String orgUnit) {
     this.orgUnit = orgUnit;
+  }
+
+  @JsonProperty
+  public String getAttributeOptionCombo() {
+    return attributeOptionCombo;
+  }
+
+  public void setAttributeOptionCombo(String attributeOptionCombo) {
+    this.attributeOptionCombo = attributeOptionCombo;
   }
 
   @JsonProperty
@@ -275,6 +287,7 @@ public class CsvEventDataValue {
         program,
         programStage,
         orgUnit,
+        attributeOptionCombo,
         enrollment,
         eventDate,
         dueDate,
@@ -300,6 +313,7 @@ public class CsvEventDataValue {
         && Objects.equals(this.program, other.program)
         && Objects.equals(this.programStage, other.programStage)
         && Objects.equals(this.orgUnit, other.orgUnit)
+        && Objects.equals(this.attributeOptionCombo, other.attributeOptionCombo)
         && Objects.equals(this.enrollment, other.enrollment)
         && Objects.equals(this.eventDate, other.eventDate)
         && Objects.equals(this.dueDate, other.dueDate)
@@ -321,6 +335,7 @@ public class CsvEventDataValue {
         .add("programStage", programStage)
         .add("enrollment", enrollment)
         .add("orgUnit", orgUnit)
+        .add("attributeOptionCombo", attributeOptionCombo)
         .add("eventDate", eventDate)
         .add("dueDate", dueDate)
         .add("latitude", latitude)

@@ -34,5 +34,5 @@ package org.hisp.dhis.analytics;
  */
 public enum OutputFormat {
   ANALYTICS,
-  DATA_VALUE_SET
+  DATA_VALUE_SET;
 }

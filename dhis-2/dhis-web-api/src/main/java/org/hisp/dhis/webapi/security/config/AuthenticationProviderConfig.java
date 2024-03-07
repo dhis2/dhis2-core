@@ -33,14 +33,13 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.AuthenticationLoggerListener;
 import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
 import org.hisp.dhis.security.ldap.authentication.DhisBindAuthenticator;
-import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
+import org.hisp.dhis.user.UserStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
@@ -61,8 +60,6 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 public class AuthenticationProviderConfig {
   @Autowired private DhisConfigurationProvider configurationProvider;
 
-  @Autowired TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
-
   @Autowired
   @Qualifier("ldapUserDetailsService")
   UserDetailsService ldapUserDetailsService;
@@ -73,9 +70,9 @@ public class AuthenticationProviderConfig {
   }
 
   @Bean(name = "customLdapAuthenticationProvider")
-  CustomLdapAuthenticationProvider customLdapAuthenticationProvider() {
+  CustomLdapAuthenticationProvider customLdapAuthenticationProvider(UserStore userStore) {
     return new CustomLdapAuthenticationProvider(
-        dhisBindAuthenticator(),
+        dhisBindAuthenticator(userStore),
         userDetailsServiceLdapAuthoritiesPopulator(ldapUserDetailsService),
         configurationProvider);
   }
@@ -102,10 +99,10 @@ public class AuthenticationProviderConfig {
   }
 
   @Bean
-  @DependsOn("org.hisp.dhis.user.UserService")
-  public DhisBindAuthenticator dhisBindAuthenticator() {
+  public DhisBindAuthenticator dhisBindAuthenticator(UserStore userStore) {
     DhisBindAuthenticator dhisBindAuthenticator =
-        new DhisBindAuthenticator(defaultSpringSecurityContextSource());
+        new DhisBindAuthenticator(defaultSpringSecurityContextSource(), userStore);
+
     dhisBindAuthenticator.setUserSearch(filterBasedLdapUserSearch());
     return dhisBindAuthenticator;
   }

@@ -27,14 +27,12 @@
  */
 package org.hisp.dhis.user;
 
-import java.util.Collection;
-import java.util.List;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.IndirectTransactional;
+import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -45,24 +43,27 @@ public class DefaultAuthenticationService implements AuthenticationService {
   private final UserService userService;
 
   @Override
+  @IndirectTransactional
   public void obtainAuthentication(@Nonnull String userId) throws NotFoundException {
-    CurrentUserDetails user = userService.createUserDetails(userId);
-    setupInContext(user, user.getAuthorities());
+    UserDetails user = userService.createUserDetails(userId);
+    setupInContext(user);
   }
 
   @Override
+  @NonTransactional
   public void obtainSystemAuthentication() {
-    setupInContext("system", List.of(new SimpleGrantedAuthority("ALL")));
+    setupInContext(new SystemUser());
   }
 
-  private static void setupInContext(
-      Object username, Collection<? extends GrantedAuthority> authorities) {
+  private static void setupInContext(UserDetails principal) {
     SecurityContext context = SecurityContextHolder.createEmptyContext();
-    context.setAuthentication(new UsernamePasswordAuthenticationToken(username, null, authorities));
+    context.setAuthentication(
+        new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities()));
     SecurityContextHolder.setContext(context);
   }
 
   @Override
+  @NonTransactional
   public void clearAuthentication() {
     SecurityContext context = SecurityContextHolder.getContext();
     if (context != null) {

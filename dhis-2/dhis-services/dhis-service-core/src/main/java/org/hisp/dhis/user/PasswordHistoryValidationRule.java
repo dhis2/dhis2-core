@@ -40,15 +40,9 @@ public class PasswordHistoryValidationRule implements PasswordValidationRule {
 
   private final UserService userService;
 
-  private final CurrentUserService currentUserService;
-
-  public PasswordHistoryValidationRule(
-      PasswordEncoder passwordEncoder,
-      UserService userService,
-      CurrentUserService currentUserService) {
+  public PasswordHistoryValidationRule(PasswordEncoder passwordEncoder, UserService userService) {
     this.passwordEncoder = passwordEncoder;
     this.userService = userService;
-    this.currentUserService = currentUserService;
   }
 
   @Override
@@ -82,8 +76,14 @@ public class PasswordHistoryValidationRule implements PasswordValidationRule {
       return true;
     }
 
-    // no need to check password history in case of new user
-    return !credentials.isNewUser()
-        && currentUserService.getCurrentUsername().equals(credentials.getUsername());
+    boolean hasCurrentUser = CurrentUserUtil.hasCurrentUser();
+    if (hasCurrentUser) {
+      boolean isCurrentUser =
+          CurrentUserUtil.getCurrentUsername().equals(credentials.getUsername());
+      return !credentials.isNewUser() && isCurrentUser;
+
+    } else {
+      return !credentials.isNewUser();
+    }
   }
 }

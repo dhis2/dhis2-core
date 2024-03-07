@@ -41,9 +41,9 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
-import org.hisp.dhis.tracker.imports.sideeffect.TrackerRuleEngineSideEffect;
 
 /**
  * Class holding data necessary for implementation of side effects.
@@ -69,10 +69,10 @@ public class TrackerSideEffectDataBundle implements Message {
   @JsonProperty private Event event;
 
   @JsonProperty @Builder.Default
-  private Map<String, List<TrackerRuleEngineSideEffect>> enrollmentRuleEffects = new HashMap<>();
+  private Map<String, List<RuleEffect>> enrollmentRuleEffects = new HashMap<>();
 
   @JsonProperty @Builder.Default
-  private Map<String, List<TrackerRuleEngineSideEffect>> eventRuleEffects = new HashMap<>();
+  private Map<String, List<RuleEffect>> eventRuleEffects = new HashMap<>();
 
   @JsonProperty private TrackerImportStrategy importStrategy;
 

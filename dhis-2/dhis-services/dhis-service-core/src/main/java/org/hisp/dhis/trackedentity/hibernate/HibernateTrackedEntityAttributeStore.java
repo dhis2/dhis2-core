@@ -44,16 +44,15 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
 import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -65,24 +64,13 @@ import org.springframework.stereotype.Repository;
 public class HibernateTrackedEntityAttributeStore
     extends HibernateIdentifiableObjectStore<TrackedEntityAttribute>
     implements TrackedEntityAttributeStore {
-  private final StatementBuilder statementBuilder;
 
   public HibernateTrackedEntityAttributeStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
-      AclService aclService,
-      StatementBuilder statementBuilder) {
-    super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        TrackedEntityAttribute.class,
-        currentUserService,
-        aclService,
-        true);
-    this.statementBuilder = statementBuilder;
+      AclService aclService) {
+    super(entityManager, jdbcTemplate, publisher, TrackedEntityAttribute.class, aclService, true);
   }
 
   // -------------------------------------------------------------------------
@@ -134,8 +122,7 @@ public class HibernateTrackedEntityAttributeStore
     for (QueryItem item : params.getAttributes()) {
       for (QueryFilter filter : item.getFilters()) {
         final String encodedFilter =
-            filter.getSqlFilter(
-                statementBuilder.encode(StringUtils.lowerCase(filter.getFilter()), false));
+            filter.getSqlFilter(SqlUtils.escape(StringUtils.lowerCase(filter.getFilter())));
 
         hql +=
             hlp.whereAnd()

@@ -35,8 +35,8 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
-import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 
 /**
  * This class is used as a container for order parameters and is deserialized from web requests
@@ -46,9 +46,9 @@ import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 @Value
 @AllArgsConstructor(staticName = "of")
 public class OrderCriteria {
-  private final String field;
+  String field;
 
-  private final SortDirection direction;
+  SortDirection direction;
 
   public OrderParam toOrderParam() {
     return new OrderParam(field, direction);
@@ -64,18 +64,36 @@ public class OrderCriteria {
 
   private static List<OrderCriteria> toOrderCriterias(String s) {
     return Arrays.stream(s.split(","))
-        .map(OrderCriteria::toOrderCriteria)
+        .filter(StringUtils::isNotBlank)
+        .map(OrderCriteria::valueOf)
         .collect(Collectors.toList());
   }
 
-  private static OrderCriteria toOrderCriteria(String s1) {
-    String[] props = s1.split(":");
-    if (props.length == 2) {
-      return OrderCriteria.of(props[0], SortDirection.of(props[1]));
+  /**
+   * Create an {@link OrderCriteria} from a string in the format of "field:direction". Valid
+   * directions are defined by {@link SortDirection}.
+   *
+   * @throws IllegalArgumentException if the input is not in the correct format.
+   */
+  public static OrderCriteria valueOf(String input) {
+    String[] props = input.split(":");
+    if (props.length > 2) {
+      throw new IllegalArgumentException(
+          "Invalid order property: '"
+              + input
+              + "'. Valid formats are 'field:direction' or 'field'. Valid directions are 'asc' or 'desc'. Direction defaults to 'asc'.");
     }
-    if (props.length == 1) {
-      return OrderCriteria.of(props[0], SortDirection.ASC);
+
+    String field = props[0].trim();
+    if (StringUtils.isEmpty(field)) {
+      throw new IllegalArgumentException(
+          "Missing field name in order property: '"
+              + input
+              + "'. Valid formats are 'field:direction' or 'field'. Valid directions are 'asc' or 'desc'. Direction defaults to 'asc'.");
     }
-    return null;
+
+    SortDirection direction =
+        props.length == 1 ? SortDirection.ASC : SortDirection.of(props[1].trim());
+    return OrderCriteria.of(field, direction);
   }
 }

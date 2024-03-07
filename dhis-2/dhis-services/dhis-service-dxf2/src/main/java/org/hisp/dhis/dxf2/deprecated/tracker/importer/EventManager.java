@@ -39,6 +39,7 @@ import static org.hisp.dhis.importexport.ImportStrategy.CREATE;
 import static org.hisp.dhis.importexport.ImportStrategy.DELETE;
 import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -54,7 +55,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.DataValue;
@@ -68,9 +69,9 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -94,11 +95,31 @@ public class EventManager {
 
   @Nonnull private final EventPersistenceService eventPersistenceService;
 
-  @Nonnull private final TrackedEntityDataValueAuditService entityDataValueAuditService;
-
-  @Nonnull private final CurrentUserService currentUserService;
+  @Nonnull private final TrackedEntityDataValueChangeLogService entityDataValueAuditService;
 
   private static final String IMPORT_ERROR_STRING = "Invalid or conflicting data";
+
+  public ImportSummary updateEventDataValues(
+      org.hisp.dhis.dxf2.deprecated.tracker.event.Event event,
+      Set<EventDataValue> eventDataValues,
+      WorkContext context)
+      throws JsonProcessingException {
+    final ImportSummaries importSummaries = new ImportSummaries();
+
+    executorsByPhase.get(EventProcessorPhase.UPDATE_PRE).execute(context, List.of(event));
+
+    for (EventDataValue de : eventDataValues) {
+      eventPersistenceService.updateEventDataValues(de, event, context);
+    }
+
+    eventPersistenceService.updateTrackedEntityInstances(context, List.of(event));
+
+    executorsByPhase.get(EventProcessorPhase.UPDATE_POST).execute(context, List.of(event));
+
+    incrementSummaryTotals(List.of(event), importSummaries, UPDATE);
+
+    return importSummaries.getImportSummaries().get(0);
+  }
 
   public ImportSummary addEvent(
       final org.hisp.dhis.dxf2.deprecated.tracker.event.Event event,
@@ -347,7 +368,7 @@ public class EventManager {
             .orElse(new HashMap<>());
 
     for (DataValue dv : event.getDataValues()) {
-      AuditType auditType = AuditType.READ;
+      ChangeLogType changeLogType = ChangeLogType.READ;
 
       DataElement dateElement = workContext.getDataElementMap().get(dv.getDataElement());
 
@@ -358,26 +379,26 @@ public class EventManager {
       EventDataValue eventDataValue = dataValueDBMap.get(dv.getDataElement());
 
       if (eventDataValue == null) {
-        auditType = AuditType.CREATE;
+        changeLogType = ChangeLogType.CREATE;
         persistedDataValue = dv.getValue();
       } else if (StringUtils.isEmpty(dv.getValue())) {
-        auditType = AuditType.DELETE;
+        changeLogType = ChangeLogType.DELETE;
         persistedDataValue = eventDataValue.getValue();
       } else if (!dv.getValue().equals(eventDataValue.getValue())) {
-        auditType = AuditType.UPDATE;
+        changeLogType = ChangeLogType.UPDATE;
         persistedDataValue = eventDataValue.getValue();
       }
 
-      TrackedEntityDataValueAudit audit = new TrackedEntityDataValueAudit();
+      TrackedEntityDataValueChangeLog audit = new TrackedEntityDataValueChangeLog();
       audit.setCreated(today);
-      audit.setAuditType(auditType);
+      audit.setAuditType(changeLogType);
       audit.setProvidedElsewhere(dv.getProvidedElsewhere());
       audit.setEvent(psi);
       audit.setValue(persistedDataValue != null ? persistedDataValue : dv.getValue());
       audit.setDataElement(workContext.getDataElementMap().get(dv.getDataElement()));
-      audit.setModifiedBy(currentUserService.getCurrentUsername());
+      audit.setModifiedBy(CurrentUserUtil.getCurrentUsername());
 
-      entityDataValueAuditService.addTrackedEntityDataValueAudit(audit);
+      entityDataValueAuditService.addTrackedEntityDataValueChangeLog(audit);
     }
   }
 

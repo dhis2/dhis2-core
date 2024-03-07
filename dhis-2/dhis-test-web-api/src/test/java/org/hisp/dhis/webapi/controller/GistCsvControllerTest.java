@@ -70,12 +70,16 @@ class GistCsvControllerTest extends AbstractGistControllerTest {
     List<String> split = List.of(response.content(TEXT_CSV.toString()).split("\n"));
     List<User> allUsers = userService.getAllUsers();
 
+    // Remove admin user
+    List<String> cleanSplit =
+        split.stream().filter(l -> !l.contains(getAdminUser().getUid())).toList();
+
     assertLinesMatch(
         List.of(
             "id,code,education,twitter,employer",
-            allUsers.get(0).getUid() + ",Codeadmin,,,",
-            allUsers.get(1).getUid() + ",CodeuserA,,,"),
-        split);
+            allUsers.get(1).getUid() + ",Codeadmin,,,",
+            allUsers.get(2).getUid() + ",CodeuserA,,,"),
+        cleanSplit);
   }
 
   private void assertUserCsv(HttpResponse response) {
@@ -83,7 +87,7 @@ class GistCsvControllerTest extends AbstractGistControllerTest {
     List<User> allUsers = userService.getAllUsers();
 
     assertLinesMatch(
-        List.of("id,code,education,twitter,employer", allUsers.get(0).getUid() + ",Codeadmin,,,"),
+        List.of("id,code,education,twitter,employer", allUsers.get(1).getUid() + ",Codeadmin,,,"),
         split);
   }
 }

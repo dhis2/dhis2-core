@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.program.function;
 
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
-
 import java.util.Date;
+import org.hisp.dhis.analytics.AnalyticsConstants;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ProgramExpressionParams;
+import org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramExpressionItem;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -84,7 +84,7 @@ public abstract class ProgramMinMaxFunction extends ProgramExpressionItem {
         + " where "
         + eventTableName
         + ".pi = "
-        + StatementBuilder.ANALYTICS_TBL_ALIAS
+        + AnalyticsConstants.ANALYTICS_TBL_ALIAS
         + ".pi "
         + (pi.getEndEventBoundary() != null
             ? ("and "

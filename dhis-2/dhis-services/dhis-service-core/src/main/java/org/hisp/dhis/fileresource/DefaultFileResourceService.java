@@ -42,7 +42,9 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -51,6 +53,8 @@ import org.hisp.dhis.fileresource.events.FileDeletedEvent;
 import org.hisp.dhis.fileresource.events.FileSavedEvent;
 import org.hisp.dhis.fileresource.events.ImageFileSavedEvent;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Hours;
@@ -142,27 +146,33 @@ public class DefaultFileResourceService implements FileResourceService {
     String uid = fr.getUid();
     return switch (fr.getDomain()) {
       case PUSH_ANALYSIS -> List.of();
-      case ORG_UNIT -> fileResourceStore.findOrganisationUnitsByImageFileResource(uid).stream()
-          .map(id -> new FileResourceOwner(FileResourceDomain.ORG_UNIT, id))
-          .toList();
-      case DOCUMENT -> fileResourceStore.findDocumentsByFileResource(uid).stream()
-          .map(id -> new FileResourceOwner(FileResourceDomain.DOCUMENT, id))
-          .toList();
-      case MESSAGE_ATTACHMENT -> fileResourceStore.findMessagesByFileResource(uid).stream()
-          .map(id -> new FileResourceOwner(FileResourceDomain.MESSAGE_ATTACHMENT, id))
-          .toList();
-      case USER_AVATAR -> fileResourceStore.findUsersByAvatarFileResource(uid).stream()
-          .map(id -> new FileResourceOwner(FileResourceDomain.USER_AVATAR, id))
-          .toList();
-      case DATA_VALUE -> fileResourceStore.findDataValuesByFileResourceValue(uid).stream()
-          .map(
-              dv ->
-                  new FileResourceOwner(
-                      dv.de(), dv.ou(), periodService.getPeriod(dv.pe()).getIsoDate(), dv.co()))
-          .toList();
-      case CUSTOM_ICON -> fileResourceStore.findCustomIconByFileResource(uid).stream()
-          .map(key -> new FileResourceOwner(FileResourceDomain.CUSTOM_ICON, key))
-          .toList();
+      case ORG_UNIT ->
+          fileResourceStore.findOrganisationUnitsByImageFileResource(uid).stream()
+              .map(id -> new FileResourceOwner(FileResourceDomain.ORG_UNIT, id))
+              .toList();
+      case DOCUMENT ->
+          fileResourceStore.findDocumentsByFileResource(uid).stream()
+              .map(id -> new FileResourceOwner(FileResourceDomain.DOCUMENT, id))
+              .toList();
+      case MESSAGE_ATTACHMENT ->
+          fileResourceStore.findMessagesByFileResource(uid).stream()
+              .map(id -> new FileResourceOwner(FileResourceDomain.MESSAGE_ATTACHMENT, id))
+              .toList();
+      case USER_AVATAR ->
+          fileResourceStore.findUsersByAvatarFileResource(uid).stream()
+              .map(id -> new FileResourceOwner(FileResourceDomain.USER_AVATAR, id))
+              .toList();
+      case DATA_VALUE ->
+          fileResourceStore.findDataValuesByFileResourceValue(uid).stream()
+              .map(
+                  dv ->
+                      new FileResourceOwner(
+                          dv.de(), dv.ou(), periodService.getPeriod(dv.pe()).getIsoDate(), dv.co()))
+              .toList();
+      case CUSTOM_ICON ->
+          fileResourceStore.findCustomIconByFileResource(uid).stream()
+              .map(key -> new FileResourceOwner(FileResourceDomain.CUSTOM_ICON, key))
+              .toList();
       case JOB_DATA -> List.of(new FileResourceOwner(FileResourceDomain.JOB_DATA, uid));
     };
   }
@@ -176,12 +186,13 @@ public class DefaultFileResourceService implements FileResourceService {
     fileResourceStore.save(fileResource);
     entityManager.flush();
 
-    if (FileResource.isImage(fileResource.getContentType())
-        && FileResourceDomain.isDomainForMultipleImages(fileResource.getDomain())) {
+    if (hasMultiDimensionImageSupport(fileResource)) {
       Map<ImageFileDimension, File> imageFiles =
           imageProcessingService.createImages(fileResource, file);
 
-      fileEventPublisher.publishEvent(new ImageFileSavedEvent(fileResource.getUid(), imageFiles));
+      fileEventPublisher.publishEvent(
+          new ImageFileSavedEvent(
+              fileResource.getUid(), imageFiles, CurrentUserUtil.getCurrentUserDetails().getUid()));
       return;
     }
 
@@ -278,6 +289,61 @@ public class DefaultFileResourceService implements FileResourceService {
   public byte[] copyFileResourceContent(FileResource fileResource)
       throws IOException, NoSuchElementException {
     return fileResourceContentStore.copyContent(fileResource.getStorageKey());
+  }
+
+  @Override
+  public byte[] copyImageContent(FileResource fileResource, ImageFileDimension dimension)
+      throws NoSuchElementException, BadRequestException, IOException {
+    ImageFileDimension imageDimension =
+        ObjectUtils.firstNonNull(dimension, ImageFileDimension.ORIGINAL);
+
+    hasImageDimensionSupport(fileResource, imageDimension);
+
+    return fileResourceContentStore.copyContent(imageKey(fileResource, imageDimension));
+  }
+
+  @Override
+  public InputStream openContentStream(FileResource fileResource)
+      throws IOException, NoSuchElementException {
+    return fileResourceContentStore.openStream(fileResource.getStorageKey());
+  }
+
+  @Override
+  public InputStream openContentStreamToImage(
+      FileResource fileResource, ImageFileDimension dimension)
+      throws IOException, NoSuchElementException, BadRequestException {
+    ImageFileDimension imageDimension =
+        ObjectUtils.firstNonNull(dimension, ImageFileDimension.ORIGINAL);
+
+    hasImageDimensionSupport(fileResource, imageDimension);
+
+    return fileResourceContentStore.openStream(imageKey(fileResource, imageDimension));
+  }
+
+  private static void hasImageDimensionSupport(
+      FileResource fileResource, ImageFileDimension imageDimension) throws BadRequestException {
+    if (!FileResource.isImage(fileResource.getContentType())) {
+      throw new BadRequestException("File is not an image");
+    }
+
+    if (imageDimension != ImageFileDimension.ORIGINAL
+        && !hasMultiDimensionImageSupport(fileResource)) {
+      throw new BadRequestException("Image does not have support for multiple dimensions");
+    }
+
+    if (imageDimension != ImageFileDimension.ORIGINAL
+        && !fileResource.isHasMultipleStorageFiles()) {
+      throw new BadRequestException("Image is not stored using multiple dimensions");
+    }
+  }
+
+  private static boolean hasMultiDimensionImageSupport(FileResource fileResource) {
+    return FileResource.isImage(fileResource.getContentType())
+        && FileResourceDomain.isDomainForMultipleImages(fileResource.getDomain());
+  }
+
+  private static String imageKey(FileResource fileResource, ImageFileDimension imageDimension) {
+    return StringUtils.join(fileResource.getStorageKey(), imageDimension.getDimension());
   }
 
   @Override

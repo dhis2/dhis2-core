@@ -46,7 +46,6 @@ import org.hisp.dhis.node.DefaultNodeService;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
@@ -71,6 +70,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.ResourceHttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConverter;
@@ -97,8 +97,6 @@ import org.springframework.web.servlet.resource.ResourceUrlProviderExposingInter
 @EnableWebMvc
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class MvcTestConfig implements WebMvcConfigurer {
-  @Autowired private CurrentUserService currentUserService;
-
   @Autowired private UserSettingService userSettingService;
 
   @Autowired public DefaultRequestInfoService requestInfoService;
@@ -133,7 +131,7 @@ public class MvcTestConfig implements WebMvcConfigurer {
     addInterceptors(registry);
     registry.addInterceptor(new ConversionServiceExposingInterceptor(mvcConversionService));
     registry.addInterceptor(new ResourceUrlProviderExposingInterceptor(mvcResourceUrlProvider));
-    registry.addInterceptor(new UserContextInterceptor(currentUserService, userSettingService));
+    registry.addInterceptor(new UserContextInterceptor(userSettingService));
     registry.addInterceptor(new RequestInfoInterceptor(requestInfoService));
     mapping.setInterceptors(registry.getInterceptors().toArray());
 
@@ -206,7 +204,7 @@ public class MvcTestConfig implements WebMvcConfigurer {
     registry.addInterceptor(new ConversionServiceExposingInterceptor(mvcConversionService));
     registry.addInterceptor(new ResourceUrlProviderExposingInterceptor(mvcResourceUrlProvider));
 
-    registry.addInterceptor(new UserContextInterceptor(currentUserService, userSettingService));
+    registry.addInterceptor(new UserContextInterceptor(userSettingService));
     registry.addInterceptor(new RequestInfoInterceptor(requestInfoService));
   }
 
@@ -258,6 +256,7 @@ public class MvcTestConfig implements WebMvcConfigurer {
 
     converters.add(mappingJackson2HttpMessageConverter());
     converters.add(mappingJackson2XmlHttpMessageConverter());
+    converters.add(new ResourceHttpMessageConverter());
   }
 
   @Override

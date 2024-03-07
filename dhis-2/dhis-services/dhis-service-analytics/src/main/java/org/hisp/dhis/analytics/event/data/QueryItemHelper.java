@@ -309,8 +309,8 @@ public class QueryItemHelper {
     if (rowContent instanceof Number) {
       try {
         return ((Number) rowContent).doubleValue() == Double.parseDouble(code);
-      } catch (NumberFormatException e) {
-        log.warn(String.format("code %s is not Doublw", code), e.getMessage());
+      } catch (NumberFormatException ex) {
+        log.warn("Code {} is not a valid double: {}", code, ex.getMessage());
       }
     }
 
@@ -323,8 +323,8 @@ public class QueryItemHelper {
     if (rowContent instanceof LocalDate) {
       try {
         return ((LocalDate) rowContent).isEqual(LocalDate.parse(code));
-      } catch (DateTimeParseException e) {
-        log.warn(String.format("code %s is not LocalDate", code), e.getMessage());
+      } catch (DateTimeParseException ex) {
+        log.warn("Code {} is not a valid LocalDate: {}", code, ex.getMessage());
       }
     }
 
@@ -332,8 +332,8 @@ public class QueryItemHelper {
     if (rowContent instanceof LocalDateTime) {
       try {
         return ((LocalDateTime) rowContent).isEqual(LocalDateTime.parse(code));
-      } catch (DateTimeParseException e) {
-        log.warn(String.format("code %s is not LocalDateTime", code), e.getMessage());
+      } catch (DateTimeParseException ex) {
+        log.warn("Code {} is not a valid LocalDateTime: {}", code, ex.getMessage());
       }
     }
 

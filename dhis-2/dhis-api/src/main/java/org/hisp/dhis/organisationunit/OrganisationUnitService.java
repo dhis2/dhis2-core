@@ -45,12 +45,6 @@ import org.hisp.dhis.user.User;
 public interface OrganisationUnitService extends OrganisationUnitDataIntegrityProvider {
   String ID = OrganisationUnitService.class.getName();
 
-  int MAX_LIMIT = 500;
-
-  // -------------------------------------------------------------------------
-  // OrganisationUnit
-  // -------------------------------------------------------------------------
-
   /**
    * Adds an OrganisationUnit to the hierarchy.
    *
@@ -310,7 +304,7 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
   Long getOrganisationUnitHierarchyMemberCount(
       OrganisationUnit parent, Object member, String collectionName);
 
-  OrganisationUnitDataSetAssociationSet getOrganisationUnitDataSetAssociationSet(Integer maxlevels);
+  OrganisationUnitDataSetAssociationSet getOrganisationUnitDataSetAssociationSet(User user);
 
   /**
    * Returns the level of the given org unit level. The level parameter string can either represent
@@ -346,25 +340,6 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
       double longitude, double latitude, String topOrgUnitUid, Integer targetLevel);
 
   /**
-   * Indicates whether the given organisation unit is part of the hierarchy of the organisation
-   * units of the current user.
-   *
-   * @param organisationUnit the organisation unit.
-   * @return true if the given organisation unit is part of the hierarchy.
-   */
-  boolean isInUserHierarchy(OrganisationUnit organisationUnit);
-
-  /**
-   * Equal to {@link OrganisationUnitService#isInUserHierarchy(OrganisationUnit)} except adds a
-   * caching layer on top. Use this method when performance is imperative and the risk of a stale
-   * result is tolerable.
-   *
-   * @param organisationUnit the organisation unit.
-   * @return true if the given organisation unit is part of the hierarchy.
-   */
-  boolean isInUserHierarchyCached(OrganisationUnit organisationUnit);
-
-  /**
    * Equal to {@link OrganisationUnitService#isInUserHierarchy(User,OrganisationUnit)} except adds a
    * caching layer on top. Use this method when performance is imperative and the risk of a stale
    * result is tolerable.
@@ -388,25 +363,6 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
   boolean isInUserHierarchy(String uid, Set<OrganisationUnit> organisationUnits);
 
   /**
-   * Indicates whether the given organisation unit is part of the hierarchy of the data view
-   * organisation units of the current user.
-   *
-   * @param organisationUnit the organisation unit.
-   * @return true if the given organisation unit is part of the hierarchy.
-   */
-  boolean isInUserDataViewHierarchy(OrganisationUnit organisationUnit);
-
-  /**
-   * Equal to {@link OrganisationUnitService#isInUserDataViewHierarchy(OrganisationUnit)} except
-   * adds a caching layer on top. Use this method when performance is imperative and the risk of a
-   * stale result is tolerable.
-   *
-   * @param organisationUnit the organisation unit.
-   * @return true if the given organisation unit is part of the hierarchy.
-   */
-  boolean isInUserDataViewHierarchyCached(OrganisationUnit organisationUnit);
-
-  /**
    * Indicates whether the given organisation unit is part of the hierarchy of the given user data
    * view organisation units.
    *
@@ -415,36 +371,6 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
    * @return true if the given organisation unit is part of the data view hierarchy.
    */
   boolean isInUserDataViewHierarchy(User user, OrganisationUnit organisationUnit);
-
-  /**
-   * Equal to {@link OrganisationUnitService#isInUserDataViewHierarchy(User,OrganisationUnit)}
-   * except adds a caching layer on top. Use this method when performance is imperative and the risk
-   * of a stale result is tolerable.
-   *
-   * @param user the user to check for.
-   * @param organisationUnit the organisation unit.
-   * @return true if the given organisation unit is part of the data view hierarchy.
-   */
-  boolean isInUserDataViewHierarchyCached(User user, OrganisationUnit organisationUnit);
-
-  /**
-   * Indicates whether the given organisation unit is part of the search hierarchy of the
-   * organisation units of the current user.
-   *
-   * @param organisationUnit the organisation unit.
-   * @return true if the given organisation unit is part of the search hierarchy.
-   */
-  boolean isInUserSearchHierarchy(OrganisationUnit organisationUnit);
-
-  /**
-   * Equal to {@link OrganisationUnitService#isInUserSearchHierarchy(OrganisationUnit)} except adds
-   * a caching layer on top. Use this method when performance is imperative and the risk of a stale
-   * result is tolerable.
-   *
-   * @param organisationUnit the organisation unit.
-   * @return true if the given organisation unit is part of the hierarchy.
-   */
-  boolean isInUserSearchHierarchyCached(OrganisationUnit organisationUnit);
 
   /**
    * Equal to {@link OrganisationUnitService#isInUserSearchHierarchy(User,OrganisationUnit)} except
@@ -504,29 +430,11 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
    *   <li>Return 1 as fall back.
    * </ul>
    */
-  int getOfflineOrganisationUnitLevels();
+  int getOfflineOrganisationUnitLevels(User user);
 
   /** Update all OUs where paths is null. */
   void updatePaths();
 
   /** Update all OUs (thus forcing update of path). */
   void forceUpdatePaths();
-
-  /**
-   * Check if the count of the organisation units in the capture scope of current user is above a
-   * threshold
-   *
-   * @param threshold the threshold number to check against.
-   * @return true if the count of the organisation units in capture scope of current user is above
-   *     the threshold, false otherwise
-   */
-  boolean isCaptureOrgUnitCountAboveThreshold(int threshold);
-
-  /**
-   * Get the full list of organisation unit uids that falls under the capture scope of the current
-   * user
-   *
-   * @return list of org unit uids in capture scope of current user.
-   */
-  List<String> getCaptureOrganisationUnitUidsWithChildren();
 }

@@ -54,6 +54,8 @@ public enum Authorities {
   F_ORGANISATIONUNIT_MOVE,
   F_ORGANISATION_UNIT_SPLIT,
   F_ORGANISATION_UNIT_MERGE,
+  F_INDICATOR_TYPE_MERGE,
+  F_INDICATOR_MERGE,
   F_INSERT_CUSTOM_JS_CSS,
   F_VIEW_UNAPPROVED_DATA,
   F_USER_VIEW,
@@ -70,7 +72,8 @@ public enum Authorities {
   F_TRACKED_ENTITY_MERGE,
   F_DATAVALUE_ADD,
   F_IMPERSONATE_USER,
-  F_SYSTEM_SETTING;
+  F_SYSTEM_SETTING,
+  F_MAP_EXTERNAL_LAYER_ADD;
 
   public static Set<String> getAllAuthorities() {
     return Arrays.stream(Authorities.values()).map(Authorities::name).collect(Collectors.toSet());

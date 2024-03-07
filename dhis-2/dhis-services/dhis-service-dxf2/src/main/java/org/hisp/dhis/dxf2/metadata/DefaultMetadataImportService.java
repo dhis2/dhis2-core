@@ -38,7 +38,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
@@ -59,7 +58,7 @@ import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
@@ -72,7 +71,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Service
 public class DefaultMetadataImportService implements MetadataImportService {
-  private final CurrentUserService currentUserService;
 
   private final ObjectBundleService objectBundleService;
   private final ObjectBundleValidationService objectBundleValidationService;
@@ -175,8 +173,6 @@ public class DefaultMetadataImportService implements MetadataImportService {
             ImportStrategy.class, parameters, "importStrategy", ImportStrategy.CREATE_AND_UPDATE));
     params.setAtomicMode(
         getEnumWithDefault(AtomicMode.class, parameters, "atomicMode", AtomicMode.ALL));
-    params.setMergeMode(
-        getEnumWithDefault(MergeMode.class, parameters, "mergeMode", MergeMode.REPLACE));
     params.setFlushMode(
         getEnumWithDefault(FlushMode.class, parameters, "flushMode", FlushMode.AUTO));
     params.setImportReportMode(
@@ -208,6 +204,9 @@ public class DefaultMetadataImportService implements MetadataImportService {
   // -----------------------------------------------------------------------------------
 
   public ObjectBundleParams toObjectBundleParams(MetadataImportParams importParams) {
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    // TODO: MAS: Refactor to use userDetails
+
     ObjectBundleParams params = new ObjectBundleParams();
     params.setUserOverrideMode(importParams.getUserOverrideMode());
     params.setSkipSharing(importParams.isSkipSharing());
@@ -218,20 +217,19 @@ public class DefaultMetadataImportService implements MetadataImportService {
     params.setPreheatIdentifier(importParams.getIdentifier());
     params.setPreheatMode(importParams.getPreheatMode());
     params.setObjectBundleMode(importParams.getImportMode());
-    params.setMergeMode(importParams.getMergeMode());
     params.setFlushMode(importParams.getFlushMode());
     params.setImportReportMode(importParams.getImportReportMode());
     params.setMetadataSyncImport(importParams.isMetadataSyncImport());
     params.setUser(
         importParams.getUser() == null
-            ? currentUserService.getCurrentUser()
+            ? currentUser
             : userService.getUser(importParams.getUser().getValue()));
     params.setOverrideUser(
         importParams.getOverrideUser() == null
             ? null
             : userService.getUser(importParams.getOverrideUser().getValue()));
     if (params.getUserOverrideMode() == UserOverrideMode.CURRENT) {
-      params.setOverrideUser(currentUserService.getCurrentUser());
+      params.setOverrideUser(currentUser);
     }
     return params;
   }

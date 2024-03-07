@@ -59,6 +59,19 @@ class DataIntegrityChecksControllerTest extends AbstractDataIntegrityIntegration
     for (DataIntegrityCheckType type : DataIntegrityCheckType.values()) {
       assertCheckExists(type.getName(), checks);
     }
+    checks.stream()
+        .filter(JsonDataIntegrityCheck::getIsSlow)
+        .findFirst()
+        .orElseThrow(() -> new AssertionError("There should be slow tests"));
+  }
+
+  @Test
+  void testFilterBogusCheck() {
+    JsonList<JsonDataIntegrityCheck> checks =
+        GET("/dataIntegrity?checks=this_check_does_not_exist")
+            .content()
+            .asList(JsonDataIntegrityCheck.class);
+    assertTrue(checks.isEmpty());
   }
 
   @Test

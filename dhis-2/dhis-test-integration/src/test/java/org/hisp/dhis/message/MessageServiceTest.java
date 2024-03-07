@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.message;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -143,7 +144,7 @@ class MessageServiceTest extends SingleSetupIntegrationTestBase {
     MessageConversation conversation = messageService.getMessageConversation(id);
     assertNotNull(conversation);
     assertEquals("Subject", conversation.getSubject());
-    assertEquals(2, conversation.getUserMessages().size());
+    assertEquals(3, conversation.getUserMessages().size());
     assertEquals(1, conversation.getMessages().size());
     assertTrue(conversation.getMessages().iterator().next().getText().equals("Text"));
   }
@@ -191,5 +192,19 @@ class MessageServiceTest extends SingleSetupIntegrationTestBase {
     assertTrue(conversations.contains(conversationA));
     assertTrue(conversations.contains(conversationB));
     assertFalse(conversations.contains(conversationC));
+  }
+
+  @Test
+  void testSendMessageWithNoCurrentUser() {
+    clearSecurityContext();
+    MessageConversationParams params =
+        new MessageConversationParams.Builder()
+            .withRecipients(Set.of(userA))
+            .withSubject("subject")
+            .withText("text")
+            .withMessageType(MessageType.SYSTEM)
+            .build();
+
+    assertDoesNotThrow(() -> messageService.sendMessage(params));
   }
 }

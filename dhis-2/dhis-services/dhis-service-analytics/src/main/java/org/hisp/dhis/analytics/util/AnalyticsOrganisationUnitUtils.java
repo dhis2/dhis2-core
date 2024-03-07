@@ -42,18 +42,18 @@ import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.user.User;
 
-/** Utilities for organisation unit criteria of outcoming analytics response. */
+/** Utilities for organisation unit criteria of analytics response. */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class AnalyticsOrganisationUnitUtils {
   /**
    * Retrieve collection of all uids of organisation units belongs to current user and present in
    * response grid.
    *
-   * @param currentUser the {@link org.hisp.dhis.user.CurrentUser}.
+   * @param user the {@link org.hisp.dhis.user.CurrentUser}.
    * @return intersection of requested user organisation units and all units in response grid.
    */
   public static Collection<Map<String, Object>> getUserOrganisationUnitItems(
-      User currentUser, List<AnalyticsMetaDataKey> userOrganisationUnitsCriteria) {
+      User user, List<AnalyticsMetaDataKey> userOrganisationUnitsCriteria) {
     List<Map<String, Object>> userOrganisations = new ArrayList<>();
 
     if (userOrganisationUnitsCriteria == null || userOrganisationUnitsCriteria.isEmpty()) {
@@ -62,21 +62,21 @@ public class AnalyticsOrganisationUnitUtils {
 
     if (userOrganisationUnitsCriteria.contains(USER_ORGUNIT)) {
       Map<String, Object> userOrganisationUnits =
-          AnalyticsOrganisationUnitUtils.getUserOrganisationUnitUidList(USER_ORGUNIT, currentUser);
+          AnalyticsOrganisationUnitUtils.getUserOrganisationUnitUidList(USER_ORGUNIT, user);
       userOrganisations.add(userOrganisationUnits);
     }
 
     if (userOrganisationUnitsCriteria.contains(USER_ORGUNIT_CHILDREN)) {
       Map<String, Object> userChildrenOrganisationUnits =
           AnalyticsOrganisationUnitUtils.getUserOrganisationUnitUidList(
-              USER_ORGUNIT_CHILDREN, currentUser);
+              USER_ORGUNIT_CHILDREN, user);
       userOrganisations.add(userChildrenOrganisationUnits);
     }
 
     if (userOrganisationUnitsCriteria.contains(USER_ORGUNIT_GRANDCHILDREN)) {
       Map<String, Object> userGrandChildrenOrganisationUnits =
           AnalyticsOrganisationUnitUtils.getUserOrganisationUnitUidList(
-              USER_ORGUNIT_GRANDCHILDREN, currentUser);
+              USER_ORGUNIT_GRANDCHILDREN, user);
       userOrganisations.add(userGrandChildrenOrganisationUnits);
     }
 
@@ -84,23 +84,26 @@ public class AnalyticsOrganisationUnitUtils {
   }
 
   private static Map<String, Object> getUserOrganisationUnitUidList(
-      AnalyticsMetaDataKey analyticsMetaDataKey, User currentUser) {
+      AnalyticsMetaDataKey analyticsMetaDataKey, User user) {
 
     List<String> userOrgUnitList;
 
     switch (analyticsMetaDataKey) {
-      case USER_ORGUNIT -> userOrgUnitList =
-          currentUser.getOrganisationUnits().stream().map(BaseIdentifiableObject::getUid).toList();
-      case USER_ORGUNIT_CHILDREN -> userOrgUnitList =
-          currentUser.getOrganisationUnits().stream()
-              .flatMap(ou -> ou.getChildren().stream())
-              .map(BaseIdentifiableObject::getUid)
-              .toList();
-      case USER_ORGUNIT_GRANDCHILDREN -> userOrgUnitList =
-          currentUser.getOrganisationUnits().stream()
-              .flatMap(ou -> ou.getGrandChildren().stream())
-              .map(BaseIdentifiableObject::getUid)
-              .toList();
+      case USER_ORGUNIT ->
+          userOrgUnitList =
+              user.getOrganisationUnits().stream().map(BaseIdentifiableObject::getUid).toList();
+      case USER_ORGUNIT_CHILDREN ->
+          userOrgUnitList =
+              user.getOrganisationUnits().stream()
+                  .flatMap(ou -> ou.getChildren().stream())
+                  .map(BaseIdentifiableObject::getUid)
+                  .toList();
+      case USER_ORGUNIT_GRANDCHILDREN ->
+          userOrgUnitList =
+              user.getOrganisationUnits().stream()
+                  .flatMap(ou -> ou.getGrandChildren().stream())
+                  .map(BaseIdentifiableObject::getUid)
+                  .toList();
       default -> userOrgUnitList = List.of();
     }
 

@@ -56,12 +56,13 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -113,7 +114,7 @@ public class AppController {
   public @ResponseBody Map<String, List<WebModule>> getWebModules(HttpServletRequest request) {
     checkForEmbeddedJettyRuntime(request);
 
-    String contextPath = ContextUtils.getContextPath(request);
+    String contextPath = HttpServletRequestPaths.getContextPath(request);
     return Map.of("modules", getAccessibleAppMenu(contextPath));
   }
 
@@ -129,7 +130,7 @@ public class AppController {
       SecurityContextImpl context = (SecurityContextImpl) springSecurityContext;
       Authentication authentication = context.getAuthentication();
 
-      CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+      UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
 
       if (authentication != null && currentUserDetails == null) {
         SecurityContext newContext = SecurityContextHolder.createEmptyContext();
@@ -205,7 +206,7 @@ public class AppController {
   public void renderApp(
       @PathVariable("app") String app, HttpServletRequest request, HttpServletResponse response)
       throws IOException, WebMessageException {
-    String contextPath = ContextUtils.getContextPath(request);
+    String contextPath = HttpServletRequestPaths.getContextPath(request);
     App application = appManager.getApp(app, contextPath);
 
     // Get page requested
@@ -274,7 +275,7 @@ public class AppController {
 
       response.setContentLengthLong(resource.contentLength());
       response.setHeader(
-          "Last-Modified", DateUtils.getHttpDateString(new Date(resource.lastModified())));
+          "Last-Modified", DateUtils.toHttpDateString(new Date(resource.lastModified())));
 
       StreamUtils.copyThenCloseInputStream(resource.getInputStream(), response.getOutputStream());
     }

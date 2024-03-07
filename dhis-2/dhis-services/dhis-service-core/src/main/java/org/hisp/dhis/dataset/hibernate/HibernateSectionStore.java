@@ -34,8 +34,8 @@ import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.SectionStore;
+import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -50,16 +50,8 @@ public class HibernateSectionStore extends HibernateIdentifiableObjectStore<Sect
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
-    super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        Section.class,
-        currentUserService,
-        aclService,
-        true);
+    super(entityManager, jdbcTemplate, publisher, Section.class, aclService, true);
   }
 
   @Override
@@ -85,6 +77,22 @@ public class HibernateSectionStore extends HibernateIdentifiableObjectStore<Sect
     return getSession()
         .createNativeQuery(hql, Section.class)
         .setParameter("dataElementId", dataElementUid)
+        .list();
+  }
+
+  @Override
+  public List<Section> getSectionsByIndicators(List<Indicator> indicators) {
+    // language=sql
+    String sql =
+        """
+            select s.* from section s
+            join sectionindicators si on s.sectionid = si.sectionid
+            where si.indicatorid in :indicators
+            group by s.sectionid
+          """;
+    return getSession()
+        .createNativeQuery(sql, Section.class)
+        .setParameter("indicators", indicators)
         .list();
   }
 }

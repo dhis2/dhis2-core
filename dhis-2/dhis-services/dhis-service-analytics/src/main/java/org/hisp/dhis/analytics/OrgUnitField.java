@@ -30,16 +30,16 @@ package org.hisp.dhis.analytics;
 import static com.google.common.base.Enums.getIfPresent;
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
+import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
+import static org.hisp.dhis.analytics.AnalyticsConstants.ORG_UNIT_GROUPSET_STRUCT_ALIAS;
+import static org.hisp.dhis.analytics.AnalyticsConstants.ORG_UNIT_STRUCT_ALIAS;
+import static org.hisp.dhis.analytics.AnalyticsConstants.OWNERSHIP_TBL_ALIAS;
 import static org.hisp.dhis.analytics.DataQueryParams.DEFAULT_ORG_UNIT_COL;
 import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
 import static org.hisp.dhis.analytics.OrgUnitFieldType.ATTRIBUTE;
 import static org.hisp.dhis.analytics.OrgUnitFieldType.REGISTRATION;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ORG_UNIT_GROUPSET_STRUCT_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ORG_UNIT_STRUCT_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.OWNERSHIP_TBL_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.program.AnalyticsType.EVENT;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -94,8 +94,8 @@ public class OrgUnitField {
   }
 
   /**
-   * Returns true if we need to join the _orgunitstructure table (and, if group set columns, the
-   * _organisationunitgroupsetstructure table).
+   * Returns true if we need to join the analytics_rs_orgunitstructure table (and, if group set
+   * columns, the analytics_rs_organisationunitgroupsetstructure table).
    *
    * @param analyticsType EVENT or ENROLLMENT
    * @return true if orgUnit resource table joins are needed
@@ -145,8 +145,8 @@ public class OrgUnitField {
   }
 
   /**
-   * Gets table and column to join the _orgunitstructure table and, if there are group set columns,
-   * the _organisationunitgroupsetstructure table.
+   * Gets table and column to join the analytics_rs_orgunitstructure table and, if there are group
+   * set columns, the analytics_rs_organisationunitgroupsetstructure table.
    *
    * @param analyticsType EVENT or ENROLLMENT
    * @return the table alias and column name
@@ -208,9 +208,10 @@ public class OrgUnitField {
   }
 
   /**
-   * Quotes the table alias and column. However, if the table alias is for the _orgunitstructure
-   * table and the column is "ou", change the column to "organisationunituid" because that is how it
-   * is called in that table. Add "ou" as a column alias if requested.
+   * Quotes the table alias and column. However, if the table alias is for the
+   * analytics_rs_orgunitstructure table and the column is "ou", change the column to
+   * "organisationunituid" because that is how it is called in that table. Add "ou" as a column
+   * alias if requested.
    */
   private String ouQuote(String tableAlias, String col, boolean noColumnAlias) {
     if (ORG_UNIT_STRUCT_ALIAS.equals(tableAlias) && DEFAULT_ORG_UNIT_COL.equals(col)) {

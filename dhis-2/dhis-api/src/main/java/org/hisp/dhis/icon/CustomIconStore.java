@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.icon;
 
-import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 public interface CustomIconStore {
   /**
@@ -44,17 +44,10 @@ public interface CustomIconStore {
   /**
    * Returns a list of custom icons that contain all the specified keywords
    *
-   * @param keywords the icon needs to contain
+   * @param iconOperationParams contains query params for CustomIcon
    * @return the list of custom icons that contain all the keywords
    */
-  List<CustomIcon> getIconsByKeywords(String[] keywords);
-
-  /**
-   * Gets all custom icons present in the database
-   *
-   * @return a list containing all icons
-   */
-  List<CustomIcon> getAllIcons();
+  Stream<CustomIcon> getIcons(IconOperationParams iconOperationParams);
 
   /**
    * Returns a list with all the custom icon keywords
@@ -70,7 +63,7 @@ public interface CustomIconStore {
    * @param fileResource file resource linked to the custom icon
    * @param createdByUser user that created the custom icon
    */
-  void save(CustomIcon customIcon, FileResource fileResource, User createdByUser);
+  void save(CustomIcon customIcon, FileResource fileResource, UserDetails createdByUser);
 
   /**
    * Deletes a custom icon from the database
@@ -85,4 +78,6 @@ public interface CustomIconStore {
    * @param customIcon Icon to be updated
    */
   void update(CustomIcon customIcon);
+
+  long count(IconOperationParams iconOperationParams);
 }

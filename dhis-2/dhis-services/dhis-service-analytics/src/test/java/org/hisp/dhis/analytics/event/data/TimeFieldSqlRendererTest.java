@@ -43,7 +43,6 @@ import java.util.Set;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
@@ -80,8 +79,7 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest {
             .addDimension(new BaseDimensionalObject(PERIOD_DIM_ID, PERIOD, List.of(peA, peC)))
             .build();
 
-    TimeFieldSqlRenderer timeFieldSqlRenderer =
-        new EventTimeFieldSqlRenderer(new PostgreSQLStatementBuilder());
+    TimeFieldSqlRenderer timeFieldSqlRenderer = new EventTimeFieldSqlRenderer();
 
     params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
@@ -97,8 +95,7 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest {
             .addDimension(new BaseDimensionalObject(PERIOD_DIM_ID, PERIOD, List.of(peA, peB, peC)))
             .build();
 
-    TimeFieldSqlRenderer timeFieldSqlRenderer =
-        new EventTimeFieldSqlRenderer(new PostgreSQLStatementBuilder());
+    TimeFieldSqlRenderer timeFieldSqlRenderer = new EventTimeFieldSqlRenderer();
 
     params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
@@ -113,8 +110,7 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest {
         new EventQueryParams.Builder()
             .addDimension(new BaseDimensionalObject(PERIOD_DIM_ID, PERIOD, List.of(peA, peC)))
             .build();
-    TimeFieldSqlRenderer timeFieldSqlRenderer =
-        new EnrollmentTimeFieldSqlRenderer(new PostgreSQLStatementBuilder());
+    TimeFieldSqlRenderer timeFieldSqlRenderer = new EnrollmentTimeFieldSqlRenderer();
 
     params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
@@ -130,8 +126,7 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest {
             .addDimension(new BaseDimensionalObject(PERIOD_DIM_ID, PERIOD, List.of(peA, peB, peC)))
             .build();
 
-    TimeFieldSqlRenderer timeFieldSqlRenderer =
-        new EnrollmentTimeFieldSqlRenderer(new PostgreSQLStatementBuilder());
+    TimeFieldSqlRenderer timeFieldSqlRenderer = new EnrollmentTimeFieldSqlRenderer();
 
     params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
@@ -148,8 +143,7 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest {
             .withTimeField(LAST_UPDATED.name())
             .build();
 
-    TimeFieldSqlRenderer timeFieldSqlRenderer =
-        new EnrollmentTimeFieldSqlRenderer(new PostgreSQLStatementBuilder());
+    TimeFieldSqlRenderer timeFieldSqlRenderer = new EnrollmentTimeFieldSqlRenderer();
 
     params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
@@ -166,8 +160,7 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest {
             .withTimeField(INCIDENT_DATE.getField())
             .build();
 
-    TimeFieldSqlRenderer timeFieldSqlRenderer =
-        new EventTimeFieldSqlRenderer(new PostgreSQLStatementBuilder());
+    TimeFieldSqlRenderer timeFieldSqlRenderer = new EventTimeFieldSqlRenderer();
 
     params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
@@ -195,8 +188,7 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest {
             .withStartEndDatesForPeriods()
             .build();
 
-    TimeFieldSqlRenderer timeFieldSqlRenderer =
-        new EventTimeFieldSqlRenderer(new PostgreSQLStatementBuilder());
+    TimeFieldSqlRenderer timeFieldSqlRenderer = new EventTimeFieldSqlRenderer();
 
     params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
@@ -208,8 +200,7 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest {
 
   @Test
   void testEnrollmentTimeFieldWithEventDate() {
-    TimeFieldSqlRenderer timeFieldSqlRenderer =
-        new EnrollmentTimeFieldSqlRenderer(new PostgreSQLStatementBuilder());
+    TimeFieldSqlRenderer timeFieldSqlRenderer = new EnrollmentTimeFieldSqlRenderer();
 
     Set<AnalyticsPeriodBoundary> boundaries =
         Set.of(new AnalyticsPeriodBoundary("EVENT_DATE", BEFORE_END_OF_REPORTING_PERIOD));
@@ -226,8 +217,7 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest {
 
   @Test
   void testSqlForAllPeriodsSamePeriodType() {
-    TimeFieldSqlRenderer timeFieldSqlRenderer =
-        new EnrollmentTimeFieldSqlRenderer(mock(PostgreSQLStatementBuilder.class));
+    TimeFieldSqlRenderer timeFieldSqlRenderer = new EnrollmentTimeFieldSqlRenderer();
 
     String alias = timeFieldSqlRenderer.getSqlForAllPeriods("alias", List.of(peA, peB, peC));
 
@@ -236,8 +226,7 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest {
 
   @Test
   void testSqlForAllPeriodsDifferentPeriodType() {
-    TimeFieldSqlRenderer timeFieldSqlRenderer =
-        new EnrollmentTimeFieldSqlRenderer(mock(PostgreSQLStatementBuilder.class));
+    TimeFieldSqlRenderer timeFieldSqlRenderer = new EnrollmentTimeFieldSqlRenderer();
 
     String alias = timeFieldSqlRenderer.getSqlForAllPeriods("alias", List.of(peA, peB, peC, peD));
 

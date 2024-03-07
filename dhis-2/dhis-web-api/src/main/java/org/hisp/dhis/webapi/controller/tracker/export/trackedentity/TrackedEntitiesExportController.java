@@ -30,7 +30,9 @@ package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 import static org.hisp.dhis.common.OpenApi.Response.Status;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
+import static org.hisp.dhis.webapi.controller.tracker.export.FileResourceRequestHandler.handleFileRequest;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateUnsupportedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.trackedentity.TrackedEntityRequestParams.DEFAULT_FIELDS_PARAM;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_GZIP;
@@ -42,35 +44,39 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
-import java.util.zip.GZIPOutputStream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogOperationParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
+import org.hisp.dhis.webapi.controller.tracker.export.ChangeLogRequestParams;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
-import org.hisp.dhis.webapi.controller.tracker.export.OpenApiExport;
+import org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestHandler;
+import org.hisp.dhis.webapi.controller.tracker.export.ResponseHeader;
+import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
+import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.mapstruct.factory.Mappers;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -101,27 +107,41 @@ class TrackedEntitiesExportController {
   private static final TrackedEntityMapper TRACKED_ENTITY_MAPPER =
       Mappers.getMapper(TrackedEntityMapper.class);
 
+  private static final String TE_CSV_FILE = TRACKED_ENTITIES + ".csv";
+
+  private static final String GZIP_EXT = ".gz";
+
+  private static final String ZIP_EXT = ".zip";
+
   private final TrackedEntityService trackedEntityService;
 
   private final TrackedEntityRequestParamsMapper paramsMapper;
 
-  private final CsvService<TrackedEntity> csvEventService;
+  private final CsvService<TrackedEntity> entityCsvService;
 
   private final FieldFilterService fieldFilterService;
 
   private final TrackedEntityFieldsParamMapper fieldsMapper;
+
+  private final TrackedEntityChangeLogService trackedEntityChangeLogService;
+
+  private final FieldFilterRequestHandler fieldFilterRequestHandler;
 
   public TrackedEntitiesExportController(
       TrackedEntityService trackedEntityService,
       TrackedEntityRequestParamsMapper paramsMapper,
       CsvService<TrackedEntity> csvEventService,
       FieldFilterService fieldFilterService,
-      TrackedEntityFieldsParamMapper fieldsMapper) {
+      TrackedEntityFieldsParamMapper fieldsMapper,
+      TrackedEntityChangeLogService trackedEntityChangeLogService,
+      FieldFilterRequestHandler fieldFilterRequestHandler) {
     this.trackedEntityService = trackedEntityService;
     this.paramsMapper = paramsMapper;
-    this.csvEventService = csvEventService;
+    this.entityCsvService = csvEventService;
     this.fieldFilterService = fieldFilterService;
     this.fieldsMapper = fieldsMapper;
+    this.trackedEntityChangeLogService = trackedEntityChangeLogService;
+    this.fieldFilterRequestHandler = fieldFilterRequestHandler;
 
     assertUserOrderableFieldsAreSupported(
         "tracked entity",
@@ -129,98 +149,101 @@ class TrackedEntitiesExportController {
         trackedEntityService.getOrderableFields());
   }
 
-  @OpenApi.Response(status = Status.OK, value = OpenApiExport.ListResponse.class)
+  @OpenApi.Response(status = Status.OK, value = Page.class)
   @GetMapping(produces = APPLICATION_JSON_VALUE)
-  PagingWrapper<ObjectNode> getTrackedEntities(
-      TrackedEntityRequestParams trackedEntityRequestParams, @CurrentUser User currentUser)
+  Page<ObjectNode> getTrackedEntities(
+      TrackedEntityRequestParams requestParams, @CurrentUser User currentUser)
       throws BadRequestException, ForbiddenException, NotFoundException {
-    validatePaginationParameters(trackedEntityRequestParams);
-    TrackedEntityOperationParams operationParams =
-        paramsMapper.map(trackedEntityRequestParams, currentUser);
-    if (trackedEntityRequestParams.isPaged()) {
+    validatePaginationParameters(requestParams);
+    TrackedEntityOperationParams operationParams = paramsMapper.map(requestParams, currentUser);
+
+    if (requestParams.isPaged()) {
       PageParams pageParams =
           new PageParams(
-              trackedEntityRequestParams.getPage(),
-              trackedEntityRequestParams.getPageSize(),
-              trackedEntityRequestParams.getTotalPages());
+              requestParams.getPage(), requestParams.getPageSize(), requestParams.getTotalPages());
 
-      Page<org.hisp.dhis.trackedentity.TrackedEntity> trackedEntityPage =
-          trackedEntityService.getTrackedEntities(operationParams, pageParams);
-
-      PagingWrapper.Pager.PagerBuilder pagerBuilder =
-          PagingWrapper.Pager.builder()
-              .page(trackedEntityPage.getPager().getPage())
-              .pageSize(trackedEntityPage.getPager().getPageSize());
-
-      if (trackedEntityRequestParams.isPageTotal()) {
-        pagerBuilder
-            .pageCount(trackedEntityPage.getPager().getPageCount())
-            .total(trackedEntityPage.getPager().getTotal());
-      }
-
-      PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
-      pagingWrapper = pagingWrapper.withPager(pagerBuilder.build());
+      org.hisp.dhis.tracker.export.Page<org.hisp.dhis.trackedentity.TrackedEntity>
+          trackedEntitiesPage =
+              trackedEntityService.getTrackedEntities(operationParams, pageParams);
       List<ObjectNode> objectNodes =
           fieldFilterService.toObjectNodes(
-              TRACKED_ENTITY_MAPPER.fromCollection(trackedEntityPage.getItems()),
-              trackedEntityRequestParams.getFields());
-      return pagingWrapper.withInstances(objectNodes);
+              TRACKED_ENTITY_MAPPER.fromCollection(trackedEntitiesPage.getItems()),
+              requestParams.getFields());
+
+      return Page.withPager(TRACKED_ENTITIES, trackedEntitiesPage.withItems(objectNodes));
     }
 
     List<org.hisp.dhis.trackedentity.TrackedEntity> trackedEntities =
         trackedEntityService.getTrackedEntities(operationParams);
     List<ObjectNode> objectNodes =
         fieldFilterService.toObjectNodes(
-            TRACKED_ENTITY_MAPPER.fromCollection(trackedEntities),
-            trackedEntityRequestParams.getFields());
-    PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
-    return pagingWrapper.withInstances(objectNodes);
+            TRACKED_ENTITY_MAPPER.fromCollection(trackedEntities), requestParams.getFields());
+
+    return Page.withoutPager(TRACKED_ENTITIES, objectNodes);
   }
 
-  @GetMapping(
-      produces = {
-        CONTENT_TYPE_CSV,
-        CONTENT_TYPE_CSV_GZIP,
-        CONTENT_TYPE_CSV_ZIP,
-        CONTENT_TYPE_TEXT_CSV
-      })
+  @GetMapping(produces = {CONTENT_TYPE_CSV, CONTENT_TYPE_TEXT_CSV})
   void getTrackedEntitiesAsCsv(
       TrackedEntityRequestParams trackedEntityRequestParams,
       HttpServletResponse response,
-      HttpServletRequest request,
       @CurrentUser User user,
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader)
       throws IOException, BadRequestException, ForbiddenException, NotFoundException {
     TrackedEntityOperationParams operationParams =
         paramsMapper.map(trackedEntityRequestParams, user, CSV_FIELDS);
 
-    List<TrackedEntity> trackedEntities =
+    ResponseHeader.addContentDispositionAttachment(response, TE_CSV_FILE);
+    ResponseHeader.addContentTransferEncodingBinary(response);
+    response.setContentType(CONTENT_TYPE_CSV);
+
+    entityCsvService.write(
+        response.getOutputStream(),
         TRACKED_ENTITY_MAPPER.fromCollection(
-            trackedEntityService.getTrackedEntities(operationParams));
+            trackedEntityService.getTrackedEntities(operationParams)),
+        !skipHeader);
+  }
 
-    OutputStream outputStream = response.getOutputStream();
+  @GetMapping(produces = {CONTENT_TYPE_CSV_ZIP})
+  void getTrackedEntitiesAsCsvZip(
+      TrackedEntityRequestParams trackedEntityRequestParams,
+      HttpServletResponse response,
+      @CurrentUser User user,
+      @RequestParam(required = false, defaultValue = "false") boolean skipHeader)
+      throws IOException, BadRequestException, ForbiddenException, NotFoundException {
+    TrackedEntityOperationParams operationParams =
+        paramsMapper.map(trackedEntityRequestParams, user, CSV_FIELDS);
 
-    if (ContextUtils.isAcceptCsvGzip(request)) {
-      response.addHeader(ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary");
-      outputStream = new GZIPOutputStream(outputStream);
-      response.setContentType(CONTENT_TYPE_CSV_GZIP);
-      response.setHeader(
-          HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"trackedEntities.csv.gz\"");
-    } else if (ContextUtils.isAcceptCsvZip(request)) {
-      response.addHeader(ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary");
-      response.setContentType(CONTENT_TYPE_CSV_ZIP);
-      response.setHeader(
-          HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"trackedEntities.csv.zip\"");
-      ZipOutputStream zos = new ZipOutputStream(outputStream);
-      zos.putNextEntry(new ZipEntry("trackedEntities.csv"));
-      outputStream = zos;
-    } else {
-      response.setContentType(CONTENT_TYPE_CSV);
-      response.setHeader(
-          HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"trackedEntities.csv\"");
-    }
+    ResponseHeader.addContentDispositionAttachment(response, TE_CSV_FILE + ZIP_EXT);
+    ResponseHeader.addContentTransferEncodingBinary(response);
+    response.setContentType(CONTENT_TYPE_CSV_ZIP);
 
-    csvEventService.write(outputStream, trackedEntities, !skipHeader);
+    entityCsvService.writeZip(
+        response.getOutputStream(),
+        TRACKED_ENTITY_MAPPER.fromCollection(
+            trackedEntityService.getTrackedEntities(operationParams)),
+        !skipHeader,
+        TE_CSV_FILE);
+  }
+
+  @GetMapping(produces = {CONTENT_TYPE_CSV_GZIP})
+  void getTrackedEntitiesAsCsvGZip(
+      TrackedEntityRequestParams trackedEntityRequestParams,
+      HttpServletResponse response,
+      @CurrentUser User user,
+      @RequestParam(required = false, defaultValue = "false") boolean skipHeader)
+      throws IOException, BadRequestException, ForbiddenException, NotFoundException {
+    TrackedEntityOperationParams operationParams =
+        paramsMapper.map(trackedEntityRequestParams, user, CSV_FIELDS);
+
+    ResponseHeader.addContentDispositionAttachment(response, TE_CSV_FILE + GZIP_EXT);
+    ResponseHeader.addContentTransferEncodingBinary(response);
+    response.setContentType(CONTENT_TYPE_CSV_GZIP);
+
+    entityCsvService.writeGzip(
+        response.getOutputStream(),
+        TRACKED_ENTITY_MAPPER.fromCollection(
+            trackedEntityService.getTrackedEntities(operationParams)),
+        !skipHeader);
   }
 
   @OpenApi.Response(OpenApi.EntityType.class)
@@ -245,7 +268,7 @@ class TrackedEntitiesExportController {
 
   @GetMapping(
       value = "/{uid}",
-      produces = {CONTENT_TYPE_CSV, CONTENT_TYPE_CSV_GZIP, CONTENT_TYPE_TEXT_CSV})
+      produces = {CONTENT_TYPE_CSV, CONTENT_TYPE_TEXT_CSV})
   void getTrackedEntityByUidAsCsv(
       @PathVariable String uid,
       HttpServletResponse response,
@@ -260,8 +283,57 @@ class TrackedEntitiesExportController {
 
     OutputStream outputStream = response.getOutputStream();
     response.setContentType(CONTENT_TYPE_CSV);
-    response.setHeader(
-        HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"trackedEntity.csv\"");
-    csvEventService.write(outputStream, List.of(trackedEntity), !skipHeader);
+    response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=trackedEntity.csv");
+    entityCsvService.write(outputStream, List.of(trackedEntity), !skipHeader);
+  }
+
+  @GetMapping("/{trackedEntity}/attributes/{attribute}/file")
+  ResponseEntity<InputStreamResource> getAttributeValueFile(
+      @OpenApi.Param({UID.class, TrackedEntity.class}) @PathVariable UID trackedEntity,
+      @OpenApi.Param({UID.class, Attribute.class}) @PathVariable UID attribute,
+      @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) UID program,
+      HttpServletRequest request)
+      throws NotFoundException, ConflictException, BadRequestException {
+    validateUnsupportedParameter(
+        request,
+        "dimension",
+        "Request parameter 'dimension' is only supported for images by API /tracker/trackedEntities/attributes/{attribute}/image");
+
+    return handleFileRequest(
+        request, trackedEntityService.getFileResource(trackedEntity, attribute, program));
+  }
+
+  @GetMapping("/{trackedEntity}/attributes/{attribute}/image")
+  ResponseEntity<InputStreamResource> getAttributeValueImage(
+      @OpenApi.Param({UID.class, TrackedEntity.class}) @PathVariable UID trackedEntity,
+      @OpenApi.Param({UID.class, Attribute.class}) @PathVariable UID attribute,
+      @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) UID program,
+      @RequestParam(required = false) ImageFileDimension dimension,
+      HttpServletRequest request)
+      throws NotFoundException, ConflictException, BadRequestException {
+    return handleFileRequest(
+        request,
+        trackedEntityService.getFileResourceImage(trackedEntity, attribute, program, dimension));
+  }
+
+  @GetMapping("/{trackedEntity}/changeLogs")
+  Page<ObjectNode> getTrackedEntityAttributeChangeLog(
+      @OpenApi.Param({UID.class, TrackedEntity.class}) @PathVariable UID trackedEntity,
+      @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) UID program,
+      ChangeLogRequestParams requestParams,
+      HttpServletRequest request)
+      throws NotFoundException, BadRequestException {
+
+    TrackedEntityChangeLogOperationParams operationParams =
+        ChangeLogRequestParamsMapper.map(
+            trackedEntityChangeLogService.getOrderableFields(), requestParams);
+    PageParams pageParams =
+        new PageParams(requestParams.getPage(), requestParams.getPageSize(), false);
+
+    org.hisp.dhis.tracker.export.Page<TrackedEntityChangeLog> changeLogs =
+        trackedEntityChangeLogService.getTrackedEntityChangeLog(
+            trackedEntity, program, operationParams, pageParams);
+
+    return fieldFilterRequestHandler.handle(request, "changeLogs", changeLogs, requestParams);
   }
 }

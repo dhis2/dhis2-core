@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-services</artifactId>
-    <version>2.41-SNAPSHOT</version>
+    <version>2.42-SNAPSHOT</version>
   </parent>
 
   <artifactId>dhis-service-program-rule</artifactId>
@@ -49,7 +49,11 @@
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis.rules</groupId>
-      <artifactId>rule-engine</artifactId>
+      <artifactId>rule-engine-jvm</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jetbrains.kotlinx</groupId>
+      <artifactId>kotlinx-datetime-jvm</artifactId>
     </dependency>
     <dependency>
       <groupId>org.projectlombok</groupId>

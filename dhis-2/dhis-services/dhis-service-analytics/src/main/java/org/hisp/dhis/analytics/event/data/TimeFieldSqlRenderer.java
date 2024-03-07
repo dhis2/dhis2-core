@@ -31,10 +31,10 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.hisp.dhis.analytics.event.data.JdbcEventAnalyticsManager.OPEN_IN;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -51,11 +51,16 @@ import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.jdbc.PostgreSqlStatementBuilder;
+import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 
 /** Provides methods targeting the generation of SQL statements for periods and time fields. */
 public abstract class TimeFieldSqlRenderer {
+
+  protected final StatementBuilder statementBuilder = new PostgreSqlStatementBuilder();
+
   /**
    * Generates a SQL statement for periods or time field based on the given params.
    *
@@ -144,11 +149,11 @@ public abstract class TimeFieldSqlRenderer {
     return "("
         + dateRangeColumn.getColumn()
         + " >= '"
-        + getMediumDateString(dateRangeColumn.getDateRange().getStartDate())
+        + toMediumDate(dateRangeColumn.getDateRange().getStartDate())
         + "' and "
         + dateRangeColumn.getColumn()
         + " < '"
-        + getMediumDateString(dateRangeColumn.getDateRange().getEndDatePlusOneDay())
+        + toMediumDate(dateRangeColumn.getDateRange().getEndDatePlusOneDay())
         + "')";
   }
 
@@ -255,7 +260,7 @@ public abstract class TimeFieldSqlRenderer {
             .map(Period.class::cast)
             .collect(Collectors.groupingBy(Period::getPeriodType));
 
-    Collection<String> periodSingleConditions =
+    List<String> periodSingleConditions =
         periodsByType.entrySet().stream().map(entry -> toSqlCondition(alias, entry)).toList();
 
     String periodsCondition = wrapAndJoinWithOrIfNecessary(periodSingleConditions);

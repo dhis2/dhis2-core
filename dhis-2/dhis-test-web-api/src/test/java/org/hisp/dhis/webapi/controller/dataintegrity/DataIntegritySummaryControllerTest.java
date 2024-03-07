@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.dataintegrity.DataIntegrityCheckType;
+import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.controller.DataIntegrityController;
@@ -48,6 +49,7 @@ import org.junit.jupiter.api.Test;
  * @author Jan Bernitt
  */
 class DataIntegritySummaryControllerTest extends AbstractDataIntegrityIntegrationTest {
+
   @Test
   void testLegacyChecksHaveSummary() {
     for (DataIntegrityCheckType type : DataIntegrityCheckType.values()) {
@@ -56,6 +58,21 @@ class DataIntegritySummaryControllerTest extends AbstractDataIntegrityIntegratio
       JsonDataIntegritySummary summary = getSummary(check);
       assertTrue(summary.getCount() >= 0, "summary threw an exception");
     }
+
+    // check if the summary map returns results for the programmatic checks
+    JsonMap<JsonDataIntegritySummary> checksByName =
+        GET("/dataIntegrity/summary?timeout=1000").content().asMap(JsonDataIntegritySummary.class);
+    assertFalse(checksByName.isEmpty());
+    int checked = 0;
+    for (DataIntegrityCheckType type : DataIntegrityCheckType.values()) {
+      String name = type.getName().replace("-", "_");
+      JsonDataIntegritySummary summary = checksByName.get(name);
+      if (summary.exists()) { // not all checks might be done by now
+        assertTrue(summary.getIsSlow());
+        checked++;
+      }
+    }
+    assertTrue(checked > 0, "at least one of the slow test should have been completed");
   }
 
   @Test

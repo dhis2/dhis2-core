@@ -73,8 +73,9 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.translation.Translation;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.util.SharingUtils;
 import org.springframework.stereotype.Component;
@@ -102,8 +103,6 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
 
   private final EntityManager entityManager;
 
-  private final CurrentUserService currentUserService;
-
   protected final SchemaService schemaService;
 
   private final Map<
@@ -120,20 +119,17 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
       Set<IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores,
       Set<GenericDimensionalObjectStore<? extends DimensionalObject>> dimensionalObjectStores,
       EntityManager entityManager,
-      CurrentUserService currentUserService,
       SchemaService schemaService,
       CacheProvider cacheProvider) {
     checkNotNull(identifiableObjectStores);
     checkNotNull(dimensionalObjectStores);
     checkNotNull(entityManager);
-    checkNotNull(currentUserService);
     checkNotNull(schemaService);
     checkNotNull(cacheProvider);
 
     this.identifiableObjectStores = identifiableObjectStores;
     this.dimensionalObjectStores = dimensionalObjectStores;
     this.entityManager = entityManager;
-    this.currentUserService = currentUserService;
     this.schemaService = schemaService;
     this.defaultObjectCache = cacheProvider.createDefaultObjectCache();
   }
@@ -167,34 +163,29 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Override
   @Transactional
   public void update(@Nonnull IdentifiableObject object) {
-    update(object, currentUserService.getCurrentUser());
+    IdentifiableObjectStore<? super IdentifiableObject> store = getIdentifiableObjectStore(object);
+    if (store != null) {
+      store.update(object);
+    }
   }
 
   @Override
   @Transactional
-  public void update(@Nonnull IdentifiableObject object, @CheckForNull User user) {
+  public void update(@Nonnull IdentifiableObject object, UserDetails currentUserDetails) {
     IdentifiableObjectStore<? super IdentifiableObject> store = getIdentifiableObjectStore(object);
-
     if (store != null) {
-      store.update(object, user);
+      store.update(object, currentUserDetails);
     }
   }
 
   @Override
   @Transactional
   public void update(@Nonnull List<IdentifiableObject> objects) {
-    update(objects, currentUserService.getCurrentUser());
-  }
-
-  @Override
-  @Transactional
-  public void update(@Nonnull List<IdentifiableObject> objects, @CheckForNull User user) {
     if (objects.isEmpty()) {
       return;
     }
-
     for (IdentifiableObject object : objects) {
-      update(object, user);
+      update(object);
     }
   }
 
@@ -210,7 +201,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
             .collect(Collectors.toSet()));
 
     translatedObject.setLastUpdated(new Date());
-    translatedObject.setLastUpdatedBy(currentUserService.getCurrentUser());
+    translatedObject.setLastUpdatedBy(getCurrentUser());
 
     entityManager.unwrap(Session.class).update(translatedObject);
   }
@@ -218,16 +209,9 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Override
   @Transactional
   public void delete(@Nonnull IdentifiableObject object) {
-    delete(object, currentUserService.getCurrentUser());
-  }
-
-  @Override
-  @Transactional
-  public void delete(@Nonnull IdentifiableObject object, @CheckForNull User user) {
     IdentifiableObjectStore<? super IdentifiableObject> store = getIdentifiableObjectStore(object);
-
     if (store != null) {
-      store.delete(object, user);
+      store.delete(object);
     }
   }
 
@@ -407,21 +391,28 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> T getByUniqueAttributeValue(
       @Nonnull Class<T> type, @Nonnull Attribute attribute, @Nonnull String value) {
-    return getByUniqueAttributeValue(type, attribute, value, currentUserService.getCurrentUser());
+    return getByUniqueAttributeValue(type, attribute, value, CurrentUserUtil.getCurrentUsername());
   }
 
   @CheckForNull
   @Override
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> T getByUniqueAttributeValue(
-      @Nonnull Class<T> type, @Nonnull Attribute attribute, @Nonnull String value, User user) {
+      @Nonnull Class<T> type,
+      @Nonnull Attribute attribute,
+      @Nonnull String value,
+      String username) {
     IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
 
     if (store == null) {
       return null;
     }
 
-    return store.getByUniqueAttributeValue(attribute, value, user);
+    return store.getByUniqueAttributeValue(attribute, value);
+  }
+
+  private User getCurrentUser() {
+    return get(User.class, CurrentUserUtil.getCurrentUsername());
   }
 
   @CheckForNull
@@ -1036,6 +1027,16 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     return store.getAllNoAcl();
   }
 
+  @Override
+  public void persist(Object object) {
+    entityManager.persist(object);
+  }
+
+  @Override
+  public User find(Class<User> userClass, long id) {
+    return entityManager.find(userClass, id);
+  }
+
   @Nonnull
   @Override
   @Transactional(readOnly = true)
@@ -1250,12 +1251,13 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     boolean hasLastUpdatedBy =
         schema.getPersistedProperty(BaseIdentifiableObject_.LAST_UPDATED_BY) != null;
 
+    UserDetails currentUserDetails = UserDetails.fromUser(user);
     if (hasCreatedBy && hasLastUpdatedBy) {
-      return store.findByUser(user);
+      return store.findByUser(currentUserDetails);
     } else if (hasLastUpdatedBy) {
-      return store.findByLastUpdatedBy(user);
+      return store.findByLastUpdatedBy(currentUserDetails);
     } else if (hasCreatedBy) {
-      return store.findByCreatedBy(user);
+      return store.findByCreatedBy(currentUserDetails);
     }
 
     return List.of();

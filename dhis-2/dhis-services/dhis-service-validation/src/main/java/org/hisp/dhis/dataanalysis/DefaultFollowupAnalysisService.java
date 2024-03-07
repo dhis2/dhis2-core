@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.dataanalysis;
 
-import static java.util.Collections.emptyList;
 import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
 
 import java.util.Collection;
@@ -51,7 +50,9 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,19 +69,19 @@ public class DefaultFollowupAnalysisService implements FollowupAnalysisService {
 
   private final FollowupValueManager followupValueManager;
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   private final I18nManager i18nManager;
 
   @Override
   @Transactional(readOnly = true)
   public List<DeflatedDataValue> getFollowupDataValues(
-      Collection<OrganisationUnit> parents,
+      OrganisationUnit orgUnit,
       Collection<DataElement> dataElements,
       Collection<Period> periods,
       int limit) {
-    if (parents == null || parents.isEmpty() || limit < 1) {
-      return emptyList();
+    if (orgUnit == null || limit < 1) {
+      return List.of();
     }
 
     Set<DataElement> elements =
@@ -94,14 +95,10 @@ public class DefaultFollowupAnalysisService implements FollowupAnalysisService {
       categoryOptionCombos.addAll(dataElement.getCategoryOptionCombos());
     }
 
-    log.debug(
-        "Starting min-max analysis, no of data elements: "
-            + elements.size()
-            + ", no of parent org units: "
-            + parents.size());
+    log.debug("Starting min-max analysis, no of data elements: {}", elements.size());
 
     return dataAnalysisStore.getFollowupDataValues(
-        elements, categoryOptionCombos, periods, parents, limit);
+        elements, categoryOptionCombos, periods, orgUnit, limit);
   }
 
   @Override
@@ -109,8 +106,9 @@ public class DefaultFollowupAnalysisService implements FollowupAnalysisService {
   public FollowupAnalysisResponse getFollowupDataValues(FollowupAnalysisRequest request) {
     validate(request);
 
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     List<FollowupValue> followupValues =
-        followupValueManager.getFollowupDataValues(currentUserService.getCurrentUser(), request);
+        followupValueManager.getFollowupDataValues(currentUser, request);
 
     I18nFormat format = i18nManager.getI18nFormat();
     followupValues.forEach(value -> value.setPeName(format.formatPeriod(value.getPeAsPeriod())));

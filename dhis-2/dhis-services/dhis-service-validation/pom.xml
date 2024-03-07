@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-services</artifactId>
-    <version>2.41-SNAPSHOT</version>
+    <version>2.42-SNAPSHOT</version>
   </parent>
 
   <artifactId>dhis-service-validation</artifactId>
@@ -115,7 +115,10 @@
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>jsr305</artifactId>
     </dependency>
-
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-core</artifactId>
+    </dependency>
     <!-- Test -->
     <dependency>
       <groupId>org.hisp.dhis</groupId>
@@ -137,5 +140,6 @@
       <artifactId>junit-jupiter-params</artifactId>
       <scope>test</scope>
     </dependency>
+
   </dependencies>
 </project>

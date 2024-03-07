@@ -36,9 +36,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.Collection;
 import java.util.Collections;
-import java.util.stream.Collectors;
+import java.util.List;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsDimensionsService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.PrefixedDimension;
@@ -47,7 +46,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.user.CurrentUserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -66,16 +64,15 @@ class EnrollmentAnalyticsDimensionsServiceTest {
     when(program.getTrackedEntityAttributes()).thenReturn(allValueTypeTEAs());
 
     enrollmentAnalyticsDimensionsService =
-        new DefaultEnrollmentAnalyticsDimensionsService(
-            programService, mock(AclService.class), mock(CurrentUserService.class));
+        new DefaultEnrollmentAnalyticsDimensionsService(programService, mock(AclService.class));
   }
 
   @Test
   void testQueryDoesntContainDisallowedValueTypes() {
-    Collection<BaseIdentifiableObject> analyticsDimensions =
+    List<BaseIdentifiableObject> analyticsDimensions =
         enrollmentAnalyticsDimensionsService.getQueryDimensionsByProgramId("anUid").stream()
             .map(PrefixedDimension::getItem)
-            .collect(Collectors.toList());
+            .toList();
 
     assertTrue(
         analyticsDimensions.stream()
@@ -91,12 +88,12 @@ class EnrollmentAnalyticsDimensionsServiceTest {
 
   @Test
   void testAggregateOnlyContainsAllowedValueTypes() {
-    Collection<BaseIdentifiableObject> analyticsDimensions =
+    List<BaseIdentifiableObject> analyticsDimensions =
         enrollmentAnalyticsDimensionsService
             .getAggregateDimensionsByProgramStageId("anUid")
             .stream()
             .map(PrefixedDimension::getItem)
-            .collect(Collectors.toList());
+            .toList();
 
     assertTrue(
         analyticsDimensions.stream()

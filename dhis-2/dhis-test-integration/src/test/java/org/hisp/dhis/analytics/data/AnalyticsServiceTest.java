@@ -451,7 +451,8 @@ class AnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     categoryService.saveCategoryOptionGroup(optionGroupA);
     categoryService.saveCategoryOptionGroup(optionGroupB);
 
-    CategoryOptionGroupSet optionGroupSetB = new CategoryOptionGroupSet("OptionGroupSetB");
+    CategoryOptionGroupSet optionGroupSetB =
+        new CategoryOptionGroupSet("OptionGroupSetB", DataDimensionType.DISAGGREGATION);
     categoryService.saveCategoryOptionGroupSet(optionGroupSetB);
     optionGroupSetB.addCategoryOptionGroup(optionGroupA);
     optionGroupSetB.addCategoryOptionGroup(optionGroupB);
@@ -1098,6 +1099,52 @@ class AnalyticsServiceTest extends SingleSetupIntegrationTestBase {
             .withIndicators(List.of(inA))
             .withAggregationType(AnalyticsAggregationType.SUM)
             .withPeriods(List.of(peJan, peFeb, peMar, peApr))
+            .withOutputFormat(OutputFormat.ANALYTICS)
+            .build());
+  }
+
+  @Test
+  void testNestedIndicator() {
+    withIndicator(inA, "#{" + deA.getUid() + "}");
+    withIndicator(inB, "2 * N{" + inA.getUid() + "}");
+
+    assertDataValues(
+        Map.of(
+            "indicatorAA-201701",
+            75.0,
+            "indicatorAA-201702",
+            233.0,
+            "indicatorBB-201701",
+            150.0,
+            "indicatorBB-201702",
+            466.0),
+        DataQueryParams.newBuilder()
+            .withIndicators(List.of(inA, inB))
+            .withAggregationType(AnalyticsAggregationType.SUM)
+            .withPeriods(List.of(peJan, peFeb))
+            .withOutputFormat(OutputFormat.ANALYTICS)
+            .build());
+  }
+
+  @Test
+  void testNestedIndicatorWithPeriodOffset() {
+    withIndicator(inA, "#{" + deA.getUid() + "}");
+    withIndicator(inB, "N{" + inA.getUid() + "} + N{" + inA.getUid() + "}.periodOffset(-1)");
+
+    assertDataValues(
+        Map.of(
+            "indicatorAA-201701",
+            75.0,
+            "indicatorAA-201702",
+            233.0,
+            "indicatorBB-201701",
+            75.0,
+            "indicatorBB-201702",
+            308.0),
+        DataQueryParams.newBuilder()
+            .withIndicators(List.of(inA, inB))
+            .withAggregationType(AnalyticsAggregationType.SUM)
+            .withPeriods(List.of(peJan, peFeb))
             .withOutputFormat(OutputFormat.ANALYTICS)
             .build());
   }

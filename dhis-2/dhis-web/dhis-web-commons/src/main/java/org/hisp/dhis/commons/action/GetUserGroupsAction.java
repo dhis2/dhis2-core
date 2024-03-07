@@ -32,7 +32,8 @@ import java.util.Collections;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.paging.ActionPagingSupport;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 
@@ -76,8 +77,8 @@ public class GetUserGroupsAction extends ActionPagingSupport<UserGroup> {
 
     userGroups = new ArrayList<>(userGroupService.getAllUserGroups());
 
-    User currentUser = currentUserService.getCurrentUser();
-    userGroups.forEach(instance -> canReadInstance(instance, currentUser));
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    userGroups.forEach(instance -> canReadInstance(instance, currentUserDetails));
 
     if (key != null) {
       userGroups = IdentifiableObjectUtils.filterNameByKey(userGroups, key, true);

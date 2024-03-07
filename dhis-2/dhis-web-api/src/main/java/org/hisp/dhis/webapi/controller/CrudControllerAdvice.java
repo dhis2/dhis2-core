@@ -32,6 +32,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.createWebMessage;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.forbidden;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.mergeReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
@@ -75,9 +76,9 @@ import org.hisp.dhis.fieldfilter.FieldFilterException;
 import org.hisp.dhis.query.QueryException;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.SchemaPathException;
+import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationException;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.webapi.common.UIDParamEditor;
 import org.hisp.dhis.webapi.controller.exception.MetadataImportConflictException;
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
 import org.hisp.dhis.webapi.controller.exception.MetadataVersionException;
@@ -86,10 +87,17 @@ import org.hisp.dhis.webapi.controller.tracker.imports.IdSchemeParamEditor;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthenticationException;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenError;
 import org.springframework.beans.TypeMismatchException;
+import org.springframework.core.convert.ConversionFailedException;
+import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.server.resource.BearerTokenError;
@@ -145,7 +153,6 @@ public class CrudControllerAdvice {
         IdentifiableProperty.class, new FromTextPropertyEditor(String::toUpperCase));
     this.enumClasses.forEach(c -> binder.registerCustomEditor(c, new ConvertEnum(c)));
     binder.registerCustomEditor(TrackerIdSchemeParam.class, new IdSchemeParamEditor());
-    binder.registerCustomEditor(UID.class, new UIDParamEditor());
   }
 
   @ExceptionHandler
@@ -173,6 +180,10 @@ public class CrudControllerAdvice {
     if (ex.getObjectReport() != null) {
       return objectReport(ex.getObjectReport());
     }
+
+    if (ex.getMergeReport() != null) {
+      return mergeReport(ex.getMergeReport());
+    }
     return conflict(ex.getMessage(), ex.getCode()).setDevMessage(ex.getDevMessage());
   }
 
@@ -186,6 +197,12 @@ public class CrudControllerAdvice {
   @ResponseBody
   public WebMessage notFoundException(org.hisp.dhis.feedback.NotFoundException ex) {
     return createWebMessage(ex.getMessage(), Status.ERROR, HttpStatus.NOT_FOUND, ex.getCode());
+  }
+
+  @ExceptionHandler(org.hisp.dhis.feedback.HiddenNotFoundException.class)
+  @ResponseBody
+  public WebMessage hiddenNotFoundException(org.hisp.dhis.feedback.HiddenNotFoundException ex) {
+    return createWebMessage(Status.OK, HttpStatus.OK);
   }
 
   @ExceptionHandler(RestClientException.class)
@@ -206,8 +223,10 @@ public class CrudControllerAdvice {
     Class<?> requiredType = ex.getRequiredType();
     PathVariable pathVariableAnnotation =
         ex.getParameter().getParameterAnnotation(PathVariable.class);
-    String notValidValueMessage =
-        getNotValidValueMessage(ex.getValue(), ex.getName(), pathVariableAnnotation != null);
+    String field = ex.getName();
+    Object value = ex.getValue();
+    boolean isPathVariable = pathVariableAnnotation != null;
+    String notValidValueMessage = getNotValidValueMessage(value, field, isPathVariable);
 
     String customErrorMessage;
     if (requiredType == null) {
@@ -218,6 +237,10 @@ public class CrudControllerAdvice {
       customErrorMessage = getGenericFieldErrorMessage(requiredType.getSimpleName());
     } else if (ex.getCause() instanceof IllegalArgumentException) {
       customErrorMessage = ex.getCause().getMessage();
+    } else if (ex.getCause() instanceof ConversionFailedException conversionException) {
+      notValidValueMessage =
+          getConversionErrorMessage(value, field, conversionException, isPathVariable);
+      customErrorMessage = "";
     } else {
       customErrorMessage = getGenericFieldErrorMessage(requiredType.getSimpleName());
     }
@@ -229,7 +252,9 @@ public class CrudControllerAdvice {
   @ResponseBody
   public WebMessage handleTypeMismatchException(TypeMismatchException ex) {
     Class<?> requiredType = ex.getRequiredType();
-    String notValidValueMessage = getNotValidValueMessage(ex.getValue(), ex.getPropertyName());
+    String field = ex.getPropertyName();
+    Object value = ex.getValue();
+    String notValidValueMessage = getNotValidValueMessage(value, field);
 
     String customErrorMessage;
     if (requiredType == null) {
@@ -240,6 +265,9 @@ public class CrudControllerAdvice {
       customErrorMessage = getGenericFieldErrorMessage(requiredType.getSimpleName());
     } else if (ex.getCause() instanceof IllegalArgumentException) {
       customErrorMessage = ex.getCause().getMessage();
+    } else if (ex.getCause() instanceof ConversionFailedException conversionException) {
+      notValidValueMessage = getConversionErrorMessage(value, field, conversionException, false);
+      customErrorMessage = "";
     } else {
       customErrorMessage = getGenericFieldErrorMessage(requiredType.getSimpleName());
     }
@@ -261,11 +289,12 @@ public class CrudControllerAdvice {
     return MessageFormat.format("It should be of type {0}", fieldType);
   }
 
-  private String getNotValidValueMessage(Object value, String field) {
+  private static String getNotValidValueMessage(Object value, String field) {
     return getNotValidValueMessage(value, field, false);
   }
 
-  private String getNotValidValueMessage(Object value, String field, boolean isPathVariable) {
+  private static String getNotValidValueMessage(
+      Object value, String field, boolean isPathVariable) {
     if (value == null || (value instanceof String stringValue && stringValue.isEmpty())) {
       return MessageFormat.format("{0} cannot be empty.", field);
     }
@@ -280,7 +309,27 @@ public class CrudControllerAdvice {
   }
 
   private String getFormattedBadRequestMessage(String fieldErrorMessage, String customMessage) {
+    if (StringUtils.isEmpty(customMessage)) {
+      return fieldErrorMessage;
+    }
     return fieldErrorMessage + " " + customMessage;
+  }
+
+  private static String getConversionErrorMessage(
+      Object rootValue, String field, ConversionFailedException ex, boolean isPathVariable) {
+    Object invalidValue = ex.getValue();
+    if (TypeDescriptor.valueOf(String.class).equals(ex.getSourceType())
+        && (invalidValue != null && ((String) invalidValue).contains(","))
+        && (rootValue != null && rootValue.getClass().isArray())) {
+      return "You likely repeated request parameter '"
+          + field
+          + "' and used multiple comma-separated values within at least one of its values. Choose one of these approaches. "
+          + ex.getCause().getMessage();
+    }
+
+    return getNotValidValueMessage(invalidValue, field, isPathVariable)
+        + " "
+        + ex.getCause().getMessage();
   }
 
   /**
@@ -389,8 +438,11 @@ public class CrudControllerAdvice {
 
   @ExceptionHandler(WebMessageException.class)
   @ResponseBody
-  public WebMessage webMessageExceptionHandler(WebMessageException ex) {
-    return ex.getWebMessage();
+  public ResponseEntity<WebMessage> webMessageExceptionHandler(WebMessageException ex) {
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    return new ResponseEntity<>(
+        ex.getWebMessage(), headers, ex.getWebMessage().getHttpStatusCode());
   }
 
   @ExceptionHandler(HttpStatusCodeException.class)
@@ -502,6 +554,18 @@ public class CrudControllerAdvice {
     return unauthorized(ex.getMessage());
   }
 
+  @ExceptionHandler(TwoFactorAuthenticationException.class)
+  @ResponseBody
+  public WebMessage handleTwoFactorAuthenticationException(TwoFactorAuthenticationException ex) {
+    return unauthorized(ex.getMessage());
+  }
+
+  @ExceptionHandler(BadCredentialsException.class)
+  @ResponseBody
+  public WebMessage handleBadCredentialsException(BadCredentialsException ex) {
+    return unauthorized(ex.getMessage());
+  }
+
   @ExceptionHandler({PotentialDuplicateConflictException.class})
   @ResponseBody
   public WebMessage handlePotentialDuplicateConflictRequest(Exception exception) {
@@ -523,6 +587,32 @@ public class CrudControllerAdvice {
   public WebMessage defaultExceptionHandler(Exception ex) {
     ex.printStackTrace();
     return error(getExceptionMessage(ex));
+  }
+
+  /**
+   * Exception handler handling {@link UID} instantiation errors (from {@link String} to {@link
+   * UID}) received in web requests. The error message is checked to see if it contains 'UID' & ';'
+   * so it can be formatted more nicely for client consumption, otherwise too much extraneous
+   * exception info is included. See e2e {@link IndicatorTypeMergeTest#testInvalidSourceUid} for
+   * example response expected.
+   *
+   * @param ex exception
+   * @return web message
+   */
+  @ResponseBody
+  @ExceptionHandler(HttpMessageNotReadableException.class)
+  public WebMessage handleHttpMessageNotReadableExceptionHandler(
+      HttpMessageNotReadableException ex) {
+    String message = "HttpMessageNotReadableException exception has no message";
+    String exMessage = ex.getMessage();
+    if (exMessage != null) {
+      message = exMessage;
+    }
+
+    if (message.contains("UID") && message.contains(";")) {
+      message = message.substring(0, message.indexOf(';'));
+    }
+    return badRequest(message);
   }
 
   private String getExceptionMessage(Exception ex) {

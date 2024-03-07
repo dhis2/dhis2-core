@@ -49,10 +49,10 @@ import org.hisp.dhis.dxf2.pdfform.PdfDataEntryFormUtil;
 import org.hisp.dhis.dxf2.pdfform.PdfFormFontSettings;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.util.DateUtils;
@@ -78,8 +78,6 @@ public class PdfFormController {
   // -------------------------------------------------------------------------
   // Dependencies
   // -------------------------------------------------------------------------
-
-  @Autowired private CurrentUserService currentUserService;
 
   @Autowired private Notifier notifier;
 
@@ -108,9 +106,9 @@ public class PdfFormController {
 
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     PdfWriter writer = PdfWriter.getInstance(document, baos);
-
     PdfFormFontSettings pdfFormFontSettings =
-        new PdfFormFontSettings(CurrentUserUtil.getUserSetting(UserSettingKey.DB_LOCALE));
+        new PdfFormFontSettings(
+            CurrentUserUtil.getUserSetting(UserSettingKey.UI_LOCALE, LocaleManager.DEFAULT_LOCALE));
 
     PdfDataEntryFormUtil.setDefaultFooterOnDocument(
         document,
@@ -147,7 +145,7 @@ public class PdfFormController {
         new JobConfiguration(
             "inMemoryDataValueImport",
             JobType.DATAVALUE_IMPORT,
-            currentUserService.getCurrentUser().getUid());
+            CurrentUserUtil.getCurrentUserDetails().getUid());
 
     notifier.clear(jobId);
 

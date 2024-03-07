@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.scheduling;
 
-import static java.lang.String.format;
 import static org.hisp.dhis.scheduling.JobProgress.getMessage;
 
 import java.time.Duration;
@@ -43,8 +42,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
-import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * The {@link RecordingJobProgress} take care of the flow control aspect of {@link JobProgress} API.
@@ -172,47 +171,50 @@ public class RecordingJobProgress implements JobProgress {
       // Note: we use empty string in case the UID is not known/defined yet to allow use in maps
       progress.addError(new Error(code, uid == null ? "" : uid, type, args));
     } catch (Exception ex) {
-      log.error("Failed to add error: %s %s %s %s".formatted(code, uid, type, args), ex);
+      log.error(format("Failed to add error: {} {} {} {}", code, uid, type, args), ex);
     }
   }
 
   @Override
-  public void startingProcess(String description) {
+  public void startingProcess(String description, Object... args) {
     if (isCancelled()) {
       throw new CancellationException();
     }
+    String message = format(description, args);
     observer.run();
-    tracker.startingProcess(description);
+    tracker.startingProcess(format(message, args));
     incompleteProcess.set(null);
     incompleteStage.set(null);
     incompleteItem.remove();
-    Process process = addProcessRecord(description);
-    logInfo(process, "started", description);
+    Process process = addProcessRecord(message);
+    logInfo(process, "started", message);
   }
 
   @Override
-  public void completedProcess(String summary) {
+  public void completedProcess(String summary, Object... args) {
+    String message = format(summary, args);
     observer.run();
-    tracker.completedProcess(summary);
+    tracker.completedProcess(message);
     Process process = getOrAddLastIncompleteProcess();
-    process.complete(summary);
-    logInfo(process, "completed", summary);
+    process.complete(message);
+    logInfo(process, "completed", format(message, args));
   }
 
   @Override
-  public void failedProcess(String error) {
+  public void failedProcess(String error, Object... args) {
+    String message = format(error, args);
     observer.run();
-    tracker.failedProcess(error);
+    tracker.failedProcess(message);
     Process process = progress.sequence.peekLast();
     if (process == null || process.getCompletedTime() != null) {
       return;
     }
     if (process.getStatus() != Status.CANCELLED) {
-      automaticAbort(false, error, null);
-      process.completeExceptionally(error, null);
-      logError(process, null, error);
+      automaticAbort(false, message, null);
+      process.completeExceptionally(message, null);
+      logError(process, null, message);
     } else {
-      process.completeExceptionally(error, null);
+      process.completeExceptionally(message, null);
     }
   }
 
@@ -250,24 +252,26 @@ public class RecordingJobProgress implements JobProgress {
   }
 
   @Override
-  public void completedStage(String summary) {
+  public void completedStage(String summary, Object... args) {
+    String message = format(summary, args);
     observer.run();
-    tracker.completedStage(summary);
+    tracker.completedStage(message);
     Stage stage = getOrAddLastIncompleteStage();
-    stage.complete(summary);
-    logInfo(stage, "completed", summary);
+    stage.complete(message);
+    logInfo(stage, "completed", message);
   }
 
   @Override
-  public void failedStage(String error) {
+  public void failedStage(String error, Object... args) {
+    String message = format(error, args);
     observer.run();
-    tracker.failedStage(error);
+    tracker.failedStage(message);
     Stage stage = getOrAddLastIncompleteStage();
-    stage.completeExceptionally(error, null);
+    stage.completeExceptionally(message, null);
     if (stage.getOnFailure() != FailurePolicy.SKIP_STAGE) {
-      automaticAbort(error, null);
+      automaticAbort(message, null);
     }
-    logError(stage, null, error);
+    logError(stage, null, message);
   }
 
   @Override
@@ -294,24 +298,26 @@ public class RecordingJobProgress implements JobProgress {
   }
 
   @Override
-  public void completedWorkItem(String summary) {
+  public void completedWorkItem(String summary, Object... args) {
+    String message = format(summary, args);
     observer.run();
-    tracker.completedWorkItem(summary);
+    tracker.completedWorkItem(message);
     Item item = getOrAddLastIncompleteItem();
-    item.complete(summary);
-    logDebug(item, "completed", summary);
+    item.complete(message);
+    logDebug(item, "completed", message);
   }
 
   @Override
-  public void failedWorkItem(String error) {
+  public void failedWorkItem(String error, Object... args) {
+    String message = format(error, args);
     observer.run();
-    tracker.failedWorkItem(error);
+    tracker.failedWorkItem(message);
     Item item = getOrAddLastIncompleteItem();
-    item.completeExceptionally(error, null);
+    item.completeExceptionally(message, null);
     if (!isSkipped(item)) {
-      automaticAbort(error, null);
+      automaticAbort(message, null);
     }
-    logError(item, null, error);
+    logError(item, null, message);
   }
 
   @Override
@@ -370,7 +376,7 @@ public class RecordingJobProgress implements JobProgress {
     if (configuration != null) {
       process.setJobId(configuration.getUid());
     }
-    CurrentUserDetails user = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails user = CurrentUserUtil.getCurrentUserDetails();
     if (user != null) {
       process.setUserId(user.getUid());
     }
@@ -475,7 +481,12 @@ public class RecordingJobProgress implements JobProgress {
     String msg = message == null ? "" : ": " + message;
     String type = source instanceof Stage ? "" : source.getClass().getSimpleName() + " ";
     return format(
-        "[%s %s] %s%s%s%s",
-        configuration.getJobType().name(), configuration.getUid(), type, action, duration, msg);
+        "[{} {}] {}{}{}{}",
+        configuration.getJobType().name(),
+        configuration.getUid(),
+        type,
+        action,
+        duration,
+        msg);
   }
 }

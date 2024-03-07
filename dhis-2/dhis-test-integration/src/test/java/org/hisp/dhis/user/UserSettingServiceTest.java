@@ -61,56 +61,65 @@ class UserSettingServiceTest extends SingleSetupIntegrationTestBase {
   void testSaveGetDeleteUserSetting() {
     assertEquals(
         SettingKey.ANALYSIS_DISPLAY_PROPERTY.getDefaultValue(),
-        userSettingService.getUserSetting(UserSettingKey.ANALYSIS_DISPLAY_PROPERTY, userA));
+        userSettingService.getUserSetting(
+            UserSettingKey.ANALYSIS_DISPLAY_PROPERTY, userA.getUsername()));
     assertEquals(
         SettingKey.STYLE.getDefaultValue(),
-        userSettingService.getUserSetting(UserSettingKey.STYLE, userA));
+        userSettingService.getUserSetting(UserSettingKey.STYLE, userA.getUsername()));
     userSettingService.saveUserSetting(
-        UserSettingKey.ANALYSIS_DISPLAY_PROPERTY, "shortName", "usernameA");
-    userSettingService.saveUserSetting(UserSettingKey.STYLE, "blue", "usernameA");
+        UserSettingKey.ANALYSIS_DISPLAY_PROPERTY, "shortName", userA);
+    userSettingService.saveUserSetting(UserSettingKey.STYLE, "blue", userA);
     assertEquals(
         "shortName",
-        userSettingService.getUserSetting(UserSettingKey.ANALYSIS_DISPLAY_PROPERTY, userA));
-    assertEquals("blue", userSettingService.getUserSetting(UserSettingKey.STYLE, userA));
-    userSettingService.deleteUserSetting(UserSettingKey.ANALYSIS_DISPLAY_PROPERTY, userA);
+        userSettingService.getUserSetting(
+            UserSettingKey.ANALYSIS_DISPLAY_PROPERTY, userA.getUsername()));
+    assertEquals(
+        "blue", userSettingService.getUserSetting(UserSettingKey.STYLE, userA.getUsername()));
+    userSettingService.deleteUserSetting(
+        UserSettingKey.ANALYSIS_DISPLAY_PROPERTY, userA.getUsername());
     assertEquals(
         SettingKey.ANALYSIS_DISPLAY_PROPERTY.getDefaultValue(),
-        userSettingService.getUserSetting(UserSettingKey.ANALYSIS_DISPLAY_PROPERTY, userA));
-    assertEquals("blue", userSettingService.getUserSetting(UserSettingKey.STYLE, userA));
-    userSettingService.deleteUserSetting(UserSettingKey.STYLE, userA);
+        userSettingService.getUserSetting(
+            UserSettingKey.ANALYSIS_DISPLAY_PROPERTY, userA.getUsername()));
+    assertEquals(
+        "blue", userSettingService.getUserSetting(UserSettingKey.STYLE, userA.getUsername()));
+    userSettingService.deleteUserSetting(UserSettingKey.STYLE, userA.getUsername());
     assertEquals(
         SettingKey.ANALYSIS_DISPLAY_PROPERTY.getDefaultValue(),
-        userSettingService.getUserSetting(UserSettingKey.ANALYSIS_DISPLAY_PROPERTY, userA));
+        userSettingService.getUserSetting(
+            UserSettingKey.ANALYSIS_DISPLAY_PROPERTY, userA.getUsername()));
     assertEquals(
         SettingKey.STYLE.getDefaultValue(),
-        userSettingService.getUserSetting(UserSettingKey.STYLE, userA));
+        userSettingService.getUserSetting(UserSettingKey.STYLE, userA.getUsername()));
   }
 
   @Test
   void testSaveOrUpdateUserSetting() {
-    userSettingService.saveUserSetting(
-        UserSettingKey.ANALYSIS_DISPLAY_PROPERTY, "name", "usernameA");
-    userSettingService.saveUserSetting(UserSettingKey.STYLE, "blue", "usernameA");
+    userSettingService.saveUserSetting(UserSettingKey.ANALYSIS_DISPLAY_PROPERTY, "name", userA);
+    userSettingService.saveUserSetting(UserSettingKey.STYLE, "blue", userA);
     assertEquals(
-        "name", userSettingService.getUserSetting(UserSettingKey.ANALYSIS_DISPLAY_PROPERTY, userA));
-    assertEquals("blue", userSettingService.getUserSetting(UserSettingKey.STYLE, userA));
+        "name",
+        userSettingService.getUserSetting(
+            UserSettingKey.ANALYSIS_DISPLAY_PROPERTY, userA.getUsername()));
+    assertEquals(
+        "blue", userSettingService.getUserSetting(UserSettingKey.STYLE, userA.getUsername()));
     userSettingService.saveUserSetting(
-        UserSettingKey.ANALYSIS_DISPLAY_PROPERTY, "shortName", "usernameA");
-    userSettingService.saveUserSetting(UserSettingKey.STYLE, "green", "usernameA");
+        UserSettingKey.ANALYSIS_DISPLAY_PROPERTY, "shortName", userA);
+    userSettingService.saveUserSetting(UserSettingKey.STYLE, "green", userA);
     assertEquals(
         "shortName",
-        userSettingService.getUserSetting(UserSettingKey.ANALYSIS_DISPLAY_PROPERTY, userA));
-    assertEquals("green", userSettingService.getUserSetting(UserSettingKey.STYLE, userA));
+        userSettingService.getUserSetting(
+            UserSettingKey.ANALYSIS_DISPLAY_PROPERTY, userA.getUsername()));
+    assertEquals(
+        "green", userSettingService.getUserSetting(UserSettingKey.STYLE, userA.getUsername()));
   }
 
   @Test
   void testGetUserSettingsByUser() {
-    userSettingService.saveUserSetting(
-        UserSettingKey.ANALYSIS_DISPLAY_PROPERTY, "name", "usernameA");
-    userSettingService.saveUserSetting(UserSettingKey.STYLE, "blue", "usernameA");
-    userSettingService.saveUserSetting(UserSettingKey.MESSAGE_SMS_NOTIFICATION, false, "usernameA");
-    userSettingService.saveUserSetting(
-        UserSettingKey.MESSAGE_EMAIL_NOTIFICATION, false, "usernameA");
+    userSettingService.saveUserSetting(UserSettingKey.ANALYSIS_DISPLAY_PROPERTY, "name", userA);
+    userSettingService.saveUserSetting(UserSettingKey.STYLE, "blue", userA);
+    userSettingService.saveUserSetting(UserSettingKey.MESSAGE_SMS_NOTIFICATION, false, userA);
+    userSettingService.saveUserSetting(UserSettingKey.MESSAGE_EMAIL_NOTIFICATION, false, userA);
     assertEquals(4, userSettingService.getUserSettings(userA).size());
   }
 
@@ -118,13 +127,15 @@ class UserSettingServiceTest extends SingleSetupIntegrationTestBase {
   void testFallbackToDefaultValue() {
     Boolean emailNotification =
         (Boolean)
-            userSettingService.getUserSetting(UserSettingKey.MESSAGE_EMAIL_NOTIFICATION, userA);
+            userSettingService.getUserSetting(
+                UserSettingKey.MESSAGE_EMAIL_NOTIFICATION, userA.getUsername());
     assertEquals(UserSettingKey.MESSAGE_EMAIL_NOTIFICATION.getDefaultValue(), emailNotification);
     userSettingService.saveUserSetting(
         UserSettingKey.MESSAGE_EMAIL_NOTIFICATION, Boolean.FALSE, userA);
     emailNotification =
         (Boolean)
-            userSettingService.getUserSetting(UserSettingKey.MESSAGE_EMAIL_NOTIFICATION, userA);
+            userSettingService.getUserSetting(
+                UserSettingKey.MESSAGE_EMAIL_NOTIFICATION, userA.getUsername());
     assertEquals(Boolean.FALSE, emailNotification);
   }
 
@@ -132,7 +143,8 @@ class UserSettingServiceTest extends SingleSetupIntegrationTestBase {
   void testFallbackToSystemSetting() {
     Locale expected = Locale.FRANCE;
     systemSettingManager.saveSystemSetting(SettingKey.UI_LOCALE, expected);
-    Locale locale = (Locale) userSettingService.getUserSetting(UserSettingKey.UI_LOCALE, userA);
+    Locale locale =
+        (Locale) userSettingService.getUserSetting(UserSettingKey.UI_LOCALE, userA.getUsername());
     assertEquals(expected, locale);
   }
 }

@@ -30,8 +30,8 @@ package org.hisp.dhis.dxf2.datavalueset;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
-import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.util.DateUtils.toLongGmtDate;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import com.google.common.base.Preconditions;
 import java.io.OutputStream;
@@ -52,8 +52,10 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.CsvUtils;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.springframework.jdbc.UncategorizedSQLException;
@@ -66,15 +68,14 @@ import org.springframework.stereotype.Repository;
 @Slf4j
 @Repository("org.hisp.dhis.dxf2.datavalueset.DataValueSetStore")
 public class SpringDataValueSetStore implements DataValueSetStore {
-  private final CurrentUserService currentUserService;
-
   private final JdbcTemplate jdbcTemplate;
+  private final UserService userService;
 
-  public SpringDataValueSetStore(CurrentUserService currentUserService, JdbcTemplate jdbcTemplate) {
-    checkNotNull(currentUserService);
+  public SpringDataValueSetStore(UserService userService, JdbcTemplate jdbcTemplate) {
+    checkNotNull(userService);
     checkNotNull(jdbcTemplate);
 
-    this.currentUserService = currentUserService;
+    this.userService = userService;
     this.jdbcTemplate = jdbcTemplate;
   }
 
@@ -156,7 +157,7 @@ public class SpringDataValueSetStore implements DataValueSetStore {
             + "join categoryoptioncombo coc on (dv.categoryoptioncomboid=coc.categoryoptioncomboid) "
             + "join categoryoptioncombo aoc on (dv.attributeoptioncomboid=aoc.categoryoptioncomboid) "
             + "where dv.lastupdated >= '"
-            + DateUtils.getLongDateString(lastUpdated)
+            + DateUtils.toLongDate(lastUpdated)
             + "' ";
 
     return sql;
@@ -172,7 +173,7 @@ public class SpringDataValueSetStore implements DataValueSetStore {
 
       writer.writeHeader(
           params.getFirstDataSet().getPropertyValue(dataSetScheme),
-          getLongGmtDateString(completeDate),
+          toLongGmtDate(completeDate),
           params.getFirstPeriod().getIsoDate(),
           params.getFirstOrganisationUnit().getPropertyValue(ouScheme));
     } else {
@@ -190,8 +191,6 @@ public class SpringDataValueSetStore implements DataValueSetStore {
 
   private String getDataValueSql(DataExportParams params) {
     Preconditions.checkArgument(!params.getAllDataElements().isEmpty());
-
-    User user = currentUserService.getCurrentUser();
 
     IdSchemes idScheme =
         params.getOutputIdSchemes() != null ? params.getOutputIdSchemes() : new IdSchemes();
@@ -319,9 +318,9 @@ public class SpringDataValueSetStore implements DataValueSetStore {
     if (params.hasStartEndDate()) {
       sql +=
           "and (pe.startdate >= '"
-              + getMediumDateString(params.getStartDate())
+              + toMediumDate(params.getStartDate())
               + "' and pe.enddate <= '"
-              + getMediumDateString(params.getEndDate())
+              + toMediumDate(params.getEndDate())
               + "') ";
     } else if (params.hasPeriods()) {
       sql +=
@@ -338,16 +337,17 @@ public class SpringDataValueSetStore implements DataValueSetStore {
     }
 
     if (params.hasLastUpdated()) {
-      sql += "and dv.lastupdated >= '" + getLongGmtDateString(params.getLastUpdated()) + "' ";
+      sql += "and dv.lastupdated >= '" + toLongGmtDate(params.getLastUpdated()) + "' ";
     } else if (params.hasLastUpdatedDuration()) {
       sql +=
           "and dv.lastupdated >= '"
-              + getLongGmtDateString(DateUtils.nowMinusDuration(params.getLastUpdatedDuration()))
+              + toLongGmtDate(DateUtils.nowMinusDuration(params.getLastUpdatedDuration()))
               + "' ";
     }
 
-    if (user != null && !user.isSuper()) {
-      sql += getAttributeOptionComboClause(user);
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    if (currentUser != null && !currentUser.isSuper()) {
+      sql += getAttributeOptionComboClause(currentUser);
     }
 
     if (params.hasLimit()) {
@@ -377,7 +377,7 @@ public class SpringDataValueSetStore implements DataValueSetStore {
         + "from categoryoption co  "
         + " where "
         + JpaQueryUtils.generateSQlQueryForSharingCheck(
-            "co.sharing", user, AclService.LIKE_READ_DATA)
+            "co.sharing", UserDetails.fromUser(user), AclService.LIKE_READ_DATA)
         + ") )";
   }
 
@@ -425,12 +425,12 @@ public class SpringDataValueSetStore implements DataValueSetStore {
 
     @Override
     public String getCreated() {
-      return getLongGmtDateString(getTimestamp("created"));
+      return toLongGmtDate(getTimestamp("created"));
     }
 
     @Override
     public String getLastUpdated() {
-      return getLongGmtDateString(getTimestamp("lastupdated"));
+      return toLongGmtDate(getTimestamp("lastupdated"));
     }
 
     @Override

@@ -49,6 +49,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.geotools.geojson.geom.GeometryJSON;
 import org.hisp.dhis.category.CategoryOption;
@@ -557,6 +558,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
    * @return true if this org unit is a descendant of the ancestors.
    */
   public boolean isDescendant(Collection<OrganisationUnit> ancestors) {
+    // TODO: MAS optimize to use Set of UIDs from UserDetails as input instead
     if (isEmpty(ancestors)) {
       return false;
     }
@@ -625,16 +627,38 @@ public class OrganisationUnit extends BaseDimensionalItemObject
    * @param includeThis whether to include this organisation unit in the graph.
    */
   public String getParentNameGraph(Collection<OrganisationUnit> roots, boolean includeThis) {
+    return getParentNameGraph(roots, includeThis, "/", true);
+  }
+
+  /**
+   * Returns a string representing the graph of ancestors. The string is delimited by "/". The
+   * ancestors are ordered by root first and represented by names.
+   *
+   * @param roots the root organisation units, if null using real roots.
+   * @param includeThis whether to include this organisation unit in the graph.
+   * @param delimiter delimiting string.
+   * @param withLeadingDelimiter delimiting string is included on the front of the result string.
+   */
+  public String getParentNameGraph(
+      Collection<OrganisationUnit> roots,
+      boolean includeThis,
+      String delimiter,
+      boolean withLeadingDelimiter) {
     StringBuilder builder = new StringBuilder();
 
     List<OrganisationUnit> ancestors = getAncestors(roots);
 
-    for (OrganisationUnit unit : ancestors) {
-      builder.append("/").append(unit.getName());
-    }
+    builder.append(
+        ancestors.stream()
+            .map(BaseIdentifiableObject::getName)
+            .collect(Collectors.joining(delimiter)));
 
     if (includeThis) {
-      builder.append("/").append(name);
+      builder.append(delimiter).append(name);
+    }
+
+    if (withLeadingDelimiter) {
+      return delimiter + builder;
     }
 
     return builder.toString();

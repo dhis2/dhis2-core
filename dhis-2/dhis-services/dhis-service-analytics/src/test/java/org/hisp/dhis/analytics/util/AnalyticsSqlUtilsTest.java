@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.common.FallbackCoordinateFieldType;
 import org.junit.jupiter.api.Test;
@@ -41,47 +40,9 @@ import org.junit.jupiter.api.Test;
  */
 class AnalyticsSqlUtilsTest {
   @Test
-  void testQuote() {
-    assertEquals(
-        "\"Some \"\"special\"\" value\"", AnalyticsSqlUtils.quote("Some \"special\" value"));
-    assertEquals("\"Data element\"", AnalyticsSqlUtils.quote("Data element"));
-  }
-
-  @Test
-  void testQuotedListOf() {
-    assertEquals(
-        List.of("\"a\"\"b\"\"c\"", "\"d\"\"e\"\"f\""),
-        AnalyticsSqlUtils.quotedListOf("a\"b\"c", "d\"e\"f"));
-
-    assertEquals(
-        List.of("\"ab\"", "\"cd\"", "\"ef\""), AnalyticsSqlUtils.quotedListOf("ab", "cd", "ef"));
-  }
-
-  @Test
-  void testQuoteWithAlias() {
-    assertEquals("ougs.\"Short name\"", AnalyticsSqlUtils.quote("ougs", "Short name"));
-    assertEquals("ous.\"uid\"", AnalyticsSqlUtils.quote("ous", "uid"));
-  }
-
-  @Test
-  void testQuoteAliasCommaSeparate() {
-    assertEquals(
-        "ax.\"de\",ax.\"pe\",ax.\"ou\"",
-        AnalyticsSqlUtils.quoteAliasCommaSeparate(List.of("de", "pe", "ou")));
-    assertEquals(
-        "ax.\"gender\",ax.\"date of \"\"birth\"\"\"",
-        AnalyticsSqlUtils.quoteAliasCommaSeparate(List.of("gender", "date of \"birth\"")));
-  }
-
-  @Test
-  void testQuoteWithFunction() {
-    assertEquals(
-        "min(\"value\") as \"value\",min(\"textvalue\") as \"textvalue\"",
-        AnalyticsSqlUtils.quoteWithFunction("min", "value", "textvalue"));
-
-    assertEquals(
-        "max(\"daysxvalue\") as \"daysxvalue\",max(\"daysno\") as \"daysno\"",
-        AnalyticsSqlUtils.quoteWithFunction("max", "daysxvalue", "daysno"));
+  void testQuoteAlias() {
+    assertEquals("ax.\"uidlevel1\"", AnalyticsSqlUtils.quoteAlias("uidlevel1"));
+    assertEquals("ax.\"quarterly\"", AnalyticsSqlUtils.quoteAlias("quarterly"));
   }
 
   @Test
@@ -97,7 +58,7 @@ class AnalyticsSqlUtilsTest {
     // when
     String sqlSnippet =
         AnalyticsSqlUtils.getCoalesce(
-            new ArrayList<>(), FallbackCoordinateFieldType.PSI_GEOMETRY.getValue());
+            List.of(), FallbackCoordinateFieldType.PSI_GEOMETRY.getValue());
 
     // then
     assertEquals(FallbackCoordinateFieldType.PSI_GEOMETRY.getValue(), sqlSnippet);
@@ -123,13 +84,5 @@ class AnalyticsSqlUtilsTest {
 
     // then
     assertEquals("coalesce(ax.\"coorA\",ax.\"coorB\",ax.\"coorC\")", sqlSnippet);
-  }
-
-  @Test
-  void testGetCollate() {
-    assertEquals(" collate \"Posix\" ", AnalyticsSqlUtils.getCollate("Posix"));
-    assertEquals("", AnalyticsSqlUtils.getCollate(null));
-    assertEquals("", AnalyticsSqlUtils.getCollate(""));
-    assertEquals("", AnalyticsSqlUtils.getCollate(" "));
   }
 }

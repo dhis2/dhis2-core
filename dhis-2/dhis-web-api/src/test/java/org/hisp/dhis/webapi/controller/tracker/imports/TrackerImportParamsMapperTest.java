@@ -48,8 +48,6 @@ import org.junit.jupiter.api.Test;
  */
 class TrackerImportParamsMapperTest {
 
-  private static final String JOB_ID = "hbhJvfjdxgs";
-
   @Test
   void testDefaultParams() {
     final TrackerImportParams params = TrackerImportParams.builder().build();

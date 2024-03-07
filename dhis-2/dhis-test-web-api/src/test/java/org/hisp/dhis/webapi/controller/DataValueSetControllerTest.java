@@ -38,11 +38,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 
+import java.util.List;
+import java.util.Set;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * Tests the {@link DataValueSetController} using (mocked) REST requests.
@@ -50,6 +57,8 @@ import org.junit.jupiter.api.Test;
  * @author Jan Bernitt
  */
 class DataValueSetControllerTest extends DhisControllerIntegrationTest {
+
+  @Autowired protected TransactionTemplate transactionTemplate;
 
   @Test
   void testPostJsonDataValueSet() {
@@ -77,14 +86,24 @@ class DataValueSetControllerTest extends DhisControllerIntegrationTest {
 
   @Test
   void testPostAdxDataValueSet() {
-    String content =
-        POST(
-                "/38/dataValueSets/",
-                Body("<adx xmlns=\"urn:ihe:qrph:adx:2015\"></adx>"),
-                ContentType(CONTENT_TYPE_XML_ADX),
-                Accept(CONTENT_TYPE_XML))
-            .content(APPLICATION_XML.toString());
-    assertTrue(content.contains("httpStatusCode=\"200\""));
+    transactionTemplate.execute(
+        status -> {
+          User user = makeUser("X", List.of("ALL"));
+          userService.addUser(user);
+          injectSecurityContextUser(user);
+
+          String content =
+              POST(
+                      "/38/dataValueSets/",
+                      Body("<adx xmlns=\"urn:ihe:qrph:adx:2015\"></adx>"),
+                      ContentType(CONTENT_TYPE_XML_ADX),
+                      Accept(CONTENT_TYPE_XML))
+                  .content(APPLICATION_XML.toString());
+
+          assertTrue(content.contains("httpStatusCode=\"200\""));
+
+          return null;
+        });
   }
 
   @Test
@@ -186,7 +205,8 @@ class DataValueSetControllerTest extends DhisControllerIntegrationTest {
             HttpStatus.CREATED,
             POST(
                 "/organisationUnits/",
-                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01', 'code':'OU1'}"));
+                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01',"
+                    + " 'code':'OU1'}"));
     String dsId =
         assertStatus(
             HttpStatus.CREATED,
@@ -202,5 +222,36 @@ class DataValueSetControllerTest extends DhisControllerIntegrationTest {
             .as(JsonWebMessage.class);
     assertEquals(
         String.format("User is not allowed to view org unit: `%s`", ouId), response.getMessage());
+  }
+
+  @Test
+  @DisplayName("Should return error message when user does not have DATA_READ to DataSet")
+  void testGetDataValueSetJsonWithNonAccessibleDataSet() {
+    String orgUnitId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits/",
+                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01',"
+                    + " 'code':'OU1'}"));
+    String dsId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataSets/",
+                "{'name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly'}"));
+
+    switchToNewUser(
+        createAndAddUser(Set.of(), Set.of(manager.get(OrganisationUnit.class, orgUnitId))));
+    JsonWebMessage response =
+        GET(
+                "/dataValueSets/?inputOrgUnitIdScheme=code&idScheme=name&orgUnit={ou}&period=2022-01&dataSet={ds}&async=true",
+                "OU1",
+                dsId)
+            .content(HttpStatus.CONFLICT)
+            .as(JsonWebMessage.class);
+    assertEquals(
+        String.format("User is not allowed to read data for data set: `%s`", dsId),
+        response.getMessage());
   }
 }

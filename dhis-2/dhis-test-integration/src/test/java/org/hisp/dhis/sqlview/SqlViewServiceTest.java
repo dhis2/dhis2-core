@@ -51,13 +51,13 @@ class SqlViewServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private UserService internalUserService;
 
-  private String sqlA = "SELECT   *  FROM     _categorystructure;;  ; ;;;  ;; ; ";
+  private String sqlA = "SELECT   *  FROM     analytics_rs_categorystructure;;  ; ;;;  ;; ; ";
 
   private String sqlB = "SELECT COUNT(*) from organisationunit;";
 
   private String sqlC =
       "SELECT COUNT(_cocn.*) AS so_dem, _icgss.indicatorid AS in_id"
-          + "FROM _indicatorgroupsetstructure AS _icgss, categoryoptioncombo AS _cocn "
+          + "FROM analytics_rs_indicatorgroupsetstructure AS _icgss, categoryoptioncombo AS _cocn "
           + "GROUP BY _icgss.indicatorid;";
 
   private String sqlD =
@@ -301,7 +301,7 @@ class SqlViewServiceTest extends TransactionalIntegrationTest {
     User userA = makeUser("A", List.of("F_SQLVIEW_PUBLIC_ADD"));
     userService.addUser(userA);
 
-    injectSecurityContext(userA);
+    injectSecurityContextUser(userA);
 
     // but we lack sharing to view the result grid
     assertIllegalQueryEx(

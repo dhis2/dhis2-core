@@ -48,8 +48,10 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -69,7 +71,7 @@ public class DefaultDataSetService implements DataSetService {
   @Qualifier("jdbcDataSetOrgUnitAssociationsStore")
   private final JdbcOrgUnitAssociationsStore jdbcOrgUnitAssociationsStore;
 
-  private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   // -------------------------------------------------------------------------
   // DataSet
@@ -132,7 +134,7 @@ public class DefaultDataSetService implements DataSetService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<DataSet> getUserDataRead(User user) {
+  public List<DataSet> getUserDataRead(UserDetails user) {
     if (user == null) {
       return Lists.newArrayList();
     }
@@ -142,12 +144,12 @@ public class DefaultDataSetService implements DataSetService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<DataSet> getUserDataWrite(User user) {
-    if (user == null) {
+  public List<DataSet> getUserDataWrite(UserDetails userDetails) {
+    if (userDetails == null) {
       return Lists.newArrayList();
     }
 
-    return user.isSuper() ? getAllDataSets() : dataSetStore.getDataWriteAll(user);
+    return userDetails.isSuper() ? getAllDataSets() : dataSetStore.getDataWriteAll(userDetails);
   }
 
   @Override
@@ -216,9 +218,13 @@ public class DefaultDataSetService implements DataSetService {
       Period period,
       OrganisationUnit organisationUnit,
       CategoryOptionCombo attributeOptionCombo) {
-    User user = currentUserService.getCurrentUser();
-
-    return getLockStatus(dataSet, period, organisationUnit, attributeOptionCombo, user, new Date());
+    return getLockStatus(
+        dataSet,
+        period,
+        organisationUnit,
+        attributeOptionCombo,
+        CurrentUserUtil.getCurrentUserDetails(),
+        new Date());
   }
 
   @Override
@@ -228,7 +234,7 @@ public class DefaultDataSetService implements DataSetService {
       Period period,
       OrganisationUnit organisationUnit,
       CategoryOptionCombo attributeOptionCombo,
-      User user,
+      UserDetails user,
       Date now) {
     if (dataApprovalService.isApproved(
         dataSet.getWorkflow(), period, organisationUnit, attributeOptionCombo)) {
@@ -249,7 +255,7 @@ public class DefaultDataSetService implements DataSetService {
       Period period,
       OrganisationUnit organisationUnit,
       CategoryOptionCombo attributeOptionCombo,
-      User user,
+      UserDetails user,
       Date now,
       boolean useOrgUnitChildren) {
     if (!useOrgUnitChildren) {
@@ -280,7 +286,25 @@ public class DefaultDataSetService implements DataSetService {
       CategoryOptionCombo attributeOptionCombo,
       User user,
       Date now) {
-    if (user == null || !user.isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
+    return getLockStatus(
+        dataElement,
+        period,
+        organisationUnit,
+        attributeOptionCombo,
+        UserDetails.fromUser(user),
+        now);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public LockStatus getLockStatus(
+      DataElement dataElement,
+      Period period,
+      OrganisationUnit organisationUnit,
+      CategoryOptionCombo attributeOptionCombo,
+      UserDetails userDetails,
+      Date now) {
+    if (userDetails == null || !userDetails.isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
       now = now != null ? now : new Date();
 
       boolean expired = dataElement.isExpired(period, now);
@@ -332,7 +356,11 @@ public class DefaultDataSetService implements DataSetService {
   @Override
   @Transactional(readOnly = true)
   public boolean isLocked(
-      User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit, Date now) {
+      UserDetails user,
+      DataSet dataSet,
+      Period period,
+      OrganisationUnit organisationUnit,
+      Date now) {
     return dataSet.isLocked(user, period, now)
         && lockExceptionStore.getCount(dataSet, period, organisationUnit) == 0L;
   }
@@ -369,8 +397,10 @@ public class DefaultDataSetService implements DataSetService {
   @Override
   @Transactional(readOnly = true)
   public SetValuedMap<String, String> getDataSetOrganisationUnitsAssociations() {
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+
     Set<String> uids =
-        getUserDataWrite(currentUserService.getCurrentUser()).stream()
+        getUserDataWrite(currentUserDetails).stream()
             .map(DataSet::getUid)
             .collect(Collectors.toSet());
 

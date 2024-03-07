@@ -32,8 +32,10 @@ import static java.util.Map.entry;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.util.DateUtils.getLongDateString;
-import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
+import static org.hisp.dhis.system.util.SqlUtils.escape;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
+import static org.hisp.dhis.util.DateUtils.toLongDate;
+import static org.hisp.dhis.util.DateUtils.toLongGmtDate;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,42 +44,38 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.IntSupplier;
+import java.util.function.LongSupplier;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 
-@Slf4j
 @Repository("org.hisp.dhis.tracker.export.trackedentity.TrackedEntityStore")
 class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<TrackedEntity>
     implements TrackedEntityStore {
@@ -130,33 +128,20 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
   private final OrganisationUnitStore organisationUnitStore;
 
-  private final StatementBuilder statementBuilder;
-
   private final SystemSettingManager systemSettingManager;
 
   public HibernateTrackedEntityStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService,
-      StatementBuilder statementBuilder,
       OrganisationUnitStore organisationUnitStore,
       SystemSettingManager systemSettingManager) {
-    super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        TrackedEntity.class,
-        currentUserService,
-        aclService,
-        false);
+    super(entityManager, jdbcTemplate, publisher, TrackedEntity.class, aclService, false);
 
-    checkNotNull(statementBuilder);
     checkNotNull(organisationUnitStore);
     checkNotNull(systemSettingManager);
 
-    this.statementBuilder = statementBuilder;
     this.organisationUnitStore = organisationUnitStore;
     this.systemSettingManager = systemSettingManager;
   }
@@ -190,20 +175,18 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       ids.add(rowSet.getLong("trackedentityid"));
     }
 
-    IntSupplier teCount = () -> getTrackedEntityCount(params);
+    LongSupplier teCount = () -> getTrackedEntityCount(params);
     return getPage(pageParams, ids, teCount);
   }
 
-  private Page<Long> getPage(PageParams pageParams, List<Long> teIds, IntSupplier enrollmentCount) {
+  private Page<Long> getPage(
+      PageParams pageParams, List<Long> teIds, LongSupplier enrollmentCount) {
     if (pageParams.isPageTotal()) {
-      Pager pager =
-          new Pager(pageParams.getPage(), enrollmentCount.getAsInt(), pageParams.getPageSize());
-      return Page.of(teIds, pager);
+      return Page.withTotals(
+          teIds, pageParams.getPage(), pageParams.getPageSize(), enrollmentCount.getAsLong());
     }
 
-    Pager pager = new Pager(pageParams.getPage(), 0, pageParams.getPageSize());
-    pager.force(pageParams.getPage(), pageParams.getPageSize());
-    return Page.of(teIds, pager);
+    return Page.withoutTotals(teIds, pageParams.getPage(), pageParams.getPageSize());
   }
 
   @Override
@@ -212,10 +195,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   }
 
   private String encodeAndQuote(Collection<String> elements) {
-    return getQuotedCommaDelimitedString(
-        elements.stream()
-            .map(element -> statementBuilder.encode(element, false))
-            .collect(Collectors.toList()));
+    return getQuotedCommaDelimitedString(elements.stream().map(SqlUtils::escape).toList());
   }
 
   private void checkMaxTrackedEntityCountReached(
@@ -229,9 +209,9 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   }
 
   @Override
-  public int getTrackedEntityCount(TrackedEntityQueryParams params) {
+  public Long getTrackedEntityCount(TrackedEntityQueryParams params) {
     String sql = getCountQuery(params);
-    return jdbcTemplate.queryForObject(sql, Integer.class);
+    return jdbcTemplate.queryForObject(sql, Long.class);
   }
 
   @Override
@@ -447,10 +427,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
           columns.add(ENROLLMENT_ALIAS + ".enrollmentdate as " + ENROLLMENT_DATE_ALIAS);
         }
       } else if (order.getField() instanceof TrackedEntityAttribute tea) {
-        columns.add(
-            statementBuilder.columnQuote(tea.getUid())
-                + ".value AS "
-                + statementBuilder.columnQuote(tea.getUid()));
+        columns.add(quote(tea.getUid()) + ".value AS " + quote(tea.getUid()));
       } else {
         throw new IllegalArgumentException(
             String.format(
@@ -499,21 +476,21 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       trackedEntity
           .append(whereAnd.whereAnd())
           .append(" TE.lastupdated >= '")
-          .append(getLongGmtDateString(DateUtils.nowMinusDuration(params.getLastUpdatedDuration())))
+          .append(toLongGmtDate(DateUtils.nowMinusDuration(params.getLastUpdatedDuration())))
           .append(SINGLE_QUOTE);
     } else {
       if (params.hasLastUpdatedStartDate()) {
         trackedEntity
             .append(whereAnd.whereAnd())
             .append(" TE.lastupdated >= '")
-            .append(getLongDateString(params.getLastUpdatedStartDate()))
+            .append(toLongDate(params.getLastUpdatedStartDate()))
             .append(SINGLE_QUOTE);
       }
       if (params.hasLastUpdatedEndDate()) {
         trackedEntity
             .append(whereAnd.whereAnd())
             .append(" TE.lastupdated <= '")
-            .append(getLongDateString(params.getLastUpdatedEndDate()))
+            .append(toLongDate(params.getLastUpdatedEndDate()))
             .append(SINGLE_QUOTE);
       }
     }
@@ -542,7 +519,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
     for (Map.Entry<TrackedEntityAttribute, List<QueryFilter>> filters :
         params.getFilters().entrySet()) {
-      String col = statementBuilder.columnQuote(filters.getKey().getUid());
+      String col = quote(filters.getKey().getUid());
       String teaId = col + ".trackedentityattributeid";
       String teav = "lower(" + col + ".value)";
       String ted = col + ".trackedentityid";
@@ -559,7 +536,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
           .append(" = TE.trackedentityid ");
 
       for (QueryFilter filter : filters.getValue()) {
-        String encodedFilter = statementBuilder.encode(filter.getFilter(), false);
+        String encodedFilter = escape(filter.getFilter());
         attributes
             .append("AND ")
             .append(teav)
@@ -588,12 +565,12 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
       joinOrderAttributes
           .append(" LEFT JOIN trackedentityattributevalue AS ")
-          .append(statementBuilder.columnQuote(orderAttribute.getUid()))
+          .append(quote(orderAttribute.getUid()))
           .append(" ON ")
-          .append(statementBuilder.columnQuote(orderAttribute.getUid()))
+          .append(quote(orderAttribute.getUid()))
           .append(".trackedentityid = TE.trackedentityid ")
           .append("AND ")
-          .append(statementBuilder.columnQuote(orderAttribute.getUid()))
+          .append(quote(orderAttribute.getUid()))
           .append(".trackedentityattributeid = ")
           .append(orderAttribute.getId())
           .append(SPACE);
@@ -773,28 +750,28 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     if (params.hasProgramEnrollmentStartDate()) {
       program
           .append("AND EN.enrollmentdate >= '")
-          .append(getLongDateString(params.getProgramEnrollmentStartDate()))
+          .append(toLongDate(params.getProgramEnrollmentStartDate()))
           .append("' ");
     }
 
     if (params.hasProgramEnrollmentEndDate()) {
       program
           .append("AND EN.enrollmentdate <= '")
-          .append(getLongDateString(params.getProgramEnrollmentEndDate()))
+          .append(toLongDate(params.getProgramEnrollmentEndDate()))
           .append("' ");
     }
 
     if (params.hasProgramIncidentStartDate()) {
       program
           .append("AND EN.occurreddate >= '")
-          .append(getLongDateString(params.getProgramIncidentStartDate()))
+          .append(toLongDate(params.getProgramIncidentStartDate()))
           .append("' ");
     }
 
     if (params.hasProgramIncidentEndDate()) {
       program
           .append("AND EN.occurreddate <= '")
-          .append(getLongDateString(params.getProgramIncidentEndDate()))
+          .append(toLongDate(params.getProgramIncidentEndDate()))
           .append("' ");
     }
 
@@ -831,8 +808,8 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     }
 
     if (params.hasEventStatus()) {
-      String start = getLongDateString(params.getEventStartDate());
-      String end = getLongDateString(params.getEventEndDate());
+      String start = toLongDate(params.getEventStartDate());
+      String end = toLongDate(params.getEventEndDate());
 
       if (params.isEventStatus(EventStatus.COMPLETED)) {
         events
@@ -971,8 +948,8 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       } else if (order.getField() instanceof TrackedEntityAttribute tea) {
         String orderField =
             innerOrder
-                ? statementBuilder.columnQuote(tea.getUid()) + ".value "
-                : MAIN_QUERY_ALIAS + "." + statementBuilder.columnQuote(tea.getUid());
+                ? quote(tea.getUid()) + ".value "
+                : MAIN_QUERY_ALIAS + "." + quote(tea.getUid());
 
         orderFields.add(orderField + SPACE + order.getDirection());
       } else {

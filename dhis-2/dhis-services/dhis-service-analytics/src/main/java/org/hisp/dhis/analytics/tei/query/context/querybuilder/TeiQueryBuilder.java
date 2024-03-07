@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier.DimensionIdentifierType.TEI;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.PROGRAM_ATTRIBUTE;
+import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.hasRestrictions;
 import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.isOfType;
 import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
@@ -38,6 +39,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
@@ -50,6 +52,8 @@ import org.hisp.dhis.analytics.tei.query.TeiFields;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilderAdaptor;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.springframework.stereotype.Service;
 
 /**
@@ -58,6 +62,7 @@ import org.springframework.stereotype.Service;
  * structure: - {teiField} - {programUid}.{programAttribute}
  */
 @Service
+@RequiredArgsConstructor
 @org.springframework.core.annotation.Order(1)
 public class TeiQueryBuilder extends SqlQueryBuilderAdaptor {
   private static final String JSON_AGGREGATION_QUERY =
@@ -90,6 +95,8 @@ public class TeiQueryBuilder extends SqlQueryBuilderAdaptor {
             where en.trackedentityinstanceuid = t_1.trackedentityinstanceuid
               and pr.uid = en.programuid)""";
 
+  private final IdentifiableObjectManager identifiableObjectManager;
+
   @Override
   public boolean alwaysRun() {
     return true;
@@ -119,6 +126,12 @@ public class TeiQueryBuilder extends SqlQueryBuilderAdaptor {
         Field.ofUnquoted(EMPTY, () -> aggregationQuery, "enrollments").withUsedInHeaders(false);
 
     return Stream.of(
+            // Organisation unit group set columns.
+            identifiableObjectManager
+                .getDataDimensionsNoAcl(OrganisationUnitGroupSet.class)
+                .stream()
+                .map(OrganisationUnitGroupSet::getUid)
+                .map(attr -> Field.of(TEI_ALIAS, () -> attr, attr)),
             // Static fields column.
             TeiFields.getStaticFields(),
             // Tei/Program attributes.
@@ -158,12 +171,12 @@ public class TeiQueryBuilder extends SqlQueryBuilderAdaptor {
    */
   private static boolean isTei(DimensionIdentifier<DimensionParam> dimensionIdentifier) {
     return
-    // Will match all dimensionIdentifiers like {dimensionUid}.
-    dimensionIdentifier.getDimensionIdentifierType() == TEI
-        ||
-        // Will match all dimensionIdentifiers whose type is PROGRAM_ATTRIBUTE.
-        // e.g. {attributeUid}
-        isOfType(dimensionIdentifier, PROGRAM_ATTRIBUTE);
+        // Will match all dimensionIdentifiers like {dimensionUid}.
+        dimensionIdentifier.getDimensionIdentifierType() == TEI
+            ||
+            // Will match all dimensionIdentifiers whose type is PROGRAM_ATTRIBUTE.
+            // e.g. {attributeUid}
+            isOfType(dimensionIdentifier, PROGRAM_ATTRIBUTE);
   }
 
   @Override

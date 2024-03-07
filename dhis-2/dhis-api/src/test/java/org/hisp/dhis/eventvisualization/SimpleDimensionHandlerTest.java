@@ -34,10 +34,13 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.DimensionType.PERIOD;
 import static org.hisp.dhis.eventvisualization.Attribute.COLUMN;
 import static org.hisp.dhis.eventvisualization.SimpleDimension.Type.EVENT_DATE;
 import static org.hisp.dhis.eventvisualization.SimpleDimension.Type.INCIDENT_DATE;
+import static org.hisp.dhis.eventvisualization.SimpleDimension.Type.OU;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.ArrayList;
@@ -69,6 +72,23 @@ class SimpleDimensionHandlerTest {
     assertThat(dimensionalObject.getUid(), is(equalTo(eventDateDimension)));
     assertThat(dimensionalObject.getDimensionType(), is(equalTo(PERIOD)));
     assertThat(dimensionalObject.getItems(), hasSize(2));
+  }
+
+  @Test
+  void testGetDimensionalObjectForOrgUnit() {
+    // Given
+    final EventVisualization aEventVisualization = stubEventVisualization();
+    final String orgUnit = OU.getDimension();
+    final SimpleDimensionHandler handler = new SimpleDimensionHandler(aEventVisualization);
+
+    // When
+    final DimensionalObject dimensionalObject = handler.getDimensionalObject(orgUnit, COLUMN);
+
+    // Then
+    assertThat(dimensionalObject.getUid(), is(equalTo(orgUnit)));
+    assertNull(dimensionalObject.getCode());
+    assertNull(dimensionalObject.getName());
+    assertThat(dimensionalObject.getDimensionType(), is(equalTo(ORGANISATION_UNIT)));
   }
 
   @Test

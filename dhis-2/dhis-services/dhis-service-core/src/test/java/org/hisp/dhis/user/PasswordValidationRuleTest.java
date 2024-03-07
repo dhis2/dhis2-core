@@ -68,8 +68,6 @@ class PasswordValidationRuleTest {
 
   @Mock private SystemSettingManager systemSettingManager;
 
-  @Mock private CurrentUserService currentUserService;
-
   @Mock private UserService userService;
 
   @Mock private PasswordEncoder passwordEncoder;
@@ -100,8 +98,7 @@ class PasswordValidationRuleTest {
     lengthValidationRule = new PasswordLengthValidationRule(systemSettingManager);
     upperCasePatternValidationRule = new UpperCasePatternValidationRule();
     parameterValidationRule = new UserParameterValidationRule();
-    historyValidationRule =
-        new PasswordHistoryValidationRule(passwordEncoder, userService, currentUserService);
+    historyValidationRule = new PasswordHistoryValidationRule(passwordEncoder, userService);
     mandatoryValidationRule = new PasswordMandatoryValidationRule();
   }
 
@@ -218,7 +215,7 @@ class PasswordValidationRuleTest {
   @Test
   void testPasswordHistoryValidationRule() {
     List<String> history =
-        ListUtils.newList(
+        ListUtils.of(
             STRONG_PASSWORD,
             STRONG_PASSWORD + "1",
             STRONG_PASSWORD + "2",

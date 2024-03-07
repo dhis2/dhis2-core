@@ -44,6 +44,7 @@ import org.hisp.dhis.config.StartupConfig;
 import org.hisp.dhis.config.StoreConfig;
 import org.hisp.dhis.configuration.NotifierConfiguration;
 import org.hisp.dhis.datasource.DatabasePoolUtils;
+import org.hisp.dhis.datasource.model.PoolConfig;
 import org.hisp.dhis.db.migration.config.FlywayConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -65,14 +66,13 @@ import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.ldap.authentication.LdapAuthenticator;
-import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
@@ -126,6 +126,11 @@ public class WebTestConfiguration {
     return new org.springframework.security.core.session.SessionRegistryImpl();
   }
 
+  @Bean
+  public RequestCache requestCache() {
+    return new HttpSessionRequestCache();
+  }
+
   @Autowired private DhisConfigurationProvider dhisConfigurationProvider;
 
   @Bean(name = {"namedParameterJdbcTemplate", "analyticsNamedParameterJdbcTemplate"})
@@ -143,7 +148,7 @@ public class WebTestConfiguration {
     String username = config.getProperty(ConfigurationKey.CONNECTION_USERNAME);
     String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
 
-    DatabasePoolUtils.PoolConfig.PoolConfigBuilder builder = DatabasePoolUtils.PoolConfig.builder();
+    PoolConfig.PoolConfigBuilder builder = PoolConfig.builder();
     builder.dhisConfig(config);
     builder.dbPoolType(dbPoolType);
 
@@ -170,27 +175,6 @@ public class WebTestConfiguration {
   @Bean
   public BCryptPasswordEncoder bCryptPasswordEncoder() {
     return new BCryptPasswordEncoder();
-  }
-
-  @Bean
-  public LdapAuthenticator ldapAuthenticator() {
-    return authentication -> null;
-  }
-
-  @Bean
-  public LdapAuthoritiesPopulator ldapAuthoritiesPopulator() {
-    return (dirContextOperations, s) -> null;
-  }
-
-  @Bean("oAuth2AuthenticationManager")
-  public AuthenticationManager oAuth2AuthenticationManager() {
-    return authentication -> null;
-  }
-
-  @Bean("authenticationManager")
-  @Primary
-  public AuthenticationManager authenticationManager() {
-    return authentication -> null;
   }
 
   @Bean

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.relationship.hibernate;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -53,7 +54,6 @@ import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 import org.springframework.context.ApplicationEventPublisher;
@@ -76,48 +76,47 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
-    super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        Relationship.class,
-        currentUserService,
-        aclService,
-        true);
+    super(entityManager, jdbcTemplate, publisher, Relationship.class, aclService, true);
   }
 
   @Override
   public List<Relationship> getByTrackedEntity(
       TrackedEntity trackedEntity,
-      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter) {
+      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
+      boolean includeDeleted) {
     TypedQuery<Relationship> relationshipTypedQuery =
-        getRelationshipTypedQuery(trackedEntity, pagingAndSortingCriteriaAdapter);
+        getRelationshipTypedQuery(trackedEntity, pagingAndSortingCriteriaAdapter, includeDeleted);
 
     return getList(relationshipTypedQuery);
   }
 
   @Override
   public List<Relationship> getByEnrollment(
-      Enrollment enrollment, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter) {
+      Enrollment enrollment,
+      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
+      boolean includeDeleted) {
     TypedQuery<Relationship> relationshipTypedQuery =
-        getRelationshipTypedQuery(enrollment, pagingAndSortingCriteriaAdapter);
+        getRelationshipTypedQuery(enrollment, pagingAndSortingCriteriaAdapter, includeDeleted);
 
     return getList(relationshipTypedQuery);
   }
 
   @Override
   public List<Relationship> getByEvent(
-      Event event, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter) {
+      Event event,
+      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
+      boolean includeDeleted) {
     TypedQuery<Relationship> relationshipTypedQuery =
-        getRelationshipTypedQuery(event, pagingAndSortingCriteriaAdapter);
+        getRelationshipTypedQuery(event, pagingAndSortingCriteriaAdapter, includeDeleted);
 
     return getList(relationshipTypedQuery);
   }
 
   private <T extends IdentifiableObject> TypedQuery<Relationship> getRelationshipTypedQuery(
-      T entity, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter) {
+      T entity,
+      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
+      boolean includeDeleted) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
     CriteriaQuery<Relationship> relationshipItemCriteriaQuery =
@@ -125,7 +124,7 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
     Root<Relationship> root = relationshipItemCriteriaQuery.from(Relationship.class);
 
     setRelationshipItemCriteriaQueryExistsCondition(
-        entity, builder, relationshipItemCriteriaQuery, root);
+        entity, builder, relationshipItemCriteriaQuery, root, includeDeleted);
 
     return getRelationshipTypedQuery(
         pagingAndSortingCriteriaAdapter, builder, relationshipItemCriteriaQuery, root);
@@ -135,7 +134,8 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
       T entity,
       CriteriaBuilder builder,
       CriteriaQuery<Relationship> relationshipItemCriteriaQuery,
-      Root<Relationship> root) {
+      Root<Relationship> root,
+      boolean includeDeleted) {
     Subquery<RelationshipItem> fromSubQuery =
         relationshipItemCriteriaQuery.subquery(RelationshipItem.class);
     Root<RelationshipItem> fromRoot = fromSubQuery.from(RelationshipItem.class);
@@ -158,8 +158,14 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
 
     toSubQuery.select(toRoot.get("id"));
 
-    relationshipItemCriteriaQuery.where(
-        builder.or(builder.exists(fromSubQuery), builder.exists(toSubQuery)));
+    List<Predicate> predicates = new ArrayList<>();
+    predicates.add(builder.or(builder.exists(fromSubQuery), builder.exists(toSubQuery)));
+
+    if (!includeDeleted) {
+      predicates.add(builder.equal(root.get("deleted"), false));
+    }
+
+    relationshipItemCriteriaQuery.where(predicates.toArray(Predicate[]::new));
 
     relationshipItemCriteriaQuery.select(root);
   }

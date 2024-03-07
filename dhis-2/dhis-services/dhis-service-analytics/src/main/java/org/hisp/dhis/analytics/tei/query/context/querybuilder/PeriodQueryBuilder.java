@@ -33,14 +33,15 @@ import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.GroupableCondition;
 import org.hisp.dhis.analytics.common.query.IndexedOrder;
@@ -49,6 +50,7 @@ import org.hisp.dhis.analytics.tei.query.PeriodCondition;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.tei.query.context.sql.RenderableSqlQuery;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilderAdaptor;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.period.Period;
 import org.springframework.stereotype.Service;
 
@@ -58,35 +60,30 @@ import org.springframework.stereotype.Service;
  * are not combined with other conditions and are rendered as a single group of "OR" conditions.
  */
 @Service
+@Getter
 @org.springframework.core.annotation.Order(3)
 public class PeriodQueryBuilder extends SqlQueryBuilderAdaptor {
-  private static final String PERIOD_CONDITION_GROUP = "PERIOD_CONDITION";
 
-  @Getter
   private final List<Predicate<DimensionIdentifier<DimensionParam>>> dimensionFilters =
       List.of(d -> d.getDimension().isPeriodDimension());
 
-  @Getter
   private final List<Predicate<AnalyticsSortingParams>> sortingFilters =
       List.of(sortingParams -> sortingParams.getOrderBy().getDimension().isPeriodDimension());
 
   @Override
   public RenderableSqlQuery buildSqlQuery(
       QueryContext ctx,
+      List<DimensionIdentifier<DimensionParam>> acceptedHeaders,
       List<DimensionIdentifier<DimensionParam>> acceptedDimensions,
       List<AnalyticsSortingParams> acceptedSortingParams) {
     RenderableSqlQuery.RenderableSqlQueryBuilder builder = RenderableSqlQuery.builder();
 
-    Stream.concat(
-            acceptedDimensions.stream(),
-            acceptedSortingParams.stream().map(AnalyticsSortingParams::getOrderBy))
+    streamDimensions(acceptedHeaders, acceptedDimensions, acceptedSortingParams)
         .filter(DimensionIdentifier::isTeiDimension)
         .map(PeriodQueryBuilder::asField)
         .forEach(builder::selectField);
 
-    Stream.concat(
-            acceptedDimensions.stream(),
-            acceptedSortingParams.stream().map(AnalyticsSortingParams::getOrderBy))
+    streamDimensions(acceptedHeaders, acceptedDimensions, acceptedSortingParams)
         .filter(dimensionIdentifier -> !dimensionIdentifier.isTeiDimension())
         .map(PeriodQueryBuilder::asField)
         // non TEI periods are virtual fields, since those will be extracted from JSON
@@ -94,14 +91,16 @@ public class PeriodQueryBuilder extends SqlQueryBuilderAdaptor {
         .forEach(builder::selectField);
 
     acceptedDimensions.stream()
-        .map(dimensionIdentifier -> PeriodCondition.of(dimensionIdentifier, ctx))
-        .map(periodCondition -> GroupableCondition.of(PERIOD_CONDITION_GROUP, periodCondition))
+        .map(
+            dimensionIdentifier ->
+                GroupableCondition.of(
+                    getGroupId(dimensionIdentifier), PeriodCondition.of(dimensionIdentifier, ctx)))
         .forEach(builder::groupableCondition);
 
     acceptedSortingParams.forEach(
         sortingParam -> {
           DimensionIdentifier<DimensionParam> dimensionIdentifier = sortingParam.getOrderBy();
-          String fieldName = getTimeField(dimensionIdentifier);
+          String fieldName = getTimeField(dimensionIdentifier, StaticDimension::getColumnName);
 
           Field field =
               Field.ofUnquoted(
@@ -114,23 +113,50 @@ public class PeriodQueryBuilder extends SqlQueryBuilderAdaptor {
     return builder.build();
   }
 
+  /**
+   * Gets the group id for the period condition based on the dimension identifier and the time
+   * field.
+   *
+   * @param dimensionIdentifier the dimension identifier.
+   * @return the group id.
+   */
+  private String getGroupId(DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+    return dimensionIdentifier.getGroupId() + ":" + getTimeField(dimensionIdentifier, Enum::name);
+  }
+
   private static Field asField(DimensionIdentifier<DimensionParam> dimensionIdentifier) {
-    String field = getTimeField(dimensionIdentifier);
+    String field = getTimeField(dimensionIdentifier, StaticDimension::getColumnName);
+    String alias = getTimeField(dimensionIdentifier, StaticDimension::getHeaderName);
 
     String prefix = getPrefix(dimensionIdentifier, false);
 
-    return Field.ofUnquoted(doubleQuote(prefix), () -> field, prefix + DIMENSION_SEPARATOR + field);
+    return Field.ofUnquoted(doubleQuote(prefix), () -> field, prefix + DIMENSION_SEPARATOR + alias);
   }
 
-  private static String getTimeField(DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+  /**
+   * Extracts the time field from the dimension identifier. If the dimension identifier is a period
+   * dimension, the time field is extracted from the period object. If the dimension identifier is a
+   * static dimension, the time field is extracted from the static dimension.
+   *
+   * @param dimensionIdentifier the dimension identifier.
+   * @param staticDimensionNameExtractor the static dimension name extractor.
+   * @return the time field.
+   */
+  private static String getTimeField(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier,
+      Function<StaticDimension, String> staticDimensionNameExtractor) {
     return Optional.of(dimensionIdentifier)
         .map(DimensionIdentifier::getDimension)
         .map(DimensionParam::getDimensionalObject)
+        .filter(DimensionalObject::hasItems)
         .map(d -> d.getItems().get(0))
         .map(Period.class::cast)
         .map(Period::getDateField)
         .map(TimeField::valueOf)
         .map(TimeField::getField)
-        .orElseGet(() -> dimensionIdentifier.getDimension().getStaticDimension().getColumnName());
+        .orElseGet(
+            () ->
+                staticDimensionNameExtractor.apply(
+                    dimensionIdentifier.getDimension().getStaticDimension()));
   }
 }

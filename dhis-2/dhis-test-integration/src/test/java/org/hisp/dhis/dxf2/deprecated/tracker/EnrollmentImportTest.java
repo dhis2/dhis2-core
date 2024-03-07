@@ -30,19 +30,26 @@ package org.hisp.dhis.dxf2.deprecated.tracker;
 import static org.hisp.dhis.user.UserRole.AUTHORITY_ALL;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.deprecated.tracker.enrollment.EnrollmentService;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.UserInfoSnapshot;
@@ -61,11 +68,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 class EnrollmentImportTest extends TransactionalIntegrationTest {
   @Autowired private TrackedEntityTypeService trackedEntityTypeService;
 
+  @Autowired private TrackedEntityInstanceService trackedEntityInstanceService;
+
   @Autowired private EnrollmentService enrollmentService;
 
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private UserService _userService;
+
+  @Autowired private EntityManager entityManager;
 
   private TrackedEntity trackedEntity;
 
@@ -154,6 +165,73 @@ class EnrollmentImportTest extends TransactionalIntegrationTest {
                 enrollmentService
                     .getEnrollment(this.enrollment.getUid(), EnrollmentParams.FALSE)
                     .getLastUpdatedByUserInfo()));
+  }
+
+  @Test
+  void shouldUpdateLastUpdatedAndCascadeEventDeleteWhenDeleteEnrollments() {
+    String entityLastUpdatedDateBefore =
+        trackedEntityInstanceService
+            .getTrackedEntityInstance(trackedEntity.getUid())
+            .getLastUpdated();
+
+    Enrollment enrollmentBefore =
+        getEntityJpql(Enrollment.class.getSimpleName(), this.enrollment.getUid());
+
+    ProgramStage programStage = createProgramStage('x', program);
+    manager.save(programStage);
+
+    Event eventBefore = createEvent(programStage, this.enrollment, organisationUnitA);
+    manager.save(eventBefore);
+
+    dbmsManager.clearSession();
+
+    org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment enrollment =
+        new org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment();
+    org.hisp.dhis.dxf2.deprecated.tracker.event.Event event =
+        new org.hisp.dhis.dxf2.deprecated.tracker.event.Event();
+    event.setEvent(eventBefore.getUid());
+    enrollment.setEnrollment(this.enrollment.getUid());
+
+    User user = createAndAddUser("userDelete", organisationUnitA, "ALL");
+    injectSecurityContextUser(user);
+
+    ImportSummaries importSummaries =
+        enrollmentService.deleteEnrollments(
+            List.of(enrollment), new ImportOptions().setUser(user), true);
+    assertEquals(ImportStatus.SUCCESS, importSummaries.getStatus());
+
+    dbmsManager.clearSession();
+
+    TrackedEntityInstance entityLastUpdatedAfter =
+        trackedEntityInstanceService.getTrackedEntityInstance(trackedEntity.getUid());
+
+    Enrollment enrollmentAfter =
+        getEntityJpql(Enrollment.class.getSimpleName(), this.enrollment.getUid());
+
+    Event eventAfter = getEntityJpql(Event.class.getSimpleName(), eventBefore.getUid());
+
+    assertTrue(enrollmentAfter.isDeleted());
+    assertTrue(
+        enrollmentAfter.getLastUpdated().getTime() > enrollmentBefore.getLastUpdated().getTime());
+    assertTrue(entityLastUpdatedAfter.getLastUpdated().compareTo(entityLastUpdatedDateBefore) > 0);
+    assertEquals(
+        entityLastUpdatedAfter.getLastUpdatedByUserInfo().getUid(),
+        UserInfoSnapshot.from(user).getUid());
+    assertEquals(
+        enrollmentAfter.getLastUpdatedByUserInfo().getUid(), UserInfoSnapshot.from(user).getUid());
+    assertTrue(eventAfter.isDeleted());
+    assertTrue(eventAfter.getLastUpdated().getTime() > eventBefore.getLastUpdated().getTime());
+  }
+
+  /** Get with the entity manager because some Store exclude deleted */
+  @SuppressWarnings("unchecked")
+  public <T extends SoftDeletableObject> T getEntityJpql(String entity, String uid) {
+
+    return (T)
+        entityManager
+            .createQuery("SELECT e FROM " + entity + " e WHERE e.uid = :uid")
+            .setParameter("uid", uid)
+            .getSingleResult();
   }
 
   private org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment enrollment(

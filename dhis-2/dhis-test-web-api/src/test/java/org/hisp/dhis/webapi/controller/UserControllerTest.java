@@ -50,6 +50,7 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonBoolean;
@@ -61,13 +62,11 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
-import org.hisp.dhis.security.RestoreType;
-import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.user.CurrentUserDetails;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.RestoreType;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
@@ -94,13 +93,9 @@ import org.springframework.security.core.session.SessionRegistry;
 class UserControllerTest extends DhisControllerConvenienceTest {
   @Autowired private MessageSender messageSender;
 
-  @Autowired private SecurityService securityService;
-
   @Autowired private SystemSettingManager systemSettingManager;
 
   @Autowired private OrganisationUnitService organisationUnitService;
-
-  @Autowired private CurrentUserService currentUserService;
 
   @Autowired private SessionRegistry sessionRegistry;
 
@@ -129,7 +124,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void updateRolesShouldInvalidateUserSessions() {
-    CurrentUserDetails sessionPrincipal = userService.createUserDetails(superUser);
+    UserDetails sessionPrincipal = userService.createUserDetails(superUser);
     sessionRegistry.registerNewSession("session1", sessionPrincipal);
     assertFalse(sessionRegistry.getAllSessions(sessionPrincipal, false).isEmpty());
 
@@ -148,7 +143,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void updateRolesAuthoritiesShouldInvalidateUserSessions() {
-    CurrentUserDetails sessionPrincipal = userService.createUserDetails(superUser);
+    UserDetails sessionPrincipal = userService.createUserDetails(superUser);
 
     UserRole roleB = createUserRole("ROLE_B", "ALL");
     userService.addUserRole(roleB);
@@ -735,6 +730,10 @@ class UserControllerTest extends DhisControllerConvenienceTest {
                 + "}")
         .content(SUCCESSFUL);
 
+    manager.flush();
+    manager.clear();
+    injectSecurityContextUser(getAdminUser());
+
     // assert lastUpdated has been updated by new user & users not empty
     JsonUserGroup userGroupUserAdded =
         GET("/userGroups/" + newGroupUid).content(HttpStatus.OK).as(JsonUserGroup.class);
@@ -769,6 +768,9 @@ class UserControllerTest extends DhisControllerConvenienceTest {
     assertEquals(ADMIN_USER_UID, lastUpdatedByAdmin.getId());
     assertEquals("admin", lastUpdatedByAdmin.getUsername());
 
+    manager.flush();
+    manager.clear();
+
     // switch to new user & assign usergroup to new user
     String role =
         newUser.getUserRoles().stream().map(BaseIdentifiableObject::getUid).findFirst().get();
@@ -794,9 +796,14 @@ class UserControllerTest extends DhisControllerConvenienceTest {
         .content(SUCCESSFUL)
         .as(JsonWebMessage.class);
 
+    manager.flush();
+    manager.clear();
+    injectSecurityContextUser(newUser);
+
     // assert lastUpdated has been updated by new user
     JsonUserGroup userGroupUserAdded =
         GET("/userGroups/" + newGroupUid).content(HttpStatus.OK).as(JsonUserGroup.class);
+
     JsonUser lastUpdatedByNewUser = userGroupUserAdded.getLastUpdatedBy();
     assertFalse(userGroupUserAdded.getUsers().isEmpty());
     assertEquals(newUser.getUid(), lastUpdatedByNewUser.getId());
@@ -973,6 +980,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
 
     CategoryOptionGroupSet categoryOptionGroupSet = new CategoryOptionGroupSet();
     categoryOptionGroupSet.setAutoFields();
+    categoryOptionGroupSet.setDataDimensionType(DataDimensionType.DISAGGREGATION);
     categoryOptionGroupSet.setName("cogA");
     categoryOptionGroupSet.setShortName("cogA");
     manager.save(categoryOptionGroupSet);
@@ -1086,17 +1094,17 @@ class UserControllerTest extends DhisControllerConvenienceTest {
   }
 
   /**
-   * Unfortunately this is not yet a spring endpoint so we have to do it directly instead of using
+   * Unfortunately this is not yet a spring endpoint, so we have to do it directly instead of using
    * the REST API.
    */
   private void assertValidToken(String token) {
-    String[] idAndRestoreToken = securityService.decodeEncodedTokens(token);
+    String[] idAndRestoreToken = userService.decodeEncodedTokens(token);
     String idToken = idAndRestoreToken[0];
     String restoreToken = idAndRestoreToken[1];
     User user = userService.getUserByIdToken(idToken);
     assertNotNull(user);
     ErrorCode errorCode =
-        securityService.validateRestoreToken(user, restoreToken, RestoreType.RECOVER_PASSWORD);
+        userService.validateRestoreToken(user, restoreToken, RestoreType.RECOVER_PASSWORD);
     assertNull(errorCode);
   }
 

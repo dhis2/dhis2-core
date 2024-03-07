@@ -28,6 +28,8 @@
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.web.WebClient.Accept;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContainsAll;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertFirstRelationship;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
@@ -36,6 +38,7 @@ import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasOn
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
@@ -47,6 +50,10 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.fileresource.FileResourceStorageStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
@@ -69,7 +76,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.web.WebClient;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.controller.tracker.JsonAttribute;
 import org.hisp.dhis.webapi.controller.tracker.JsonDataValue;
@@ -84,12 +90,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest {
-
-  private static final String TEA_UID = "TvjwTPToKHO";
-
+  // Used to generate unique chars for creating test objects like TEA, ...
+  private static final String UNIQUE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   private static final String EVENT_OCCURRED_AT = "2023-03-23T12:23:00.000";
 
   @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired private FileResourceService fileResourceService;
 
   @Autowired private EnrollmentService enrollmentService;
 
@@ -109,11 +116,10 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
   private User user;
 
-  private TrackedEntityAttribute tea;
-
-  private TrackedEntityAttribute tea2;
-
   private TrackedEntity softDeletedTrackedEntity;
+
+  // Used to generate unique chars for creating TEA in test setup
+  private int uniqueAttributeCharCounter = 0;
 
   @BeforeEach
   void setUp() {
@@ -143,30 +149,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
     programStage.getSharing().addUserAccess(userAccess());
     manager.save(programStage, false);
 
-    tea = createTrackedEntityAttribute('A');
-    tea.setUid(TEA_UID);
-    tea.getSharing().setOwner(owner);
-    tea.getSharing().addUserAccess(userAccess());
-    manager.save(tea, false);
-
-    tea2 = createTrackedEntityAttribute('B');
-    tea2.getSharing().setOwner(owner);
-    tea2.getSharing().addUserAccess(userAccess());
-    manager.save(tea2, false);
-    program.setProgramAttributes(List.of(createProgramTrackedEntityAttribute(program, tea2)));
-    manager.save(program, false);
-
     trackedEntityType = trackedEntityTypeAccessible();
-
-    TrackedEntityTypeAttribute trackedEntityTypeAttribute =
-        new TrackedEntityTypeAttribute(trackedEntityType, tea);
-    trackedEntityTypeAttribute.setMandatory(false);
-    trackedEntityTypeAttribute.getSharing().setOwner(owner);
-    trackedEntityTypeAttribute.getSharing().addUserAccess(userAccess());
-    manager.save(trackedEntityTypeAttribute, false);
-
-    trackedEntityType.setTrackedEntityTypeAttributes(List.of(trackedEntityTypeAttribute));
-    manager.save(trackedEntityType, false);
     program.setTrackedEntityType(trackedEntityType);
     manager.save(program, false);
 
@@ -177,7 +160,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
   @Test
   void getTrackedEntitiesNeedsProgramOrType() {
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
     assertEquals(
         "Either `program`, `trackedEntityType` or `trackedEntities` should be specified",
@@ -197,7 +180,6 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
   @Test
   void shouldReturnEmptyListWhenGettingTrackedEntitiesWithNoMatchingParams() {
-
     LocalDate futureDate = LocalDate.now().plusYears(1);
     JsonList<JsonTrackedEntity> instances =
         GET("/tracker/trackedEntities?trackedEntityType="
@@ -207,7 +189,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
                 + "&updatedAfter="
                 + futureDate)
             .content(HttpStatus.OK)
-            .getList("instances", JsonTrackedEntity.class);
+            .getList("trackedEntities", JsonTrackedEntity.class);
 
     assertEquals(0, instances.size());
   }
@@ -253,10 +235,11 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   @Test
   void getTrackedEntityByIdWithAttributesReturnsTrackedEntityTypeAttributesOnly() {
     TrackedEntity trackedEntity = trackedEntity();
-    trackedEntity.setTrackedEntityAttributeValues(
-        Set.of(
-            attributeValue(tea, trackedEntity, "12"), attributeValue(tea2, trackedEntity, "24")));
-    enrollmentService.enrollTrackedEntity(trackedEntity, program, new Date(), new Date(), orgUnit);
+    enroll(trackedEntity, program, orgUnit);
+
+    TrackedEntityAttribute tea =
+        addTrackedEntityTypeAttributeValue(trackedEntity, ValueType.NUMBER, "12");
+    addProgramAttributeValue(trackedEntity, program, ValueType.NUMBER, "24");
 
     JsonList<JsonAttribute> attributes =
         GET(
@@ -279,10 +262,12 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   @Test
   void getTrackedEntityByIdWithAttributesReturnsAllAttributes() {
     TrackedEntity trackedEntity = trackedEntity();
-    trackedEntity.setTrackedEntityAttributeValues(
-        Set.of(
-            attributeValue(tea, trackedEntity, "12"), attributeValue(tea2, trackedEntity, "24")));
-    enrollmentService.enrollTrackedEntity(trackedEntity, program, new Date(), new Date(), orgUnit);
+    enroll(trackedEntity, program, orgUnit);
+
+    TrackedEntityAttribute tea =
+        addTrackedEntityTypeAttributeValue(trackedEntity, ValueType.NUMBER, "12");
+    TrackedEntityAttribute tea2 =
+        addProgramAttributeValue(trackedEntity, program, ValueType.NUMBER, "24");
 
     JsonList<JsonAttribute> attributes =
         GET(
@@ -410,9 +395,9 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
   @Test
   void getTrackedEntityReturnsCsvFormat() {
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
-    WebClient.HttpResponse response =
+    HttpResponse response =
         GET(
             "/tracker/trackedEntities.csv?program={programId}&orgUnitMode={orgUnitMode}",
             program.getUid(),
@@ -424,18 +409,51 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
         () -> assertTrue(response.header("content-type").contains(ContextUtils.CONTENT_TYPE_CSV)),
         () ->
             assertTrue(
-                response
-                    .header("content-disposition")
-                    .contains("filename=\"trackedEntities.csv\"")),
+                response.header("content-disposition").contains("filename=trackedEntities.csv")),
         () ->
             assertTrue(response.content().toString().contains("trackedEntity,trackedEntityType")));
   }
 
   @Test
-  void getTrackedEntityReturnsCsvZipFormat() {
-    injectSecurityContext(user);
+  void getTrackedEntityCsvById() {
+    TrackedEntity te = trackedEntity();
+    this.switchContextToUser(user);
 
-    WebClient.HttpResponse response =
+    HttpResponse response =
+        GET("/tracker/trackedEntities/{id}", te.getUid(), Accept(ContextUtils.CONTENT_TYPE_CSV));
+
+    String csvResponse = response.content(ContextUtils.CONTENT_TYPE_CSV);
+
+    assertTrue(response.header("content-type").contains(ContextUtils.CONTENT_TYPE_CSV));
+    assertTrue(response.header("content-disposition").contains("filename=trackedEntity.csv"));
+    assertEquals(trackedEntityToCsv(te), csvResponse);
+  }
+
+  String trackedEntityToCsv(TrackedEntity te) {
+    return """
+       trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtClient,orgUnit,inactive,deleted,potentialDuplicate,geometry,latitude,longitude,storedBy,createdBy,updatedBy,attrCreatedAt,attrUpdatedAt,attribute,displayName,value,valueType
+       """
+        .concat(
+            String.join(
+                ",",
+                te.getUid(),
+                te.getTrackedEntityType().getUid(),
+                DateUtils.instantFromDate(te.getCreated()).toString(),
+                DateUtils.instantFromDate(te.getCreatedAtClient()).toString(),
+                DateUtils.instantFromDate(te.getLastUpdated()).toString(),
+                DateUtils.instantFromDate(te.getLastUpdatedAtClient()).toString(),
+                te.getOrganisationUnit().getUid(),
+                Boolean.toString(te.isInactive()),
+                Boolean.toString(te.isDeleted()),
+                Boolean.toString(te.isPotentialDuplicate()),
+                ",,,,,,,,,,," + "\n"));
+  }
+
+  @Test
+  void getTrackedEntityReturnsCsvZipFormat() {
+    injectSecurityContextUser(user);
+
+    HttpResponse response =
         GET(
             "/tracker/trackedEntities.csv.zip?program={programId}&orgUnitMode={orgUnitMode}",
             program.getUid(),
@@ -450,14 +468,15 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
             assertTrue(
                 response
                     .header("content-disposition")
-                    .contains("filename=\"trackedEntities.csv.zip\"")));
+                    .contains("filename=trackedEntities.csv.zip")),
+        () -> assertNotNull(response.content(ContextUtils.CONTENT_TYPE_CSV_ZIP)));
   }
 
   @Test
   void getTrackedEntityReturnsCsvGZipFormat() {
-    injectSecurityContext(user);
+    injectSecurityContextUser(user);
 
-    WebClient.HttpResponse response =
+    HttpResponse response =
         GET(
             "/tracker/trackedEntities.csv.gz?program={programId}&orgUnitMode={orgUnitMode}",
             program.getUid(),
@@ -471,17 +490,14 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
                 response.header("content-type").contains(ContextUtils.CONTENT_TYPE_CSV_GZIP)),
         () ->
             assertTrue(
-                response
-                    .header("content-disposition")
-                    .contains("filename=\"trackedEntities.csv.gz\"")));
+                response.header("content-disposition").contains("filename=trackedEntities.csv.gz")),
+        () -> assertNotNull(response.content(ContextUtils.CONTENT_TYPE_CSV_GZIP)));
   }
 
   @Test
   void shouldGetEnrollmentWhenFieldsHasEnrollments() {
     TrackedEntity trackedEntity = trackedEntity();
-    Enrollment enrollment =
-        enrollmentService.enrollTrackedEntity(
-            trackedEntity, program, new Date(), new Date(), orgUnit);
+    Enrollment enrollment = enroll(trackedEntity, program, orgUnit);
 
     JsonList<JsonEnrollment> json =
         GET("/tracker/trackedEntities/{id}?fields=enrollments", trackedEntity.getUid())
@@ -499,9 +515,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   void shouldGetNoEventRelationshipsWhenEventsHasNoRelationshipsAndFieldsIncludeAll() {
     TrackedEntity trackedEntity = trackedEntity();
 
-    Enrollment enrollment =
-        enrollmentService.enrollTrackedEntity(
-            trackedEntity, program, new Date(), new Date(), orgUnit);
+    Enrollment enrollment = enroll(trackedEntity, program, orgUnit);
 
     Event event = eventWithDataValue(enrollment);
 
@@ -526,9 +540,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   void shouldGetEventRelationshipsWhenEventHasRelationshipsAndFieldsIncludeEventRelationships() {
     TrackedEntity trackedEntity = trackedEntity();
 
-    Enrollment enrollment =
-        enrollmentService.enrollTrackedEntity(
-            trackedEntity, program, new Date(), new Date(), orgUnit);
+    Enrollment enrollment = enroll(trackedEntity, program, orgUnit);
 
     Event event = eventWithDataValue(enrollment);
     enrollment.getEvents().add(event);
@@ -559,9 +571,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   void shouldGetNoEventRelationshipsWhenEventHasRelationshipsAndFieldsExcludeEventRelationships() {
     TrackedEntity trackedEntity = trackedEntity();
 
-    Enrollment enrollment =
-        enrollmentService.enrollTrackedEntity(
-            trackedEntity, program, new Date(), new Date(), orgUnit);
+    Enrollment enrollment = enroll(trackedEntity, program, orgUnit);
 
     Event event = eventWithDataValue(enrollment);
 
@@ -584,6 +594,347 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
     JsonEvent jsonEvent = assertDefaultEventResponse(jsonEnrollment, event);
 
     assertHasNoMember(jsonEvent, "relationships");
+  }
+
+  @Test
+  void getAttributeValuesFileByAttributeAndProgramGivenProgramAttribute() throws ConflictException {
+    TrackedEntity trackedEntity = trackedEntity();
+    enroll(trackedEntity, program, orgUnit);
+
+    FileResource file = storeFile("text/plain", "file content");
+    TrackedEntityAttribute tea =
+        addProgramAttributeValue(trackedEntity, program, ValueType.FILE_RESOURCE, file.getUid());
+
+    this.switchContextToUser(user);
+
+    HttpResponse response =
+        GET(
+            "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file?program={programUid}",
+            trackedEntity.getUid(),
+            tea.getUid(),
+            program.getUid());
+
+    assertEquals(HttpStatus.OK, response.status());
+    assertEquals("\"" + file.getUid() + "\"", response.header("Etag"));
+    assertEquals("no-cache, private", response.header("Cache-Control"));
+    assertEquals(Long.toString(file.getContentLength()), response.header("Content-Length"));
+    assertEquals("filename=" + file.getName(), response.header("Content-Disposition"));
+    assertEquals("file content", response.content("text/plain"));
+  }
+
+  @Test
+  void getAttributeValuesFileByAttributeGivenTrackedEntityTypeAttribute() throws ConflictException {
+    TrackedEntity trackedEntity = trackedEntity();
+
+    FileResource file = storeFile("text/plain", "file content");
+    TrackedEntityAttribute tea =
+        addTrackedEntityTypeAttributeValue(trackedEntity, ValueType.FILE_RESOURCE, file.getUid());
+
+    this.switchContextToUser(user);
+
+    HttpResponse response =
+        GET(
+            "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file",
+            trackedEntity.getUid(),
+            tea.getUid());
+
+    assertEquals(HttpStatus.OK, response.status());
+    assertEquals("\"" + file.getUid() + "\"", response.header("Etag"));
+    assertEquals("no-cache, private", response.header("Cache-Control"));
+    assertEquals(Long.toString(file.getContentLength()), response.header("Content-Length"));
+    assertEquals("filename=" + file.getName(), response.header("Content-Disposition"));
+    assertEquals("file content", response.content("text/plain"));
+  }
+
+  @Test
+  void getAttributeValuesFileByAttributeAndProgramGivenTrackedEntityTypeAttribute()
+      throws ConflictException {
+    TrackedEntity trackedEntity = trackedEntity();
+    enroll(trackedEntity, program, orgUnit);
+
+    FileResource file1 = storeFile("text/plain", "file content");
+    TrackedEntityAttribute tetTea =
+        addTrackedEntityTypeAttributeValue(trackedEntity, ValueType.FILE_RESOURCE, file1.getUid());
+
+    FileResource file2 = storeFile("text/plain", "file content", 'B');
+    addProgramAttributeValue(trackedEntity, program, ValueType.FILE_RESOURCE, file2.getUid());
+
+    this.switchContextToUser(user);
+
+    assertStartsWith(
+        "TrackedEntityAttribute with id " + tetTea.getUid(),
+        GET(
+                "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file?program={programUid}",
+                trackedEntity.getUid(),
+                tetTea.getUid(),
+                program.getUid())
+            .error(HttpStatus.NOT_FOUND)
+            .getMessage());
+  }
+
+  @Test
+  void getAttributeValuesFileByAttributeGivenProgramAttribute() throws ConflictException {
+    TrackedEntity trackedEntity = trackedEntity();
+    enroll(trackedEntity, program, orgUnit);
+
+    FileResource file1 = storeFile("text/plain", "file content");
+    addTrackedEntityTypeAttributeValue(trackedEntity, ValueType.FILE_RESOURCE, file1.getUid());
+
+    FileResource file2 = storeFile("text/plain", "file content", 'B');
+    TrackedEntityAttribute programTea =
+        addProgramAttributeValue(trackedEntity, program, ValueType.FILE_RESOURCE, file2.getUid());
+
+    this.switchContextToUser(user);
+
+    assertStartsWith(
+        "TrackedEntityAttribute with id " + programTea.getUid(),
+        GET(
+                "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file",
+                trackedEntity.getUid(),
+                programTea.getUid())
+            .error(HttpStatus.NOT_FOUND)
+            .getMessage());
+  }
+
+  @Test
+  void getAttributeValuesFileByAttributeIfGivenParameterDimension() {
+    assertStartsWith(
+        "Request parameter 'dimension'",
+        GET(
+                "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file?dimension=small",
+                CodeGenerator.generateUid(),
+                CodeGenerator.generateUid())
+            .error(HttpStatus.BAD_REQUEST)
+            .getMessage());
+  }
+
+  @Test
+  void getAttributeValuesFileByAttributeAndProgramIfAttributeIsNotFound() throws ConflictException {
+    TrackedEntity trackedEntity = trackedEntity();
+    enroll(trackedEntity, program, orgUnit);
+
+    FileResource file = storeFile("text/plain", "file content");
+    addProgramAttributeValue(trackedEntity, program, ValueType.FILE_RESOURCE, file.getUid());
+
+    String attributeUid = CodeGenerator.generateUid();
+
+    assertStartsWith(
+        "TrackedEntityAttribute with id " + attributeUid,
+        GET(
+                "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file?program={programUid}",
+                trackedEntity.getUid(),
+                attributeUid,
+                program.getUid())
+            .error(HttpStatus.NOT_FOUND)
+            .getMessage());
+  }
+
+  @Test
+  void getAttributeValuesFileByAttributeAndProgramIfUserDoesNotHaveDataReadAccessToProgram()
+      throws ConflictException {
+    TrackedEntity trackedEntity = trackedEntity();
+    enroll(trackedEntity, program, orgUnit);
+
+    FileResource file = storeFile("text/plain", "file content");
+    TrackedEntityAttribute tea =
+        addProgramAttributeValue(trackedEntity, program, ValueType.FILE_RESOURCE, file.getUid());
+
+    // remove access
+    program.getSharing().setUserAccesses(Set.of());
+    program.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    manager.save(program, false);
+
+    this.switchContextToUser(user);
+
+    assertStartsWith(
+        "Program",
+        GET(
+                "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file?program={programUid}",
+                trackedEntity.getUid(),
+                tea.getUid(),
+                program.getUid())
+            .error(HttpStatus.NOT_FOUND)
+            .getMessage());
+  }
+
+  @Test
+  void getAttributeValuesFileByAttributeAndProgramIfAttributeIsNotAFile() {
+    TrackedEntity trackedEntity = trackedEntity();
+    enroll(trackedEntity, program, orgUnit);
+
+    TrackedEntityAttribute tea =
+        addProgramAttributeValue(trackedEntity, program, ValueType.BOOLEAN, "true");
+
+    assertStartsWith(
+        "Tracked entity attribute " + tea.getUid() + " is not a file",
+        GET(
+                "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file?program={programUid}",
+                trackedEntity.getUid(),
+                tea.getUid(),
+                program.getUid())
+            .error(HttpStatus.NOT_FOUND)
+            .getMessage());
+  }
+
+  @Test
+  void getAttributeValuesFileByAttributeAndProgramIfProgramDoesNotExist() throws ConflictException {
+    TrackedEntity trackedEntity = trackedEntity();
+    enroll(trackedEntity, program, orgUnit);
+
+    FileResource file = storeFile("text/plain", "file content");
+    TrackedEntityAttribute tea =
+        addProgramAttributeValue(trackedEntity, program, ValueType.FILE_RESOURCE, file.getUid());
+
+    String programUid = CodeGenerator.generateUid();
+
+    assertStartsWith(
+        "Program",
+        GET(
+                "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file?program={programUid}",
+                trackedEntity.getUid(),
+                tea.getUid(),
+                programUid)
+            .error(HttpStatus.NOT_FOUND)
+            .getMessage());
+  }
+
+  @Test
+  void
+      getAttributeValuesFileByAttributeAndProgramIfUserDoesNotHaveDataReadAccessToTrackedEntityType()
+          throws ConflictException {
+    TrackedEntity trackedEntity = trackedEntity();
+    enroll(trackedEntity, program, orgUnit);
+
+    FileResource file = storeFile("text/plain", "file content");
+    TrackedEntityAttribute tea =
+        addProgramAttributeValue(trackedEntity, program, ValueType.FILE_RESOURCE, file.getUid());
+
+    // remove public access
+    trackedEntityType.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    trackedEntityType.getSharing().setUserAccesses(Set.of());
+    manager.save(trackedEntityType, false);
+
+    this.switchContextToUser(user);
+
+    assertStartsWith(
+        "TrackedEntity ",
+        GET(
+                "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file?program={programUid}",
+                trackedEntity.getUid(),
+                tea.getUid(),
+                program.getUid())
+            .error(HttpStatus.NOT_FOUND)
+            .getMessage());
+  }
+
+  @Test
+  void getAttributeValuesFileByAttributeIfUserDoesNotHaveDataReadAccessToTrackedEntityType()
+      throws ConflictException {
+    TrackedEntity trackedEntity = trackedEntity();
+    enroll(trackedEntity, program, orgUnit);
+
+    FileResource file = storeFile("text/plain", "file content");
+    TrackedEntityAttribute tea =
+        addTrackedEntityTypeAttributeValue(trackedEntity, ValueType.FILE_RESOURCE, file.getUid());
+
+    // remove public access
+    trackedEntityType.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    trackedEntityType.getSharing().setUserAccesses(Set.of());
+    manager.save(trackedEntityType, false);
+
+    this.switchContextToUser(user);
+
+    assertStartsWith(
+        "TrackedEntity ",
+        GET(
+                "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file",
+                trackedEntity.getUid(),
+                tea.getUid())
+            .error(HttpStatus.NOT_FOUND)
+            .getMessage());
+  }
+
+  @Test
+  void getAttributeValuesFileByAttributeAndProgramIfNoAttributeValueExists() {
+    TrackedEntity trackedEntity = trackedEntity();
+
+    TrackedEntityAttribute tea = programAttribute(program, ValueType.FILE_RESOURCE);
+
+    enroll(trackedEntity, program, orgUnit);
+
+    assertStartsWith(
+        "Attribute value for tracked entity attribute " + tea.getUid(),
+        GET(
+                "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file?program={programUid}",
+                trackedEntity.getUid(),
+                tea.getUid(),
+                program.getUid())
+            .error(HttpStatus.NOT_FOUND)
+            .getMessage());
+  }
+
+  @Test
+  void getAttributeValuesFileByAttributeAndProgramIfFileResourceIsInDbButNotInTheStore() {
+    TrackedEntity trackedEntity = trackedEntity();
+    enroll(trackedEntity, program, orgUnit);
+
+    FileResource file = createFileResource('A', "file content".getBytes());
+    manager.save(file, false);
+    TrackedEntityAttribute tea =
+        addProgramAttributeValue(trackedEntity, program, ValueType.FILE_RESOURCE, file.getUid());
+
+    GET(
+            "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file?program={programUid}",
+            trackedEntity.getUid(),
+            tea.getUid(),
+            program.getUid())
+        .error(HttpStatus.CONFLICT);
+  }
+
+  @Test
+  void getAttributeValuesFileByAttributeAndProgramIfFileIsNotFound() {
+    TrackedEntity trackedEntity = trackedEntity();
+    enroll(trackedEntity, program, orgUnit);
+
+    String fileUid = CodeGenerator.generateUid();
+    TrackedEntityAttribute tea =
+        addProgramAttributeValue(trackedEntity, program, ValueType.FILE_RESOURCE, fileUid);
+
+    assertStartsWith(
+        "FileResource with id " + fileUid,
+        GET(
+                "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file?program={programUid}",
+                trackedEntity.getUid(),
+                tea.getUid(),
+                program.getUid())
+            .error(HttpStatus.NOT_FOUND)
+            .getMessage());
+  }
+
+  @Test
+  void getAttributeValuesImageByProgramAttribute() throws ConflictException {
+    TrackedEntity trackedEntity = trackedEntity();
+    enroll(trackedEntity, program, orgUnit);
+
+    FileResource file = storeFile("image/png", "file content");
+    TrackedEntityAttribute tea =
+        addProgramAttributeValue(trackedEntity, program, ValueType.IMAGE, file.getUid());
+
+    this.switchContextToUser(user);
+
+    HttpResponse response =
+        GET(
+            "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/image?program={programUid}",
+            trackedEntity.getUid(),
+            tea.getUid(),
+            program.getUid());
+
+    assertEquals(HttpStatus.OK, response.status());
+    assertEquals("\"" + file.getUid() + "\"", response.header("Etag"));
+    assertEquals("no-cache, private", response.header("Cache-Control"));
+    assertEquals("filename=" + file.getName(), response.header("Content-Disposition"));
+    assertEquals(Long.toString(file.getContentLength()), response.header("Content-Length"));
+    assertEquals("file content", response.content("image/png"));
   }
 
   private Event eventWithDataValue(Enrollment enrollment) {
@@ -667,7 +1018,9 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
   private TrackedEntityType trackedEntityTypeAccessible() {
     TrackedEntityType type = trackedEntityType('A');
+    type.getSharing().setOwner(owner);
     type.getSharing().addUserAccess(userAccess());
+    type.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     manager.save(type, false);
     return type;
   }
@@ -714,6 +1067,12 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
     te.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     te.getSharing().setOwner(owner);
     return te;
+  }
+
+  private Enrollment enroll(
+      TrackedEntity trackedEntity, Program program, OrganisationUnit orgUnit) {
+    return enrollmentService.enrollTrackedEntity(
+        trackedEntity, program, new Date(), new Date(), orgUnit);
   }
 
   private UserAccess userAccess() {
@@ -821,8 +1180,64 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
     assertTrue(jsonTe.getArray("attributes").isEmpty());
   }
 
+  private TrackedEntityAttribute addTrackedEntityTypeAttributeValue(
+      TrackedEntity trackedEntity, ValueType type, String value) {
+    TrackedEntityAttribute tea =
+        trackedEntityTypeAttribute(trackedEntity.getTrackedEntityType(), type);
+    trackedEntity.addAttributeValue(attributeValue(tea, trackedEntity, value));
+    manager.save(trackedEntity, false);
+    return tea;
+  }
+
+  private TrackedEntityAttribute addProgramAttributeValue(
+      TrackedEntity trackedEntity, Program program, ValueType type, String value) {
+    TrackedEntityAttribute tea = programAttribute(program, type);
+    trackedEntity.addAttributeValue(attributeValue(tea, trackedEntity, value));
+    manager.save(trackedEntity, false);
+    return tea;
+  }
+
   private TrackedEntityAttributeValue attributeValue(
       TrackedEntityAttribute tea, TrackedEntity te, String value) {
     return new TrackedEntityAttributeValue(tea, te, value);
+  }
+
+  private TrackedEntityAttribute programAttribute(Program program, ValueType type) {
+    TrackedEntityAttribute tea = trackedEntityAttribute(type);
+    program.getProgramAttributes().add(createProgramTrackedEntityAttribute(program, tea));
+    manager.save(program, false);
+    return tea;
+  }
+
+  private TrackedEntityAttribute trackedEntityTypeAttribute(
+      TrackedEntityType trackedEntityType, ValueType type) {
+    TrackedEntityAttribute tea = trackedEntityAttribute(type);
+    TrackedEntityTypeAttribute teta = new TrackedEntityTypeAttribute(trackedEntityType, tea);
+    manager.save(teta, false);
+    trackedEntityType.getTrackedEntityTypeAttributes().add(teta);
+    manager.save(trackedEntityType, false);
+    return tea;
+  }
+
+  private TrackedEntityAttribute trackedEntityAttribute(ValueType type) {
+    TrackedEntityAttribute tea =
+        createTrackedEntityAttribute(UNIQUE_CHARS.charAt(uniqueAttributeCharCounter++));
+    tea.setValueType(type);
+    manager.save(tea, false);
+    return tea;
+  }
+
+  private FileResource storeFile(String contentType, String content) throws ConflictException {
+    return storeFile(contentType, content, 'A');
+  }
+
+  private FileResource storeFile(String contentType, String content, char uniqueChar)
+      throws ConflictException {
+    byte[] data = content.getBytes();
+    FileResource fr = createFileResource(uniqueChar, data);
+    fr.setContentType(contentType);
+    fileResourceService.syncSaveFileResource(fr, data);
+    fr.setStorageStatus(FileResourceStorageStatus.STORED);
+    return fr;
   }
 }

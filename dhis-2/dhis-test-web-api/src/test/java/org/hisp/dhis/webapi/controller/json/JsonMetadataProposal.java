@@ -28,9 +28,10 @@
 package org.hisp.dhis.webapi.controller.json;
 
 import java.time.LocalDateTime;
-import org.hisp.dhis.jsontree.Expected;
 import org.hisp.dhis.jsontree.JsonDate;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.Required;
 import org.hisp.dhis.metadata.MetadataProposalStatus;
 import org.hisp.dhis.metadata.MetadataProposalTarget;
 import org.hisp.dhis.metadata.MetadataProposalType;
@@ -42,22 +43,22 @@ import org.hisp.dhis.metadata.MetadataProposalType;
  * @author Jan Bernitt
  */
 public interface JsonMetadataProposal extends JsonObject {
-  @Expected
+  @Required
   default String getId() {
     return getString("id").string();
   }
 
-  @Expected
+  @Required
   default MetadataProposalType getType() {
     return getString("type").parsed(MetadataProposalType::valueOf);
   }
 
-  @Expected
+  @Required
   default MetadataProposalStatus getStatus() {
     return getString("status").parsed(MetadataProposalStatus::valueOf);
   }
 
-  @Expected
+  @Required
   default MetadataProposalTarget getTarget() {
     return getString("target").parsed(MetadataProposalTarget::valueOf);
   }
@@ -66,8 +67,8 @@ public interface JsonMetadataProposal extends JsonObject {
     return getString("targetId").string();
   }
 
-  default JsonObject getChange() {
-    return getObject("change");
+  default JsonMixed getChange() {
+    return get("change", JsonMixed.class);
   }
 
   default String getComment() {
@@ -78,7 +79,7 @@ public interface JsonMetadataProposal extends JsonObject {
     return getString("reason").string();
   }
 
-  @Expected
+  @Required
   default String getCreatedBy() {
     return getString("createdBy").string();
   }
@@ -87,7 +88,7 @@ public interface JsonMetadataProposal extends JsonObject {
     return getString("finalisedBy").string();
   }
 
-  @Expected
+  @Required
   default LocalDateTime getCreated() {
     return get("created", JsonDate.class).date();
   }

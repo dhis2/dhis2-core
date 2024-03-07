@@ -37,7 +37,6 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -54,16 +53,8 @@ public class HibernateAnalyticsTableHookStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
       AclService aclService) {
-    super(
-        entityManager,
-        jdbcTemplate,
-        publisher,
-        AnalyticsTableHook.class,
-        currentUserService,
-        aclService,
-        false);
+    super(entityManager, jdbcTemplate, publisher, AnalyticsTableHook.class, aclService, false);
   }
 
   @Override
@@ -97,10 +88,7 @@ public class HibernateAnalyticsTableHookStore
   @Override
   public void executeAnalyticsTableSqlHooks(List<AnalyticsTableHook> hooks) {
     for (AnalyticsTableHook hook : hooks) {
-      log.info(
-          String.format(
-              "Executing analytics table hook: '%s', '%s'", hook.getUid(), hook.getName()));
-
+      log.info("Executing analytics table hook: '{}', '{}'", hook.getUid(), hook.getName());
       jdbcTemplate.execute(hook.getSql());
     }
   }

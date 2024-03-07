@@ -54,9 +54,9 @@ import org.hisp.dhis.analytics.common.query.Table;
 import org.hisp.dhis.analytics.common.query.Where;
 
 /**
- * This class is responsible for rendering the SQL query. each instance of this class will only
- * render each "part" once, and then cache the result. This way we can reuse the same instance of
- * this class for rendering the count query, without affecting the parameters of the original query.
+ * This class is responsible for rendering a SQL query. Each instance of this class will only render
+ * each "part" once, and then cache the result. This way we can reuse the same instance of this
+ * class for rendering the count query, without affecting the parameters of the original query.
  */
 @Data
 @Builder(toBuilder = true)

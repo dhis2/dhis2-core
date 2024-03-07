@@ -29,16 +29,19 @@ package org.hisp.dhis.webapi.controller.icon;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.net.MediaType;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -47,15 +50,19 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.icon.CustomIcon;
 import org.hisp.dhis.icon.DefaultIcon;
 import org.hisp.dhis.icon.Icon;
+import org.hisp.dhis.icon.IconOperationParams;
 import org.hisp.dhis.icon.IconResponse;
 import org.hisp.dhis.icon.IconService;
 import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.service.LinkService;
+import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.HeaderUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.http.CacheControl;
@@ -69,7 +76,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
@@ -92,6 +98,12 @@ public class IconController {
 
   private final DhisConfigurationProvider dhisConfig;
 
+  private final FieldFilterService fieldFilterService;
+
+  private final IconRequestParamsMapper iconRequestParamsMapper;
+
+  private final LinkService linkService;
+
   @GetMapping("/{iconKey}")
   public @ResponseBody IconResponse getIcon(@PathVariable String iconKey) throws NotFoundException {
     Icon icon = iconService.getIcon(iconKey);
@@ -100,9 +112,12 @@ public class IconController {
   }
 
   @GetMapping("/{iconKey}/icon.svg")
-  public void getIconData(HttpServletResponse response, @PathVariable String iconKey)
-      throws IOException, NotFoundException {
-    downloadDefaultIcon(iconKey, response);
+  @Deprecated
+  public void getIconData(
+      HttpServletResponse response, HttpServletRequest request, @PathVariable String iconKey)
+      throws IOException {
+    String location = response.encodeRedirectURL("/icons/" + iconKey + "/icon");
+    response.sendRedirect(ContextUtils.getRootPath(request) + location);
   }
 
   @GetMapping(value = "/{key}/icon")
@@ -119,17 +134,28 @@ public class IconController {
   }
 
   @GetMapping
-  public @ResponseBody List<IconResponse> getAllIcons(
-      @RequestParam(required = false) String[] keywords) {
-    List<Icon> icons;
+  public @ResponseBody PaginatedIconResponse getAllIcons(IconRequestParams iconRequestParams)
+      throws BadRequestException {
 
-    if (keywords == null) {
-      icons = iconService.getIcons();
-    } else {
-      icons = iconService.getIcons(keywords);
+    IconOperationParams iconOperationParams = iconRequestParamsMapper.map(iconRequestParams);
+
+    Pager pager = null;
+
+    if (iconRequestParams.isPaging()) {
+      long total = iconService.count(iconOperationParams);
+      pager = new Pager(iconRequestParams.getPage(), total, iconRequestParams.getPageSize());
+      iconOperationParams.setPager(pager);
     }
 
-    return icons.stream().map(iconMapper::from).toList();
+    List<IconResponse> iconResponses =
+        iconService.getIcons(iconOperationParams).stream().map(iconMapper::from).toList();
+
+    List<ObjectNode> objectNodes =
+        fieldFilterService.toObjectNodes(iconResponses, iconRequestParams.getFields());
+
+    linkService.generatePagerLinks(pager, IconResponse.class);
+
+    return new PaginatedIconResponse(pager, objectNodes);
   }
 
   @GetMapping("/keywords")
