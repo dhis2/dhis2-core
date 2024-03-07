@@ -41,14 +41,12 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.jpa.EntityManagerHolder;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-@Disabled("are you the one ;)")
 class HibernateQueryCacheTest extends HibernateCacheBaseTest {
 
   private @Autowired EntityManagerFactory entityManagerFactory;
@@ -74,8 +72,7 @@ class HibernateQueryCacheTest extends HibernateCacheBaseTest {
   }
 
   @AfterEach
-  public final void afterEach() throws Exception {
-    unbindSession();
+  public final void afterEach() {
     entityManager.close();
   }
 
