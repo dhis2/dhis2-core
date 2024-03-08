@@ -36,7 +36,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.serviceUnavailable;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
-import com.fasterxml.jackson.core.JsonParseException;
 import java.beans.PropertyEditorSupport;
 import java.text.MessageFormat;
 import java.util.Arrays;
@@ -45,7 +44,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import javax.servlet.ServletException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hisp.dhis.common.DeleteNotAllowedException;
@@ -55,6 +56,7 @@ import org.hisp.dhis.common.MaintenanceModeException;
 import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dataapproval.exceptions.DataApprovalException;
 import org.hisp.dhis.dataexchange.client.Dhis2ClientException;
 import org.hisp.dhis.deduplication.PotentialDuplicateConflictException;
@@ -107,9 +109,14 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import com.fasterxml.jackson.core.JsonParseException;
+
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 @ControllerAdvice
 public class CrudControllerAdvice {
   // Add sensitive exceptions into this array
@@ -122,6 +129,12 @@ public class CrudControllerAdvice {
   private static final String GENERIC_ERROR_MESSAGE =
       "An unexpected error has occured. Please contact your system administrator";
 
+  private void log(Exception ex)
+  {
+      log.error( "CrudControllerAdvice error: " + DebugUtils.getStackTrace( ex ) );
+      log.error( "Exception", ex );
+  }
+  
   @InitBinder
   protected void initBinder(WebDataBinder binder) {
     binder.registerCustomEditor(Date.class, new FromTextPropertyEditor(DateUtils::parseDate));
@@ -132,18 +145,21 @@ public class CrudControllerAdvice {
   @ExceptionHandler(RestClientException.class)
   @ResponseBody
   public WebMessage restClientExceptionHandler(RestClientException ex) {
+      log(ex);
     return createWebMessage(ex.getMessage(), Status.ERROR, HttpStatus.SERVICE_UNAVAILABLE);
   }
 
   @ExceptionHandler(IllegalQueryException.class)
   @ResponseBody
   public WebMessage illegalQueryExceptionHandler(IllegalQueryException ex) {
+      log(ex);
     return conflict(ex.getMessage(), ex.getErrorCode());
   }
 
   @ExceptionHandler(MethodArgumentTypeMismatchException.class)
   @ResponseBody
   public WebMessage methodArgumentTypeMismatchException(MethodArgumentTypeMismatchException ex) {
+      log(ex);
     Class<?> requiredType = ex.getRequiredType();
     if (requiredType == null) {
       return badRequest(ex.getMessage());
@@ -157,6 +173,7 @@ public class CrudControllerAdvice {
   @ExceptionHandler(TypeMismatchException.class)
   @ResponseBody
   public WebMessage handleTypeMismatchException(TypeMismatchException ex) {
+      log(ex);
     Class<?> requiredType = ex.getRequiredType();
     if (requiredType == null) {
       return badRequest(ex.getMessage());
@@ -170,6 +187,7 @@ public class CrudControllerAdvice {
   @ExceptionHandler
   @ResponseBody
   public WebMessage badSqlGrammarException(BadSqlGrammarException ex) {
+      log(ex);
     return Optional.of(ex)
         .map(BadSqlGrammarException::getSQLException)
         .map(WebMessageUtils::createWebMessage)
@@ -197,6 +215,7 @@ public class CrudControllerAdvice {
   @ExceptionHandler(InvalidEnumValueException.class)
   @ResponseBody
   public WebMessage invalidEnumValueException(InvalidEnumValueException ex) {
+      log(ex);
     return getEnumWebMessage(ex.getEnumKlass(), ex.getInvalidValue(), ex.getFieldName());
   }
 
@@ -212,6 +231,7 @@ public class CrudControllerAdvice {
   @ExceptionHandler(BindException.class)
   @ResponseBody
   public WebMessage handleBindException(BindException ex) {
+      log(ex);
     FieldError fieldError = ex.getFieldError();
 
     if (fieldError != null && fieldError.contains(TypeMismatchException.class)) {
@@ -224,18 +244,21 @@ public class CrudControllerAdvice {
   @ExceptionHandler(Dhis2ClientException.class)
   @ResponseBody
   public WebMessage dhis2ClientException(Dhis2ClientException ex) {
+      log(ex);
     return conflict(ex.getMessage(), ex.getErrorCode());
   }
 
   @ExceptionHandler(QueryRuntimeException.class)
   @ResponseBody
   public WebMessage queryRuntimeExceptionHandler(QueryRuntimeException ex) {
+      log(ex);
     return conflict(ex.getMessage(), ex.getErrorCode());
   }
 
   @ExceptionHandler(DeleteNotAllowedException.class)
   @ResponseBody
   public WebMessage deleteNotAllowedExceptionHandler(DeleteNotAllowedException ex) {
+      log(ex);
     return conflict(ex.getMessage(), ex.getErrorCode());
   }
 
@@ -249,6 +272,7 @@ public class CrudControllerAdvice {
   @ExceptionHandler({DataApprovalException.class, AdxException.class, IllegalStateException.class})
   @ResponseBody
   public WebMessage dataApprovalExceptionHandler(Exception ex) {
+      log(ex);
     return conflict(ex.getMessage());
   }
 
@@ -259,72 +283,84 @@ public class CrudControllerAdvice {
   })
   @ResponseBody
   public WebMessage jsonParseExceptionHandler(Exception ex) {
+      log(ex);
     return conflict(ex.getMessage());
   }
 
   @ExceptionHandler({QueryParserException.class, QueryException.class})
   @ResponseBody
   public WebMessage queryExceptionHandler(Exception ex) {
+      log(ex);
     return conflict(ex.getMessage());
   }
 
   @ExceptionHandler(FieldFilterException.class)
   @ResponseBody
   public WebMessage fieldFilterExceptionHandler(FieldFilterException ex) {
+      log(ex);
     return conflict(ex.getMessage());
   }
 
   @ExceptionHandler(NotAuthenticatedException.class)
   @ResponseBody
   public WebMessage notAuthenticatedExceptionHandler(NotAuthenticatedException ex) {
+      log(ex);
     return unauthorized(ex.getMessage());
   }
 
   @ExceptionHandler(NotFoundException.class)
   @ResponseBody
   public WebMessage notFoundExceptionHandler(NotFoundException ex) {
+      log(ex);
     return notFound(ex.getMessage());
   }
 
   @ExceptionHandler(ConstraintViolationException.class)
   @ResponseBody
   public WebMessage constraintViolationExceptionHandler(ConstraintViolationException ex) {
+      log(ex);
     return error(getExceptionMessage(ex));
   }
 
   @ExceptionHandler(MaintenanceModeException.class)
   @ResponseBody
   public WebMessage maintenanceModeExceptionHandler(MaintenanceModeException ex) {
+      log(ex);
     return serviceUnavailable(ex.getMessage());
   }
 
   @ExceptionHandler(AccessDeniedException.class)
   @ResponseBody
   public WebMessage accessDeniedExceptionHandler(AccessDeniedException ex) {
+      log(ex);
     return forbidden(ex.getMessage());
   }
 
   @ExceptionHandler(WebMessageException.class)
   @ResponseBody
   public WebMessage webMessageExceptionHandler(WebMessageException ex) {
+      log(ex);
     return ex.getWebMessage();
   }
 
   @ExceptionHandler(HttpStatusCodeException.class)
   @ResponseBody
   public WebMessage httpStatusCodeExceptionHandler(HttpStatusCodeException ex) {
+      log(ex);
     return createWebMessage(ex.getMessage(), Status.ERROR, ex.getStatusCode());
   }
 
   @ExceptionHandler(HttpClientErrorException.class)
   @ResponseBody
   public WebMessage httpClientErrorExceptionHandler(HttpClientErrorException ex) {
+      log(ex);
     return createWebMessage(ex.getMessage(), Status.ERROR, ex.getStatusCode());
   }
 
   @ExceptionHandler(HttpServerErrorException.class)
   @ResponseBody
   public WebMessage httpServerErrorExceptionHandler(HttpServerErrorException ex) {
+      log(ex);
     return createWebMessage(ex.getMessage(), Status.ERROR, ex.getStatusCode());
   }
 
@@ -332,6 +368,7 @@ public class CrudControllerAdvice {
   @ResponseBody
   public WebMessage httpRequestMethodNotSupportedExceptionHandler(
       HttpRequestMethodNotSupportedException ex) {
+      log(ex);
     return createWebMessage(ex.getMessage(), Status.ERROR, HttpStatus.METHOD_NOT_ALLOWED);
   }
 
@@ -339,6 +376,7 @@ public class CrudControllerAdvice {
   @ResponseBody
   public WebMessage httpMediaTypeNotAcceptableExceptionHandler(
       HttpMediaTypeNotAcceptableException ex) {
+      log(ex);
     return createWebMessage(ex.getMessage(), Status.ERROR, HttpStatus.NOT_ACCEPTABLE);
   }
 
@@ -346,11 +384,13 @@ public class CrudControllerAdvice {
   @ResponseBody
   public WebMessage httpMediaTypeNotSupportedExceptionHandler(
       HttpMediaTypeNotSupportedException ex) {
+      log(ex);
     return createWebMessage(ex.getMessage(), Status.ERROR, HttpStatus.UNSUPPORTED_MEDIA_TYPE);
   }
 
   @ExceptionHandler(ServletException.class)
   public void servletExceptionHandler(ServletException ex) throws ServletException {
+      log(ex);
     throw ex;
   }
 
@@ -361,26 +401,30 @@ public class CrudControllerAdvice {
     JsonPatchException.class
   })
   @ResponseBody
-  public WebMessage handleBadRequest(Exception exception) {
-    return badRequest(exception.getMessage());
+  public WebMessage handleBadRequest(Exception ex) {
+      log(ex);
+    return badRequest(ex.getMessage());
   }
 
   @ExceptionHandler({ConflictException.class})
   @ResponseBody
-  public WebMessage handleConflictRequest(Exception exception) {
-    return conflict(exception.getMessage());
+  public WebMessage handleConflictRequest(Exception ex) {
+      log(ex);
+    return conflict(ex.getMessage());
   }
 
   @ExceptionHandler(MetadataVersionException.class)
   @ResponseBody
   public WebMessage handleMetaDataVersionException(
       MetadataVersionException metadataVersionException) {
+      log(metadataVersionException);
     return error(metadataVersionException.getMessage());
   }
 
   @ExceptionHandler(MetadataSyncException.class)
   @ResponseBody
   public WebMessage handleMetaDataSyncException(MetadataSyncException metadataSyncException) {
+      log(metadataSyncException);
     return error(metadataSyncException.getMessage());
   }
 
@@ -388,6 +432,7 @@ public class CrudControllerAdvice {
   @ResponseBody
   public WebMessage handleDhisVersionMismatchException(
       DhisVersionMismatchException versionMismatchException) {
+      log(versionMismatchException);
     return forbidden(versionMismatchException.getMessage());
   }
 
@@ -395,6 +440,7 @@ public class CrudControllerAdvice {
   @ResponseBody
   public WebMessage handleMetadataImportConflictException(
       MetadataImportConflictException conflictException) {
+      log(conflictException);
     if (conflictException.getMetadataSyncSummary() == null) {
       return conflict(conflictException.getMessage());
     }
@@ -404,12 +450,14 @@ public class CrudControllerAdvice {
   @ExceptionHandler(OperationNotAllowedException.class)
   @ResponseBody
   public WebMessage handleOperationNotAllowedException(OperationNotAllowedException ex) {
+      log(ex);
     return forbidden(ex.getMessage());
   }
 
   @ExceptionHandler(OAuth2AuthenticationException.class)
   @ResponseBody
   public WebMessage handleOAuth2AuthenticationException(OAuth2AuthenticationException ex) {
+      log(ex);
     OAuth2Error error = ex.getError();
     if (error instanceof BearerTokenError) {
       BearerTokenError bearerTokenError = (BearerTokenError) error;
@@ -424,6 +472,7 @@ public class CrudControllerAdvice {
   @ExceptionHandler(ApiTokenAuthenticationException.class)
   @ResponseBody
   public WebMessage handleApiTokenAuthenticationException(ApiTokenAuthenticationException ex) {
+      log(ex);
     ApiTokenError apiTokenError = ex.getError();
     if (apiTokenError != null) {
       return createWebMessage(
@@ -435,12 +484,14 @@ public class CrudControllerAdvice {
   @ExceptionHandler({PotentialDuplicateConflictException.class})
   @ResponseBody
   public WebMessage handlePotentialDuplicateConflictRequest(Exception exception) {
+      log(exception);
     return conflict(exception.getMessage());
   }
 
   @ExceptionHandler({PotentialDuplicateForbiddenException.class})
   @ResponseBody
   public WebMessage handlePotentialDuplicateForbiddenRequest(Exception exception) {
+      log(exception);
     return forbidden(exception.getMessage());
   }
 
@@ -451,11 +502,13 @@ public class CrudControllerAdvice {
   @ResponseBody
   @ExceptionHandler(Exception.class)
   public WebMessage defaultExceptionHandler(Exception ex) {
+      log(ex);
     ex.printStackTrace();
     return error(getExceptionMessage(ex));
   }
 
   private String getExceptionMessage(Exception ex) {
+      log(ex);
     boolean isMessageSensitive = false;
 
     String message = ex.getMessage();
