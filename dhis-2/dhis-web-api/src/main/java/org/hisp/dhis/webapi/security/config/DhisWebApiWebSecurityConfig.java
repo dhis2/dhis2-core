@@ -268,6 +268,8 @@ public class DhisWebApiWebSecurityConfig {
           .permitAll()
           .antMatchers("/oauth2/**")
           .permitAll()
+          .antMatchers("/dhis-web-commons/oidc/**")
+          .permitAll()
           .antMatchers(apiContextPath + "/**/locales/ui")
           .permitAll()
           .antMatchers(apiContextPath + "/**/loginConfig")

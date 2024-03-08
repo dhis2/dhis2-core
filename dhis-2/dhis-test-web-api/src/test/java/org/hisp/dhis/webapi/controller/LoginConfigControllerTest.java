@@ -30,8 +30,14 @@ package org.hisp.dhis.webapi.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
+import java.util.Properties;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.security.LoginPageLayout;
+import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
+import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
+import org.hisp.dhis.security.oidc.provider.GoogleProvider;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.SystemService;
@@ -44,13 +50,26 @@ import org.springframework.web.util.HtmlUtils;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Slf4j
 class LoginConfigControllerTest extends DhisControllerIntegrationTest {
 
   @Autowired SystemSettingManager systemSettingManager;
   @Autowired SystemService systemService;
+  @Autowired DhisOidcProviderRepository dhisOidcProviderRepository;
+
+  private void addGoogleProvider(String clientId) {
+    Properties config = new Properties();
+    config.put(ConfigurationKey.OIDC_PROVIDER_GOOGLE_CLIENT_ID.getKey(), clientId);
+    config.put(ConfigurationKey.OIDC_PROVIDER_GOOGLE_CLIENT_SECRET.getKey(), "secret");
+    DhisOidcClientRegistration parse = GoogleProvider.parse(config);
+    dhisOidcProviderRepository.addRegistration(parse);
+  }
 
   @Test
   void shouldGetLoginConfig() {
+
+    addGoogleProvider("testClientId");
+
     systemSettingManager.saveSystemSetting(SettingKey.APPLICATION_TITLE, "DHIS2");
     systemSettingManager.saveSystemSettingTranslation(
         SettingKey.APPLICATION_TITLE, "no", "Distrikstshelsesinformasjonssystem versjon 2");
@@ -83,6 +102,9 @@ class LoginConfigControllerTest extends DhisControllerIntegrationTest {
 
     JsonObject responseDefaultLocale = GET("/loginConfig").content();
     JsonObject responseNorwegianLocale = GET("/loginConfig?locale=no").content();
+
+    String string = responseDefaultLocale.toString();
+    log.error(string);
 
     assertEquals("DHIS2", responseDefaultLocale.getString("applicationTitle").string());
     assertEquals(
@@ -138,16 +160,16 @@ class LoginConfigControllerTest extends DhisControllerIntegrationTest {
   void testLoginPageLayout() {
     String template =
         """
-                <!DOCTYPE HTML>
-                <html class="loginPage" dir="ltr">
-                <head>
-                <title>DHIS 2 Demo</title>
-                <meta name="description" content="DHIS 2">
-                <meta name="keywords" content="DHIS 2">
-                <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-                </head>
-                <body>test</body>
-                </html>""";
+            <!DOCTYPE HTML>
+            <html class="loginPage" dir="ltr">
+            <head>
+            <title>DHIS 2 Demo</title>
+            <meta name="description" content="DHIS 2">
+            <meta name="keywords" content="DHIS 2">
+            <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+            </head>
+            <body>test</body>
+            </html>""";
     POST("/systemSettings/loginPageTemplate", template).content(HttpStatus.OK);
     POST("/systemSettings/loginPageLayout", "CUSTOM").content(HttpStatus.OK);
     JsonObject response = GET("/loginConfig").content();
