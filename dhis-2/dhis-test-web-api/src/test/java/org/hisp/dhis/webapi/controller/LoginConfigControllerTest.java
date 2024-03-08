@@ -31,7 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.util.Properties;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonMap;
@@ -53,7 +52,6 @@ import org.springframework.web.util.HtmlUtils;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Slf4j
 class LoginConfigControllerTest extends DhisControllerIntegrationTest {
 
   @Autowired SystemSettingManager systemSettingManager;
@@ -105,9 +103,6 @@ class LoginConfigControllerTest extends DhisControllerIntegrationTest {
 
     JsonObject responseDefaultLocale = GET("/loginConfig").content();
     JsonObject responseNorwegianLocale = GET("/loginConfig?locale=no").content();
-
-    String string = responseDefaultLocale.toString();
-    log.error(string);
 
     assertEquals("DHIS2", responseDefaultLocale.getString("applicationTitle").string());
     assertEquals(
