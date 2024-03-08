@@ -361,7 +361,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
    */
   private String getQuery(TrackedEntityQueryParams params, boolean isGridQuery) {
     if (params.isOrQuery() && params.getAttributesAndFilters().isEmpty()) {
-      throw new IllegalArgumentException(
+      throw new IllegalQueryException(
           "A query parameter is used in the request but there aren't filterable attributes");
     }
 
