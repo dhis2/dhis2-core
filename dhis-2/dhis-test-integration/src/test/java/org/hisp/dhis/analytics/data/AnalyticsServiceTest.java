@@ -683,6 +683,77 @@ class AnalyticsServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
+  void testLastAndFirstSumOrgUnit() {
+    withIndicator(inA, "#{" + deA.getUid() + "}.aggregationType(LAST)");
+    withIndicator(inB, "#{" + deA.getUid() + "}.aggregationType(FIRST)");
+
+    // Find last and first values inside periods within each orgUnit
+    // over a larger period:
+    assertDataValues(
+        Map.of(
+            "indicatorAA-ouabcdefghD-2017Q1",
+            233.0,
+            "indicatorBB-ouabcdefghD-2017Q1",
+            66.0,
+            "indicatorAA-ouabcdefghE-2017Q1",
+            1.0,
+            "indicatorBB-ouabcdefghE-2017Q1",
+            1.0),
+        DataQueryParams.newBuilder()
+            .withOrganisationUnits(List.of(ouD, ouE))
+            .withIndicators(List.of(inA, inB))
+            .withAggregationType(AnalyticsAggregationType.SUM)
+            .withPeriod(quarter)
+            .withOutputFormat(OutputFormat.ANALYTICS)
+            .build());
+
+    // Find last and first values inside periods within each orgUnit
+    // with a period filter that skips a period between start and end:
+    assertDataValues(
+        Map.of(
+            "indicatorAA-ouabcdefghD",
+            233.0,
+            "indicatorBB-ouabcdefghD",
+            66.0,
+            "indicatorAA-ouabcdefghE",
+            1.0,
+            "indicatorBB-ouabcdefghE",
+            1.0),
+        DataQueryParams.newBuilder()
+            .withOrganisationUnits(List.of(ouD, ouE))
+            .withIndicators(List.of(inA, inB))
+            .withAggregationType(AnalyticsAggregationType.SUM)
+            .withFilterPeriods(List.of(peJan, peMar))
+            .withOutputFormat(OutputFormat.ANALYTICS)
+            .build());
+
+    // Sum the last/first values across different orgUnits
+    // over a larger period:
+    // (Note: orgUnit B is parent of D and E and also has value 1.)
+    assertDataValues(
+        Map.of("indicatorAA-ouabcdefghB-2017Q1", 235.0, "indicatorBB-ouabcdefghB-2017Q1", 68.0),
+        DataQueryParams.newBuilder()
+            .withOrganisationUnit(ouB)
+            .withIndicators(List.of(inA, inB))
+            .withAggregationType(AnalyticsAggregationType.SUM)
+            .withPeriod(quarter)
+            .withOutputFormat(OutputFormat.ANALYTICS)
+            .build());
+
+    // Sum the last/first values across different orgUnits
+    // with a list of periods in the filter:
+    assertDataValues(
+        Map.of("indicatorAA-ouabcdefghB", 235.0, "indicatorBB-ouabcdefghB", 68.0),
+        DataQueryParams.newBuilder()
+            .withOrganisationUnit(ouB)
+            .withIndicators(List.of(inA, inB))
+            .withAggregationType(AnalyticsAggregationType.SUM)
+            .withFilterPeriods(List.of(peJan, peFeb, peMar))
+            .withOutputFormat(OutputFormat.ANALYTICS)
+            .build());
+  }
+
+  @Test
   void test_de_avg_2017_03() {
     List<DataElement> dataElements = List.of(deA, deB, deC, deD, deE);
 
