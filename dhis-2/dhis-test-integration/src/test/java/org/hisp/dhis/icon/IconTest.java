@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.icon;
 
+import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -41,6 +42,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -100,6 +102,26 @@ class IconTest extends TrackerTest {
   void shouldGetIconDataWhenKeyBelongsToIcon() throws NotFoundException {
 
     assertNotNull(iconService.getIconResource(Key));
+  }
+
+  @Test
+  void shouldGetIconsMatchingILikeKey()
+      throws SQLException, BadRequestException, NotFoundException {
+    Icon icon1 = createIcon('I', keywords, createAndPersistFileResource('I'));
+    Icon icon2 = createIcon('J', keywords, createAndPersistFileResource('J'));
+
+    icon1.setKey("lab-agent");
+    icon2.setKey("facility-agent");
+
+    iconService.addIcon(icon1);
+    iconService.addIcon(icon2);
+
+    IconOperationParams operationParams = new IconOperationParams();
+    operationParams.setSearch("agent");
+    List<Icon> icons = iconService.getIcons(operationParams);
+
+    assertThat(icons.size(), is(2));
+    assertThat(icons, hasItems(icon1, icon2));
   }
 
   @Test

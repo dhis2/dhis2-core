@@ -159,7 +159,8 @@ public class JdbcIconStore implements IconStore {
               params.getPager().getPage(), params.getPager().getPageSize(), sql, parameterSource);
     }
 
-    return namedParameterJdbcTemplate.query(sql, parameterSource, getIconRowMapper()).stream()
+    return namedParameterJdbcTemplate
+        .queryForStream(sql, parameterSource, getIconRowMapper())
         .toList();
   }
 
@@ -216,8 +217,6 @@ public class JdbcIconStore implements IconStore {
       String searchValue = params.getSearch();
 
       sql += hlp.whereAnd() + " c.iconkey ilike :search";
-      sql += " OR jsonb_path_exists(keywords, '$[*] ? (@ like_regex \":keywordsSearch\")')";
-      parameterSource.addValue("keywordsSearch", searchValue);
       parameterSource.addValue("search", wrap(addIlikeReplacingCharacters(searchValue), '%'));
     }
 
