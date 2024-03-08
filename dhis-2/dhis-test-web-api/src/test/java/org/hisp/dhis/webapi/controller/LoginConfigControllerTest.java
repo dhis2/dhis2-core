@@ -33,7 +33,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import java.util.Properties;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.security.LoginPageLayout;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
@@ -154,6 +157,18 @@ class LoginConfigControllerTest extends DhisControllerIntegrationTest {
     assertEquals(
         LoginPageLayout.DEFAULT.name(),
         responseDefaultLocale.getString("loginPageLayout").string());
+
+    JsonArray oidcProviders = responseDefaultLocale.getArray("oidcProviders");
+    assertEquals(1, oidcProviders.size());
+    for (JsonValue provider : oidcProviders) {
+      JsonMap<JsonObject> map = provider.asMap(JsonObject.class);
+      assertEquals("google", map.get("id").toString());
+      assertEquals(
+          "/dhis-web-commons/oidc/btn_google_light_normal_ios.svg", map.get("icon").toString());
+      assertEquals("0px 0px", map.get("iconPadding").toString());
+      assertEquals("login_with_google", map.get("loginText").toString());
+      assertEquals("url", map.get("/oauth2/authorization/google").toString());
+    }
   }
 
   @Test
