@@ -37,7 +37,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.auth.UserInviteParams;
 import org.hisp.dhis.common.auth.UserRegistrationParams;
@@ -107,7 +106,8 @@ public class UserAccountController {
 
     ErrorCode errorCode = userService.validateRestore(user);
     if (errorCode != null) {
-      throw new IllegalQueryException(errorCode);
+      log.warn("Validate email restore failed: {}", errorCode);
+      throw new HiddenNotFoundException("Validate failed: " + errorCode);
     }
 
     if (!userService.sendRestoreOrInviteMessage(
