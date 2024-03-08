@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.icon;
 
-import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -54,6 +53,7 @@ import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.utils.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.MimeTypeUtils;
@@ -121,7 +121,7 @@ class IconTest extends TrackerTest {
     List<Icon> icons = iconService.getIcons(operationParams);
 
     assertThat(icons.size(), is(2));
-    assertThat(icons, hasItems(icon1, icon2));
+    Assertions.assertContainsOnly(List.of(icon1, icon2), icons);
   }
 
   @Test
@@ -161,8 +161,7 @@ class IconTest extends TrackerTest {
   }
 
   @Test
-  void shouldFailWhenUpdatingIconWithNoKey() throws BadRequestException, NotFoundException {
-
+  void shouldFailWhenUpdatingIconWithNoKey() {
     String invalidKey = "k1 m2";
 
     Icon iconUpdated = icon;
@@ -236,7 +235,7 @@ class IconTest extends TrackerTest {
   }
 
   @Test
-  void shouldFailWhenFetchingIconDataWithNonExistentKey() throws NotFoundException, IOException {
+  void shouldFailWhenFetchingIconDataWithNonExistentKey() {
 
     String nonExistingKey = "non-existent-Key";
 
