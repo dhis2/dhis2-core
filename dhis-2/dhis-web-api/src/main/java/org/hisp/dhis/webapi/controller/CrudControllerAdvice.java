@@ -491,8 +491,21 @@ public class CrudControllerAdvice {
 
   @ExceptionHandler({SchemaPathException.class, JsonPatchException.class})
   @ResponseBody
-  public WebMessage handleBadRequest(Exception exception) {
-    return badRequest(exception.getMessage());
+  public WebMessage handleBadRequest(Exception ex) {
+    return badRequest(ex.getMessage());
+  }
+
+  /**
+   * Handles {@link IllegalArgumentException} and prints the stack trace to standard error. {@link
+   * IllegalArgumentException} is used in application code for validation logic, and also used by
+   * the JDK and various frameworks to indicate programming errors, which means the stack trace must
+   * be printed and not swallowed.
+   */
+  @ExceptionHandler(IllegalArgumentException.class)
+  @ResponseBody
+  public WebMessage handleBadRequestWithLogging(Exception ex) {
+    ex.printStackTrace();
+    return badRequest(ex.getMessage());
   }
 
   @ExceptionHandler(MetadataVersionException.class)
@@ -504,8 +517,8 @@ public class CrudControllerAdvice {
 
   @ExceptionHandler(MetadataSyncException.class)
   @ResponseBody
-  public WebMessage handleMetaDataSyncException(MetadataSyncException metadataSyncException) {
-    return error(metadataSyncException.getMessage());
+  public WebMessage handleMetaDataSyncException(MetadataSyncException ex) {
+    return error(ex.getMessage());
   }
 
   @ExceptionHandler(DhisVersionMismatchException.class)
@@ -517,12 +530,11 @@ public class CrudControllerAdvice {
 
   @ExceptionHandler(MetadataImportConflictException.class)
   @ResponseBody
-  public WebMessage handleMetadataImportConflictException(
-      MetadataImportConflictException conflictException) {
-    if (conflictException.getMetadataSyncSummary() == null) {
-      return conflict(conflictException.getMessage());
+  public WebMessage handleMetadataImportConflictException(MetadataImportConflictException ex) {
+    if (ex.getMetadataSyncSummary() == null) {
+      return conflict(ex.getMessage());
     }
-    return conflict(null).setResponse(conflictException.getMetadataSyncSummary());
+    return conflict(null).setResponse(ex.getMetadataSyncSummary());
   }
 
   @ExceptionHandler(OAuth2AuthenticationException.class)
@@ -564,14 +576,14 @@ public class CrudControllerAdvice {
 
   @ExceptionHandler({PotentialDuplicateConflictException.class})
   @ResponseBody
-  public WebMessage handlePotentialDuplicateConflictRequest(Exception exception) {
-    return conflict(exception.getMessage());
+  public WebMessage handlePotentialDuplicateConflictRequest(Exception ex) {
+    return conflict(ex.getMessage());
   }
 
   @ExceptionHandler({PotentialDuplicateForbiddenException.class})
   @ResponseBody
-  public WebMessage handlePotentialDuplicateForbiddenRequest(Exception exception) {
-    return forbidden(exception.getMessage());
+  public WebMessage handlePotentialDuplicateForbiddenRequest(Exception ex) {
+    return forbidden(ex.getMessage());
   }
 
   /**
