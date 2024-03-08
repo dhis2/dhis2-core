@@ -552,7 +552,8 @@ public class AccountController {
   }
 
   private Map<String, String> validatePassword(String password) {
-    CredentialsInfo credentialsInfo = new CredentialsInfo(password, true);
+    CredentialsInfo credentialsInfo =
+        CredentialsInfo.builder().password(password).newUser(true).build();
 
     PasswordValidationResult passwordValidationResult =
         passwordValidationService.validate(credentialsInfo);

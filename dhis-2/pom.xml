@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.hisp.dhis</groupId>
   <artifactId>dhis</artifactId>
-  <version>2.41-SNAPSHOT</version>
+  <version>2.42-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>DHIS2</name>
 
@@ -162,7 +162,7 @@
     <!-- Apache Artemis -->
     <artemis.version>2.32.0</artemis.version>
     <netty-all.version>4.1.107.Final</netty-all.version>
-    <classgraph.version>4.8.165</classgraph.version>
+    <classgraph.version>4.8.167</classgraph.version>
 
     <!-- SMS/SMPP -->
     <sms-compression.version>0.2.1.1</sms-compression.version>
@@ -211,7 +211,7 @@
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>2.2</hamcrest.version>
     <hamcrest-date.version>2.0.8</hamcrest-date.version>
-    <testcontainers.version>1.19.6</testcontainers.version>
+    <testcontainers.version>1.19.7</testcontainers.version>
     <jsonassert.version>1.5.1</jsonassert.version>
     <awaitility.version>4.2.0</awaitility.version>
     <swagger.version>2.1.20</swagger.version>

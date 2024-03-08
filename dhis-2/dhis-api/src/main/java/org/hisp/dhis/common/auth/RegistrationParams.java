@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,23 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
+package org.hisp.dhis.common.auth;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-@NoArgsConstructor
-@AllArgsConstructor
 @Getter
-@Builder
-public class CredentialsInfo {
-  private String username;
-  private String password;
-  private String email;
-  private boolean newUser;
+@Setter
+@ToString
+@NoArgsConstructor
+public abstract class RegistrationParams {
+  @JsonProperty String username;
+  @JsonProperty String firstName;
+  @JsonProperty String surname;
+  @JsonProperty String password;
+  @JsonProperty String email;
+  @JsonProperty String phoneNumber;
+
+  @JsonProperty("g-recaptcha-response")
+  String recaptchaResponse;
 }
