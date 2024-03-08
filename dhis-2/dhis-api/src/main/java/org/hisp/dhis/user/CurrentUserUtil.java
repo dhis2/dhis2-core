@@ -28,6 +28,7 @@
 package org.hisp.dhis.user;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.security.core.Authentication;
@@ -116,7 +117,7 @@ public class CurrentUserUtil {
           .credentialsNonExpired(ldapUserDetails.isCredentialsNonExpired())
           .enabled(ldapUserDetails.isEnabled())
           .authorities(ldapUserDetails.getAuthorities())
-          .userSettings(Map.of())
+          .userSettings(new HashMap<>())
           .build();
     } else {
       throw new RuntimeException(
