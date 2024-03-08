@@ -36,8 +36,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.mergeReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import io.github.classgraph.ClassGraph;
 import java.beans.PropertyEditorSupport;
 import java.text.MessageFormat;
 import java.util.Arrays;
@@ -47,8 +45,10 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import javax.persistence.PersistenceException;
 import javax.servlet.ServletException;
+
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.exception.ConstraintViolationException;
@@ -117,6 +117,10 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+
+import com.fasterxml.jackson.core.JsonParseException;
+
+import io.github.classgraph.ClassGraph;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -384,7 +388,7 @@ public class CrudControllerAdvice {
     return conflict(ex.getMessage());
   }
 
-  @ExceptionHandler({DataApprovalException.class, AdxException.class, IllegalStateException.class})
+  @ExceptionHandler({DataApprovalException.class, AdxException.class})
   @ResponseBody
   public WebMessage dataApprovalExceptionHandler(Exception ex) {
     return conflict(ex.getMessage());
@@ -490,7 +494,6 @@ public class CrudControllerAdvice {
   }
 
   @ExceptionHandler({
-    IllegalArgumentException.class,
     SchemaPathException.class,
     JsonPatchException.class
   })
@@ -660,7 +663,7 @@ public class CrudControllerAdvice {
     }
 
     @Override
-    public void setAsText(String text) throws IllegalArgumentException {
+    public void setAsText(String text) {
       setValue(fromText.apply(text));
     }
   }
@@ -673,7 +676,7 @@ public class CrudControllerAdvice {
     }
 
     @Override
-    public void setAsText(String text) throws IllegalArgumentException {
+    public void setAsText(String text) {
       Enum<T> enumValue = EnumUtils.getEnumIgnoreCase(enumClass, text);
 
       if (enumValue == null) {
