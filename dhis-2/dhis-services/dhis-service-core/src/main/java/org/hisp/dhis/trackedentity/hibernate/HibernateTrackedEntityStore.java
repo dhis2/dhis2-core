@@ -1433,7 +1433,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
     if (isSet(deprecatedTeiMaxLimit)
         && isSet(newTeiMaxLimit)
         && deprecatedTeiMaxLimit != newTeiMaxLimit) {
-      throw new IllegalStateException(
+      throw new IllegalQueryException(
           String.format(
               "Only one parameter of '%s' and '%s' must be specified. Prefer '%s' as '%s' will be removed.",
               SettingKey.TRACKED_ENTITY_MAX_LIMIT.getName(),
