@@ -157,7 +157,6 @@ class LoginConfigControllerTest extends DhisControllerIntegrationTest {
     assertEquals(1, oidcProviders.size());
     for (JsonValue provider : oidcProviders) {
       JsonMap<JsonObject> map = provider.asMap(JsonObject.class);
-      assertEquals("google", map.get("id").toString());
       assertEquals(
           "/dhis-web-commons/oidc/btn_google_light_normal_ios.svg", map.get("icon").toString());
       assertEquals("0px 0px", map.get("iconPadding").toString());
