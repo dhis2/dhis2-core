@@ -496,12 +496,12 @@ public class CrudControllerAdvice {
   }
 
   /**
-   * Handles {@link IllegalArgumentException} and prints the stack trace to standard error. {@link
-   * IllegalArgumentException} is used in application code for validation logic, and also used by
-   * the JDK and various frameworks to indicate programming errors, which means the stack trace must
-   * be printed and not swallowed.
+   * Handles {@link IllegalArgumentException} and {@link IllegalStateException} and prints the stack
+   * trace to standard error. These JDK exceptions are used in application code for validation
+   * logic, and also used by the JDK and various frameworks to indicate programming errors, which
+   * means the stack trace must be printed and not swallowed.
    */
-  @ExceptionHandler(IllegalArgumentException.class)
+  @ExceptionHandler({IllegalArgumentException.class, IllegalStateException.class})
   @ResponseBody
   public WebMessage handleBadRequestWithLogging(Exception ex) {
     ex.printStackTrace();
