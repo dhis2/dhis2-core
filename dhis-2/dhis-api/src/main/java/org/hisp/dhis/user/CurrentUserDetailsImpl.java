@@ -31,20 +31,24 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+
+import org.springframework.security.core.GrantedAuthority;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import org.springframework.security.core.GrantedAuthority;
+import lombok.NonNull;
 
 @AllArgsConstructor
 @Getter
 @Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class CurrentUserDetailsImpl implements CurrentUserDetails {
-  private final String uid;
-
   @EqualsAndHashCode.Include private final String username;
+
+  @NonNull
+  private final String uid;
 
   private final String password;
 

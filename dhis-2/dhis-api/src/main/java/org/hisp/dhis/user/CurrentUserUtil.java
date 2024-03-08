@@ -30,6 +30,7 @@ package org.hisp.dhis.user;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -110,8 +111,11 @@ public class CurrentUserUtil {
       return (CurrentUserDetails) authentication.getPrincipal();
     } else if (principal instanceof LdapUserDetails) {
       LdapUserDetailsImpl ldapUserDetails = (LdapUserDetailsImpl) principal;
+      log.info( "Authentication details/UID: " + authentication.getDetails() );
+      Objects.requireNonNull( authentication.getDetails() );
       log.info( "Inside CurrentUserDetails" );
       return CurrentUserDetailsImpl.builder()
+          .uid( String.valueOf( authentication.getDetails() ) )
           .username(ldapUserDetails.getUsername())
           .password(ldapUserDetails.getPassword())
           .accountNonExpired(ldapUserDetails.isAccountNonExpired())

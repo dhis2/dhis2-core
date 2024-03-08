@@ -269,7 +269,7 @@ public class CrudControllerAdvice {
     return conflict(ex.getMessage());
   }
 
-  @ExceptionHandler({DataApprovalException.class, AdxException.class, IllegalStateException.class})
+  @ExceptionHandler({DataApprovalException.class, AdxException.class})
   @ResponseBody
   public WebMessage dataApprovalExceptionHandler(Exception ex) {
       log(11,ex);
@@ -396,7 +396,6 @@ public class CrudControllerAdvice {
 
   @ExceptionHandler({
     BadRequestException.class,
-    IllegalArgumentException.class,
     SchemaPathException.class,
     JsonPatchException.class
   })
@@ -503,7 +502,8 @@ public class CrudControllerAdvice {
   @ExceptionHandler(Exception.class)
   public WebMessage defaultExceptionHandler(Exception ex) {
       log(39,ex);
-    ex.printStackTrace();
+      log.error( "Exception detected: '{}'", ex.getMessage() );
+      log.error( "Stack trace: '{}'", DebugUtils.getStackTrace( ex ), ex );
     return error(getExceptionMessage(ex));
   }
 
@@ -554,7 +554,7 @@ public class CrudControllerAdvice {
     }
 
     @Override
-    public void setAsText(String text) throws IllegalArgumentException {
+    public void setAsText(String text) {
       setValue(fromText.apply(text));
     }
   }

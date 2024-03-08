@@ -63,10 +63,11 @@ public class DhisBindAuthenticator extends BindAuthenticator {
     log.info("DhisBindAuthenticator " + user);
     
     if (user.hasLdapId()) {
-      log.info("User has LDAP ID " + user.getLdapId());
-      authentication =
+      UsernamePasswordAuthenticationToken userPasswdToken =
           new UsernamePasswordAuthenticationToken(
               user.getLdapId(), authentication.getCredentials());
+      userPasswdToken.setDetails(user.getUid());
+      authentication = userPasswdToken;
     }
 
     return super.authenticate(authentication);
