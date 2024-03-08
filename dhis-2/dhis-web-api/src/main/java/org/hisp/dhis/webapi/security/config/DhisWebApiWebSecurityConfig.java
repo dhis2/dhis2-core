@@ -167,7 +167,7 @@ public class DhisWebApiWebSecurityConfig {
                       .tokenEndpoint()
                       .accessTokenResponseClient(jwtPrivateCodeTokenResponseClient)
                       .and()
-                      .failureUrl("/dhis-web-commons/security/login.action?oidcFailure=true")
+                      .failureUrl("/dhis-web-login?oidcFailure=true")
                       .clientRegistrationRepository(dhisOidcProviderRepository)
                       .loginProcessingUrl("/oauth2/code/*")
                       .authorizationEndpoint()
@@ -342,7 +342,7 @@ public class DhisWebApiWebSecurityConfig {
       if (Arrays.asList(activeProfiles).contains("embeddedJetty")) {
         http.formLogin()
             .authenticationDetailsSource(twoFactorWebAuthenticationDetailsSource)
-            .loginPage("/index.html")
+            .loginPage("/dhis-web-login")
             .usernameParameter("j_username")
             .passwordParameter("j_password")
             .loginProcessingUrl("/api/authentication/login")
@@ -456,7 +456,7 @@ public class DhisWebApiWebSecurityConfig {
      */
     @Bean
     public FormLoginBasicAuthenticationEntryPoint formLoginBasicAuthenticationEntryPoint() {
-      return new FormLoginBasicAuthenticationEntryPoint("/dhis-web-commons/security/login.action");
+      return new FormLoginBasicAuthenticationEntryPoint("/dhis-web-login");
     }
 
     @Bean

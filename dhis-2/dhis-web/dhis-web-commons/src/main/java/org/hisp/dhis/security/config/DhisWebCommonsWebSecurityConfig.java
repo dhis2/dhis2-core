@@ -251,9 +251,10 @@ public class DhisWebCommonsWebSecurityConfig {
           .and()
           .formLogin()
           .authenticationDetailsSource(twoFactorWebAuthenticationDetailsSource)
-          .loginPage("/dhis-web-commons/security/login.action")
+          .loginPage("/dhis-web-login")
           .usernameParameter("j_username")
           .passwordParameter("j_password")
+          // This will be for fallback login, when the new login app is not used
           .loginProcessingUrl("/dhis-web-commons-security/login.action")
           .failureHandler(customAuthFailureHandler)
           .successHandler(authenticationSuccessHandler())
@@ -293,7 +294,7 @@ public class DhisWebCommonsWebSecurityConfig {
     public Http401LoginUrlAuthenticationEntryPoint entryPoint() {
       // Converts to a HTTP basic login if "XMLHttpRequest".equals(
       // request.getHeader( "X-Requested-With" ) )
-      return new Http401LoginUrlAuthenticationEntryPoint("/dhis-web-commons/security/login.action");
+      return new Http401LoginUrlAuthenticationEntryPoint("/dhis-web-login");
     }
 
     @Bean
