@@ -84,27 +84,14 @@ public class DefaultMetadataMergeService implements MetadataMergeService {
           targetObject = ReflectionUtils.newCollectionInstance(property.getKlass());
         }
 
-        if (metadataMergeParams.getMergeMode().isMerge()) {
-          Collection<T> merged = ReflectionUtils.newCollectionInstance(property.getKlass());
-          merged.addAll(targetObject);
-          merged.addAll(
-              sourceObject.stream().filter(o -> !merged.contains(o)).collect(Collectors.toList()));
-
-          targetObject.clear();
-          targetObject.addAll(merged);
-        } else {
-          targetObject.clear();
-          targetObject.addAll(sourceObject);
-        }
+        targetObject.clear();
+        targetObject.addAll(sourceObject);
 
         ReflectionUtils.invokeMethod(target, property.getSetterMethod(), targetObject);
       } else {
         Object sourceObject = ReflectionUtils.invokeMethod(source, property.getGetterMethod());
 
-        if (metadataMergeParams.getMergeMode().isReplace()
-            || (metadataMergeParams.getMergeMode().isMerge() && sourceObject != null)) {
-          ReflectionUtils.invokeMethod(target, property.getSetterMethod(), sourceObject);
-        }
+        ReflectionUtils.invokeMethod(target, property.getSetterMethod(), sourceObject);
       }
     }
 

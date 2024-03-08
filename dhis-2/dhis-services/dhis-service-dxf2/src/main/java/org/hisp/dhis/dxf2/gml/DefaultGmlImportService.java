@@ -295,7 +295,7 @@ public class DefaultGmlImportService implements GmlImportService {
     Geometry geometry = target.getGeometry();
 
     metadataMergeService.merge(
-        new MetadataMergeParams<>(source, target).setMergeMode(MergeMode.MERGE));
+        new MetadataMergeParams<>(source, target).setMergeMode(MergeMode.REPLACE));
 
     target.setGeometry(geometry);
 

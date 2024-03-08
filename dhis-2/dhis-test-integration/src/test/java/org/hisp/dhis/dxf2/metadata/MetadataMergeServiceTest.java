@@ -72,23 +72,6 @@ class MetadataMergeServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void simpleCollection() {
-    Date date = new Date();
-    SimpleCollection source = new SimpleCollection("name");
-    source.getSimples().add(new Simple("simple", 10, date, false, 123, 2.5f));
-    source.getSimples().add(new Simple("simple", 20, date, false, 123, 2.5f));
-    source.getSimples().add(new Simple("simple", 30, date, false, 123, 2.5f));
-    SimpleCollection target = new SimpleCollection("target");
-    metadataMergeService.merge(
-        new MetadataMergeParams<>(source, target).setMergeMode(MergeMode.MERGE));
-    Assertions.assertEquals("name", target.getName());
-    Assertions.assertEquals(3, target.getSimples().size());
-    Assertions.assertTrue(target.getSimples().contains(source.getSimples().get(0)));
-    Assertions.assertTrue(target.getSimples().contains(source.getSimples().get(1)));
-    Assertions.assertTrue(target.getSimples().contains(source.getSimples().get(2)));
-  }
-
-  @Test
   void mergeOrgUnitGroup() {
     OrganisationUnit organisationUnitA = createOrganisationUnit('A');
     OrganisationUnit organisationUnitB = createOrganisationUnit('B');
