@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.util.Date;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dxf2.metadata.merge.Simple;
-import org.hisp.dhis.dxf2.metadata.merge.SimpleCollection;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;

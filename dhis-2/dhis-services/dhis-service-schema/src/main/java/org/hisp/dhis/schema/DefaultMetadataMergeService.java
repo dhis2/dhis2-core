@@ -29,7 +29,6 @@ package org.hisp.dhis.schema;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.MergeMode;
