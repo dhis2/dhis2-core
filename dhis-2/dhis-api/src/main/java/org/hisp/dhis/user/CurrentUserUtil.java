@@ -29,11 +29,15 @@ package org.hisp.dhis.user;
 
 import java.io.Serializable;
 import java.util.Map;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.ldap.userdetails.LdapUserDetails;
 import org.springframework.security.ldap.userdetails.LdapUserDetailsImpl;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class CurrentUserUtil {
   private CurrentUserUtil() {
     throw new UnsupportedOperationException("Utility class");
@@ -41,6 +45,7 @@ public class CurrentUserUtil {
 
   public static String getCurrentUsername() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    log.info( "Authentication 1 : " + authentication );
     if (authentication == null
         || !authentication.isAuthenticated()
         || authentication.getPrincipal() == null) {
@@ -48,24 +53,28 @@ public class CurrentUserUtil {
     }
 
     Object principal = authentication.getPrincipal();
+    log.info( "Principal 1 : " + authentication );
 
     // Principal being a string implies anonymous authentication
     // This is the state before the user is authenticated.
     if (principal instanceof String) {
+        log.info( "Is string 1 : " + authentication );
       if (!"anonymousUser".equals(principal)) {
         return null;
       }
 
       return (String) principal;
     }
-
+    
+    log.info( "Before details 1");
     CurrentUserDetails currentUserDetails = getCurrentUserDetails(principal, authentication);
-
+    log.info( "User details 1 : " + currentUserDetails);
     return currentUserDetails.getUsername();
   }
 
   public static CurrentUserDetails getCurrentUserDetails() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    log.info( "Authentication 2 : " + authentication );
     if (authentication == null
         || !authentication.isAuthenticated()
         || authentication.getPrincipal() == null) {
@@ -73,10 +82,12 @@ public class CurrentUserUtil {
     }
 
     Object principal = authentication.getPrincipal();
+    log.info( "Principal 2 : " + authentication );
 
     // Principal being a string implies anonymous authentication
     // This is the state before the user is authenticated.
     if (principal instanceof String) {
+        log.info( "Is string 2 : " + authentication );
       if (!"anonymousUser".equals(principal)) {
         return null;
       }
@@ -84,7 +95,10 @@ public class CurrentUserUtil {
       return null;
     }
 
-    return getCurrentUserDetails(principal, authentication);
+    log.info( "Before details 2");
+    CurrentUserDetails currentUserDetails = getCurrentUserDetails(principal, authentication);
+    log.info( "User details 2 : " + currentUserDetails);
+    return currentUserDetails;
   }
 
   private static CurrentUserDetails getCurrentUserDetails(
@@ -93,6 +107,7 @@ public class CurrentUserUtil {
       return (CurrentUserDetails) authentication.getPrincipal();
     } else if (principal instanceof LdapUserDetails) {
       LdapUserDetailsImpl ldapUserDetails = (LdapUserDetailsImpl) principal;
+      log.info( "Inside CurrentUserDetails" );
       return CurrentUserDetailsImpl.builder()
           .username(ldapUserDetails.getUsername())
           .password(ldapUserDetails.getPassword())
