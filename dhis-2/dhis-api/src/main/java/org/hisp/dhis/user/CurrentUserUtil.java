@@ -31,7 +31,8 @@ import java.io.Serializable;
 import java.util.Map;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.ldap.userdetails.LdapUserDetails;
+import org.springframework.security.ldap.userdetails.LdapUserDetailsImpl;
 
 public class CurrentUserUtil {
   private CurrentUserUtil() {
@@ -58,13 +59,9 @@ public class CurrentUserUtil {
       return (String) principal;
     }
 
-    if (principal instanceof UserDetails) {
-      UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-      return userDetails.getUsername();
-    } else {
-      throw new RuntimeException(
-          "Authentication principal is not supported; principal:" + principal);
-    }
+    CurrentUserDetails currentUserDetails = getCurrentUserDetails(principal, authentication);
+
+    return currentUserDetails.getUsername();
   }
 
   public static CurrentUserDetails getCurrentUserDetails() {
@@ -87,8 +84,25 @@ public class CurrentUserUtil {
       return null;
     }
 
+    return getCurrentUserDetails(principal, authentication);
+  }
+
+  private static CurrentUserDetails getCurrentUserDetails(
+      Object principal, Authentication authentication) {
     if (principal instanceof CurrentUserDetails) {
       return (CurrentUserDetails) authentication.getPrincipal();
+    } else if (principal instanceof LdapUserDetails) {
+      LdapUserDetailsImpl ldapUserDetails = (LdapUserDetailsImpl) principal;
+      return CurrentUserDetailsImpl.builder()
+          .username(ldapUserDetails.getUsername())
+          .password(ldapUserDetails.getPassword())
+          .accountNonExpired(ldapUserDetails.isAccountNonExpired())
+          .accountNonLocked(ldapUserDetails.isAccountNonLocked())
+          .credentialsNonExpired(ldapUserDetails.isCredentialsNonExpired())
+          .enabled(ldapUserDetails.isEnabled())
+          .authorities(ldapUserDetails.getAuthorities())
+          .userSettings(Map.of())
+          .build();
     } else {
       throw new RuntimeException(
           "Authentication principal is not supported; principal:" + principal);
