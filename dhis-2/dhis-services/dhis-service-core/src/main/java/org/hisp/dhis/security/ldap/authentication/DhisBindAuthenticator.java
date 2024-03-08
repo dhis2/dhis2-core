@@ -36,6 +36,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.ldap.authentication.BindAuthenticator;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Authenticator which checks whether LDAP authentication is configured. If not, the authentication
@@ -43,6 +44,7 @@ import org.springframework.security.ldap.authentication.BindAuthenticator;
  *
  * @author Lars Helge Overland
  */
+@Slf4j
 public class DhisBindAuthenticator extends BindAuthenticator {
   @Autowired private UserService userService;
 
@@ -58,7 +60,10 @@ public class DhisBindAuthenticator extends BindAuthenticator {
       throw new BadCredentialsException("Incorrect user credentials");
     }
 
+    log.info("DhisBindAuthenticator " + user);
+    
     if (user.hasLdapId()) {
+      log.info("User has LDAP ID " + user.getLdapId());
       authentication =
           new UsernamePasswordAuthenticationToken(
               user.getLdapId(), authentication.getCredentials());

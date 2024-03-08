@@ -34,8 +34,6 @@ import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.system.util.ValidationUtils.usernameIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.uuidIsValid;
-
-import com.google.common.collect.Lists;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -54,7 +52,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -82,6 +79,8 @@ import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Chau Thu Tran
@@ -845,7 +844,7 @@ public class DefaultUserService implements UserService {
         .userSettings(new HashMap<>())
         .userGroupIds(
             user.getUid() == null
-                ? Set.of()
+                ? Set.of() // TODO Use mutable
                 : currentUserService.getCurrentUserGroupsInfo(user.getUid()).getUserGroupUIDs())
         .isSuper(user.isSuper())
         .build();

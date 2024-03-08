@@ -55,6 +55,7 @@ public class CurrentUserUtil {
 
     Object principal = authentication.getPrincipal();
     log.info( "Principal 1 : " + authentication );
+    log.info( "Principal 1 class: " + principal.getClass().getName() );
 
     // Principal being a string implies anonymous authentication
     // This is the state before the user is authenticated.
@@ -84,6 +85,7 @@ public class CurrentUserUtil {
 
     Object principal = authentication.getPrincipal();
     log.info( "Principal 2 : " + authentication );
+    log.info( "Principal 2 class: " + principal.getClass().getName() );
 
     // Principal being a string implies anonymous authentication
     // This is the state before the user is authenticated.
