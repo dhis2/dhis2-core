@@ -43,6 +43,7 @@ import java.util.Set;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -143,7 +144,7 @@ class EnrollmentOperationParamsMapperTest {
 
   @Test
   void shouldMapWithoutFetchingNullParamsWhenParamsAreNotSpecified()
-      throws BadRequestException, ForbiddenException {
+      throws BadRequestException, ForbiddenException, NotFoundException {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnitMode(ACCESSIBLE).build();
 
@@ -156,7 +157,8 @@ class EnrollmentOperationParamsMapperTest {
   }
 
   @Test
-  void shouldMapOrderInGivenOrder() throws BadRequestException, ForbiddenException {
+  void shouldMapOrderInGivenOrder()
+      throws BadRequestException, ForbiddenException, NotFoundException {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
             .orderBy("enrollmentDate", SortDirection.ASC)
@@ -175,7 +177,7 @@ class EnrollmentOperationParamsMapperTest {
 
   @Test
   void shouldMapNullOrderingParamsWhenNoOrderingParamsAreSpecified()
-      throws BadRequestException, ForbiddenException {
+      throws BadRequestException, ForbiddenException, NotFoundException {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnitMode(ACCESSIBLE).build();
 
@@ -186,7 +188,7 @@ class EnrollmentOperationParamsMapperTest {
 
   @Test
   void shouldMapDescendantsOrgUnitModeWhenAccessibleProvided()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnitMode(ACCESSIBLE).build();
 
@@ -198,7 +200,7 @@ class EnrollmentOperationParamsMapperTest {
 
   @Test
   void shouldMapDescendantsOrgUnitModeWhenCaptureProvided()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnitMode(CAPTURE).build();
 
@@ -210,7 +212,7 @@ class EnrollmentOperationParamsMapperTest {
 
   @Test
   void shouldMapChildrenOrgUnitModeWhenChildrenProvided()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     when(organisationUnitService.isInUserHierarchy(
             orgUnit1.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
         .thenReturn(true);

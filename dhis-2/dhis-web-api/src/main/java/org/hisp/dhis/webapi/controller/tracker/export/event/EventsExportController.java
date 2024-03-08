@@ -142,7 +142,7 @@ class EventsExportController {
   @OpenApi.Response(status = Status.OK, value = Page.class)
   @GetMapping(produces = "application/json")
   Page<ObjectNode> getEvents(EventRequestParams requestParams)
-      throws BadRequestException, ForbiddenException {
+      throws BadRequestException, ForbiddenException, NotFoundException {
     validatePaginationParameters(requestParams);
     EventOperationParams eventOperationParams = eventParamsMapper.map(requestParams);
 
@@ -170,7 +170,7 @@ class EventsExportController {
 
   @GetMapping(produces = CONTENT_TYPE_JSON_GZIP)
   void getEventsAsJsonGzip(EventRequestParams eventRequestParams, HttpServletResponse response)
-      throws BadRequestException, IOException, ForbiddenException {
+      throws BadRequestException, IOException, ForbiddenException, NotFoundException {
     validatePaginationParameters(eventRequestParams);
 
     EventOperationParams eventOperationParams = eventParamsMapper.map(eventRequestParams);
@@ -191,7 +191,7 @@ class EventsExportController {
 
   @GetMapping(produces = CONTENT_TYPE_JSON_ZIP)
   void getEventsAsJsonZip(EventRequestParams eventRequestParams, HttpServletResponse response)
-      throws BadRequestException, ForbiddenException, IOException {
+      throws BadRequestException, ForbiddenException, IOException, NotFoundException {
     validatePaginationParameters(eventRequestParams);
 
     EventOperationParams eventOperationParams = eventParamsMapper.map(eventRequestParams);
@@ -218,7 +218,7 @@ class EventsExportController {
       EventRequestParams eventRequestParams,
       HttpServletResponse response,
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader)
-      throws IOException, BadRequestException, ForbiddenException {
+      throws IOException, BadRequestException, ForbiddenException, NotFoundException {
     EventOperationParams eventOperationParams = eventParamsMapper.map(eventRequestParams);
 
     List<org.hisp.dhis.program.Event> events = eventService.getEvents(eventOperationParams);
@@ -235,7 +235,7 @@ class EventsExportController {
       EventRequestParams eventRequestParams,
       HttpServletResponse response,
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader)
-      throws IOException, BadRequestException, ForbiddenException {
+      throws IOException, BadRequestException, ForbiddenException, NotFoundException {
     EventOperationParams eventOperationParams = eventParamsMapper.map(eventRequestParams);
 
     List<org.hisp.dhis.program.Event> events = eventService.getEvents(eventOperationParams);
@@ -253,7 +253,7 @@ class EventsExportController {
       EventRequestParams eventRequestParams,
       HttpServletResponse response,
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader)
-      throws IOException, BadRequestException, ForbiddenException {
+      throws IOException, BadRequestException, ForbiddenException, NotFoundException {
     EventOperationParams eventOperationParams = eventParamsMapper.map(eventRequestParams);
 
     List<org.hisp.dhis.program.Event> events = eventService.getEvents(eventOperationParams);

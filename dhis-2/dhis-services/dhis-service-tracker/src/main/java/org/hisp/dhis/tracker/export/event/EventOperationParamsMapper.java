@@ -41,6 +41,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -84,7 +85,7 @@ class EventOperationParamsMapper {
 
   @Transactional(readOnly = true)
   public EventQueryParams map(EventOperationParams operationParams)
-      throws BadRequestException, ForbiddenException {
+      throws BadRequestException, ForbiddenException, NotFoundException {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     Program program = paramsValidator.validateProgram(operationParams.getProgramUid(), currentUser);
@@ -149,19 +150,23 @@ class EventOperationParamsMapper {
   }
 
   private ProgramStage validateProgramStage(String programStageUid, User user)
-      throws BadRequestException, ForbiddenException {
+      throws NotFoundException {
     if (programStageUid == null) {
       return null;
     }
 
     ProgramStage programStage = programStageService.getProgramStage(programStageUid);
     if (programStage == null) {
-      throw new BadRequestException(
-          "Program stage is specified but does not exist: " + programStageUid);
+      // TODO We can't tell if this is because the user has no access to the metadata, or it's
+      // because the program uid supplied does not exist
+      throw new NotFoundException(ProgramStage.class, programStageUid);
     }
 
     if (!aclService.canDataRead(user, programStage)) {
-      throw new ForbiddenException("User has no access to program stage: " + programStage.getUid());
+      // TODO Old exception was ForbiddenException with message "User has no access to program
+      // stage". At this point we still don't know if there's data to be shown or not, so why is it
+      // wrong to tell the user he has no access to what's requested?
+      throw new NotFoundException(ProgramStage.class, programStageUid);
     }
 
     return programStage;
@@ -179,6 +184,7 @@ class EventOperationParamsMapper {
 
     if (!organisationUnitService.isInUserHierarchy(
         orgUnit.getUid(), user.getTeiSearchOrganisationUnitsWithFallback())) {
+      // TODO Should we leave this one like this?
       throw new ForbiddenException(
           "Organisation unit is not part of your search scope: " + orgUnit.getUid());
     }
@@ -187,13 +193,11 @@ class EventOperationParamsMapper {
   }
 
   private void validateAttributeOptionCombo(CategoryOptionCombo attributeOptionCombo, User user)
-      throws ForbiddenException {
+      throws NotFoundException {
     if (attributeOptionCombo != null
         && (user != null && !user.isSuper())
         && !aclService.canDataRead(user, attributeOptionCombo)) {
-      throw new ForbiddenException(
-          "User has no access to attribute category option combo: "
-              + attributeOptionCombo.getUid());
+      throw new NotFoundException(CategoryOptionCombo.class, attributeOptionCombo.getUid());
     }
   }
 

@@ -45,7 +45,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -86,7 +86,7 @@ class TrackedEntityOperationParamsMapper {
 
   @Transactional(readOnly = true)
   public TrackedEntityQueryParams map(TrackedEntityOperationParams operationParams)
-      throws BadRequestException, ForbiddenException {
+      throws BadRequestException, NotFoundException {
     User user = operationParams.getUser();
 
     Program program = paramsValidator.validateProgram(operationParams.getProgramUid(), user);
@@ -141,7 +141,7 @@ class TrackedEntityOperationParamsMapper {
   }
 
   private List<TrackedEntityType> getTrackedEntityTypes(
-      TrackedEntityType trackedEntityType, Program program, User user) throws BadRequestException {
+      TrackedEntityType trackedEntityType, Program program, User user) throws NotFoundException {
 
     if (program != null && program.getTrackedEntityType() != null) {
       return List.of(program.getTrackedEntityType());
@@ -153,14 +153,15 @@ class TrackedEntityOperationParamsMapper {
   }
 
   private List<TrackedEntityType> filterAndValidateTrackedEntityTypes(User user)
-      throws BadRequestException {
+      throws NotFoundException {
     List<TrackedEntityType> trackedEntityTypes =
         trackedEntityTypeService.getAllTrackedEntityType().stream()
             .filter(tet -> aclService.canDataRead(user, tet))
             .toList();
 
     if (trackedEntityTypes.isEmpty()) {
-      throw new BadRequestException("User has no access to any Tracked Entity Type");
+      // TODO I'm not sure this error is clear enough for the end user
+      throw new NotFoundException("No tracked entity found.");
     }
 
     return trackedEntityTypes;
@@ -197,6 +198,7 @@ class TrackedEntityOperationParamsMapper {
             ? getProgramStageFromProgram(program, requestParams.getProgramStageUid())
             : null;
     if (requestParams.getProgramStageUid() != null && ps == null) {
+      // TODO is this one fine?
       throw new BadRequestException(
           "Program does not contain the specified programStage: "
               + requestParams.getProgramStageUid());

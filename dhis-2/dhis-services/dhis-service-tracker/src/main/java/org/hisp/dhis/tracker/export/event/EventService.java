@@ -54,11 +54,12 @@ public interface EventService {
   Event getEvent(String uid, EventParams eventParams) throws NotFoundException, ForbiddenException;
 
   /** Get all events matching given params. */
-  List<Event> getEvents(EventOperationParams params) throws BadRequestException, ForbiddenException;
+  List<Event> getEvents(EventOperationParams params)
+      throws BadRequestException, ForbiddenException, NotFoundException;
 
   /** Get a page of events matching given params. */
   Page<Event> getEvents(EventOperationParams params, PageParams pageParams)
-      throws BadRequestException, ForbiddenException;
+      throws BadRequestException, ForbiddenException, NotFoundException;
 
   /**
    * Fields the {@link #getEvents(EventOperationParams)} and {@link #getEvents(EventOperationParams,

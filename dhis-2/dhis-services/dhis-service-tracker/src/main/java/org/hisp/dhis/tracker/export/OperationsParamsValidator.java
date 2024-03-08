@@ -35,7 +35,7 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -121,30 +121,28 @@ public class OperationsParamsValidator {
    * Validates the specified program uid exists and is accessible by the supplied user
    *
    * @return the program if found and accessible
-   * @throws BadRequestException if the program uid does not exist
-   * @throws ForbiddenException if the user has no data read access to the program or its tracked
-   *     entity type
+   * @throws NotFoundException if the program uid does not exist or the user has no data read access
+   *     to its tracked entity type
    */
-  public Program validateProgram(String programUid, User user)
-      throws BadRequestException, ForbiddenException {
+  public Program validateProgram(String programUid, User user) throws NotFoundException {
     if (programUid == null) {
       return null;
     }
 
     Program program = programService.getProgram(programUid);
     if (program == null) {
-      throw new BadRequestException("Program is specified but does not exist: " + programUid);
+      // TODO We can't tell if this is because the user has no access to the metadata, or it's
+      // because the program uid supplied does not exist
+      throw new NotFoundException(Program.class, programUid);
     }
 
     if (!aclService.canDataRead(user, program)) {
-      throw new ForbiddenException("User has no access to program: " + program.getUid());
+      throw new NotFoundException(Program.class, programUid);
     }
 
     if (program.getTrackedEntityType() != null
         && !aclService.canDataRead(user, program.getTrackedEntityType())) {
-      throw new ForbiddenException(
-          "Current user is not authorized to read data from selected program's tracked entity type: "
-              + program.getTrackedEntityType().getUid());
+      throw new NotFoundException(Program.class, programUid);
     }
 
     return program;
@@ -154,26 +152,23 @@ public class OperationsParamsValidator {
    * Validates the specified tracked entity uid exists and is accessible by the supplied user
    *
    * @return the tracked entity if found and accessible
-   * @throws BadRequestException if the tracked entity uid does not exist
-   * @throws ForbiddenException if the user has no data read access to type of the tracked entity
+   * @throws NotFoundException if the tracked entity uid does not exist or the user has no data read
+   *     access to its tracked entity type
    */
   public TrackedEntity validateTrackedEntity(String trackedEntityUid, User user)
-      throws BadRequestException, ForbiddenException {
+      throws NotFoundException {
     if (trackedEntityUid == null) {
       return null;
     }
 
     TrackedEntity trackedEntity = trackedEntityService.getTrackedEntity(trackedEntityUid);
     if (trackedEntity == null) {
-      throw new BadRequestException(
-          "Tracked entity is specified but does not exist: " + trackedEntityUid);
+      throw new NotFoundException(TrackedEntity.class, trackedEntityUid);
     }
 
     if (trackedEntity.getTrackedEntityType() != null
         && !aclService.canDataRead(user, trackedEntity.getTrackedEntityType())) {
-      throw new ForbiddenException(
-          "Current user is not authorized to read data from type of selected tracked entity: "
-              + trackedEntity.getTrackedEntityType().getUid());
+      throw new NotFoundException(TrackedEntity.class, trackedEntityUid);
     }
 
     return trackedEntity;
@@ -183,24 +178,22 @@ public class OperationsParamsValidator {
    * Validates the specified tracked entity type uid exists and is accessible by the supplied user
    *
    * @return the tracked entity type uid if found and accessible
-   * @throws BadRequestException if the tracked entity type uid does not exist
-   * @throws ForbiddenException if the user has no data read access to the tracked entity type
+   * @throws NotFoundException if the tracked entity type uid does not exist or the user has no data
+   *     read access to it
    */
   public TrackedEntityType validateTrackedEntityType(String uid, User user)
-      throws BadRequestException, ForbiddenException {
+      throws NotFoundException {
     if (uid == null) {
       return null;
     }
 
     TrackedEntityType trackedEntityType = trackedEntityTypeService.getTrackedEntityType(uid);
     if (trackedEntityType == null) {
-      throw new BadRequestException("Tracked entity type is specified but does not exist: " + uid);
+      throw new NotFoundException(TrackedEntityType.class, uid);
     }
 
     if (!aclService.canDataRead(user, trackedEntityType)) {
-      throw new ForbiddenException(
-          "Current user is not authorized to read data from selected tracked entity type: "
-              + trackedEntityType.getUid());
+      throw new NotFoundException(TrackedEntityType.class, uid);
     }
 
     return trackedEntityType;
@@ -210,23 +203,23 @@ public class OperationsParamsValidator {
    * Validates the specified org unit uid exists and is part of the user scope
    *
    * @return the org unit if found and accessible
-   * @throws BadRequestException if the org unit uid does not exist
-   * @throws ForbiddenException if the org unit is not part of the user scope
+   * @throws NotFoundException if the org unit uid does not exist or is not part of the user scope
    */
   public Set<OrganisationUnit> validateOrgUnits(Set<String> orgUnitIds, User user)
-      throws BadRequestException, ForbiddenException {
+      throws NotFoundException {
     Set<OrganisationUnit> orgUnits = new HashSet<>();
     for (String orgUnitUid : orgUnitIds) {
       OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(orgUnitUid);
       if (orgUnit == null) {
-        throw new BadRequestException("Organisation unit does not exist: " + orgUnitUid);
+        throw new NotFoundException(OrganisationUnit.class, orgUnitUid);
       }
 
       if (!user.isSuper()
           && !organisationUnitService.isInUserHierarchy(
               orgUnit.getUid(), user.getTeiSearchOrganisationUnitsWithFallback())) {
-        throw new ForbiddenException(
-            "Organisation unit is not part of the search scope: " + orgUnit.getUid());
+        // TODO If the org unit is not in the search scope, can we not just say it instead of
+        // throwing the exception below?
+        throw new NotFoundException(OrganisationUnit.class, orgUnitUid);
       }
 
       orgUnits.add(orgUnit);
