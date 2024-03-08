@@ -71,4 +71,13 @@ public class DhisBindAuthenticator extends BindAuthenticator {
 
     return super.authenticate(authentication);
   }
+
+  @Override
+  public void handleBindException(String userDn, String username, Throwable cause) {
+    log.warn(
+        String.format(
+            "Failed to bind to LDAP host with DN: '%s' for username: '%s'", userDn, username),
+        cause);
+    log.debug("LDAP user bind failed", cause);
+  }
 }
