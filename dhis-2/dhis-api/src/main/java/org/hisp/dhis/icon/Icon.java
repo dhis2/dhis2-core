@@ -30,10 +30,10 @@ package org.hisp.dhis.icon;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
-import javax.persistence.Transient;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -49,7 +49,7 @@ import org.hisp.dhis.user.User;
 @NoArgsConstructor
 @JacksonXmlRootElement(localName = "Icon", namespace = DxfNamespaces.DXF_2_0)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class Icon {
+public class Icon implements Serializable {
 
   public static final String DEFAULT_FIELDS_PARAM = "key,description,keywords,href";
 
@@ -69,7 +69,8 @@ public class Icon {
   @JsonSerialize(as = BaseIdentifiableObject.class)
   private FileResource fileResource;
 
-  @Transient @JsonProperty private String href;
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  private transient String href;
 
   public Icon(
       String key,
