@@ -117,6 +117,23 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
     assertTrue(allMessages.isEmpty());
   }
 
+  @Test
+  @DisplayName("Send non-unique email, should return OK to avoid username enumeration")
+  void testResetPasswordNonUniqueEmail() {
+    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
+
+    switchContextToUser(superUser);
+    User userA = createUserWithAuth("userA");
+    userA.setEmail("same@email.no");
+    User userB = createUserWithAuth("userB");
+    userB.setEmail("same@email.no");
+
+    clearSecurityContext();
+    sendForgotPasswordRequest("wrong");
+    List<OutboundMessage> allMessages = ((FakeMessageSender) messageSender).getAllMessages();
+    assertTrue(allMessages.isEmpty());
+  }
+
   private void doAndCheckPasswordResetWithUser(User user) {
     String token = fetchTokenInSentEmail(user);
     String newPassword = "Abxf123###...";
