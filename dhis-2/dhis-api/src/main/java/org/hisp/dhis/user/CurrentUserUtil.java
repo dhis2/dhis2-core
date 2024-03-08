@@ -36,6 +36,8 @@ import javax.annotation.Nullable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.ldap.userdetails.LdapUserDetails;
+import org.springframework.security.ldap.userdetails.LdapUserDetailsImpl;
 
 public class CurrentUserUtil {
   private CurrentUserUtil() {
@@ -57,15 +59,9 @@ public class CurrentUserUtil {
 
     Object principal = authentication.getPrincipal();
 
-    if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
-      org.springframework.security.core.userdetails.UserDetails userDetails =
-          (org.springframework.security.core.userdetails.UserDetails) authentication.getPrincipal();
-      return userDetails.getUsername();
+    UserDetails userDetails = getPrincipal(principal, authentication);
 
-    } else {
-      throw new RuntimeException(
-          "Authentication principal is not supported; principal:" + principal);
-    }
+    return userDetails.getUsername();
   }
 
   /**
@@ -84,8 +80,15 @@ public class CurrentUserUtil {
 
     Object principal = authentication.getPrincipal();
 
+    return getPrincipal(principal, authentication);
+  }
+
+  private static UserDetails getPrincipal(Object principal, Authentication authentication) {
     if (principal instanceof UserDetails) {
       return (UserDetails) authentication.getPrincipal();
+    } else if (principal instanceof LdapUserDetails) {
+      LdapUserDetailsImpl ldapUserDetails = (LdapUserDetailsImpl) principal;
+      return UserDetails.fromLdapUser(ldapUserDetails);
     } else {
       throw new RuntimeException(
           "Authentication principal is not supported; principal:" + principal);

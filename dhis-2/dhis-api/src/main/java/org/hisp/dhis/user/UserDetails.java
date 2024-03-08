@@ -35,6 +35,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.ldap.userdetails.LdapUserDetailsImpl;
 
 public interface UserDetails extends org.springframework.security.core.userdetails.UserDetails {
 
@@ -47,6 +48,22 @@ public interface UserDetails extends org.springframework.security.core.userdetai
 
     return createUserDetails(
         user, user.isAccountNonLocked(), user.isCredentialsNonExpired(), new HashMap<>());
+  }
+
+  static UserDetails fromLdapUser(LdapUserDetailsImpl ldapUserDetails) {
+    if (ldapUserDetails == null) {
+      return null;
+    }
+    UserDetailsImpl userDetails = new UserDetailsImpl();
+    userDetails.setUsername(ldapUserDetails.getUsername());
+    userDetails.setPassword(ldapUserDetails.getPassword());
+    userDetails.setAuthorities(ldapUserDetails.getAuthorities());
+    userDetails.setEnabled(ldapUserDetails.isEnabled());
+    userDetails.setAccountNonExpired(ldapUserDetails.isAccountNonExpired());
+    userDetails.setAccountNonLocked(ldapUserDetails.isAccountNonLocked());
+    userDetails.setCredentialsNonExpired(ldapUserDetails.isCredentialsNonExpired());
+    userDetails.setUserSettings(new HashMap<>());
+    return userDetails;
   }
 
   static UserDetails createUserDetails(
