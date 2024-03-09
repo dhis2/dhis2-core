@@ -361,7 +361,7 @@ public class CrudControllerAdvice {
 
   @ExceptionHandler(Dhis2ClientException.class)
   @ResponseBody
-  public WebMessage dhis2ClientException(Dhis2ClientException ex) {
+  public WebMessage dhis2ClientExceptionHandler(Dhis2ClientException ex) {
     return conflict(ex.getMessage(), ex.getErrorCode());
   }
 
@@ -496,16 +496,27 @@ public class CrudControllerAdvice {
   }
 
   /**
-   * Handles {@link IllegalArgumentException} and {@link IllegalStateException} and prints the stack
-   * trace to standard error. These JDK exceptions are used in application code for validation
-   * logic, and also used by the JDK and various frameworks to indicate programming errors, which
-   * means the stack trace must be printed and not swallowed.
+   * Handles {@link IllegalArgumentException} and prints the stack trace to standard error. {@link
+   * IllegalArgumentException} is used in DHIS 2 application code but also by various frameworks to
+   * indicate programming errors, so stack trace must be printed and not swallowed.
    */
-  @ExceptionHandler({IllegalArgumentException.class, IllegalStateException.class})
+  @ExceptionHandler(IllegalArgumentException.class)
   @ResponseBody
-  public WebMessage handleBadRequestWithLogging(Exception ex) {
+  public WebMessage illegalArgumentExceptionHandler(IllegalArgumentException ex) {
     ex.printStackTrace();
     return badRequest(ex.getMessage());
+  }
+
+  /**
+   * Handles {@link IllegalStateException} and prints the stack trace to standard error. {@link
+   * IllegalArgumentException} is used in DHIS 2 application code but also by various frameworks to
+   * indicate programming errors, so stack trace must be printed and not swallowed.
+   */
+  @ExceptionHandler(IllegalStateException.class)
+  @ResponseBody
+  public WebMessage illegalArgumentExceptionHandler(IllegalStateException ex) {
+    ex.printStackTrace();
+    return conflict(ex.getMessage());
   }
 
   @ExceptionHandler(MetadataVersionException.class)

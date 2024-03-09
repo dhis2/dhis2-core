@@ -153,7 +153,7 @@ class TrackedEntityInstanceQueryTests extends DeprecatedTrackerApiTest {
         .get("?ouMode=ACCESSIBLE&query=LIKE:value&program=jDnjGYZFkA2")
         .validate()
         .statusCode(409)
-        .body("status", equalTo("CONFLICT"))
+        .body("status", equalTo("ERROR"))
         .body("httpStatusCode", equalTo(409));
   }
 
