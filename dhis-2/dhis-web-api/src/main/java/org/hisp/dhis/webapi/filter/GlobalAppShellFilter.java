@@ -66,9 +66,7 @@ public class GlobalAppShellFilter extends OncePerRequestFilter {
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain chain)
       throws IOException, ServletException {
-    log.info(String.format("Global App Shell filter: %s", request.getRequestURI()));
     if (!appManager.exists(GLOBAL_APP_SHELL_APP_NAME)) {
-      log.info("No global app shell installed");
       chain.doFilter(request, response);
       return;
     }
@@ -81,7 +79,7 @@ public class GlobalAppShellFilter extends OncePerRequestFilter {
         && (queryString == null || !queryString.contains("redirect=false"))) {
       String appName = m.group(1);
       response.sendRedirect("/apps/" + appName);
-      log.info(String.format("Redirecting to %s", appName));
+      log.debug(String.format("Redirecting to global shell"));
       return;
     } else if (path.startsWith("/apps/")) {
       if (GLOBAL_APP_SHELL_PATTERN.matcher(path).matches()) {
@@ -90,7 +88,7 @@ public class GlobalAppShellFilter extends OncePerRequestFilter {
           return;
         }
         // Return index.html for all index.html or directory root requests
-        log.info("Serving global shell");
+        log.debug("Serving global shell");
         RequestDispatcher dispatcher =
             getServletContext()
                 .getRequestDispatcher(
