@@ -34,8 +34,6 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.iterableWithSize;
 import static org.hisp.dhis.helpers.matchers.CustomMatchers.hasToStringContaining;
 import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
-
-import com.google.gson.JsonObject;
 import java.io.File;
 import java.util.Arrays;
 import java.util.stream.Stream;
@@ -56,6 +54,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -153,9 +152,9 @@ class TrackedEntityInstanceQueryTests extends DeprecatedTrackerApiTest {
     trackedEntityInstanceQueryActions
         .get("?ouMode=ACCESSIBLE&query=LIKE:value&program=jDnjGYZFkA2")
         .validate()
-        .statusCode(400)
-        .body("status", equalTo("ERROR"))
-        .body("httpStatusCode", equalTo(400));
+        .statusCode(409)
+        .body("status", equalTo("CONFLICT"))
+        .body("httpStatusCode", equalTo(409));
   }
 
   private String createTei() {
