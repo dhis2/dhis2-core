@@ -237,6 +237,20 @@ public class DateUtils {
   }
 
   /**
+   * Creates a {@link Date} representing the given year, month and day.
+   *
+   * @param year the year.
+   * @param month the month, from 1.
+   * @param dayOfMonth the day of the month, from 1.
+   * @param hourOfDay the hour of day, from 0.
+   * @param minuteOfHour the minute of hour, from 0.
+   * @return a {@link Date}.
+   */
+  public static Date getDate(int year, int month, int dayOfMonth, int hourOfDay, int minuteOfHour) {
+    return new DateTime(year, month, dayOfMonth, hourOfDay, minuteOfHour).toDate();
+  }
+
+  /**
    * Formats a Date according to the HTTP specification standard date format.
    *
    * @param date the Date to format.

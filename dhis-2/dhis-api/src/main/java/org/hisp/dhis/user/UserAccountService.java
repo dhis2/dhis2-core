@@ -28,29 +28,57 @@
 package org.hisp.dhis.user;
 
 import java.io.IOException;
-import java.util.Collection;
 import javax.servlet.http.HttpServletRequest;
-import org.hisp.dhis.common.auth.SelfRegistrationParams;
+import org.hisp.dhis.common.auth.RegistrationParams;
+import org.hisp.dhis.common.auth.UserInviteParams;
+import org.hisp.dhis.common.auth.UserRegistrationParams;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.springframework.security.core.GrantedAuthority;
 
 /**
+ * Service that handles user account activities, e.g. create/update account. The Validation can be
+ * moved somewhere more appropriate when this is revisited.
+ *
  * @author david mackessy
  */
 public interface UserAccountService {
 
-  void createAndAddSelfRegisteredUser(
-      SelfRegistrationParams selfRegForm, HttpServletRequest request);
+  /**
+   * Create a self registered user using some self reg defaults (org unit and user role)
+   *
+   * @param params used to populate the new User
+   * @param request used in the authentication process
+   */
+  void registerUser(UserRegistrationParams params, HttpServletRequest request);
 
-  void validateUserFormInfo(SelfRegistrationParams selfRegForm, HttpServletRequest request)
+  /**
+   * Create an invited user using the restore flow
+   *
+   * @param params used to populate the updated User
+   * @param request used in the authentication process
+   */
+  void confirmUserInvite(UserInviteParams params, HttpServletRequest request)
+      throws BadRequestException;
+
+  /**
+   * Validates a self registered user. Uses specific validation for the self registration flow.
+   *
+   * @param params to validate
+   * @param remoteIpAddress address for recaptcha checking
+   * @throws BadRequestException when validation error
+   * @throws IOException possible when validating recaptcha
+   */
+  void validateUserRegistration(RegistrationParams params, String remoteIpAddress)
       throws BadRequestException, IOException;
 
-  void validateCaptcha(String recapResponse, HttpServletRequest request)
+  /**
+   * Validates an invited registered user. Uses specific validation for the invite registration
+   * flow.
+   *
+   * @param params to validate
+   * @param remoteIpAddress address for recaptcha checking
+   * @throws BadRequestException when validation error
+   * @throws IOException possible when validating recaptcha
+   */
+  void validateInvitedUser(RegistrationParams params, String remoteIpAddress)
       throws BadRequestException, IOException;
-
-  void authenticate(
-      String username,
-      String rawPassword,
-      Collection<GrantedAuthority> authorities,
-      HttpServletRequest request);
 }

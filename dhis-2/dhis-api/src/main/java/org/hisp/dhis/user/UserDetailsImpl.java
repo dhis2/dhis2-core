@@ -29,6 +29,7 @@ package org.hisp.dhis.user;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import lombok.EqualsAndHashCode;
@@ -59,7 +60,7 @@ public class UserDetailsImpl implements UserDetails {
   private Collection<GrantedAuthority> authorities;
   private Set<String> allAuthorities;
   private Set<String> allRestrictions;
-  private Map<String, Serializable> userSettings;
+  private Map<String, Serializable> userSettings = new HashMap<>();
   private Set<String> userGroupIds;
   private Set<String> userOrgUnitIds;
   private boolean isSuper;
