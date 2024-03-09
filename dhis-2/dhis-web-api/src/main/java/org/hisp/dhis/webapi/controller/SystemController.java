@@ -51,6 +51,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.dxf2.telemetry.TelemetryData;
+import org.hisp.dhis.dxf2.telemetry.TelemetryService;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.i18n.I18n;
@@ -107,6 +109,8 @@ public class SystemController {
   @Autowired private StatisticsProvider statisticsProvider;
 
   @Autowired private FieldFilterService fieldFilterService;
+
+  @Autowired private TelemetryService telemetryService;
 
   private static final CsvFactory CSV_FACTORY = new CsvMapper().getFactory();
 
@@ -275,6 +279,11 @@ public class SystemController {
   @GetMapping(value = "/styles", produces = APPLICATION_JSON_VALUE)
   public @ResponseBody List<StyleObject> getStyles() {
     return styleManager.getStyles();
+  }
+
+  @GetMapping(value = "/telemetry", produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody TelemetryData getTelemetryData() {
+    return telemetryService.getTelemetryData();
   }
 
   // -------------------------------------------------------------------------

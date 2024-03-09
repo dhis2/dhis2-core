@@ -117,6 +117,39 @@ class SystemControllerTest extends DhisControllerConvenienceTest {
     assertNotNull(info.getString("serverDate").string());
   }
 
+  @Test
+  void testGetTelemetry() {
+    JsonObject data = GET("/system/telemetry").content();
+    assertObjectMembers(data, 
+      "systemId",
+      "version",
+      "revision",
+      "buildTime",
+
+      // "javaVersion",
+      // "javaVendor",
+      // "osName",
+
+      "readOnlyMode",
+      "readReplicaCount",
+      "encryption",
+      "emailConfigured",
+      "redisEnabled",
+      "isMetadataVersionEnabled",
+      "isMetadataSyncEnabled",
+      "calendar",
+      "dateFormat",
+      
+      "lastAnalyticsTableSuccess",
+      "lastAnalyticsTableRuntime",
+      "lastAnalyticsTablePartitionSuccess",
+      "lastAnalyticsTablePartitionRuntime",
+      "lastMetadataVersionSyncAttempt",
+      
+      "objectCounts",
+      "apps");
+  }
+
   private static void assertObjectMembers(JsonObject root, String... members) {
     for (String member : members) {
       JsonObject memberObj = root.getObject(member);
