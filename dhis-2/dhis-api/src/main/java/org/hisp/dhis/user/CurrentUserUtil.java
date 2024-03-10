@@ -101,6 +101,8 @@ public class CurrentUserUtil {
   /**
    * Returns the {@link CurrentUserDetails} associated with the authentication.
    *
+   * <p>The UID of the user is set on the 'details' property of {@link LdapUserDetailsImpl}.
+   *
    * @param authentication the {@link Authentication}.
    * @return the {@link CurrentUserDetails}.
    */

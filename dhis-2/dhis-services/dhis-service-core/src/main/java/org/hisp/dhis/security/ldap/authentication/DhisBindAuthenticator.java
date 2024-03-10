@@ -36,7 +36,6 @@ import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.ldap.core.support.BaseLdapPathContextSource;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -48,8 +47,8 @@ import org.springframework.security.ldap.userdetails.LdapUserDetailsImpl;
  * will be aborted, otherwise authentication is delegated to Spring BindAuthenticator.
  *
  * <p>The UID of the user is required later when converting the {@link LdapUserDetailsImpl} to
- * {@link CurrentUserDetails}, and is set using the {@link
- * AbstractAuthenticationToken#setDetails(Object)} property.
+ * {@link CurrentUserDetails}, and is set using the 'details' property of the {@link
+ * LdapUserDetailsImpl}.
  *
  * @author Lars Helge Overland
  */
