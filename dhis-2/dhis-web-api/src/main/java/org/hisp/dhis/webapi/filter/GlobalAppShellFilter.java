@@ -57,14 +57,13 @@ public class GlobalAppShellFilter extends OncePerRequestFilter {
   @Autowired
   AppManager appManager;
 
+  public static final String GLOBAL_APP_SHELL_PATH_PREFIX = "/apps/";
   public static final String GLOBAL_APP_SHELL_APP_NAME = "global-app-shell";
 
-  public static final String APP_PATH_PATTERN_STRING = "^/" + "(?:" + AppManager.BUNDLED_APP_PREFIX + "|api/apps/)"
-      + "(\\S+)/(.*)";
+  private static final Pattern APP_PATH_PATTERN = compile("^/" + "(?:" + AppManager.BUNDLED_APP_PREFIX + "|api/apps/)"
+      + "(\\S+)/(.*)");
 
-  public static final Pattern APP_PATH_PATTERN = compile(APP_PATH_PATTERN_STRING);
-
-  public static final Pattern GLOBAL_APP_SHELL_PATTERN = compile("^/apps/([^/.]+)/?$");
+  private static final Pattern GLOBAL_APP_SHELL_PATTERN = compile("^" + GLOBAL_APP_SHELL_PATH_PREFIX + "([^/.]+)/?$");
 
   @Override
   protected void doFilterInternal(
@@ -79,7 +78,8 @@ public class GlobalAppShellFilter extends OncePerRequestFilter {
       return;
     }
 
-    if (serveMatchingAppShellResource(request, response)) {
+    if (request.getRequestURI().startsWith(GLOBAL_APP_SHELL_PATH_PREFIX)) {
+      serveGlobalAppShell(request, response);
       return;
     }
 
@@ -96,17 +96,17 @@ public class GlobalAppShellFilter extends OncePerRequestFilter {
     boolean hasRedirectFalse = queryString == null || !queryString.contains("redirect=false"));
     if (matchesPattern && isIndexPath && hasRedirectFalse) {
       String appName = m.group(1);
-      response.sendRedirect("/apps/" + appName);
+      response.sendRedirect(GLOBAL_APP_SHELL_PATH_PREFIX + appName);
       log.debug("Redirecting to global shell");
       return true;
     }
     return false;
   }
 
-  private boolean serveMatchingAppShellResource(HttpServletRequest request, HttpServletResponse response)
+  private boolean serveGlobalAppShell(HttpServletRequest request, HttpServletResponse response)
       throws IOException, ServletException {
     String path = request.getRequestURI();
-    if (!path.startsWith("/apps/")) {
+    if (!path.startsWith(GLOBAL_APP_SHELL_PATH_PREFIX)) {
       return false;
     }
 
@@ -121,7 +121,7 @@ public class GlobalAppShellFilter extends OncePerRequestFilter {
       return true;
     } else {
       // Serve global app shell resources
-      serveGlobalAppShellResource(request, response, path.substring("/apps/".length()));
+      serveGlobalAppShellResource(request, response, path.substring(GLOBAL_APP_SHELL_PATH_PREFIX.length()));
       return true;
     }
   }
