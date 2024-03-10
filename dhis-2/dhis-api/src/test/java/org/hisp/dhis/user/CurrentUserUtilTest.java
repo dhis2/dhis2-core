@@ -33,7 +33,12 @@ import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.ldap.userdetails.LdapUserDetails;
+import org.springframework.security.ldap.userdetails.LdapUserDetailsImpl;
 
+/**
+ * @author Lars Helge Overland
+ */
 class CurrentUserUtilTest {
   @Test
   void testGetCurrentUserDetailsDefaultPrincipal() {
@@ -52,12 +57,34 @@ class CurrentUserUtilTest {
             false);
 
     UsernamePasswordAuthenticationToken auth =
-        new UsernamePasswordAuthenticationToken(user, "passwd", Set.of());
+        new UsernamePasswordAuthenticationToken(user, user.getPassword(), Set.of());
 
     CurrentUserDetails actual = CurrentUserUtil.getCurrentUserDetails(auth);
 
     assertEquals("teYw4TSyWVw", actual.getUid());
     assertEquals("wakiki", actual.getUsername());
     assertEquals("passwd", actual.getPassword());
+  }
+
+  @Test
+  void testGetCurrentUserDetailsLdapPrincipal() {
+    LdapUserDetailsImpl.Essence essence = new LdapUserDetailsImpl.Essence();
+    essence.setDn("cn=Wakiki Tom,ou=Sierra Leone,ou=People");
+    essence.setUsername("wakiki");
+    essence.setEnabled(true);
+    essence.setAccountNonExpired(true);
+    essence.setAccountNonLocked(true);
+    essence.setAuthorities(Set.of());
+
+    LdapUserDetails user = essence.createUserDetails();
+
+    UsernamePasswordAuthenticationToken auth =
+        new UsernamePasswordAuthenticationToken(user, user.getPassword(), Set.of());
+    auth.setDetails("teYw4TSyWVw"); // Details is used to hold user UID
+
+    CurrentUserDetails actual = CurrentUserUtil.getCurrentUserDetails(auth);
+
+    assertEquals("teYw4TSyWVw", actual.getUid());
+    assertEquals("wakiki", actual.getUsername());
   }
 }
