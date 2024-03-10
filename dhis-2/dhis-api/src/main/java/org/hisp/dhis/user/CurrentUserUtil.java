@@ -106,10 +106,10 @@ public class CurrentUserUtil {
    * @param authentication the {@link Authentication}.
    * @return the {@link CurrentUserDetails}.
    */
-  private static CurrentUserDetails getCurrentUserDetails(Authentication authentication) {
+  static CurrentUserDetails getCurrentUserDetails(Authentication authentication) {
     Object principal = authentication.getPrincipal();
     if (principal instanceof CurrentUserDetails) {
-      return (CurrentUserDetails) authentication.getPrincipal();
+      return (CurrentUserDetails) principal;
     } else if (principal instanceof LdapUserDetails) {
       LdapUserDetailsImpl ldapUserDetails = (LdapUserDetailsImpl) principal;
       Objects.requireNonNull(authentication.getDetails());
