@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.security.ldap.authentication;
 
+import static java.lang.String.format;
+
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserStore;
@@ -63,7 +65,9 @@ public class DhisBindAuthenticator extends BindAuthenticator {
 
     if (user.hasLdapId()) {
       log.debug(
-          "Attemping username/password LDAP authentication for user: '{}'", user.getUsername());
+          "LDAP authentication attempt with username: '{}' and LDAP ID: '{}'",
+          user.getUsername(),
+          user.getLdapId());
       authentication =
           new UsernamePasswordAuthenticationToken(
               user.getLdapId(), authentication.getCredentials());
@@ -74,10 +78,9 @@ public class DhisBindAuthenticator extends BindAuthenticator {
 
   @Override
   public void handleBindException(String userDn, String username, Throwable cause) {
-    log.warn(
-        String.format(
-            "Failed to bind to LDAP host with DN: '%s' for username: '%s'", userDn, username),
-        cause);
+    String message =
+        format("Failed to bind to LDAP host with DN: '%s' and username: '%s'", userDn, username);
+    log.warn(message, cause);
     log.debug("LDAP user bind failed", cause);
   }
 }
