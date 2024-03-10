@@ -44,6 +44,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.google.api.client.http.HttpRequest;
+import com.google.api.client.http.HttpResponse;
+
 /**
  * @author Austin McGee <austin@dhis2.org>
  */
@@ -51,12 +54,13 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @RequiredArgsConstructor
 @Component
 public class GlobalAppShellFilter extends OncePerRequestFilter {
-  @Autowired AppManager appManager;
+  @Autowired
+  AppManager appManager;
 
   public static final String GLOBAL_APP_SHELL_APP_NAME = "global-app-shell";
 
-  public static final String APP_PATH_PATTERN_STRING =
-      "^/" + "(?:" + AppManager.BUNDLED_APP_PREFIX + "|api/apps/)" + "(\\S+)/(.*)";
+  public static final String APP_PATH_PATTERN_STRING = "^/" + "(?:" + AppManager.BUNDLED_APP_PREFIX + "|api/apps/)"
+      + "(\\S+)/(.*)";
 
   public static final Pattern APP_PATH_PATTERN = compile(APP_PATH_PATTERN_STRING);
 
@@ -71,43 +75,64 @@ public class GlobalAppShellFilter extends OncePerRequestFilter {
       return;
     }
 
-    String path = request.getRequestURI();
-    String queryString = request.getQueryString();
-    Matcher m = APP_PATH_PATTERN.matcher(path);
-    if (m.find()
-        && (path.endsWith("/") || path.endsWith("/index.html"))
-        && (queryString == null || !queryString.contains("redirect=false"))) {
-      String appName = m.group(1);
-      response.sendRedirect("/apps/" + appName);
-      log.debug(String.format("Redirecting to global shell"));
+    if (redirectLegacyAppPaths(request, response)) {
       return;
-    } else if (path.startsWith("/apps/")) {
-      if (GLOBAL_APP_SHELL_PATTERN.matcher(path).matches()) {
-        if (path.endsWith("/")) {
-          response.sendRedirect(path.substring(0, path.length() - 1));
-          return;
-        }
-        // Return index.html for all index.html or directory root requests
-        log.debug("Serving global shell");
-        RequestDispatcher dispatcher =
-            getServletContext()
-                .getRequestDispatcher(
-                    String.format("/api/apps/%s/index.html", GLOBAL_APP_SHELL_APP_NAME));
-        dispatcher.forward(request, response);
-        return;
-      } else {
-        // Serve global app shell resources
-        RequestDispatcher dispatcher =
-            getServletContext()
-                .getRequestDispatcher(
-                    String.format(
-                        "/api/apps/%s/%s",
-                        GLOBAL_APP_SHELL_APP_NAME, path.substring("/apps/".length())));
-        dispatcher.forward(request, response);
-        return;
-      }
+    }
+
+    if (serveMatchingAppShellResource(request, response)) {
+      return;
     }
 
     chain.doFilter(request, response);
+  }
+
+  private boolean redirectLegacyAppPaths(HttpServletRequest request, HttpServletResponse response) {
+    String path = request.getRequestURI();
+    String queryString = request.getQueryString();
+    Matcher m = APP_PATH_PATTERN.matcher(path);
+
+    boolean matchesPattern = m.find();
+    boolean isIndexPath = path.endsWith("/") || path.endsWith("/index.html");
+    boolean hasRedirectFalse = queryString == null || !queryString.contains("redirect=false"));
+    if (matchesPattern && isIndexPath && hasRedirectFalse) {
+      String appName = m.group(1);
+      response.sendRedirect("/apps/" + appName);
+      log.debug("Redirecting to global shell");
+      return true;
+    }
+    return false;
+  }
+
+  private boolean serveMatchingAppShellResource(HttpServletRequest request, HttpServletResponse response)
+      throws IOException, ServletException {
+    String path = request.getRequestURI();
+    if (!path.startsWith("/apps/")) {
+      return false;
+    }
+
+    if (GLOBAL_APP_SHELL_PATTERN.matcher(path).matches()) {
+      if (path.endsWith("/")) {
+        response.sendRedirect(path.substring(0, path.length() - 1));
+        return true;
+      }
+      // Return index.html for all index.html or directory root requests
+      log.debug("Serving global shell");
+      serveGlobalAppShellResource(request, response, "index.html");
+      return true;
+    } else {
+      // Serve global app shell resources
+      serveGlobalAppShellResource(request, response, path.substring("/apps/".length()));
+      return true;
+    }
+  }
+
+  private void serveGlobalAppShellResource(HttpServletRequest request, HttpServletResponse response, String resource)
+      throws IOException, ServletException {
+    RequestDispatcher dispatcher = getServletContext()
+        .getRequestDispatcher(
+            String.format(
+                "/api/apps/%s/%s",
+                GLOBAL_APP_SHELL_APP_NAME, resource));
+    dispatcher.forward(request, response);
   }
 }
