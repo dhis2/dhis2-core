@@ -31,12 +31,12 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.ldap.userdetails.LdapUserDetails;
 import org.springframework.security.ldap.userdetails.LdapUserDetailsImpl;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CurrentUserUtil {
@@ -57,8 +57,8 @@ public class CurrentUserUtil {
 
     Object principal = authentication.getPrincipal();
 
-    // String principal implies anonymous authentication, state before user is authenticated
-    
+    // String principal implies anonymous authentication and the state before user is authenticated
+
     if (principal instanceof String) {
       if (!ANONYMOUS_USER.equals(principal)) {
         return null;
@@ -85,8 +85,8 @@ public class CurrentUserUtil {
 
     Object principal = authentication.getPrincipal();
 
-    // String principal implies anonymous authentication, state before user is authenticated
-    
+    // String principal implies anonymous authentication and the state before user is authenticated
+
     if (principal instanceof String) {
       if (!ANONYMOUS_USER.equals(principal)) {
         return null;
