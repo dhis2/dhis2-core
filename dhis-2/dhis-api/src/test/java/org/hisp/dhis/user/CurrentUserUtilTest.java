@@ -80,7 +80,7 @@ class CurrentUserUtilTest {
 
     UsernamePasswordAuthenticationToken auth =
         new UsernamePasswordAuthenticationToken(user, user.getPassword(), Set.of());
-    auth.setDetails("teYw4TSyWVw"); // Details holds the user UID
+    auth.setDetails("teYw4TSyWVw"); // Details is set to the user UID
 
     CurrentUserDetails actual = CurrentUserUtil.getCurrentUserDetails(auth);
 
