@@ -27,22 +27,33 @@
  */
 package org.hisp.dhis.security.ldap.authentication;
 
+import static java.lang.String.format;
+
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.ldap.core.support.BaseLdapPathContextSource;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.ldap.authentication.BindAuthenticator;
+import org.springframework.security.ldap.userdetails.LdapUserDetailsImpl;
 
 /**
  * Authenticator which checks whether LDAP authentication is configured. If not, the authentication
  * will be aborted, otherwise authentication is delegated to Spring BindAuthenticator.
  *
+ * <p>The UID of the user is required later when converting the {@link LdapUserDetailsImpl} to
+ * {@link CurrentUserDetails}, and is set using the {@link
+ * AbstractAuthenticationToken#setDetails(Object)} property.
+ *
  * @author Lars Helge Overland
  */
+@Slf4j
 public class DhisBindAuthenticator extends BindAuthenticator {
   @Autowired private UserService userService;
 
@@ -59,11 +70,25 @@ public class DhisBindAuthenticator extends BindAuthenticator {
     }
 
     if (user.hasLdapId()) {
-      authentication =
+      log.debug(
+          "LDAP authentication attempt with username: '{}' and LDAP ID: '{}'",
+          user.getUsername(),
+          user.getLdapId());
+      UsernamePasswordAuthenticationToken userPasswdToken =
           new UsernamePasswordAuthenticationToken(
               user.getLdapId(), authentication.getCredentials());
+      userPasswdToken.setDetails(user.getUid());
+      authentication = userPasswdToken;
     }
 
     return super.authenticate(authentication);
+  }
+
+  @Override
+  public void handleBindException(String userDn, String username, Throwable cause) {
+    log.warn(
+        format("Failed to bind to LDAP host with DN: '%s' and username: '%s'", userDn, username),
+        cause);
+    log.debug("LDAP user bind failed", cause);
   }
 }

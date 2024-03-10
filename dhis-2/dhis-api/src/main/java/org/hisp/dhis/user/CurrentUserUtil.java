@@ -28,16 +28,25 @@
 package org.hisp.dhis.user;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.ldap.userdetails.LdapUserDetails;
+import org.springframework.security.ldap.userdetails.LdapUserDetailsImpl;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CurrentUserUtil {
-  private CurrentUserUtil() {
-    throw new UnsupportedOperationException("Utility class");
-  }
+  private static final String ANONYMOUS_USER = "anonymousUser";
 
+  /**
+   * Returns the username of the current user.
+   *
+   * @return the username of the current user.
+   */
   public static String getCurrentUsername() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     if (authentication == null
@@ -48,25 +57,25 @@ public class CurrentUserUtil {
 
     Object principal = authentication.getPrincipal();
 
-    // Principal being a string implies anonymous authentication
-    // This is the state before the user is authenticated.
+    /*
+    / Principal being a string implies anonymous authentication. This is the state before the user is authenticated.
+     */
     if (principal instanceof String) {
-      if (!"anonymousUser".equals(principal)) {
+      if (!ANONYMOUS_USER.equals(principal)) {
         return null;
       }
 
       return (String) principal;
     }
 
-    if (principal instanceof UserDetails) {
-      UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-      return userDetails.getUsername();
-    } else {
-      throw new RuntimeException(
-          "Authentication principal is not supported; principal:" + principal);
-    }
+    return getCurrentUserDetails(authentication).getUsername();
   }
 
+  /**
+   * Returns the {@link CurrentUserDetails} representing the current user.
+   *
+   * @return the {@link CurrentUserDetails} representing the current user.
+   */
   public static CurrentUserDetails getCurrentUserDetails() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     if (authentication == null
@@ -77,18 +86,45 @@ public class CurrentUserUtil {
 
     Object principal = authentication.getPrincipal();
 
-    // Principal being a string implies anonymous authentication
-    // This is the state before the user is authenticated.
+    /*
+    / Principal being a string implies anonymous authentication. This is the state before the user is authenticated.
+     */
     if (principal instanceof String) {
-      if (!"anonymousUser".equals(principal)) {
+      if (!ANONYMOUS_USER.equals(principal)) {
         return null;
       }
 
       return null;
     }
 
+    return getCurrentUserDetails(authentication);
+  }
+
+  /**
+   * Returns the {@link CurrentUserDetails} associated with the authentication.
+   *
+   * @param authentication the {@link Authentication}.
+   * @return the {@link CurrentUserDetails}.
+   */
+  private static CurrentUserDetails getCurrentUserDetails(Authentication authentication) {
+    Object principal = authentication.getPrincipal();
     if (principal instanceof CurrentUserDetails) {
       return (CurrentUserDetails) authentication.getPrincipal();
+    } else if (principal instanceof LdapUserDetails) {
+      LdapUserDetailsImpl ldapUserDetails = (LdapUserDetailsImpl) principal;
+      Objects.requireNonNull(authentication.getDetails());
+
+      return CurrentUserDetailsImpl.builder()
+          .uid(String.valueOf(authentication.getDetails()))
+          .username(ldapUserDetails.getUsername())
+          .password(ldapUserDetails.getPassword())
+          .accountNonExpired(ldapUserDetails.isAccountNonExpired())
+          .accountNonLocked(ldapUserDetails.isAccountNonLocked())
+          .credentialsNonExpired(ldapUserDetails.isCredentialsNonExpired())
+          .enabled(ldapUserDetails.isEnabled())
+          .authorities(ldapUserDetails.getAuthorities())
+          .userSettings(new HashMap<>())
+          .build();
     } else {
       throw new RuntimeException(
           "Authentication principal is not supported; principal:" + principal);

@@ -42,9 +42,9 @@ import org.springframework.security.core.GrantedAuthority;
 @Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class CurrentUserDetailsImpl implements CurrentUserDetails {
-  private final String uid;
-
   @EqualsAndHashCode.Include private final String username;
+
+  private final String uid;
 
   private final String password;
 
