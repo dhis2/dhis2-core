@@ -42,7 +42,6 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -846,7 +845,7 @@ public class DefaultUserService implements UserService {
         .userSettings(new HashMap<>())
         .userGroupIds(
             user.getUid() == null
-                ? new HashSet<String>()
+                ? Set.of()
                 : currentUserService.getCurrentUserGroupsInfo(user.getUid()).getUserGroupUIDs())
         .isSuper(user.isSuper())
         .build();
