@@ -57,8 +57,9 @@ public class CurrentUserUtil {
 
     Object principal = authentication.getPrincipal();
 
-    /*
-    / Principal being a string implies anonymous authentication. This is the state before the user is authenticated.
+    /**
+     * Principal being a string implies anonymous authentication. This is the state before the user
+     * is authenticated.
      */
     if (principal instanceof String) {
       if (!ANONYMOUS_USER.equals(principal)) {
@@ -86,8 +87,9 @@ public class CurrentUserUtil {
 
     Object principal = authentication.getPrincipal();
 
-    /*
-    / Principal being a string implies anonymous authentication. This is the state before the user is authenticated.
+    /**
+     * Principal being a string implies anonymous authentication. This is the state before the user
+     * is authenticated.
      */
     if (principal instanceof String) {
       if (!ANONYMOUS_USER.equals(principal)) {
