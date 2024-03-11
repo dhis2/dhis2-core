@@ -51,7 +51,7 @@ public class DefaultUserDetailsService implements UserDetailsService {
       throws UsernameNotFoundException, DataAccessException {
     User user = userService.getUserByUsername(username);
     if (user == null) {
-      throw new UsernameNotFoundException(String.format("Username '%s' not found.", username));
+      throw new UsernameNotFoundException(String.format("Username '%s' not found", username));
     }
 
     return userService.createUserDetails(user);
