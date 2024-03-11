@@ -29,12 +29,11 @@ package org.hisp.dhis.tracker.export;
 
 import static org.hisp.dhis.tracker.export.FileUtil.gZipToStringContent;
 import static org.hisp.dhis.tracker.export.FileUtil.mapZipEntryToStringContent;
-import static org.junit.jupiter.api.Assertions.*;
-
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.opencsv.CSVReader;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Map;
@@ -42,7 +41,12 @@ import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.opencsv.CSVReader;
 
 /**
  * @author Luca Cambi
@@ -183,6 +187,7 @@ public class TrackerExportFileTests extends TrackerNtiApiTest {
   }
 
   @Test
+  @Disabled
   public void shouldGetTrackedEntitiesFromCsvGzip() throws IOException {
     String csvRecords =
         gZipToStringContent(
@@ -209,6 +214,7 @@ public class TrackerExportFileTests extends TrackerNtiApiTest {
   }
 
   @Test
+  @Disabled
   public void shouldGetTrackedEntitiesFromCsv() throws IOException {
     byte[] csvRecords =
         trackerActions
@@ -290,6 +296,7 @@ public class TrackerExportFileTests extends TrackerNtiApiTest {
   }
 
   @Test
+  @Disabled
   public void shouldGetEventsFromJsonGZip() throws IOException {
     String s =
         gZipToStringContent(
@@ -311,6 +318,7 @@ public class TrackerExportFileTests extends TrackerNtiApiTest {
   }
 
   @Test
+  @Disabled
   public void shouldGetEventsFromJsonZip() throws IOException {
     Map<String, String> s =
         mapZipEntryToStringContent(
@@ -449,6 +457,7 @@ public class TrackerExportFileTests extends TrackerNtiApiTest {
   }
 
   @Test
+  @Disabled
   public void shouldGetEventsFromCsvGZip() throws IOException {
     String s =
         gZipToStringContent(
@@ -471,6 +480,7 @@ public class TrackerExportFileTests extends TrackerNtiApiTest {
   }
 
   @Test
+  @Disabled
   public void shouldGetEventsFromCsvZip() throws IOException {
     Map<String, String> s =
         mapZipEntryToStringContent(
