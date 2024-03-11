@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.commons.lang3.time.DateUtils.addYears;
@@ -219,7 +218,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
             + params.getClusterSize()
             + ") ";
 
-    log.debug(format("Analytics event cluster SQL: '%s'", sql));
+    log.debug("Analytics event cluster SQL: '{}'", sql);
 
     SqlRowSet rowSet = queryForRows(sql);
 

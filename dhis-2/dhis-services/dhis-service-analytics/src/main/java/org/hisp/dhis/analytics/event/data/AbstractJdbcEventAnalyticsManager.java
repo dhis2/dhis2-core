@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static java.lang.String.format;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.mapping;
@@ -557,7 +558,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     final String finalSqlValue = sql;
 
-    log.debug("Aggregated event query SQL: '{}'", sql);
+    log.debug(format("Aggregated event query SQL: '%s'", sql));
 
     if (params.analyzeOnly()) {
       withExceptionHandling(
