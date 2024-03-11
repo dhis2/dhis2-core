@@ -48,6 +48,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.persistence.PersistenceException;
 import javax.servlet.ServletException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.exception.ConstraintViolationException;
@@ -112,6 +113,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 @ControllerAdvice
 public class CrudControllerAdvice {
   // Add sensitive exceptions into this array
@@ -331,7 +333,7 @@ public class CrudControllerAdvice {
 
   @ExceptionHandler(Dhis2ClientException.class)
   @ResponseBody
-  public WebMessage dhis2ClientException(Dhis2ClientException ex) {
+  public WebMessage dhis2ClientExceptionHandler(Dhis2ClientException ex) {
     return conflict(ex.getMessage(), ex.getErrorCode());
   }
 
@@ -354,7 +356,7 @@ public class CrudControllerAdvice {
     return conflict(ex.getMessage());
   }
 
-  @ExceptionHandler({DataApprovalException.class, AdxException.class, IllegalStateException.class})
+  @ExceptionHandler({DataApprovalException.class, AdxException.class})
   @ResponseBody
   public WebMessage dataApprovalExceptionHandler(Exception ex) {
     return conflict(ex.getMessage());
@@ -456,14 +458,34 @@ public class CrudControllerAdvice {
     throw ex;
   }
 
-  @ExceptionHandler({
-    IllegalArgumentException.class,
-    SchemaPathException.class,
-    JsonPatchException.class
-  })
+  @ExceptionHandler({SchemaPathException.class, JsonPatchException.class})
   @ResponseBody
   public WebMessage handleBadRequest(Exception exception) {
     return badRequest(exception.getMessage());
+  }
+
+  /**
+   * Handles {@link IllegalArgumentException} and logs the stack trace to standard error. {@link
+   * IllegalArgumentException} is used in DHIS 2 application code but also by various frameworks to
+   * indicate programming errors, so stack trace must be printed and not swallowed.
+   */
+  @ExceptionHandler(IllegalArgumentException.class)
+  @ResponseBody
+  public WebMessage illegalArgumentExceptionHandler(IllegalArgumentException ex) {
+    log.error(IllegalArgumentException.class.getName(), ex);
+    return badRequest(ex.getMessage());
+  }
+
+  /**
+   * Handles {@link IllegalStateException} and logs the stack trace to standard error. {@link
+   * IllegalArgumentException} is used in DHIS 2 application code but also by various frameworks to
+   * indicate programming errors, so stack trace must be printed and not swallowed.
+   */
+  @ExceptionHandler(IllegalStateException.class)
+  @ResponseBody
+  public WebMessage illegalArgumentExceptionHandler(IllegalStateException ex) {
+    log.error(IllegalStateException.class.getName(), ex);
+    return conflict(ex.getMessage());
   }
 
   @ExceptionHandler(MetadataVersionException.class)
@@ -475,25 +497,23 @@ public class CrudControllerAdvice {
 
   @ExceptionHandler(MetadataSyncException.class)
   @ResponseBody
-  public WebMessage handleMetaDataSyncException(MetadataSyncException metadataSyncException) {
-    return error(metadataSyncException.getMessage());
+  public WebMessage handleMetaDataSyncException(MetadataSyncException ex) {
+    return error(ex.getMessage());
   }
 
   @ExceptionHandler(DhisVersionMismatchException.class)
   @ResponseBody
-  public WebMessage handleDhisVersionMismatchException(
-      DhisVersionMismatchException versionMismatchException) {
-    return forbidden(versionMismatchException.getMessage());
+  public WebMessage handleDhisVersionMismatchException(DhisVersionMismatchException ex) {
+    return forbidden(ex.getMessage());
   }
 
   @ExceptionHandler(MetadataImportConflictException.class)
   @ResponseBody
-  public WebMessage handleMetadataImportConflictException(
-      MetadataImportConflictException conflictException) {
-    if (conflictException.getMetadataSyncSummary() == null) {
-      return conflict(conflictException.getMessage());
+  public WebMessage handleMetadataImportConflictException(MetadataImportConflictException ex) {
+    if (ex.getMetadataSyncSummary() == null) {
+      return conflict(ex.getMessage());
     }
-    return conflict(null).setResponse(conflictException.getMetadataSyncSummary());
+    return conflict(null).setResponse(ex.getMetadataSyncSummary());
   }
 
   @ExceptionHandler(OAuth2AuthenticationException.class)
@@ -540,7 +560,7 @@ public class CrudControllerAdvice {
   @ResponseBody
   @ExceptionHandler(Exception.class)
   public WebMessage defaultExceptionHandler(Exception ex) {
-    ex.printStackTrace();
+    log.error(Exception.class.getName(), ex);
     return error(getExceptionMessage(ex));
   }
 
@@ -589,7 +609,7 @@ public class CrudControllerAdvice {
     }
 
     @Override
-    public void setAsText(String text) throws IllegalArgumentException {
+    public void setAsText(String text) {
       setValue(fromText.apply(text));
     }
   }
@@ -602,7 +622,7 @@ public class CrudControllerAdvice {
     }
 
     @Override
-    public void setAsText(String text) throws IllegalArgumentException {
+    public void setAsText(String text) {
       Enum<T> enumValue = EnumUtils.getEnumIgnoreCase(enumClass, text);
 
       if (enumValue == null) {
