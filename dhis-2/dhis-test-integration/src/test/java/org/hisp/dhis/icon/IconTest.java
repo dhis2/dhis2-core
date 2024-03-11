@@ -120,7 +120,6 @@ class IconTest extends TrackerTest {
     operationParams.setSearch("agent");
     List<Icon> icons = iconService.getIcons(operationParams);
 
-    assertThat(icons.size(), is(2));
     Assertions.assertContainsOnly(List.of(icon1, icon2), icons);
   }
 
