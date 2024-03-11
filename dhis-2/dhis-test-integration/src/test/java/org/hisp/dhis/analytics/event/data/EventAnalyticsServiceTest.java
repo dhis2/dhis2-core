@@ -1198,7 +1198,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testEventProgramIndicatorFirstAverageOrgUnit() { //
+  void testEventProgramIndicatorFirstAverageOrgUnit() {
     assertGridContains(
         // Headers
         List.of("pe", "ou", "value"),
