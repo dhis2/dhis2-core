@@ -59,7 +59,7 @@ public class GlobalAppShellFilter extends OncePerRequestFilter {
   private static final Pattern APP_PATH_PATTERN =
       compile("^/" + "(?:" + AppManager.BUNDLED_APP_PREFIX + "|api/apps/)" + "(\\S+)/(.*)");
 
-  private static final Pattern GLOBAL_APP_SHELL_PATTERN =
+  private static final Pattern APP_IN_GLOBAL_SHELL_PATTERN =
       compile("^" + GLOBAL_APP_SHELL_PATH_PREFIX + "([^/.]+)/?$");
 
   @Override
@@ -71,21 +71,21 @@ public class GlobalAppShellFilter extends OncePerRequestFilter {
       return;
     }
 
-    if (redirectLegacyAppPaths(request, response)) {
+    String path = getContextRelativePath(request);
+    if (redirectLegacyAppPaths(request, response, path)) {
       return;
     }
 
-    if (request.getRequestURI().startsWith(GLOBAL_APP_SHELL_PATH_PREFIX)) {
-      serveGlobalAppShell(request, response);
+    if (path.startsWith(GLOBAL_APP_SHELL_PATH_PREFIX)) {
+      serveGlobalAppShell(request, response, path);
       return;
     }
 
     chain.doFilter(request, response);
   }
 
-  private boolean redirectLegacyAppPaths(HttpServletRequest request, HttpServletResponse response)
+  private boolean redirectLegacyAppPaths(HttpServletRequest request, HttpServletResponse response, String path)
       throws IOException {
-    String path = getContextRelativePath(request);
     String queryString = request.getQueryString();
     Matcher m = APP_PATH_PATTERN.matcher(path);
 
@@ -101,27 +101,21 @@ public class GlobalAppShellFilter extends OncePerRequestFilter {
     return false;
   }
 
-  private boolean serveGlobalAppShell(HttpServletRequest request, HttpServletResponse response)
+  private void serveGlobalAppShell(HttpServletRequest request, HttpServletResponse response, String path)
       throws IOException, ServletException {
-    String path = getContextRelativePath(request);
-    if (!path.startsWith(GLOBAL_APP_SHELL_PATH_PREFIX)) {
-      return false;
-    }
 
-    if (GLOBAL_APP_SHELL_PATTERN.matcher(path).matches()) {
+    if (APP_IN_GLOBAL_SHELL_PATTERN.matcher(path).matches()) {
       if (path.endsWith("/")) {
         response.sendRedirect(path.substring(0, path.length() - 1));
-        return true;
+        return;
       }
       // Return index.html for all index.html or directory root requests
       log.debug("Serving global shell");
       serveGlobalAppShellResource(request, response, "index.html");
-      return true;
     } else {
       // Serve global app shell resources
       serveGlobalAppShellResource(
           request, response, path.substring(GLOBAL_APP_SHELL_PATH_PREFIX.length()));
-      return true;
     }
   }
 
