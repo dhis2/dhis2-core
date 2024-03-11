@@ -146,7 +146,7 @@
     <xercesImpl.version>2.12.2</xercesImpl.version>
 
     <!--- Apache jclouds -->
-    <jclouds.version>2.5.0</jclouds.version>
+    <jclouds.version>2.6.0</jclouds.version>
 
     <!-- Reporting -->
     <jasperreports.version>6.20.0</jasperreports.version>
