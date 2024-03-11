@@ -49,6 +49,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.persistence.PersistenceException;
 import javax.servlet.ServletException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.exception.ConstraintViolationException;
@@ -121,6 +122,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 @ControllerAdvice
 public class CrudControllerAdvice {
   // Add sensitive exceptions into this array
@@ -496,26 +498,26 @@ public class CrudControllerAdvice {
   }
 
   /**
-   * Handles {@link IllegalArgumentException} and prints the stack trace to standard error. {@link
+   * Handles {@link IllegalArgumentException} and logs the stack trace to standard error. {@link
    * IllegalArgumentException} is used in DHIS 2 application code but also by various frameworks to
    * indicate programming errors, so stack trace must be printed and not swallowed.
    */
   @ExceptionHandler(IllegalArgumentException.class)
   @ResponseBody
   public WebMessage illegalArgumentExceptionHandler(IllegalArgumentException ex) {
-    ex.printStackTrace();
+    log.error(IllegalArgumentException.class.getName(), ex);
     return badRequest(ex.getMessage());
   }
 
   /**
-   * Handles {@link IllegalStateException} and prints the stack trace to standard error. {@link
+   * Handles {@link IllegalStateException} and logs the stack trace to standard error. {@link
    * IllegalArgumentException} is used in DHIS 2 application code but also by various frameworks to
    * indicate programming errors, so stack trace must be printed and not swallowed.
    */
   @ExceptionHandler(IllegalStateException.class)
   @ResponseBody
   public WebMessage illegalArgumentExceptionHandler(IllegalStateException ex) {
-    ex.printStackTrace();
+    log.error(IllegalStateException.class.getName(), ex);
     return conflict(ex.getMessage());
   }
 
@@ -604,7 +606,7 @@ public class CrudControllerAdvice {
   @ResponseBody
   @ExceptionHandler(Exception.class)
   public WebMessage defaultExceptionHandler(Exception ex) {
-    ex.printStackTrace();
+    log.error(Exception.class.getName(), ex);
     return error(getExceptionMessage(ex));
   }
 
