@@ -28,6 +28,7 @@
 package org.hisp.dhis.security.ldap.authentication;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.lang.String.format;
 
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -35,6 +36,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.ldap.authentication.LdapAuthenticationProvider;
 import org.springframework.security.ldap.authentication.LdapAuthenticator;
 import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
@@ -71,10 +73,15 @@ public class CustomLdapAuthenticationProvider extends LdapAuthenticationProvider
 
     UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
 
+    if (userDetails == null) {
+      String msg =
+          format("Could not find DHIS 2 user account with username: '{}'", user.getUsername());
+      throw new UsernameNotFoundException(msg);
+    }
+
     UsernamePasswordAuthenticationToken result =
         UsernamePasswordAuthenticationToken.authenticated(
             userDetails, user.getPassword(), userDetails.getAuthorities());
-
     result.setDetails(authenticate.getDetails());
 
     return result;
