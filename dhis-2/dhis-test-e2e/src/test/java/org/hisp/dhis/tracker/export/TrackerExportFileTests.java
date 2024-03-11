@@ -46,7 +46,6 @@ import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -188,8 +187,7 @@ public class TrackerExportFileTests extends TrackerNtiApiTest {
   }
 
   @Test
-  @Disabled
-  public void shouldGetTrackedEntitiesFromCsvGzip() throws IOException {
+  void shouldGetTrackedEntitiesFromCsvGzip() throws IOException {
     String csvRecords =
         gZipToStringContent(
             trackerActions
@@ -215,8 +213,7 @@ public class TrackerExportFileTests extends TrackerNtiApiTest {
   }
 
   @Test
-  @Disabled
-  public void shouldGetTrackedEntitiesFromCsv() throws IOException {
+  void shouldGetTrackedEntitiesFromCsv() throws IOException {
     byte[] csvRecords =
         trackerActions
             .getTrackedEntitiesCsv(
@@ -297,13 +294,12 @@ public class TrackerExportFileTests extends TrackerNtiApiTest {
   }
 
   @Test
-  @Disabled
-  public void shouldGetEventsFromJsonGZip() throws IOException {
+  void shouldGetEventsFromJsonGZip() throws IOException {
     String s =
         gZipToStringContent(
             trackerActions
                 .getEventsJsonGZip(
-                    new QueryParamsBuilder().add("events", event).add("fields", "*,relationships"))
+                    new QueryParamsBuilder().add("event", event).add("fields", "*,relationships"))
                 .validate()
                 .statusCode(200)
                 .contentType("application/json+gzip;charset=utf-8")
@@ -319,13 +315,12 @@ public class TrackerExportFileTests extends TrackerNtiApiTest {
   }
 
   @Test
-  @Disabled
-  public void shouldGetEventsFromJsonZip() throws IOException {
+  void shouldGetEventsFromJsonZip() throws IOException {
     Map<String, String> s =
         mapZipEntryToStringContent(
             trackerActions
                 .getEventsJsonZip(
-                    new QueryParamsBuilder().add("events", event).add("fields", "*,relationships"))
+                    new QueryParamsBuilder().add("event", event).add("fields", "*,relationships"))
                 .validate()
                 .statusCode(200)
                 .contentType("application/json+zip;charset=utf-8")
@@ -458,12 +453,11 @@ public class TrackerExportFileTests extends TrackerNtiApiTest {
   }
 
   @Test
-  @Disabled
-  public void shouldGetEventsFromCsvGZip() throws IOException {
+  void shouldGetEventsFromCsvGZip() throws IOException {
     String s =
         gZipToStringContent(
             trackerActions
-                .getEventsCsvGZip(new QueryParamsBuilder().add("events", event))
+                .getEventsCsvGZip(new QueryParamsBuilder().add("event", event))
                 .validate()
                 .statusCode(200)
                 .contentType("application/csv+gzip;charset=utf-8")
@@ -481,12 +475,11 @@ public class TrackerExportFileTests extends TrackerNtiApiTest {
   }
 
   @Test
-  @Disabled
-  public void shouldGetEventsFromCsvZip() throws IOException {
+  void shouldGetEventsFromCsvZip() throws IOException {
     Map<String, String> s =
         mapZipEntryToStringContent(
             trackerActions
-                .getEventsCsvZip(new QueryParamsBuilder().add("events", event))
+                .getEventsCsvZip(new QueryParamsBuilder().add("event", event))
                 .validate()
                 .statusCode(200)
                 .contentType("application/csv+zip;charset=utf-8")
