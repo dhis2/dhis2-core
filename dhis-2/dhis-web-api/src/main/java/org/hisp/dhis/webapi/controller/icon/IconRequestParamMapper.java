@@ -31,7 +31,7 @@ import com.google.common.collect.ImmutableMap;
 import java.util.ArrayList;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.icon.IconOperationParams;
+import org.hisp.dhis.icon.IconQueryParams;
 import org.hisp.dhis.icon.IconTypeFilter;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
@@ -49,10 +49,10 @@ public class IconRequestParamMapper {
           .put(IconTypeFilter.CUSTOM, Boolean.TRUE)
           .build();
 
-  public IconOperationParams map(IconRequestParams iconRequestParams) throws BadRequestException {
+  public IconQueryParams map(IconRequestParams iconRequestParams) throws BadRequestException {
 
     validateRequestParams(iconRequestParams);
-    IconOperationParams operationParams = new IconOperationParams();
+    IconQueryParams operationParams = new IconQueryParams();
     operationParams.setKeywords(
         iconRequestParams.getKeywords() != null
             ? iconRequestParams.getKeywords()
@@ -64,7 +64,8 @@ public class IconRequestParamMapper {
     operationParams.setLastUpdatedStartDate(iconRequestParams.getLastUpdatedStartDate());
     operationParams.setLastUpdatedEndDate(iconRequestParams.getLastUpdatedEndDate());
     operationParams.setPaging(iconRequestParams.isPaging());
-    operationParams.setCustom(TYPE_MAPPER.getOrDefault(iconRequestParams.getType(), null));
+    operationParams.setIncludeCustomIcon(
+        TYPE_MAPPER.getOrDefault(iconRequestParams.getType(), null));
     operationParams.setSearch(iconRequestParams.getSearch());
 
     return operationParams;

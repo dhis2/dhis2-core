@@ -66,7 +66,7 @@ public class JdbcIconStore implements IconStore {
   private final FileResourceStore fileResourceStore;
 
   @Override
-  public long count(IconOperationParams params) {
+  public long count(IconQueryParams params) {
     String sql = """
      select count(*) from icon c
                       """;
@@ -142,7 +142,7 @@ public class JdbcIconStore implements IconStore {
   }
 
   @Override
-  public List<Icon> getIcons(IconOperationParams params) {
+  public List<Icon> getIcons(IconQueryParams params) {
     String sql =
         """
               select c.iconkey as iconkey, c.description as icondescription, c.keywords as keywords, c.created as created, c.lastupdated as lastupdated,
@@ -165,7 +165,7 @@ public class JdbcIconStore implements IconStore {
   }
 
   private String buildIconQuery(
-      IconOperationParams params, String sql, MapSqlParameterSource parameterSource) {
+      IconQueryParams params, String sql, MapSqlParameterSource parameterSource) {
     SqlHelper hlp = new SqlHelper(true);
 
     if (params.hasLastUpdatedStartDate()) {
@@ -197,7 +197,7 @@ public class JdbcIconStore implements IconStore {
     if (params.hasCustom()) {
       sql += hlp.whereAnd() + " c.custom = :custom ";
 
-      parameterSource.addValue("custom", params.getCustom(), Types.BOOLEAN);
+      parameterSource.addValue("custom", params.getIncludeCustomIcon(), Types.BOOLEAN);
     }
 
     if (params.hasKeywords()) {

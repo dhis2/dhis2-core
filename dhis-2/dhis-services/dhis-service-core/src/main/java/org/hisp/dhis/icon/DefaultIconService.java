@@ -70,13 +70,13 @@ public class DefaultIconService implements IconService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<Icon> getIcons(IconOperationParams params) {
+  public List<Icon> getIcons(IconQueryParams params) {
     return iconStore.getIcons(params);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public long count(IconOperationParams params) {
+  public long count(IconQueryParams params) {
     return iconStore.count(params);
   }
 
@@ -93,7 +93,7 @@ public class DefaultIconService implements IconService {
 
   @Override
   @Transactional(readOnly = true)
-  public Resource getIconResource(String key) throws NotFoundException {
+  public Resource getDefaultIconResource(String key) throws NotFoundException {
     if (iconExists(key)) {
       return new ClassPathResource(String.format("%s/%s.%s", ICON_PATH, key, DefaultIcon.SUFFIX));
     }

@@ -89,7 +89,7 @@ class IconTest extends TrackerTest {
     try {
       iconService.addIcon(icon);
     } catch (NotFoundException | BadRequestException | SQLException e) {
-      log.error("Icon creation failed");
+      log.error("Icon creation failed", e);
     }
   }
 
@@ -101,7 +101,7 @@ class IconTest extends TrackerTest {
   @Test
   void shouldGetIconDataWhenKeyBelongsToIcon() throws NotFoundException {
 
-    assertNotNull(iconService.getIconResource(Key));
+    assertNotNull(iconService.getDefaultIconResource(Key));
   }
 
   @Test
@@ -116,7 +116,7 @@ class IconTest extends TrackerTest {
     iconService.addIcon(icon1);
     iconService.addIcon(icon2);
 
-    IconOperationParams operationParams = new IconOperationParams();
+    IconQueryParams operationParams = new IconQueryParams();
     operationParams.setSearch("agent");
     List<Icon> icons = iconService.getIcons(operationParams);
 
@@ -216,7 +216,8 @@ class IconTest extends TrackerTest {
   @Test
   void shouldFailWhenGettingIconDataOfNonDefaultIcon() {
     Exception exception =
-        assertThrows(NotFoundException.class, () -> iconService.getIconResource("madeUpIconKey"));
+        assertThrows(
+            NotFoundException.class, () -> iconService.getDefaultIconResource("madeUpIconKey"));
 
     assertEquals("No Icon found with key madeUpIconKey.", exception.getMessage());
   }
@@ -239,7 +240,8 @@ class IconTest extends TrackerTest {
     String nonExistingKey = "non-existent-Key";
 
     Exception exception =
-        assertThrows(NotFoundException.class, () -> iconService.getIconResource(nonExistingKey));
+        assertThrows(
+            NotFoundException.class, () -> iconService.getDefaultIconResource(nonExistingKey));
 
     assertEquals(
         String.format("No Icon found with key %s.", nonExistingKey), exception.getMessage());

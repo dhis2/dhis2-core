@@ -55,7 +55,7 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.icon.DefaultIcon;
 import org.hisp.dhis.icon.Icon;
-import org.hisp.dhis.icon.IconOperationParams;
+import org.hisp.dhis.icon.IconQueryParams;
 import org.hisp.dhis.icon.IconService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
@@ -113,17 +113,17 @@ public class IconController {
   @GetMapping
   public @ResponseBody PaginatedIconResponse getAllIcons(IconRequestParams iconRequestParams)
       throws BadRequestException {
-    IconOperationParams iconOperationParams = iconRequestParamMapper.map(iconRequestParams);
+    IconQueryParams iconQueryParams = iconRequestParamMapper.map(iconRequestParams);
 
     Pager pager = null;
 
     if (iconRequestParams.isPaging()) {
-      long total = iconService.count(iconOperationParams);
+      long total = iconService.count(iconQueryParams);
       pager = new Pager(iconRequestParams.getPage(), total, iconRequestParams.getPageSize());
-      iconOperationParams.setPager(pager);
+      iconQueryParams.setPager(pager);
     }
 
-    List<Icon> icons = iconService.getIcons(iconOperationParams);
+    List<Icon> icons = iconService.getIcons(iconQueryParams);
 
     icons.forEach(
         i ->
@@ -229,7 +229,7 @@ public class IconController {
 
   private void downloadDefaultIcon(String key, HttpServletResponse response)
       throws IOException, NotFoundException {
-    Resource icon = iconService.getIconResource(key);
+    Resource icon = iconService.getDefaultIconResource(key);
 
     response.setHeader("Cache-Control", CacheControl.maxAge(TTL, TimeUnit.DAYS).getHeaderValue());
     response.setContentType(MediaType.SVG_UTF_8.toString());

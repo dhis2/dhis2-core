@@ -42,7 +42,7 @@ import org.hisp.dhis.common.Pager;
  */
 @Data
 @NoArgsConstructor
-public class IconOperationParams {
+public class IconQueryParams {
 
   private List<String> keys = new ArrayList<>();
   private List<String> keywords = new ArrayList<>();
@@ -50,7 +50,7 @@ public class IconOperationParams {
   private Date createdEndDate;
   private Date lastUpdatedStartDate;
   private Date lastUpdatedEndDate;
-  private Boolean custom = null;
+  private Boolean includeCustomIcon = null;
   private String search;
   private boolean paging = true;
   private Pager pager = new Pager();
@@ -80,7 +80,7 @@ public class IconOperationParams {
   }
 
   public boolean hasCustom() {
-    return custom != null;
+    return includeCustomIcon != null;
   }
 
   public boolean hasSearch() {

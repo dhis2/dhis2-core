@@ -54,20 +54,20 @@ public interface IconStore {
   void update(Icon icon) throws SQLException;
 
   /**
-   * Get the count of Icons based on filters provided in {@link IconOperationParams}
+   * Get the count of Icons based on filters provided in {@link IconQueryParams}
    *
    * @param params filters
    * @return total count
    */
-  long count(IconOperationParams params);
+  long count(IconQueryParams params);
 
   /**
-   * Get list of Icons based on filters provided in {@link IconOperationParams}
+   * Get list of Icons based on filters provided in {@link IconQueryParams}
    *
    * @param params filters to build query
    * @return list of Icons
    */
-  List<Icon> getIcons(IconOperationParams params);
+  List<Icon> getIcons(IconQueryParams params);
 
   /**
    * Returns an icon that contains a given key

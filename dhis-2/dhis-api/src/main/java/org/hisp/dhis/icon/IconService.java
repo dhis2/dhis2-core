@@ -40,20 +40,20 @@ import org.springframework.core.io.Resource;
 public interface IconService {
 
   /**
-   * Get the count of Icons based on filters provided in {@link IconOperationParams}
+   * Get the count of Icons based on filters provided in {@link IconQueryParams}
    *
    * @param params filters
    * @return total count
    */
-  long count(IconOperationParams params);
+  long count(IconQueryParams params);
 
   /**
-   * Get list of Icons based on filters provided in {@link IconOperationParams}
+   * Get list of Icons based on filters provided in {@link IconQueryParams}
    *
    * @param params filters to build query
    * @return list of Icons
    */
-  List<Icon> getIcons(IconOperationParams params);
+  List<Icon> getIcons(IconQueryParams params);
 
   /**
    * Gets the icon associated to a key, if it exists
@@ -71,7 +71,7 @@ public interface IconService {
    * @return the icon resource
    * @throws NotFoundException if no default icon exists with the provided key
    */
-  Resource getIconResource(String key) throws NotFoundException;
+  Resource getDefaultIconResource(String key) throws NotFoundException;
 
   /**
    * Checks whether an icon with a given key exists, either default or custom
