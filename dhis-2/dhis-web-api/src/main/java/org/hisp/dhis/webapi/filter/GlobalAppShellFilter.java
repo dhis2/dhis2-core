@@ -44,9 +44,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.google.api.client.http.HttpRequest;
-import com.google.api.client.http.HttpResponse;
-
 /**
  * @author Austin McGee <austin@dhis2.org>
  */
@@ -54,16 +51,16 @@ import com.google.api.client.http.HttpResponse;
 @RequiredArgsConstructor
 @Component
 public class GlobalAppShellFilter extends OncePerRequestFilter {
-  @Autowired
-  AppManager appManager;
+  @Autowired AppManager appManager;
 
   public static final String GLOBAL_APP_SHELL_PATH_PREFIX = "/apps/";
   public static final String GLOBAL_APP_SHELL_APP_NAME = "global-app-shell";
 
-  private static final Pattern APP_PATH_PATTERN = compile("^/" + "(?:" + AppManager.BUNDLED_APP_PREFIX + "|api/apps/)"
-      + "(\\S+)/(.*)");
+  private static final Pattern APP_PATH_PATTERN =
+      compile("^/" + "(?:" + AppManager.BUNDLED_APP_PREFIX + "|api/apps/)" + "(\\S+)/(.*)");
 
-  private static final Pattern GLOBAL_APP_SHELL_PATTERN = compile("^" + GLOBAL_APP_SHELL_PATH_PREFIX + "([^/.]+)/?$");
+  private static final Pattern GLOBAL_APP_SHELL_PATTERN =
+      compile("^" + GLOBAL_APP_SHELL_PATH_PREFIX + "([^/.]+)/?$");
 
   @Override
   protected void doFilterInternal(
@@ -86,14 +83,15 @@ public class GlobalAppShellFilter extends OncePerRequestFilter {
     chain.doFilter(request, response);
   }
 
-  private boolean redirectLegacyAppPaths(HttpServletRequest request, HttpServletResponse response) {
+  private boolean redirectLegacyAppPaths(HttpServletRequest request, HttpServletResponse response)
+      throws IOException {
     String path = request.getRequestURI();
     String queryString = request.getQueryString();
     Matcher m = APP_PATH_PATTERN.matcher(path);
 
     boolean matchesPattern = m.find();
     boolean isIndexPath = path.endsWith("/") || path.endsWith("/index.html");
-    boolean hasRedirectFalse = queryString == null || !queryString.contains("redirect=false"));
+    boolean hasRedirectFalse = queryString == null || !queryString.contains("redirect=false");
     if (matchesPattern && isIndexPath && hasRedirectFalse) {
       String appName = m.group(1);
       response.sendRedirect(GLOBAL_APP_SHELL_PATH_PREFIX + appName);
@@ -121,18 +119,19 @@ public class GlobalAppShellFilter extends OncePerRequestFilter {
       return true;
     } else {
       // Serve global app shell resources
-      serveGlobalAppShellResource(request, response, path.substring(GLOBAL_APP_SHELL_PATH_PREFIX.length()));
+      serveGlobalAppShellResource(
+          request, response, path.substring(GLOBAL_APP_SHELL_PATH_PREFIX.length()));
       return true;
     }
   }
 
-  private void serveGlobalAppShellResource(HttpServletRequest request, HttpServletResponse response, String resource)
+  private void serveGlobalAppShellResource(
+      HttpServletRequest request, HttpServletResponse response, String resource)
       throws IOException, ServletException {
-    RequestDispatcher dispatcher = getServletContext()
-        .getRequestDispatcher(
-            String.format(
-                "/api/apps/%s/%s",
-                GLOBAL_APP_SHELL_APP_NAME, resource));
+    RequestDispatcher dispatcher =
+        getServletContext()
+            .getRequestDispatcher(
+                String.format("/api/apps/%s/%s", GLOBAL_APP_SHELL_APP_NAME, resource));
     dispatcher.forward(request, response);
   }
 }
