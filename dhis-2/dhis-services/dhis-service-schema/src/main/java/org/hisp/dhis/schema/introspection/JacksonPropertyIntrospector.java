@@ -28,6 +28,7 @@
 package org.hisp.dhis.schema.introspection;
 
 import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.system.util.AnnotationUtils.getAnnotation;
@@ -339,7 +340,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector {
     List<Method> methods =
         findMethods(type, m -> m.getParameterCount() == 0).stream()
             .filter(m -> getAnnotation(m, JsonProperty.class) != null)
-            .toList();
+            .collect(toList());
     for (var method : methods) {
       JsonProperty jsonProperty = findAnnotation(method, JsonProperty.class);
 

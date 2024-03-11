@@ -39,8 +39,6 @@ import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.IndirectTransactional;
-import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
@@ -74,7 +72,6 @@ public class DefaultGatewayAdministrationService implements GatewayAdministratio
   }
 
   @Override
-  @IndirectTransactional
   public void setDefaultGateway(SmsGatewayConfig config) {
     SmsConfiguration configuration = getSmsConfiguration();
 
@@ -87,20 +84,16 @@ public class DefaultGatewayAdministrationService implements GatewayAdministratio
   }
 
   @Override
-  @IndirectTransactional
   public boolean addGateway(SmsGatewayConfig config) {
     if (config == null) {
       return false;
-    }
-    SmsGatewayConfig persisted = smsConfigurationManager.checkInstanceOfGateway(config.getClass());
-
-    if (persisted != null) {
-      return true;
     }
 
     config.setUid(CodeGenerator.generateCode(10));
 
     SmsConfiguration smsConfiguration = getSmsConfiguration();
+    if (smsConfiguration.getGateways().stream().anyMatch(c -> c.getClass() == config.getClass()))
+      return false;
 
     config.setDefault(smsConfiguration.getGateways().isEmpty());
 
@@ -122,7 +115,6 @@ public class DefaultGatewayAdministrationService implements GatewayAdministratio
   }
 
   @Override
-  @IndirectTransactional
   public void updateGateway(
       @CheckForNull SmsGatewayConfig persisted, @CheckForNull SmsGatewayConfig updated)
       throws NotFoundException, ConflictException {
@@ -143,14 +135,17 @@ public class DefaultGatewayAdministrationService implements GatewayAdministratio
       updated.setPassword(pbeStringEncryptor.encrypt(updated.getPassword()));
     }
 
-    if (persisted instanceof ClickatellGatewayConfig from
-        && updated instanceof ClickatellGatewayConfig to
-        && to.getAuthToken() == null) {
-      to.setAuthToken(from.getAuthToken());
+    if (persisted instanceof ClickatellGatewayConfig
+        && updated instanceof ClickatellGatewayConfig) {
+      ClickatellGatewayConfig from = (ClickatellGatewayConfig) persisted;
+      ClickatellGatewayConfig to = (ClickatellGatewayConfig) updated;
+      if (to.getAuthToken() == null) to.setAuthToken(from.getAuthToken());
     }
 
-    if (persisted instanceof GenericHttpGatewayConfig from
-        && updated instanceof GenericHttpGatewayConfig to) {
+    if (persisted instanceof GenericHttpGatewayConfig
+        && updated instanceof GenericHttpGatewayConfig) {
+      GenericHttpGatewayConfig from = (GenericHttpGatewayConfig) persisted;
+      GenericHttpGatewayConfig to = (GenericHttpGatewayConfig) updated;
       Map<String, GenericGatewayParameter> oldParamsByKey =
           from.getParameters().stream().collect(toMap(GenericGatewayParameter::getKey, identity()));
 
@@ -182,7 +177,6 @@ public class DefaultGatewayAdministrationService implements GatewayAdministratio
   }
 
   @Override
-  @IndirectTransactional
   public boolean removeGatewayByUid(String uid) {
     SmsConfiguration smsConfiguration = getSmsConfiguration();
 
@@ -202,7 +196,6 @@ public class DefaultGatewayAdministrationService implements GatewayAdministratio
   }
 
   @Override
-  @IndirectTransactional
   public SmsGatewayConfig getByUid(String uid) {
     return getSmsConfiguration().getGateways().stream()
         .filter(gw -> gw.getUid().equals(uid))
@@ -211,7 +204,6 @@ public class DefaultGatewayAdministrationService implements GatewayAdministratio
   }
 
   @Override
-  @IndirectTransactional
   public SmsGatewayConfig getDefaultGateway() {
     return getSmsConfiguration().getGateways().stream()
         .filter(SmsGatewayConfig::isDefault)
@@ -220,13 +212,11 @@ public class DefaultGatewayAdministrationService implements GatewayAdministratio
   }
 
   @Override
-  @IndirectTransactional
   public boolean hasDefaultGateway() {
     return getDefaultGateway() != null;
   }
 
   @Override
-  @NonTransactional
   public boolean hasGateways() {
     return hasGateways.get();
   }

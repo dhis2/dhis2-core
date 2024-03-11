@@ -31,7 +31,6 @@ import static java.util.stream.Collectors.toMap;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +41,7 @@ import lombok.Setter;
 @Setter
 @JsonTypeName("http")
 public class GenericHttpGatewayConfig extends SmsGatewayConfig {
-  @Serial private static final long serialVersionUID = 6340853488475760213L;
+  private static final long serialVersionUID = 6340853488475760213L;
 
   @JsonProperty private String configurationTemplate;
   @JsonProperty private boolean useGet;

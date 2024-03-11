@@ -28,7 +28,6 @@
 package org.hisp.dhis.sms.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
@@ -43,7 +42,7 @@ import lombok.Setter;
 @Setter
 @Deprecated
 public class GenericHttpGetGatewayConfig extends SmsGatewayConfig {
-  @Serial private static final long serialVersionUID = 6340853488475760213L;
+  private static final long serialVersionUID = 6340853488475760213L;
 
   @JsonProperty private String messageParameter;
   @JsonProperty private String recipientParameter;

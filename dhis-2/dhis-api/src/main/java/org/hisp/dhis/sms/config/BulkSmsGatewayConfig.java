@@ -29,14 +29,13 @@ package org.hisp.dhis.sms.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import java.io.Serial;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
 @JsonTypeName("bulksms")
 public class BulkSmsGatewayConfig extends SmsGatewayConfig {
-  @Serial private static final long serialVersionUID = 5249703354480948250L;
+  private static final long serialVersionUID = 5249703354480948250L;
 
   @Override
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)

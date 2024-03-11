@@ -29,7 +29,6 @@ package org.hisp.dhis.sms.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import java.io.Serial;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -40,7 +39,7 @@ import lombok.Setter;
 @Setter
 @JsonTypeName("clickatell")
 public class ClickatellGatewayConfig extends SmsGatewayConfig {
-  @Serial private static final long serialVersionUID = -4286107769356591957L;
+  private static final long serialVersionUID = -4286107769356591957L;
 
   @JsonProperty private String authToken;
 }

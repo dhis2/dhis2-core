@@ -28,7 +28,6 @@
 package org.hisp.dhis.sms.config;
 
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.stereotype.Component;
@@ -41,30 +40,12 @@ public class DefaultSmsConfigurationManager implements SmsConfigurationManager {
   private final SystemSettingManager settings;
 
   @Override
-  @IndirectTransactional
   public SmsConfiguration getSmsConfiguration() {
     return settings.getSystemSetting(SettingKey.SMS_CONFIG, SmsConfiguration.class);
   }
 
   @Override
-  @IndirectTransactional
   public void updateSmsConfiguration(SmsConfiguration config) {
     settings.saveSystemSetting(SettingKey.SMS_CONFIG, config);
-  }
-
-  @Override
-  public SmsGatewayConfig checkInstanceOfGateway(Class<?> clazz) {
-    if (getSmsConfiguration() == null) {
-      SmsConfiguration smsConfig = new SmsConfiguration(true);
-      updateSmsConfiguration(smsConfig);
-    }
-
-    for (SmsGatewayConfig gateway : getSmsConfiguration().getGateways()) {
-      if (gateway.getClass().equals(clazz)) {
-        return gateway;
-      }
-    }
-
-    return null;
   }
 }

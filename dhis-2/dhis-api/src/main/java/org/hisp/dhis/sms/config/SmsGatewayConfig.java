@@ -32,7 +32,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.io.Serial;
 import java.io.Serializable;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -60,7 +59,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public abstract class SmsGatewayConfig implements Serializable {
 
-  @Serial private static final long serialVersionUID = -4288220735161151632L;
+  private static final long serialVersionUID = -4288220735161151632L;
 
   @EqualsAndHashCode.Include @JsonProperty private String uid;
   @JsonProperty private String name;

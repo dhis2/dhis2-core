@@ -28,7 +28,6 @@
 package org.hisp.dhis.sms.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +42,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @XmlRootElement(name = "smsConfiguration")
 public class SmsConfiguration implements Serializable {
-  @Serial private static final long serialVersionUID = 7460688383539123303L;
+  private static final long serialVersionUID = 7460688383539123303L;
 
   @JsonProperty private List<SmsGatewayConfig> gateways = new ArrayList<>();
 }
