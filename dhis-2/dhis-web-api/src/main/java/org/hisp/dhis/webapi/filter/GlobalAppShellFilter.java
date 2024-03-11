@@ -85,7 +85,7 @@ public class GlobalAppShellFilter extends OncePerRequestFilter {
 
   private boolean redirectLegacyAppPaths(HttpServletRequest request, HttpServletResponse response)
       throws IOException {
-    String path = request.getRequestURI();
+    String path = getContextRelativePath(request);
     String queryString = request.getQueryString();
     Matcher m = APP_PATH_PATTERN.matcher(path);
 
@@ -103,7 +103,7 @@ public class GlobalAppShellFilter extends OncePerRequestFilter {
 
   private boolean serveGlobalAppShell(HttpServletRequest request, HttpServletResponse response)
       throws IOException, ServletException {
-    String path = request.getRequestURI();
+    String path = getContextRelativePath(request);
     if (!path.startsWith(GLOBAL_APP_SHELL_PATH_PREFIX)) {
       return false;
     }
@@ -133,5 +133,9 @@ public class GlobalAppShellFilter extends OncePerRequestFilter {
             .getRequestDispatcher(
                 String.format("/api/apps/%s/%s", GLOBAL_APP_SHELL_APP_NAME, resource));
     dispatcher.forward(request, response);
+  }
+
+  private String getContextRelativePath(HttpServletRequest request) {
+    return request.getRequestURI().substring(request.getContextPath().length());
   }
 }
