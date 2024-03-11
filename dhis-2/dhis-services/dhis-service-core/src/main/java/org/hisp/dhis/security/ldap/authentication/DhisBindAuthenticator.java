@@ -28,6 +28,8 @@
 package org.hisp.dhis.security.ldap.authentication;
 
 import static java.lang.String.format;
+
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +39,6 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.ldap.authentication.BindAuthenticator;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Authenticator which checks whether LDAP authentication is configured. If not, the authentication
@@ -73,12 +74,12 @@ public class DhisBindAuthenticator extends BindAuthenticator {
 
     return super.authenticate(authentication);
   }
-  
-@Override
-public void handleBindException(String userDn, String username, Throwable cause) {
-String message =
-    format("Failed to bind to LDAP host with DN: '%s' and username: '%s'", userDn, username);
-log.warn(message, cause);
-log.debug("LDAP user bind failed", cause);
-}
+
+  @Override
+  public void handleBindException(String userDn, String username, Throwable cause) {
+    String message =
+        format("Failed to bind to LDAP host with DN: '%s' and username: '%s'", userDn, username);
+    log.warn(message, cause);
+    log.debug("LDAP user bind failed", cause);
+  }
 }
