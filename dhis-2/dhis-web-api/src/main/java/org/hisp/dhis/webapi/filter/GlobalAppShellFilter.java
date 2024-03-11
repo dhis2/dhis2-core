@@ -84,8 +84,8 @@ public class GlobalAppShellFilter extends OncePerRequestFilter {
     chain.doFilter(request, response);
   }
 
-  private boolean redirectLegacyAppPaths(HttpServletRequest request, HttpServletResponse response, String path)
-      throws IOException {
+  private boolean redirectLegacyAppPaths(
+      HttpServletRequest request, HttpServletResponse response, String path) throws IOException {
     String queryString = request.getQueryString();
     Matcher m = APP_PATH_PATTERN.matcher(path);
 
@@ -101,7 +101,8 @@ public class GlobalAppShellFilter extends OncePerRequestFilter {
     return false;
   }
 
-  private void serveGlobalAppShell(HttpServletRequest request, HttpServletResponse response, String path)
+  private void serveGlobalAppShell(
+      HttpServletRequest request, HttpServletResponse response, String path)
       throws IOException, ServletException {
 
     if (APP_IN_GLOBAL_SHELL_PATTERN.matcher(path).matches()) {
