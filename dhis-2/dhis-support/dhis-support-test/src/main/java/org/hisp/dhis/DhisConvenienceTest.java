@@ -68,6 +68,9 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.config.Configurator;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -207,6 +210,8 @@ import org.hisp.dhis.visualization.Visualization;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
 import org.locationtech.jts.geom.Geometry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -2969,5 +2974,12 @@ public abstract class DhisConvenienceTest {
     entityManager.persist(user);
 
     return user;
+  }
+
+  public static void withDebugLogging(Class<?> klass, Runnable runnable) {
+    Level savedLoggingLevel = LogManager.getLogger(klass).getLevel();
+    Configurator.setLevel(LogManager.getLogger(klass), Level.DEBUG);
+    runnable.run();
+    Configurator.setLevel(LogManager.getLogger(klass), savedLoggingLevel);
   }
 }

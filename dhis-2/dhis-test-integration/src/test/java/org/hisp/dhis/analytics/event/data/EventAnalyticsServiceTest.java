@@ -1167,66 +1167,82 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
   @Test
   void testEventProgramIndicatorFirstSumOrgUnit() {
-    assertGridContains(
-        // Headers
-        List.of("pe", "ou", "value"),
-        // Grid
-        List.of(
-            List.of("201701", "ouabcdefghI", "10.0"), // First of 10, 20
-            List.of("201701", "ouabcdefghJ", "30.0"), // First of 30, 40
-            List.of("201701", "ouabcdefghA", "40.0"), // Sum
-            List.of("201702", "ouabcdefghI", "50.0"), // First of 50, 60
-            List.of("201702", "ouabcdefghJ", "70.0"), // First of 70, 80
-            List.of("201702", "ouabcdefghA", "120.0")), // Sum
-        getTestAggregatedGrid(FIRST));
+    // DEBUG the SQL statement because sometimes fails on Jenkins
+    withDebugLogging(
+        AbstractJdbcEventAnalyticsManager.class,
+        () ->
+            assertGridContains(
+                // Headers
+                List.of("pe", "ou", "value"),
+                // Grid
+                List.of(
+                    List.of("201701", "ouabcdefghI", "10.0"), // First of 10, 20
+                    List.of("201701", "ouabcdefghJ", "30.0"), // First of 30, 40
+                    List.of("201701", "ouabcdefghA", "40.0"), // Sum
+                    List.of("201702", "ouabcdefghI", "50.0"), // First of 50, 60
+                    List.of("201702", "ouabcdefghJ", "70.0"), // First of 70, 80
+                    List.of("201702", "ouabcdefghA", "120.0")), // Sum
+                getTestAggregatedGrid(FIRST)));
   }
 
   @Test
   void testEventProgramIndicatorLastSumOrgUnit() {
-    assertGridContains(
-        // Headers
-        List.of("pe", "ou", "value"),
-        // Grid
-        List.of(
-            List.of("201701", "ouabcdefghI", "20.0"), // Last of 10, 20
-            List.of("201701", "ouabcdefghJ", "40.0"), // Last of 30, 40
-            List.of("201701", "ouabcdefghA", "60.0"), // Sum
-            List.of("201702", "ouabcdefghI", "60.0"), // Last of 50, 60
-            List.of("201702", "ouabcdefghJ", "80.0"), // Last of 70, 80
-            List.of("201702", "ouabcdefghA", "140.0")), // Sum
-        getTestAggregatedGrid(LAST));
+    // DEBUG the SQL statement because previous sometimes fails on Jenkins
+    withDebugLogging(
+        AbstractJdbcEventAnalyticsManager.class,
+        () ->
+            assertGridContains(
+                // Headers
+                List.of("pe", "ou", "value"),
+                // Grid
+                List.of(
+                    List.of("201701", "ouabcdefghI", "20.0"), // Last of 10, 20
+                    List.of("201701", "ouabcdefghJ", "40.0"), // Last of 30, 40
+                    List.of("201701", "ouabcdefghA", "60.0"), // Sum
+                    List.of("201702", "ouabcdefghI", "60.0"), // Last of 50, 60
+                    List.of("201702", "ouabcdefghJ", "80.0"), // Last of 70, 80
+                    List.of("201702", "ouabcdefghA", "140.0")), // Sum
+                getTestAggregatedGrid(LAST)));
   }
 
   @Test
   void testEventProgramIndicatorFirstAverageOrgUnit() {
-    assertGridContains(
-        // Headers
-        List.of("pe", "ou", "value"),
-        // Grid
-        List.of(
-            List.of("201701", "ouabcdefghI", "10.0"), // First of 10, 20
-            List.of("201701", "ouabcdefghJ", "30.0"), // First of 30, 40
-            List.of("201701", "ouabcdefghA", "20.0"), // Average
-            List.of("201702", "ouabcdefghI", "50.0"), // First of 50, 60
-            List.of("201702", "ouabcdefghJ", "70.0"), // First of 70, 80
-            List.of("201702", "ouabcdefghA", "60.0")), // Average
-        getTestAggregatedGrid(FIRST_AVERAGE_ORG_UNIT));
+    // DEBUG the SQL statement because sometimes fails on Jenkins
+    withDebugLogging(
+        AbstractJdbcEventAnalyticsManager.class,
+        () ->
+            assertGridContains(
+                // Headers
+                List.of("pe", "ou", "value"),
+                // Grid
+                List.of(
+                    List.of("201701", "ouabcdefghI", "10.0"), // First of 10, 20
+                    List.of("201701", "ouabcdefghJ", "30.0"), // First of 30, 40
+                    List.of("201701", "ouabcdefghA", "20.0"), // Average
+                    List.of("201702", "ouabcdefghI", "50.0"), // First of 50, 60
+                    List.of("201702", "ouabcdefghJ", "70.0"), // First of 70, 80
+                    List.of("201702", "ouabcdefghA", "60.0")), // Average
+                getTestAggregatedGrid(FIRST_AVERAGE_ORG_UNIT)));
   }
 
   @Test
   void testEventProgramIndicatorLastAverageOrgUnit() {
-    assertGridContains(
-        // Headers
-        List.of("pe", "ou", "value"),
-        // Grid
-        List.of(
-            List.of("201701", "ouabcdefghI", "20.0"), // Last of 10, 20
-            List.of("201701", "ouabcdefghJ", "40.0"), // Last of 30, 40
-            List.of("201701", "ouabcdefghA", "30.0"), // Average
-            List.of("201702", "ouabcdefghI", "60.0"), // Last of 50, 60
-            List.of("201702", "ouabcdefghJ", "80.0"), // Last of 70, 80
-            List.of("201702", "ouabcdefghA", "70.0")), // Average
-        getTestAggregatedGrid(LAST_AVERAGE_ORG_UNIT));
+    // DEBUG the SQL statement because previous sometimes fails on Jenkins
+    withDebugLogging(
+        AbstractJdbcEventAnalyticsManager.class,
+        () ->
+            assertGridContains(
+                // Headers
+                List.of("pe", "ou", "value"),
+                // Grid
+                List.of(
+                    List.of("201701", "ouabcdefghI", "20.0"), // Last of 10, 20
+                    List.of("201701", "ouabcdefghJ", "40.0"), // Last of 30, 40
+                    List.of("201701", "ouabcdefghA", "30.0"), // Average
+                    List.of("201702", "ouabcdefghI", "60.0"), // Last of 50, 60
+                    List.of("201702", "ouabcdefghJ", "80.0"), // Last of 70, 80
+                    List.of("201702", "ouabcdefghA", "70.0")), // Average
+                getTestAggregatedGrid(LAST_AVERAGE_ORG_UNIT)));
   }
 
   @Test

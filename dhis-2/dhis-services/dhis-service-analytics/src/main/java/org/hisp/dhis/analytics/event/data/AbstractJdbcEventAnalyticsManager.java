@@ -557,6 +557,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     final String finalSqlValue = sql;
 
+    log.debug("Aggregated event query SQL: '{}'", sql);
+
     if (params.analyzeOnly()) {
       withExceptionHandling(
           () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), finalSqlValue));
