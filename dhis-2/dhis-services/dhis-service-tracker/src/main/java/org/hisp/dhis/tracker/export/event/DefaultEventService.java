@@ -134,8 +134,7 @@ class DefaultEventService implements EventService {
   }
 
   @Override
-  public Event getEvent(String uid, EventParams eventParams)
-      throws NotFoundException, ForbiddenException {
+  public Event getEvent(String uid, EventParams eventParams) throws NotFoundException {
     Event event = eventService.getEvent(uid);
     if (event == null) {
       throw new NotFoundException(Event.class, uid);
@@ -144,11 +143,11 @@ class DefaultEventService implements EventService {
     return getEvent(event, eventParams);
   }
 
-  public Event getEvent(@Nonnull Event event, EventParams eventParams) throws ForbiddenException {
+  public Event getEvent(@Nonnull Event event, EventParams eventParams) throws NotFoundException {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     List<String> errors = trackerAccessManager.canRead(currentUser, event, false);
     if (!errors.isEmpty()) {
-      throw new ForbiddenException(errors.toString());
+      throw new NotFoundException(Event.class, event.getUid());
     }
 
     Event result = new Event();

@@ -487,12 +487,13 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     trackedEntityTypeA.getSharing().setOwner(superuser);
     manager.updateNoAcl(trackedEntityA);
 
-    BadRequestException ex =
+    NotFoundException ex =
         assertThrows(
-            BadRequestException.class,
+            NotFoundException.class,
             () -> trackedEntityService.getTrackedEntities(operationParams));
     assertContains(
-        "racked entity type is specified but does not exist: " + trackedEntityTypeA.getUid(),
+        String.format(
+            "TrackedEntityType with id %s could not be found.", trackedEntityTypeA.getUid()),
         ex.getMessage());
   }
 
@@ -1500,13 +1501,14 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .user(userWithSearchInAllAuthority)
             .build();
 
-    ForbiddenException ex =
+    NotFoundException ex =
         assertThrows(
-            ForbiddenException.class,
+            NotFoundException.class,
             () -> trackedEntityService.getTrackedEntities(operationParams));
 
     assertContains(
-        String.format("User has no access to program: %s", programC.getUid()), ex.getMessage());
+        String.format("Program with id %s could not be found.", programC.getUid()),
+        ex.getMessage());
   }
 
   @Test

@@ -132,7 +132,8 @@ public class OperationsParamsValidator {
     Program program = programService.getProgram(programUid);
     if (program == null) {
       // TODO We can't tell if this is because the user has no access to the metadata, or it's
-      // because the program uid supplied does not exist
+      // because the program uid supplied does not exist. Do we need to tell the difference?
+      // Also, this is metadata, do we need to be so obscure? Same goes for the exceptions below
       throw new NotFoundException(Program.class, programUid);
     }
 
@@ -189,6 +190,7 @@ public class OperationsParamsValidator {
 
     TrackedEntityType trackedEntityType = trackedEntityTypeService.getTrackedEntityType(uid);
     if (trackedEntityType == null) {
+      // TODO This one and the one below could be left unchanged because this is metadata.
       throw new NotFoundException(TrackedEntityType.class, uid);
     }
 

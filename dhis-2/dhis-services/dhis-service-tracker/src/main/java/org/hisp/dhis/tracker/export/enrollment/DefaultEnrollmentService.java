@@ -88,6 +88,8 @@ class DefaultEnrollmentService
     List<String> errors = trackerAccessManager.canRead(currentUser, enrollment, false);
 
     if (!errors.isEmpty()) {
+      // TODO This one clearly reveals the enrollment exists. Problem is it the returned message
+      // OWNERSHIP_ACCESS_DENIED, might be used by frontend/android
       throw new ForbiddenException(errors.toString());
     }
 
@@ -190,7 +192,7 @@ class DefaultEnrollmentService
 
   @Override
   public List<Enrollment> getEnrollments(EnrollmentOperationParams params)
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws BadRequestException, NotFoundException {
     EnrollmentQueryParams queryParams = paramsMapper.map(params);
 
     return getEnrollments(
@@ -202,7 +204,7 @@ class DefaultEnrollmentService
 
   @Override
   public Page<Enrollment> getEnrollments(EnrollmentOperationParams params, PageParams pageParams)
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws BadRequestException, NotFoundException {
     EnrollmentQueryParams queryParams = paramsMapper.map(params);
 
     Page<Enrollment> enrollmentsPage = enrollmentStore.getEnrollments(queryParams, pageParams);

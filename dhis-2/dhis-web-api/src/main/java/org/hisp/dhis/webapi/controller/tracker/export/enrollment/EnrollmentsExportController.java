@@ -96,7 +96,7 @@ class EnrollmentsExportController {
   @OpenApi.Response(status = Status.OK, value = Page.class)
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   Page<ObjectNode> getEnrollments(EnrollmentRequestParams requestParams)
-      throws BadRequestException, ForbiddenException, NotFoundException {
+      throws BadRequestException, NotFoundException {
     validatePaginationParameters(requestParams);
     EnrollmentOperationParams operationParams = paramsMapper.map(requestParams);
 

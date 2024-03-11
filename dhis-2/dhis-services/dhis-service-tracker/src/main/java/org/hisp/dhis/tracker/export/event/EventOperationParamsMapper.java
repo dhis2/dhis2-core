@@ -158,7 +158,7 @@ class EventOperationParamsMapper {
     ProgramStage programStage = programStageService.getProgramStage(programStageUid);
     if (programStage == null) {
       // TODO We can't tell if this is because the user has no access to the metadata, or it's
-      // because the program uid supplied does not exist
+      // because the program uid supplied does not exist. Do we need to tell the difference?
       throw new NotFoundException(ProgramStage.class, programStageUid);
     }
 

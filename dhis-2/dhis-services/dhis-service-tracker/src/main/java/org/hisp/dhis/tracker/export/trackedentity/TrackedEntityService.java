@@ -51,11 +51,11 @@ public interface TrackedEntityService {
       throws NotFoundException;
 
   TrackedEntity getTrackedEntity(String uid, TrackedEntityParams params, boolean includeDeleted)
-      throws NotFoundException, ForbiddenException;
+      throws NotFoundException;
 
   TrackedEntity getTrackedEntity(
       TrackedEntity trackedEntity, TrackedEntityParams params, boolean includeDeleted)
-      throws ForbiddenException;
+      throws NotFoundException;
 
   TrackedEntity getTrackedEntity(
       String uid, String programIdentifier, TrackedEntityParams params, boolean includeDeleted)

@@ -174,6 +174,7 @@ class TrackedEntityOperationParamsMapper {
       TrackedEntityAttribute tea =
           attributeService.getTrackedEntityAttribute(attributeFilter.getKey());
       if (tea == null) {
+        // TODO Is it fine to leave it like this?
         throw new BadRequestException(
             String.format(
                 "attribute filters are invalid. Tracked entity attribute '%s' does not exist.",
@@ -198,7 +199,7 @@ class TrackedEntityOperationParamsMapper {
             ? getProgramStageFromProgram(program, requestParams.getProgramStageUid())
             : null;
     if (requestParams.getProgramStageUid() != null && ps == null) {
-      // TODO is this one fine?
+      // TODO is this one fine? This is metadata
       throw new BadRequestException(
           "Program does not contain the specified programStage: "
               + requestParams.getProgramStageUid());

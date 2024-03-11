@@ -276,6 +276,17 @@ class AclEventExporterTest extends TrackerTest {
   }
 
   @Test
+  void shouldFailWithNotFoundExceptionWhenUserHasNoAccessToSingleEventData() {
+    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
+
+    NotFoundException exception =
+        assertThrows(
+            NotFoundException.class,
+            () -> eventService.getEvent("ck7DzdxqLqA", new EventParams(false)));
+    assertEquals("Event with id ck7DzdxqLqA could not be found.", exception.getMessage());
+  }
+
+  @Test
   void shouldReturnEventsWhenProgramClosedOuModeSelectedAndOrgUnitInCaptureScope()
       throws ForbiddenException, BadRequestException, NotFoundException {
     injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));

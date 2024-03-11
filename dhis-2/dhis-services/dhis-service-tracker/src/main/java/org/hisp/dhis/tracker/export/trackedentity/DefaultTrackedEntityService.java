@@ -210,8 +210,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
   @Override
   public TrackedEntity getTrackedEntity(
-      String uid, TrackedEntityParams params, boolean includeDeleted)
-      throws NotFoundException, ForbiddenException {
+      String uid, TrackedEntityParams params, boolean includeDeleted) throws NotFoundException {
     TrackedEntity daoTrackedEntity = trackedEntityStore.getByUid(uid);
     addTrackedEntityAudit(daoTrackedEntity, CurrentUserUtil.getCurrentUsername());
     if (daoTrackedEntity == null) {
@@ -242,8 +241,12 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     if (program != null) {
       if (!trackerAccessManager.canRead(currentUser, trackedEntity, program, false).isEmpty()) {
         if (program.getAccessLevel() == AccessLevel.CLOSED) {
+          // TODO I think if we remove this one, front end won't have a way to tell if the user can
+          // break the glass or not
           throw new ForbiddenException(TrackerOwnershipManager.PROGRAM_ACCESS_CLOSED);
         }
+        // TODO I think if we remove this one, front end won't have a way to tell if the user can
+        // break the glass or not
         throw new ForbiddenException(TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED);
       }
 
@@ -276,12 +279,12 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   @Override
   public TrackedEntity getTrackedEntity(
       @Nonnull TrackedEntity trackedEntity, TrackedEntityParams params, boolean includeDeleted)
-      throws ForbiddenException {
+      throws NotFoundException {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     List<String> errors = trackerAccessManager.canRead(currentUser, trackedEntity);
 
     if (!errors.isEmpty()) {
-      throw new ForbiddenException(errors.toString());
+      throw new NotFoundException(TrackedEntity.class, trackedEntity.getUid());
     }
 
     TrackedEntity result = new TrackedEntity();

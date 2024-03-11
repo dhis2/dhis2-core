@@ -275,7 +275,7 @@ class EventsExportController {
       @OpenApi.Param({UID.class, Event.class}) @PathVariable UID uid,
       @OpenApi.Param(value = String[].class) @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM)
           List<FieldPath> fields)
-      throws NotFoundException, ForbiddenException {
+      throws NotFoundException {
     EventParams eventParams = eventsMapper.map(fields);
     Event event = EVENTS_MAPPER.from(eventService.getEvent(uid.getValue(), eventParams));
 

@@ -51,7 +51,7 @@ public interface EventService {
       throws NotFoundException;
 
   /** Get event matching given {@code UID} and params. */
-  Event getEvent(String uid, EventParams eventParams) throws NotFoundException, ForbiddenException;
+  Event getEvent(String uid, EventParams eventParams) throws NotFoundException;
 
   /** Get all events matching given params. */
   List<Event> getEvents(EventOperationParams params)

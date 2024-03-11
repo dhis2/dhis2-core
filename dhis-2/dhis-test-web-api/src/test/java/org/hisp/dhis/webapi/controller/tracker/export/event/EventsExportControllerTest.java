@@ -42,6 +42,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -154,7 +155,7 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest {
   @MethodSource
   void shouldMatchContentTypeAndAttachment_whenEndpointForCompressedEventJsonIsInvoked(
       String url, String expectedContentType, String expectedAttachment, String encoding)
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
 
     when(eventService.getEvents(any())).thenReturn(List.of());
     injectSecurityContextUser(user);

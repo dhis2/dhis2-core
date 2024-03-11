@@ -36,7 +36,6 @@ import java.util.HashSet;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -62,7 +61,7 @@ class EnrollmentOperationParamsMapper {
 
   @Transactional(readOnly = true)
   public EnrollmentQueryParams map(EnrollmentOperationParams operationParams)
-      throws BadRequestException, ForbiddenException, NotFoundException {
+      throws BadRequestException, NotFoundException {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     Program program = paramsValidator.validateProgram(operationParams.getProgramUid(), currentUser);
