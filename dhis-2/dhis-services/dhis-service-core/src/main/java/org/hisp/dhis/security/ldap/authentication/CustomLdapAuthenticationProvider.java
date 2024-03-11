@@ -74,8 +74,7 @@ public class CustomLdapAuthenticationProvider extends LdapAuthenticationProvider
     UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
 
     if (userDetails == null) {
-      String msg =
-          format("Could not find DHIS 2 user account with username: '{}'", user.getUsername());
+      String msg = format("Could not find DHIS 2 user with username: '{}'", user.getUsername());
       throw new UsernameNotFoundException(msg);
     }
 
