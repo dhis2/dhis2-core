@@ -94,7 +94,7 @@ public class GlobalAppShellFilter extends OncePerRequestFilter {
     boolean hasRedirectFalse = queryString == null || !queryString.contains("redirect=false");
     if (matchesPattern && isIndexPath && hasRedirectFalse) {
       String appName = m.group(1);
-      response.sendRedirect(GLOBAL_APP_SHELL_PATH_PREFIX + appName);
+      response.sendRedirect(request.getContextPath() + GLOBAL_APP_SHELL_PATH_PREFIX + appName);
       log.debug("Redirecting to global shell");
       return true;
     }
